@@ -44,5 +44,20 @@ def hypercube_trans(D, lower_bounds, upper_bounds, plausible_lower_bounds=None, 
     elif np.isscalar(logct):
         logct = logct * np.ones((1, D))
 
+
+    # A variable is converted to log scale if all bounds are positive and 
+    # the plausible range spans at least one order of magnitude
+    for i in np.find(np.isnan(logct)):
+        logct[i] = np.all(np.concatenate(lb[i], ub[i], plb[i], pub[i]) > 0) & (pub[i]/plb[i] >= 10)       
+    logct = logct.astype(bool)
+
+    lb[logct] = np.log(lb[logct])
+    ub[logct] = np.log(ub[logct])
+    plb[logct] = np.log(plb[logct])
+    pub[logct] = np.log(pub[logct])
+
+    mu = 0.5 * (plb + pub)
+    gamma = 0.5 * (pub - plb)
+
     
     

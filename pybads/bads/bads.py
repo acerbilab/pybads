@@ -473,7 +473,7 @@ class BADS:
         optim_state["search_mesh_size"] = self.options.get("pollmeshmultiplier")^optim_state["search_size_integer"]
         optim_state["scale"] = 1.
 
-        #TODO transvars
+        # TODO transvars
 
         # Compute transformation of variables
         if self.options.get("nonlinearcaling"):
