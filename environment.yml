@@ -1,0 +1,7 @@
+# run: conda env create --file environment.yml
+name: pybads-dev
+dependencies:
+  - python>=3.8
+  - pip
+  - pip:
+    - -r requirements.txt
