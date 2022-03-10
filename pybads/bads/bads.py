@@ -11,6 +11,7 @@ import numpy as np
 from pybads.function_logger import FunctionLogger
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
+from variables_transformer import hypercube_trans
 
 from .gaussian_process_train import reupdate_gp, train_gp
 from .options import Options
@@ -400,14 +401,14 @@ class BADS:
 
         # Test order of bounds
         ordidx = (
-            (lower_bounds < plausible_lower_bounds)
+            (lower_bounds <= plausible_lower_bounds)
             & (plausible_lower_bounds < plausible_upper_bounds)
-            & (plausible_upper_bounds < upper_bounds)
+            & (plausible_upper_bounds <= upper_bounds)
         )
         if np.any(np.invert(ordidx)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering LB < PLB < PUB < UB."""
+            plausible bounds should respect the ordering LB <= PLB < PUB <= UB."""
             )
 
         # Check that variables are either bounded or unbounded
@@ -430,6 +431,14 @@ class BADS:
                 raise ValueError("bads:NONBCON "
                     + "NONBCON should be a function that takes a matrix X as input"
                     + " and returns a column vector of bound violations.")
+
+        # Gentle warning for infinite bounds
+        ninfs = np.sum(np.isinf(np.concatenate([lower_bounds, upper_bounds])))
+        if ninfs > 0:
+            if ninfs == 2 *D:
+                self.logger.warning("Detected fully unconstrainer optimization.")
+            else:
+                self.logger.warning(f"Detected {ninfs} infinite bound(s).")
 
         return (
             x0,
@@ -472,19 +481,21 @@ class BADS:
         optim_state["mesh_size"] =  self.options.get("pollmeshmultiplier")^mesh_size_int
         optim_state["search_mesh_size"] = self.options.get("pollmeshmultiplier")^optim_state["search_size_integer"]
         optim_state["scale"] = 1.
-
-        # TODO transvars
+        
 
         # Compute transformation of variables
-        if self.options.get("nonlinearcaling"):
+        if self.options['nonlinearscaling']:
             logflag = np.full((1, self.D), np.NaN)
-            periodicvars = self.options.get("periodicvars")
-            if len() != 0:
+            periodicvars = self.options['periodicvars']
+            if periodicvars is not None or len(periodicvars) != 0:
                 logflag[periodicvars] = 0
         else:
             logflag = np.zeros((1, self.D))
-
         
+
+        # TODO: variables transformation, class or not?
+        optim_state.trinfo = hypercube_trans(self.D, self.lower_bounds, self.upper_bounds, self.plausible_lower_bounds, self.plausible_upper_bounds, logflag)
+
 
         optim_state["lb_orig"] = self.lower_bounds
         optim_state["ub_orig"] = self.upper_bounds

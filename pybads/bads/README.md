@@ -6,3 +6,6 @@ These notes are used for keeping track of ToDos and porting information.
 Mesh and poll bounds needed to be defined using force2grid.
 *integervars* (Integer variables index) is not used and not useful in bads.
 
+
+## variables transformer 
+Might introduce a class for holding the information about the parameters transformation.
