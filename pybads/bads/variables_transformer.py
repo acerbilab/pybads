@@ -41,9 +41,9 @@ class VariableTransformer:
 
         # Nonlinear log transform
         if apply_log_t is None:
-            self.apply_log_t = np.full((1, self.D), np.NaN)
+            self.apply_log_t = np.full((1, self.D), np.NaN).astype(bool)
         elif np.isscalar(apply_log_t):
-            self.apply_log_t = self.apply_log_t * np.ones((1, self.D))
+            self.apply_log_t = (self.apply_log_t * np.ones((1, self.D))).astype(bool)
 
         self.ub, self.ub, self.plb, self.pub, self.g, self.z, self.zlog = self.__create_hypercube_trans__()
         
