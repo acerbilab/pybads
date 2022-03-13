@@ -9,9 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pybads.function_logger import FunctionLogger
+from pybads.search.grid_functions import force_to_grid, grid_units
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
-from variables_transformer import hypercube_trans
+from variables_transformer import VariableTransformer
 
 from .gaussian_process_train import reupdate_gp, train_gp
 from .options import Options
@@ -166,9 +167,7 @@ class BADS:
         if not np.all(np.isfinite(self.x0)):
             self.logger.warn('Initial starting point is invalid or not provided.\
                  Starting from center of plausible region.\n')
-            self.x0 = 0.5 * (
-                self.plausible_lower_bounds + self.plausible_upper_bounds
-            )
+            self.x0 = 0.5 * (self.plausible_lower_bounds + self.plausible_upper_bounds)
 
         self.optim_state = self._init_optim_state()
 
@@ -491,41 +490,59 @@ class BADS:
                 logflag[periodicvars] = 0
         else:
             logflag = np.zeros((1, self.D))
-        
+        self.var_transf = VariableTransformer(self.D, self.lower_bounds, self.upper_bounds,
+            self.plausible_lower_bounds, self.plausible_upper_bounds, logflag)
+        #optim_state["variables_trans"] = var_transf
 
-        # TODO: variables transformation, class or not?
-        optim_state.trinfo = hypercube_trans(self.D, self.lower_bounds, self.upper_bounds, self.plausible_lower_bounds, self.plausible_upper_bounds, logflag)
-
+        # Update the bounds with the new transformed bounds
+        self.lower_bounds = self.var_transf.lb
+        self.upper_bounds = self.var_transf.ub
+        self.plausible_lower_bounds = self.var_transf.plb
+        self.plausible_upper_bounds = self.var_transf.pub
 
         optim_state["lb_orig"] = self.lower_bounds
         optim_state["ub_orig"] = self.upper_bounds
         optim_state["plb_orig"] = self.plausible_lower_bounds
         optim_state["pub_orig"] = self.plausible_upper_bounds
-        eps_orig = (self.upper_bounds - self.lower_bounds) * self.options.get(
-            "tolboundx"
-        )
-        # inf - inf raises warning in numpy, but output is correct
-        with np.errstate(invalid="ignore"):
-            optim_state["lb_eps_orig"] = self.lower_bounds + eps_orig
-            optim_state["ub_eps_orig"] = self.upper_bounds - eps_orig
 
-        # Transform variables (Transform of lower_bounds and upper bounds can
-        # create warning but we are aware of this and output is correct)
-        with np.errstate(divide="ignore"):
-            optim_state["lb"] = self.parameter_transformer(self.lower_bounds)
-            optim_state["ub"] = self.parameter_transformer(self.upper_bounds)
-        optim_state["plb"] = self.parameter_transformer(
-            self.plausible_lower_bounds
-        )
-        optim_state["pub"] = self.parameter_transformer(
-            self.plausible_upper_bounds
-        )
+        # Bounds for search mesh
+        lb_search = force_to_grid(self.lower_bounds, optim_state["search_mesh_size"])
+        lb_search[ lb_search < self.lower_bounds] = lb_search[ lb_search < self.lower_bounds] + optim_state["search_mesh_size"]
+        optim_state["lb_search"] = lb_search
+        ub_search = force_to_grid(self.upper_bounds, optim_state["search_mesh_size"])
+        ub_search[ ub_search > self.upper_bounds] = lb_search[ub_search > self.upper_bounds] - optim_state["search_mesh_size"]
+        optim_state["ub_search"] = ub_search
+        
+        # Starting point in grid coordinates
+        u0 =  force_to_grid(grid_units(self.x0, self.var_transf, optim_state["scale"]), optim_state['search_mesh_size'])
+        
+        # Adjust points that fall outside bounds due to gridization
+        u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
+        u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
+        optim_state['u'] = u0
+
+        # Report variable transformation
+        if np.any(self.var_transf.apply_log_t):
+            self.logger.info(f"Variables (index) internally transformed to log coordinates: {np.find(self.var_transf.apply_log_t)}") 
+
+        # Put TOLMESH on space
+        optim_state['tolmesh'] = self.options['pollmeshmultiplier']**(np.ceil(np.log(self.options['tolmesh'] - \
+                self.options['pollmeshmultiplier'])))
+
+        # TODO: Periodic variables, and report it if transformation are applied
+
+        # Setup covariance information (unused)
+
+        # TODO: Import prior function evaluations
+
+
+        #TODO : other simple variables initializations
+
 
         # Before first iteration
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
 
-        
 
         # Proposal function for search
         if self.options.get("proposalfcn") is None:
