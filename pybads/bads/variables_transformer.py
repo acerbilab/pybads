@@ -1,4 +1,5 @@
 import numpy as np
+from pybads.decorators import handle_0D_1D_input
 
 class VariableTransformer:
     """
@@ -140,6 +141,55 @@ class VariableTransformer:
 
         return x
 
+    @handle_0D_1D_input(patched_kwargs=["u"], patched_argpos=[0], return_scalar=True)
+    def log_abs_det_jacobian(self, u: np.ndarray):
+        r"""
+        log_abs_det_jacobian returns the log absolute value of the determinant
+        of the Jacobian of the parameter transformation evaluated at U, that is
+        log \|D \du(g^-1(u))\|
+
+        Parameters
+        ----------
+        u : np.ndarray
+            The points where the log determinant of the Jacobian should be
+            evaluated (in transformed space).
+
+        Returns
+        -------
+        p : np.ndarray
+            The log absolute determinant of the Jacobian.
+        """
+        u_c = np.copy(u)
+
+        # # rotate input (copy array before)
+        # if self.R_mat is not None:
+        #     u_c = u_c * self.R_mat
+        # # rescale input
+        # if scale is not None:
+        #     print(scale)
+
+        p = np.zeros(u_c.shape)
+
+        # Unbounded scalars
+        mask = self.type == 0
+        if np.any(mask):
+            p[:, mask] = np.log(self.delta[mask])[np.newaxis]
+
+        # Lower and upper bounded scalars
+        mask = self.type == 3
+        if np.any(mask):
+            u_c[:, mask] = u_c[:, mask] * self.delta[mask] + self.mu[mask]
+            z = -np.log1p(np.exp(-u_c[:, mask]))
+            p[:, mask] = (
+                np.log(self.ub_orig - self.lb_orig) - u_c[:, mask] + 2 * z
+            )
+            p[:, mask] = p[:, mask] + np.log(self.delta[mask])
+
+        # Scale transform
+        # if scale is not None:
+        #     p + np.log(scale)
+        p = np.sum(p, axis=1)
+        return p
     
 def maskindex (vector, bool_index):
     """

@@ -1,5 +1,5 @@
 import numpy as np
-from pyvbmc.parameter_transformer import ParameterTransformer
+from bads.variables_transformer import VariableTransformer
 from pyvbmc.timer import Timer
 
 
@@ -22,9 +22,9 @@ class FunctionLogger:
         The uncertainty handling level which can be one of
         (0: none; 1: unknown noise level; 2: user-provided noise).
     cache_size : int, optional
-        The initial size of caching table (default 500).
-    parameter_transformer : ParameterTransformer, optional
-        A ParameterTransformer is required to transform the parameters
+        The initial size of caching table (default 500), number of stored function values.
+    variable_transformer : VariableTransformer, optional
+        A VariableTransformer is required to transform the parameters
         between constrained and unconstrained space, by default None.
     """
 
@@ -35,14 +35,14 @@ class FunctionLogger:
         noise_flag: bool,
         uncertainty_handling_level: int,
         cache_size: int = 500,
-        parameter_transformer: ParameterTransformer = None,
+        variable_transformer: VariableTransformer = None,
     ):
         self.fun = fun
         self.D: int = D
         self.noise_flag: bool = noise_flag
         self.uncertainty_handling_level: int = uncertainty_handling_level
-        self.transform_parameters = parameter_transformer is not None
-        self.parameter_transformer = parameter_transformer
+        self.transform_variables = variable_transformer is not None
+        self.variable_transformer = variable_transformer
 
         self.func_count: int = 0
         self.cache_count: int = 0
@@ -57,11 +57,14 @@ class FunctionLogger:
             self.S = np.full([cache_size, 1], np.nan)
 
         self.Xn: int = -1  # Last filled entry
+        self.Xmax = -1
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
         self.fun_evaltime = np.full([cache_size, 1], np.nan)
         self.total_fun_evaltime = 0
+
+        # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
     def __call__(self, x: np.ndarray):
         """
@@ -98,10 +101,8 @@ class FunctionLogger:
             x = np.atleast_1d(x)
         assert x.size == x.shape[0]
         # Convert back to original space
-        if self.transform_parameters:
-            x_orig = self.parameter_transformer.inverse(
-                np.reshape(x, (1, x.shape[0]))
-            )[0]
+        if self.transform_variables:
+            x_orig = self.variable_transformer.inverse_transf(np.reshape(x, (1, x.shape[0])))[0]
         else:
             x_orig = x
 
@@ -159,9 +160,6 @@ class FunctionLogger:
         self.func_count += 1
         fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime)
 
-        # optimstate.N = self.Xn
-        # optimstate.Neff = np.sum(self.nevals[self.X_flag])
-        # optimState.totalfunevaltime = optimState.totalfunevaltime + t;
         return fval, fsd, idx
 
     def add(
@@ -211,8 +209,8 @@ class FunctionLogger:
             x = np.atleast_1d(x)
         assert x.size == x.shape[0]
         # Convert back to original space
-        if self.transform_parameters:
-            x_orig = self.parameter_transformer.inverse(
+        if self.transform_variables:
+            x_orig = self.variable_transformer.inverse(
                 np.reshape(x, (1, x.shape[0]))
             )[0]
         else:
@@ -343,7 +341,8 @@ class FunctionLogger:
             Raise if there is more than one match for a duplicate entry.
         """
         duplicate_flag = self.X == x
-        if np.any(duplicate_flag):
+        # TODO: The duplicate case is not implemented in BADS
+        if np.any(duplicate_flag): 
             if np.sum((duplicate_flag).all(axis=1)) > 1:
                 raise ValueError("More than one match for duplicate entry.")
             idx = np.argwhere(duplicate_flag)[0, 0]
@@ -351,16 +350,14 @@ class FunctionLogger:
             if fsd is not None:
                 tau_n = 1 / self.S[idx] ** 2
                 tau_1 = 1 / fsd ** 2
-                self.y_orig[idx] = (
-                    tau_n * self.y_orig[idx] + tau_1 * fval_orig
-                ) / (tau_n + tau_1)
+                self.y_orig[idx] = (tau_n * self.y_orig[idx] + tau_1 * fval_orig) / (tau_n + tau_1)
                 self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
             else:
                 self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1)
 
             fval = self.y_orig[idx]
-            if self.transform_parameters:
-                fval += self.parameter_transformer.log_abs_det_jacobian(x)
+            if self.transform_variables:
+                fval += self.variable_transformer.log_abs_det_jacobian(x)
             self.y[idx] = fval
             self.fun_evaltime[idx] = (
                 N * self.fun_evaltime[idx] + fun_evaltime
@@ -377,15 +374,16 @@ class FunctionLogger:
                 self.fun_evaltime[self.Xn] = fun_evaltime
                 self.total_fun_evaltime += fun_evaltime
 
+            self.Xmax = np.min([self.Xmax + 1, self.X.shape[0]])
             self.X_orig[self.Xn] = x_orig
             self.X[self.Xn] = x
             self.y_orig[self.Xn] = fval_orig
             fval = fval_orig
-            if self.transform_parameters:
-                fval += self.parameter_transformer.log_abs_det_jacobian(
-                    np.reshape(x, (1, x.shape[0]))
-                )[0]
-            self.y[self.Xn] = fval
+            #if self.transform_variables:
+            #    fval += self.variable_transformer.log_abs_det_jacobian(
+            #        np.reshape(x, (1, x.shape[0]))
+            #    )[0]
+            #self.y[self.Xn] = fval #Not used in bads
             if fsd is not None:
                 self.S[self.Xn] = fsd
             self.X_flag[self.Xn] = True

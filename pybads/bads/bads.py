@@ -10,6 +10,7 @@ import numpy as np
 
 from pybads.function_logger import FunctionLogger
 from pybads.search.grid_functions import force_to_grid, grid_units
+from pybads.search.es_search import es_update
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
 from variables_transformer import VariableTransformer
@@ -175,33 +176,20 @@ class BADS:
             fun=fun,
             D=self.D,
             noise_flag=self.optim_state.get("uncertainty_handling_level") > 0,
-            uncertainty_handling_level=self.optim_state.get(
-                "uncertainty_handling_level"
-            ),
+            uncertainty_handling_level=self.optim_state.get("uncertainty_handling_level"),
             cache_size=self.options.get("cachesize"),
-        )
+            variable_transformer=self.var_transf)
 
+        #TODO: check what to save
         self.iteration_history = IterationHistory(
             [
-                "rindex",
-                "elcbo_impro",
-                "stable",
-                "elbo",
-                "vp",
-                "warmup",
                 "iter",
-                "elbo_sd",
                 "lcbmax",
-                "data_trim_list",
                 "gp",
                 "gp_hyp_full",
                 "Ns_gp",
                 "timer",
                 "optim_state",
-                "sKL",
-                "sKL_true",
-                "pruned",
-                "varss",
                 "func_count",
                 "n_eff",
                 "logging_action",
@@ -327,7 +315,7 @@ class BADS:
             points X0 are not inside the provided hard bounds LB and UB."""
             )
 
-        # % Compute "effective" bounds (slightly inside provided hard bounds)
+        # # Compute "effective" bounds (slightly inside provided hard bounds)
         bounds_range = upper_bounds - lower_bounds
         bounds_range[np.isinf(bounds_range)] = 1e3
         scale_factor = 1e-3
@@ -521,54 +509,93 @@ class BADS:
         u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
         optim_state['u'] = u0
 
+        # Test starting point u0 is within bounds
+        if np.any(u0 > self.upper_bounds or u0 < self.lower_bounds):
+            self.logger.error("Initial starting point u0 is not within the hard bounds LB and UB")
+            raise ValueError(
+                """bads:Initpoint: Initial starting point u0 is not within the hard bounds LB and UB""") 
+
         # Report variable transformation
         if np.any(self.var_transf.apply_log_t):
-            self.logger.info(f"Variables (index) internally transformed to log coordinates: {np.find(self.var_transf.apply_log_t)}") 
+            self.logger.info(f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}") 
 
         # Put TOLMESH on space
         optim_state['tolmesh'] = self.options['pollmeshmultiplier']**(np.ceil(np.log(self.options['tolmesh'] - \
                 self.options['pollmeshmultiplier'])))
 
-        # TODO: Periodic variables, and report it if transformation are applied
+        #Periodic variables
+        idx_periodic_vars = self.options['periodicvars']
+        periodic_vars = np.zeros((1, self.D)).astype(bool)
+        if idx_periodic_vars is not None or len(idx_periodic_vars) != 0:
+            periodic_vars[idx_periodic_vars] = True
+            finite_periodicvars = np.all(np.isfinite(self.lower_bounds[idx_periodic_vars])) and \
+                np.all(np.isfinite(self.upper_bounds[idx_periodic_vars]))
+            if not finite_periodicvars:
+                raise ValueError('bads:InitOptimState:Periodic variables need to have finite lower and upper bounds.')
+            self.logger.info(f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}")
+        self.optim_state['periodicvars'] = periodic_vars
 
         # Setup covariance information (unused)
 
-        # TODO: Import prior function evaluations
+        # Import prior function evaluations
+        fun_values = self.options['funvalues']
+        if fun_values is not None and len(fun_values) != 0:
+            if not fun_values.has_key('X') or not fun_values.has_key('Y'):
+                raise ValueError("""bads:funvalues: The 'FunValue' field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)""")
 
+            X = fun_values['X']
+            Y = fun_values['Y']
+            if len(X) != len(Y):
+                raise ValueError("X and Y arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).")
+            if (not np.all(np.isfinite(X))) or (not np.all(np.isfinite(Y))) or (not np.isreal(X)) or (not np.isreal(Y)):
+                raise ValueError('X and Y arrays need to be finite and real-valued')
+            if len(X) != 0 and X.shape[1] != self.D:
+                raise ValueError('X should be a matrix of tested points with the same dimensionality as X0 (one input point per row).')
+            Y = np.atleast_2d(Y).T
+            if len(Y) != 0 and Y.shape[1] != 1:
+                raise ValueError('Y should be a vertical nd-array (, 1) of function values (one function value per row).')
+            optim_state['X'] = X
+            optim_state['Y'] = Y
+        
+        if fun_values.has_key('S'):
+            S = fun_values['S']
+            if len(S) != len(Y):
+                raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
+            
+            S = np.atleast_2d(S).T
+            if len(S) != 0 and S.shape[1] != 1:
+                raise ValueError('S should be a vertical nd-array (, 1) of estimated function SD values (one SD per row).')
 
-        #TODO : other simple variables initializations
+            optim_state['S'] = S
+            
+        #Other variables initializations
+        optim_state['searchfactor']   =   1
+        optim_state['sdlevel']        = self.options['incumbentsigmamultiplier']
+        optim_state['searchcount']    = self.options['searchntry']       # Skip search at first iteration
+        optim_state['lastreeval']     = -np.inf;                     # Last time function values were re-evaluated
+        optim_state['lastfitgp']      = -np.inf;                     # Last fcn evaluation for which the gp was trained
+        optim_state['meshoverflows']  = 0;                       # Number of attempted mesh expansions when already at maximum size
+
+        # List of points at the end of each iteration
+        optim_state["iterlist"] = dict()
+        optim_state["iterlist"]["u"] = []
+        optim_state["iterlist"]["fval"] = []
+        optim_state["iterlist"]["fsd"] = []
+        optim_state["iterlist"]["fhyp"] = []
+
+        # Create vector of ES weights (only for searchES)
+        es_iter = self.options['nsearchiter']
+        es_mu = self.options['nsearch'] / es_iter
+        es_lambda = es_mu
+        optim_state['es'] = es_update(es_mu, es_lambda)
+
+        # Hedge struct
+        optim_state['search_hedge'] = dict()
 
 
         # Before first iteration
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
-
-
-        # Proposal function for search
-        if self.options.get("proposalfcn") is None:
-            optim_state["proposalfcn"] = "@(x)proposal_bads"
-        else:
-            optim_state["proposalfcn"] = self.options.get("proposalfcn")
-
-        # Start with adaptive sampling
-        optim_state["skip_active_sampling"] = False
-
-        # Running mean and covariance of variational posterior
-        # in transformed space
-        optim_state["run_mean"] = []
-        optim_state["run_cov"] = []
-        # Last time running average was updated
-        optim_state["last_run_avg"] = np.NaN
-
-        # Number of variational components pruned in last iteration
-        optim_state["pruned"] = 0
-
-        # Need to switch from deterministic entropy to stochastic entropy
-        optim_state["entropy_switch"] = self.options.get("entropyswitch")
-
-        # Only use deterministic entropy if D larger than a fixed number
-        if self.D < self.options.get("detentropymind"):
-            optim_state["entropy_switch"] = False
 
         # Tolerance threshold on GP variance (used by some acquisition fcns)
         optim_state["tol_gp_var"] = self.options.get("tolgpvar")
@@ -576,13 +603,6 @@ class BADS:
         # Copy maximum number of fcn. evaluations,
         # used by some acquisition fcns.
         optim_state["max_fun_evals"] = self.options.get("maxfunevals")
-
-        # By default, apply variance-based regularization
-        # to acquisition functions
-        optim_state["variance_regularized_acqfcn"] = True
-
-        # Setup search cache
-        optim_state["search_cache"] = []
 
         # Set uncertainty handling level
         # (0: none; 1: unknown noise level; 2: user-provided noise)
@@ -595,7 +615,7 @@ class BADS:
 
         # Empty hedge struct for acquisition functions
         if self.options.get("acqhedge"):
-            optim_state["hedge"] = []
+            optim_state["acq_hedge"] = dict()
 
         # List of points at the end of each iteration
         optim_state["iterlist"] = dict()
@@ -603,35 +623,6 @@ class BADS:
         optim_state["iterlist"]["fval"] = []
         optim_state["iterlist"]["fsd"] = []
         optim_state["iterlist"]["fhyp"] = []
-
-        optim_state["delta"] = self.options.get("bandwidth") * (
-            optim_state.get("pub") - optim_state.get("plb")
-        )
-
-        # Deterministic entropy approximation lower/upper factor
-        optim_state["entropy_alpha"] = self.options.get("detentropyalpha")
-
-        # Repository of variational solutions (not used in Python)
-        # optim_state["vp_repo"] = []
-
-        # Repeated measurement streak
-        optim_state["repeated_observations_streak"] = 0
-
-        # List of data trimming events
-        optim_state["data_trim_list"] = []
-
-        # Expanding search bounds
-        prange = optim_state.get("pub") - optim_state.get("plb")
-        optim_state["lb_search"] = np.maximum(
-            optim_state.get("plb")
-            - prange * self.options.get("activesearchbound"),
-            optim_state.get("lb"),
-        )
-        optim_state["ub_search"] = np.minimum(
-            optim_state.get("pub")
-            + prange * self.options.get("activesearchbound"),
-            optim_state.get("ub"),
-        )
 
         # Initialize Gaussian process settings
         # Squared exponential kernel with separate length scales
@@ -707,6 +698,9 @@ class BADS:
         hyp_dict = {}
         success_flag = True
 
+        #TODO: Evaluate starting point and initial mesh, determine if function is noisy
+        #[u,yval,fval,isFinished_flag,optimState,displayFormat] = evalinitmesh(u0,funwrapper,optimState,options,prnt)
+
         # set up strings for logging of the iteration
         display_format = self._setup_logging_display_format()
 
@@ -773,7 +767,7 @@ class BADS:
                     # Since we are doing iterations from 0 onwards
                     # instead of from 1 onwards, this should be checking
                     # oddness, not evenness.
-                    if iteration % 2 == 1:
+                    if iteration # 2 == 1:
                         meantemp = self.optim_state.get("gp_meanfun")
                         self.optim_state["gp_meanfun"] = "const"
                         gp_search, Ns_gp, sn2hpd, hyp_dict = train_gp(
