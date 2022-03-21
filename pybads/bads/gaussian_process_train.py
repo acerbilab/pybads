@@ -3,11 +3,10 @@ import math
 import gpyreg as gpr
 import numpy as np
 
-from pyvbmc.function_logger import FunctionLogger
-from pyvbmc.stats import get_hpd
+from pybads.function_logger import FunctionLogger
 
 from .options import Options
-from .iteration_history import IterationHistory
+from pybads.utils.iteration_history import IterationHistory
 
 
 def train_gp(

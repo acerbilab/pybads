@@ -3,7 +3,7 @@ import time
 
 class Timer:
     """
-    A small Timer class used in the context of VBMC.
+    A small Timer class
     """
 
     def __init__(self):

@@ -1,6 +1,6 @@
 import numpy as np
-from bads.variables_transformer import VariableTransformer
-from pyvbmc.timer import Timer
+from pybads.bads.variables_transformer import VariableTransformer
+from pybads.utils.timer import Timer
 
 
 class FunctionLogger:
@@ -379,14 +379,14 @@ class FunctionLogger:
             self.X[self.Xn] = x
             self.y_orig[self.Xn] = fval_orig
             fval = fval_orig
-            #if self.transform_variables:
+            #if self.transform_variables: #Not used in bads
             #    fval += self.variable_transformer.log_abs_det_jacobian(
             #        np.reshape(x, (1, x.shape[0]))
             #    )[0]
-            #self.y[self.Xn] = fval #Not used in bads
+            self.y[self.Xn] = fval 
             if fsd is not None:
                 self.S[self.Xn] = fsd
             self.X_flag[self.Xn] = True
-            self.nevals[self.Xn] = max(1, self.nevals[self.Xn] + 1)
+            self.nevals[self.Xn] = np.maximum(1, self.nevals[self.Xn] + 1)
             self.ymax = np.amax(self.y[self.X_flag])
             return fval, self.Xn

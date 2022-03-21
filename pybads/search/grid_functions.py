@@ -16,11 +16,11 @@ def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None)
 
     if var_trans is not None:
         if len(x) == 1:
-            u = var_trans.direct_transf(x)
+            u = var_trans(x)
         else:
             u = np.zeros(x.shape)
             for i in range(0, len(x)):
-                u[i,:] = var_trans.direct_transf(x[i,:])
+                u[i,:] = var_trans(x[i,:])
 
     else:
         u = (x-x0)/ scale

@@ -4,7 +4,7 @@ import math
 import os
 import sys
 
-import gpyreg as gpr
+#import gpyreg as gpr
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,9 +13,9 @@ from pybads.search.grid_functions import force_to_grid, grid_units
 from pybads.search.es_search import es_update
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
-from variables_transformer import VariableTransformer
+from pybads.bads.variables_transformer import VariableTransformer
 
-from .gaussian_process_train import reupdate_gp, train_gp
+#from .gaussian_process_train import reupdate_gp, train_gp
 from .options import Options
 
 
@@ -95,16 +95,6 @@ class BADS:
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
-        # set up BADS logger
-        self.logger = logging.getLogger("BADS")
-        self.logger.setLevel(logging.INFO)
-        if self.options.get("display") == "off":
-            self.logger.setLevel(logging.WARN)
-        elif self.options.get("display") == "iter":
-            self.logger.setLevel(logging.INFO)
-        elif self.options.get("display") == "full":
-            self.logger.setLevel(logging.DEBUG)
-
         # variable to keep track of logging actions
         self.logging_action = []
         
@@ -129,7 +119,6 @@ class BADS:
             evaluation_parameters={"D": self.D},
             user_options=user_options,
         )
-
         advanced_path = (
             pybads_path + "/option_configs/advanced_bads_options.ini"
         )
@@ -137,8 +126,18 @@ class BADS:
             advanced_path,
             evaluation_parameters={"D": self.D},
         )
-
         self.options.validate_option_names([basic_path, advanced_path])
+
+        # set up BADS logger
+        self.logger = logging.getLogger("BADS")
+        self.logger.setLevel(logging.INFO)
+        if self.options.get("display") == "off":
+            self.logger.setLevel(logging.WARN)
+        elif self.options.get("display") == "iter":
+            self.logger.setLevel(logging.INFO)
+        elif self.options.get("display") == "full":
+            self.logger.setLevel(logging.DEBUG)
+
 
         # Empty LB and UB are Infs
         if lower_bounds is None:
@@ -156,7 +155,7 @@ class BADS:
             self.plausible_upper_bounds,
 
         ) = self._boundscheck(
-            x0,
+            x0.copy(),
             lower_bounds,
             upper_bounds,
             plausible_lower_bounds,
@@ -464,9 +463,9 @@ class BADS:
         # Grid parameters
         mesh_size_int = 0 # Mesh size in log base units
         optim_state["mesh_size_integer"] = mesh_size_int
-        optim_state["search_size_integer"] = np.min(0, mesh_size_int * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
-        optim_state["mesh_size"] =  self.options.get("pollmeshmultiplier")^mesh_size_int
-        optim_state["search_mesh_size"] = self.options.get("pollmeshmultiplier")^optim_state["search_size_integer"]
+        optim_state["search_size_integer"] = np.minimum(0, mesh_size_int * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
+        optim_state["mesh_size"] =  float(self.options.get("pollmeshmultiplier"))**mesh_size_int
+        optim_state["search_mesh_size"] = float(self.options.get("pollmeshmultiplier"))**optim_state["search_size_integer"]
         optim_state["scale"] = 1.
         
 
@@ -478,20 +477,21 @@ class BADS:
                 logflag[periodicvars] = 0
         else:
             logflag = np.zeros((1, self.D))
+
         self.var_transf = VariableTransformer(self.D, self.lower_bounds, self.upper_bounds,
             self.plausible_lower_bounds, self.plausible_upper_bounds, logflag)
         #optim_state["variables_trans"] = var_transf
 
         # Update the bounds with the new transformed bounds
-        self.lower_bounds = self.var_transf.lb
-        self.upper_bounds = self.var_transf.ub
-        self.plausible_lower_bounds = self.var_transf.plb
-        self.plausible_upper_bounds = self.var_transf.pub
+        self.lower_bounds = self.var_transf.lb.copy()
+        self.upper_bounds = self.var_transf.ub.copy()
+        self.plausible_lower_bounds = self.var_transf.plb.copy()
+        self.plausible_upper_bounds = self.var_transf.pub.copy()
 
-        optim_state["lb_orig"] = self.lower_bounds
-        optim_state["ub_orig"] = self.upper_bounds
-        optim_state["plb_orig"] = self.plausible_lower_bounds
-        optim_state["pub_orig"] = self.plausible_upper_bounds
+        optim_state["lb_orig"] = self.var_transf.orig_lb.copy()
+        optim_state["ub_orig"] = self.var_transf.orig_ub.copy()
+        optim_state["plb_orig"] = self.var_transf.orig_plb.copy()
+        optim_state["pub_orig"] = self.var_transf.orig_pub.copy()
 
         # Bounds for search mesh
         lb_search = force_to_grid(self.lower_bounds, optim_state["search_mesh_size"])
@@ -510,7 +510,7 @@ class BADS:
         optim_state['u'] = u0
 
         # Test starting point u0 is within bounds
-        if np.any(u0 > self.upper_bounds or u0 < self.lower_bounds):
+        if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
             self.logger.error("Initial starting point u0 is not within the hard bounds LB and UB")
             raise ValueError(
                 """bads:Initpoint: Initial starting point u0 is not within the hard bounds LB and UB""") 
@@ -520,8 +520,8 @@ class BADS:
             self.logger.info(f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}") 
 
         # Put TOLMESH on space
-        optim_state['tolmesh'] = self.options['pollmeshmultiplier']**(np.ceil(np.log(self.options['tolmesh'] - \
-                self.options['pollmeshmultiplier'])))
+        optim_state['tolmesh'] = self.options['pollmeshmultiplier']**np.ceil(np.log(self.options['tolmesh']) / np.log(self.options['pollmeshmultiplier']))
+                
 
         #Periodic variables
         idx_periodic_vars = self.options['periodicvars']
@@ -533,14 +533,14 @@ class BADS:
             if not finite_periodicvars:
                 raise ValueError('bads:InitOptimState:Periodic variables need to have finite lower and upper bounds.')
             self.logger.info(f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}")
-        self.optim_state['periodicvars'] = periodic_vars
+        optim_state['periodicvars'] = periodic_vars
 
         # Setup covariance information (unused)
 
         # Import prior function evaluations
         fun_values = self.options['funvalues']
         if fun_values is not None and len(fun_values) != 0:
-            if not fun_values.has_key('X') or not fun_values.has_key('Y'):
+            if  'X' not in fun_values or 'Y' not in fun_values:
                 raise ValueError("""bads:funvalues: The 'FunValue' field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)""")
 
             X = fun_values['X']
@@ -557,7 +557,7 @@ class BADS:
             optim_state['X'] = X
             optim_state['Y'] = Y
         
-        if fun_values.has_key('S'):
+        if 'S' in fun_values:
             S = fun_values['S']
             if len(S) != len(Y):
                 raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
@@ -720,549 +720,11 @@ class BADS:
         while not is_finished:
             iteration += 1
             self.optim_state["iter"] = iteration
-            self.optim_state["redo_roto_scaling"] = False
-            vp_old = copy.deepcopy(self.vp)
 
             self.logging_action = []
+            is_finished = True
 
-            if iteration == 0 and self.optim_state["warmup"]:
-                self.logging_action.append("start warm-up")
-
-            # Switch to stochastic entropy towards the end if still
-            # deterministic.
-            if self.optim_state.get("entropy_switch") and (
-                self.function_logger.func_count
-                >= self.optim_state.get("entropy_force_switch")
-                * self.optim_state.get("max_fun_evals")
-            ):
-                self.optim_state["entropy_switch"] = False
-                self.logging_action.append("entropy switch")
-
-            # Missing port: Input warping / reparameterization, line 530-625
-
-            ## Actively sample new points into the training set
-            timer.start_timer("activeSampling")
-
-            if iteration == 0:
-                new_funevals = self.options.get("funevalstart")
-            else:
-                new_funevals = self.options.get("funevalsperiter")
-
-            # Careful with Xn, in MATLAB this condition is > 0
-            # due to 1-based indexing.
-            if self.function_logger.Xn >= 0:
-                self.function_logger.ymax = np.max(
-                    self.function_logger.y[self.function_logger.X_flag]
-                )
-
-            if self.optim_state.get("skipactivesampling"):
-                self.optim_state["skipactivesampling"] = False
-            else:
-                if (
-                    gp is not None
-                    and self.options.get("separatesearchgp")
-                    and not self.options.get("varactivesample")
-                ):
-                    # Train a distinct GP for active sampling
-                    # Since we are doing iterations from 0 onwards
-                    # instead of from 1 onwards, this should be checking
-                    # oddness, not evenness.
-                    if iteration # 2 == 1:
-                        meantemp = self.optim_state.get("gp_meanfun")
-                        self.optim_state["gp_meanfun"] = "const"
-                        gp_search, Ns_gp, sn2hpd, hyp_dict = train_gp(
-                            hyp_dict,
-                            self.optim_state,
-                            self.function_logger,
-                            self.iteration_history,
-                            self.options,
-                            self.plausible_lower_bounds,
-                            self.plausible_upper_bounds,
-                        )
-                        self.optim_state["sn2hpd"] = sn2hpd
-                        self.optim_state["gp_meanfun"] = meantemp
-                    else:
-                        gp_search = gp
-                else:
-                    gp_search = gp
-
-                # Perform active sampling
-                if self.options.get("varactivesample"):
-                    # FIX TIMER HERE IF USING THIS
-                    # [optimState,vp,t_active,t_func] =
-                    # variationalactivesample_bads(optimState,new_funevals,
-                    # funwrapper,vp,vp_old,gp_search,options)
-                    sys.exit("Function currently not supported")
-                else:
-                    self.optim_state["hyp_dict"] = hyp_dict
-                    (
-                        self.function_logger,
-                        self.optim_state,
-                        self.vp,
-                    ) = active_sample(
-                        gp_search,
-                        new_funevals,
-                        self.optim_state,
-                        self.function_logger,
-                        self.iteration_history,
-                        self.vp,
-                        self.options,
-                    )
-                    hyp_dict = self.optim_state["hyp_dict"]
-
-            # Number of training inputs
-            self.optim_state["N"] = self.function_logger.Xn
-            self.optim_state["n_eff"] = np.sum(
-                self.function_logger.nevals[self.function_logger.X_flag]
-            )
-
-            timer.stop_timer("activeSampling")
-
-            ## Train gp
-
-            timer.start_timer("gpTrain")
-
-            gp, Ns_gp, sn2hpd, hyp_dict = train_gp(
-                hyp_dict,
-                self.optim_state,
-                self.function_logger,
-                self.iteration_history,
-                self.options,
-                self.plausible_lower_bounds,
-                self.plausible_upper_bounds,
-            )
-            self.optim_state["sn2hpd"] = sn2hpd
-
-            timer.stop_timer("gpTrain")
-
-            # Check if reached stable sampling regime
-            if (
-                Ns_gp == self.options.get("stablegpsamples")
-                and self.optim_state.get("stop_sampling") == 0
-            ):
-                self.optim_state["stop_sampling"] = self.optim_state.get("N")
-
-            ## Optimize variational parameters
-            timer.start_timer("variationalFit")
-
-            if not self.vp.optimize_mu:
-                # Variational components fixed to training inputs
-                self.vp.mu = gp.X.T
-                Knew = self.vp.mu.shape[1]
-            else:
-                # Update number of variational mixture components
-                Knew = update_K(
-                    self.optim_state, self.iteration_history, self.options
-                )
-
-
-            if self.optim_state.get("recompute_var_post") or (
-                self.options.get("alwaysrefitvarpost")
-            ):
-                # Full optimizations
-                N_slowopts = self.options.get("elbostarts")
-                self.optim_state["recompute_var_post"] = False
-            else:
-                # Only incremental change from previous iteration
-                N_fastopts = math.ceil(
-                    N_fastopts * self.options.get("nselboincr")
-                )
-                N_slowopts = 1
-            # Run optimization of variational parameters
-            self.vp, varss, pruned = optimize_vp(
-                self.options,
-                self.optim_state,
-                self.vp,
-                gp,
-                N_fastopts,
-                N_slowopts,
-                Knew,
-            )
-
-            self.optim_state["vpK"] = self.vp.K
-            # Save current entropy
-            self.optim_state["H"] = self.vp.stats["entropy"]
-
-            # Get real variational posterior (might differ from training posterior)
-            # vp_real = vp.vptrain2real(0, self.options)
-            vp_real = self.vp
-            elbo = vp_real.stats["elbo"]
-            elbo_sd = vp_real.stats["elbo_sd"]
-
-            timer.stop_timer("variationalFit")
-
-            # Finalize iteration
-
-            timer.start_timer("finalize")
-
-            # Compute symmetrized KL-divergence between old and new posteriors
-            Nkl = 1e5
-
-            sKL = max(
-                0,
-                0.5
-                * np.sum(
-                    self.vp.kldiv(
-                        vp2=vp_old,
-                        N=Nkl,
-                        gaussflag=self.options.get("klgauss"),
-                    )
-                ),
-            )
-
-            # Evaluate max LCB of GP prediction on all training inputs
-            fmu, fs2 = gp.predict(gp.X, gp.y, gp.s2, add_noise=False)
-            self.optim_state["lcbmax"] = np.max(
-                fmu - self.options.get("elcboimproweight") * np.sqrt(fs2)
-            )
-
-            # Compare variational posterior's moments with ground truth
-            if (
-                self.options.get("truemean")
-                and self.options.get("truecov")
-                and np.all(np.isfinite(self.options.get("truemean")))
-                and np.all(np.isfinite(self.options.get("truecov")))
-            ):
-                mubar_orig, sigma_orig = vp_real.moments(1e6, True, True)
-
-                kl = kldiv_mvn(
-                    mubar_orig,
-                    sigma_orig,
-                    self.options.get("truemean"),
-                    self.options.get("truecov"),
-                )
-                sKL_true = 0.5 * np.sum(kl)
-            else:
-                sKL_true = None
-
-            # Record moments in transformed space
-            mubar, sigma = self.vp.moments(origflag=False, covflag=True)
-            if len(self.optim_state.get("run_mean")) == 0 or len(
-                self.optim_state.get("run_cov") == 0
-            ):
-                self.optim_state["run_mean"] = mubar.reshape(1, -1)
-                self.optim_state["run_cov"] = sigma
-                self.optim_state["last_run_avg"] = self.optim_state.get("N")
-            else:
-                Nnew = self.optim_state.get("N") - self.optim_state.get(
-                    "last_run_avg"
-                )
-                wRun = self.options.get("momentsrunweight") ** Nnew
-                self.optim_state["run_mean"] = wRun * self.optim_state.get(
-                    "run_mean"
-                ) + (1 - wRun) * mubar.reshape(1, -1)
-                self.optim_state["run_cov"] = (
-                    wRun * self.optim_state.get("run_cov") + (1 - wRun) * sigma
-                )
-                self.optim_state["last_run_avg"] = self.optim_state.get("N")
-
-            timer.stop_timer("finalize")
-            # timer.totalruntime = NaN;   # Update at the end of iteration
-            # timer
-
-            # store current gp in vp
-            self.vp.gp = gp
-
-            iteration_values = {
-                "iter": iteration,
-                "optim_state": self.optim_state,
-                "vp": self.vp,
-                "elbo": elbo,
-                "elbo_sd": elbo_sd,
-                "varss": varss,
-                "sKL": sKL,
-                "sKL_true": sKL_true,
-                "gp": gp,
-                "gp_hyp_full": gp.get_hyperparameters(as_array=True),
-                "Ns_gp": Ns_gp,
-                "pruned": pruned,
-                "timer": timer,
-                "func_count": self.function_logger.func_count,
-                "lcbmax": self.optim_state["lcbmax"],
-                "n_eff": self.optim_state["n_eff"],
-            }
-
-            # Record all useful stats
-            self.iteration_history.record_iteration(
-                iteration_values,
-                iteration,
-            )
-
-            # Check warmup
-            if (
-                self.optim_state.get("iter") > 1
-                and self.optim_state.get("stop_gp_sampling") == 0
-                and not self.optim_state.get("warmup")
-            ):
-                if self._is_gp_sampling_finished():
-                    self.optim_state[
-                        "stop_gp_sampling"
-                    ] = self.optim_state.get("N")
-
-            # Check termination conditions
-            (
-                is_finished,
-                termination_message,
-                success_flag,
-            ) = self._check_termination_conditions()
-
-            # Save stability
-            self.vp.stats["stable"] = self.iteration_history["stable"][
-                iteration
-            ]
-
-            # Check if we are still warming-up
-            if self.optim_state.get("warmup") and iteration > 0:
-                if self.options.get("recomputelcbmax"):
-                    self.optim_state["lcbmax_vec"] = self._recompute_lcbmax().T
-                trim_flag = self._check_warmup_end_conditions()
-                if trim_flag:
-                    self._setup_bads_after_warmup()
-                    # Re-update GP after trimming
-                    gp = reupdate_gp(self.function_logger, gp)
-                if not self.optim_state.get("warmup"):
-                    self.vp.optimize_mu = self.options.get("variablemeans")
-                    self.vp.optimize_weights = self.options.get(
-                        "variableweights"
-                    )
-
-                    # Switch to main algorithm options
-                    # options = options_main
-                    # Reset GP hyperparameter covariance
-                    # hypstruct.runcov = []
-                    hyp_dict["runcov"] = None
-                    # Reset VP repository (not used in python)
-                    self.optim_state["vp_repo"] = []
-
-                    # Re-get acq info
-                    # self.optim_state['acqInfo'] = getAcqInfo(
-                    #    options.SearchAcqFcn
-                    # )
-            # Needs to be below the above block since warmup value can change
-            # in _check_warmup_end_conditions
-            self.iteration_history.record(
-                "warmup", self.optim_state.get("warmup"), iteration
-            )
-
-            # Check and update fitness shaping / output warping threshold
-            if (
-                self.optim_state.get("outwarp_delta") != []
-                and self.optim_state.get("R") is not None
-                and (
-                    self.optim_state.get("R")
-                    < self.options.get("warptolreliability")
-                )
-            ):
-                Xrnd, _ = self.vp.sample(N=int(2e4), origflag=False)
-                ymu, _ = gp.predict(Xrnd, add_noise=True)
-                ydelta = max(
-                    [0, self.function_logger.ymax - np.quantile(ymu, 1e-3)]
-                )
-                if (
-                    ydelta
-                    > self.optim_state.get("outwarp_delta")
-                    * self.options.get("outwarpthreshtol")
-                    and self.optim_state.get("R") is not None
-                    and self.optim_state.get("R") < 1
-                ):
-                    self.optim_state["outwarp_delta"] = self.optim_state.get(
-                        "outwarp_delta"
-                    ) * self.options.get("outwarpthreshmult")
-
-            # Write iteration output
-            # Stopped GP sampling this iteration?
-            if (
-                Ns_gp == self.options["stablegpsamples"]
-                and self.iteration_history["Ns_gp"][max(0, iteration - 1)]
-                > self.options["stablegpsamples"]
-            ):
-                if Ns_gp == 0:
-                    self.logging_action.append("switch to GP opt")
-                else:
-                    self.logging_action.append("stable GP sampling")
-
-            if self.options.get("plot") and iteration > 0:
-                self._log_column_headers()
-
-            if self.optim_state["cache_active"]:
-                self.logger.info(
-                    display_format.format(
-                        iteration,
-                        self.function_logger.func_count,
-                        self.function_logger.cache_count,
-                        elbo,
-                        elbo_sd,
-                        sKL,
-                        self.vp.K,
-                        self.optim_state["R"],
-                        "".join(self.logging_action),
-                    )
-                )
-
-            else:
-                if (
-                    self.optim_state["uncertainty_handling_level"] > 0
-                    and self.options.get("maxrepeatedobservations") > 0
-                ):
-                    self.logger.info(
-                        display_format.format(
-                            iteration,
-                            self.function_logger.func_count,
-                            self.optim_state["N"],
-                            elbo,
-                            elbo_sd,
-                            sKL,
-                            self.vp.K,
-                            self.optim_state["R"],
-                            "".join(self.logging_action),
-                        )
-                    )
-                else:
-                    self.logger.info(
-                        display_format.format(
-                            iteration,
-                            self.function_logger.func_count,
-                            elbo,
-                            elbo_sd,
-                            sKL,
-                            self.vp.K,
-                            self.optim_state["R"],
-                            "".join(self.logging_action),
-                        )
-                    )
-            self.iteration_history.record(
-                "logging_action", self.logging_action, iteration
-            )
-
-            # Plot iteration
-            if self.options.get("plot"):
-                if iteration > 0:
-                    previous_gp = self.iteration_history["vp"][
-                        iteration - 1
-                    ].gp
-                    # find points that are new in this iteration
-                    # (hacky cause numpy only has 1D set diff)
-                    # future fix: active sampling should return the set of
-                    # indices of the added points
-                    highlight_data = np.array(
-                        [
-                            i
-                            for i, x in enumerate(self.vp.gp.X)
-                            if tuple(x) not in set(map(tuple, previous_gp.X))
-                        ]
-                    )
-                else:
-                    highlight_data = None
-
-                if len(self.logging_action) > 0:
-                    title = "BADS iteration {} ({})".format(
-                        iteration, "".join(self.logging_action)
-                    )
-                else:
-                    title = "BADS iteration {}".format(iteration)
-
-                self.vp.plot(
-                    plot_data=True,
-                    highlight_data=highlight_data,
-                    plot_vp_centres=True,
-                    title=title,
-                )
-                plt.show()
-
-        # Pick "best" variational solution to return
-        self.vp, elbo, elbo_sd, idx_best = self.determine_best_vp()
-
-        # Last variational optimization with large number of components
-        self.vp, elbo, elbo_sd, changed_flag = self.finalboost(
-            self.vp, self.iteration_history["gp"][idx_best]
-        )
-
-        if changed_flag:
-            # Recompute symmetrized KL-divergence
-            sKL = max(
-                0,
-                0.5
-                * np.sum(
-                    self.vp.kldiv(
-                        vp2=vp_old,
-                        N=Nkl,
-                        gaussflag=self.options.get("klgauss"),
-                    )
-                ),
-            )
-
-            if self.options.get("plot"):
-                self._log_column_headers()
-
-            if (
-                self.optim_state["uncertainty_handling_level"] > 0
-                and self.options.get("maxrepeatedobservations") > 0
-            ):
-                self.logger.info(
-                    display_format.format(
-                        np.Inf,
-                        self.function_logger.func_count,
-                        self.optim_state["N"],
-                        elbo,
-                        elbo_sd,
-                        sKL,
-                        self.vp.K,
-                        self.iteration_history.get("rindex")[idx_best],
-                        "finalize",
-                    )
-                )
-            else:
-                self.logger.info(
-                    display_format.format(
-                        np.Inf,
-                        self.function_logger.func_count,
-                        elbo,
-                        elbo_sd,
-                        sKL,
-                        self.vp.K,
-                        self.iteration_history.get("rindex")[idx_best],
-                        "finalize",
-                    )
-                )
-
-        # plot final vp:
-        if self.options.get("plot"):
-            self.vp.plot(
-                plot_data=True,
-                highlight_data=highlight_data,
-                plot_vp_centres=True,
-                title="BADS final ({} iterations)".format(iteration),
-            )
-            plt.show()
-
-        # Set exit_flag based on stability (check other things in the future)
-        if not success_flag:
-            if self.vp.stats["stable"]:
-                success_flag = True
-        else:
-            if not self.vp.stats["stable"]:
-                success_flag = False
-
-        # Print final message
-        self.logger.warning(termination_message)
-        self.logger.warning(
-            "Estimated ELBO: {:.3f} +/-{:.3f}.".format(elbo, elbo_sd)
-        )
-        if not success_flag:
-            self.logger.warning(
-                "Caution: Returned variational solution may have"
-                + " not converged."
-            )
-
-        result_dict = self._create_result_dict(idx_best, termination_message)
-
-        return (
-            copy.deepcopy(self.vp),
-            self.vp.stats["elbo"],
-            self.vp.stats["elbo_sd"],
-            success_flag,
-            result_dict,
-        )
+        return
         
     def _create_result_dict(self, idx_best: int, termination_message: str):
         """

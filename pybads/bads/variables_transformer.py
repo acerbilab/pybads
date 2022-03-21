@@ -45,8 +45,10 @@ class VariableTransformer:
             self.apply_log_t = np.full((1, self.D), np.NaN).astype(bool)
         elif np.isscalar(apply_log_t):
             self.apply_log_t = (self.apply_log_t * np.ones((1, self.D))).astype(bool)
+        else:
+            self.apply_log_t = apply_log_t.copy()
 
-        self.ub, self.ub, self.plb, self.pub, self.g, self.z, self.zlog = self.__create_hypercube_trans__()
+        self.lb, self.ub, self.plb, self.pub, self.g, self.z, self.zlog = self.__create_hypercube_trans__()
         
     def __create_hypercube_trans__(self):
         """
@@ -72,18 +74,18 @@ class VariableTransformer:
             'Plausible interval ranges PLB and PUB need to be finite.'
 
         # Check that the order of bounds is respected
-        assert np.all(self.ub <= self.plb and self.plb < self.pub and self.pub <= self.ub), \
+        assert np.all(self.lb <= self.plb) and np.all(self.plb < self.pub) and np.all(self.pub <= self.ub), \
             'Interval bounds needs to respect the order LB <= PLB < PUB <= UB for all coordinates.'
 
 
         # A variable is converted to log scale if all bounds are positive and 
         # the plausible range spans at least one order of magnitude
-        for i in np.find(np.isnan(self.apply_log_t)):
-            self.apply_log_t[i] = np.all(np.concatenate([self.ub[i], self.ub[i], self.plb[i], self.pub[i]]) > 0) \
-                & (self.pub[i]/self.plb[i] >= 10)       
+        for i in np.argwhere(np.isnan(self.apply_log_t)):
+            self.apply_log_t[:, i] = np.all(np.concatenate([self.ub[:, i], self.ub[:, i], self.plb[:, i], self.pub[:, i]]) > 0) \
+                & (self.pub[:, i]/self.plb[:, i] >= 10)       
         self.apply_log_t = self.apply_log_t.astype(bool)
 
-        self.ub[self.apply_log_t] = np.log(self.ub[self.apply_log_t])
+        self.lb[self.apply_log_t] = np.log(self.lb[self.apply_log_t])
         self.ub[self.apply_log_t] = np.log(self.ub[self.apply_log_t])
         self.plb[self.apply_log_t] = np.log(self.plb[self.apply_log_t])
         self.pub[self.apply_log_t] = np.log(self.pub[self.apply_log_t])
@@ -99,7 +101,7 @@ class VariableTransformer:
             g = lambda x: z(x)
             ginv = lambda y: gamma * y + mu
 
-        elif apply_log_t_sum == D:
+        elif apply_log_t_sum == self.D:
             g = lambda x: zlog(x)
             ginv = lambda y: min(np.finfo(np.float64).max, np.exp(gamma * y + mu) )
         else:
@@ -108,35 +110,32 @@ class VariableTransformer:
                         + maskindex(min(np.finfo(np.float64).max, np.exp(gamma * y + mu)), self.apply_log_t)
 
         #check that the transform works correctly in the range
-        lbtest = self.ub.copy()
+        lbtest = self.lb.copy()
         eps = np.spacing(1.0)
-        lbtest[~np.isfinite(self.ub)] = -1/np.sqrt(eps)
+        lbtest[~np.isfinite(self.lb)] = -1/np.sqrt(eps)
         
         ubtest = self.ub.copy()
         ubtest[~np.isfinite(self.ub)] = 1/np.sqrt(eps)
-        ubtest[~np.isfinite(self.ub) and self.apply_log_t] = 1e6
+        ubtest[np.logical_and((~np.isfinite(self.ub)), self.apply_log_t)] = 1e6
 
         numeps = 1e-6 #accepted numerical error
         tests = np.zeros(4)
-        tests[0] = all(abs(ginv(g(lbtest)) - lbtest) < numeps)
-        tests[1] = all(abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = all(abs(ginv(g(self.plb)) - self.plb) < numeps)
-        tests[3] = all(abs(ginv(g(self.pub)) - self.pub) < numeps)
-        assert all(tests), 'Cannot invert the transform to obtain the identity at the provided boundaries.'
+        tests[0] = np.all(abs(ginv(g(lbtest)) - lbtest) < numeps)
+        tests[1] = np.all(abs(ginv(g(ubtest)) - ubtest) < numeps)
+        tests[2] = np.all(abs(ginv(g(self.plb)) - self.plb) < numeps)
+        tests[3] = np.all(abs(ginv(g(self.pub)) - self.pub) < numeps)
+        assert np.all(tests), 'Cannot invert the transform to obtain the identity at the provided boundaries.'
 
         return (g(self.lb), g(self.ub), g(self.plb), g(self.pub), g, z, zlog)
 
-    def direct_transf(self, input):
+    def __call__(self, input: np.ndarray):
         y = self.g(input)
-        y = np.min(np.max(y, self.lb), self.ub) #Force to stay within bounds
-
-        y = y.reshape(input.shape)
-
+        y = np.minimum(np.maximum(y, self.lb), self.ub) #Force to stay within bounds
         return y
 
-    def inverse_transf(self, input) :
+    def inverse_transf(self, input: np.ndarray) :
         x = self.ginv(input)
-        x = min(np.max(x, self.oldlb), self.oldub) # Force to stay within bounds
+        x = np.min(np.max(x, self.oldlb), self.oldub) # Force to stay within bounds
         x = x.reshape(input.shape)
 
         return x
