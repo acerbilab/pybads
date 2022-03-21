@@ -29,6 +29,8 @@ class VariableTransformer:
         if np.isscalar(plb): plb = plb * np.ones((1, D))
         if np.isscalar(pub): pub = pub * np.ones((1, D))
 
+        
+        
         # Save original vectors
         self.orig_ub = ub.copy()
         self.orig_lb = lb.copy()
@@ -40,6 +42,7 @@ class VariableTransformer:
         self.plb = plb
         self.pub = pub
 
+        self.D = D
         # Nonlinear log transform
         if apply_log_t is None:
             self.apply_log_t = np.full((1, self.D), np.NaN).astype(bool)
