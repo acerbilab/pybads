@@ -3,13 +3,28 @@ import pytest
 
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.function_examples import rosenbrocks
+from pybads.function_examples import rosenbrocks_single_sample
 
 from pybads.function_logger import FunctionLogger
 
 non_noisy_function = lambda x: np.sum(x + 2)
 noisy_function = lambda x: (np.sum(x + 2), np.sum(x))
 
+def test_call_rosenbrocks_HD():
+    ros_2d = lambda x,y: 100*(y-x**2)**2 + (x-1)**2
+    X = np.arange(-2, 2, 0.15)
+    Y = np.arange(-1, 3, 0.15)
+    input = np.vstack((X, Y)).T
+    assert np.all(rosenbrocks(input) == ros_2d(X, Y))
 
+def test_call_rosenbrocks():
+    ros_2d = lambda x,y: 100*(y-x**2)**2 + (x-1)**2
+    X = np.array([-2])
+    Y = np.array([-1])
+    input = np.vstack((X, Y)).T
+    f_logger = FunctionLogger(rosenbrocks_single_sample, 2, False, 0)
+    fval, _, _ = f_logger(input[0, :])
+    assert fval == ros_2d(X, Y)
 
 def test_call_index():
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)

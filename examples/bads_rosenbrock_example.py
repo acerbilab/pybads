@@ -15,3 +15,4 @@ assert np.all(bads.plausible_upper_bounds == np.array([[1. , 1]])), 'Wrong init 
 assert np.all(bads.lower_bounds == np.array([[-4. , -4]])), 'Wrong init transformed LB'
 assert np.all(bads.upper_bounds == np.array([[4. , 4]])), 'Wrong init transformed UB'
 assert np.all(bads.x0 == x0)
+

@@ -111,6 +111,7 @@ class FunctionLogger:
             if self.noise_flag and self.uncertainty_handling_level == 2:
                 fval_orig, fsd = self.fun(x_orig)
             else:
+                print(x_orig.shape)
                 fval_orig = self.fun(x_orig)
                 if self.noise_flag:
                     fsd = 1
