@@ -24,12 +24,14 @@ class VariableTransformer:
         pub = upper_bounds.copy() if (plausible_upper_bounds is None) else plausible_upper_bounds.copy()
 
 
-        if np.isscalar(lb): lb = lb * np.ones((1, D))
-        if np.isscalar(ub): ub = ub * np.ones((1, D))
-        if np.isscalar(plb): plb = plb * np.ones((1, D))
-        if np.isscalar(pub): pub = pub * np.ones((1, D))
-
-        
+        if np.isscalar(lb): 
+            lb = lb * np.ones((1, D))
+        if np.isscalar(ub): 
+            ub = ub * np.ones((1, D))
+        if np.isscalar(plb): 
+            plb = plb * np.ones((1, D))
+        if np.isscalar(pub): 
+            pub = pub * np.ones((1, D))
         
         # Save original vectors
         self.orig_ub = ub.copy()
@@ -45,7 +47,7 @@ class VariableTransformer:
         self.D = D
         # Nonlinear log transform
         if apply_log_t is None:
-            self.apply_log_t = np.full((1, self.D), np.NaN).astype(bool)
+            self.apply_log_t = np.full((1, self.D), np.NaN)
         elif np.isscalar(apply_log_t):
             self.apply_log_t = (self.apply_log_t * np.ones((1, self.D))).astype(bool)
         else:
@@ -83,9 +85,9 @@ class VariableTransformer:
 
         # A variable is converted to log scale if all bounds are positive and 
         # the plausible range spans at least one order of magnitude
-        for i in np.argwhere(np.isnan(self.apply_log_t)):
+        for i in np.argwhere(np.isnan(self.apply_log_t.squeeze())):
             self.apply_log_t[:, i] = np.all(np.concatenate([self.ub[:, i], self.ub[:, i], self.plb[:, i], self.pub[:, i]]) > 0) \
-                & (self.pub[:, i]/self.plb[:, i] >= 10)       
+                & (self.pub[:, i]/self.plb[:, i] >= 10).item()       
         self.apply_log_t = self.apply_log_t.astype(bool)
 
         self.lb[self.apply_log_t] = np.log(self.lb[self.apply_log_t])
@@ -96,7 +98,7 @@ class VariableTransformer:
         mu = 0.5 * (self.plb + self.pub)
         gamma = 0.5 * (self.pub - self.plb)
 
-        z = lambda x: maskindex((x - mu)/gamma, ~ self.apply_log_t)
+        z = lambda x: maskindex((x - mu)/gamma, ~self.apply_log_t)
         zlog = lambda x: maskindex((np.log(np.abs(x) + (x == 0)) - mu)/gamma, self.apply_log_t)
 
         apply_log_t_sum = np.sum(self.apply_log_t)
@@ -106,11 +108,11 @@ class VariableTransformer:
 
         elif apply_log_t_sum == self.D:
             g = lambda x: zlog(x)
-            ginv = lambda y: min(np.finfo(np.float64).max, np.exp(gamma * y + mu) )
+            ginv = lambda y: np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu) )
         else:
             g = lambda x: z(x) + zlog(x)
             ginv = lambda y: maskindex(gamma * y + mu, ~self.apply_log_t) \
-                        + maskindex(min(np.finfo(np.float64).max, np.exp(gamma * y + mu)), self.apply_log_t)
+                        + maskindex(np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)), self.apply_log_t)
 
         #check that the transform works correctly in the range
         lbtest = self.lb.copy()
@@ -123,10 +125,10 @@ class VariableTransformer:
 
         numeps = 1e-6 #accepted numerical error
         tests = np.zeros(4)
-        tests[0] = np.all(abs(ginv(g(lbtest)) - lbtest) < numeps)
-        tests[1] = np.all(abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(abs(ginv(g(self.plb)) - self.plb) < numeps)
-        tests[3] = np.all(abs(ginv(g(self.pub)) - self.pub) < numeps)
+        tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
+        tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
+        tests[2] = np.all(np.abs(ginv(g(self.plb)) - self.plb) < numeps)
+        tests[3] = np.all(np.abs(ginv(g(self.pub)) - self.pub) < numeps)
         assert np.all(tests), 'Cannot invert the transform to obtain the identity at the provided boundaries.'
 
         return (g(self.lb), g(self.ub), g(self.plb), g(self.pub), g, z, zlog)
@@ -138,7 +140,7 @@ class VariableTransformer:
 
     def inverse_transf(self, input: np.ndarray) :
         x = self.ginv(input)
-        x = np.min(np.max(x, self.oldlb), self.oldub) # Force to stay within bounds
+        x = np.minimum(np.maximum(x, self.oldlb), self.oldub) # Force to stay within bounds
         x = x.reshape(input.shape)
 
         return x

@@ -7,13 +7,17 @@ import sys
 #import gpyreg as gpr
 import matplotlib.pyplot as plt
 import numpy as np
+from pybads import function_logger
 
 from pybads.function_logger import FunctionLogger
+from pybads.init_functions.init_sobol import init_sobol
 from pybads.search.grid_functions import force_to_grid, grid_units
 from pybads.search.es_search import es_update
+from pybads.utils.period_check import period_check
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
 from pybads.bads.variables_transformer import VariableTransformer
+from pybads.utils.ucheck import ucheck
 
 #from .gaussian_process_train import reupdate_gp, train_gp
 from .options import Options
@@ -89,7 +93,7 @@ class BADS:
         upper_bounds: np.ndarray = None,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonbondcons = None,
+        nonbondcons: callable = None,
         user_options: dict = None
     ):
         # set up root logger (only changes stuff if not initialized yet)
@@ -168,9 +172,16 @@ class BADS:
             self.logger.warn('Initial starting point is invalid or not provided.\
                  Starting from center of plausible region.\n')
             self.x0 = 0.5 * (self.plausible_lower_bounds + self.plausible_upper_bounds)
+        
+        # evaluate  starting point non-bound constraint
+        if nonbondcons is not None:
+            if nonbondcons(self.x0) > 0:
+                raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
+            
 
         self.optim_state = self._init_optim_state()
 
+        # create and init the function logger
         self.function_logger = FunctionLogger(
             fun=fun,
             D=self.D,
@@ -202,7 +213,7 @@ class BADS:
         upper_bounds: np.ndarray,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonbondcons = None
+        nonbondcons: callable = None
     ):
         """
         Private function to do the initial check of the BADS bounds.
@@ -508,6 +519,7 @@ class BADS:
         u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
         u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
         optim_state['u'] = u0
+        self.u = u0.copy()
 
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
@@ -679,6 +691,99 @@ class BADS:
 
         return optim_state
 
+    def _init_mesh_(self):
+        # Evaluate starting point and initial mesh, determine if function is noisy
+        self.yval, self.fsd, _ = self.function_logger(self.u)
+        
+        # set up strings for logging of the iteration
+        display_format = self._setup_logging_display_format()
+
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            self.logger.info(
+                "Beginning optimization assuming of a STOCHASTIC objective function")
+        else:
+            # test if the function is noisy 
+            self.logging_action.append('Uncertainty test')
+            yval_bis = self.function_logger.fun(self.x0)
+            self.function_logger.func_count += 1
+            if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
+                self.optim_state['uncertainty_handling_level'] = 1
+                self.logger.info(
+                "Beginning optimization assuming of a STOCHASTIC objective function")
+                self.logging_action.append('Uncertainty test')
+            else:
+                self.logger.info(
+                    "Beginning optimization assuming of a DETERMINISTIC objective function")
+
+
+        self._log_column_headers()
+
+        self.logger.info(display_format.format(
+                            iteration,
+                            self.function_logger.func_count,
+                            self.yval,
+                            self.fsd,
+                            self.optim_state["mesh_size"],
+                            '',
+                            "".join(self.logging_action),)
+                        )
+        
+        # Only one function evaluation
+        if self.options['maxfuneval'] == 1:
+            is_finished = True
+            return
+
+        # If dealing with a noisy function, use a large initial mesh
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']), self.options['maxfuneval'])
+
+        # TODO: Additional initial points
+        if self.options['ninit'] > 0:
+            # Evaluate initial points but not more than OPTIONS.MaxFunEvals
+            ninit = np.minimum(self.options['ninit'], self.options['maxfuneval'] - 1)
+            # TODO go ahead
+            if self.options['initfcn'] == '@init_sobol':
+                
+                # call initialization function TODO function
+                u1 = init_sobol(self.u0, self.lower_bounds, self.upper_bounds,
+                            self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
+                # enforce periodicity TODO function
+                u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
+
+                # Force points to be on the search grid.
+                u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
+
+                #TODO:  ucheck
+                u1 = ucheck()
+                
+                yval_u1 = []
+                for u_idx in range(len(u1)):
+                    yval_u1.append(self.function_logger(u1[u_idx])[0])
+                
+                yval_u1 = np.array(yval_u1)
+                idx_yval = np.argmin(yval_u1)
+                self.u = u1[idx_yval]
+                self.yval = yval_u1[idx_yval]
+                self.logger.info(display_format.format(
+                            0,
+                            self.function_logger.func_count,
+                            self.yval,
+                            self.fsd,
+                            self.optim_state["mesh_size"],
+                            'Initial mesh', '',)
+                        )
+            else:
+                raise ValueError('bads:initfcn:Initialization function not implemented yet')
+        
+        if not np.isfinite(self.yval):
+            raise ValueError('init mesh: Cannot find valid starting point.')
+
+        self.fval = self.yval
+        self.optim_state['fval'] = self.fval.copy()
+        self.optim_state['yval'] = self.yval.copy()
+
+        return
+
     def optimize(self):
         """
         Run inference on an initialized ``BADS`` object. 
@@ -691,31 +796,51 @@ class BADS:
         
         """
         is_finished = False
-        # the iterations of pybads start at 0
         iteration = -1
+        self.logging_action = []
         timer = Timer()
         gp = None
         hyp_dict = {}
         success_flag = True
 
-        #TODO: Evaluate starting point and initial mesh, determine if function is noisy
-        #[u,yval,fval,isFinished_flag,optimState,displayFormat] = evalinitmesh(u0,funwrapper,optimState,options,prnt)
+        # Evaluate starting point and initial mesh,
+        self._init_mesh_()
 
-        # set up strings for logging of the iteration
-        display_format = self._setup_logging_display_format()
-
-        if self.optim_state["uncertainty_handling_level"] > 0:
-            self.logger.info(
-                "Beginning  optimization assuming NOISY observations"
-                + " of the log-joint"
-            )
+        if self.options['outputfcn'] is not None:
+            output_fcn = self.options['outputfcn']
+            is_finished_flag = output_fcn(self.var_transf.inverse_transf(self.u), 'init')
+        
+        # Change options for uncertainty handling
+        if self.optim_state['uncertaintyhandling'] > 0:
+            self.options['tolstalliters'] = 2* self.options['tolstalliters']
+            self.options['ndata'] = max(200,self.options['ndata'])
+            self.options['minndata'] = 2 * self.options['minndata']
+            self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
+            self.options['minfailedpollsteps'] = np.inf
+            self.options['meshnoisemultiplier'] = 0
+            if (self.options['noisesize']):
+                self.options['noisesize'] = 1
+            # Keep some function evaluations for the final resampling
+            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.optim_state['funccount'])
+            self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
+            
+            if self.optim_state['uncertaintyhandling'] > 1:
+                self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
+            else:
+                self.fsd = self.options['noisesize']
         else:
-            self.logger.info(
-                "Beginning variational optimization assuming EXACT observations"
-                + " of the log-joint."
-            )
+            if self.options['noisesize'] is None:
+                self.options['noisesize'] = np.sqrt(self.options['tolfun'])
+            
+            self.fsd = 0.0
+            
+        self.optim_state['fsd']= self.fsd
+        self.ubest = self.u.copy()
+        self.optim_state['usucess'] = self.ubest.copy()
+        self.optim_state['ysucess'] = self.yval.copy()
+        self.optim_state['fsuccess'] = self.fval.copy()
+        self.optim_state['u'] = self.u.copy()
 
-        self._log_column_headers()
 
         while not is_finished:
             iteration += 1
@@ -767,45 +892,34 @@ class BADS:
         """
         if self.optim_state["cache_active"]:
             self.logger.info(
-                " Iteration f-count/f-cache    Mean[ELBO]     Std[ELBO]     "
-                + "sKL-iter[q]   K[q]  Convergence    Action"
-            )
+                " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
         else:
             if (
                 self.optim_state["uncertainty_handling_level"] > 0
                 and self.options.get("maxrepeatedobservations") > 0
             ):
                 self.logger.info(
-                    " Iteration   f-count (x-count)   Mean[ELBO]     Std[ELBO]"
-                    + "     sKL-iter[q]   K[q]  Convergence  Action"
-                )
+                    " Iteration f-count     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
             else:
                 self.logger.info(
-                    " Iteration  f-count    Mean[ELBO]    Std[ELBO]    "
-                    + "sKL-iter[q]   K[q]  Convergence  Action"
-                )
+                    " Iteration f-count     f(x)     MeshScale     Method     Actions")
 
     def _setup_logging_display_format(self):
         """
         Private method to set up the display format for logging the iterations.
         """
         if self.optim_state["cache_active"]:
-            display_format = " {:5.0f}     {:5.0f}  /{:5.0f}   {:12.2f}  "
-            display_format += (
-                "{:12.2f}  {:12.2f}     {:4.0f} {:10.3g}       {}"
-            )
+            display_format = " {:5.0f}     {:5.0f}/{:5.0f}   {:12.6f}  "
+            display_format += ("{:12.6f}  {:12.6f}     {}       {}")
         else:
             if (
                 self.optim_state["uncertainty_handling_level"] > 0
                 and self.options.get("maxrepeatedobservations") > 0
             ):
-                display_format = " {:5.0f}       {:5.0f} {:5.0f} {:12.2f}  "
-                display_format += (
-                    "{:12.2f}  {:12.2f}     {:4.0f} {:10.3g}     "
-                )
-                display_format += "{}"
+                display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
+                display_format += ("{:12.6f}  {:12.6f}     {}       {}")
             else:
-                display_format = " {:5.0f}      {:5.0f}   {:12.2f} {:12.2f} "
-                display_format += "{:12.2f}     {:4.0f} {:10.3g}     {}"
+                display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
+                display_format += ("{:12.6f}     {}       {}")
 
         return display_format
