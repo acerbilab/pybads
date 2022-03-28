@@ -27,3 +27,6 @@ def es_update(mu, lamb):
     idx[cw] = 1
     es['select_max'] = np.cumsum(idx[0:-1])
     return es
+
+
+
