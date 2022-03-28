@@ -6,6 +6,7 @@ import numpy as np
 from pybads.function_logger import FunctionLogger
 
 from .options import Options
+from pybads.stats.get_hpd import get_hpd
 from pybads.utils.iteration_history import IterationHistory
 
 
@@ -28,13 +29,13 @@ def train_gp(
         If it does not contain the appropriate keys they will be added
         automatically.
     optim_state : dict
-        Optimization state from the VBMC instance we are calling this from.
+        Optimization state from the BADS instance we are calling this from.
     function_logger : FunctionLogger
-        Function logger from the VBMC instance which we are calling this from.
+        Function logger from the BADS instance which we are calling this from.
     iteration_history : IterationHistory
-        Iteration history from the VBMC instance we are calling this from.
+        Iteration history from the BADS instance we are calling this from.
     options : Options
-        Options from the VBMC instance we are calling this from.
+        Options from the BADS instance we are calling this from.
     plb : ndarray, shape (hyp_N,)
         Plausible lower bounds for hyperparameters.
     pub : ndarray, shape (hyp_N,)
@@ -78,9 +79,7 @@ def train_gp(
     mean_f = _meanfun_name_to_mean_function(optim_state["gp_meanfun"])
 
     # Pick the covariance function.
-    covariance_f = _cov_identifier_to_covariance_function(
-        optim_state["gp_covfun"]
-    )
+    covariance_f = _cov_identifier_to_covariance_function(optim_state["gp_covfun"])
 
     # Pick the noise function.
     const_add = optim_state["gp_noisefun"][0] == 1
@@ -249,6 +248,8 @@ def _cov_identifier_to_covariance_function(identifier):
         Raised when the covariance function identifier is unknown.
     """
     if identifier == 1:
+        cov_f = gpr.covariance_functions.RationalQuadraticARD()
+    elif identifier == 2:
         cov_f = gpr.covariance_functions.SquaredExponential()
     elif identifier == 3:
         cov_f = gpr.covariance_functions.Matern(5)
@@ -275,9 +276,9 @@ def _gp_hyp(
     Parameters
     ==========
     optim_state : dict
-        Optimization state from the VBMC instance we are calling this from.
+        Optimization state from the BADS instance we are calling this from.
     options : Options
-        Options from the VBMC instance we are calling this from.
+        Options from the BADS instance we are calling this from.
     plb : ndarray, shape (hyp_N,)
         Plausible lower bounds for the hyperparameters.
     pub : ndarray, shape (hyp_N,)
@@ -310,8 +311,7 @@ def _gp_hyp(
     D = hpd_X.shape[1]
     # s2 = None
 
-    ## Set GP hyperparameter defaults for VBMC.
-
+    ## Set GP hyperparameter defaults for BADS.
     cov_bounds_info = gp.covariance.get_bounds_info(hpd_X, hpd_y)
     mean_bounds_info = gp.mean.get_bounds_info(hpd_X, hpd_y)
     noise_bounds_info = gp.noise.get_bounds_info(hpd_X, hpd_y)
@@ -474,11 +474,11 @@ def _get_gp_training_options(
     Parameters
     ==========
     optim_state : dict
-        Optimization state from the VBMC instance we are calling this from.
+        Optimization state from the BADS instance we are calling this from.
     iteration_history : IterationHistory
-        Iteration history from the VBMC instance we are calling this from.
+        Iteration history from the BADS instance we are calling this from.
     options : Options
-        Options from the VBMC instance we are calling this from.
+        Options from the BADS instance we are calling this from.
     hyp_dict : dict
         Hyperparameter summary statistic dictionary.
     gp_s_N : int
@@ -649,11 +649,11 @@ def _get_hyp_cov(
     Parameters
     ==========
     optim_state : dict
-        Optimization state from the VBMC instance we are calling this from.
+        Optimization state from the BADS instance we are calling this from.
     iteration_history : IterationHistory
-        Iteration history from the VBMC instance we are calling this from.
+        Iteration history from the BADS instance we are calling this from.
     options : Options
-        Options from the VBMC instance we are calling this from.
+        Options from the BADS instance we are calling this from.
     hyp_dict : dict
         Hyperparameter summary statistic dictionary.
 
@@ -727,7 +727,7 @@ def _get_training_data(function_logger: FunctionLogger):
     Parameters
     ==========
     function_logger : FunctionLogger
-        Function logger from the VBMC instance which we are calling this from.
+        Function logger from the BADS instance which we are calling this from.
 
     Returns
     =======
@@ -743,7 +743,7 @@ def _get_training_data(function_logger: FunctionLogger):
     """
 
     x_train = function_logger.X[function_logger.X_flag, :]
-    y_train = function_logger.y[function_logger.X_flag]
+    y_train = function_logger.Y[function_logger.X_flag]
     if function_logger.noise_flag:
         s2_train = function_logger.S[function_logger.X_flag] ** 2
     else:
@@ -807,7 +807,7 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp : GP
         The GP to update.
     function_logger : FunctionLogger
-        Function logger from the VBMC instance which we are calling this from.
+        Function logger from the BADS instance which we are calling this from.
     Returns
     =======
     gp : GP

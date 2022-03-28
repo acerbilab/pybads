@@ -7,19 +7,20 @@ import sys
 #import gpyreg as gpr
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.special import gammaincinv
+from scipy.stats import shapiro
 from pybads import function_logger
 
 from pybads.function_logger import FunctionLogger
 from pybads.init_functions.init_sobol import init_sobol
-from pybads.search.grid_functions import force_to_grid, grid_units
+from pybads.search.grid_functions import force_to_grid, grid_units, get_grid_search_neighbors 
 from pybads.search.es_search import es_update
 from pybads.utils.period_check import period_check
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.utils.ucheck import ucheck
-
-#from .gaussian_process_train import reupdate_gp, train_gp
+from .gaussian_process_train import reupdate_gp, train_gp
 from .options import Options
 
 
@@ -190,12 +191,15 @@ class BADS:
             cache_size=self.options.get("cachesize"),
             variable_transformer=self.var_transf)
 
-        #TODO: check what to save
         self.iteration_history = IterationHistory(
             [
                 "iter",
+                "fval",
+                "ymu",
+                "ys"
                 "lcbmax",
                 "gp",
+                "gp_last_reset_idx"
                 "gp_hyp_full",
                 "Ns_gp",
                 "timer",
@@ -472,10 +476,10 @@ class BADS:
         )
 
         # Grid parameters
-        mesh_size_int = 0 # Mesh size in log base units
-        optim_state["mesh_size_integer"] = mesh_size_int
-        optim_state["search_size_integer"] = np.minimum(0, mesh_size_int * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
-        optim_state["mesh_size"] =  float(self.options.get("pollmeshmultiplier"))**mesh_size_int
+        self.mesh_size_int = 0 # Mesh size in log base units
+        optim_state["mesh_size_integer"] = self.mesh_size_int
+        optim_state["search_size_integer"] = np.minimum(0, self.mesh_size_int * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
+        optim_state["mesh_size"] =  float(self.options.get("pollmeshmultiplier"))**self.mesh_size_int
         optim_state["search_mesh_size"] = float(self.options.get("pollmeshmultiplier"))**optim_state["search_size_integer"]
         optim_state["scale"] = 1.
         
@@ -484,7 +488,7 @@ class BADS:
         if self.options['nonlinearscaling']:
             logflag = np.full((1, self.D), np.NaN)
             periodicvars = self.options['periodicvars']
-            if periodicvars is not None or len(periodicvars) != 0:
+            if periodicvars is not None and len(periodicvars) != 0:
                 logflag[periodicvars] = 0
         else:
             logflag = np.zeros((1, self.D))
@@ -496,6 +500,8 @@ class BADS:
         # Update the bounds with the new transformed bounds
         self.lower_bounds = self.var_transf.lb.copy()
         self.upper_bounds = self.var_transf.ub.copy()
+        optim_state["lb"] = self.lower_bounds.copy()
+        optim_state["ub"] = self.upper_bounds.copy()
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
 
@@ -583,7 +589,7 @@ class BADS:
         #Other variables initializations
         optim_state['searchfactor']   =   1
         optim_state['sdlevel']        = self.options['incumbentsigmamultiplier']
-        optim_state['searchcount']    = self.options['searchntry']       # Skip search at first iteration
+        optim_state['search_count']    = self.options['searchntry']       # Skip search at first iteration
         optim_state['lastreeval']     = -np.inf;                     # Last time function values were re-evaluated
         optim_state['lastfitgp']      = -np.inf;                     # Last fcn evaluation for which the gp was trained
         optim_state['meshoverflows']  = 0;                       # Number of attempted mesh expansions when already at maximum size
@@ -741,7 +747,6 @@ class BADS:
         if self.options['ninit'] > 0:
             # Evaluate initial points but not more than OPTIONS.MaxFunEvals
             ninit = np.minimum(self.options['ninit'], self.options['maxfuneval'] - 1)
-            # TODO go ahead
             if self.options['initfcn'] == '@init_sobol':
                 
                 # call initialization function TODO function
@@ -801,7 +806,9 @@ class BADS:
         timer = Timer()
         gp = None
         hyp_dict = {}
-        success_flag = True
+        search_sucess_flag = False
+        search_spree = False
+        restarts = self.options['restarts']
 
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
@@ -840,16 +847,154 @@ class BADS:
         self.optim_state['ysucess'] = self.yval.copy()
         self.optim_state['fsuccess'] = self.fval.copy()
         self.optim_state['u'] = self.u.copy()
-
+        
+        gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
+            self.plausible_lower_bounds, self.plausible_upper_bounds)
+        gp.temporary_data['lenscale'] = 1
+        gp.temporary_data['pollscale'] = np.ones((1,self.D))
+        gp.temporary_data['effective_radius'] = 1.
+        self.iteration_history['gp_last_reset_idx'] = 0
+        
+        iteration = 0
 
         while not is_finished:
-            iteration += 1
             self.optim_state["iter"] = iteration
+            gp_refitted_flag = False 
+            gp_exit_flag = np.inf
+            action_txt = ''             # Action performed this iteration (for printing purposes)
 
+            #Compute mesh size and search mesh size
+            mesh_size = self.options['pollmeshmultiplier']**(self.mesh_size_int)
+            if self.options['searchsizelocked']:
+                self.optim_state['search_size_integer'] = np.minimum(0,
+                    self.mesh_size_int * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
+
+            self.optim_state['mesh_size'] = mesh_size
+            self.optim_state['search_mesh_size'] = self.options['pollmeshmultiplier'] ** self.optim_state['search_size_integer']
+
+            # Update bounds to grid search mesh
+            self.optim_state['lb_search'], self.optim_state['ub_search'] = self._update_search_bounds()
+
+            # Minimum improvement for a poll/search to be considered successful
+            sufficient_improvement = self.options["tolimprovement"] * (mesh_size ** (self.options['forcingexponent']))
+            if self.options['sloppyimprovement']:
+                sufficient_improvement = np.maximum(sufficient_improvement, self.options['tolfun'])
+            self.optim_state['sufficient_improvement'] = sufficient_improvement.copy()
+
+            do_search_step_flag = self.optimstate['search_count'] < self.options['searchntry'] \
+                    and  len(self.function_logger.Y[self.function_logger.X_flag]) > self.D
+            
+            if do_search_step_flag:
+
+                #check where it is time to refit the GP
+                refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
+
+                if refit_flag \
+                    or self.optim_state['search_count'] == 0:
+                    gp.posteriors
+                    #TODO: gp.posteriors = None
+                    # Update the training set by setting the NEAREST neighbors
+                    gp.x, gp.y, s2 = get_grid_search_neighbors(self.function_logger, self.u, gp, self.options, self.optim_state)
+                    if s2 is not None:
+                        gp.s2 = s2                    
+
+                    # TODO: Transformation of objective function
+                    if self.options['fitnessshaping']:
+                        self.logger.warn("bads:opt:Fitness shaping not implemented yet")
+                    
+                    idx_finite_y = np.isfinite(gp.y)
+                    if np.any(~idx_finite_y):
+                        y_idx_penalty = np.argmax(gp.y[idx_finite_y])
+                        gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
+                        if 'S' in self.optim_state["S"]:
+                            idx_finite = np.argwhere(idx_finite_y)
+                            gp.s2[~idx_finite_y] = gp.s2[idx_finite[y_idx_penalty]]
+                    gp.temporary_data['erry'] = ~idx_finite_y
+                    # TODO: No need of test points, don't thin is needed
+                    #self.function_logger.reset_fun_evaltime()
+
+                    #TODO: Rotate dataset (unsupported)
+
+                    # Local GP approximation on current point
+                    gp = reupdate_gp(self.function_logger, gp)
+
+                    #TODO: Re-fit Guassian Process (optimize or sample -- only optimization supported)
+                    if refit_flag:
+                        self.logger.warn("bads:opt:Refit not implemented yet")
+
+                    #TODO: read README Recompute posterior
+
+                    
+                    
+
+
+            iteration += 1  
             self.logging_action = []
             is_finished = True
 
-        return
+        return None 
+
+    #TODO check indexes, it should be fine though, we store the last reset index, [gp_reset_idx : iter_idx]
+    def is_gp_refit_time(self, alpha):
+        
+        if self.optim_state['funccount'] < self.options['maxiter'] / self.D:
+            refit_period = np.maximum(10, self.options['maxiter'])
+        else:
+            refit_period = self.options['maxiter'] * 5
+        
+        gp_reset_idx = self.iteration_history["gp_last_reset_idx"]
+        iter_idx = self.optim_state.get("iter")
+        # Check calibration of Gaussian process prediction
+        do_gp_calibration = False
+        if gp_reset_idx == 0:
+            do_gp_calibration = True
+        
+        zscore = self.iteration_history['fval'][gp_reset_idx : iter_idx+1] - self.iteration_history['fval'][gp_reset_idx : iter_idx+1]
+        zscore = zscore / self.iteration_history['ys'][gp_reset_idx : iter_idx+1]
+
+        if np.any(np.isnan(zscore)):
+            do_gp_calibration = True
+        
+        n = np.size(zscore)
+
+        if n < 3:
+            chi_to_inv = lambda y, v: gammaincinv(v/2, y)
+            plo = chi_to_inv(alpha/2, n)
+            phi = chi_to_inv(1-alpha/2, n)
+            total = np.sum(zscore**2)
+            if total < plo or total > phi or np.any(np.isnan(plo)) or np.any(np.isnan(phi)):
+                do_gp_calibration = True
+            else:
+                do_gp_calibration =  False
+        else:
+            shapiro_test = shapiro(zscore)
+            do_gp_calibration = shapiro_test.pvalue < alpha
+        
+        func_count = self.optim_state['funccount']
+        refit_flag = self.optim_state['lastfitgp'] < (func_count - self.options['minrefittime']) \
+            and (gp_reset_idx >= refit_period or do_gp_calibration) and func_count > self.D
+        
+        if refit_flag:
+            self.optim_state['lastfitgp'] = self.optim_state['funccount']
+            nsamples = np.maximum(1, self.options['gpsamples'])
+            # TODO Save statistics GP, first iteration?
+            self.iteration_history["gp_last_reset_idx"] = self.iteration_history["iter"] + 1
+            do_gp_calibration = False
+
+        return (refit_flag, do_gp_calibration)
+
+ 
+
+    def _update_search_bounds(self):
+        lb = self.optim_state["lb"]
+        lb_search = force_to_grid(self.optim_state["lb"], self.optim_state["search_mesh_size"])
+        lb_search[lb_search < lb] = lb_search[lb_search < lb] + self.optim_state["search_mesh_size"]
+
+        ub = self.optim_state["ub"]
+        ub_search = force_to_grid(self.optim_state["lb"], self.optim_state["search_mesh_size"])
+        ub_search[ub_search > ub] = ub_search[ub_search > ub] - self.optim_state["search_mesh_size"]
+        return lb_search, ub_search
+        
         
     def _create_result_dict(self, idx_best: int, termination_message: str):
         """

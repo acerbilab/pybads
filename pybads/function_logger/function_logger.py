@@ -43,21 +43,22 @@ class FunctionLogger:
         self.uncertainty_handling_level: int = uncertainty_handling_level
         self.transform_variables = variable_transformer is not None
         self.variable_transformer = variable_transformer
+        self.cache_size = 500
 
         self.func_count: int = 0
         self.cache_count: int = 0
         self.X_orig = np.full([cache_size, self.D], np.nan)
-        self.y_orig = np.full([cache_size, 1], np.nan)
+        self.Y_orig = np.full([cache_size, 1], np.nan)
         self.X = np.full([cache_size, self.D], np.nan)
-        self.y = np.full([cache_size, 1], np.nan)
-        self.ymax = np.nan
+        self.Y = np.full([cache_size, 1], np.nan)
+        self.Y_max = np.nan
         self.nevals = np.full([cache_size, 1], np.nan)
 
         if self.noise_flag:
             self.S = np.full([cache_size, 1], np.nan)
 
         self.Xn: int = -1  # Last filled entry
-        self.Xmax = -1
+        self.X_max_idx = -1
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
@@ -252,16 +253,19 @@ class FunctionLogger:
         Remove unused caching entries.
         """
         self.X_orig = self.X_orig[: self.Xn + 1]
-        self.y_orig = self.y_orig[: self.Xn + 1]
+        self.Y_orig = self.Y_orig[: self.Xn + 1]
 
         # in the original matlab version X and Y get deleted
         self.X = self.X[: self.Xn + 1]
-        self.y = self.y[: self.Xn + 1]
+        self.Y = self.Y[: self.Xn + 1]
 
         if self.noise_flag:
             self.S = self.S[: self.Xn + 1]
         self.X_flag = self.X_flag[: self.Xn + 1]
         self.fun_evaltime = self.fun_evaltime[: self.Xn + 1]
+
+    def reset_fun_evaltime(self):
+        self.fun_evaltime = np.full([cache_size, 1], np.nan)
 
     def _expand_arrays(self, resize_amount: int = None):
         """
@@ -280,13 +284,13 @@ class FunctionLogger:
         self.X_orig = np.append(
             self.X_orig, np.full([resize_amount, self.D], np.nan), axis=0
         )
-        self.y_orig = np.append(
-            self.y_orig, np.full([resize_amount, 1], np.nan), axis=0
+        self.Y_orig = np.append(
+            self.Y_orig, np.full([resize_amount, 1], np.nan), axis=0
         )
         self.X = np.append(
             self.X, np.full([resize_amount, self.D], np.nan), axis=0
         )
-        self.y = np.append(self.y, np.full([resize_amount, 1], np.nan), axis=0)
+        self.Y = np.append(self.Y, np.full([resize_amount, 1], np.nan), axis=0)
 
         if self.noise_flag:
             self.S = np.append(
@@ -351,15 +355,15 @@ class FunctionLogger:
             if fsd is not None:
                 tau_n = 1 / self.S[idx] ** 2
                 tau_1 = 1 / fsd ** 2
-                self.y_orig[idx] = (tau_n * self.y_orig[idx] + tau_1 * fval_orig) / (tau_n + tau_1)
+                self.Y_orig[idx] = (tau_n * self.Y_orig[idx] + tau_1 * fval_orig) / (tau_n + tau_1)
                 self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
             else:
-                self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1)
+                self.Y_orig[idx] = (N * self.Y_orig[idx] + fval_orig) / (N + 1)
 
-            fval = self.y_orig[idx]
+            fval = self.Y_orig[idx]
             if self.transform_variables:
                 fval += self.variable_transformer.log_abs_det_jacobian(x)
-            self.y[idx] = fval
+            self.Y[idx] = fval
             self.fun_evaltime[idx] = (
                 N * self.fun_evaltime[idx] + fun_evaltime
             ) / (N + 1)
@@ -375,19 +379,19 @@ class FunctionLogger:
                 self.fun_evaltime[self.Xn] = fun_evaltime
                 self.total_fun_evaltime += fun_evaltime
 
-            self.Xmax = np.min([self.Xmax + 1, self.X.shape[0]])
+            self.X_max_idx = np.minimum(self.X_max_idx + 1, self.X.shape[0])
             self.X_orig[self.Xn] = x_orig
             self.X[self.Xn] = x
-            self.y_orig[self.Xn] = fval_orig
+            self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
             #if self.transform_variables: #Not used in bads
             #    fval += self.variable_transformer.log_abs_det_jacobian(
             #        np.reshape(x, (1, x.shape[0]))
             #    )[0]
-            self.y[self.Xn] = fval 
+            self.Y[self.Xn] = fval 
             if fsd is not None:
                 self.S[self.Xn] = fsd
             self.X_flag[self.Xn] = True
             self.nevals[self.Xn] = np.maximum(1, self.nevals[self.Xn] + 1)
-            self.ymax = np.amax(self.y[self.X_flag])
+            self.Y_max = np.amax(self.Y[self.X_flag])
             return fval, self.Xn
