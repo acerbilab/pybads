@@ -29,14 +29,14 @@ def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None)
     return u
 
 def get_grid_search_neighbors(function_logger, u, gp, options, optim_state):
-    # get the training set by retrieving the NEAREST neighbors 
+    # get the training set by retrieving the sorted NEAREST neighbors from u
                     
     U_max_idx = function_logger.X_max_idx
-    U = function_logger.X[U_max_idx]
-    Y = function_logger.Y[U_max_idx]
+    U = function_logger.X[0:U_max_idx]
+    Y = function_logger.Y[0:U_max_idx]
 
     if 'S' in optim_state["S"]:
-        S = optim_state["S"][U_max_idx]
+        S = optim_state["S"][0:U_max_idx]
     
     dist = udist(U, u, gp.temporary_data["lenscale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],

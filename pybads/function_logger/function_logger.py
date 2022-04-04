@@ -43,7 +43,7 @@ class FunctionLogger:
         self.uncertainty_handling_level: int = uncertainty_handling_level
         self.transform_variables = variable_transformer is not None
         self.variable_transformer = variable_transformer
-        self.cache_size = 500
+        self.cache_size = cache_size
 
         self.func_count: int = 0
         self.cache_count: int = 0
@@ -62,7 +62,7 @@ class FunctionLogger:
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
-        self.fun_evaltime = np.full([cache_size, 1], np.nan)
+        self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
         self.total_fun_evaltime = 0
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.

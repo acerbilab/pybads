@@ -65,6 +65,11 @@ def train_gp(
     if "run_cov" not in hyp_dict:
         hyp_dict["run_cov"] = None
 
+    # TODO: during fitting(training) 
+    # TODO: TolMesh = optimState.TolMesh; 
+    # TODO  gpstruct.bounds.cov{end+1} = [log(TolMesh); log(covrange(i))],
+    # TODO: gpstruct.bounds.cov{end+1} = [log(TolFun); log(1e6*TolFun/TolMesh)];
+
     # Get training dataset.
     x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
     D = x_train.shape[1]

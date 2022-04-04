@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import gammaincinv
 from scipy.stats import shapiro
-from pybads import function_logger
+
+from pybads.search.search_hedge import SearchESHedge
 
 from pybads.function_logger import FunctionLogger
 from pybads.init_functions.init_sobol import init_sobol
@@ -21,6 +22,7 @@ from pybads.utils.iteration_history import IterationHistory
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.utils.ucheck import ucheck
 from .gaussian_process_train import reupdate_gp, train_gp
+from gpyreg.gaussian_process import GP
 from .options import Options
 
 
@@ -601,10 +603,7 @@ class BADS:
         optim_state["iterlist"]["fsd"] = []
         optim_state["iterlist"]["fhyp"] = []
 
-        # Create vector of ES weights (only for searchES)
-        es_iter = self.options['nsearchiter']
-        es_mu = self.options['nsearch'] / es_iter
-        es_lambda = es_mu
+        
         optim_state['es'] = es_update(es_mu, es_lambda)
 
         # Hedge struct
@@ -828,7 +827,7 @@ class BADS:
             if (self.options['noisesize']):
                 self.options['noisesize'] = 1
             # Keep some function evaluations for the final resampling
-            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.optim_state['funccount'])
+            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
             self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
             
             if self.optim_state['uncertaintyhandling'] > 1:
@@ -883,61 +882,115 @@ class BADS:
 
             do_search_step_flag = self.optimstate['search_count'] < self.options['searchntry'] \
                     and  len(self.function_logger.Y[self.function_logger.X_flag]) > self.D
-            
+            do_poll_stage = False
+
             if do_search_step_flag:
-
-                #check where it is time to refit the GP
-                refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
-
-                if refit_flag \
-                    or self.optim_state['search_count'] == 0:
-                    gp.posteriors
-                    #TODO: gp.posteriors = None
-                    # Update the training set by setting the NEAREST neighbors
-                    gp.x, gp.y, s2 = get_grid_search_neighbors(self.function_logger, self.u, gp, self.options, self.optim_state)
-                    if s2 is not None:
-                        gp.s2 = s2                    
-
-                    # TODO: Transformation of objective function
-                    if self.options['fitnessshaping']:
-                        self.logger.warn("bads:opt:Fitness shaping not implemented yet")
+                # Search stage
+                self._search_stage_(gp)
+            else :
+                # Check wether to perform the poll stage
+                # TODO: do_poll_stage = ....
+                pass
+            
+            #Check do_poll_stage
+            if do_poll_stage:
+                self._poll_stage()
                     
-                    idx_finite_y = np.isfinite(gp.y)
-                    if np.any(~idx_finite_y):
-                        y_idx_penalty = np.argmax(gp.y[idx_finite_y])
-                        gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
-                        if 'S' in self.optim_state["S"]:
-                            idx_finite = np.argwhere(idx_finite_y)
-                            gp.s2[~idx_finite_y] = gp.s2[idx_finite[y_idx_penalty]]
-                    gp.temporary_data['erry'] = ~idx_finite_y
-                    # TODO: No need of test points, don't thin is needed
-                    #self.function_logger.reset_fun_evaltime()
-
-                    #TODO: Rotate dataset (unsupported)
-
-                    # Local GP approximation on current point
-                    gp = reupdate_gp(self.function_logger, gp)
-
-                    #TODO: Re-fit Guassian Process (optimize or sample -- only optimization supported)
-                    if refit_flag:
-                        self.logger.warn("bads:opt:Refit not implemented yet")
-
-                    #TODO: read README Recompute posterior
-
-                    
-                    
-
 
             iteration += 1  
             self.logging_action = []
             is_finished = True
 
         return None 
+    
+    def _search_stage_(self, gp):
+        #check where it is time to refit the GP
+        refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
+
+        if refit_flag \
+            or self.optim_state['search_count'] == 0:
+            # Local GP approximation on current point
+
+            # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
+            gp.X, gp.y, s2 = get_grid_search_neighbors(self.function_logger, self.u, gp, self.options, self.optim_state)
+            if s2 is not None:
+                gp.s2 = s2                    
+
+            # TODO: Transformation of objective function
+            if self.options['fitnessshaping']:
+                self.logger.warn("bads:opt:Fitness shaping not implemented yet")
+            
+            idx_finite_y = np.isfinite(gp.y)
+            if np.any(~idx_finite_y):
+                y_idx_penalty = np.argmax(gp.y[idx_finite_y])
+                gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
+                if 'S' in self.optim_state["S"]:
+                    gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
+                    
+            gp.temporary_data['erry'] = ~idx_finite_y
+            # TODO: No need of test points, don't thin is needed
+            #self.function_logger.reset_fun_evaltime()
+
+            #TODO: Rotate dataset (unsupported)
+
+            # Update existing GP
+
+            # TODO Update piors hyperparameters for GP  using empirical Bayes method.
+            # TODO: Update empirical prior for GP mean
+            # We assume that the mean of the GP is higher than what we see
+            #ymean = prctile1(gpstruct.y,options.gpMeanPercentile);
+            #yrange = feval(options.gpMeanRangeFun, ymean, gpstruct.y);
+
+            
+            #gpstruct.prior.mean{1}{2} = ymean;
+            #if ~options.gpFixedMean
+            #    gpstruct.prior.mean{1}{3} = yrange.^2/4;
+            
+            #TODO: Gpyreg has gp.set_priors()
+            #TODO: Gpyreg has gp.set_bounds()
+            
+            #TODO: likelihood prior (scales with mesh size)
+            # gpstruct.prior.lik{end}{2} = log(NoiseSize(1)) + options.MeshNoiseMultiplier*log(MeshSize);
+
+
+            #TODO: Re-fit Guassian Process (optimize or sample -- only optimization supported)
+            if refit_flag:
+                self.logger.warn("bads:opt:Refit not implemented yet")
+
+            # Recompute posterior
+            gp.update(compute_posterior=True)   
+            # End fitting
+
+        #Update Target from GP prediction
+        fmu, f_target_s, f_target = self._update_target_(self.ubest, gp)
+        self.optim_state["fval"] = fmu
+        self.optim_state["f_target_s"] = f_target_s
+        self.optim_state["f_target"] = f_target
+
+        # Generate search set (normalized coordinate)
+        self.search_es_hedge = SearchESHedge(self.options['searchmethod'], self.options)
+        u_search_set = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
+        
+        # Enforce periodicity
+        u_search_set = period_check(u_search_set, self.lower_bounds, self.upper_bounds, self.optim_state["periodicvars"])
+
+        # Force candidate points on search grid
+        u_search_set = force_to_grid(u_search_set, self.optim_state["search_mesh_size"])
+
+        # TODO: Remove already evaluated or unfeasible points from search set (already evaluated should be fine, look at unfeseabile points!)
+        
+
+        # if search set non empty -> evaluate acquisition function on search set, do the "Batch evaluation of acquisition function on search set."
+        
+        return None
+    
+    def _poll_stage(self):
+        pass
 
     #TODO check indexes, it should be fine though, we store the last reset index, [gp_reset_idx : iter_idx]
     def is_gp_refit_time(self, alpha):
         
-        if self.optim_state['funccount'] < self.options['maxiter'] / self.D:
+        if self.function_logger.func_count < self.options['maxiter'] / self.D:
             refit_period = np.maximum(10, self.options['maxiter'])
         else:
             refit_period = self.options['maxiter'] * 5
@@ -970,29 +1023,48 @@ class BADS:
             shapiro_test = shapiro(zscore)
             do_gp_calibration = shapiro_test.pvalue < alpha
         
-        func_count = self.optim_state['funccount']
+        func_count = self.function_logger.func_count
         refit_flag = self.optim_state['lastfitgp'] < (func_count - self.options['minrefittime']) \
             and (gp_reset_idx >= refit_period or do_gp_calibration) and func_count > self.D
         
         if refit_flag:
-            self.optim_state['lastfitgp'] = self.optim_state['funccount']
+            self.optim_state['lastfitgp'] = self.function_logger.func_count
             nsamples = np.maximum(1, self.options['gpsamples'])
-            # TODO Save statistics GP, first iteration?
-            self.iteration_history["gp_last_reset_idx"] = self.iteration_history["iter"] + 1
+            # Save statistics GP
+            self.iteration_history['gp_last_reset_idx'] = self.iteration_history['iter'] + 1
             do_gp_calibration = False
 
-        return (refit_flag, do_gp_calibration)
+        return refit_flag, do_gp_calibration
 
- 
+    def _update_target_(self, u, gp:GP):
+        if self.optim_state['uncertainty_handling_level'] > 0 \
+            or self.options['uncertainincumbent']:
+            fmu, fs2 = gp.predict(u)
+            # TODO sampling weight
+            f_target_s = np.sqrt(np.max(fs2, axis=0))
+            if ~np.isfinite(fmu) | ~np.isreal(f_target_s) | ~np.isfinite(f_target_s):
+                fmu = self.optim_state['fval']
+                f_target_s = self.optim_state['fsd']
+            
+            # f_target: set optimization target slightly below the current incumbent
+            if self.options['alternativeincumbent']:
+                f_target = fmu - np.sqrt(self.D) / np.sqrt(self.function_logger.func_count) * f_target_s
+            else:
+                f_target = fmu - self.optim_state['sdlevel'] * np.sqrt(fs2 + self.options['tolffun']**2)
+        else:
+            f_target = self.optim_state['fval'] - self.options['tolfun']
+            fmu = self.optim_state['fval']
+            f_target_s = 0
+        return fmu, f_target_s, f_target        
 
     def _update_search_bounds(self):
-        lb = self.optim_state["lb"]
-        lb_search = force_to_grid(self.optim_state["lb"], self.optim_state["search_mesh_size"])
-        lb_search[lb_search < lb] = lb_search[lb_search < lb] + self.optim_state["search_mesh_size"]
+        lb = self.optim_state['lb']
+        lb_search = force_to_grid(self.optim_state['lb'], self.optim_state['search_mesh_size'])
+        lb_search[lb_search < lb] = lb_search[lb_search < lb] + self.optim_state['search_mesh_size']
 
-        ub = self.optim_state["ub"]
-        ub_search = force_to_grid(self.optim_state["lb"], self.optim_state["search_mesh_size"])
-        ub_search[ub_search > ub] = ub_search[ub_search > ub] - self.optim_state["search_mesh_size"]
+        ub = self.optim_state['ub']
+        ub_search = force_to_grid(self.optim_state['lb'], self.optim_state['search_mesh_size'])
+        ub_search[ub_search > ub] = ub_search[ub_search > ub] - self.optim_state['search_mesh_size']
         return lb_search, ub_search
         
         
@@ -1010,7 +1082,7 @@ class BADS:
             output["problemtype"] = "boundconstraints"
 
         output["iterations"] = self.optim_state["iter"]
-        output["funccount"] = self.function_logger.func_count
+        output["func_count"] = self.function_logger.func_count
         output["bestiter"] = idx_best
         output["trainsetsize"] = self.iteration_history["n_eff"][idx_best]
         output["components"] = self.vp.K
