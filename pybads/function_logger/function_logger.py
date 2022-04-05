@@ -112,7 +112,6 @@ class FunctionLogger:
             if self.noise_flag and self.uncertainty_handling_level == 2:
                 fval_orig, fsd = self.fun(x_orig)
             else:
-                print(x_orig.shape)
                 fval_orig = self.fun(x_orig)
                 if self.noise_flag:
                     fsd = 1
@@ -265,7 +264,7 @@ class FunctionLogger:
         self.fun_evaltime = self.fun_evaltime[: self.Xn + 1]
 
     def reset_fun_evaltime(self):
-        self.fun_evaltime = np.full([cache_size, 1], np.nan)
+        self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
 
     def _expand_arrays(self, resize_amount: int = None):
         """
@@ -346,7 +345,7 @@ class FunctionLogger:
             Raise if there is more than one match for a duplicate entry.
         """
         duplicate_flag = self.X == x
-        # TODO: The duplicate case is not implemented in BADS
+        # The duplicate case is not implemented in BADS
         if np.any(duplicate_flag): 
             if np.sum((duplicate_flag).all(axis=1)) > 1:
                 raise ValueError("More than one match for duplicate entry.")
@@ -380,8 +379,8 @@ class FunctionLogger:
                 self.total_fun_evaltime += fun_evaltime
 
             self.X_max_idx = np.minimum(self.X_max_idx + 1, self.X.shape[0])
-            self.X_orig[self.Xn] = x_orig
-            self.X[self.Xn] = x
+            self.X_orig[self.Xn] = x_orig.copy()
+            self.X[self.Xn] = x.copy()
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
             #if self.transform_variables: #Not used in bads

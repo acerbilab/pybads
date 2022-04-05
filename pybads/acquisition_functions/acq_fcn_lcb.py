@@ -4,7 +4,7 @@ import gpyreg as gpr
 
 from pybads.function_logger.function_logger import FunctionLogger
 
-def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, optim_state, sqrt_beta=None):
+def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
 
     n = xi.shape[0]

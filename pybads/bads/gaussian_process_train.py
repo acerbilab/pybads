@@ -593,7 +593,7 @@ def _get_gp_training_options(
     init_N = max(round(f(x)), 9)
 
     # Set other hyperparameter fitting parameters
-    if optim_state["recompute_var_post"]:
+    if "recompute_var_post" in optim_state and optim_state["recompute_var_post"]:
         gp_train["burn"] = gp_train["thin"] * gp_s_N
         gp_train["init_N"] = init_N
         if gp_s_N > 0:

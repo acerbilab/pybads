@@ -1,11 +1,11 @@
 
-from typing import final
+from typing import Callable, final
 import numpy as np
 
 from gpyreg.gaussian_process import GP
 from abc import ABC, abstractclassmethod
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
-from pybads.utils import ucheck
+from pybads.utils.constraints_check import contraints_check
 from pybads.function_logger.function_logger import FunctionLogger
 
 from pybads.search.grid_functions import force_to_grid
@@ -62,7 +62,7 @@ class SearchES(ABC):
         
         return None
 
-    def __call__(self, u, lb:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True):
+    def __call__(self, u, lb:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
         
         self.mesh_size = optim_state['mesh_size']
         self.search_factor = optim_state['search_factor']
@@ -91,8 +91,8 @@ class SearchES(ABC):
 
             u_new = force_to_grid(u_new, self.search_mesh_size)
 
-            # TODO: 
-            u_new = ucheck()
+            # Remove already evaluated or unfeasible points from search set
+            u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'], optim_state["tol_mesh"], func_logger, True, nonbondcons)
 
             if self.search_acq_fcn == 'acqLCB':
                 z_new, fmu, fs, _ = acq_fcn_lcb(u_new, func_logger, gp, optim_state, False)

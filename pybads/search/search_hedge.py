@@ -6,7 +6,7 @@ from .es_search import SearchESWM, SearchESELL
 
 class SearchESHedge():
 
-    def __init__(self, search_fcns, options_dict):
+    def __init__(self, search_fcns, options_dict, nonbondcons=None):
         
         self.search_fcns = search_fcns
         self.n_funs = len(search_fcns)
@@ -14,6 +14,7 @@ class SearchESHedge():
         self.g[0] = 10
         self.count = 0
         self.options_dict=options_dict
+        self.nonbondcons = nonbondcons
         
         self.gamma = options_dict["hedgegamma"]
         self.beta = options_dict["hedgebeta"]
@@ -23,7 +24,6 @@ class SearchESHedge():
         es_iter = self.options_dict['nsearchiter']
         self.mu = self.options_dict['nsearch'] / es_iter
         self.lamb = self.mu
-
 
     def __call__(self, u, lb, ub, func_logger, gp: GP, optim_state):
         self.count +=1
@@ -46,11 +46,11 @@ class SearchESHedge():
         chosen_search_fun = self.search_fcns[self.chosen_hedge]
         if chosen_search_fun[0] == 'ES-wcm':
             search = SearchESWM(optim_state, self.options_dict)
-            us, _ = search(u, lb, ub, func_logger, gp, optim_state, chosen_search_fun[1])
+            us, _ = search(u, lb, ub, func_logger, gp, optim_state, chosen_search_fun[1], self.nonbondcons)
             return us
         elif chosen_search_fun[0] == 'ES-ell':
             search = SearchESELL(optim_state, self.options_dict)
-            us, _ = search.search_es(u, lb, ub, func_logger, gp, optim_state,  chosen_search_fun[1])
+            us, _ = search(u, lb, ub, func_logger, gp, optim_state,  chosen_search_fun[1], self.nonbondcons)
             return us
         else:
             raise ValueError("search_hedge:Requested search method not implemented yet")
