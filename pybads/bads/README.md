@@ -17,6 +17,5 @@ In case ignoring warnings for inf in numpy have a look at 519th line code of pyv
     - _update_search_bounds_
     - _update_target_
     - SearchESHedge
-    - contraints_check
 
 

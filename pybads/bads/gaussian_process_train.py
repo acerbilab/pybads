@@ -2,6 +2,7 @@ import math
 
 import gpyreg as gpr
 import numpy as np
+from pytest import Function
 
 from pybads.function_logger import FunctionLogger
 
@@ -102,15 +103,14 @@ def train_gp(
     gp = gpr.GP(D=D, covariance=covariance_f, mean=mean_f, noise=noise_f)
     # Get number of samples and set priors and bounds.
     gp, hyp0, gp_s_N = _gp_hyp(
-        optim_state, options, plb, pub, gp, x_train, y_train
-    )
+        optim_state, options, plb, pub, gp, x_train, y_train, function_logger)
     # Initial GP hyperparameters.
     if hyp_dict["hyp"] is None:
         hyp_dict["hyp"] = hyp0.copy()
 
     # Get GP training options.
     gp_train = _get_gp_training_options(
-        optim_state, iteration_history, options, hyp_dict, gp_s_N
+        optim_state, iteration_history, options, hyp_dict, gp_s_N, function_logger
     )
 
     # In some cases the model can change so be careful.
@@ -274,6 +274,7 @@ def _gp_hyp(
     gp: gpr.GP,
     X: np.ndarray,
     y: np.ndarray,
+    function_logger: FunctionLogger
 ):
     """
     Define bounds, priors and samples for GP hyperparameters.
@@ -439,9 +440,11 @@ def _gp_hyp(
 
     stop_sampling = optim_state["stop_sampling"]
 
-    if stop_sampling == 0:
+    tr_N = function_logger.Xn+1 # Number of training inputs
+
+    if stop_sampling == 0 and tr_N != 0:
         # Number of samples
-        gp_s_N = options["nsgpmax"] / np.sqrt(optim_state["N"])
+        gp_s_N = options["nsgpmax"] / np.sqrt(tr_N)
 
         # Maximum sample cutoff
         if optim_state["warmup"]:
@@ -450,12 +453,15 @@ def _gp_hyp(
             gp_s_N = np.minimum(gp_s_N, options["nsgpmaxmain"])
 
         # Stop sampling after reaching max number of training points
-        if optim_state["N"] >= options["stablegpsampling"]:
-            stop_sampling = optim_state["N"]
+        if tr_N >= options["stablegpsampling"]:
+            stop_sampling = tr_N
 
         # Stop sampling after reaching threshold of variational components
         if optim_state["vpK"] >= options["stablegpvpk"]:
-            stop_sampling = optim_state["N"]
+            stop_sampling = tr_N
+    else:
+        # No training points
+        pass
 
     if stop_sampling > 0:
         gp_s_N = options["stablegpsamples"]
@@ -472,6 +478,7 @@ def _get_gp_training_options(
     options: Options,
     hyp_dict: dict,
     gp_s_N: int,
+    function_logger:FunctionLogger
 ):
     """
     Get options for training GP hyperparameters.
@@ -506,6 +513,10 @@ def _get_gp_training_options(
         r_index = iteration_history["rindex"][iteration - 1]
     else:
         r_index = np.inf
+
+    n_eff = np.sum(
+        function_logger.nevals[function_logger.X_flag]
+    )
 
     gp_train = {}
     gp_train["thin"] = options["gpsamplethin"]  # MCMC thinning
@@ -569,7 +580,7 @@ def _get_gp_training_options(
             gp_train["sampler"] = "covsample"
 
     elif options["gphypsampler"] == "laplace":
-        if optim_state["n_eff"] < 30:
+        if n_eff < 30:
             gp_train["sampler"] = "slicesample"
             if options["gpsamplewidths"] > 0 and hyp_cov is not None:
                 width_mult = np.maximum(options["gpsamplewidths"], r_index)
@@ -586,7 +597,7 @@ def _get_gp_training_options(
     b = -3 * a
     c = 3 * a
     d = options["gptrainninit"]
-    x = (optim_state["n_eff"] - options["funevalstart"]) / (
+    x = (n_eff - options["funevalstart"]) / (
         min(options["maxfunevals"], 1e3) - options["funevalstart"]
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d

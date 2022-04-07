@@ -53,7 +53,7 @@ class VariableTransformer:
         else:
             self.apply_log_t = apply_log_t.copy()
 
-        self.lb, self.ub, self.plb, self.pub, self.g, self.z, self.zlog = self.__create_hypercube_trans__()
+        self.lb, self.ub, self.plb, self.pub, self.g, self.ginv, self.z, self.zlog = self.__create_hypercube_trans__()
         
     def __create_hypercube_trans__(self):
         """
@@ -131,16 +131,16 @@ class VariableTransformer:
         tests[3] = np.all(np.abs(ginv(g(self.pub)) - self.pub) < numeps)
         assert np.all(tests), 'Cannot invert the transform to obtain the identity at the provided boundaries.'
 
-        return (g(self.lb), g(self.ub), g(self.plb), g(self.pub), g, z, zlog)
+        return (g(self.lb), g(self.ub), g(self.plb), g(self.pub), g, ginv, z, zlog)
 
     def __call__(self, input: np.ndarray):
         y = self.g(input)
         y = np.minimum(np.maximum(y, self.lb), self.ub) #Force to stay within bounds
         return y
 
-    def inverse_transf(self, input: np.ndarray) :
+    def inverse_transf(self, input: np.ndarray):
         x = self.ginv(input)
-        x = np.minimum(np.maximum(x, self.oldlb), self.oldub) # Force to stay within bounds
+        x = np.minimum(np.maximum(x, self.orig_lb), self.orig_ub) # Force to stay within bounds
         x = x.reshape(input.shape)
 
         return x

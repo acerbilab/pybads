@@ -16,8 +16,9 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         idx = np.any(U > ub | U < lb, axis=1)
         U_new = U[~idx]
     
-    # Remove duplicate vectors
-    U_new = np.unique(U_new, axis=0)
+    # Remove duplicate vectors and preserve the initial order
+    _, idx_sort = np.unique(U_new, axis=0, return_index=True)
+    U_new = U_new[np.sort(idx_sort), :].copy()
 
     # Remove previously evaluated vectors (within TolMesh)
     if U_new.size > 0:

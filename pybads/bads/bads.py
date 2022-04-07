@@ -204,7 +204,7 @@ class BADS:
                 "lcbmax",
                 "rindex", # Reliability index (not used in BADS)
                 "gp",
-                "gp_last_reset_idx"
+                "gp_last_reset_idx",
                 "gp_hyp_full",
                 "Ns_gp",
                 "timer",
@@ -722,7 +722,7 @@ class BADS:
         self.yval, self.fsd, _ = self.function_logger(self.u)
         
         # set up strings for logging of the iteration
-        display_format = self._setup_logging_display_format()
+        self.display_format = self._setup_logging_display_format()
 
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.logger.info(
@@ -744,29 +744,21 @@ class BADS:
 
         self._log_column_headers()
 
-        self.logger.info(display_format.format(
-                            0,
-                            self.function_logger.func_count,
-                            self.yval,
-                            self.fsd,
-                            self.optim_state["mesh_size"],
-                            '',
-                            "".join(self.logging_action),)
-                        )
+        self._display_function_log_(0, '')
         
         # Only one function evaluation
-        if self.options['maxfuneval'] == 1:
+        if self.options['maxfunevals'] == 1:
             is_finished = True
             return
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']), self.options['maxfuneval'])
+            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']), self.options['maxfunevals'])
 
         # TODO: Additional initial points
         if self.options['ninit'] > 0:
             # Evaluate initial points but not more than OPTIONS.MaxFunEvals
-            ninit = np.minimum(self.options['ninit'], self.options['maxfuneval'] - 1)
+            ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
             if self.options['initfcn'] == '@init_sobol':
                 
                 # TODO: call initialization function 
@@ -789,14 +781,7 @@ class BADS:
                 idx_yval = np.argmin(yval_u1)
                 self.u = u1[idx_yval]
                 self.yval = yval_u1[idx_yval]
-                self.logger.info(display_format.format(
-                            0,
-                            self.function_logger.func_count,
-                            self.yval,
-                            self.fsd,
-                            self.optim_state["mesh_size"],
-                            'Initial mesh', '',)
-                        )
+                self._display_function_log_(0, 'Initial mesh')
             else:
                 raise ValueError('bads:initfcn:Initialization function not implemented yet')
         
@@ -804,10 +789,57 @@ class BADS:
             raise ValueError('init mesh: Cannot find valid starting point.')
 
         self.fval = self.yval
-        self.optim_state['fval'] = self.fval.copy()
-        self.optim_state['yval'] = self.yval.copy()
+        self.optim_state['fval'] = self.fval
+        self.optim_state['yval'] = self.yval
 
         return
+
+    def _init_optimization_(self):
+        gp = None
+        hyp_dict = {}
+
+        # Evaluate starting point and initial mesh,
+        self._init_mesh_()
+            
+        # Change options for uncertainty handling
+        if self.optim_state['uncertainty_handling_level'] > 0:
+            self.options['tolstalliters'] = 2* self.options['tolstalliters']
+            self.options['ndata'] = max(200,self.options['ndata'])
+            self.options['minndata'] = 2 * self.options['minndata']
+            self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
+            self.options['minfailedpollsteps'] = np.inf
+            self.options['meshnoisemultiplier'] = 0
+            if (self.options['noisesize']):
+                self.options['noisesize'] = 1
+            # Keep some function evaluations for the final resampling
+            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
+            self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
+            
+            if self.optim_state['uncertainty_handling_level'] > 1:
+                self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
+            else:
+                self.fsd = self.options['noisesize']
+        else:
+            if self.options['noisesize'] is None:
+                self.options['noisesize'] = np.sqrt(self.options['tolfun'])
+            
+            self.fsd = 0.0
+            
+        self.optim_state['fsd']= self.fsd
+        self.ubest = self.u.copy()
+        self.optim_state['usucess'] = self.ubest.copy()
+        self.optim_state['ysucess'] = self.yval
+        self.optim_state['fsuccess'] = self.fval
+        self.optim_state['u'] = self.u.copy()
+        
+        gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
+            self.plausible_lower_bounds, self.plausible_upper_bounds)
+        gp.temporary_data['lenscale'] = 1
+        gp.temporary_data['pollscale'] = np.ones((1,self.D))
+        gp.temporary_data['effective_radius'] = 1.
+        self.iteration_history['gp_last_reset_idx'] = 0
+        
+        return gp, Ns_gp, sn2hpd, hyp_dict
 
     def optimize(self):
         """
@@ -824,56 +856,16 @@ class BADS:
         iteration = -1
         self.logging_action = []
         timer = Timer()
-        gp = None
         hyp_dict = {}
         search_sucess_flag = False
         search_spree = False
         restarts = self.options['restarts']
 
-        # Evaluate starting point and initial mesh,
-        self._init_mesh_()
+        gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
 
         if self.options['outputfcn'] is not None:
             output_fcn = self.options['outputfcn']
             is_finished_flag = output_fcn(self.var_transf.inverse_transf(self.u), 'init')
-        
-        # Change options for uncertainty handling
-        if self.optim_state['uncertaintyhandling'] > 0:
-            self.options['tolstalliters'] = 2* self.options['tolstalliters']
-            self.options['ndata'] = max(200,self.options['ndata'])
-            self.options['minndata'] = 2 * self.options['minndata']
-            self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
-            self.options['minfailedpollsteps'] = np.inf
-            self.options['meshnoisemultiplier'] = 0
-            if (self.options['noisesize']):
-                self.options['noisesize'] = 1
-            # Keep some function evaluations for the final resampling
-            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
-            self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
-            
-            if self.optim_state['uncertaintyhandling'] > 1:
-                self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
-            else:
-                self.fsd = self.options['noisesize']
-        else:
-            if self.options['noisesize'] is None:
-                self.options['noisesize'] = np.sqrt(self.options['tolfun'])
-            
-            self.fsd = 0.0
-            
-        self.optim_state['fsd']= self.fsd
-        self.ubest = self.u.copy()
-        self.optim_state['usucess'] = self.ubest.copy()
-        self.optim_state['ysucess'] = self.yval.copy()
-        self.optim_state['fsuccess'] = self.fval.copy()
-        self.optim_state['u'] = self.u.copy()
-        
-        gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
-            self.plausible_lower_bounds, self.plausible_upper_bounds)
-        gp.temporary_data['lenscale'] = 1
-        gp.temporary_data['pollscale'] = np.ones((1,self.D))
-        gp.temporary_data['effective_radius'] = 1.
-        self.iteration_history['gp_last_reset_idx'] = 0
 
         while not is_finished:
             iteration += 1
@@ -912,12 +904,6 @@ class BADS:
                 # Check wether to perform the poll stage
                 # TODO: do_poll_stage = ....
                 pass
-
-            # Number of training inputs
-            self.optim_state["N"] = self.function_logger.Xn
-            self.optim_state["n_eff"] = np.sum(
-                self.function_logger.nevals[self.function_logger.X_flag]
-            )
             
             #Check do_poll_stage
             if do_poll_stage:
@@ -1032,7 +1018,9 @@ class BADS:
             and (gp_reset_idx >= refit_period or do_gp_calibration) and func_count > self.D
         
         if refit_flag:
+            
             self.optim_state['lastfitgp'] = self.function_logger.func_count
+            # TODO: check this
             nsamples = np.maximum(1, self.options['gpsamples'])
             # Save statistics GP
             self.iteration_history['gp_last_reset_idx'] = self.iteration_history['iter'] + 1
@@ -1195,3 +1183,25 @@ class BADS:
                 display_format += ("{:12.6f}     {}       {}")
 
         return display_format
+
+    def _display_function_log_(self, iteration, method):
+        if (self.optim_state["uncertainty_handling_level"] > 0 \
+                and self.options.get("maxrepeatedobservations") > 0):
+
+            self.logger.info(self.display_format.format(
+                                iteration,
+                                self.function_logger.func_count,
+                                self.yval,
+                                self.fsd,
+                                self.optim_state["mesh_size"],
+                                method,
+                                "".join(self.logging_action),))
+        else:
+            self.logger.info(self.display_format.format(
+                                iteration,
+                                self.function_logger.func_count,
+                                self.yval,
+                                self.optim_state["mesh_size"],
+                                method,
+                                "".join(self.logging_action),))
+            

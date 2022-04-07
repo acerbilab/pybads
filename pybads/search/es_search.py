@@ -15,13 +15,13 @@ class SearchES(ABC):
     def __init__(self, mu, lamb, options_dict):
         self.mu = mu
         self.lamb = lamb
-        self.vec = np.array[-1, 0]
+        self.vec = np.array([-1, 0])
         self.w = options_dict["pollmeshmultiplier"]**self.vec #helps with the stability
-        self.ns = np.diff(np.round(np.linspace(0,self.mu, np.size(self.w)+1)))
+        self.ns = np.diff(np.round(np.linspace(0,self.mu, np.size(self.w)+1)).astype(int))
 
         self.vec = np.empty((0,1), dtype='float')
         for i in range(0, len(self.w)):
-            self.vec = np.append(self.w[i] * np.ones((self.ns[i], 1)), axis = 0)
+            self.vec = np.append(self.vec, self.w[i] * np.ones((self.ns[i], 1)), axis = 0)
 
         self.scale = options_dict["esstart"]
         self.n_search_iter = options_dict["nsearchiter"]

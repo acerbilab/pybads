@@ -19,12 +19,12 @@ def test_call_rosenbrocks_HD():
 
 def test_call_rosenbrocks():
     ros_2d = lambda x,y: 100*(y-x**2)**2 + (x-1)**2
-    X = np.array([-2])
-    Y = np.array([-1])
-    input = np.vstack((X, Y)).T
-    f_logger = FunctionLogger(rosenbrocks_single_sample, 2, False, 0)
+    X_1 = np.array([-2])
+    X_2 = np.array([-1])
+    input = np.vstack((X_1, X_2)).T
+    f_logger = FunctionLogger(rosenbrocks, 2, False, 0)
     fval, _, _ = f_logger(input[0, :])
-    assert fval == ros_2d(X, Y)
+    assert fval == ros_2d(X_1, X_2)
 
 def test_call_index():
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
