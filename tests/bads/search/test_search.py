@@ -51,22 +51,24 @@ def test_incumbent_constraint_check():
 def test_search():
     np.random.seed(0)
 
-    x0 = np.array([[0, 0]]);        # Starting point
-    lb = np.array([[-20, -20]])     # Lower bounds
-    ub = np.array([[20, 20]])       # Upper bounds
-    plb = np.array([[-5, -5]])      # Plausible lower bounds
-    pub = np.array([[5, 5]])        # Plausible upper bounds
-    D = 2
+    x0 = np.array([[0, 0, 0]]);        # Starting point
+    lb = np.array([[-20, -20, -20]])     # Lower bounds
+    ub = np.array([[20, 20, 20]])       # Upper bounds
+    plb = np.array([[-5, -5, -5]])      # Plausible lower bounds
+    pub = np.array([[5, 5, 5]])        # Plausible upper bounds
+    D = 3
 
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     es_iter = bads.options['nsearchiter']
-    mu = bads.options['nsearch'] / es_iter
+    mu = int(bads.options['nsearch'] / es_iter)
     lamb = mu
     search_es = SearchESWM(mu, lamb, bads.options)
     us, z = search_es(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state, True, None)
 
-test_incumbent_constraint_check()
+    assert us.size == 3 and (np.isscalar(z) or z.size == 1)
+    assert np.all(gp.y >= z)
+
 test_search()

@@ -546,7 +546,7 @@ class BADS:
             self.logger.info(f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}") 
 
         # Put TOLMESH on space
-        optim_state['tolmesh'] = self.options['pollmeshmultiplier']**np.ceil(np.log(self.options['tolmesh']) / np.log(self.options['pollmeshmultiplier']))
+        optim_state['tol_mesh'] = self.options['pollmeshmultiplier']**np.ceil(np.log(self.options['tolmesh']) / np.log(self.options['pollmeshmultiplier']))
                 
 
         #Periodic variables
@@ -595,7 +595,7 @@ class BADS:
             optim_state['S'] = S
             
         #Other variables initializations
-        optim_state['searchfactor']   =   1
+        optim_state['search_factor']   =   1
         optim_state['sdlevel']        = self.options['incumbentsigmamultiplier']
         optim_state['search_count']    = self.options['searchntry']       # Skip search at first iteration
         optim_state['lastreeval']     = -np.inf;                     # Last time function values were re-evaluated
@@ -834,9 +834,6 @@ class BADS:
         
         gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
             self.plausible_lower_bounds, self.plausible_upper_bounds)
-        gp.temporary_data['lenscale'] = 1
-        gp.temporary_data['pollscale'] = np.ones((1,self.D))
-        gp.temporary_data['effective_radius'] = 1.
         self.iteration_history['gp_last_reset_idx'] = 0
         
         return gp, Ns_gp, sn2hpd, hyp_dict
@@ -1020,8 +1017,11 @@ class BADS:
         if refit_flag:
             
             self.optim_state['lastfitgp'] = self.function_logger.func_count
-            # TODO: check this
-            nsamples = np.maximum(1, self.options['gpsamples'])
+            # TODO: hyp weighting. It already done by gpyreg.
+            #nsamples = np.maximum(1, self.options['gpsamples'])
+            #gpstruct.hypweight = ones(1,Nsamples)/Nsamples; they are all uniform?
+            #gpstruct.hypmean = [];
+
             # Save statistics GP
             self.iteration_history['gp_last_reset_idx'] = self.iteration_history['iter'] + 1
             do_gp_calibration = False

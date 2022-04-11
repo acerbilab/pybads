@@ -1,4 +1,5 @@
 import math
+from statistics import covariance
 
 import gpyreg as gpr
 import numpy as np
@@ -66,11 +67,6 @@ def train_gp(
     if "run_cov" not in hyp_dict:
         hyp_dict["run_cov"] = None
 
-    # TODO: during fitting(training) 
-    # TODO: TolMesh = optimState.TolMesh; 
-    # TODO  gpstruct.bounds.cov{end+1} = [log(TolMesh); log(covrange(i))],
-    # TODO: gpstruct.bounds.cov{end+1} = [log(TolFun); log(1e6*TolFun/TolMesh)];
-
     # Get training dataset.
     x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
     D = x_train.shape[1]
@@ -105,8 +101,15 @@ def train_gp(
     gp, hyp0, gp_s_N = _gp_hyp(
         optim_state, options, plb, pub, gp, x_train, y_train, function_logger)
     # Initial GP hyperparameters.
+
+    # TODO: during fitting(training) 
+    # TODO: TolMesh = optimState.TolMesh; 
+    # TODO  gpstruct.bounds.cov{end+1} = [log(TolMesh); log(covrange(i))],
+    # TODO: gpstruct.bounds.cov{end+1} = [log(TolFun); log(1e6*TolFun/TolMesh)];
+
     if hyp_dict["hyp"] is None:
         hyp_dict["hyp"] = hyp0.copy()
+
 
     # Get GP training options.
     gp_train = _get_gp_training_options(
@@ -323,17 +326,24 @@ def _gp_hyp(
     noise_bounds_info = gp.noise.get_bounds_info(hpd_X, hpd_y)
     # Missing port: output warping hyperparameters not implemented
     cov_x0 = cov_bounds_info["x0"]
+    if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
+        cov_x0[-1] = 0.0 # shape hyp. init
+
     mean_x0 = mean_bounds_info["x0"]
 
     noise_x0 = noise_bounds_info["x0"]
     min_noise = options["tolgpnoise"]
     noise_mult = None
+
+    # TODO in BADS is different.
+    #(0: none; 1: unknown noise level; 2: user-provided noise)
     if optim_state["uncertainty_handling_level"] == 0:
         if options["noisesize"] != []:
             noise_size = max(options["noisesize"], min_noise)
         else:
             noise_size = min_noise
         noise_std = 0.5
+
     elif optim_state["uncertainty_handling_level"] == 1:
         # This branch is not used and tested at the moment.
         if options["noisesize"] != []:
@@ -347,6 +357,7 @@ def _gp_hyp(
     elif optim_state["uncertainty_handling_level"] == 2:
         noise_size = min_noise
         noise_std = 0.5
+        
     noise_x0[0] = np.log(noise_size)
     hyp0 = np.concatenate([cov_x0, noise_x0, mean_x0])
 
@@ -364,12 +375,42 @@ def _gp_hyp(
     # Increase minimum noise.
     bounds["noise_log_scale"] = (np.log(min_noise), np.inf)
 
+    # Set priors over hyperparameters
+    priors = gp.get_priors()
+
+    tol_mesh = optim_state['tol_mesh']
+    tol_fun = options['tolfun']
+    
+    D = X.shape[1]
+    cov_range = (optim_state['ub'] - optim_state['lb']) / optim_state['scale']   
+    cov_range = (np.minimum(100, 10*cov_range)).flatten()
+    # Bads prior on covariance length scale(s)
+    priors['covariance_log_lengthscale'] = ('gaussian', (-1, 2.**2))
+    # BADS bounds on covariance length scale
+    bounds['covariance_log_lengthscale'] = (np.array([np.log(tol_mesh)]*D), cov_range) # lower bound and upper bound
+    
+    # Bads bounds on signal variance (output scale)
+    sf = np.exp(1)
+    priors['covariance_log_outputscale'] = ('gaussian', (np.log(sf), 2.**2))
+    bounds['covariance_log_outputscale'] = (np.log(tol_mesh), np.log(1e6 * tol_fun/tol_mesh))
+
+    if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
+        rq_prior_mean = 1 #TODO can be assigned by the user
+        priors['covariance_log_shape'] = ('gaussian', (rq_prior_mean, 1.**2))
+        bounds['covariance_log_shape'] = (np.array([-5.]), np.array([5.]))
+
+    # Rotate GP axes (unsupported)
+
+    # # Missing port: priors and bounds for output warping hyperparameters
+    # (not used)
+
     # Missing port: we only implement the mean functions that gpyreg supports.
     if isinstance(gp.mean, gpr.mean_functions.ZeroMean):
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         # Lower maximum constant mean
         bounds["mean_const"] = (-np.inf, np.min(hpd_y))
+        priors["mean_const"] = ('gaussian', (0., 1.**2))
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gpquadraticmeanbound"]:
             delta_y = max(
@@ -380,19 +421,10 @@ def _gp_hyp(
     else:
         raise TypeError("The mean function is not supported by gpyreg.")
 
-    # Set priors over hyperparameters (might want to double-check this)
-    priors = gp.get_priors()
-
-    # Hyperprior over observation noise
-    priors["noise_log_scale"] = (
-        "student_t",
-        (np.log(noise_size), noise_std, 3),
-    )
+    # Hyperprior over observation noise TODO change to Normal distribution like BADS does
+    priors["noise_log_scale"] = ("gaussian", (np.log(noise_size), noise_std))
     if noise_mult is not None:
-        priors["noise_provided_log_multiplier"] = (
-            "student_t",
-            (np.log(noise_mult), noise_mult_std, 3),
-        )
+        priors["noise_provided_log_multiplier"] = ("student_t",(np.log(noise_mult), noise_mult_std, 3),)
 
     # Missing port: hyperprior over mixture of quadratics mean function
 
@@ -416,21 +448,9 @@ def _gp_hyp(
             ([np.nan, np.log(0.01)], [np.nan, np.log(10)], [np.nan, 3]),
         )
 
-    # Missing port: priors and bounds for output warping hyperparameters
-    # (not used)
-
-    # VBMC used to have an empirical Bayes prior on some GP hyperparameters,
-    # such as input length scales, based on statistics of the GP training
-    # inputs. However, this approach could lead to instabilities. From the
-    # 2020 paper, we switched to a fixed prior based on the plausible bounds.
-    priors["covariance_log_lengthscale"] = (
-        "student_t",
-        (
-            np.log(options["gplengthpriormean"] * (pub - plb)),
-            options["gplengthpriorstd"],
-            3,
-        ),
-    )
+    gp.temporary_data['lenscale'] = 1
+    gp.temporary_data['pollscale'] = np.ones((1, D))
+    gp.temporary_data['effective_radius'] = 1.
 
     # Missing port: meanfun == 14 hyperprior case
 

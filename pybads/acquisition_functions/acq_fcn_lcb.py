@@ -10,12 +10,12 @@ def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
     n = xi.shape[0]
     n_vars = xi.shape[1]
     t = func_logger.func_count + 1
-    if sqrt_beta is None or sqrt_beta.size == 0:
+    if sqrt_beta is None or len(sqrt_beta) == 0:
         delta, nu = 0.1, 0.2
-        sqrt_beta_t = np.sqrt(nu*2*np.log(n_vars * t**2 * np.pi**2 / (6 * delta) ))
+        sqrt_beta = np.sqrt(nu*2*np.log(n_vars * t**2 * np.pi**2 / (6 * delta) ))
     elif callable(sqrt_beta):
-        sqrt_beta_t = sqrt_beta(t, n_vars)
-    elif ~np.isfinite(sqrt_beta_t) or sqrt_beta_t.size > 1:
+        sqrt_beta = sqrt_beta(t, n_vars)
+    elif ~np.isfinite(sqrt_beta) or sqrt_beta.size > 1:
         raise ValueError("acq_lcb: The SQRTBETAT parameter of the acquisition \
             function needs to be a scalar or a function handle/name to an annealing schedule.")
 

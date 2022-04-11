@@ -1,9 +1,12 @@
 
+import sys
 from typing import Callable, final
+import logging
+from abc import ABC, abstractclassmethod
 import numpy as np
 
 from gpyreg.gaussian_process import GP
-from abc import ABC, abstractclassmethod
+
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.utils.constraints_check import contraints_check
 from pybads.function_logger.function_logger import FunctionLogger
@@ -27,6 +30,8 @@ class SearchES(ABC):
         self.n_search_iter = options_dict["nsearchiter"]
         self.search_acq_fcn = options_dict["searchacqfcn"]
         self.es_beta = options_dict["esbeta"]
+        self.logger = logging.getLogger("BADS")
+        logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
 
     def _get_selection_mask_(self, mu, lamb):
@@ -44,7 +49,7 @@ class SearchES(ABC):
         delta = np.sum(w) - lamb
         lastnonzero = (np.argwhere(w > 0)[-1]).item()
         strt_point = np.maximum(0, lastnonzero - int(delta.item()) +1 ).item()
-        w[strt_point : lastnonzero] = w[strt_point: lastnonzero] - 1 
+        w[strt_point : lastnonzero+1] = w[strt_point: lastnonzero +1] - 1 
 
         # Create selection mask
         cw = np.cumsum(w) - w 
@@ -78,33 +83,45 @@ class SearchES(ABC):
         # Rescale by current scale
         self.sqrt_sigma = self.mesh_size * self.search_factor * self.sqrt_sigma
 
-        N = self.mu
+        N = int(self.mu)
         u_new = u + self.vec * np.random.normal(size=(N, nvars)) * self.sqrt_sigma
 
         # TODO add check rotate gp flag
 
         us_rows = np.minimum(u_new.shape[0], self.lamb)
         us = np.empty((us_rows, u_new.shape[1]))
-        z = np.empty((us_rows, u_new.shape[1])) #TODO: test shapes by passing different mu and lambda with Matlab!
+        z = np.empty((us_rows, 1)) #TODO: test shapes by passing different mu and lambda with Matlab!
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
 
+            # TODO: enforce periodicity
+
+            # Force candidates points on search grid
             u_new = force_to_grid(u_new, self.search_mesh_size)
 
             # Remove already evaluated or unfeasible points from search set
             u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'], optim_state["tol_mesh"], func_logger, True, nonbondcons)
 
-            if self.search_acq_fcn == 'acqLCB':
-                z_new, fmu, fs, _ = acq_fcn_lcb(u_new, func_logger, gp, optim_state, False)
+            if self.search_acq_fcn[0] == 'acq_LCB':
+                z_new, fmu, fs = acq_fcn_lcb(u_new, func_logger, gp, self.search_acq_fcn[1])
+                z_new = z_new.flatten()
+            else:
+                raise ValueError("es_search: No acquisition function found for the Search phase")
 
             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
             
+            # if something went wrong with the acquisition function, random search is performed
+            if z_new is None or z_new.size == 0:
+                z_candidates = np.random.rand(u_new.shape[0])
+                # TODO: warning logger
+                self.logger.warn("bads:es_search: Something went wrong with the acquisition function, random search is performed")
+
             nold = us.shape[0]
             if i == 0:
-                us_candidates = u_new    
-                z_candidates = np.random.rand(u_new.shape[0], 1)
+                us_candidates = u_new.copy()  
+                z_candidates = z_new.copy()
             else:
-                us_candidates = np.concatenate(us_candidates, u_new, axis = 0) # nsearch_iter and self.lambd decides us size
+                us_candidates = np.append(us_candidates, u_new, axis = 0) # nsearch_iter and self.lambd decides us size
                 z_candidates = np.append(z_candidates, z_new, axis = 0)
             
             N = np.minimum(us_candidates.shape[0], self.lamb)
@@ -123,13 +140,13 @@ class SearchES(ABC):
                     self.scale = self.scale * np.exp(self.es_beta * (frac -0.2 ))
                 
                 # Reproduce
-                es_iter = 0
-                selection_mask = self._get_selection_mask_(us.shape[0], self.lambd)
+                
+                selection_mask = self._get_selection_mask_(us.shape[0], self.lamb)
                 ll = np.minimum(self.lamb, us.shape[0])
 
                 u_new = us[selection_mask[0:ll]] + np.random.normal(size=(ll, nvars)) * self.sqrt_sigma * self.scale
 
-        return us, z
+        return us[0], z[0]
 
 
 class SearchESWM(SearchES):
@@ -149,13 +166,14 @@ class SearchESWM(SearchES):
         # Compute vector weights
         nvars = len(U)
         mu = self.frac * U.shape[0]
-        weights = np.zeros((1, 1, np.floor(mu)))
-        weights[0, 0, ] = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu+1)))
+        
+        weights = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu+1)))
         weights = weights/np.sum(weights)
 
         # Compute best vectors
-        y_idx = np.np.argsort(Y)
-        Ubest = U[y_idx[0:np.floor(mu+1)]]
+        y_idx = np.argsort(Y)
+        idx_sel = (y_idx[0:np.floor(mu+1).astype(int)]).flatten()
+        Ubest = U[idx_sel].copy()
 
         # Compute weighted covariance matrix wrt u0
         C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state["periodicvars"])
@@ -202,20 +220,22 @@ class SearchESELL(SearchES):
 
         return sqrt_sigma
 
-def ucov(U, u, w, ub, lb, scale, periodic_vars):
-    if w.size==0:
-        weights = 1
-    else:
-        weights = w.reshape((1, 1, w.size))
-    
+def ucov(U, u, w, ub, lb, scale, periodic_vars): 
     width_scaled = (ub - lb) / scale
+    U_tmp = U.copy()
+    u_tmp = u.copy()
+    if np.any(periodic_vars):
+        U_tmp[:, periodic_vars] = U[:, periodic_vars] - u[periodic_vars] + 0.5 * width_scaled[periodic_vars]
+        U_tmp[:, periodic_vars] = np.mod(U[:, periodic_vars], width_scaled[periodic_vars]) - 0.5 * width_scaled[periodic_vars]
+        u_tmp[periodic_vars] = 0.0
 
-    U[:, periodic_vars] = U[:, periodic_vars] - u[periodic_vars] + 0.5 * width_scaled[periodic_vars]
-    U[:, periodic_vars] = np.mod(U[:, periodic_vars], width_scaled[periodic_vars]) - 0.5 * width_scaled[periodic_vars]
-    u[periodic_vars] = 0.0
+    u_shift = U_tmp - u_tmp
 
-    u_shift = U - u
-    C = np.sum(weights * (u_shift.T @ u_shift), axis=2)
+    if w.size != 0:
+        weights = w.reshape(-1, *[1]*U.shape[1]) # For broadcasting weighted sum 
+        C = np.sum(weights * (u_shift.T @ u_shift), axis=0)
+    else :
+        C = u_shift.T @ u_shift
 
     return C
 
