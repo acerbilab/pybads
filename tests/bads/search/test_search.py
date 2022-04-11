@@ -49,7 +49,6 @@ def test_incumbent_constraint_check():
     assert inbounds
 
 def test_search():
-    np.random.seed(0)
 
     x0 = np.array([[0, 0, 0]]);        # Starting point
     lb = np.array([[-20, -20, -20]])     # Lower bounds
@@ -77,4 +76,23 @@ def test_search():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-test_search()
+def test_search_hedge(): 
+    
+    x0 = np.array([[0, 0, 0]]);        # Starting point
+    lb = np.array([[-20, -20, -20]])     # Lower bounds
+    ub = np.array([[20, 20, 20]])       # Upper bounds
+    plb = np.array([[-5, -5, -5]])      # Plausible lower bounds
+    pub = np.array([[5, 5, 5]])        # Plausible upper bounds
+    D = 3
+
+    bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
+
+    search_hedge = SearchESHedge(bads.options['searchmethod'], bads.options)
+    
+    us, z = search_hedge(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state)
+    print(search_hedge.chosen_search_fun)
+    assert us.size == 3 and (np.isscalar(z) or z.size == 1)
+    assert np.all(gp.y >= z)
+
+test_search_hedge()
