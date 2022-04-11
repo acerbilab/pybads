@@ -5,7 +5,7 @@ import sys
 import pytest
 
 from pybads.bads.bads import BADS
-from pybads.search.es_search import SearchESWM
+from pybads.search.es_search import SearchESELL, SearchESWM
 from tests.bads.utils_test import load_options
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.bads.gaussian_process_train import train_gp
@@ -62,12 +62,18 @@ def test_search():
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
+
     es_iter = bads.options['nsearchiter']
     mu = int(bads.options['nsearch'] / es_iter)
     lamb = mu
     search_es = SearchESWM(mu, lamb, bads.options)
     us, z = search_es(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state, True, None)
 
+    assert us.size == 3 and (np.isscalar(z) or z.size == 1)
+    assert np.all(gp.y >= z)
+
+    search_es = SearchESELL(mu, lamb, bads.options)
+    us, z = search_es(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state, True, None)
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 

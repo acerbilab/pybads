@@ -449,7 +449,7 @@ def _gp_hyp(
         )
 
     gp.temporary_data['lenscale'] = 1
-    gp.temporary_data['pollscale'] = np.ones((1, D))
+    gp.temporary_data['pollscale'] = np.ones(D)
     gp.temporary_data['effective_radius'] = 1.
 
     # Missing port: meanfun == 14 hyperprior case

@@ -76,7 +76,7 @@ class SearchES(ABC):
 
         U = gp.X
         Y = gp.y
-        nvars = len(U)
+        nvars = U.shape[1]
 
         self.sqrt_sigma = self._initialize_(u, gp, optim_state, sum_rule)
 
@@ -84,7 +84,7 @@ class SearchES(ABC):
         self.sqrt_sigma = self.mesh_size * self.search_factor * self.sqrt_sigma
 
         N = int(self.mu)
-        u_new = u + self.vec * np.random.normal(size=(N, nvars)) * self.sqrt_sigma
+        u_new = u + self.vec * (np.random.normal(size=(N, nvars)) @ self.sqrt_sigma)
 
         # TODO add check rotate gp flag
 
@@ -144,7 +144,7 @@ class SearchES(ABC):
                 selection_mask = self._get_selection_mask_(us.shape[0], self.lamb)
                 ll = np.minimum(self.lamb, us.shape[0])
 
-                u_new = us[selection_mask[0:ll]] + np.random.normal(size=(ll, nvars)) * self.sqrt_sigma * self.scale
+                u_new = us[selection_mask[0:ll]] + (np.random.normal(size=(ll, nvars)) @ self.sqrt_sigma) * self.scale
 
         return us[0], z[0]
 
@@ -186,7 +186,7 @@ class SearchESWM(SearchES):
 
         # Rescale covariance matrix according to mean vector length
         eig_values, E = np.linalg.eig(C)
-        eig_values = np.diag(np.maximum(0,eig_values)) + self.jit**2
+        eig_values = np.maximum(0, eig_values) + self.jit**2
         if sum_rule:
             eig_values = eig_values/np.sum(eig_values)
         else:
