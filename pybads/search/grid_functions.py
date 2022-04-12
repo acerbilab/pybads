@@ -2,6 +2,8 @@ from matplotlib.pyplot import axis
 import numpy as np
 from pybads.bads.variables_transformer import VariableTransformer
 from scipy.spatial.distance import cdist
+
+from pybads.function_logger.function_logger import FunctionLogger
 #from scipy.spatial.distance import pdist
 
 def force_to_grid(x, search_mesh_size, tol = None):
@@ -28,20 +30,20 @@ def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None)
         u = (x-x0)/ scale
     return u
 
-def get_grid_search_neighbors(function_logger, u, gp, options, optim_state):
+def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, optim_state):
     # get the training set by retrieving the sorted NEAREST neighbors from u
                     
     U_max_idx = function_logger.X_max_idx
-    U = function_logger.X[0:U_max_idx]
-    Y = function_logger.Y[0:U_max_idx]
+    U = function_logger.X[0:U_max_idx+1]
+    Y = function_logger.Y[0:U_max_idx+1]
 
-    if 'S' in optim_state["S"]:
-        S = optim_state["S"][0:U_max_idx]
+    if 'S' in optim_state:
+        S = optim_state["S"][0:U_max_idx+1]
     
     dist = udist(U, u, gp.temporary_data["lenscale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],
             optim_state["periodicvars"])
-    dist = np.minimum(dist, axis=1) 
+    dist = np.min(dist, axis=1) 
     sort_idx = np.argsort(dist) # Ascending sort
 
     # Keep only points within a certain (rescale) radius from target
@@ -56,7 +58,7 @@ def get_grid_search_neighbors(function_logger, u, gp, options, optim_state):
     
     # Take points closest to reference points
     result = (U[sort_idx[0:ntrain+1]], Y[sort_idx[0:ntrain+1]], None)
-    if 'S' in optim_state["S"]:
+    if 'S' in optim_state:
         result[2] = S[0:ntrain+1, :]
     return result
 
@@ -68,7 +70,7 @@ def udist(U, u2, lenscale, lb, ub, bound_scale, periodic_vars):
 
     periodic_vars: bool array
     '''
-    idx_periods = np.nonzero(periodic_vars)
+    idx_periods = np.nonzero(periodic_vars)[0]
     if len(idx_periods) > 0:
         # Can be improved by using cdist, but we have to be careful with the scaling and
         rows = u2.shape[0]

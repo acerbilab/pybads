@@ -34,7 +34,7 @@ class SearchES(ABC):
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
 
-    def _get_selection_mask_(self, mu, lamb):
+    def _get_selection_idx_mask_(self, mu, lamb):
         """
             Corresponds to esupdate of the Matlab version.
         """
@@ -47,17 +47,17 @@ class SearchES(ABC):
             w = np.maximum(0, w-1)
             nonzero = np.sum(w > 0)
         delta = np.sum(w) - lamb
-        lastnonzero = (np.argwhere(w > 0)[-1]).item()
+        lastnonzero = (np.argwhere(w > 0)[-1]).item() 
         strt_point = np.maximum(0, lastnonzero - int(delta.item()) +1 ).item()
         w[strt_point : lastnonzero+1] = w[strt_point: lastnonzero +1] - 1 
 
         # Create selection mask
-        cw = np.cumsum(w) - w 
+        cw = np.cumsum(w) - w + 1
         idx = np.zeros(np.max(cw)+1, dtype=int)
         idx[cw] = 1
-        select_max = np.cumsum(idx[0:-1])
+        select_mask = np.cumsum(idx[0:-1])
 
-        return select_max
+        return select_mask
 
     @abstractclassmethod
     def _initialize_(self, u, gp:GP, optim_state, sum_rule):
@@ -67,7 +67,7 @@ class SearchES(ABC):
         
         return None
 
-    def __call__(self, u, lb:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
+    def __call__(self, u, LB:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
         
         self.mesh_size = optim_state['mesh_size']
         self.search_factor = optim_state['search_factor']
@@ -141,7 +141,7 @@ class SearchES(ABC):
                 
                 # Reproduce
                 
-                selection_mask = self._get_selection_mask_(us.shape[0], self.lamb)
+                selection_mask = self._get_selection_idx_mask_(us.shape[0], self.lamb)
                 ll = np.minimum(self.lamb, us.shape[0])
 
                 u_new = us[selection_mask[0:ll]] + (np.random.normal(size=(ll, nvars)) @ self.sqrt_sigma) * self.scale

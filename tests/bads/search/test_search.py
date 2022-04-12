@@ -76,8 +76,20 @@ def test_search():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
+def test_search_selection_mask():
+
+    D = 3
+    mu = 1
+    lamb = 2048
+    options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
+    search_es = SearchESWM(mu, lamb, options)
+    mask = search_es._get_selection_idx_mask_(mu, lamb)
+    assert np.sum(mask) == 885072 
+    assert np.min(mask + 1) == 1
+
+
 def test_search_hedge(): 
-    
+
     x0 = np.array([[0, 0, 0]]);        # Starting point
     lb = np.array([[-20, -20, -20]])     # Lower bounds
     ub = np.array([[20, 20, 20]])       # Upper bounds
@@ -95,4 +107,5 @@ def test_search_hedge():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-test_search_hedge()
+test_search_selection_mask()
+

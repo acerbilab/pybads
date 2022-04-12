@@ -9,6 +9,7 @@ plb = np.array([[-5, -5]])      # Plausible lower bounds
 pub = np.array([[5, 5]])        # Plausible upper bounds
 
 bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+bads.optimize()
 
 assert np.all(bads.plausible_lower_bounds == np.array([[-1. , -1]])), 'Wrong init. transformed PLB'
 assert np.all(bads.plausible_upper_bounds == np.array([[1. , 1]])), 'Wrong init transformed PUB'

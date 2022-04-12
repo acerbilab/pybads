@@ -58,7 +58,7 @@ class FunctionLogger:
             self.S = np.full([cache_size, 1], np.nan)
 
         self.Xn: int = -1  # Last filled entry
-        self.X_max_idx = -1
+        self.X_max_idx = -1 # Last filled entry in the cache memory.
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")

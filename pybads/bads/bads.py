@@ -523,7 +523,7 @@ class BADS:
         lb_search[ lb_search < self.lower_bounds] = lb_search[ lb_search < self.lower_bounds] + optim_state["search_mesh_size"]
         optim_state["lb_search"] = lb_search
         ub_search = force_to_grid(self.upper_bounds, optim_state["search_mesh_size"])
-        ub_search[ ub_search > self.upper_bounds] = lb_search[ub_search > self.upper_bounds] - optim_state["search_mesh_size"]
+        ub_search[ ub_search > self.upper_bounds] = ub_search[ub_search > self.upper_bounds] - optim_state["search_mesh_size"]
         optim_state["ub_search"] = ub_search
         
         # Starting point in grid coordinates
@@ -890,7 +890,7 @@ class BADS:
                 sufficient_improvement = np.maximum(sufficient_improvement, self.options['tolfun'])
             self.optim_state['sufficient_improvement'] = sufficient_improvement.copy()
 
-            do_search_step_flag = self.optimstate['search_count'] < self.options['searchntry'] \
+            do_search_step_flag = self.optim_state['search_count'] < self.options['searchntry'] \
                     and  len(self.function_logger.Y[self.function_logger.X_flag]) > self.D
             do_poll_stage = False
 
@@ -900,6 +900,7 @@ class BADS:
             else :
                 # Check wether to perform the poll stage
                 # TODO: do_poll_stage = ....
+                self._search_stage_(gp)
                 pass
             
             #Check do_poll_stage
@@ -916,7 +917,7 @@ class BADS:
     def _search_stage_(self, gp: GP):
         # Check where it is time to refit the GP
         refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
-
+        
         if refit_flag \
             or self.optim_state['search_count'] == 0:
 
@@ -936,7 +937,7 @@ class BADS:
 
         # Generate search set (normalized coordinate)
         self.search_es_hedge = SearchESHedge(self.options['searchmethod'], self.options, self.nonbondcons)
-        u_search_set = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
+        u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
         u_search_set = period_check(u_search_set, self.lower_bounds, self.upper_bounds, self.optim_state["periodicvars"])
@@ -957,7 +958,7 @@ class BADS:
             index_acq = np.argmin(z)
         
         # Randomly choose index if something went wrong
-        if index_acq is None or index_acq.size < 1 or np.any(~np.isfinte(index_acq)):
+        if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):
             self.logger.warn("bads:optimze: Acquisition function failed")
             index_acq = np.random.randint(0, len(u_search_set) +1 )
 
@@ -1043,7 +1044,7 @@ class BADS:
         if np.any(~idx_finite_y):
             y_idx_penalty = np.argmax(gp.y[idx_finite_y])
             gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
-            if 'S' in self.optim_state["S"]:
+            if 'S' in self.optim_state:
                 gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
                 
         gp.temporary_data['erry'] = ~idx_finite_y
@@ -1093,7 +1094,7 @@ class BADS:
             if self.options['alternativeincumbent']:
                 f_target = fmu - np.sqrt(self.D) / np.sqrt(self.function_logger.func_count) * f_target_s
             else:
-                f_target = fmu - self.optim_state['sdlevel'] * np.sqrt(fs2 + self.options['tolffun']**2)
+                f_target = fmu - self.optim_state['sdlevel'] * np.sqrt(fs2 + self.options['tolfun']**2)
         else:
             f_target = self.optim_state['fval'] - self.options['tolfun']
             fmu = self.optim_state['fval']
@@ -1102,11 +1103,11 @@ class BADS:
 
     def _update_search_bounds_(self):
         lb = self.optim_state['lb']
-        lb_search = force_to_grid(self.optim_state['lb'], self.optim_state['search_mesh_size'])
+        lb_search = force_to_grid(lb, self.optim_state['search_mesh_size'])
         lb_search[lb_search < lb] = lb_search[lb_search < lb] + self.optim_state['search_mesh_size']
 
         ub = self.optim_state['ub']
-        ub_search = force_to_grid(self.optim_state['lb'], self.optim_state['search_mesh_size'])
+        ub_search = force_to_grid(ub, self.optim_state['search_mesh_size'])
         ub_search[ub_search > ub] = ub_search[ub_search > ub] - self.optim_state['search_mesh_size']
         return lb_search, ub_search
         
