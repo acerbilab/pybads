@@ -60,7 +60,7 @@ class SearchESHedge():
 
         for i_hedge in range(self.n_funs):
 
-            u_hedge = u_search[np.min(i_hedge, len(u_search)-1) :].copy()
+            u_hedge = u_search[np.minimum(i_hedge, len(u_search)-1) :].copy()
 
             if i_hedge == self.chosen_hedge:
                 f_hedge = f
@@ -73,7 +73,7 @@ class SearchESHedge():
                 fs_hedge = 1
             
             if fs_hedge == 0:
-                er = np.maximum(0, fval_old)
+                er = np.maximum(0, fval_old - f_hedge)
             elif np.isfinite(f_hedge) and np.isfinite(fs_hedge) and np.isreal(fs_hedge) and fs_hedge > 0:
                 # Probability of improvement
                 gamma_z = (fval_old - f_hedge) / fs_hedge
@@ -84,7 +84,7 @@ class SearchESHedge():
             else:
                 er = 0
         
-        self.g[i_hedge] = self.decay * self.g[i_hedge] + er / self.phat[i_hedge] / mesh_size
+            self.g[i_hedge] = self.decay * self.g[i_hedge] + er / self.phat[i_hedge] / mesh_size
 
             
 

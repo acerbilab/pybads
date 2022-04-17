@@ -43,7 +43,8 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     dist = udist(U, u, gp.temporary_data["len_scale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],
             optim_state['periodicvars'])
-    dist = np.min(dist, axis=1) 
+    if dist.ndim > 1:
+        dist = np.min(dist, axis=1) 
     sort_idx = np.argsort(dist) # Ascending sort
 
     # Keep only points within a certain (rescale) radius from target
@@ -59,7 +60,7 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     # Take points closest to reference points
     result = (U[sort_idx[0:ntrain+1]], Y[sort_idx[0:ntrain+1]], None)
     if 'S' in optim_state:
-        result[2] = S[0:ntrain+1, :]
+        result[2] = S[sort_idx[0:ntrain+1], :]
     return result
 
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):

@@ -87,7 +87,7 @@ class VariableTransformer:
         # the plausible range spans at least one order of magnitude
         for i in np.argwhere(np.isnan(self.apply_log_t.squeeze())):
             self.apply_log_t[:, i] = np.all(np.concatenate([self.ub[:, i], self.ub[:, i], self.plb[:, i], self.pub[:, i]]) > 0) \
-                & (self.pub[:, i]/self.plb[:, i] >= 10).item()       
+                and (self.pub[:, i]/self.plb[:, i] >= 10).item()       
         self.apply_log_t = self.apply_log_t.astype(bool)
 
         self.lb[self.apply_log_t] = np.log(self.lb[self.apply_log_t])

@@ -217,7 +217,7 @@ class SearchESELL(SearchES):
         rescaled_len_scale = rescaled_len_scale / np.sqrt(np.sum(rescaled_len_scale**2))
         sqrt_sigma = np.diag(rescaled_len_scale)
         
-        W# TODO add check rotate gp flag -> sqrt_sigma = 
+        # TODO add check rotate gp flag -> sqrt_sigma = 
 
         return sqrt_sigma
 

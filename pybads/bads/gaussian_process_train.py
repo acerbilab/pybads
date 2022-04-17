@@ -224,23 +224,24 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     # Update GP
     
     # Update piors hyperparameters using empirical Bayes method.
-    y_mean = np.percentile(gp.y, options['gpmeanpercentile'])
-    y_range = options['gpmeanrangefun'](y_mean, gp.y)
     
     if options.get('specifytargetnoise'):    
         noise_size = options['tolfun']   #Additional jitter to specified noise
     else:
         noise_size = options['noisesize']
     
-    # GP Noise
+    # Update GP Noise
     gp_priors = gp.get_priors()
-    prior_noise = gp_priors['noise_log_scale"'] 
+    prior_noise = gp_priors['noise_log_scale'] 
     mu_noise_prior = np.log(noise_size) + options['meshnoisemultiplier'] * np.log(optim_state['mesh_size'])
     prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
 
     # TODO: warped likelihood (unsupported)
 
-    # GP Mean
+    # Update GP Mean
+    y_mean = np.percentile(gp.y, options['gpmeanpercentile'])
+    y_range = options['gpmeanrangefun'](y_mean, gp.y)
+
     prior_mean = None
     if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         prior_mean = gp_priors['mean_const']
@@ -252,18 +253,19 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # TODO: update hyp mean by assigning ymean
         pass 
 
-    # GP Covariance length scale
+    # Update GP Covariance length scale
     if options['gpcovprior'] == 'iso':
-        dist = udist(gp.X, np.transpose(gp.X), 1, optim_state['lb'], optim_state['ub'], optim_state['scale'], optim_state['periodicvars'])
+        dist = udist(gp.X, gp.X, 1, optim_state['lb'], optim_state['ub'], optim_state['scale'], optim_state['periodicvars'])
         dist = dist.flatten()
         dist = dist[dist != 0]
-        uu = 0.5 * np.log(np.max(dist))
-        ll = 0.5 * np.log(np.min(dist))
+        if dist.size > 0:
+            uu = 0.5 * np.log(np.max(dist))
+            ll = 0.5 * np.log(np.min(dist))
 
-        cov_mu = 0.5* (uu + ll)
-        cov_sigma = 0.5* (uu - ll)
-        
-        gp_priors['covariance_log_lengthscale'] = ('gaussian', (cov_mu, cov_sigma))
+            cov_mu = 0.5* (uu + ll)
+            cov_sigma = 0.5* (uu - ll)
+            
+            gp_priors['covariance_log_lengthscale'] = ('gaussian', (cov_mu, cov_sigma))
     
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
@@ -274,20 +276,17 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # TODO warp function (Matlab  gpdefbads line-code 302)
         pass
 
-    
-    # TODO: Re-fit Guassian Process (optimize or sample -- only optimization supported)
+    # Re-fit Guassian Process (optimize or sample -- only optimization supported)
     gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.**2))
     gp.set_priors(gp_priors)
     dic_hyp_gp = gp.get_hyperparameters()
     if refit_flag:
-        bounds = gp.get_bounds()
-        # Check for possible high-noise mode
         dic_hyp_gp = gp.get_hyperparameters()
-        last_dic_hyp_gp = dic_hyp_gp[-1]
-        # TODO. Maybe we will need to access at the last element of the hyperparameter, like: dic_hyp_gp['noise_log_scale'][-1]
-        if np.isscalar(options['noisesize']) | ~np.isfinite(options['noisesize'][1]):
+        # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
+        last_dic_hyp_gp = dic_hyp_gp[-1] # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
+        # Check for possible high-noise mode
+        if np.isscalar(options['noisesize']) or ~np.isfinite(options['noisesize'][1]):
             noise = 1
-
             is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
         else:
             noise = options['noisesize'][1]
@@ -323,6 +322,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)
+        # Update after fitting
         # Gaussian process length scale
         if len(dic_hyp_gp[0]['covariance_log_lengthscale']) > 1:
             len_scale = np.zeros(D)
@@ -333,10 +333,9 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             gp.temporary_data['len_scale'] = 1.
 
         # GP-based geometric length scale
-        
         ll = np.zeros((hyp_n_samples, D))
         for i in range(hyp_n_samples):
-            ll[i, :] = options['rescalepoll'] * dic_hyp_gp[i]['covariance_log_lengthscale']
+            ll[i, :] = options['gprescalepoll'] * dic_hyp_gp[i]['covariance_log_lengthscale']
         #ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
 
         # Take bounded limits
@@ -360,6 +359,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
                 gp.temporary_data['effective_radius'] = np.sqrt(alpha*(np.exp(1/alpha)-1))
 
     # Matlab defines the signal variability in the GP, but is never used.
+
     # Recompute posterior
     gp.update(hyp=hyp_gp)
 
