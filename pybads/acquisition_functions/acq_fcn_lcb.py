@@ -5,6 +5,26 @@ import gpyreg as gpr
 from pybads.function_logger.function_logger import FunctionLogger
 
 def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
+    """
+        Lower confidence bound (LCB) acquisition function
+
+        Parameters
+        ==========
+        xi: np.ndarray
+            Candidate points
+        func_logger: FunctionLogger
+            function value
+        gp: GP
+            Gaussian process
+        sqrt_beta: float
+            LCB parameter
+        
+        Returns
+        ==========
+        z: lower confidence bound
+        f_mu: GP prediction on xi
+        f_s: GP variance
+    """
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
 
     n = xi.shape[0]
@@ -19,8 +39,7 @@ def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
         raise ValueError("acq_lcb: The SQRTBETAT parameter of the acquisition \
             function needs to be a scalar or a function handle/name to an annealing schedule.")
 
-    f_mu, f_s = gp.predict(xi) # hyp weight average is already done by gpyreg.
-
+    f_mu, f_s = gp.predict(xi)
     f_s = np.sqrt(f_s)
 
     # Lower confidence bound

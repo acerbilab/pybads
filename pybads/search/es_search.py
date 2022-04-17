@@ -176,7 +176,7 @@ class SearchESWM(SearchES):
         Ubest = U[idx_sel].copy()
 
         # Compute weighted covariance matrix wrt u0
-        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state["periodicvars"])
+        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodicvars'])
         if self.active_flag:
             U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]] #TODO check indexes better, critique point
             negC = ucov(U_worst, u, weights, optim_state) #TODO heeeere
@@ -213,10 +213,11 @@ class SearchESCMA(SearchESWM):
 class SearchESELL(SearchES):
 
     def _initialize_(self, u, gp:GP, optim_state, sum_rule):
-        rescaled_len_scale = gp.temporary_data["pollscale"]
+        rescaled_len_scale = gp.temporary_data["poll_scale"]
         rescaled_len_scale = rescaled_len_scale / np.sqrt(np.sum(rescaled_len_scale**2))
         sqrt_sigma = np.diag(rescaled_len_scale)
-        # TODO add check rotate gp flag -> sqrt_sigma = 
+        
+        W# TODO add check rotate gp flag -> sqrt_sigma = 
 
         return sqrt_sigma
 

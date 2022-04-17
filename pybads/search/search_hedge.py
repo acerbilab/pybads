@@ -1,5 +1,6 @@
 
 from encodings import search_function
+from scipy.special import erfc
 import numpy as np
 from gpyreg.gaussian_process import GP
 from .es_search import SearchESWM, SearchESELL
@@ -54,6 +55,37 @@ class SearchESHedge():
             return us, z
         else:
             raise ValueError("search_hedge:Requested search method not implemented yet")
+
+    def update_hedge(self, u_search, fval_old, f, fs, gp:GP, mesh_size):
+
+        for i_hedge in range(self.n_funs):
+
+            u_hedge = u_search[np.min(i_hedge, len(u_search)-1) :].copy()
+
+            if i_hedge == self.chosen_hedge:
+                f_hedge = f
+                fs_hedge = fs
+            elif self.gamma == 0:
+                f_hedge, fs_hedge = gp.predict(u_hedge)
+                fs_hedge = np.sqrt(fs_hedge)
+            else:
+                f_hedge = 0
+                fs_hedge = 1
+            
+            if fs_hedge == 0:
+                er = np.maximum(0, fval_old)
+            elif np.isfinite(f_hedge) and np.isfinite(fs_hedge) and np.isreal(fs_hedge) and fs_hedge > 0:
+                # Probability of improvement
+                gamma_z = (fval_old - f_hedge) / fs_hedge
+                fpi = 0.5 * erfc(-gamma_z / np.sqrt(2))
+
+                # Expected reward
+                er = fs_hedge * (gamma_z * fpi + np.exp(-0.5 * (gamma_z**2) / np.sqrt(2 * np.pi)))
+            else:
+                er = 0
+        
+        self.g[i_hedge] = self.decay * self.g[i_hedge] + er / self.phat[i_hedge] / mesh_size
+
             
 
 

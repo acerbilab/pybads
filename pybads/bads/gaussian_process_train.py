@@ -6,6 +6,7 @@ import numpy as np
 from pytest import Function
 
 from pybads.function_logger import FunctionLogger
+from pybads.search.grid_functions import get_grid_search_neighbors, udist
 
 from .options import Options
 from pybads.stats.get_hpd import get_hpd
@@ -102,11 +103,6 @@ def train_gp(
         optim_state, options, plb, pub, gp, x_train, y_train, function_logger)
     # Initial GP hyperparameters.
 
-    # TODO: during fitting(training) 
-    # TODO: TolMesh = optimState.TolMesh; 
-    # TODO  gpstruct.bounds.cov{end+1} = [log(TolMesh); log(covrange(i))],
-    # TODO: gpstruct.bounds.cov{end+1} = [log(TolFun); log(1e6*TolFun/TolMesh)];
-
     if hyp_dict["hyp"] is None:
         hyp_dict["hyp"] = hyp0.copy()
 
@@ -201,6 +197,173 @@ def train_gp(
 
     return gp, gp_s_N, sn2hpd, hyp_dict
 
+def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, options, optim_state, iteration_history: IterationHistory,refit_flag):
+    # Local GP approximation on current point
+    # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
+    gp.X, gp.y, s2 = get_grid_search_neighbors(function_logger, current_point, gp, options, optim_state)
+    D = gp.X.shape[1]
+    if s2 is not None:
+        gp.s2 = s2                    
+
+    # TODO: Transformation of objective function
+    if options['fitnessshaping']:
+        #logger.warn("bads:opt:Fitness shaping not implemented yet")
+        pass
+    
+    idx_finite_y = np.isfinite(gp.y)
+    if np.any(~idx_finite_y):
+        y_idx_penalty = np.argmax(gp.y[idx_finite_y])
+        gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
+        if 'S' in optim_state:
+            gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
+            
+    gp.temporary_data['erry'] = ~idx_finite_y
+
+    #TODO: Rotate dataset (unsupported)
+
+    # Update GP
+    
+    # Update piors hyperparameters using empirical Bayes method.
+    y_mean = np.percentile(gp.y, options['gpmeanpercentile'])
+    y_range = options['gpmeanrangefun'](y_mean, gp.y)
+    
+    if options.get('specifytargetnoise'):    
+        noise_size = options['tolfun']   #Additional jitter to specified noise
+    else:
+        noise_size = options['noisesize']
+    
+    # GP Noise
+    gp_priors = gp.get_priors()
+    prior_noise = gp_priors['noise_log_scale"'] 
+    mu_noise_prior = np.log(noise_size) + options['meshnoisemultiplier'] * np.log(optim_state['mesh_size'])
+    prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
+
+    # TODO: warped likelihood (unsupported)
+
+    # GP Mean
+    prior_mean = None
+    if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+        prior_mean = gp_priors['mean_const']
+        prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
+    
+    if prior_mean is not None and ~options['gpfixedmean']:
+        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(2/4)))
+    elif options['gpfixedmean']:
+        # TODO: update hyp mean by assigning ymean
+        pass 
+
+    # GP Covariance length scale
+    if options['gpcovprior'] == 'iso':
+        dist = udist(gp.X, np.transpose(gp.X), 1, optim_state['lb'], optim_state['ub'], optim_state['scale'], optim_state['periodicvars'])
+        dist = dist.flatten()
+        dist = dist[dist != 0]
+        uu = 0.5 * np.log(np.max(dist))
+        ll = 0.5 * np.log(np.min(dist))
+
+        cov_mu = 0.5* (uu + ll)
+        cov_sigma = 0.5* (uu - ll)
+        
+        gp_priors['covariance_log_lengthscale'] = ('gaussian', (cov_mu, cov_sigma))
+    
+    # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
+
+    # Empirical prior on covariance signal variance ((output scale)
+    if options['warpfunc'] == 0:
+        sd_y = np.log(np.std(gp.y))
+    else:
+        # TODO warp function (Matlab  gpdefbads line-code 302)
+        pass
+
+    
+    # TODO: Re-fit Guassian Process (optimize or sample -- only optimization supported)
+    gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.**2))
+    gp.set_priors(gp_priors)
+    dic_hyp_gp = gp.get_hyperparameters()
+    if refit_flag:
+        bounds = gp.get_bounds()
+        # Check for possible high-noise mode
+        dic_hyp_gp = gp.get_hyperparameters()
+        last_dic_hyp_gp = dic_hyp_gp[-1]
+        # TODO. Maybe we will need to access at the last element of the hyperparameter, like: dic_hyp_gp['noise_log_scale'][-1]
+        if np.isscalar(options['noisesize']) | ~np.isfinite(options['noisesize'][1]):
+            noise = 1
+
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
+        else:
+            noise = options['noisesize'][1]
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize'][0]) + 2*noise
+            
+        if np.isscalar(options['noisesize']):
+            last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
+
+        is_low_mean = False
+        if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+            is_low_mean = last_dic_hyp_gp['mean_const'] < np.min(gp.y)
+        
+        second_fit = options['doublerefit'] | is_high_noise | is_low_mean
+
+        #TODO second fit
+        if second_fit:
+            pass
+        
+        # Matlab: remove undefined points (no need)
+        # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem.
+
+        
+        dic_hyp_gp[-1] = last_dic_hyp_gp 
+        
+        gp.set_hyperparameters(dic_hyp_gp, compute_posterior=False)
+        hyp_gp = gp.get_hyperparameters(as_array=True)
+        
+        # FIT GP
+        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
+        gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
+        x_train, y_train, s2_train, _ = _get_training_data(function_logger)
+        hyp_gp, _, res = gp.fit(x_train, y_train, s2_train, hyp0=hyp_gp, options=gp_train)
+        dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
+
+        hyp_n_samples = len(dic_hyp_gp)
+        # Gaussian process length scale
+        if len(dic_hyp_gp[0]['covariance_log_lengthscale']) > 1:
+            len_scale = np.zeros(D)
+            for i in range(hyp_n_samples):
+                len_scale +=  len_scale + np.exp(dic_hyp_gp[i]['covariance_log_lengthscale'])
+            gp.temporary_data['len_scale'] = len_scale
+        else:
+            gp.temporary_data['len_scale'] = 1.
+
+        # GP-based geometric length scale
+        
+        ll = np.zeros((hyp_n_samples, D))
+        for i in range(hyp_n_samples):
+            ll[i, :] = options['rescalepoll'] * dic_hyp_gp[i]['covariance_log_lengthscale']
+        #ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
+
+        # Take bounded limits
+        ub_bounded = optim_state['ub'].copy()
+        ub_bounded[~np.isfinite(ub_bounded)] = optim_state['pub'][~np.isfinite(ub_bounded)]
+        lb_bounded = optim_state['lb'].copy()
+        lb_bounded[~np.isfinite(lb_bounded)] = optim_state['plb'][~np.isfinite(lb_bounded)]
+
+        ll = np.minimum(np.maximum(ll, optim_state['search_mesh_size']), \
+                (ub_bounded-lb_bounded)/optim_state['scale']) # Perhaps this should just be PUB - PLB?
+        ll = ll - np.mean(ll)
+        ll = np.exp(np.sum(ll, axis=0))
+        gp.temporary_data['pollscale'] = ll
+
+        if options['useeffectiveradius']:
+            if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
+                alpha = np.zeros((hyp_n_samples))
+                for i in range(hyp_n_samples):
+                    alpha[i] = np.exp(dic_hyp_gp[i]['covariance_log_shape'])
+
+                gp.temporary_data['effective_radius'] = np.sqrt(alpha*(np.exp(1/alpha)-1))
+
+    # Matlab defines the signal variability in the GP, but is never used.
+    # Recompute posterior
+    gp.update(hyp=hyp_gp)
+
+    return gp
 
 def _meanfun_name_to_mean_function(name: str):
     """
@@ -448,8 +611,8 @@ def _gp_hyp(
             ([np.nan, np.log(0.01)], [np.nan, np.log(10)], [np.nan, 3]),
         )
 
-    gp.temporary_data['lenscale'] = 1
-    gp.temporary_data['pollscale'] = np.ones(D)
+    gp.temporary_data['len_scale'] = 1
+    gp.temporary_data['poll_scale'] = np.ones(D)
     gp.temporary_data['effective_radius'] = 1.
 
     # Missing port: meanfun == 14 hyperprior case
@@ -457,7 +620,18 @@ def _gp_hyp(
     # Missing port: output warping priors
 
     ## Number of GP hyperparameter samples.
+    gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
 
+    gp.set_bounds(bounds)
+    gp.set_priors(priors)
+
+    return gp, hyp0, round(gp_s_N)
+
+def _get_numb_gp_samples(function_logger:FunctionLogger, optim_state, options):
+    """ 
+        Retrieve the number of GP hyperparameter samples.
+        
+    """
     stop_sampling = optim_state["stop_sampling"]
 
     tr_N = function_logger.Xn+1 # Number of training inputs
@@ -486,10 +660,7 @@ def _gp_hyp(
     if stop_sampling > 0:
         gp_s_N = options["stablegpsamples"]
 
-    gp.set_bounds(bounds)
-    gp.set_priors(priors)
-
-    return gp, hyp0, round(gp_s_N)
+    return gp_s_N
 
 
 def _get_gp_training_options(

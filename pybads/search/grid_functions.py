@@ -40,9 +40,9 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     if 'S' in optim_state:
         S = optim_state["S"][0:U_max_idx+1]
     
-    dist = udist(U, u, gp.temporary_data["lenscale"],
+    dist = udist(U, u, gp.temporary_data["len_scale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],
-            optim_state["periodicvars"])
+            optim_state['periodicvars'])
     dist = np.min(dist, axis=1) 
     sort_idx = np.argsort(dist) # Ascending sort
 
@@ -62,7 +62,7 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
         result[2] = S[0:ntrain+1, :]
     return result
 
-def udist(U, u2, lenscale, lb, ub, bound_scale, periodic_vars):
+def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     '''
 
     Parameters
@@ -82,10 +82,10 @@ def udist(U, u2, lenscale, lb, ub, bound_scale, periodic_vars):
         w_s = (ub - lb) / bound_scale #scaled width (w_s)
         diff[idx_periods] = np.minimum(np.abs(diff[idx_periods]),
                                 w_s - np.abs(diff)[idx_periods])
-        diff = (diff/lenscale)**2
+        diff = (diff/len_scale)**2
         return np.sum(diff, axis=1)
 
     else:
-        dist = cdist(U/lenscale, u2/lenscale)
+        dist = cdist(U/len_scale, np.atleast_2d(u2)/len_scale)
         return dist**2
 
