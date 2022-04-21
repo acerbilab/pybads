@@ -1072,6 +1072,15 @@ class BADS:
         x = self.var_transf.inverse_transf(self.u)
 
         #TODO:  Print final message
+        self.logger.warning(msg)
+        if self.optim_state['uncertainty_handling'] > 0:
+            if yval_vec.size == 1:
+                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: %{self.fval} ± %{self.fsd} (GP mean ± SEM).')
+            else:
+                self.logger.warn(f'Estimated function value at minimum: %{self.fval} ± %{self.fsd} (mean ± SEM from {yval_vec.size} samples)')
+        else:
+            self.logger.warn(f'Function value at minimum: %{self.fval}')
+
         
         
         return x, self.fval
