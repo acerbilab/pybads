@@ -495,33 +495,26 @@ def _gp_hyp(
     mean_x0 = mean_bounds_info["x0"]
 
     noise_x0 = noise_bounds_info["x0"]
-    min_noise = options["tolgpnoise"]
-    noise_mult = None
-
-    # TODO in BADS is different.
-    #(0: none; 1: unknown noise level; 2: user-provided noise)
-    if optim_state["uncertainty_handling_level"] == 0:
-        if options["noisesize"] != []:
-            noise_size = max(options["noisesize"], min_noise)
+    
+    # Hyperparams over observation noise
+    if options['fitlik']:
+        # Unknown noise level (even for deterministic function, it helps for regularization)
+        if options.get('specifytargetnoise'):    
+            noise_size = options['tolfun']   #Additional jitter to specified noise
         else:
-            noise_size = min_noise
-        noise_std = 0.5
-
-    elif optim_state["uncertainty_handling_level"] == 1:
-        # This branch is not used and tested at the moment.
-        if options["noisesize"] != []:
-            noise_mult = max(options["noisesize"], min_noise)
-            noise_mult_std = np.log(10) / 2
-        else:
-            noise_mult = 1
-            noise_mult_std = np.log(10)
-        noise_size = min_noise
-        noise_std = np.log(10)
-    elif optim_state["uncertainty_handling_level"] == 2:
-        noise_size = min_noise
-        noise_std = 0.5
+            noise_size = options['noisesize']
         
-    noise_x0[0] = np.log(noise_size)
+        if np.isscalar(noise_size) or np.size(noise_size) == 1:
+            noise_std = 1
+            noise_mu = np.log(noise_size)
+        else:
+            noise_mu = np.log(noise_size[0])
+            noise_std = noise_size[1]
+        
+    else:
+        noise_mu = np.log(noise_size[0])
+
+    noise_x0[0] = noise_mu
     hyp0 = np.concatenate([cov_x0, noise_x0, mean_x0])
 
     # Missing port: output warping hyperparameters not implemented
@@ -536,7 +529,7 @@ def _gp_hyp(
             np.log(options["uppergplengthfactor"] * (pub - plb)),
         )
     # Increase minimum noise.
-    bounds["noise_log_scale"] = (np.log(min_noise), np.inf)
+    bounds["noise_log_scale"] = (np.log(options['tolfun']) -1, 5)
 
     # Set priors over hyperparameters
     priors = gp.get_priors()
@@ -555,7 +548,7 @@ def _gp_hyp(
     # Bads bounds on signal variance (output scale)
     sf = np.exp(1)
     priors['covariance_log_outputscale'] = ('gaussian', (np.log(sf), 2.**2))
-    bounds['covariance_log_outputscale'] = (np.log(tol_mesh), np.log(1e6 * tol_fun/tol_mesh))
+    bounds['covariance_log_outputscale'] = (np.log(tol_fun), np.log(1e6 * tol_fun/tol_mesh))
 
     if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
         rq_prior_mean = 1 #TODO can be assigned by the user
@@ -572,7 +565,7 @@ def _gp_hyp(
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         # Lower maximum constant mean
-        bounds["mean_const"] = (-np.inf, np.min(hpd_y))
+        bounds["mean_const"] = (-np.inf, np.inf)
         priors["mean_const"] = ('gaussian', (0., 1.**2))
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gpquadraticmeanbound"]:
@@ -584,32 +577,12 @@ def _gp_hyp(
     else:
         raise TypeError("The mean function is not supported by gpyreg.")
 
-    # Hyperprior over observation noise TODO change to Normal distribution like BADS does
-    priors["noise_log_scale"] = ("gaussian", (np.log(noise_size), noise_std))
-    if noise_mult is not None:
-        priors["noise_provided_log_multiplier"] = ("student_t",(np.log(noise_mult), noise_mult_std, 3),)
-
-    # Missing port: hyperprior over mixture of quadratics mean function
-
-    # Change bounds and hyperprior over output-dependent noise modulation
-    # Note: currently this branch is not used.
-    if optim_state["gp_noisefun"][2] == 1:
-        bounds["noise_rectified_log_multiplier"] = (
-            [np.min(np.min(y), np.max(y) - 20 * D), -np.inf],
-            [np.max(y) - 10 * D, np.inf],
-        )
-
-        # These two lines were commented out in MATLAB as well.
-        # If uncommented add them to the stuff below these two lines
-        # where we have np.nan
-        # hypprior.mu(Ncov+2) = max(y_hpd) - 10*D;
-        # hypprior.sigma(Ncov+2) = 1;
-
-        # Only set the first of the two parameters here.
-        priors["noise_rectified_log_multiplier"] = (
-            "student_t",
-            ([np.nan, np.log(0.01)], [np.nan, np.log(10)], [np.nan, 3]),
-        )
+    # Prior over observation noise
+    if options['fitlik']:
+        priors["noise_log_scale"] = ("gaussian", (noise_mu, noise_std))
+    else:
+        # Known noise level
+        priors["noise_log_scale"] = ("delta", (noise_mu))
 
     gp.temporary_data['len_scale'] = 1
     gp.temporary_data['poll_scale'] = np.ones(D)
