@@ -874,6 +874,7 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
+        self.gp_best = copy.deepcopy(gp)
 
         if self.options['outputfcn'] is not None:
             output_fcn = self.options['outputfcn']
@@ -952,6 +953,8 @@ class BADS:
             #TODO: Scatter plot of iteration
             if self.options['plot'] == 'scatter':
                 pass
+
+            self.gp_best = copy.deepcopy(gp) # GP hyperparameters at end of iteration
 
             # Check termination conditions
             if self.function_logger.func_count >= self.options['maxfunevals']:
@@ -1104,7 +1107,7 @@ class BADS:
         # End fitting            
 
         # Update Target from GP prediction
-        fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, gp)
+        fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, self.gp_best)
         self.optim_state["fval"] = fmu.item()
         self.optim_state["f_target_s"] = f_target_s
         self.optim_state["f_target"] = f_target.item()
@@ -1265,6 +1268,7 @@ class BADS:
         y_poll_best = self.yval
         f_poll_best = self.fval
         f_sd_poll_best = self.fsd.copy()
+        gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
         poll_count = 0
         is_good_poll = False
         B = None
@@ -1321,7 +1325,7 @@ class BADS:
                 # gpexitflag = min(gptempflag,gpexitflag);
             
             # Update Target from GP prediction
-            fmu, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp)
+            fmu, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
             self.optim_state["fval"] = fmu.item()
             self.optim_state["f_target_s"] = f_target_s
             self.optim_state["f_target"] = f_target.item()
@@ -1391,6 +1395,7 @@ class BADS:
                 u_poll_best = u_new.copy()
                 y_poll_best = y_poll.copy()
                 f_poll_best = f_poll.copy()
+                gp_poll = copy.deepcopy(gp)
                 f_sd_poll_best = f_sd_poll
                 poll_best_improvement = poll_improvement
                 if poll_best_improvement > self.sufficient_improvement:
@@ -1464,7 +1469,7 @@ class BADS:
         #TODO: if self.output_function is not None
         self.reset_gp = is_poll_moved
 
-        return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best
+        return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
         
 
 
