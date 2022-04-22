@@ -212,7 +212,6 @@ class BADS:
                 "lcbmax",
                 "rindex", # Reliability index (not used in BADS)
                 "gp",
-                "gp_last_reset_idx",
                 "gp_hyp_full",
                 "Ns_gp",
                 "timer",
@@ -803,6 +802,7 @@ class BADS:
 
     def _init_optimization_(self):
         gp = None
+        self.reset_gp = False
         hyp_dict = {}
 
         # Evaluate starting point and initial mesh,
@@ -845,7 +845,6 @@ class BADS:
         # Initialize Gaussian Process (GP) structure
         gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
             self.plausible_lower_bounds, self.plausible_upper_bounds)
-        self.iteration_history['gp_last_reset_idx'] = 0
 
         self.gp_stats = IterationHistory(["iter_gp","fval","ymu","ys","gp",])
         
@@ -866,6 +865,7 @@ class BADS:
         poll_iteration = -1
         self.logging_action = []
         timer = Timer()
+        timer.start_timer('BADS')
         hyp_dict = {}
         self.search_success = 0
         self.last_skipped = -1;                # Last skipped iteration
@@ -916,8 +916,6 @@ class BADS:
             if do_search_step_flag:
                 # Search stage
                 u_search, search_dist, f_mu_search, f_sd_search, gp = self._search_step_(gp)
-                
-
             # End Search step
 
             # Check wether to perform the poll stage, it can be run consecutively after the search.
@@ -944,10 +942,10 @@ class BADS:
                 do_poll_step = True
             
             self.u = self.u_best
-            #Check do_poll_step
+
+            #check and do poll step
             if do_poll_step:
                 self._poll_step_()
-
 
             # Finalize the iteration
             
@@ -973,8 +971,8 @@ class BADS:
             
             # Historic improvement
             if poll_iteration >  self.options['tolstalliters']:
-                f_base = self.iteration_history.get('fval')[iter - self.option['tolstalliters']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.option['tolstalliters']]
+                f_base = self.iteration_history.get('fval')[iter - self.options['tolstalliters']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['tolstalliters']]
                 self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
                                         f_sd_base, self.fsd, self.options['improvementquantile'])
                 
@@ -985,22 +983,20 @@ class BADS:
                 
             
             # Store best points at the end of each iteration, or upon termination
-            # TODO: Why not u_best???!??
             if do_poll_step or is_finished:
                 self.iteration_history.record('u', self.u, poll_iteration)
                 self.iteration_history.record('yval', self.yval, poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
-                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(as_array=True), poll_iteration)
+                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
 
-            #TODO: Re-evaluate all points (Uncertainty handling case)
+            # Re-evaluate all points (Uncertainty handling case)
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
                 and poll_iteration > 0:
                 self._re_evaluate_history_(gp)
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
-                # TODO save also gp?
 
                 f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval'), self.fval,
                     self.iteration_history.get('fsd'), self.fsd, self.options['improvementquantile'])
@@ -1011,7 +1007,9 @@ class BADS:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
-                    # TODO save also gp?
+                    self.u = self.iteration_history.get('u')[idx_impr]
+                    self.best_u = self.u.copy() # TODO in Matlab is not done
+                    gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp
                     
             
             # if isFinished_flag
@@ -1043,6 +1041,7 @@ class BADS:
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
+            self.u_best = self.u.copy() # TODO in Matlab is not done
 
             # Re-evalate estimated function value and SD at final point
             
@@ -1081,15 +1080,20 @@ class BADS:
         else:
             self.logger.warn(f'Function value at minimum: %{self.fval}')
 
-        
-        
+        # Compute total running time and fractional overhead
+        timer.stop_timer('BADS')
+        total_time  = timer.get_duration('BADS')
+        overhead = total_time / self.function_logger.total_fun_evaltime -1
+        self.optim_state['total_time'] = total_time
+        self.optim_state['overhead'] = overhead
+
         return x, self.fval
     
     def _search_step_(self, gp: GP):
         # Check whether it is time to refit the GP
         refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
-        if refit_flag \
-            or self.optim_state['search_count'] == 0:
+
+        if refit_flag or self.optim_state['search_count'] == 0 or self.reset_gp:
 
             # Local GP approximation on current incumbent
             gp = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
@@ -1215,7 +1219,7 @@ class BADS:
             self._update_incumbent_(u_search, y_search, f_mu_search, f_sd_search)
             
             #TODO reset posterior GP
-            self.force_gp_fitting = True
+            self.reset_gp = True
 
         else:
             search_status = 'failure'
@@ -1255,6 +1259,7 @@ class BADS:
         return z
     
     def _poll_step_(self, gp:GP):
+
         poll_best_improvement = 0
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
@@ -1262,53 +1267,61 @@ class BADS:
         f_sd_poll_best = self.fsd.copy()
         poll_count = 0
         is_good_poll = False
-        B = [] # TODO: Define empty np array
-        u_poll = [] # TODO: Define empty np array
+        B = None
+        u_poll = None
         u_new = [] 
         
         # Poll loop
-        while (len(u_poll) != 0 or len(B) == 0)\
+        while ((u_poll is not None and len(u_poll) != 0) or (B is None  or len(B) == 0))\
                 and self.function_logger.func_count < self.options['maxfunevals']\
                 and poll_count <= self.D * 2:
             
             # Fill in basis vectors
-            B_new = poll_mads_2n(self.u, gp.temporary_data['poll_scale'], self.optim_state)
+            B_new = None
+            if B is None or B.size == 0:
+                B_new = poll_mads_2n(self.u, gp.temporary_data['poll_scale'], self.optim_state['search_mesh_size'], self.optim_state['mesh_size'])
 
-            if len(B_new) != 0:
-                # GP- based vector scaling (poll_scale)
+            if B_new is not None and B_new.size > 0:
+                # GP- based vector scaling (poll_scale broadcast)
                 vv = (B_new * self.optim_state['self_mesh_size']) * gp.temporary_data['poll_scale'] # scaling again
 
                 # Add vector to current point, fix to grid
                 u_poll_new = self.u + vv
-                
                 period_check(u_poll_new, self.lb, self.ub, self.optim_state['periodic_vars'])
+
                 if self.options['focepollmesh']:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
                 u_poll_new = contraints_check(u_poll_new, self.lb, self.ub, self.optim_state['tol_mesh'], self.funcion_logger, False)
+
+                # Add new poll points to polling set
+                if u_poll is None:
+                    u_poll = u_poll_new.copy()
                 u_poll = np.vstack(u_poll, u_poll_new)
+
+                if B is None:
+                    B = B_new.copy()
                 B = np.vstack((B, B_new))
 
             # Cannot refill poll vector set, stop polling
-            if u_poll.size == 0:
+            if u_poll is None or u_poll.size == 0:
                 break
 
             #Check whether it is time to refit the GP
             refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
-            poll_iteration = self.optim_state["iter"]
-            if not self.options['polltraining']  and poll_iteration > 1:
+
+            if not self.options['polltraining']  and self.optim_state["iter"] > 1:
                 refit_flag  = False
             
             # Local GP approximation around polled points
-            if refit_flag or poll_count == 0:
+            if refit_flag or poll_count == 0 or self.reset_gp:
                 local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
-
                 if refit_flag:
                     self.refitted_flag = True
                 # gpexitflag = min(gptempflag,gpexitflag);
             
             # Update Target from GP prediction
-            fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, gp)
+            fmu, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp)
             self.optim_state["fval"] = fmu.item()
             self.optim_state["f_target_s"] = f_target_s
             self.optim_state["f_target"] = f_target.item()
@@ -1348,11 +1361,11 @@ class BADS:
                     # No good polling so far -- if GP is reliable, stop polling
                     # If probability of improvement at any location is to low
                     if not do_gp_calibration and\
-                        (self.options['consecutiveskipping'] or self.last_skipped < poll_iteration-1) \
+                        (self.options['consecutiveskipping'] or self.last_skipped < self.optim_state["iter"]-1) \
                         and poll_count >= self.options['minfailedpollsteps']\
                         and p_less > (1-self.options['tolpoi']):
 
-                        self.last_skipped = poll_iteration
+                        self.last_skipped = self.optim_state["iter"]
                         break
             
             # Evaluate function and store the value
@@ -1366,7 +1379,7 @@ class BADS:
                 # Update posterior with the new polled point
                 gp = reupdate_gp(self.function_logger, gp)
                 f_poll, f_sd_poll = gp.predict(u_new)
-                fsd_gp_poll = np.sqrt(fsd_gp_poll)
+                f_sd_poll = np.sqrt(f_sd_poll)
             else:
                 f_poll = y_poll.copy()
                 f_sd_poll = 0
@@ -1393,6 +1406,7 @@ class BADS:
             
             # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
             self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
+            self.u_best = u_poll_best.copy() # we update also the u_best
             is_poll_moved = True
         else:
             is_poll_moved = False
@@ -1416,15 +1430,17 @@ class BADS:
             # Accelerated mesh reduction if stalling
             iter = self.optim_state['iter']
             if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
-                f_base = self.iteration_history.get('fval')[iter - self.option['tolstalliters']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.option['tolstalliters']]
+                f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
                 self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval, f_sd_base, self.fsd, self.options['improvementquantile'])
                 if self.f_q_historic_improvement < self.options['tolfun']:
                     self.mesh_size_integer -= 1
             
-            self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'], self.mesh_size_integer)
+            self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
+                                         self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
             
             # TODO: Profile plot iteration
+        # End POLL evaluation
         
         # Update mesh size
         self.mesh_size =  self.options['pollmeshmultiplier']**self.mesh_size_integer
@@ -1439,12 +1455,14 @@ class BADS:
         if self.refitted_flag:
             self.logging_action.append('Train')
             #TODO: if gp_exit_flag
+
         if self.last_skipped == self.optim_state['iter']:
             self.logging_action.append('Skip')
 
         self._display_function_log_(self.optim_state['iter'], poll_string)   
 
         #TODO: if self.output_function is not None
+        self.reset_gp = is_poll_moved
 
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best
         
@@ -1623,6 +1641,7 @@ class BADS:
 
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
+                self.iteration_history.record('gp', gp, i)
             
             self.optim_state['last_re_eval'] = self.function_logger.func_count
 
