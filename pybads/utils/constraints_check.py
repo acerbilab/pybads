@@ -13,7 +13,7 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         # Project vectors outside bounds on search mesh points closest to bounds
         U_new = np.maximum(np.minimum(U, ub), lb)
     else:
-        idx = np.any(U > ub | U < lb, axis=1)
+        idx = np.any(U > ub, axis=1)  | np.any( U < lb, axis=1)
         U_new = U[~idx]
     
     # Remove duplicate vectors and preserve the initial order
@@ -25,7 +25,7 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         tol = tol_mesh / 2.
         u1 = np.round(U_new / tol)
         X_max_idx = function_logger.X_max_idx
-        u2 = np.round(U[:X_max_idx + 1] / tol)
+        u2 = np.round(function_logger.X[:X_max_idx + 1] / tol)
         # Set difference using distance L1 matrix and checks if is 0,
         # since the setdiff(u1,u2,'rows') Matlab function is not implemented in numpy.
         l1 = np.abs(u1[:, np.newaxis, :] - u2).sum(axis=2)
