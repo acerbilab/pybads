@@ -361,8 +361,8 @@ class FunctionLogger:
                 self.Y_orig[idx] = (N * self.Y_orig[idx] + fval_orig) / (N + 1)
 
             fval = self.Y_orig[idx]
-            if self.transform_variables:
-                fval += self.variable_transformer.log_abs_det_jacobian(x)
+            #if self.transform_variables:
+            #    fval += self.variable_transformer.log_abs_det_jacobian(x)
             self.Y[idx] = fval
             self.fun_evaltime[idx] = (
                 N * self.fun_evaltime[idx] + fun_evaltime
