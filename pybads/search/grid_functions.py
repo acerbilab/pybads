@@ -42,7 +42,7 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     
     dist = udist(U, u, gp.temporary_data["len_scale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],
-            optim_state['periodicvars'])
+            optim_state['periodic_vars'])
     if dist.ndim > 1:
         dist = np.min(dist, axis=1) 
     sort_idx = np.argsort(dist) # Ascending sort

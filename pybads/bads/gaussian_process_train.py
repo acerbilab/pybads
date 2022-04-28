@@ -255,7 +255,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
 
     # Update GP Covariance length scale
     if options['gpcovprior'] == 'iso':
-        dist = udist(gp.X, gp.X, 1, optim_state['lb'], optim_state['ub'], optim_state['scale'], optim_state['periodicvars'])
+        dist = udist(gp.X, gp.X, 1, optim_state['lb'], optim_state['ub'], optim_state['scale'], optim_state['periodic_vars'])
         dist = dist.flatten()
         dist = dist[dist != 0]
         if dist.size > 0:
@@ -279,7 +279,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     # Re-fit Guassian Process (optimize or sample -- only optimization supported)
     gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.**2))
     gp.set_priors(gp_priors)
-    dic_hyp_gp = gp.get_hyperparameters()
+    
     if refit_flag:
         dic_hyp_gp = gp.get_hyperparameters()
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
@@ -357,6 +357,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
                     alpha[i] = np.exp(dic_hyp_gp[i]['covariance_log_shape'])
 
                 gp.temporary_data['effective_radius'] = np.sqrt(alpha*(np.exp(1/alpha)-1))
+    else:
+        hyp_gp = gp.get_hyperparameters(as_array=True)
 
     # Matlab defines the signal variability in the GP, but is never used.
 

@@ -75,7 +75,6 @@ class SearchES(ABC):
         self.tol_mesh = optim_state["tol_mesh"]
 
         U = gp.X
-        Y = gp.y
         nvars = U.shape[1]
 
         self.sqrt_sigma = self._initialize_(u, gp, optim_state, sum_rule)
@@ -162,7 +161,7 @@ class SearchESWM(SearchES):
         self.jit = self.get_jitter(optim_state)
 
         U = gp.X
-        Y = gp.y
+        Y = gp.y.flatten()
         # Compute vector weights
         nvars = len(U)
         mu = self.frac * U.shape[0]
@@ -176,7 +175,7 @@ class SearchESWM(SearchES):
         Ubest = U[idx_sel].copy()
 
         # Compute weighted covariance matrix wrt u0
-        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodicvars'])
+        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodic_vars'])
         if self.active_flag:
             U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]] #TODO check indexes better, critique point
             negC = ucov(U_worst, u, weights, optim_state) #TODO heeeere
@@ -221,11 +220,11 @@ class SearchESELL(SearchES):
 
         return sqrt_sigma
 
-def ucov(U, u, w, ub, lb, scale, periodic_vars): 
+def ucov(U, u, w, ub, lb, scale, periodic_vars=None): 
     width_scaled = (ub - lb) / scale
     U_tmp = U.copy()
     u_tmp = u.copy()
-    if np.any(periodic_vars):
+    if periodic_vars is not None and np.any(periodic_vars):
         U_tmp[:, periodic_vars] = U[:, periodic_vars] - u[periodic_vars] + 0.5 * width_scaled[periodic_vars]
         U_tmp[:, periodic_vars] = np.mod(U[:, periodic_vars], width_scaled[periodic_vars]) - 0.5 * width_scaled[periodic_vars]
         u_tmp[periodic_vars] = 0.0
@@ -235,6 +234,7 @@ def ucov(U, u, w, ub, lb, scale, periodic_vars):
     if w.size != 0:
         weights = w.reshape(-1, *[1]*U.shape[1]) # For broadcasting weighted sum 
         C = np.sum(weights * (u_shift.T @ u_shift), axis=0)
+        C = C.reshape((U.shape[1], U.shape[1])) # Remove the extra dimesion from the broadcast result
     else :
         C = u_shift.T @ u_shift
 

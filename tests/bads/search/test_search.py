@@ -5,7 +5,7 @@ import sys
 import pytest
 
 from pybads.bads.bads import BADS
-from pybads.search.es_search import SearchESELL, SearchESWM
+from pybads.search.es_search import SearchESELL, SearchESWM, ucov
 from tests.bads.utils_test import load_options
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.bads.gaussian_process_train import train_gp
@@ -60,6 +60,7 @@ def test_search():
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     es_iter = bads.options['nsearchiter']
@@ -98,6 +99,7 @@ def test_search_hedge():
     D = 3
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     search_hedge = SearchESHedge(bads.options['searchmethod'], bads.options)
@@ -107,5 +109,11 @@ def test_search_hedge():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-test_search_selection_mask()
-
+def test_u_cov():
+    U = np.array([[0, 0, 0],[0.1172, 0.1328, 0.6641], [0, 0, 1], [0, 0, -1], [0.6172, -0.3672, 0.1641]])
+    u0 = np.array([[0., 0., 0.]])
+    ub = np.array([[4., 4., 4.]])
+    lb = -ub
+    w = np.array([0.4563, 0.2708, 0.1622, 0.0852, 0.0255])
+    C = ucov(U, u0, w, ub, lb, 1)
+    assert C.shape == (U.shape[1], U.shape[1])

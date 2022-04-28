@@ -206,7 +206,7 @@ class BADS:
                 "iter",
                 "u",
                 "fval",
-                "fsd"
+                "fsd",
                 "yval",
                 "ys",
                 "lcbmax",
@@ -565,7 +565,7 @@ class BADS:
             if not finite_periodicvars:
                 raise ValueError('bads:InitOptimState:Periodic variables need to have finite lower and upper bounds.')
             self.logger.info(f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}")
-        optim_state['periodicvars'] = periodic_vars
+        optim_state['periodic_vars'] = periodic_vars
 
         # Setup covariance information (unused)
 
@@ -761,14 +761,13 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']), self.options['maxfunevals'])
 
-        # TODO: Additional initial points
         if self.options['ninit'] > 0:
             # Evaluate initial points but not more than OPTIONS.MaxFunEvals
             ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
-            if self.options['initfcn'] == '@init_sobol':
+            if self.options['initfcn'] == 'init_sobol':
                 
                 # TODO: call initialization function 
-                u1 = init_sobol(self.u0, self.lower_bounds, self.upper_bounds,
+                u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
                             self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
                 # enforce periodicity TODO function
                 u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
@@ -779,14 +778,13 @@ class BADS:
                 # Remove already evaluated or unfeasible points from search set 
                 u1 = contraints_check(u1, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state["tol_mesh"], self.function_logger, True, self.nonbondcons)
                 
-                yval_u1 = []
                 for u_idx in range(len(u1)):
-                    yval_u1.append(self.function_logger(u1[u_idx])[0])
+                    self.function_logger(u1[u_idx])
                 
-                yval_u1 = np.array(yval_u1)
-                idx_yval = np.argmin(yval_u1)
-                self.u = u1[idx_yval]
-                self.yval = yval_u1[idx_yval]
+                idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn])
+                self.u = np.atleast_2d(self.function_logger.X[idx_yval])
+                self.yval = self.function_logger.Y[idx_yval].item()
+                self.logging_action.append('Initial points')
                 self._display_function_log_(0, 'Initial mesh')
             else:
                 raise ValueError('bads:initfcn:Initialization function not implemented yet')
@@ -912,18 +910,16 @@ class BADS:
             do_search_step_flag = self.optim_state['search_count'] < self.options['searchntry'] \
                     and  len(self.function_logger.Y[self.function_logger.X_flag]) > self.D
 
-            #TODO test search step
-            do_search_step_flag = True
             if do_search_step_flag:
                 # Search stage
                 u_search, search_dist, f_mu_search, f_sd_search, gp = self._search_step_(gp)
             # End Search step
 
-            # Check wether to perform the poll stage, it can be run consecutively after the search.
+            # Check whether to perform the poll stage, it can be run consecutively after the search.
             if self.optim_state['search_count'] == 0 \
                 or self.optim_state['search_count'] == self.options['searchntry']:
-                self.optim_state['search_count'] = 0
                 
+                self.optim_state['search_count'] = 0
                 if self.search_success > 0 and self.options['skippollaftersearch']:
                     do_poll_step = False
                     self.search_spree += 1
@@ -939,14 +935,14 @@ class BADS:
                     self.search_spree = 0
                 
                 self.search_success = 0
-            else:
-                do_poll_step = True
+            else: # In-between searches, no poll
+                do_poll_step = False
             
             self.u = self.u_best
 
             #check and do poll step
             if do_poll_step:
-                self._poll_step_()
+                self._poll_step_(gp)
 
             # Finalize the iteration
             
@@ -1120,7 +1116,7 @@ class BADS:
         u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
-        u_search_set = period_check(u_search_set, self.lower_bounds, self.upper_bounds, self.optim_state['periodicvars'])
+        u_search_set = period_check(u_search_set, self.lower_bounds, self.upper_bounds, self.optim_state['periodic_vars'])
 
         # Force candidate points on search grid
         u_search_set = force_to_grid(u_search_set, self.optim_state["search_mesh_size"])
@@ -1154,7 +1150,7 @@ class BADS:
             y_search, f_sd_search, idx = self.function_logger(u_search)
 
             if z.size > 0:
-                # TODO: in Matlab we distinguish stats of gp variable and iteration history
+                
                 # Save statistics of gp prediction, 
                 self._save_gp_stats_(y_search, f_mu[index_acq], fs[index_acq])
             
@@ -1180,7 +1176,7 @@ class BADS:
             
             # Compute distance of search point from current point
             search_dist = np.sqrt(udist(self.u_best, u_search, gp.temporary_data['len_scale'], self.optim_state['lb'], self.optim_state['ub'],
-                            self.optim_state['scale'], self.optim_state['periodicvars']))
+                            self.optim_state['scale'], self.optim_state['periodic_vars']))
 
         else:
             # Search set is empty
@@ -1267,7 +1263,7 @@ class BADS:
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
         f_poll_best = self.fval
-        f_sd_poll_best = self.fsd.copy()
+        f_sd_poll_best = self.fsd if np.isscalar(self.fsd) else self.fsd.copy()
         gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
         poll_count = 0
         is_good_poll = False
@@ -1276,36 +1272,37 @@ class BADS:
         u_new = [] 
         
         # Poll loop
-        while ((u_poll is not None and len(u_poll) != 0) or (B is None  or len(B) == 0))\
+        while ((u_poll is not None and len(u_poll) > 0) or (B is None  or len(B) == 0))\
                 and self.function_logger.func_count < self.options['maxfunevals']\
                 and poll_count <= self.D * 2:
             
-            # Fill in basis vectors
-            B_new = None
+            # Fill in basis vectors (when poll_count == 0)
             if B is None or B.size == 0:
-                B_new = poll_mads_2n(self.u, gp.temporary_data['poll_scale'], self.optim_state['search_mesh_size'], self.optim_state['mesh_size'])
+                # Create new poll vectors
+                B_new = poll_mads_2n(self.D, gp.temporary_data['poll_scale'], self.optim_state['search_mesh_size'], self.optim_state['mesh_size'])
 
-            if B_new is not None and B_new.size > 0:
                 # GP- based vector scaling (poll_scale broadcast)
-                vv = (B_new * self.optim_state['self_mesh_size']) * gp.temporary_data['poll_scale'] # scaling again
+                vv = (B_new * self.optim_state['mesh_size']) * gp.temporary_data['poll_scale'] # scaling again using broadcast
 
                 # Add vector to current point, fix to grid
                 u_poll_new = self.u + vv
-                period_check(u_poll_new, self.lb, self.ub, self.optim_state['periodic_vars'])
+                period_check(u_poll_new, self.lower_bounds, self.upper_bounds, self.optim_state['periodic_vars'])
 
-                if self.options['focepollmesh']:
+                if self.options['forcepollmesh']:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
-                u_poll_new = contraints_check(u_poll_new, self.lb, self.ub, self.optim_state['tol_mesh'], self.funcion_logger, False)
+                u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds, self.optim_state['tol_mesh'], self.function_logger, False)
 
                 # Add new poll points to polling set
                 if u_poll is None:
                     u_poll = u_poll_new.copy()
-                u_poll = np.vstack(u_poll, u_poll_new)
+                else:
+                    u_poll = np.vstack(u_poll, u_poll_new)
 
                 if B is None:
                     B = B_new.copy()
-                B = np.vstack((B, B_new))
+                else:
+                    B = np.vstack((B, B_new))
 
             # Cannot refill poll vector set, stop polling
             if u_poll is None or u_poll.size == 0:
@@ -1314,7 +1311,7 @@ class BADS:
             #Check whether it is time to refit the GP
             refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
 
-            if not self.options['polltraining']  and self.optim_state["iter"] > 1:
+            if not self.options['polltraining']  and self.optim_state["iter"] > 0:
                 refit_flag  = False
             
             # Local GP approximation around polled points
@@ -1325,9 +1322,9 @@ class BADS:
                 # gpexitflag = min(gptempflag,gpexitflag);
             
             # Update Target from GP prediction
-            fmu, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
-            self.optim_state["fval"] = fmu.item()
-            self.optim_state["f_target_s"] = f_target_s
+            fval, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
+            self.optim_state["fval"] = fval.item()
+            self.optim_state["f_target_s"] = f_target_s.copy()
             self.optim_state["f_target"] = f_target.item()
 
             # Evaluate acquisition function on poll vectors
@@ -1374,7 +1371,10 @@ class BADS:
             
             # Evaluate function and store the value
             u_new = u_poll[index_acq]
-            y_poll, y_sd_poll, f_idx_new =self.function_logger(u_new)
+            y_poll, y_sd_poll, f_idx_new = self.function_logger(u_new)
+
+            # Remove polled vector from set.
+            u_poll = np.delete(u_poll, index_acq, axis=0)
 
             # Save statistics of gp prediction
             self._save_gp_stats_(y_poll, f_mu[index_acq], fs[index_acq])
@@ -1385,7 +1385,7 @@ class BADS:
                 f_poll, f_sd_poll = gp.predict(u_new)
                 f_sd_poll = np.sqrt(f_sd_poll)
             else:
-                f_poll = y_poll.copy()
+                f_poll = y_poll
                 f_sd_poll = 0
 
             poll_improvement = self.eval_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
@@ -1483,7 +1483,7 @@ class BADS:
         if self.gp_stats.get('iter_gp') is None or len(self.gp_stats.get('iter_gp')) == 0:
             iter = 0
         else:
-            iter = self.gp_stats.get('iter_gp') + 1
+            iter = self.gp_stats.get('iter_gp')[-1] + 1
         
         self.gp_stats.record('iter_gp', iter, iter)
         self.gp_stats.record('fval', fval, iter)
@@ -1496,9 +1496,9 @@ class BADS:
         # Check calibration of Gaussian process prediction
         
         if self.function_logger.func_count < self.options['maxiter'] / self.D:
-            refit_period = np.maximum(10, self.options['maxiter'])
+            refit_period = np.maximum(10, self.D * 2)
         else:
-            refit_period = self.options['maxiter'] * 5
+            refit_period = self.D * 5
         
         gp_iter_idx = self.gp_stats.get('gp_iter')
 
@@ -1508,6 +1508,8 @@ class BADS:
             if gp_iter_idx is None:
                 gp_iter_idx = 0
             do_gp_calibration = True
+        else:
+            gp_iter_idx = gp_iter_idx[-1] #retrieve last recorded gp stat iteration
         
         # if stats data is available check z_score
         if not do_gp_calibration:
@@ -1552,7 +1554,7 @@ class BADS:
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
             fmu, fs2 = gp.predict(u)
-            # TODO sampling weight
+            
             f_target_s = np.sqrt(np.max(fs2, axis=0))
             if ~np.isfinite(fmu) | ~np.isreal(f_target_s) | ~np.isfinite(f_target_s):
                 fmu = self.optim_state['fval']
@@ -1568,7 +1570,7 @@ class BADS:
             fmu = self.optim_state['fval']
             f_target_s = 0
             
-        return fmu.item, f_target_s, f_target        
+        return fmu, f_target_s, f_target        
 
     def _update_search_bounds_(self):
         lb = self.optim_state['lb']

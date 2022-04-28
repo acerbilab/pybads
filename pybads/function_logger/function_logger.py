@@ -347,7 +347,7 @@ class FunctionLogger:
         """
         duplicate_flag = self.X == x
         # The duplicate case is not implemented in BADS
-        if np.any(duplicate_flag): 
+        if np.any(np.all(duplicate_flag, axis=1)): 
             if np.sum((duplicate_flag).all(axis=1)) > 1:
                 raise ValueError("More than one match for duplicate entry.")
             idx = np.argwhere(duplicate_flag)[0, 0]
