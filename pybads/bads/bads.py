@@ -210,7 +210,6 @@ class BADS:
                 "yval",
                 "ys",
                 "lcbmax",
-                "rindex", # Reliability index (not used in BADS)
                 "gp",
                 "gp_hyp_full",
                 "Ns_gp",
@@ -1194,7 +1193,7 @@ class BADS:
         fval_old = self.fval if np.isscalar(self.fval) else self.fval.copy()
 
         # Declare if search was success or failure
-        if (search_improvement > 0 and self.options['sloppyimprovoment']) \
+        if (search_improvement > 0 and self.options['sloppyimprovement']) \
             or search_improvement > self.optim_state['search_sufficient_improvement']:
 
             if self.options['acqhedge']:
@@ -1316,7 +1315,7 @@ class BADS:
             
             # Local GP approximation around polled points
             if refit_flag or poll_count == 0 or self.reset_gp:
-                local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
+                gp = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
                 if refit_flag:
                     self.refitted_flag = True
                 # gpexitflag = min(gptempflag,gpexitflag);
@@ -1633,7 +1632,7 @@ class BADS:
         if self.optim_state['search_count'] == self.options['searchntry']:
             self.optim_state['search_factor'] = 1
 
-        return
+        return search_stats
 
     def _re_evaluate_history_(self, iter):
         
@@ -1679,7 +1678,7 @@ class BADS:
         output["bestiter"] = idx_best
         output["trainsetsize"] = self.iteration_history["n_eff"][idx_best]
         output["components"] = self.vp.K
-        output["rindex"] = self.iteration_history["rindex"][idx_best]
+        #output["rindex"] = self.iteration_history["rindex"][idx_best]
         if self.iteration_history["stable"][idx_best]:
             output["convergencestatus"] = "probable"
         else:
