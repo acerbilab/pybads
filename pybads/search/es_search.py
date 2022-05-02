@@ -139,7 +139,6 @@ class SearchES(ABC):
                     self.scale = self.scale * np.exp(self.es_beta * (frac -0.2 ))
                 
                 # Reproduce
-                
                 selection_mask = self._get_selection_idx_mask_(us.shape[0], self.lamb)
                 ll = np.minimum(self.lamb, us.shape[0])
 

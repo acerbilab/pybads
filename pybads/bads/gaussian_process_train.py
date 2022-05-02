@@ -1,9 +1,12 @@
+from copy import deepcopy
 import math
 from statistics import covariance
+from turtle import width
 
 import gpyreg as gpr
 import numpy as np
 from pytest import Function
+from gpyreg.slice_sample import SliceSampler
 
 from pybads.function_logger import FunctionLogger
 from pybads.search.grid_functions import get_grid_search_neighbors, udist
@@ -318,7 +321,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
         x_train, y_train, s2_train, _ = _get_training_data(function_logger)
-        hyp_gp, _, res = gp.fit(x_train, y_train, s2_train, hyp0=hyp_gp, options=gp_train)
+        gp, hyp_gp, res, _ = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)
@@ -397,6 +400,59 @@ def _meanfun_name_to_mean_function(name: str):
 
     return mean_f
 
+def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options):
+        success = 1
+        noiseNudge = 0
+        new_gp = deepcopy(gp)
+        X = x_train.copy()
+        Y = y_train.copy()
+        s2 = s2_train.copy()
+        new_hyp = hyp_gp.copy()
+
+        for i_try in range(0, 10):
+            try: 
+                new_hyp, _, res = new_gp.fit(X, Y, s2, hyp0=new_hyp, options=gp_train)
+                break
+            except np.linalg.LinAlgError:
+                #handle
+                if i_try > 0:
+                    idx = np.zeros(len(y_train))
+                    # TODO remove closest pair sample
+                
+                # Retry with random sample prior
+                hyp_sampler_name = options.get("gphypsampler", "slicesample")
+                if hyp_sampler_name != 'slicesample ':
+                    raise ValueError("Wrong sampler")
+
+                # Get slice sampler
+                sample_f = lambda hyp_: new_gp.__gp_obj_fun(hyp_, False, True)
+                width = optim_state['plu'] - optim_state['plb']
+                hyp_sampler = SliceSampler(sample_f, hyp_gp, width, optim_state['lb'], optim_state['ub'], options = {"display": "off", "diagnostics": False})
+                new_hyp = hyp_sampler.sample(1, burn=0)
+                new_hyp = 0.5 * (new_hyp + hyp_gp)
+
+                nudge = options['noisenudge']
+                if nudge is None or len(nudge) == 0:
+                    nudge = np.array([0, 0])
+                elif len(nudge) == 1:
+                    nudge = np.vstack((nudge, 0.5 * nudge[0]))
+
+                # Increase gp noise hyp lower bounds
+                bounds = new_gp.get_bounds()
+                noise_bound = bounds["noise_log_scale"]
+                noise_bound = (noise_bound[0] + noise_nudge[1] , noise_bound[1])
+                bounds["noise_log_scale"] = noise_bound
+                new_gp.set_bounds(bounds)
+
+                # Try increase starting point of nosie
+                noise_nudge = noiseNudge + nudge[0]
+                new_hyp = new_gp.hyperparameters_to_dict(new_hyp)
+                new_hyp["noise_log_scale"] = new_hyp["noise_log_scale"] + noiseNudge
+                new_hyp = new_gp.hyperparameters_from_dict(new_hyp)
+                new_gp.set_hyperparameters(new_hyp, compute_posterior=False)
+
+        
+        return gp, new_hyp, res, success
 
 def _cov_identifier_to_covariance_function(identifier):
     """
@@ -675,10 +731,7 @@ def _get_gp_training_options(
     """
 
     iteration = optim_state["iter"]
-    if iteration > 0:
-        r_index = iteration_history["rindex"][iteration - 1]
-    else:
-        r_index = np.inf
+    
 
     n_eff = np.sum(
         function_logger.nevals[function_logger.X_flag]
@@ -693,6 +746,12 @@ def _get_gp_training_options(
 
     # Get hyperparameter posterior covariance from previous iterations
     hyp_cov = _get_hyp_cov(optim_state, iteration_history, options, hyp_dict)
+
+    if iteration > 0:
+        if options["gpsamplewidths"] > 0 and hyp_cov is not None and "rindex" in iteration_history:
+            r_index = iteration_history["rindex"][iteration - 1]
+    else:
+        r_index = np.inf
 
     # Setup MCMC sampler
     if options["gphypsampler"] == "slicesample":
@@ -780,7 +839,7 @@ def _get_gp_training_options(
     else:
         gp_train["burn"] = gp_train["thin"] * 3
         if (
-            iteration > 1
+            iteration > 1 and "rindex" in iteration_history
             and iteration_history["rindex"][iteration - 1]
             < options["gpretrainthreshold"]
         ):
@@ -853,14 +912,16 @@ def _get_hyp_cov(
             for i in range(0, optim_state["iter"]):
                 if i > 0:
                     # Be careful with off-by-ones compared to MATLAB here
-                    diff_mult = max(
-                        1,
-                        np.log(
-                            iteration_history["sKL"][optim_state["iter"] - i]
-                            / options["tolskl"]
-                            * options["funevalsperiter"]
-                        ),
-                    )
+                    diff_mult = 1
+                    if 'sKL' in iteration_history:
+                        diff_mult = max(
+                            1,
+                            np.log(
+                                iteration_history["sKL"][optim_state["iter"] - i]
+                                / options["tolskl"]
+                                * options["funevalsperiter"]
+                            ),
+                        )
                     w *= options["hyprunweight"] ** (
                         options["funevalsperiter"] * diff_mult
                     )
