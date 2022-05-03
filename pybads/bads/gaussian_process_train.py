@@ -286,6 +286,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     gp.set_priors(gp_priors)
 
     old_hyp_gp = gp.get_hyperparameters(as_array=True)
+    exit_flag = np.inf
     if refit_flag:
         dic_hyp_gp = gp.get_hyperparameters()
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
@@ -306,24 +307,27 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             is_low_mean = last_dic_hyp_gp['mean_const'] < np.min(gp.y)
         
         second_fit = options['doublerefit'] | is_high_noise | is_low_mean
-
-        #TODO second fit
+        dic_hyp_gp[-1] = last_dic_hyp_gp 
+        
         if second_fit:
             # Sample the hyper-params from priors
-            new_hyp = get_random_sample_from_prior(gp, hyp_gp, optim_state, options)
-            new_hyp = 0.5 * (new_hyp + hyp_gp)
+            old_hyp_gp = gp.get_hyperparameters(as_array=True)
+            new_hyp = get_random_sample_from_prior(gp, old_hyp_gp, optim_state, options)
+            new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+            new_hyp = gp.hyperparameters_to_dict(new_hyp)
+            
             if is_high_noise:
-                new_hyp = gp.hyperparameters_to_dict(new_hyp)
-                #new_hyp["noise_log_scale"] = new_hyp["noise_log_scale"] + noiseNudge
-                #new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
-            #tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
-            pass
+                new_hyp["noise_log_scale"] = np.random.randn()-2
+            if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+                new_hyp[0]['mean_const'] = np.median(gp.y)
+            
+            new_hyp = gp.hyperparameters_from_dict(new_hyp)
+            new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
+            # TODO check here the optimization when multiple hyper-params are added.
+            dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
         # Matlab: remove undefined points (no need)
         # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem.
-
-        
-        dic_hyp_gp[-1] = last_dic_hyp_gp 
         
         gp.set_hyperparameters(dic_hyp_gp, compute_posterior=False)
         hyp_gp = gp.get_hyperparameters(as_array=True)
@@ -422,7 +426,10 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         tmp_gp = deepcopy(gp)
         X = x_train.copy()
         Y = y_train.copy()
-        s2 = s2_train.copy()
+        if s2_train is not None:
+            s2 = s2_train if np.isscalar(s2_train) else s2_train.copy()
+        else:
+            s2 = None
         new_hyp = hyp_gp.copy()
         n_try = 10
         for i_try in range(0, n_try):
@@ -480,16 +487,17 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         
         return gp, new_hyp, res, success
 
-def get_random_sample_from_prior(gp, hyp_gp,optim_state, options):
+def get_random_sample_from_prior(gp:gpr.GP, hyp_gp,optim_state, options):
     hyp_sampler_name = options.get("gphypsampler", "slicesample")
-    if hyp_sampler_name != 'slicesample ':
+    if hyp_sampler_name != 'slicesample':
         raise ValueError("Wrong sampler")
 
     # Get slice sampler
-    sample_f = lambda hyp_: gp.__gp_obj_fun(hyp_, False, True)
-    width = optim_state['plu'] - optim_state['plb']
-    hyp_sampler = SliceSampler(sample_f, hyp_gp, width, optim_state['lb'], optim_state['ub'], options = {"display": "off", "diagnostics": False})
-    new_hyp = hyp_sampler.sample(1, burn=0)
+    sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
+    
+    width = gp.upper_bounds - gp.lower_bounds
+    hyp_sampler = SliceSampler(sample_f, hyp_gp.flatten(), width, gp.lower_bounds, gp.upper_bounds, options = {"display": "off", "diagnostics": False})
+    new_hyp = hyp_sampler.sample(1, burn=0)['samples'][0]
     return new_hyp
 
 def _cov_identifier_to_covariance_function(identifier):
