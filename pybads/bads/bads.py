@@ -1094,11 +1094,11 @@ class BADS:
         if refit_flag or self.optim_state['search_count'] == 0 or self.reset_gp:
 
             # Local GP approximation on current incumbent
-            gp = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
+            gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
 
             if refit_flag:
                 self.refitted_flag = True
-            # TODO: self.gp_exit_flag = np.minimum(gp_temp_flag, gp_exit_flag) gp_temp_flag: in case of fitting errors
+            self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting            
 
         # Update Target from GP prediction
@@ -1165,7 +1165,7 @@ class BADS:
 
             # If the function is non-deterministic we update the posterior of the GP
             if self.optim_state["uncertainty_handling_level"] > 0:
-                gp = local_gp_fitting(gp, u_search, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
+                gp, _ = local_gp_fitting(gp, u_search, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 # TODO: prediction on u_search  gppred(usearch,gpstructnew); line 668
                 f_mu_search, f_sd_search = gp.predict(u_search)
                 f_sd_search = np.sqrt(f_sd_search)
@@ -1315,10 +1315,10 @@ class BADS:
             
             # Local GP approximation around polled points
             if refit_flag or poll_count == 0 or self.reset_gp:
-                gp = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
+                gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
                 if refit_flag:
                     self.refitted_flag = True
-                # gpexitflag = min(gptempflag,gpexitflag);
+                self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
             
             # Update Target from GP prediction
             fval, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
@@ -1457,8 +1457,11 @@ class BADS:
             poll_string = 'Refine grid'
         
         if self.refitted_flag:
-            self.logging_action.append('Train')
-            #TODO: if gp_exit_flag
+            action_str = 'Train'
+            if self.gp_exit_flag < 0:
+                action_str += ' (failed)'
+                #self.gp_exit_flag = np.inf # Reset the flag
+            self.logging_action.append(action_str)
 
         if self.last_skipped == self.optim_state['iter']:
             self.logging_action.append('Skip')
@@ -1641,7 +1644,7 @@ class BADS:
             for i in range(iter):
                 gp = self.iteration_history.get('gp')[i]
                 u = self.iteration_history.get('u')[i]
-                gp = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
+                gp, _ = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 fval, fsd = gp.predict(u)
                 fsd = np.sqrt(fsd)
 

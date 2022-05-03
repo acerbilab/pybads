@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from copy import deepcopy
 import math
 from statistics import covariance
@@ -10,6 +11,7 @@ from gpyreg.slice_sample import SliceSampler
 
 from pybads.function_logger import FunctionLogger
 from pybads.search.grid_functions import get_grid_search_neighbors, udist
+from scipy.spatial.distance import cdist
 
 from .options import Options
 from pybads.stats.get_hpd import get_hpd
@@ -196,7 +198,7 @@ def train_gp(
 
     # Estimate of GP noise around the top high posterior density region
     # We don't modify optim_state to contain sn2hpd here.
-    sn2hpd = _estimate_noise(gp)
+    sn2hpd = _estimate_noise_(gp)
 
     return gp, gp_s_N, sn2hpd, hyp_dict
 
@@ -282,7 +284,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     # Re-fit Guassian Process (optimize or sample -- only optimization supported)
     gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.**2))
     gp.set_priors(gp_priors)
-    
+
+    old_hyp_gp = gp.get_hyperparameters(as_array=True)
     if refit_flag:
         dic_hyp_gp = gp.get_hyperparameters()
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
@@ -306,6 +309,14 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
 
         #TODO second fit
         if second_fit:
+            # Sample the hyper-params from priors
+            new_hyp = get_random_sample_from_prior(gp, hyp_gp, optim_state, options)
+            new_hyp = 0.5 * (new_hyp + hyp_gp)
+            if is_high_noise:
+                new_hyp = gp.hyperparameters_to_dict(new_hyp)
+                #new_hyp["noise_log_scale"] = new_hyp["noise_log_scale"] + noiseNudge
+                #new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
+            #tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
             pass
         
         # Matlab: remove undefined points (no need)
@@ -321,7 +332,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
         x_train, y_train, s2_train, _ = _get_training_data(function_logger)
-        gp, hyp_gp, res, _ = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
+        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)
@@ -361,14 +372,19 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
 
                 gp.temporary_data['effective_radius'] = np.sqrt(alpha*(np.exp(1/alpha)-1))
     else:
-        hyp_gp = gp.get_hyperparameters(as_array=True)
+        hyp_gp = old_hyp_gp
 
     # Matlab defines the signal variability in the GP, but is never used.
 
     # Recompute posterior
-    gp.update(hyp=hyp_gp)
+    try:
+        gp.update(hyp=hyp_gp)
+    except np.linalg.LinAlgError:
+        #Posterior update failed (due to Cholesky decomposition)
+        gp.set_hyperparameters(old_hyp_gp)
+        exit_flag = -2
 
-    return gp
+    return gp, exit_flag
 
 def _meanfun_name_to_mean_function(name: str):
     """
@@ -403,32 +419,37 @@ def _meanfun_name_to_mean_function(name: str):
 def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options):
         success = 1
         noiseNudge = 0
-        new_gp = deepcopy(gp)
+        tmp_gp = deepcopy(gp)
         X = x_train.copy()
         Y = y_train.copy()
         s2 = s2_train.copy()
         new_hyp = hyp_gp.copy()
-
-        for i_try in range(0, 10):
+        n_try = 10
+        for i_try in range(0, n_try):
             try: 
-                new_hyp, _, res = new_gp.fit(X, Y, s2, hyp0=new_hyp, options=gp_train)
+                new_hyp, _, res = tmp_gp.fit(X, Y, s2, hyp0=new_hyp, options=gp_train)
                 break
             except np.linalg.LinAlgError:
                 #handle
-                if i_try > 0:
-                    idx = np.zeros(len(y_train))
+                if i_try > options['removepointsaftertries'] -1:
+                    idx_drop_out = np.zeros(len(y_train)).astype(bool)
                     # TODO remove closest pair sample
+                    dist = cdist(X, X)
+                    # Indices of the minimum elements
+                    idx_min = np.unravel_index(np.argmin(dist, axis=None), dist.shape)
+                    
+                    if Y[idx_min[0]] > Y[idx_min[1]]:
+                        idx_drop_out[idx_min[0]] = True
+                    else:
+                        idx_drop_out[idx_min[1]] = True
+                    
+                    idx_drop_out = np.logical_or(idx_drop_out, Y > np.percentile(Y, 95))
+                    X = X[~idx_drop_out]
+                    Y = Y[~idx_drop_out]
+                    
                 
                 # Retry with random sample prior
-                hyp_sampler_name = options.get("gphypsampler", "slicesample")
-                if hyp_sampler_name != 'slicesample ':
-                    raise ValueError("Wrong sampler")
-
-                # Get slice sampler
-                sample_f = lambda hyp_: new_gp.__gp_obj_fun(hyp_, False, True)
-                width = optim_state['plu'] - optim_state['plb']
-                hyp_sampler = SliceSampler(sample_f, hyp_gp, width, optim_state['lb'], optim_state['ub'], options = {"display": "off", "diagnostics": False})
-                new_hyp = hyp_sampler.sample(1, burn=0)
+                new_hyp = get_random_sample_from_prior(tmp_gp, hyp_gp, optim_state, options)
                 new_hyp = 0.5 * (new_hyp + hyp_gp)
 
                 nudge = options['noisenudge']
@@ -438,21 +459,38 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     nudge = np.vstack((nudge, 0.5 * nudge[0]))
 
                 # Increase gp noise hyp lower bounds
-                bounds = new_gp.get_bounds()
+                bounds = tmp_gp.get_bounds()
                 noise_bound = bounds["noise_log_scale"]
                 noise_bound = (noise_bound[0] + noise_nudge[1] , noise_bound[1])
                 bounds["noise_log_scale"] = noise_bound
-                new_gp.set_bounds(bounds)
+                tmp_gp.set_bounds(bounds)
 
-                # Try increase starting point of nosie
+                # Try increase starting point of noise
                 noise_nudge = noiseNudge + nudge[0]
-                new_hyp = new_gp.hyperparameters_to_dict(new_hyp)
+                new_hyp = tmp_gp.hyperparameters_to_dict(new_hyp)
                 new_hyp["noise_log_scale"] = new_hyp["noise_log_scale"] + noiseNudge
-                new_hyp = new_gp.hyperparameters_from_dict(new_hyp)
-                new_gp.set_hyperparameters(new_hyp, compute_posterior=False)
+                new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
+                tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
+        if success > -1:
+            # at least one run succeeded
+            gp.set_hyperparameters(new_hyp, False)
+            if options['gpwarnings']:
+                logger.warning(f'bads:gpHyperOptFail: Failed optimization of hyper-parameters ({n_try} attempts). GP approximation might be unreliable.')
         
         return gp, new_hyp, res, success
+
+def get_random_sample_from_prior(gp, hyp_gp,optim_state, options):
+    hyp_sampler_name = options.get("gphypsampler", "slicesample")
+    if hyp_sampler_name != 'slicesample ':
+        raise ValueError("Wrong sampler")
+
+    # Get slice sampler
+    sample_f = lambda hyp_: gp.__gp_obj_fun(hyp_, False, True)
+    width = optim_state['plu'] - optim_state['plb']
+    hyp_sampler = SliceSampler(sample_f, hyp_gp, width, optim_state['lb'], optim_state['ub'], options = {"display": "off", "diagnostics": False})
+    new_hyp = hyp_sampler.sample(1, burn=0)
+    return new_hyp
 
 def _cov_identifier_to_covariance_function(identifier):
     """
@@ -999,7 +1037,7 @@ def _get_training_data(function_logger: FunctionLogger):
     return x_train, y_train, s2_train, t_train
 
 
-def _estimate_noise(gp: gpr.GP):
+def _estimate_noise_(gp: gpr.GP):
     """Estimate GP observation noise at high posterior density.
 
     Parameters
