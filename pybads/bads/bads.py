@@ -969,8 +969,9 @@ class BADS:
             
             # Historic improvement
             if poll_iteration >  self.options['tolstalliters']:
-                f_base = self.iteration_history.get('fval')[iter - self.options['tolstalliters']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['tolstalliters']]
+                idx = poll_iteration - self.options['tolstalliters']
+                f_base = self.iteration_history.get('fval')[idx]
+                f_sd_base = self.iteration_history.get('fsd')[idx]
                 self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
                                         f_sd_base, self.fsd, self.options['improvementquantile'])
                 
@@ -985,6 +986,7 @@ class BADS:
                 self.iteration_history.record('u', self.u, poll_iteration)
                 self.iteration_history.record('yval', self.yval, poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
+                self.iteration_history.record('fsd', self.fsd, poll_iteration)
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
 
@@ -1025,7 +1027,7 @@ class BADS:
         # End while
 
         # Re-evaluate all best points (skip first iteration)
-        yval_vec = self.yval if np.np.isscalar(self.yval) else self.yval.copy()
+        yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
             self._re_evaluate_history_(poll_iteration)
 
@@ -1070,7 +1072,7 @@ class BADS:
 
         #TODO:  Print final message
         self.logger.warning(msg)
-        if self.optim_state['uncertainty_handling'] > 0:
+        if self.optim_state['uncertainty_handling_level'] > 0:
             if yval_vec.size == 1:
                 self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: %{self.fval} ± %{self.fsd} (GP mean ± SEM).')
             else:

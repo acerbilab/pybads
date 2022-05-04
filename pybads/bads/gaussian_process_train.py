@@ -421,8 +421,9 @@ def _meanfun_name_to_mean_function(name: str):
     return mean_f
 
 def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options):
-        success = 1
-        noiseNudge = 0
+        
+        noise_nudge = 0
+
         tmp_gp = deepcopy(gp)
         X = x_train.copy()
         Y = y_train.copy()
@@ -432,16 +433,21 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
             s2 = None
         new_hyp = hyp_gp.copy()
         n_try = 10
+        success_flag = np.ones((n_try)).astype(bool)
         for i_try in range(0, n_try):
             try: 
                 new_hyp, _, res = tmp_gp.fit(X, Y, s2, hyp0=new_hyp, options=gp_train)
                 break
             except np.linalg.LinAlgError:
                 #handle
+                success_flag[i_try] = False
                 if i_try > options['removepointsaftertries'] -1:
-                    idx_drop_out = np.zeros(len(y_train)).astype(bool)
-                    # TODO remove closest pair sample
+                    idx_drop_out = np.zeros(len(Y)).astype(bool)
+                    # Remove closest pair sample
                     dist = cdist(X, X)
+                    # Dist is symmetric thus we dont consider the lower triangular and the diagonal of the matrix
+                    dist[np.tril_indices(dist.shape[0])] = np.inf
+                    
                     # Indices of the minimum elements
                     idx_min = np.unravel_index(np.argmin(dist, axis=None), dist.shape)
                     
@@ -450,14 +456,16 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     else:
                         idx_drop_out[idx_min[1]] = True
                     
-                    idx_drop_out = np.logical_or(idx_drop_out, Y > np.percentile(Y, 95))
+                    idx_drop_out = np.logical_or(idx_drop_out, (Y > np.percentile(Y, 95)).flatten())
                     X = X[~idx_drop_out]
                     Y = Y[~idx_drop_out]
                     
                 
                 # Retry with random sample prior
-                new_hyp = get_random_sample_from_prior(tmp_gp, hyp_gp, optim_state, options)
-                new_hyp = 0.5 * (new_hyp + hyp_gp)
+                # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
+                sample_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy() 
+                new_hyp = get_random_sample_from_prior(tmp_gp, sample_hyp_gp, optim_state, options)
+                new_hyp = 0.5 * (new_hyp + sample_hyp_gp)
 
                 nudge = options['noisenudge']
                 if nudge is None or len(nudge) == 0:
@@ -465,25 +473,36 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                 elif len(nudge) == 1:
                     nudge = np.vstack((nudge, 0.5 * nudge[0]))
 
+                # Try increase starting point of noise
+                noise_nudge = noise_nudge + nudge[0]
+
                 # Increase gp noise hyp lower bounds
                 bounds = tmp_gp.get_bounds()
                 noise_bound = bounds["noise_log_scale"]
-                noise_bound = (noise_bound[0] + noise_nudge[1] , noise_bound[1])
+                noise_bound = (noise_bound[0] + noise_nudge , noise_bound[1])
                 bounds["noise_log_scale"] = noise_bound
                 tmp_gp.set_bounds(bounds)
 
                 # Try increase starting point of noise
-                noise_nudge = noiseNudge + nudge[0]
                 new_hyp = tmp_gp.hyperparameters_to_dict(new_hyp)
-                new_hyp["noise_log_scale"] = new_hyp["noise_log_scale"] + noiseNudge
+                new_hyp[0]["noise_log_scale"] = new_hyp[0]["noise_log_scale"] + noise_nudge
                 new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
                 tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
-        if success > -1:
+        if np.any(success_flag):
             # at least one run succeeded
             gp.set_hyperparameters(new_hyp, False)
+        if np.any(~success_flag):
+            # at least one failed
             if options['gpwarnings']:
                 logger.warning(f'bads:gpHyperOptFail: Failed optimization of hyper-parameters ({n_try} attempts). GP approximation might be unreliable.')
+
+        if np.all(~success_flag):
+            success = -1
+        elif np.all(success_flag):
+            success = 1
+        else:
+            success = 0
         
         return gp, new_hyp, res, success
 
