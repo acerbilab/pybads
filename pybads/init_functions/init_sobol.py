@@ -22,11 +22,13 @@ def init_sobol(u0, lb, ub, plb, pub, ninit):
     # if one uses a sample size that is not a power of 2, or skips the first point,
     # or thins the sequence (Art B. Owen, “On dropping the first Sobol’ point.” arXiv:2008.08051, 2020.).   
     sobol_sampler = Sobol(u0.size, seed=seed)
-    #n_samples = np.floor(np.log2(ninit))
-    #samples = sobol_sampler.random_base2(n_samples)        
 
-    n_samples = ninit
-    samples = sobol_sampler.random(n_samples)
+    #n_samples = ninit
+    #samples = sobol_sampler.random(n_samples)
+    n_samples = int(np.ceil(np.log2(ninit)))
+    if 2**n_samples == u0.size:
+         n_samples += 1
+    samples = sobol_sampler.random_base2(n_samples)        
     
     u_init = plb + samples * (pub - plb)
     
