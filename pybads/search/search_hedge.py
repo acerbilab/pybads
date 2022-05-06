@@ -34,7 +34,8 @@ class SearchESHedge():
         self.prob = self.prob / np.sum(np.exp(self.beta * (self.g - np.max(self.g))))
         self.prob = self.prob * (1 - self.n_funs * self.gamma) + self.gamma
 
-        self.chosen_hedge = np.argwhere(np.random.rand() < np.cumsum(self.prob))[0]
+        rand_uni = np.random.rand()
+        self.chosen_hedge = np.argwhere(rand_uni < np.cumsum(self.prob))[0]
         if len(self.chosen_hedge) == 0:
             self.chosen_hedge = np.random.randint(0, self.n_funs)
         

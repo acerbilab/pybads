@@ -253,7 +253,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
     
     if prior_mean is not None and ~options['gpfixedmean']:
-        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(2/4)))
+        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4))) #TODO changed from 2/4 since we use the std as parameter.
     elif options['gpfixedmean']:
         # TODO: update hyp mean by assigning ymean
         pass 
@@ -282,7 +282,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         pass
 
     # Re-fit Guassian Process (optimize or sample -- only optimization supported)
-    gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.**2))
+    gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.))
     gp.set_priors(gp_priors)
 
     old_hyp_gp = gp.get_hyperparameters(as_array=True)
@@ -634,7 +634,8 @@ def _gp_hyp(
             noise_std = noise_size[1]
         
     else:
-        noise_mu = np.log(noise_size[0])
+        noise_size = options['tolfun']
+        noise_mu = np.log(noise_size)
 
     noise_x0[0] = noise_mu
     hyp0 = np.concatenate([cov_x0, noise_x0, mean_x0])
@@ -663,18 +664,18 @@ def _gp_hyp(
     cov_range = (optim_state['ub'] - optim_state['lb']) / optim_state['scale']   
     cov_range = (np.minimum(100, 10*cov_range)).flatten()
     # Bads prior on covariance length scale(s)
-    priors['covariance_log_lengthscale'] = ('gaussian', (-1, 2.**2))
+    priors['covariance_log_lengthscale'] = ('gaussian', (-1, 2.))
     # BADS bounds on covariance length scale
     bounds['covariance_log_lengthscale'] = (np.array([np.log(tol_mesh)]*D), cov_range) # lower bound and upper bound
     
     # Bads bounds on signal variance (output scale)
     sf = np.exp(1)
-    priors['covariance_log_outputscale'] = ('gaussian', (np.log(sf), 2.**2))
+    priors['covariance_log_outputscale'] = ('gaussian', (np.log(sf), 2.))
     bounds['covariance_log_outputscale'] = (np.log(tol_fun), np.log(1e6 * tol_fun/tol_mesh))
 
     if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
         rq_prior_mean = 1 #TODO can be assigned by the user
-        priors['covariance_log_shape'] = ('gaussian', (rq_prior_mean, 1.**2))
+        priors['covariance_log_shape'] = ('gaussian', (rq_prior_mean, 1.))
         bounds['covariance_log_shape'] = (np.array([-5.]), np.array([5.]))
 
     # Rotate GP axes (unsupported)
@@ -688,7 +689,7 @@ def _gp_hyp(
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         # Lower maximum constant mean
         bounds["mean_const"] = (-np.inf, np.inf)
-        priors["mean_const"] = ('gaussian', (0., 1.**2))
+        priors["mean_const"] = ('gaussian', (0., 1.))
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gpquadraticmeanbound"]:
             delta_y = max(
@@ -709,6 +710,7 @@ def _gp_hyp(
     gp.temporary_data['len_scale'] = 1
     gp.temporary_data['poll_scale'] = np.ones(D)
     gp.temporary_data['effective_radius'] = 1.
+    #gpstruct.sf = np.exp(1) TODO no need of this since we do not use the hedge acquisition function
 
     # Missing port: meanfun == 14 hyperprior case
 

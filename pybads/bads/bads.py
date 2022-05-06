@@ -1234,7 +1234,7 @@ class BADS:
             self.search_es_hedge.update_hedge(u_search, fval_old, f_mu_search, f_sd_search,
                                     gp, self.optim_state['mesh_size'])           
 
-        # TODO: Update search statistics and search scale factor
+        # Update search statistics and search scale factor
         self._update_search_stats_(search_status, search_dist)
 
         if len(search_string) > 0:
