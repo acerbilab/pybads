@@ -13,7 +13,7 @@ class SearchESHedge():
         self.n_funs = len(search_fcns)
         self.g = np.zeros(self.n_funs)
         self.g[0] = 10
-        self.count = 0
+        self.count = -1
         self.options_dict=options_dict
         self.nonbondcons = nonbondcons
         

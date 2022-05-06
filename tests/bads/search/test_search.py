@@ -2,6 +2,8 @@
 import numpy as np
 import os
 import sys
+from pybads import function_logger
+from pybads.search.grid_functions import get_grid_search_neighbors
 import pytest
 
 from pybads.bads.bads import BADS
@@ -60,7 +62,7 @@ def test_search():
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
-    
+    bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     es_iter = bads.options['nsearchiter']
@@ -99,9 +101,9 @@ def test_search_hedge():
     D = 3
 
     bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
-    
+    bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
-
+    
     search_hedge = SearchESHedge(bads.options['searchmethod'], bads.options)
     
     us, z = search_hedge(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state)
@@ -117,3 +119,29 @@ def test_u_cov():
     w = np.array([0.4563, 0.2708, 0.1622, 0.0852, 0.0255])
     C = ucov(U, u0, w, ub, lb, 1)
     assert C.shape == (U.shape[1], U.shape[1])
+
+def test_grid_search_neighbors():
+    x0 = np.array([[0, 0]]);        # Starting point
+    lb = np.array([[-20, -20]])     # Lower bounds
+    ub = np.array([[20, 20]])       # Upper bounds
+    plb = np.array([[-5, -5]])      # Plausible lower bounds
+    pub = np.array([[5, 5]])        # Plausible upper bounds
+    D = 2
+
+    bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    bads.options['ninit'] = 0
+    gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
+    gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
+    f = FunctionLogger(rosenbrocks, D, False, 0)
+    f.X = gp.X.copy()
+    gp.y = np.array([1, 405.1637, 5.082e3])
+    f.Y = gp.y.copy()
+
+    f.X_max_idx = 3
+    
+    gp.temporary_data["len_scale"] = 1.
+    bads.optim_state["scale"] = 1.
+    bads.options["gpradius"] = 3
+    
+    result = get_grid_search_neighbors(f, np.array([[0, 0]]), gp, bads.options, bads.optim_state)[0]
+    assert result[0, 0] == 0. and np.isclose(result[1, 0], -0.1055, 1e-3) and np.isclose(result[2, 0], -0.3555, 1e-3)

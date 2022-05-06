@@ -758,7 +758,7 @@ class BADS:
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']), self.options['maxfunevals'])
+            self.options['ninit'] = np.minimum(np.maximum(16, self.options['ninit']), self.options['maxfunevals'])
 
         if self.options['ninit'] > 0:
             # Evaluate initial points but not more than OPTIONS.MaxFunEvals
@@ -872,6 +872,7 @@ class BADS:
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
         self.gp_best = copy.deepcopy(gp)
+        self.search_es_hedge = None # init search hedge to None
 
         if self.options['outputfcn'] is not None:
             output_fcn = self.options['outputfcn']
@@ -1113,7 +1114,8 @@ class BADS:
         # Generate search set (normalized coordinate)
         self.optim_state['search_count'] += 1
         
-        self.search_es_hedge = SearchESHedge(self.options['searchmethod'], self.options, self.nonbondcons)
+        if self.search_es_hedge is None:
+            self.search_es_hedge = SearchESHedge(self.options['searchmethod'], self.options, self.nonbondcons)
         u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
@@ -1235,7 +1237,6 @@ class BADS:
         # TODO: Update search statistics and search scale factor
         self._update_search_stats_(search_status, search_dist)
 
-        # TODO: Print search results
         if len(search_string) > 0:
             self.logging_action.append('')
             self._display_function_log_(self.optim_state['iter'], search_string)   

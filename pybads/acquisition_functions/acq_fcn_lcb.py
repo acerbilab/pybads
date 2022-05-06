@@ -39,8 +39,8 @@ def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
         raise ValueError("acq_lcb: The SQRTBETAT parameter of the acquisition \
             function needs to be a scalar or a function handle/name to an annealing schedule.")
 
-    f_mu, f_s = gp.predict(xi)
-    f_s = np.sqrt(f_s)
+    f_mu, f_s2 = gp.predict(xi)
+    f_s = np.sqrt(f_s2)
 
     # Lower confidence bound
     z = f_mu - sqrt_beta * f_s

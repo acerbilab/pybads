@@ -8,6 +8,9 @@ ub = np.array([[20, 20]])       # Upper bounds
 plb = np.array([[-5, -5]])      # Plausible lower bounds
 pub = np.array([[5, 5]])        # Plausible upper bounds
 
+
+
+
 bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
 bads.optimize()
 

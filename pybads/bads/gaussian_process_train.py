@@ -298,10 +298,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         else:
             noise = options['noisesize'][1]
             is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize'][0]) + 2*noise
-            
-        if np.isscalar(options['noisesize']):
-            last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
-
+        
         is_low_mean = False
         if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
             is_low_mean = last_dic_hyp_gp['mean_const'] < np.min(gp.y)
@@ -317,7 +314,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             new_hyp = gp.hyperparameters_to_dict(new_hyp)
             
             if is_high_noise:
-                new_hyp["noise_log_scale"] = np.random.randn()-2
+                new_hyp[0]["noise_log_scale"] = np.random.randn()-2
             if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean):
                 new_hyp[0]['mean_const'] = np.median(gp.y)
             
@@ -459,8 +456,10 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     idx_drop_out = np.logical_or(idx_drop_out, (Y > np.percentile(Y, 95)).flatten())
                     X = X[~idx_drop_out]
                     Y = Y[~idx_drop_out]
+                    # Remove also user specified noise
+                    if tmp_gp.s2 is not None:
+                        tmp_gp.s2 = tmp_gp.s2[~idx_drop_out] 
                     
-                
                 # Retry with random sample prior
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 sample_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy() 
