@@ -10,4 +10,4 @@ pub = np.array([[5, 5]])        # Plausible upper bounds
 
 bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
-print(f"BADS minimum at x = {x_min.flatten()} with value fval= {fval}")
+print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval}")

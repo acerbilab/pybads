@@ -1080,7 +1080,7 @@ class BADS:
             else:
                 self.logger.warn(f'Estimated function value at minimum: %{self.fval} ± %{self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
-            self.logger.warn(f'Function value at minimum: %{self.fval}')
+            self.logger.warn(f'Function value at minimum: {self.fval}\n')
 
         # Compute total running time and fractional overhead
         timer.stop_timer('BADS')
