@@ -856,7 +856,8 @@ class BADS:
 
         Returns
         ----------
-        
+            x: solution point of the objective function self.fun
+            fval: function value at the minimum point x
         """
         is_finished = False
         poll_iteration = -1
@@ -1069,7 +1070,7 @@ class BADS:
         #    isFinished_flag = outputfun(origunits(u,optimState),optimState,'done');
 
         # Convert back to original space
-        x = self.var_transf.inverse_transf(self.u)
+        self.x = self.var_transf.inverse_transf(self.u)
 
         #TODO:  Print final message
         self.logger.warning(msg)
@@ -1088,7 +1089,7 @@ class BADS:
         self.optim_state['total_time'] = total_time
         self.optim_state['overhead'] = overhead
 
-        return x, self.fval
+        return self.x, self.fval
     
     def _search_step_(self, gp: GP):
         # Check whether it is time to refit the GP
@@ -1413,7 +1414,6 @@ class BADS:
             
             # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
             self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
-            self.u_best = u_poll_best.copy() # we update also the u_best
             is_poll_moved = True
         else:
             is_poll_moved = False
@@ -1558,7 +1558,8 @@ class BADS:
     def _get_target_from_gp_(self, u, gp:GP):
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
-            fmu, fs2 = gp.predict(u)
+
+            fmu, fs2 = gp.predict(np.atleast_2d(u))
             
             f_target_s = np.sqrt(np.max(fs2, axis=0))
             if ~np.isfinite(fmu) | ~np.isreal(f_target_s) | ~np.isfinite(f_target_s):
@@ -1591,13 +1592,15 @@ class BADS:
         """
             Move incumbent (current point) to a new point.
         """
-        self.optim_state['u'] = u_new
+        self.optim_state['u'] = u_new.copy()
         self.optim_state['yval'] = yval_new
         self.optim_state['fval'] = fval_new
-        self.u = u_new
+        self.optim_state['fsd'] = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
+        self.u = u_new.copy()
+        self.u_best = u_new.copy()
         self.yval = yval_new
         self.fval = fval_new
-        self.fsd = fsd_new
+        self.fsd = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
         return yval_new, fval_new, fsd_new
         #Update estimate of curvature (Hessian) - not supported (GP usage)
 
@@ -1648,7 +1651,7 @@ class BADS:
                 gp = self.iteration_history.get('gp')[i]
                 u = self.iteration_history.get('u')[i]
                 gp, _ = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
-                fval, fsd = gp.predict(u)
+                fval, fsd = gp.predict(np.atleast_2d(u))
                 fsd = np.sqrt(fsd)
 
                 self.iteration_history.record('fval', fval, i)

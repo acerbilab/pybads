@@ -87,6 +87,6 @@ def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
         return np.sum(diff, axis=1)
 
     else:
-        dist = cdist(U/len_scale, np.atleast_2d(u2)/len_scale)
+        dist = cdist(np.atleast_2d(U)/len_scale, np.atleast_2d(u2)/len_scale)
         return dist**2
 
