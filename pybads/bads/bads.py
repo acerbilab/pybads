@@ -983,21 +983,22 @@ class BADS:
             if self.function_logger.func_count >= self.options['maxfunevals']:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of function evaluations OPTIONS.MaxFunEvals.'
+                msg = 'Optimization terminated: reached maximum number of function evaluations options.maxfunevals.'
             
-            if poll_iteration >= self.options['maxiter']:
+            if poll_iteration >= self.options['maxiter'] -1:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of iterations OPTIONS.MaxIter.'
+                msg = 'Optimization terminated: reached maximum number of iterations options.maxiter.'
             
             if self.optim_state['mesh_size'] < self.optim_state['tol_mesh']:
                 is_finished = True
                 #exit_flag = 1
-                msg = 'Optimization terminated: mesh size less than OPTIONS.TolMesh.'
+                msg = 'Optimization terminated: mesh size less than options.tolmesh.'
             
             # Historic improvement
-            if poll_iteration >  self.options['tolstalliters']:
+            if poll_iteration >  self.options['tolstalliters'] -1:
                 idx = poll_iteration - self.options['tolstalliters']
+                idx = idx - 1 # offset of one since we start from zero
                 f_base = self.iteration_history.get('fval')[idx]
                 f_sd_base = self.iteration_history.get('fsd')[idx]
                 self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
@@ -1006,7 +1007,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options['tolfun']:
                     is_finished = True
                     exit_flag = 2
-                    msg = 'Optimization terminated: mesh size less than OPTIONS.TolMesh.'
+                    msg = 'Optimization terminated: mesh size less than options.tolfun.'
                 
             
             # Store best points at the end of each iteration, or upon termination
