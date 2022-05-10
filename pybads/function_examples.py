@@ -11,3 +11,8 @@ def rosenbrocks_fcn(x):
 def quadratic_noisy_fcn(x):
     X = np.atleast_2d(x)
     return np.sum(X**2, axis=1) + np.random.randn(X.shape[0])
+
+def extra_noisy_quadratic_fcn(x):
+    X = np.atleast_2d(x)
+    quad_sum = np.sum(X**2, axis=1)
+    return quad_sum + (3 + 0.1 * np.sqrt(quad_sum)) * np.random.randn(X.shape[0])
