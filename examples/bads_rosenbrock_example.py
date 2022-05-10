@@ -10,4 +10,5 @@ pub = np.array([[5, 5]])        # Plausible upper bounds
 
 bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
-print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval}")
+print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n")
+print(f"The true global minimum is at x = [1, 1], where fval = 0\n")

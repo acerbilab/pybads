@@ -998,7 +998,6 @@ class BADS:
             # Historic improvement
             if poll_iteration >  self.options['tolstalliters'] -1:
                 idx = poll_iteration - self.options['tolstalliters']
-                idx = idx - 1 # offset of one since we start from zero
                 f_base = self.iteration_history.get('fval')[idx]
                 f_sd_base = self.iteration_history.get('fsd')[idx]
                 self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
@@ -1113,9 +1112,9 @@ class BADS:
         self.logger.warning(msg)
         if self.optim_state['uncertainty_handling_level'] > 0:
             if yval_vec.size == 1:
-                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: %{self.fval} ± %{self.fsd} (GP mean ± SEM).')
+                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
             else:
-                self.logger.warn(f'Estimated function value at minimum: %{self.fval} ± %{self.fsd} (mean ± SEM from {yval_vec.size} samples)')
+                self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
             self.logger.warn(f'Function value at minimum: {self.fval}\n')
 
@@ -1309,7 +1308,7 @@ class BADS:
         # Poll loop
         while ((u_poll is not None and len(u_poll) > 0) or (B is None  or len(B) == 0))\
                 and self.function_logger.func_count < self.options['maxfunevals']\
-                and poll_count <= self.D * 2:
+                and poll_count < self.D * 2:
             
             # Fill in basis vectors (when poll_count == 0)
             if B is None or B.size == 0:
@@ -1397,7 +1396,8 @@ class BADS:
                     # No good polling so far -- if GP is reliable, stop polling
                     # If probability of improvement at any location is to low
                     if not do_gp_calibration and\
-                        (self.options['consecutiveskipping'] or self.last_skipped < self.optim_state["iter"]-1) \
+                        (self.options['consecutiveskipping'] or \
+                            self.last_skipped < self.optim_state["iter"] - 1) \
                         and poll_count >= self.options['minfailedpollsteps']\
                         and p_less > (1-self.options['tolpoi']):
 
