@@ -89,7 +89,7 @@ class SearchES(ABC):
 
         us_rows = np.minimum(u_new.shape[0], self.lamb)
         us = np.empty((us_rows, u_new.shape[1]))
-        z = np.empty((us_rows, 1)) #TODO: test shapes by passing different mu and lambda with Matlab!
+        z = np.empty((us_rows, 1))
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
 
@@ -176,8 +176,8 @@ class SearchESWM(SearchES):
         # Compute weighted covariance matrix wrt u0
         C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodic_vars'])
         if self.active_flag:
-            U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]] #TODO check indexes better, critique point
-            negC = ucov(U_worst, u, weights, optim_state) #TODO heeeere
+            U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]]
+            negC = ucov(U_worst, u, weights, optim_state)
             negmueff = np.sum(1./weights**2)
             negcov = 0.25 * negmueff / ((nvars+2)**1.5 + 2*negmueff)
             C = C - negcov * negC

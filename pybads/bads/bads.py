@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import copy
 import logging
 import math
@@ -480,6 +481,7 @@ class BADS:
         optim_state["cache"] = dict()
         optim_state["cache"]["x_orig"] = self.x0
         optim_state["cache"]["y_orig"] = y_orig
+        optim_state['last_re_eval'] = -np.inf
 
         # Does the starting cache contain function values?
         optim_state["cache_active"] = np.any(
@@ -521,7 +523,6 @@ class BADS:
         optim_state["ub_orig"] = self.var_transf.orig_ub.copy()
         optim_state["plb_orig"] = self.var_transf.orig_plb.copy()
         optim_state["pub_orig"] = self.var_transf.orig_pub.copy()
-        
 
         # Bounds for search mesh
         lb_search = force_to_grid(self.lower_bounds, optim_state["search_mesh_size"])
@@ -647,14 +648,32 @@ class BADS:
         # used by some acquisition fcns.
         optim_state["max_fun_evals"] = self.options.get("maxfunevals")
 
+        # Deal with user specified target noise
+        if self.options['specifytargetnoise'] is None:
+            self.options['specifytargetnoise'] = False
+
+        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is None:
+            self.options["uncertaintyhandling"] = False
+        
+        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is not None and ~self.options["uncertaintyhandling"]:
+            raise ValueError('If options.specifytargetnoise is ON, options.uncertaintyhandling should be ON as well. \
+                                Leave options.uncertaintyhandling empty or set it to ON to avoid this error.')
+        if self.options['specifytargetnoise'] and \
+            self.options['noisesize'] is not None \
+            and np.array(self.options['noisesize'] > 0)[0]:
+            self.logger.warn('If options.specifytargetnoise is ON, options.noisesize is ignored. \
+                Leave options.noisesize empty or set it to 0 to silence this warning.')
+
+
         # Set uncertainty handling level
         # (0: none; 1: unknown noise level; 2: user-provided noise)
         if self.options.get("specifytargetnoise"):
             optim_state["uncertainty_handling_level"] = 2
-        elif len(self.options.get("uncertaintyhandling")) > 0:
+        elif self.options["uncertaintyhandling"] is not None and self.options["uncertaintyhandling"]:
             optim_state["uncertainty_handling_level"] = 1
         else:
             optim_state["uncertainty_handling_level"] = 0
+        
 
         # Empty hedge struct for acquisition functions
         if self.options.get("acqhedge"):
@@ -729,22 +748,28 @@ class BADS:
         # set up strings for logging of the iteration
         self.display_format = self._setup_logging_display_format()
 
-        if self.optim_state["uncertainty_handling_level"] > 0:
-            self.logger.info(
-                "Beginning optimization assuming of a STOCHASTIC objective function")
-        else:
+        if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
             yval_bis = self.function_logger.fun(self.x0)
             self.function_logger.func_count += 1
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
-                self.logger.info(
-                "Beginning optimization assuming of a STOCHASTIC objective function")
                 self.logging_action.append('Uncertainty test')
+        else:
+            self.logging_action.append('')
+
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            if self.options['specifytargetnoise']:
+                self.logger.info(
+                        "Beginning optimization of a STOCHASTIC objective function (specified noise)\n")
             else:
                 self.logger.info(
-                    "Beginning optimization assuming of a DETERMINISTIC objective function")
+                        "Beginning optimization of a STOCHASTIC objective function\n")
+        else:
+            self.logger.info(
+                        "Beginning optimization of a DETERMINISTIC objective function\n")  
+
 
 
         self._log_column_headers()
@@ -765,7 +790,6 @@ class BADS:
             ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
-                # TODO: call initialization function 
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
                             self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
                 # enforce periodicity TODO function
@@ -807,18 +831,20 @@ class BADS:
             
         # Change options for uncertainty handling
         if self.optim_state['uncertainty_handling_level'] > 0:
-            self.options['tolstalliters'] = 2* self.options['tolstalliters']
+            self.options['tolstalliters'] = 2 * self.options['tolstalliters']
             self.options['ndata'] = max(200,self.options['ndata'])
             self.options['minndata'] = 2 * self.options['minndata']
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
-            if self.options['noisesize']:
-                self.options['noisesize'] = 1
+            if self.options['noisesize'] is None or len(self.options['noisesize']) == 0:
+                self.options['noisesize'] = 1.
             # Keep some function evaluations for the final resampling
             self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
-            self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
+            self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
             
+            # Specify the standard deviation of the function values
+            # It corresponds to specify target noise of Matlab
             if self.optim_state['uncertainty_handling_level'] > 1:
                 self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
             else:
@@ -992,27 +1018,29 @@ class BADS:
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
 
-            # Re-evaluate all points (Uncertainty handling case)
+            # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
                 and poll_iteration > 0:
-                self._re_evaluate_history_(gp)
+                self._re_evaluate_history_(poll_iteration)
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
 
-                f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval'), self.fval,
-                    self.iteration_history.get('fsd'), self.fsd, self.options['improvementquantile'])
+                f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval').astype(np.float64), self.fval,
+                    self.iteration_history.get('fsd').astype(np.float64), self.fsd, self.options['improvementquantile'])
+                f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
-
+                improvement = f_q_re_impr[idx_impr]
+                
+                idx_impr = idx_impr + 1 # offset original index without skip
                 # Check if any point got better
-                if f_q_re_impr[idx_impr] > self.options['tolfun']:
+                if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
                     self.u = self.iteration_history.get('u')[idx_impr]
-                    self.best_u = self.u.copy() # TODO in Matlab is not done
-                    gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp
-                    
+                    self.best_u = self.u.copy()
+                    gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp        
             
             # if isFinished_flag
             if is_finished:
@@ -1026,9 +1054,10 @@ class BADS:
                     self.optim_state['iter'] = poll_iteration
 
             loop_iter += 1
+        
         # End while
 
-        # Re-evaluate all best points (skip first iteration)
+        # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
             self._re_evaluate_history_(poll_iteration)
@@ -1036,7 +1065,8 @@ class BADS:
             # Order by lowest probabilistic upper vound and choose best iterate
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
             q_beta = self.iteration_history.get('fval') + sigma_multiplier * self.iteration_history.get('fsd')
-            min_q_beta_idx = np.argmin(q_beta)
+            min_q_beta_idx = np.argmin(q_beta[1:]) # Skip first iteration
+            min_q_beta_idx += 1 # offset original index with no skip
 
             # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
@@ -1046,22 +1076,21 @@ class BADS:
             self.u_best = self.u.copy() # TODO in Matlab is not done
 
             # Re-evalate estimated function value and SD at final point
-            
             if self.options['noisefinalsamples'] > 0:
                 # Estimate function value and standard deviation at final point.
                 # Note that by default we do *not* use YVAL because it is biased 
                 # (since it was an incumbent at some iteration, it is more likely to be a 
                 # random fluctuation lower than the mean)
-
                 yval_vec = np.empty(self.options['noisefinalsamples'])
                 for i_sample in range(self.options['noisefinalsamples']):
-                    yval_vec[i_sample] = self.function_logger(self.u)
+                    # y, f_sd, _ = self.function_logger(self.u)
+                    yval_vec[i_sample] = self.function_logger(self.u)[0].item()
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
                 self.fval = np.mean(yval_vec)
-                self.fsd = np.sd(yval_vec) / np.sqrt(yval_vec.size)
+                self.fsd = np.std(yval_vec) / np.sqrt(yval_vec.size)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
 
@@ -1072,6 +1101,13 @@ class BADS:
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
 
+        # Compute total running time and fractional overhead
+        timer.stop_timer('BADS')
+        total_time  = timer.get_duration('BADS')
+        overhead = total_time / self.function_logger.total_fun_evaltime -1
+        self.optim_state['total_time'] = total_time
+        self.optim_state['overhead'] = overhead
+
         #TODO:  Print final message
         self.logger.warning(msg)
         if self.optim_state['uncertainty_handling_level'] > 0:
@@ -1081,13 +1117,6 @@ class BADS:
                 self.logger.warn(f'Estimated function value at minimum: %{self.fval} ± %{self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
             self.logger.warn(f'Function value at minimum: {self.fval}\n')
-
-        # Compute total running time and fractional overhead
-        timer.stop_timer('BADS')
-        total_time  = timer.get_duration('BADS')
-        overhead = total_time / self.function_logger.total_fun_evaltime -1
-        self.optim_state['total_time'] = total_time
-        self.optim_state['overhead'] = overhead
 
         return self.x, self.fval
     
@@ -1108,9 +1137,8 @@ class BADS:
         # Update Target from GP prediction
         fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, self.gp_best)
         self.optim_state["fval"] = fmu.item()
-        self.optim_state["f_target_s"] = f_target_s
+        self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
         self.optim_state["f_target"] = f_target.item()
-
 
         # Generate search set (normalized coordinate)
         self.optim_state['search_count'] += 1
@@ -1137,7 +1165,7 @@ class BADS:
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
-            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
+            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's not even unsupported in Matlab
         
             # Randomly choose index if something went wrong
             if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):
@@ -1154,7 +1182,6 @@ class BADS:
             y_search, f_sd_search, idx = self.function_logger(u_search)
 
             if z.size > 0:
-                
                 # Save statistics of gp prediction, 
                 self._save_gp_stats_(y_search, f_mu[index_acq], fs[index_acq])
             
@@ -1170,9 +1197,11 @@ class BADS:
 
             # If the function is non-deterministic we update the posterior of the GP
             if self.optim_state["uncertainty_handling_level"] > 0:
-                gp, _ = local_gp_fitting(gp, u_search, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
-                # TODO: prediction on u_search  gppred(usearch,gpstructnew); line 668
-                f_mu_search, f_sd_search = gp.predict(u_search)
+                new_gp = copy.deepcopy(gp)
+                # Update priors and posteriors
+                new_gp, _ = local_gp_fitting(new_gp, u_search, self.function_logger, self.options,
+                                    self.optim_state, self.iteration_history, False)
+                f_mu_search, f_sd_search = new_gp.predict(np.atleast_2d(u_search))
                 f_sd_search = np.sqrt(f_sd_search)
             else:
                 f_mu_search = y_search
@@ -1220,8 +1249,9 @@ class BADS:
 
             # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
             self._update_incumbent_(u_search, y_search, f_mu_search, f_sd_search)
-            
-            #TODO reset posterior GP
+            if self.optim_state['uncertainty_handling_level'] > 0:
+                gp = new_gp
+
             self.reset_gp = True
 
         else:
@@ -1257,6 +1287,7 @@ class BADS:
             sigma = np.sqrt(s_base**2 + s_new**2)
             x0 = -np.sqrt(2) * erfcinv(2*q)
             z = sigma * x0 + mu
+            z = z.flatten()
 
         return z
     
@@ -1327,7 +1358,7 @@ class BADS:
             # Update Target from GP prediction
             fval, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
             self.optim_state["fval"] = fval.item()
-            self.optim_state["f_target_s"] = f_target_s.copy()
+            self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
             self.optim_state["f_target"] = f_target.item()
 
             # Evaluate acquisition function on poll vectors
@@ -1385,7 +1416,7 @@ class BADS:
             if self.optim_state['uncertainty_handling_level'] > 0:
                 # Update posterior with the new polled point
                 gp = reupdate_gp(self.function_logger, gp)
-                f_poll, f_sd_poll = gp.predict(u_new)
+                f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
                 f_sd_poll = np.sqrt(f_sd_poll)
             else:
                 f_poll = y_poll
@@ -1396,8 +1427,8 @@ class BADS:
             # Check if current point improves over best polled point so far 
             if poll_improvement > poll_best_improvement:
                 u_poll_best = u_new.copy()
-                y_poll_best = y_poll.copy()
-                f_poll_best = f_poll.copy()
+                y_poll_best = y_poll
+                f_poll_best = f_poll
                 gp_poll = copy.deepcopy(gp)
                 f_sd_poll_best = f_sd_poll
                 poll_best_improvement = poll_improvement
@@ -1447,6 +1478,8 @@ class BADS:
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
             
             # TODO: Profile plot iteration
+
+
         # End POLL evaluation
         
         # Update mesh size
@@ -1472,17 +1505,11 @@ class BADS:
         self._display_function_log_(self.optim_state['iter'], poll_string)   
 
         #TODO: if self.output_function is not None
+        
         self.reset_gp = is_poll_moved
 
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
-        
-
-
-            
-
-
-
-
+    
     def _save_gp_stats_(self, fval, ymu, ys):
         
         if self.gp_stats.get('iter_gp') is None or len(self.gp_stats.get('iter_gp')) == 0:
@@ -1654,8 +1681,8 @@ class BADS:
                 fval, fsd = gp.predict(np.atleast_2d(u))
                 fsd = np.sqrt(fsd)
 
-                self.iteration_history.record('fval', fval, i)
-                self.iteration_history.record('fsd', fsd, i)
+                self.iteration_history.record('fval', fval.item(), i)
+                self.iteration_history.record('fsd', fsd.item(), i)
                 self.iteration_history.record('gp', gp, i)
             
             self.optim_state['last_re_eval'] = self.function_logger.func_count
