@@ -253,7 +253,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
     
     if prior_mean is not None and ~options['gpfixedmean']:
-        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4))) #TODO changed from 2/4 since we use the std as parameter.
+        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4)))
     elif options['gpfixedmean']:
         # TODO: update hyp mean by assigning ymean
         pass 
@@ -1131,5 +1131,7 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp.update(compute_posterior=True)
 
     # Missing port: intmean part
+    # TODO how is handle the user defined noise
+    # TODO should we add a check if the values are well defined?
 
     return gp
