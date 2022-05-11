@@ -439,8 +439,8 @@ class BADS:
 
         # Check non bound constraints
         if nonbondcons is not None:
-            y = nonbondcons(np.array([plausible_lower_bounds, plausible_upper_bounds]))
-            if y.shape[0] != 2 or y.shape[1] != 1:
+            y = nonbondcons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
+            if y.shape[0] != 2  and y.ndim == 1:
                 raise ValueError("bads:NONBCON "
                     + "NONBCON should be a function that takes a matrix X as input"
                     + " and returns a column vector of bound violations.")
@@ -744,7 +744,12 @@ class BADS:
     def _init_mesh_(self):
         # Evaluate starting point and initial mesh, determine if function is noisy
         self.yval, self.fsd, _ = self.function_logger(self.u)
-        
+        if self.nonbondcons is not None:
+            c = self.nonbondcons(self.u)
+            if c > 0: 
+                self.yval = np.NaN 
+                raise ValueError("Initial starting point X0 does not satisfy non-bound constraint.")
+
         # set up strings for logging of the iteration
         self.display_format = self._setup_logging_display_format()
 
@@ -770,8 +775,6 @@ class BADS:
             self.logger.info(
                         "Beginning optimization of a DETERMINISTIC objective function\n")  
 
-
-
         self._log_column_headers()
 
         self._display_function_log_(0, '')
@@ -786,7 +789,7 @@ class BADS:
             self.options['ninit'] = np.minimum(np.maximum(16, self.options['ninit']), self.options['maxfunevals'])
 
         if self.options['ninit'] > 0:
-            # Evaluate initial points but not more than OPTIONS.MaxFunEvals
+            # Evaluate initial points but not more than options.maxfunevals
             ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
@@ -804,7 +807,7 @@ class BADS:
                 for u_idx in range(len(u1)):
                     self.function_logger(u1[u_idx])
                 
-                idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn])
+                idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1])
                 self.u = np.atleast_2d(self.function_logger.X[idx_yval])
                 self.yval = self.function_logger.Y[idx_yval].item()
                 self.logging_action.append('Initial points')
@@ -1130,7 +1133,7 @@ class BADS:
             gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
 
             if refit_flag:
-                self.refitted_flag = True
+                self.gp_refitted_flag = True
             self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting            
 
@@ -1325,7 +1328,8 @@ class BADS:
                 if self.options['forcepollmesh']:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
-                u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds, self.optim_state['tol_mesh'], self.function_logger, False)
+                u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds,
+                    self.optim_state['tol_mesh'], self.function_logger, False, self.nonbondcons)
 
                 # Add new poll points to polling set
                 if u_poll is None:
@@ -1352,7 +1356,7 @@ class BADS:
             if refit_flag or poll_count == 0 or self.reset_gp:
                 gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
                 if refit_flag:
-                    self.refitted_flag = True
+                    self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
             
             # Update Target from GP prediction
@@ -1493,7 +1497,7 @@ class BADS:
         else:
             poll_string = 'Refine grid'
         
-        if self.refitted_flag:
+        if self.gp_refitted_flag:
             action_str = 'Train'
             if self.gp_exit_flag < 0:
                 action_str += ' (failed)'
