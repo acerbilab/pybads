@@ -38,9 +38,9 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
     if nonbondcons is not None:
         if function_logger is None:
             raise ValueError("contraints_check: function_logger not passed, non bondcons requires it.")
-        X = function_logger.variable_transformer.inverse_transf(U)
+        X = function_logger.variable_transformer.inverse_transf(U_new)
         C = nonbondcons(X)
-        idx = C <=0
+        idx = C <= 0 
         U_new = U_new[idx]
 
     return U_new
