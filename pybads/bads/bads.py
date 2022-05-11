@@ -1076,7 +1076,7 @@ class BADS:
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
-            self.u_best = self.u.copy() # TODO in Matlab is not done
+            self.u_best = self.u.copy() 
 
             # Re-evalate estimated function value and SD at final point
             if self.options['noisefinalsamples'] > 0:
@@ -1234,7 +1234,7 @@ class BADS:
             or search_improvement > self.optim_state['search_sufficient_improvement']:
 
             if self.options['acqhedge']:
-                # TODO: Acquisition hedge (acquisition portfolio) not supported yet
+                # Acquisition hedge (acquisition portfolio) not supported yet
                 pass
             else:
                 method = self.search_es_hedge.chosen_search_fun
@@ -1371,7 +1371,7 @@ class BADS:
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
-            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
+            # In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
         
             # Randomly choose index if something went wrong
             if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):

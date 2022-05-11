@@ -320,7 +320,6 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             
             new_hyp = gp.hyperparameters_from_dict(new_hyp)
             new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
-            # TODO check here the optimization when multiple hyper-params are added.
             dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
         # Matlab: remove undefined points (no need)
@@ -712,7 +711,7 @@ def _gp_hyp(
     gp.temporary_data['len_scale'] = 1
     gp.temporary_data['poll_scale'] = np.ones(D)
     gp.temporary_data['effective_radius'] = 1.
-    #gpstruct.sf = np.exp(1) TODO no need of this since we do not use the hedge acquisition function
+    #gpstruct.sf = np.exp(1) no need of this since we do not use the hedge acquisition function
 
     # Missing port: meanfun == 14 hyperprior case
 
@@ -1133,7 +1132,7 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp.update(compute_posterior=True)
 
     # Missing port: intmean part
-    # TODO how is handle the user defined noise
+    # TODO how is handled the user defined noise
     # TODO should we add a check if the values are well defined?
 
     return gp

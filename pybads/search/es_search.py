@@ -113,7 +113,6 @@ class SearchES(ABC):
             # if something went wrong with the acquisition function, random search is performed
             if z_new is None or z_new.size == 0:
                 z_candidates = np.random.rand(u_new.shape[0])
-                # TODO: warning logger
                 self.logger.warn("bads:es_search: Something went wrong with the acquisition function, random search is performed")
 
             nold = us.shape[0]
