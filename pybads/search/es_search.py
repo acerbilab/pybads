@@ -99,7 +99,8 @@ class SearchES(ABC):
             u_new = force_to_grid(u_new, self.search_mesh_size)
 
             # Remove already evaluated or unfeasible points from search set
-            u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'], optim_state["tol_mesh"], func_logger, True, nonbondcons)
+            u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'],
+                        optim_state["tol_mesh"], func_logger, True, nonbondcons)
 
             if self.search_acq_fcn[0] == 'acq_LCB':
                 z_new, fmu, fs = acq_fcn_lcb(u_new, func_logger, gp, self.search_acq_fcn[1])
