@@ -462,9 +462,11 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     
                 # Retry with random sample prior
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
-                sample_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy() 
-                new_hyp = get_random_sample_from_prior(tmp_gp, sample_hyp_gp, optim_state, options)
-                new_hyp = 0.5 * (new_hyp + sample_hyp_gp)
+                old_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
+                if len(new_hyp) > 1:
+                    new_hyp = new_hyp[-1].copy()
+                new_hyp = get_random_sample_from_prior(tmp_gp, new_hyp, optim_state, options)
+                new_hyp = 0.5 * (new_hyp + old_hyp_gp)
 
                 nudge = options['noisenudge']
                 if nudge is None or len(nudge) == 0:
@@ -505,7 +507,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         
         return gp, new_hyp, res, success
 
-def get_random_sample_from_prior(gp:gpr.GP, hyp_gp,optim_state, options):
+def get_random_sample_from_prior(gp:gpr.GP, hyp_gp, optim_state, options):
     hyp_sampler_name = options.get("gphypsampler", "slicesample")
     if hyp_sampler_name != 'slicesample':
         raise ValueError("Wrong sampler")
