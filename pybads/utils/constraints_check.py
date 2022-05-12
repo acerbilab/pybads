@@ -14,11 +14,11 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         U_new = np.maximum(np.minimum(U, ub), lb)
     else:
         idx = np.any(U > ub, axis=1)  | np.any( U < lb, axis=1)
-        U_new = U[~idx]
+        U_new = U[~idx].copy()
     
     # Remove duplicate vectors and preserve the initial order
     _, idx_sort = np.unique(U_new, axis=0, return_index=True)
-    U_new = U_new[np.sort(idx_sort), :].copy()
+    U_new = U_new[np.sort(idx_sort), :]
 
     # Remove previously evaluated vectors (within TolMesh)
     if U_new.size > 0:
@@ -26,15 +26,12 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         u1 = np.round(U_new / tol)
         X_max_idx = function_logger.X_max_idx
         u2 = np.round(function_logger.X[:X_max_idx + 1] / tol)
-        # Set difference using distance L1 matrix and checks if is 0,
-        # since the setdiff(u1,u2,'rows') Matlab function is not implemented in numpy.
-        l1 = np.abs(u1[:, np.newaxis, :] - u2).sum(axis=2)
-        idx = np.where(np.isclose(l1, 0.))[0]
-        mask = np.ones(len(u1)).astype(bool)
-        mask[idx] = False
+        tmp_u = np.vstack((u1, u2))
+        _, idx_sort = np.unique(tmp_u, axis=0, return_index=True)
+        #u1_idx = np.sort(idx_sort[idx_sort < len(u1)])
+        u1_idx = idx_sort[idx_sort < len(u1)]
+        return U_new[u1_idx]
         
-        U_new = U_new[mask]
-    
     if nonbondcons is not None:
         if function_logger is None:
             raise ValueError("contraints_check: function_logger not passed, non bondcons requires it.")

@@ -14,10 +14,11 @@ print("\t Simple usage of BADS on Rosenbrock's banana function in 2D.")
 
 bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
-print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n\t total time: {round(bads.optim_state['total_time'], 2)} s")
+print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n\t \
+    total time: {round(bads.optim_state['total_time'], 2)} s \n\t overhead: {round(bads.optim_state['overhead'], 2)}")
 print(f"The true global minimum is at x = [1, 1], where fval = 0\n\n")
 
-run_non_bound_contr = True
+run_non_bound_contr = False
 if run_non_bound_contr:
     x0 = np.array([[0, 0]]);      # Starting point
     lb = np.array([[-1, -1]])     # Lower bounds
@@ -29,5 +30,6 @@ if run_non_bound_contr:
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, None, None, nonbondcons=quadratic_non_bound_constr)
     x_min, fval = bads.optimize()
-    print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n\t total time: {round(bads.optim_state['total_time'], 2)} s")
+    print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n\t \
+        total time: {round(bads.optim_state['total_time'], 2)} s \n\t overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [0.786, 0.618], where fval = 0.046\n")

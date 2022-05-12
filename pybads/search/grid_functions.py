@@ -4,7 +4,6 @@ from pybads.bads.variables_transformer import VariableTransformer
 from scipy.spatial.distance import cdist
 
 from pybads.function_logger.function_logger import FunctionLogger
-#from scipy.spatial.distance import pdist
 
 def force_to_grid(x, search_mesh_size, tol = None):
 
@@ -29,6 +28,7 @@ def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None)
     else:
         u = (x-x0)/ scale
     return u
+
 
 def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, optim_state):
     # get the training set by retrieving the sorted NEAREST neighbors from u
@@ -62,6 +62,7 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     if 'S' in optim_state:
         result[2] = S[sort_idx[0:ntrain+1], :]
     return result
+
 
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     '''

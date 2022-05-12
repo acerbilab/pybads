@@ -1,7 +1,6 @@
 from asyncio.log import logger
 from copy import deepcopy
 import math
-from statistics import covariance
 from turtle import width
 
 import gpyreg as gpr
@@ -16,6 +15,7 @@ from scipy.spatial.distance import cdist
 from .options import Options
 from pybads.stats.get_hpd import get_hpd
 from pybads.utils.iteration_history import IterationHistory
+
 
 
 def train_gp(
@@ -201,6 +201,7 @@ def train_gp(
     sn2hpd = _estimate_noise_(gp)
 
     return gp, gp_s_N, sn2hpd, hyp_dict
+
 
 def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, options, optim_state, iteration_history: IterationHistory,refit_flag):
     # Local GP approximation on current point
@@ -415,6 +416,7 @@ def _meanfun_name_to_mean_function(name: str):
         raise ValueError("Unknown mean function!")
 
     return mean_f
+
 
 def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options):
         

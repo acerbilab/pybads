@@ -883,6 +883,7 @@ class BADS:
         
         return gp, Ns_gp, sn2hpd, hyp_dict, 
 
+    
     def optimize(self):
         """
         Run inference on an initialized ``BADS`` object. 
@@ -1130,6 +1131,7 @@ class BADS:
 
         return self.x, self.fval
     
+    
     def _search_step_(self, gp: GP):
         # Check whether it is time to refit the GP
         refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
@@ -1301,6 +1303,7 @@ class BADS:
             z = z.flatten()
 
         return z
+    
     
     def _poll_step_(self, gp:GP):
 
@@ -1537,7 +1540,7 @@ class BADS:
         self.gp_stats.record('ys', ys, iter)
 
 
-
+    
     def is_gp_refit_time(self, alpha):
         # Check calibration of Gaussian process prediction
         
@@ -1596,6 +1599,7 @@ class BADS:
 
 
     # Corresponds to Matlab: updateTarget
+    
     def _get_target_from_gp_(self, u, gp:GP):
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
@@ -1684,6 +1688,7 @@ class BADS:
 
         return search_stats
 
+    
     def _re_evaluate_history_(self, iter):
         
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:

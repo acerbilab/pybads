@@ -13,17 +13,18 @@ print("\n *** Example 3: " + title)
 print("\t We test BADS on a noisy quadratic function with unit Gaussian noise.")
 bads = BADS(quadratic_noisy_fcn, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
-print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval}")
+print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
+    total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
 print(f"The true, noiseless minimum is at x = {np.sum(x_min**2)} \n")
 print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
 
-extra_noise = True
+extra_noise = False
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
     print("\t We test BADS on a particularly noisy function.")
     bads = BADS(extra_noisy_quadratic_fcn, x0, lb, ub, plb, pub)
     x_min, fval = bads.optimize()
-    print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval}")
-    print(f"The true, noiseless minimum is at x = {np.sum(x_min**2)} \n")
+    print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
+    total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [1, 1], where fval = 0\n")
