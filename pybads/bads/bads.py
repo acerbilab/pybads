@@ -744,14 +744,17 @@ class BADS:
     def _init_mesh_(self):
         # Evaluate starting point and initial mesh, determine if function is noisy
         self.yval, self.fsd, _ = self.function_logger(self.u)
+        if self.fsd is None:
+            self.fsd = np.nan
+        self.fval = self.yval
+        self.optim_state['fval'] = self.fval
+        self.optim_state['yval'] = self.yval
+
         if self.nonbondcons is not None:
             c = self.nonbondcons(self.u)
             if c > 0: 
                 self.yval = np.NaN 
                 raise ValueError("Initial starting point X0 does not satisfy non-bound constraint.")
-
-        # set up strings for logging of the iteration
-        self.display_format = self._setup_logging_display_format()
 
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
@@ -774,10 +777,6 @@ class BADS:
         else:
             self.logger.info(
                         "Beginning optimization of a DETERMINISTIC objective function\n")  
-
-        self._log_column_headers()
-
-        self._display_function_log_(0, '')
         
         # Only one function evaluation
         if self.options['maxfunevals'] == 1:
@@ -787,6 +786,11 @@ class BADS:
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.options['ninit'] = np.minimum(np.maximum(16, self.options['ninit']), self.options['maxfunevals'])
+
+        # set up strings for logging of the iteration
+        self.display_format = self._setup_logging_display_format()
+        self._log_column_headers()
+        self._display_function_log_(0, '')
 
         if self.options['ninit'] > 0:
             # Evaluate initial points but not more than options.maxfunevals
@@ -822,6 +826,8 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
 
+        
+
         return
 
     def _init_optimization_(self):
@@ -850,6 +856,7 @@ class BADS:
             # It corresponds to specify target noise of Matlab
             if self.optim_state['uncertainty_handling_level'] > 1:
                 self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
+                self.fsd = self.fsd.item()
             else:
                 self.fsd = self.options['noisesize']
         else:
@@ -1092,8 +1099,8 @@ class BADS:
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
-                self.fval = np.mean(yval_vec)
-                self.fsd = np.std(yval_vec) / np.sqrt(yval_vec.size)
+                self.fval = np.mean(yval_vec).item()
+                self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
 
@@ -1205,7 +1212,8 @@ class BADS:
                 new_gp, _ = local_gp_fitting(new_gp, u_search, self.function_logger, self.options,
                                     self.optim_state, self.iteration_history, False)
                 f_mu_search, f_sd_search = new_gp.predict(np.atleast_2d(u_search))
-                f_sd_search = np.sqrt(f_sd_search)
+                f_mu_search = f_mu_search.item()
+                f_sd_search = np.sqrt(f_sd_search).item()
             else:
                 f_mu_search = y_search
                 f_sd_search = 0
@@ -1227,7 +1235,7 @@ class BADS:
         
         # Evaluate search
         search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
-        fval_old = self.fval if np.isscalar(self.fval) else self.fval.copy()
+        fval_old = self.fval
 
         # Declare if search was success or failure
         if (search_improvement > 0 and self.options['sloppyimprovement']) \
@@ -1300,7 +1308,7 @@ class BADS:
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
         f_poll_best = self.fval
-        f_sd_poll_best = self.fsd if np.isscalar(self.fsd) else self.fsd.copy()
+        f_sd_poll_best = self.fsd
         gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
         poll_count = 0
         is_good_poll = False
@@ -1422,7 +1430,8 @@ class BADS:
                 # Update posterior with the new polled point
                 gp = reupdate_gp(self.function_logger, gp)
                 f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
-                f_sd_poll = np.sqrt(f_sd_poll)
+                f_poll = f_poll.item()
+                f_sd_poll = np.sqrt(f_sd_poll).item()
             else:
                 f_poll = y_poll
                 f_sd_poll = 0
@@ -1627,12 +1636,12 @@ class BADS:
         self.optim_state['u'] = u_new.copy()
         self.optim_state['yval'] = yval_new
         self.optim_state['fval'] = fval_new
-        self.optim_state['fsd'] = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
+        self.optim_state['fsd'] = fsd_new
         self.u = u_new.copy()
         self.u_best = u_new.copy()
         self.yval = yval_new
         self.fval = fval_new
-        self.fsd = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
+        self.fsd = fsd_new
         return yval_new, fval_new, fsd_new
         #Update estimate of curvature (Hessian) - not supported (GP usage)
 
@@ -1684,10 +1693,11 @@ class BADS:
                 u = self.iteration_history.get('u')[i]
                 gp, _ = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 fval, fsd = gp.predict(np.atleast_2d(u))
-                fsd = np.sqrt(fsd)
+                fval = fval.item()
+                fsd = np.sqrt(fsd).item()
 
-                self.iteration_history.record('fval', fval.item(), i)
-                self.iteration_history.record('fsd', fsd.item(), i)
+                self.iteration_history.record('fval', fval, i)
+                self.iteration_history.record('fsd', fsd, i)
                 self.iteration_history.record('gp', gp, i)
             
             self.optim_state['last_re_eval'] = self.function_logger.func_count
@@ -1744,10 +1754,7 @@ class BADS:
             self.logger.info(
                 " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
         else:
-            if (
-                self.optim_state["uncertainty_handling_level"] > 0
-                and self.options.get("maxrepeatedobservations") > 0
-            ):
+            if self.optim_state["uncertainty_handling_level"] > 0:
                 self.logger.info(
                     " Iteration f-count     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
             else:
@@ -1762,10 +1769,7 @@ class BADS:
             display_format = " {:5.0f}     {:5.0f}/{:5.0f}   {:12.6f}  "
             display_format += ("{:12.6f}  {:12.6f}     {}       {}")
         else:
-            if (
-                self.optim_state["uncertainty_handling_level"] > 0
-                and self.options.get("maxrepeatedobservations") > 0
-            ):
+            if self.optim_state["uncertainty_handling_level"] > 0:
                 display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
                 display_format += ("{:12.6f}  {:12.6f}     {}       {}")
             else:
@@ -1775,13 +1779,12 @@ class BADS:
         return display_format
 
     def _display_function_log_(self, iteration, method):
-        if (self.optim_state["uncertainty_handling_level"] > 0 \
-                and self.options.get("maxrepeatedobservations") > 0):
+        if self.optim_state["uncertainty_handling_level"] > 0:
 
             self.logger.info(self.display_format.format(
                                 iteration,
                                 self.function_logger.func_count,
-                                self.yval,
+                                self.fval,
                                 self.fsd,
                                 self.optim_state["mesh_size"],
                                 method,
@@ -1790,7 +1793,7 @@ class BADS:
             self.logger.info(self.display_format.format(
                                 iteration,
                                 self.function_logger.func_count,
-                                self.yval,
+                                self.fval,
                                 self.optim_state["mesh_size"],
                                 method,
                                 "".join(self.logging_action[-1]),))
