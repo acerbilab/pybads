@@ -1,6 +1,6 @@
 import numpy as np
 from pybads.bads.bads import BADS
-from pybads.function_examples import quadratic_noisy_fcn, extra_noisy_quadratic_fcn
+from pybads.function_examples import quadratic_unknown_noisy_fcn, quadratic_noisy_fcn, extra_noisy_quadratic_fcn
 
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
@@ -11,7 +11,7 @@ pub = np.array([[2, 2]])        # Plausible upper bounds
 title = 'Noise objective function'
 print("\n *** Example 3: " + title)
 print("\t We test BADS on a noisy quadratic function with unit Gaussian noise.")
-bads = BADS(quadratic_noisy_fcn, x0, lb, ub, plb, pub)
+bads = BADS(quadratic_unknown_noisy_fcn, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
 print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")

@@ -577,28 +577,31 @@ class BADS:
 
             X = fun_values['X']
             Y = fun_values['Y']
+
             if len(X) != len(Y):
                 raise ValueError("X and Y arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).")
             if (not np.all(np.isfinite(X))) or (not np.all(np.isfinite(Y))) or (not np.isreal(X)) or (not np.isreal(Y)):
                 raise ValueError('X and Y arrays need to be finite and real-valued')
             if len(X) != 0 and X.shape[1] != self.D:
                 raise ValueError('X should be a matrix of tested points with the same dimensionality as X0 (one input point per row).')
-            Y = np.atleast_2d(Y).T
+
             if len(Y) != 0 and Y.shape[1] != 1:
                 raise ValueError('Y should be a vertical nd-array (, 1) of function values (one function value per row).')
-            optim_state['X'] = X
-            optim_state['Y'] = Y
-        
-        if 'S' in fun_values:
-            S = fun_values['S']
-            if len(S) != len(Y):
-                raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
-            
-            S = np.atleast_2d(S).T
-            if len(S) != 0 and S.shape[1] != 1:
-                raise ValueError('S should be a vertical nd-array (, 1) of estimated function SD values (one SD per row).')
 
-            optim_state['S'] = S
+            S = None
+            if 'S' in fun_values:
+                S = fun_values['S']
+                if len(S) != len(Y):
+                    raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
+                S = np.atleast_2d(S).T
+                if len(S) != 0 and S.shape[1] != 1:
+                    raise ValueError('S should be a vertical nd-array (, 1) of estimated function SD values (one SD per row).')
+            
+            for i in range(len()):
+                if S is None:
+                    self.function_logger.add(X[i], Y[i])
+                else:
+                    self.function_logger.add(X[i], Y[i], S[i])
             
         #Other variables initializations
         optim_state['search_factor']   =   1
@@ -655,7 +658,8 @@ class BADS:
         if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is None:
             self.options["uncertaintyhandling"] = False
         
-        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is not None and ~self.options["uncertaintyhandling"]:
+        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is not None \
+            and self.options["uncertaintyhandling"] == False:
             raise ValueError('If options.specifytargetnoise is ON, options.uncertaintyhandling should be ON as well. \
                                 Leave options.uncertaintyhandling empty or set it to ON to avoid this error.')
         if self.options['specifytargetnoise'] and \
@@ -855,7 +859,8 @@ class BADS:
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
             if self.optim_state['uncertainty_handling_level'] > 1:
-                self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
+                idx_min_y = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1]).item()
+                self.fsd = self.function_logger.S[idx_min_y]
                 self.fsd = self.fsd.item()
             else:
                 self.fsd = self.options['noisesize']

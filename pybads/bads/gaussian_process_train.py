@@ -293,7 +293,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
         last_dic_hyp_gp = dic_hyp_gp[-1] # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
         # Check for possible high-noise mode
-        if np.isscalar(options['noisesize']) or ~np.isfinite(options['noisesize'][1]):
+        if np.isscalar(options['noisesize']) or len(options['noisesize'] == 1) or \
+            (len(options['noisesize']) > 1 and ~np.isfinite(options['noisesize'][1])):
             noise = 1
             is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
         else:

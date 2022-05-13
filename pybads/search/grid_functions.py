@@ -37,8 +37,8 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     U = function_logger.X[0:U_max_idx+1]
     Y = function_logger.Y[0:U_max_idx+1]
 
-    if 'S' in optim_state:
-        S = optim_state["S"][0:U_max_idx+1]
+    if function_logger.noise_flag:
+        S = function_logger.S[0:U_max_idx+1]
     
     dist = udist(U, u, gp.temporary_data["len_scale"],
         optim_state["lb"], optim_state["ub"], optim_state["scale"],
@@ -58,10 +58,10 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     ntrain = np.minimum(ntrain, function_logger.X_max_idx)
     
     # Take points closest to reference points
-    result = (U[sort_idx[0:ntrain+1]], Y[sort_idx[0:ntrain+1]], None)
-    if 'S' in optim_state:
-        result[2] = S[sort_idx[0:ntrain+1], :]
-    return result
+    res_S = None
+    if function_logger.noise_flag:
+        res_S = function_logger.S[sort_idx[0:ntrain+1]]
+    return (U[sort_idx[0:ntrain+1]], Y[sort_idx[0:ntrain+1]], res_S)
 
 
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
