@@ -310,9 +310,9 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         
         if second_fit:
             # Sample the hyper-params from priors
-            old_hyp_gp = gp.get_hyperparameters(as_array=True)
-            new_hyp = get_random_sample_from_prior(gp, old_hyp_gp, optim_state, options)
-            new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+            prev_hyp_gp = gp.get_hyperparameters(as_array=True)
+            new_hyp = get_random_sample_from_prior(gp, prev_hyp_gp, optim_state, options)
+            new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
             new_hyp = gp.hyperparameters_to_dict(new_hyp)
             
             if is_high_noise:
@@ -513,13 +513,12 @@ def get_random_sample_from_prior(gp:gpr.GP, hyp_gp, optim_state, options):
     hyp_sampler_name = options.get("gphypsampler", "slicesample")
     if hyp_sampler_name != 'slicesample':
         raise ValueError("Wrong sampler")
-
-    # Get slice sampler
-    sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
     
+    sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
     width = gp.upper_bounds - gp.lower_bounds
     hyp_sampler = SliceSampler(sample_f, hyp_gp.flatten(), width, gp.lower_bounds, gp.upper_bounds, options = {"display": "off", "diagnostics": False})
-    new_hyp = hyp_sampler.sample(1, burn=0)['samples'][0]
+    new_hyp = hyp_sampler.sample(1, burn=None)['samples'][0]
+
     return new_hyp
 
 def _cov_identifier_to_covariance_function(identifier):

@@ -14,7 +14,8 @@ def quadratic_unknown_noisy_fcn(x):
 
 def quadratic_noisy_fcn(x):
     X = np.atleast_2d(x)
-    return (np.sum(X**2, axis=1) + np.random.randn(X.shape[0]), 1.)
+    noise =  np.random.lognormal(size=X.shape[0])  + np.sqrt(np.abs(np.min(X, axis=1)))
+    return (np.sum(X**2, axis=1) + noise, noise)
 
 def extra_noisy_quadratic_fcn(x):
     X = np.atleast_2d(x)

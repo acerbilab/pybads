@@ -18,7 +18,7 @@ print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
 print(f"The true, noiseless minimum is at x = {np.sum(x_min**2)} \n")
 print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
 
-extra_noise = False
+extra_noise = True
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
