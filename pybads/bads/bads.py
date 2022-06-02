@@ -35,7 +35,7 @@ from pybads.bads.options import Options
 
 class BADS:
     """
-    BADS Constrained optimization using Bayesian Adaptive Direct Search (v1.0.6)
+    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1)
     BADS attempts to solve problems of the form:
        min F(X)  subject to:  LB <= X <= UB
         X                        C(X) <= 0        (optional)
