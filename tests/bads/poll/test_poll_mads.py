@@ -11,7 +11,7 @@ from pybads.bads.variables_transformer import VariableTransformer
 from pybads.bads.gaussian_process_train import train_gp
 from pybads.utils.iteration_history import IterationHistory
 from pybads.function_logger import FunctionLogger
-from pybads.function_examples import rosenbrocks
+from pybads.function_examples import rosenbrocks_fcn
 from pybads.utils.constraints_check import contraints_check
 from pybads.poll.poll_mads_2n import poll_mads_2n
 

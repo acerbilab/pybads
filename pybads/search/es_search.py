@@ -89,7 +89,7 @@ class SearchES(ABC):
 
         us_rows = np.minimum(u_new.shape[0], self.lamb)
         us = np.empty((us_rows, u_new.shape[1]))
-        z = np.empty((us_rows, 1)) #TODO: test shapes by passing different mu and lambda with Matlab!
+        z = np.empty((us_rows, 1))
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
 
@@ -99,7 +99,8 @@ class SearchES(ABC):
             u_new = force_to_grid(u_new, self.search_mesh_size)
 
             # Remove already evaluated or unfeasible points from search set
-            u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'], optim_state["tol_mesh"], func_logger, True, nonbondcons)
+            u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'],
+                        optim_state["tol_mesh"], func_logger, True, nonbondcons)
 
             if self.search_acq_fcn[0] == 'acq_LCB':
                 z_new, fmu, fs = acq_fcn_lcb(u_new, func_logger, gp, self.search_acq_fcn[1])
@@ -112,7 +113,6 @@ class SearchES(ABC):
             # if something went wrong with the acquisition function, random search is performed
             if z_new is None or z_new.size == 0:
                 z_candidates = np.random.rand(u_new.shape[0])
-                # TODO: warning logger
                 self.logger.warn("bads:es_search: Something went wrong with the acquisition function, random search is performed")
 
             nold = us.shape[0]
@@ -176,8 +176,8 @@ class SearchESWM(SearchES):
         # Compute weighted covariance matrix wrt u0
         C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodic_vars'])
         if self.active_flag:
-            U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]] #TODO check indexes better, critique point
-            negC = ucov(U_worst, u, weights, optim_state) #TODO heeeere
+            U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]]
+            negC = ucov(U_worst, u, weights, optim_state)
             negmueff = np.sum(1./weights**2)
             negcov = 0.25 * negmueff / ((nvars+2)**1.5 + 2*negmueff)
             C = C - negcov * negC
