@@ -1,5 +1,5 @@
 import numpy as np
-from pyvbmc.decorators import handle_0D_1D_input
+from pybads.decorators import handle_0D_1D_input
 
 
 @handle_0D_1D_input(

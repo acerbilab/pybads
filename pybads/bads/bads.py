@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import copy
 import logging
 import math
@@ -34,7 +35,7 @@ from pybads.bads.options import Options
 
 class BADS:
     """
-    BADS Constrained optimization using Bayesian Adaptive Direct Search (v1.0.6)
+    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1)
     BADS attempts to solve problems of the form:
        min F(X)  subject to:  LB <= X <= UB
         X                        C(X) <= 0        (optional)
@@ -438,8 +439,8 @@ class BADS:
 
         # Check non bound constraints
         if nonbondcons is not None:
-            y = nonbondcons(np.array([plausible_lower_bounds, plausible_upper_bounds]))
-            if y.shape[0] != 2 or y.shape[1] != 1:
+            y = nonbondcons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
+            if y.shape[0] != 2  and y.ndim == 1:
                 raise ValueError("bads:NONBCON "
                     + "NONBCON should be a function that takes a matrix X as input"
                     + " and returns a column vector of bound violations.")
@@ -480,6 +481,7 @@ class BADS:
         optim_state["cache"] = dict()
         optim_state["cache"]["x_orig"] = self.x0
         optim_state["cache"]["y_orig"] = y_orig
+        optim_state['last_re_eval'] = -np.inf
 
         # Does the starting cache contain function values?
         optim_state["cache_active"] = np.any(
@@ -521,7 +523,6 @@ class BADS:
         optim_state["ub_orig"] = self.var_transf.orig_ub.copy()
         optim_state["plb_orig"] = self.var_transf.orig_plb.copy()
         optim_state["pub_orig"] = self.var_transf.orig_pub.copy()
-        
 
         # Bounds for search mesh
         lb_search = force_to_grid(self.lower_bounds, optim_state["search_mesh_size"])
@@ -576,28 +577,31 @@ class BADS:
 
             X = fun_values['X']
             Y = fun_values['Y']
+
             if len(X) != len(Y):
                 raise ValueError("X and Y arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).")
             if (not np.all(np.isfinite(X))) or (not np.all(np.isfinite(Y))) or (not np.isreal(X)) or (not np.isreal(Y)):
                 raise ValueError('X and Y arrays need to be finite and real-valued')
             if len(X) != 0 and X.shape[1] != self.D:
                 raise ValueError('X should be a matrix of tested points with the same dimensionality as X0 (one input point per row).')
-            Y = np.atleast_2d(Y).T
+
             if len(Y) != 0 and Y.shape[1] != 1:
                 raise ValueError('Y should be a vertical nd-array (, 1) of function values (one function value per row).')
-            optim_state['X'] = X
-            optim_state['Y'] = Y
-        
-        if 'S' in fun_values:
-            S = fun_values['S']
-            if len(S) != len(Y):
-                raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
-            
-            S = np.atleast_2d(S).T
-            if len(S) != 0 and S.shape[1] != 1:
-                raise ValueError('S should be a vertical nd-array (, 1) of estimated function SD values (one SD per row).')
 
-            optim_state['S'] = S
+            S = None
+            if 'S' in fun_values:
+                S = fun_values['S']
+                if len(S) != len(Y):
+                    raise ValueError('X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).')
+                S = np.atleast_2d(S).T
+                if len(S) != 0 and S.shape[1] != 1:
+                    raise ValueError('S should be a vertical nd-array (, 1) of estimated function SD values (one SD per row).')
+            
+            for i in range(len()):
+                if S is None:
+                    self.function_logger.add(X[i], Y[i])
+                else:
+                    self.function_logger.add(X[i], Y[i], S[i])
             
         #Other variables initializations
         optim_state['search_factor']   =   1
@@ -647,14 +651,33 @@ class BADS:
         # used by some acquisition fcns.
         optim_state["max_fun_evals"] = self.options.get("maxfunevals")
 
+        # Deal with user specified target noise
+        if self.options['specifytargetnoise'] is None:
+            self.options['specifytargetnoise'] = False
+
+        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is None:
+            self.options["uncertaintyhandling"] = False
+        
+        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is not None \
+            and self.options["uncertaintyhandling"] == False:
+            raise ValueError('If options.specifytargetnoise is ON, options.uncertaintyhandling should be ON as well. \
+                                Leave options.uncertaintyhandling empty or set it to ON to avoid this error.')
+        if self.options['specifytargetnoise'] and \
+            self.options['noisesize'] is not None \
+            and np.array(self.options['noisesize'] > 0)[0]:
+            self.logger.warn('If options.specifytargetnoise is ON, options.noisesize is ignored. \
+                Leave options.noisesize empty or set it to 0 to silence this warning.')
+
+
         # Set uncertainty handling level
         # (0: none; 1: unknown noise level; 2: user-provided noise)
         if self.options.get("specifytargetnoise"):
             optim_state["uncertainty_handling_level"] = 2
-        elif len(self.options.get("uncertaintyhandling")) > 0:
+        elif self.options["uncertaintyhandling"] is not None and self.options["uncertaintyhandling"]:
             optim_state["uncertainty_handling_level"] = 1
         else:
             optim_state["uncertainty_handling_level"] = 0
+        
 
         # Empty hedge struct for acquisition functions
         if self.options.get("acqhedge"):
@@ -725,31 +748,39 @@ class BADS:
     def _init_mesh_(self):
         # Evaluate starting point and initial mesh, determine if function is noisy
         self.yval, self.fsd, _ = self.function_logger(self.u)
-        
-        # set up strings for logging of the iteration
-        self.display_format = self._setup_logging_display_format()
+        if self.fsd is None:
+            self.fsd = np.nan
+        self.fval = self.yval
+        self.optim_state['fval'] = self.fval
+        self.optim_state['yval'] = self.yval
 
-        if self.optim_state["uncertainty_handling_level"] > 0:
-            self.logger.info(
-                "Beginning optimization assuming of a STOCHASTIC objective function")
-        else:
+        if self.nonbondcons is not None:
+            c = self.nonbondcons(self.u)
+            if c > 0: 
+                self.yval = np.NaN 
+                raise ValueError("Initial starting point X0 does not satisfy non-bound constraint.")
+
+        if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
             yval_bis = self.function_logger.fun(self.x0)
             self.function_logger.func_count += 1
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
-                self.logger.info(
-                "Beginning optimization assuming of a STOCHASTIC objective function")
                 self.logging_action.append('Uncertainty test')
+        else:
+            self.logging_action.append('')
+
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            if self.options['specifytargetnoise']:
+                self.logger.info(
+                        "Beginning optimization of a STOCHASTIC objective function (specified noise)\n")
             else:
                 self.logger.info(
-                    "Beginning optimization assuming of a DETERMINISTIC objective function")
-
-
-        self._log_column_headers()
-
-        self._display_function_log_(0, '')
+                        "Beginning optimization of a STOCHASTIC objective function\n")
+        else:
+            self.logger.info(
+                        "Beginning optimization of a DETERMINISTIC objective function\n")  
         
         # Only one function evaluation
         if self.options['maxfunevals'] == 1:
@@ -760,12 +791,16 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.options['ninit'] = np.minimum(np.maximum(16, self.options['ninit']), self.options['maxfunevals'])
 
+        # set up strings for logging of the iteration
+        self.display_format = self._setup_logging_display_format()
+        self._log_column_headers()
+        self._display_function_log_(0, '')
+
         if self.options['ninit'] > 0:
-            # Evaluate initial points but not more than OPTIONS.MaxFunEvals
+            # Evaluate initial points but not more than options.maxfunevals
             ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
-                # TODO: call initialization function 
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
                             self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
                 # enforce periodicity TODO function
@@ -780,7 +815,7 @@ class BADS:
                 for u_idx in range(len(u1)):
                     self.function_logger(u1[u_idx])
                 
-                idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn])
+                idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1])
                 self.u = np.atleast_2d(self.function_logger.X[idx_yval])
                 self.yval = self.function_logger.Y[idx_yval].item()
                 self.logging_action.append('Initial points')
@@ -795,6 +830,8 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
 
+        
+
         return
 
     def _init_optimization_(self):
@@ -807,20 +844,24 @@ class BADS:
             
         # Change options for uncertainty handling
         if self.optim_state['uncertainty_handling_level'] > 0:
-            self.options['tolstalliters'] = 2* self.options['tolstalliters']
+            self.options['tolstalliters'] = 2 * self.options['tolstalliters']
             self.options['ndata'] = max(200,self.options['ndata'])
             self.options['minndata'] = 2 * self.options['minndata']
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
-            if self.options['noisesize']:
-                self.options['noisesize'] = 1
+            if self.options['noisesize'] is None or len(self.options['noisesize']) == 0:
+                self.options['noisesize'] = 1.
             # Keep some function evaluations for the final resampling
             self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
-            self.options['maxfunevals'] =self.options['maxfunevals']  - self.options['noisefinalsamples']
+            self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
             
+            # Specify the standard deviation of the function values
+            # It corresponds to specify target noise of Matlab
             if self.optim_state['uncertainty_handling_level'] > 1:
-                self.fsd = self.optim_state['S'][np.argmin(self.optim_state['Y']).item()]
+                idx_min_y = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1]).item()
+                self.fsd = self.function_logger.S[idx_min_y]
+                self.fsd = self.fsd.item()
             else:
                 self.fsd = self.options['noisesize']
         else:
@@ -847,6 +888,7 @@ class BADS:
         
         return gp, Ns_gp, sn2hpd, hyp_dict, 
 
+    
     def optimize(self):
         """
         Run inference on an initialized ``BADS`` object. 
@@ -957,20 +999,20 @@ class BADS:
             if self.function_logger.func_count >= self.options['maxfunevals']:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of function evaluations OPTIONS.MaxFunEvals.'
+                msg = 'Optimization terminated: reached maximum number of function evaluations options.maxfunevals.'
             
-            if poll_iteration >= self.options['maxiter']:
+            if poll_iteration >= self.options['maxiter'] -1:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of iterations OPTIONS.MaxIter.'
+                msg = 'Optimization terminated: reached maximum number of iterations options.maxiter.'
             
             if self.optim_state['mesh_size'] < self.optim_state['tol_mesh']:
                 is_finished = True
                 #exit_flag = 1
-                msg = 'Optimization terminated: mesh size less than OPTIONS.TolMesh.'
+                msg = 'Optimization terminated: mesh size less than options.tolmesh.'
             
             # Historic improvement
-            if poll_iteration >  self.options['tolstalliters']:
+            if poll_iteration >  self.options['tolstalliters'] -1:
                 idx = poll_iteration - self.options['tolstalliters']
                 f_base = self.iteration_history.get('fval')[idx]
                 f_sd_base = self.iteration_history.get('fsd')[idx]
@@ -980,7 +1022,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options['tolfun']:
                     is_finished = True
                     exit_flag = 2
-                    msg = 'Optimization terminated: mesh size less than OPTIONS.TolMesh.'
+                    msg = 'Optimization terminated: mesh size less than options.tolfun.'
                 
             
             # Store best points at the end of each iteration, or upon termination
@@ -992,27 +1034,29 @@ class BADS:
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
 
-            # Re-evaluate all points (Uncertainty handling case)
+            # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
                 and poll_iteration > 0:
-                self._re_evaluate_history_(gp)
+                self._re_evaluate_history_(poll_iteration)
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
 
-                f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval'), self.fval,
-                    self.iteration_history.get('fsd'), self.fsd, self.options['improvementquantile'])
+                f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval').astype(np.float64), self.fval,
+                    self.iteration_history.get('fsd').astype(np.float64), self.fsd, self.options['improvementquantile'])
+                f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
-
+                improvement = f_q_re_impr[idx_impr]
+                
+                idx_impr = idx_impr + 1 # offset original index without skip
                 # Check if any point got better
-                if f_q_re_impr[idx_impr] > self.options['tolfun']:
+                if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
                     self.u = self.iteration_history.get('u')[idx_impr]
-                    self.best_u = self.u.copy() # TODO in Matlab is not done
-                    gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp
-                    
+                    self.best_u = self.u.copy()
+                    gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp        
             
             # if isFinished_flag
             if is_finished:
@@ -1026,9 +1070,10 @@ class BADS:
                     self.optim_state['iter'] = poll_iteration
 
             loop_iter += 1
+        
         # End while
 
-        # Re-evaluate all best points (skip first iteration)
+        # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
             self._re_evaluate_history_(poll_iteration)
@@ -1036,32 +1081,32 @@ class BADS:
             # Order by lowest probabilistic upper vound and choose best iterate
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
             q_beta = self.iteration_history.get('fval') + sigma_multiplier * self.iteration_history.get('fsd')
-            min_q_beta_idx = np.argmin(q_beta)
+            min_q_beta_idx = np.argmin(q_beta[1:]) # Skip first iteration
+            min_q_beta_idx += 1 # offset original index with no skip
 
             # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
-            self.u_best = self.u.copy() # TODO in Matlab is not done
+            self.u_best = self.u.copy() 
 
             # Re-evalate estimated function value and SD at final point
-            
             if self.options['noisefinalsamples'] > 0:
                 # Estimate function value and standard deviation at final point.
                 # Note that by default we do *not* use YVAL because it is biased 
                 # (since it was an incumbent at some iteration, it is more likely to be a 
                 # random fluctuation lower than the mean)
-
                 yval_vec = np.empty(self.options['noisefinalsamples'])
                 for i_sample in range(self.options['noisefinalsamples']):
-                    yval_vec[i_sample] = self.function_logger(self.u)
+                    # y, f_sd, _ = self.function_logger(self.u)
+                    yval_vec[i_sample] = self.function_logger(self.u)[0].item()
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
-                self.fval = np.mean(yval_vec)
-                self.fsd = np.sd(yval_vec) / np.sqrt(yval_vec.size)
+                self.fval = np.mean(yval_vec).item()
+                self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
 
@@ -1072,16 +1117,6 @@ class BADS:
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
 
-        #TODO:  Print final message
-        self.logger.warning(msg)
-        if self.optim_state['uncertainty_handling_level'] > 0:
-            if yval_vec.size == 1:
-                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: %{self.fval} ± %{self.fsd} (GP mean ± SEM).')
-            else:
-                self.logger.warn(f'Estimated function value at minimum: %{self.fval} ± %{self.fsd} (mean ± SEM from {yval_vec.size} samples)')
-        else:
-            self.logger.warn(f'Function value at minimum: {self.fval}\n')
-
         # Compute total running time and fractional overhead
         timer.stop_timer('BADS')
         total_time  = timer.get_duration('BADS')
@@ -1089,7 +1124,18 @@ class BADS:
         self.optim_state['total_time'] = total_time
         self.optim_state['overhead'] = overhead
 
+        #TODO:  Print final message
+        self.logger.warning(msg)
+        if self.optim_state['uncertainty_handling_level'] > 0:
+            if yval_vec.size == 1:
+                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
+            else:
+                self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
+        else:
+            self.logger.warn(f'Function value at minimum: {self.fval}\n')
+
         return self.x, self.fval
+    
     
     def _search_step_(self, gp: GP):
         # Check whether it is time to refit the GP
@@ -1101,16 +1147,15 @@ class BADS:
             gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
 
             if refit_flag:
-                self.refitted_flag = True
+                self.gp_refitted_flag = True
             self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting            
 
         # Update Target from GP prediction
         fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, self.gp_best)
         self.optim_state["fval"] = fmu.item()
-        self.optim_state["f_target_s"] = f_target_s
+        self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
         self.optim_state["f_target"] = f_target.item()
-
 
         # Generate search set (normalized coordinate)
         self.optim_state['search_count'] += 1
@@ -1137,7 +1182,7 @@ class BADS:
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
-            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
+            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's not even unsupported in Matlab
         
             # Randomly choose index if something went wrong
             if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):
@@ -1154,7 +1199,6 @@ class BADS:
             y_search, f_sd_search, idx = self.function_logger(u_search)
 
             if z.size > 0:
-                
                 # Save statistics of gp prediction, 
                 self._save_gp_stats_(y_search, f_mu[index_acq], fs[index_acq])
             
@@ -1170,10 +1214,13 @@ class BADS:
 
             # If the function is non-deterministic we update the posterior of the GP
             if self.optim_state["uncertainty_handling_level"] > 0:
-                gp, _ = local_gp_fitting(gp, u_search, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
-                # TODO: prediction on u_search  gppred(usearch,gpstructnew); line 668
-                f_mu_search, f_sd_search = gp.predict(u_search)
-                f_sd_search = np.sqrt(f_sd_search)
+                new_gp = copy.deepcopy(gp)
+                # Update priors and posteriors
+                new_gp, _ = local_gp_fitting(new_gp, u_search, self.function_logger, self.options,
+                                    self.optim_state, self.iteration_history, False)
+                f_mu_search, f_sd_search = new_gp.predict(np.atleast_2d(u_search))
+                f_mu_search = f_mu_search.item()
+                f_sd_search = np.sqrt(f_sd_search).item()
             else:
                 f_mu_search = y_search
                 f_sd_search = 0
@@ -1195,14 +1242,14 @@ class BADS:
         
         # Evaluate search
         search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
-        fval_old = self.fval if np.isscalar(self.fval) else self.fval.copy()
+        fval_old = self.fval
 
         # Declare if search was success or failure
         if (search_improvement > 0 and self.options['sloppyimprovement']) \
             or search_improvement > self.optim_state['search_sufficient_improvement']:
 
             if self.options['acqhedge']:
-                # TODO: Acquisition hedge (acquisition portfolio) not supported yet
+                # Acquisition hedge (acquisition portfolio) not supported yet
                 pass
             else:
                 method = self.search_es_hedge.chosen_search_fun
@@ -1220,8 +1267,9 @@ class BADS:
 
             # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
             self._update_incumbent_(u_search, y_search, f_mu_search, f_sd_search)
-            
-            #TODO reset posterior GP
+            if self.optim_state['uncertainty_handling_level'] > 0:
+                gp = new_gp
+
             self.reset_gp = True
 
         else:
@@ -1257,8 +1305,10 @@ class BADS:
             sigma = np.sqrt(s_base**2 + s_new**2)
             x0 = -np.sqrt(2) * erfcinv(2*q)
             z = sigma * x0 + mu
+            z = z.flatten()
 
         return z
+    
     
     def _poll_step_(self, gp:GP):
 
@@ -1266,7 +1316,7 @@ class BADS:
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
         f_poll_best = self.fval
-        f_sd_poll_best = self.fsd if np.isscalar(self.fsd) else self.fsd.copy()
+        f_sd_poll_best = self.fsd
         gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
         poll_count = 0
         is_good_poll = False
@@ -1277,7 +1327,7 @@ class BADS:
         # Poll loop
         while ((u_poll is not None and len(u_poll) > 0) or (B is None  or len(B) == 0))\
                 and self.function_logger.func_count < self.options['maxfunevals']\
-                and poll_count <= self.D * 2:
+                and poll_count < self.D * 2:
             
             # Fill in basis vectors (when poll_count == 0)
             if B is None or B.size == 0:
@@ -1294,7 +1344,8 @@ class BADS:
                 if self.options['forcepollmesh']:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
-                u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds, self.optim_state['tol_mesh'], self.function_logger, False)
+                u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds,
+                    self.optim_state['tol_mesh'], self.function_logger, False, self.nonbondcons)
 
                 # Add new poll points to polling set
                 if u_poll is None:
@@ -1321,13 +1372,13 @@ class BADS:
             if refit_flag or poll_count == 0 or self.reset_gp:
                 gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
                 if refit_flag:
-                    self.refitted_flag = True
+                    self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
             
             # Update Target from GP prediction
             fval, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
             self.optim_state["fval"] = fval.item()
-            self.optim_state["f_target_s"] = f_target_s.copy()
+            self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
             self.optim_state["f_target"] = f_target.item()
 
             # Evaluate acquisition function on poll vectors
@@ -1336,7 +1387,7 @@ class BADS:
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
-            # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
+            # In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
         
             # Randomly choose index if something went wrong
             if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):
@@ -1365,7 +1416,8 @@ class BADS:
                     # No good polling so far -- if GP is reliable, stop polling
                     # If probability of improvement at any location is to low
                     if not do_gp_calibration and\
-                        (self.options['consecutiveskipping'] or self.last_skipped < self.optim_state["iter"]-1) \
+                        (self.options['consecutiveskipping'] or \
+                            self.last_skipped < self.optim_state["iter"] - 1) \
                         and poll_count >= self.options['minfailedpollsteps']\
                         and p_less > (1-self.options['tolpoi']):
 
@@ -1385,8 +1437,9 @@ class BADS:
             if self.optim_state['uncertainty_handling_level'] > 0:
                 # Update posterior with the new polled point
                 gp = reupdate_gp(self.function_logger, gp)
-                f_poll, f_sd_poll = gp.predict(u_new)
-                f_sd_poll = np.sqrt(f_sd_poll)
+                f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
+                f_poll = f_poll.item()
+                f_sd_poll = np.sqrt(f_sd_poll).item()
             else:
                 f_poll = y_poll
                 f_sd_poll = 0
@@ -1396,8 +1449,8 @@ class BADS:
             # Check if current point improves over best polled point so far 
             if poll_improvement > poll_best_improvement:
                 u_poll_best = u_new.copy()
-                y_poll_best = y_poll.copy()
-                f_poll_best = f_poll.copy()
+                y_poll_best = y_poll
+                f_poll_best = f_poll
                 gp_poll = copy.deepcopy(gp)
                 f_sd_poll_best = f_sd_poll
                 poll_best_improvement = poll_improvement
@@ -1447,6 +1500,8 @@ class BADS:
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
             
             # TODO: Profile plot iteration
+
+
         # End POLL evaluation
         
         # Update mesh size
@@ -1459,7 +1514,7 @@ class BADS:
         else:
             poll_string = 'Refine grid'
         
-        if self.refitted_flag:
+        if self.gp_refitted_flag:
             action_str = 'Train'
             if self.gp_exit_flag < 0:
                 action_str += ' (failed)'
@@ -1472,17 +1527,11 @@ class BADS:
         self._display_function_log_(self.optim_state['iter'], poll_string)   
 
         #TODO: if self.output_function is not None
+        
         self.reset_gp = is_poll_moved
 
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
-        
-
-
-            
-
-
-
-
+    
     def _save_gp_stats_(self, fval, ymu, ys):
         
         if self.gp_stats.get('iter_gp') is None or len(self.gp_stats.get('iter_gp')) == 0:
@@ -1496,7 +1545,7 @@ class BADS:
         self.gp_stats.record('ys', ys, iter)
 
 
-
+    
     def is_gp_refit_time(self, alpha):
         # Check calibration of Gaussian process prediction
         
@@ -1555,6 +1604,7 @@ class BADS:
 
 
     # Corresponds to Matlab: updateTarget
+    
     def _get_target_from_gp_(self, u, gp:GP):
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
@@ -1595,12 +1645,12 @@ class BADS:
         self.optim_state['u'] = u_new.copy()
         self.optim_state['yval'] = yval_new
         self.optim_state['fval'] = fval_new
-        self.optim_state['fsd'] = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
+        self.optim_state['fsd'] = fsd_new
         self.u = u_new.copy()
         self.u_best = u_new.copy()
         self.yval = yval_new
         self.fval = fval_new
-        self.fsd = fsd_new if np.isscalar(fsd_new) else fsd_new.copy()
+        self.fsd = fsd_new
         return yval_new, fval_new, fsd_new
         #Update estimate of curvature (Hessian) - not supported (GP usage)
 
@@ -1643,6 +1693,7 @@ class BADS:
 
         return search_stats
 
+    
     def _re_evaluate_history_(self, iter):
         
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
@@ -1652,7 +1703,8 @@ class BADS:
                 u = self.iteration_history.get('u')[i]
                 gp, _ = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 fval, fsd = gp.predict(np.atleast_2d(u))
-                fsd = np.sqrt(fsd)
+                fval = fval.item()
+                fsd = np.sqrt(fsd).item()
 
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
@@ -1712,10 +1764,7 @@ class BADS:
             self.logger.info(
                 " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
         else:
-            if (
-                self.optim_state["uncertainty_handling_level"] > 0
-                and self.options.get("maxrepeatedobservations") > 0
-            ):
+            if self.optim_state["uncertainty_handling_level"] > 0:
                 self.logger.info(
                     " Iteration f-count     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
             else:
@@ -1730,10 +1779,7 @@ class BADS:
             display_format = " {:5.0f}     {:5.0f}/{:5.0f}   {:12.6f}  "
             display_format += ("{:12.6f}  {:12.6f}     {}       {}")
         else:
-            if (
-                self.optim_state["uncertainty_handling_level"] > 0
-                and self.options.get("maxrepeatedobservations") > 0
-            ):
+            if self.optim_state["uncertainty_handling_level"] > 0:
                 display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
                 display_format += ("{:12.6f}  {:12.6f}     {}       {}")
             else:
@@ -1743,13 +1789,12 @@ class BADS:
         return display_format
 
     def _display_function_log_(self, iteration, method):
-        if (self.optim_state["uncertainty_handling_level"] > 0 \
-                and self.options.get("maxrepeatedobservations") > 0):
+        if self.optim_state["uncertainty_handling_level"] > 0:
 
             self.logger.info(self.display_format.format(
                                 iteration,
                                 self.function_logger.func_count,
-                                self.yval,
+                                self.fval,
                                 self.fsd,
                                 self.optim_state["mesh_size"],
                                 method,
@@ -1758,7 +1803,7 @@ class BADS:
             self.logger.info(self.display_format.format(
                                 iteration,
                                 self.function_logger.func_count,
-                                self.yval,
+                                self.fval,
                                 self.optim_state["mesh_size"],
                                 method,
                                 "".join(self.logging_action[-1]),))

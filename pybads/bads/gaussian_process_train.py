@@ -1,7 +1,6 @@
 from asyncio.log import logger
 from copy import deepcopy
 import math
-from statistics import covariance
 from turtle import width
 
 import gpyreg as gpr
@@ -16,6 +15,7 @@ from scipy.spatial.distance import cdist
 from .options import Options
 from pybads.stats.get_hpd import get_hpd
 from pybads.utils.iteration_history import IterationHistory
+
 
 
 def train_gp(
@@ -202,6 +202,7 @@ def train_gp(
 
     return gp, gp_s_N, sn2hpd, hyp_dict
 
+
 def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, options, optim_state, iteration_history: IterationHistory,refit_flag):
     # Local GP approximation on current point
     # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
@@ -253,7 +254,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
     
     if prior_mean is not None and ~options['gpfixedmean']:
-        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4))) #TODO changed from 2/4 since we use the std as parameter.
+        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4)))
     elif options['gpfixedmean']:
         # TODO: update hyp mean by assigning ymean
         pass 
@@ -292,7 +293,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
         last_dic_hyp_gp = dic_hyp_gp[-1] # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
         # Check for possible high-noise mode
-        if np.isscalar(options['noisesize']) or ~np.isfinite(options['noisesize'][1]):
+        if np.isscalar(options['noisesize']) or len(options['noisesize'] == 1) or \
+            (len(options['noisesize']) > 1 and ~np.isfinite(options['noisesize'][1])):
             noise = 1
             is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
         else:
@@ -308,9 +310,9 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         
         if second_fit:
             # Sample the hyper-params from priors
-            old_hyp_gp = gp.get_hyperparameters(as_array=True)
-            new_hyp = get_random_sample_from_prior(gp, old_hyp_gp, optim_state, options)
-            new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+            prev_hyp_gp = gp.get_hyperparameters(as_array=True)
+            new_hyp = get_random_sample_from_prior(gp, prev_hyp_gp, optim_state, options)
+            new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
             new_hyp = gp.hyperparameters_to_dict(new_hyp)
             
             if is_high_noise:
@@ -320,7 +322,6 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             
             new_hyp = gp.hyperparameters_from_dict(new_hyp)
             new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
-            # TODO check here the optimization when multiple hyper-params are added.
             dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
         # Matlab: remove undefined points (no need)
@@ -417,6 +418,7 @@ def _meanfun_name_to_mean_function(name: str):
 
     return mean_f
 
+
 def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options):
         
         noise_nudge = 0
@@ -462,9 +464,11 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     
                 # Retry with random sample prior
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
-                sample_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy() 
-                new_hyp = get_random_sample_from_prior(tmp_gp, sample_hyp_gp, optim_state, options)
-                new_hyp = 0.5 * (new_hyp + sample_hyp_gp)
+                old_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
+                if len(new_hyp) > 1:
+                    new_hyp = new_hyp[-1].copy()
+                new_hyp = get_random_sample_from_prior(tmp_gp, new_hyp, optim_state, options)
+                new_hyp = 0.5 * (new_hyp + old_hyp_gp)
 
                 nudge = options['noisenudge']
                 if nudge is None or len(nudge) == 0:
@@ -505,17 +509,16 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         
         return gp, new_hyp, res, success
 
-def get_random_sample_from_prior(gp:gpr.GP, hyp_gp,optim_state, options):
+def get_random_sample_from_prior(gp:gpr.GP, hyp_gp, optim_state, options):
     hyp_sampler_name = options.get("gphypsampler", "slicesample")
     if hyp_sampler_name != 'slicesample':
         raise ValueError("Wrong sampler")
-
-    # Get slice sampler
-    sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
     
+    sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
     width = gp.upper_bounds - gp.lower_bounds
     hyp_sampler = SliceSampler(sample_f, hyp_gp.flatten(), width, gp.lower_bounds, gp.upper_bounds, options = {"display": "off", "diagnostics": False})
-    new_hyp = hyp_sampler.sample(1, burn=0)['samples'][0]
+    new_hyp = hyp_sampler.sample(1, burn=None)['samples'][0]
+
     return new_hyp
 
 def _cov_identifier_to_covariance_function(identifier):
@@ -710,7 +713,7 @@ def _gp_hyp(
     gp.temporary_data['len_scale'] = 1
     gp.temporary_data['poll_scale'] = np.ones(D)
     gp.temporary_data['effective_radius'] = 1.
-    #gpstruct.sf = np.exp(1) TODO no need of this since we do not use the hedge acquisition function
+    #gpstruct.sf = np.exp(1) no need of this since we do not use the hedge acquisition function
 
     # Missing port: meanfun == 14 hyperprior case
 
@@ -1131,5 +1134,7 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp.update(compute_posterior=True)
 
     # Missing port: intmean part
+    # TODO how is handled the user defined noise
+    # TODO should we add a check if the values are well defined?
 
     return gp

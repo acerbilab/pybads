@@ -13,7 +13,7 @@ from pybads.bads.variables_transformer import VariableTransformer
 from pybads.bads.gaussian_process_train import train_gp
 from pybads.utils.iteration_history import IterationHistory
 from pybads.function_logger import FunctionLogger
-from pybads.function_examples import rosenbrocks
+from pybads.function_examples import rosenbrocks_fcn
 from pybads.search.search_hedge import SearchESHedge
 from pybads.utils.constraints_check import contraints_check
 
@@ -27,7 +27,7 @@ def test_incumbent_constraint_check():
     U = np.unique(U, axis=0)
     lb = np.array([[-5]*D]) * 100
     ub = np.array([[5]*D]) * 100
-    f = FunctionLogger(rosenbrocks, D, False, 0)
+    f = FunctionLogger(rosenbrocks_fcn, D, False, 0)
     for i in range(len(U)):
         y, y_sd, idx_y = f(U[i])
 
@@ -61,7 +61,7 @@ def test_search():
 
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
 
-    bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
     bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
@@ -100,7 +100,7 @@ def test_search_hedge():
     pub = np.array([[5, 5, 5]])        # Plausible upper bounds
     D = 3
 
-    bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
     bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     
@@ -128,11 +128,11 @@ def test_grid_search_neighbors():
     pub = np.array([[5, 5]])        # Plausible upper bounds
     D = 2
 
-    bads = BADS(rosenbrocks, x0, lb, ub, plb, pub)
+    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
     bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
-    f = FunctionLogger(rosenbrocks, D, False, 0)
+    f = FunctionLogger(rosenbrocks_fcn, D, False, 0)
     f.X = gp.X.copy()
     gp.y = np.array([1, 405.1637, 5.082e3])
     f.Y = gp.y.copy()
