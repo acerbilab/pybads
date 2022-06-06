@@ -104,7 +104,8 @@ class BADS:
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
         user_options: dict = None,
-        nonbondcons: callable = None
+        nonbondcons: callable = None,
+        gamma_uncertain_interval = None
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
@@ -113,7 +114,7 @@ class BADS:
 
         # variable to keep track of logging actions
         self.logging_action = []
-        
+
         # Initialize variables and algorithm structures
         if x0 is None:
             if (plausible_lower_bounds is None
@@ -181,7 +182,9 @@ class BADS:
             plausible_upper_bounds,
             nonbondcons
         )
-
+        
+        self.gamma_uncertain_interval = gamma_uncertain_interval
+        
         # starting point
         if not np.all(np.isfinite(self.x0)):
             self.logger.warn('Initial starting point is invalid or not provided.\
@@ -1269,7 +1272,7 @@ class BADS:
             
         else:
             # StoBads, a success implies an improvement for StoBads
-            sto_success = self.sto_success_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size)
+            sto_success = self.sto_success_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size, self.gamma_uncertain_interval)
             is_search_improved = sto_success == 1
             is_search_success = is_search_improved
 
@@ -1337,13 +1340,17 @@ class BADS:
         return z
     
 
-    def sto_success_improvement(self, f_base, f_new, s_base, s_new, frame_size):
+    def sto_success_improvement(self, f_base, f_new, s_base, s_new, frame_size, gamma_uncertain_interval=None):
         """
             Return
         """
         epsilon = np.sqrt(s_base**2 + s_new**2)
         mu = f_base - f_new
-        gamma = 1.96 # gamma = norminv(0.975)
+        if self.gamma_uncertain_interval is None:
+            gamma = 1.96 # gamma = norminv(0.975)
+        else:
+            gamma = gamma_uncertain_interval # gamma = norminv(0.975)
+
         ub_uncertain_interval = gamma * epsilon * frame_size**2
         if mu >= ub_uncertain_interval:
             # Successful
@@ -1507,7 +1514,7 @@ class BADS:
                     certain_good_poll = poll_best_improvement > self.sufficient_improvement
 
             if self.options['stobads']:
-                sto_success = self.sto_success_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size)
+                sto_success = self.sto_success_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size, self.gamma_uncertain_interval)
                 certain_good_poll = sto_success == 1
 
             # Increase poll counter

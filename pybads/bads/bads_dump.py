@@ -9,11 +9,12 @@ class BADSDump:
     def __init__(self, file_path):
         self.file_path = file_path
 
-    def set_attributes(self, x:np.ndarray, u:np.ndarray, fval, iteration_history:IterationHistory,
+    def set_attributes(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history:IterationHistory,
                  x_true_global_min, u_true_global_min):
         self.x = x.tolist()
-        self.fval = fval
         self.u = u.tolist()
+        self.fval = fval
+        self.fsd = fsd
         self.iteration_history = {
             'u': list(map(lambda u: u.tolist(), iteration_history['u'])),
             'fval': iteration_history['fval'].tolist(),
@@ -23,12 +24,13 @@ class BADSDump:
             'u_true_global_min': u_true_global_min.tolist(),
         }
 
-    def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, iteration_history, x_true_global_min, u_true_global_min):
-        self.set_attributes(x, u, fval, iteration_history, x_true_global_min, u_true_global_min)
+    def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history, x_true_global_min, u_true_global_min):
+        self.set_attributes(x, u, fval, fsd, iteration_history, x_true_global_min, u_true_global_min)
 
         json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
         with open(self.file_path, "w") as outfile:
             outfile.write(json_object)
+            outfile.close()
     
     def load_JSON(self,):
         jsonObject = None
