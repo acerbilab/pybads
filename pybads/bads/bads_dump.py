@@ -1,0 +1,42 @@
+import json
+
+import numpy as np
+from pybads.utils.iteration_history import IterationHistory
+from collections import namedtuple
+
+class BADSDump:
+
+    def __init__(self, file_path):
+        self.file_path = file_path
+
+    def set_attributes(self, x:np.ndarray, u:np.ndarray, fval, iteration_history:IterationHistory,
+                 x_true_global_min, u_true_global_min):
+        self.x = x.tolist()
+        self.fval = fval
+        self.u = u.tolist()
+        self.iteration_history = {
+            'u': list(map(lambda u: u.tolist(), iteration_history['u'])),
+            'fval': iteration_history['fval'].tolist(),
+            'fsd': iteration_history['fsd'].tolist(),
+            'yval': iteration_history['yval'].tolist(),
+            'x_true_global_min': x_true_global_min.tolist(),
+            'u_true_global_min': u_true_global_min.tolist(),
+        }
+
+    def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, iteration_history, x_true_global_min, u_true_global_min):
+        self.set_attributes(x, u, fval, iteration_history, x_true_global_min, u_true_global_min)
+
+        json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
+        with open(self.file_path, "w") as outfile:
+            outfile.write(json_object)
+    
+    def load_JSON(self,):
+        jsonObject = None
+        with open(self.file_path) as jsonFile:
+            jsonObject = json.load(jsonFile)
+            jsonFile.close()
+        return jsonObject
+            
+
+def objectDecoder(object):
+   return namedtuple('X', object.keys())(*object.values())

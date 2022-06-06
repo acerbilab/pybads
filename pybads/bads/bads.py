@@ -144,6 +144,9 @@ class BADS:
         )
         self.options.validate_option_names([basic_path, advanced_path])
 
+        if self.options['stobads'] is None or self.options['stobads'] == False:
+            self.options['stobads'] = False 
+
         # set up BADS logger
         self.logger = logging.getLogger("BADS")
         self.logger.setLevel(logging.INFO)
@@ -490,9 +493,11 @@ class BADS:
 
         # Grid parameters
         self.mesh_size_integer = 0 # Mesh size in log base units
-        optim_state["search_size_integer"] = np.minimum(0, self.mesh_size_integer * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
+        optim_state['search_size_integer'] = np.minimum(0, self.mesh_size_integer * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
         optim_state["mesh_size"] =  float(self.options.get("pollmeshmultiplier"))**self.mesh_size_integer
-        optim_state["search_mesh_size"] = float(self.options.get("pollmeshmultiplier"))**optim_state["search_size_integer"]
+        self.mesh_size = optim_state["mesh_size"]
+        optim_state['search_mesh_size'] = float(self.options.get("pollmeshmultiplier"))**optim_state['search_size_integer']
+        self.search_mesh_size = optim_state['search_mesh_size']
         optim_state["scale"] = 1.
         
 
@@ -525,19 +530,19 @@ class BADS:
         optim_state["pub_orig"] = self.var_transf.orig_pub.copy()
 
         # Bounds for search mesh
-        lb_search = force_to_grid(self.lower_bounds, optim_state["search_mesh_size"])
-        lb_search[ lb_search < self.lower_bounds] = lb_search[ lb_search < self.lower_bounds] + optim_state["search_mesh_size"]
+        lb_search = force_to_grid(self.lower_bounds, optim_state['search_mesh_size'])
+        lb_search[ lb_search < self.lower_bounds] = lb_search[ lb_search < self.lower_bounds] + optim_state['search_mesh_size']
         optim_state["lb_search"] = lb_search
-        ub_search = force_to_grid(self.upper_bounds, optim_state["search_mesh_size"])
-        ub_search[ ub_search > self.upper_bounds] = ub_search[ub_search > self.upper_bounds] - optim_state["search_mesh_size"]
+        ub_search = force_to_grid(self.upper_bounds, optim_state['search_mesh_size'])
+        ub_search[ ub_search > self.upper_bounds] = ub_search[ub_search > self.upper_bounds] - optim_state['search_mesh_size']
         optim_state["ub_search"] = ub_search
         
         # Starting point in grid coordinates
         u0 =  force_to_grid(grid_units(self.x0, self.var_transf, optim_state["scale"]), optim_state['search_mesh_size'])
         
         # Adjust points that fall outside bounds due to gridization
-        u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
-        u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
+        u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state['search_mesh_size']
+        u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state['search_mesh_size']
         optim_state['u'] = u0
         self.u = u0.copy()
 
@@ -829,9 +834,7 @@ class BADS:
         self.fval = self.yval
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
-
         
-
         return
 
     def _init_optimization_(self):
@@ -855,6 +858,8 @@ class BADS:
             # Keep some function evaluations for the final resampling
             self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
             self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
+            # TODO: Simulations
+            self.options['maxfunevals'] = np.minimum(200* self.D, self.options['maxfunevals'])
             
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
@@ -864,11 +869,15 @@ class BADS:
                 self.fsd = self.fsd.item()
             else:
                 self.fsd = self.options['noisesize']
+
         else:
             if self.options['noisesize'] is None:
                 self.options['noisesize'] = np.sqrt(self.options['tolfun'])
-            
             self.fsd = 0.0
+            #TODO: Ask Since the function is fully-deterministic no need of stobads
+            if self.options['stobads']:
+                self.options['stobads'] = False
+        
             
         self.optim_state['fsd']= self.fsd
         self.u_best = self.u.copy()
@@ -928,7 +937,6 @@ class BADS:
             self.gp_refitted_flag = False 
             self.gp_exit_flag = np.inf
             action_txt = ''             # Action performed this iteration (for printing purposes)
-            
 
             #Compute mesh size and search mesh size
             self.mesh_size = self.options['pollmeshmultiplier']**(self.mesh_size_integer)
@@ -939,6 +947,7 @@ class BADS:
                     self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
 
             self.optim_state['search_mesh_size'] = self.options['pollmeshmultiplier'] ** self.optim_state['search_size_integer']
+            self.search_mesh_size = self.optim_state['search_mesh_size']
 
             # Update bounds to grid search mesh
             self.optim_state['lb_search'], self.optim_state['ub_search'] = self._update_search_bounds_()
@@ -971,8 +980,10 @@ class BADS:
                         and self.options['searchmeshincrement'] > 0:
                         # Check if mesh size is already maximal
                         self._check_mesh_overflow_()
+                        
                         self.mesh_size_integer = np.minimum(self.mesh_size_integer + self.options['searchmeshincrement'],
                                                     self.options['maxpollgridnumber'])
+                        # TODO: shouldn't we update also the search_size_integer and the search_mesh_size
                 else:
                     do_poll_step = True
                     self.search_spree = 0
@@ -995,6 +1006,8 @@ class BADS:
 
             self.gp_best = copy.deepcopy(gp) # GP hyperparameters at end of iteration
 
+            # TODO: remove 
+            msg = ''
             # Check termination conditions
             if self.function_logger.func_count >= self.options['maxfunevals']:
                 is_finished = True
@@ -1049,6 +1062,8 @@ class BADS:
                 improvement = f_q_re_impr[idx_impr]
                 
                 idx_impr = idx_impr + 1 # offset original index without skip
+                
+                #TODO: Improvement rule
                 # Check if any point got better
                 if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
@@ -1168,7 +1183,7 @@ class BADS:
         u_search_set = period_check(u_search_set, self.lower_bounds, self.upper_bounds, self.optim_state['periodic_vars'])
 
         # Force candidate points on search grid
-        u_search_set = force_to_grid(u_search_set, self.optim_state["search_mesh_size"])
+        u_search_set = force_to_grid(u_search_set, self.optim_state['search_mesh_size'])
 
         # Remove already evaluated or unfeasible points from search set 
         u_search_set = contraints_check(u_search_set, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state['tol_mesh'],
@@ -1212,7 +1227,7 @@ class BADS:
                 if np.any(~np.isfinite(gp.y)):
                     self.logger.warn("bads:opt: GP prediction is non-finite")
 
-            # If the function is non-deterministic we update the posterior of the GP
+            # If the function is non-deterministic we update the posterior of the GP with the new point
             if self.optim_state["uncertainty_handling_level"] > 0:
                 new_gp = copy.deepcopy(gp)
                 # Update priors and posteriors
@@ -1240,21 +1255,34 @@ class BADS:
         if self.options['hessianupdate'] and self.options['hessianmethod'] == 'cmaes':
             pass
         
-        # Evaluate search
-        search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
         fval_old = self.fval
 
-        # Declare if search was success or failure
-        if (search_improvement > 0 and self.options['sloppyimprovement']) \
-            or search_improvement > self.optim_state['search_sufficient_improvement']:
+        #TODO: StoBads
+        # Evaluate search
+        if not self.options['stobads']:
+            search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
 
+            # Declare if search was success or not
+            is_search_success = search_improvement > self.optim_state['search_sufficient_improvement']
+            is_search_improved = not self.options['stobads']  and (search_improvement > 0 \
+                and self.options['sloppyimprovement'] or is_search_success)
+            
+        else:
+            # StoBads, a success implies an improvement for StoBads
+            sto_success = self.sto_success_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size)
+            is_search_improved = sto_success == 1
+            is_search_success = is_search_improved
+
+        # A search improvement implies an update of the incumbent
+        if is_search_improved:
             if self.options['acqhedge']:
                 # Acquisition hedge (acquisition portfolio) not supported yet
                 pass
             else:
                 method = self.search_es_hedge.chosen_search_fun
             
-            if search_improvement > self.optim_state['search_sufficient_improvement']:
+            #TODO: StoBads or sufficient improvement
+            if is_search_success:
                 self.search_success += 1
                 search_string = f'Successful search ({method})'
                 self.optim_state['u_success'].append(u_search)
@@ -1269,7 +1297,6 @@ class BADS:
             self._update_incumbent_(u_search, y_search, f_mu_search, f_sd_search)
             if self.optim_state['uncertainty_handling_level'] > 0:
                 gp = new_gp
-
             self.reset_gp = True
 
         else:
@@ -1309,6 +1336,25 @@ class BADS:
 
         return z
     
+
+    def sto_success_improvement(self, f_base, f_new, s_base, s_new, frame_size):
+        """
+            Return
+        """
+        epsilon = np.sqrt(s_base**2 + s_new**2)
+        mu = f_base - f_new
+        gamma = 1.96 # gamma = norminv(0.975)
+        ub_uncertain_interval = gamma * epsilon * frame_size**2
+        if mu >= ub_uncertain_interval:
+            # Successful
+            return 1
+        elif mu <= -ub_uncertain_interval:
+            # Certain unsuccessful
+            return -1
+
+        # Uncertain unsuccessful
+        return 0
+
     
     def _poll_step_(self, gp:GP):
 
@@ -1319,7 +1365,8 @@ class BADS:
         f_sd_poll_best = self.fsd
         gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
         poll_count = 0
-        is_good_poll = False
+        certain_good_poll = False
+        sto_success = 0
         B = None
         u_poll = None
         u_new = [] 
@@ -1407,7 +1454,7 @@ class BADS:
             # Consider whether to stop polling
             if not self.options['completepoll']:
                 # Stop polling if last poll was good
-                if is_good_poll:
+                if certain_good_poll:
                     if do_gp_calibration:
                         break # GP is unreliable, just stop polling
                     elif p_less > 1-self.options['tolpoi']:
@@ -1436,17 +1483,18 @@ class BADS:
 
             if self.optim_state['uncertainty_handling_level'] > 0:
                 # Update posterior with the new polled point
-                gp = reupdate_gp(self.function_logger, gp)
+                gp = reupdate_gp(self.function_logger, gp) # u_new is already added from the function logger
                 f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
-                f_poll = f_poll.item()
                 f_sd_poll = np.sqrt(f_sd_poll).item()
+                f_poll = f_poll.item()
             else:
                 f_poll = y_poll
                 f_sd_poll = 0
 
             poll_improvement = self.eval_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
 
-            # Check if current point improves over best polled point so far 
+            #TODO: StoBads
+            # Check if current point improves over best polled point so far
             if poll_improvement > poll_best_improvement:
                 u_poll_best = u_new.copy()
                 y_poll_best = y_poll
@@ -1454,30 +1502,46 @@ class BADS:
                 gp_poll = copy.deepcopy(gp)
                 f_sd_poll_best = f_sd_poll
                 poll_best_improvement = poll_improvement
-                if poll_best_improvement > self.sufficient_improvement:
-                    is_good_poll = True
-                
+
+                if not self.options['stobads']:
+                    certain_good_poll = poll_best_improvement > self.sufficient_improvement
+
+            if self.options['stobads']:
+                sto_success = self.sto_success_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size)
+                certain_good_poll = sto_success == 1
+
             # Increase poll counter
             poll_count += 1
         # End poll loop
-        
+    
         # Evaluate poll
-        if (poll_best_improvement > 0 and self.options['sloppyimprovement']) or \
-            poll_best_improvement > self.sufficient_improvement:
-            
-            # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
-            self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
-            is_poll_moved = True
+        if not self.options['stobads']:
+            if (poll_best_improvement > 0 and self.options['sloppyimprovement']) or \
+                poll_best_improvement > self.sufficient_improvement:
+                
+                # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
+                self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
+                is_poll_moved = True
+            else:
+                is_poll_moved = False
         else:
-            is_poll_moved = False
+            #TODO: StoBads
+            if certain_good_poll:
+                # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
+                self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
+                is_poll_moved = True
+            else:
+                is_poll_moved = False
         
-        if poll_best_improvement > self.sufficient_improvement:
+        if certain_good_poll:
             is_sucess_poll_flag = True
             
             # Check if mesh size is already maximal
             self._check_mesh_overflow_()
             # Successful poll, increase mesh size
             self.mesh_size_integer = np.minimum(self.mesh_size_integer + 1, self.options['maxpollgridnumber'])
+            
+            #TODO shouldn't we increase the search_size_integer ? min(max(search_size_integer +1, self.mesh_size_integer))
             
             self.optim_state['u_success'].append(self.u_best.copy)
             self.optim_state['y_success'].append(self.yval)
@@ -1486,15 +1550,20 @@ class BADS:
             is_sucess_poll_flag = False
             # Failed poll, decrease mesh size
             self.mesh_size_integer -= 1
-
-            # Accelerated mesh reduction if stalling
-            iter = self.optim_state['iter']
-            if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
-                f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
-                self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval, f_sd_base, self.fsd, self.options['improvementquantile'])
-                if self.f_q_historic_improvement < self.options['tolfun']:
+        
+            # Accelerated mesh reduction if certain unsucessfull or  stalling
+            if self.options['stobads'] and sto_success < 0:
+                # certain unsucessfull poll
                     self.mesh_size_integer -= 1
+            else:
+                # check stalling
+                iter = self.optim_state['iter']
+                if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
+                    f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
+                    f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
+                    self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval, f_sd_base, self.fsd, self.options['improvementquantile'])
+                    if self.f_q_historic_improvement < self.options['tolfun']:
+                        self.mesh_size_integer -= 1
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])

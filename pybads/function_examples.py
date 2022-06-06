@@ -17,6 +17,14 @@ def quadratic_noisy_fcn(x):
     noise =  np.random.lognormal(size=X.shape[0])  + np.sqrt(np.abs(np.min(X, axis=1)))
     return (np.sum(X**2, axis=1) + noise, noise.item())
 
+def rosebrocks_hetsk_noisy_fcn(x):
+    X = np.atleast_2d(x)
+    f_X = rosenbrocks_fcn(X)
+    f_min = 0.
+    noise = np.random.normal() + 1 + 0.1 * (f_X - f_min)
+    return (f_X + noise, noise)
+    
+
 def extra_noisy_quadratic_fcn(x):
     X = np.atleast_2d(x)
     quad_sum = np.sum(X**2, axis=1)

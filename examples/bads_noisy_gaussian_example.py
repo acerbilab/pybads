@@ -1,6 +1,9 @@
 import numpy as np
 from pybads.bads.bads import BADS
+from pybads.bads.bads_dump import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, quadratic_noisy_fcn, extra_noisy_quadratic_fcn
+
+np.random.seed(23)
 
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
@@ -18,10 +21,15 @@ bads = BADS(quadratic_unknown_noisy_fcn, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
 print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
+x_global_min = np.array([0., 0.])
 print(f"The true, noiseless minimum is at x = {np.sum(x_min**2)} \n")
 print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
 
-extra_noise = True
+bads_dump = BADSDump("./dumps/stobads_noise")
+bads_dump.to_JSON(bads.x, bads.u, bads.fval, bads.iteration_history,
+            x_global_min, bads.var_transf(x_global_min))
+
+extra_noise = False
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
