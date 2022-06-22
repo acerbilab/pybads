@@ -2,6 +2,7 @@ from asyncio.log import logger
 from copy import deepcopy
 import math
 from turtle import width
+import traceback
 
 import gpyreg as gpr
 import numpy as np
@@ -311,18 +312,19 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         if second_fit:
             # Sample the hyper-params from priors
             prev_hyp_gp = gp.get_hyperparameters(as_array=True)
-            new_hyp = get_random_sample_from_prior(gp, prev_hyp_gp, optim_state, options)
-            new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
-            new_hyp = gp.hyperparameters_to_dict(new_hyp)
-            
-            if is_high_noise:
-                new_hyp[0]["noise_log_scale"] = np.random.randn()-2
-            if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean):
-                new_hyp[0]['mean_const'] = np.median(gp.y)
-            
-            new_hyp = gp.hyperparameters_from_dict(new_hyp)
-            new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
-            dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
+            new_hyp = get_random_samples_from_priors(gp)
+            if new_hyp is not None:
+                new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
+                new_hyp = gp.hyperparameters_to_dict(new_hyp)
+                
+                if is_high_noise:
+                    new_hyp[0]["noise_log_scale"] = np.random.randn()-2
+                if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+                    new_hyp[0]['mean_const'] = np.median(gp.y)
+                
+                new_hyp = gp.hyperparameters_from_dict(new_hyp)
+                new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
+                dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
         # Matlab: remove undefined points (no need)
         # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem.
@@ -463,12 +465,12 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                         tmp_gp.s2 = tmp_gp.s2[~idx_drop_out] 
                     
                 # Retry with random sample prior
-                # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 old_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
-                if len(new_hyp) > 1:
-                    new_hyp = new_hyp[-1].copy()
-                new_hyp = get_random_sample_from_prior(tmp_gp, new_hyp, optim_state, options)
-                new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+                new_hyp = get_random_samples_from_priors(gp)
+                if new_hyp is not None:
+                    new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+                else: # if the slice sampler fail, due to che Cholesky decomposition
+                    new_hyp = old_hyp_gp
 
                 nudge = options['noisenudge']
                 if nudge is None or len(nudge) == 0:
@@ -509,16 +511,46 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         
         return gp, new_hyp, res, success
 
-def get_random_sample_from_prior(gp:gpr.GP, hyp_gp, optim_state, options):
+
+def get_random_samples_from_priors(gp:gpr.GP):
+    hyp = gp.get_hyperparameters()[-1] #copy of the hyper-params
+    for key, value in gp.get_priors().items():
+        if value[0] == 'gaussian':
+            guass_parameter = value[1]
+            mean_priors = np.exp(guass_parameter[0])
+            sigma_priors = np.exp(guass_parameter[1])
+            new_sample = []
+            for idx, m_p in enumerate(mean_priors):
+                new_sample.append(np.random.normal(m_p, sigma_priors[idx]))
+            
+            hyp[key] = np.array(new_sample)
+            #
+    return gp.hyperparameters_from_dict(hyp)
+
+def get_samples_from_slice_sampler(gp:gpr.GP, hyp_gp, optim_state, options):
     hyp_sampler_name = options.get("gphypsampler", "slicesample")
     if hyp_sampler_name != 'slicesample':
         raise ValueError("Wrong sampler")
     
     sample_f = lambda hyp_: gp._GP__gp_obj_fun(hyp_, False, True)
     width = gp.upper_bounds - gp.lower_bounds
-    hyp_sampler = SliceSampler(sample_f, hyp_gp.flatten(), width, gp.lower_bounds, gp.upper_bounds, options = {"display": "off", "diagnostics": False})
-    new_hyp = hyp_sampler.sample(1, burn=None)['samples'][0]
 
+    # If there are multiple parameter samples
+    # We reverse and start from the last change, this can happen after a double fit and failing the parameters optimization
+    new_hyp = np.flip(np.atleast_2d(hyp_gp), axis=0)
+    sampler_failed = True
+    for hyp in new_hyp:
+        try:
+            hyp_sampler = SliceSampler(sample_f, hyp.flatten(), width, gp.lower_bounds, gp.upper_bounds, options = {"display": "off", "diagnostics": False})
+            new_hyp = hyp_sampler.sample(1, burn=None)['samples'][0]
+            sampler_failed = False
+            break
+        except np.linalg.LinAlgError:
+            logger.warning(f'bads:gp priors sampling: The slice sampler failed, Cholesky decomposition.')
+            logger.warning(f'bads:gp priors sampling: {traceback.format_exc()}')
+
+    if sampler_failed:
+        new_hyp = None
     return new_hyp
 
 def _cov_identifier_to_covariance_function(identifier):
@@ -609,7 +641,7 @@ def _gp_hyp(
     # s2 = None
 
     ## Set GP hyperparameter defaults for BADS.
-    cov_bounds_info = gp.covariance.get_bounds_info(hpd_X, hpd_y)
+    cov_bounds_info = gp.covariance.get_bounds_info(hpd_X, hpd_y) # in BADS are all zeros
     mean_bounds_info = gp.mean.get_bounds_info(hpd_X, hpd_y)
     noise_bounds_info = gp.noise.get_bounds_info(hpd_X, hpd_y)
     # Missing port: output warping hyperparameters not implemented
