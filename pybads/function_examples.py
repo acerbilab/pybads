@@ -1,3 +1,4 @@
+from typing import Callable
 import numpy as np
 
 
@@ -33,3 +34,16 @@ def extra_noisy_quadratic_fcn(x):
 def quadratic_non_bound_constr(x):
     X = np.atleast_2d(x)
     return np.sum(X**2, axis=1) > 1
+
+
+def ackley_fcn(X):
+    U = np.atleast_2d(X)
+    f = -20 * np.exp(-0.2 * np.sqrt(np.sum(U*U, axis=1) / U.shape[1])) \
+                - np.exp(np.sum(np.cos(2*np.pi*U), axis=1) / U.shape[1]) \
+                + 20 + 2.7182818284590452353602874713526625
+    return f
+
+def rastrigin(X):
+    U = np.atleast_2d(X)
+    return 10 * U.shape[1] + np.sum( U**2 - 10 * np.cos(2*np.pi*U) + 10, axis=1)
+    
