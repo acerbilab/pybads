@@ -103,9 +103,9 @@ class BADS:
         upper_bounds: np.ndarray = None,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        user_options: dict = None,
         nonbondcons: callable = None,
-        gamma_uncertain_interval = None
+        gamma_uncertain_interval = None,
+        user_options: dict = None
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
@@ -116,6 +116,11 @@ class BADS:
         self.logging_action = []
 
         # Initialize variables and algorithm structures
+        if plausible_lower_bounds is None and lower_bounds is not None:
+            plausible_lower_bounds = lower_bounds.copy()
+        if plausible_upper_bounds is None and upper_bounds is not None:
+            plausible_upper_bounds = upper_bounds.copy()
+            
         if x0 is None:
             if (plausible_lower_bounds is None
                 or plausible_upper_bounds is None):
@@ -211,11 +216,14 @@ class BADS:
         self.iteration_history = IterationHistory(
             [
                 "iter",
+                "fcount",
                 "u",
                 "fval",
                 "fsd",
                 "yval",
                 "ys",
+                "mesh_size",
+                "search_mesh_size",
                 "lcbmax",
                 "gp",
                 "gp_hyp_full",
@@ -862,7 +870,7 @@ class BADS:
             self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
             self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
             # TODO: Simulations
-            self.options['maxfunevals'] = np.minimum(200* self.D, self.options['maxfunevals'])
+            self.options['maxfunevals'] = np.minimum(200 * self.D, self.options['maxfunevals'])
             
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
@@ -1047,6 +1055,8 @@ class BADS:
                 self.iteration_history.record('yval', self.yval, poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
+                self.iteration_history.record('mesh_size', self.mesh_size, poll_iteration)
+                self.iteration_history.record('search_mesh_size', self.search_mesh_size, poll_iteration)
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
 
@@ -1145,7 +1155,7 @@ class BADS:
         #TODO:  Print final message
         self.logger.warning(msg)
         if self.optim_state['uncertainty_handling_level'] > 0:
-            if yval_vec.size == 1:
+            if np.isscalar(yval_vec) or yval_vec.size == 1:
                 self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
             else:
                 self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')

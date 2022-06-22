@@ -10,7 +10,7 @@ class BADSDump:
         self.file_path = file_path
 
     def set_attributes(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history:IterationHistory,
-                 x_true_global_min, u_true_global_min):
+                 x_true_global_min):
         self.x = x.tolist()
         self.u = u.tolist()
         self.fval = fval
@@ -19,13 +19,14 @@ class BADSDump:
             'u': list(map(lambda u: u.tolist(), iteration_history['u'])),
             'fval': iteration_history['fval'].tolist(),
             'fsd': iteration_history['fsd'].tolist(),
+            'mesh_size': iteration_history['mesh_size'].tolist(),
+            'search_mesh_size': iteration_history['search_mesh_size'].tolist(),
             'yval': iteration_history['yval'].tolist(),
             'x_true_global_min': x_true_global_min.tolist(),
-            'u_true_global_min': u_true_global_min.tolist(),
         }
 
-    def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history, x_true_global_min, u_true_global_min):
-        self.set_attributes(x, u, fval, fsd, iteration_history, x_true_global_min, u_true_global_min)
+    def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history, x_true_global_min):
+        self.set_attributes(x, u, fval, fsd, iteration_history, x_true_global_min)
 
         json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
         with open(self.file_path, "w") as outfile:
