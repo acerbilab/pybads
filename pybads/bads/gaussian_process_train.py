@@ -312,7 +312,10 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         if second_fit:
             # Sample the hyper-params from priors
             prev_hyp_gp = gp.get_hyperparameters(as_array=True)
-            new_hyp = get_random_samples_from_priors(gp)
+            if options['use_slice_sampler']:
+                new_hyp = get_samples_from_slice_sampler(gp, prev_hyp_gp, optim_state, options)
+            else:
+                new_hyp = get_random_samples_from_priors(gp)
             if new_hyp is not None:
                 new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
                 new_hyp = gp.hyperparameters_to_dict(new_hyp)
@@ -466,7 +469,14 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                     
                 # Retry with random sample prior
                 old_hyp_gp = hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
-                new_hyp = get_random_samples_from_priors(gp)
+                if options['use_slice_sampler']:
+
+                    # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
+                    if len(new_hyp) > 1:
+                        new_hyp = new_hyp[-1].copy()
+                    new_hyp = get_samples_from_slice_sampler(tmp_gp, new_hyp, optim_state, options)
+                else:
+                    new_hyp = get_random_samples_from_priors(gp)
                 if new_hyp is not None:
                     new_hyp = 0.5 * (new_hyp + old_hyp_gp)
                 else: # if the slice sampler fail, due to che Cholesky decomposition
@@ -517,8 +527,11 @@ def get_random_samples_from_priors(gp:gpr.GP):
     for key, value in gp.get_priors().items():
         if value[0] == 'gaussian':
             guass_parameter = value[1]
-            mean_priors = np.exp(guass_parameter[0])
-            sigma_priors = np.exp(guass_parameter[1])
+            mean_priors = guass_parameter[0]
+            sigma_priors = guass_parameter[1]
+            if 'log' in key:
+                mean_priors = np.exp(mean_priors)
+                sigma_priors = np.exp(sigma_priors)
             new_sample = []
             for idx, m_p in enumerate(mean_priors):
                 new_sample.append(np.random.normal(m_p, sigma_priors[idx]))
@@ -647,7 +660,7 @@ def _gp_hyp(
     # Missing port: output warping hyperparameters not implemented
     cov_x0 = cov_bounds_info["x0"]
     if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
-        cov_x0[-1] = 0.0 # shape hyp. init
+        cov_x0[-1] = 0.0 # shape hyp.
 
     mean_x0 = mean_bounds_info["x0"]
 
@@ -723,8 +736,10 @@ def _gp_hyp(
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         # Lower maximum constant mean
-        bounds["mean_const"] = (-np.inf, np.inf)
-        priors["mean_const"] = ('gaussian', (0., 1.))
+        sd = np.std(hpd_y) if len(hpd_y) > 1 else 1.
+        priors["mean_const"] = ('gaussian', (mean_x0, sd))
+        bounds["mean_const"] = (mean_bounds_info['LB'], mean_bounds_info['UB'])
+        
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gpquadraticmeanbound"]:
             delta_y = max(
