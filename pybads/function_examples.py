@@ -45,5 +45,5 @@ def ackley_fcn(X):
 
 def rastrigin(X):
     U = np.atleast_2d(X)
-    return 10 * U.shape[1] + np.sum( U**2 - 10 * np.cos(2*np.pi*U) + 10, axis=1)
+    return np.sum( U**2 - 10 * np.cos(2*np.pi*U) + 10, axis=1)
     
