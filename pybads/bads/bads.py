@@ -218,6 +218,7 @@ class BADS:
                 "iter",
                 "fcount",
                 "u",
+                "x",
                 "fval",
                 "fsd",
                 "yval",
@@ -230,7 +231,6 @@ class BADS:
                 "Ns_gp",
                 "timer",
                 "optim_state",
-                "func_count",
                 "n_eff",
                 "logging_action",
             ]
@@ -555,7 +555,7 @@ class BADS:
         u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state['search_mesh_size']
         u0[u0 > self.upper_bounds] = u0[u0 > self.upper_bounds] - optim_state['search_mesh_size']
         optim_state['u'] = u0
-        self.u = u0.copy()
+        self.u = u0.flatten().copy()
 
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
@@ -832,7 +832,7 @@ class BADS:
                     self.function_logger(u1[u_idx])
                 
                 idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1])
-                self.u = np.atleast_2d(self.function_logger.X[idx_yval])
+                self.u = self.function_logger.X[idx_yval]
                 self.yval = self.function_logger.Y[idx_yval].item()
                 self.logging_action.append('Initial points')
                 self._display_function_log_(0, 'Initial mesh')
@@ -1052,6 +1052,7 @@ class BADS:
             # Store best points at the end of each iteration, or upon termination
             if do_poll_step or is_finished:
                 self.iteration_history.record('u', self.u, poll_iteration)
+                self.iteration_history.record('x', self.var_transf.inverse_transf(self.u), poll_iteration)
                 self.iteration_history.record('yval', self.yval, poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
@@ -1059,6 +1060,7 @@ class BADS:
                 self.iteration_history.record('search_mesh_size', self.search_mesh_size, poll_iteration)
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
                 self.iteration_history.record('gp', gp, poll_iteration)
+                self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
 
             # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
@@ -1106,7 +1108,7 @@ class BADS:
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
             self._re_evaluate_history_(poll_iteration)
 
-            # Order by lowest probabilistic upper vound and choose best iterate
+            # Order by lowest probabilistic upper bound and choose best iterate
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
             q_beta = self.iteration_history.get('fval') + sigma_multiplier * self.iteration_history.get('fsd')
             min_q_beta_idx = np.argmin(q_beta[1:]) # Skip first iteration
@@ -1137,6 +1139,7 @@ class BADS:
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
+                self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
 
         #TODO
         # if ~isempty(outputfun)
@@ -1795,6 +1798,8 @@ class BADS:
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
                 self.iteration_history.record('gp', gp, i)
+                self.iteration_history.record('fcount', self.function_logger.func_count, i)
+
             
             self.optim_state['last_re_eval'] = self.function_logger.func_count
 
