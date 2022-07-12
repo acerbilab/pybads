@@ -779,7 +779,7 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
-            yval_bis = self.function_logger.fun(self.x0)
+            yval_bis, _, _ = self.function_logger(self.u)
             self.function_logger.func_count += 1
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
