@@ -869,8 +869,6 @@ class BADS:
             # Keep some function evaluations for the final resampling
             self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
             self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
-            # TODO: Simulations
-            self.options['maxfunevals'] = np.minimum(200 * self.D, self.options['maxfunevals'])
             
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
@@ -1070,8 +1068,9 @@ class BADS:
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
 
-                f_q_re_impr = self.eval_improvement(self.iteration_history.get('fval').astype(np.float64), self.fval,
-                    self.iteration_history.get('fsd').astype(np.float64), self.fsd, self.options['improvementquantile'])
+                f_q_re_impr = self.eval_improvement(self.fval, self.iteration_history.get('fval').astype(np.float64),
+                                                    self.fsd, self.iteration_history.get('fsd').astype(np.float64),
+                                                    self.options['improvementquantile'])
                 f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
                 improvement = f_q_re_impr[idx_impr]
@@ -1139,7 +1138,6 @@ class BADS:
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
-                self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
 
         #TODO
         # if ~isempty(outputfun)
@@ -1173,7 +1171,6 @@ class BADS:
         refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
 
         if refit_flag or self.optim_state['search_count'] == 0 or self.reset_gp:
-
             # Local GP approximation on current incumbent
             gp, gp_exit_flag = local_gp_fitting(gp, self.u, self.function_logger, self.options, self.optim_state, self.iteration_history, refit_flag)
 
@@ -1399,7 +1396,8 @@ class BADS:
             # Fill in basis vectors (when poll_count == 0)
             if B is None or B.size == 0:
                 # Create new poll vectors
-                B_new = poll_mads_2n(self.D, gp.temporary_data['poll_scale'], self.optim_state['search_mesh_size'], self.optim_state['mesh_size'])
+                B_new = poll_mads_2n(self.D, gp.temporary_data['poll_scale'], self.optim_state['search_mesh_size'],
+                                            self.optim_state['mesh_size'])
 
                 # GP- based vector scaling (poll_scale broadcast)
                 vv = (B_new * self.optim_state['mesh_size']) * gp.temporary_data['poll_scale'] # scaling again using broadcast
@@ -1513,7 +1511,7 @@ class BADS:
 
             poll_improvement = self.eval_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
 
-            #TODO: StoBads
+            
             # Check if current point improves over best polled point so far
             if poll_improvement > poll_best_improvement:
                 u_poll_best = u_new.copy()
@@ -1524,8 +1522,9 @@ class BADS:
                 poll_best_improvement = poll_improvement
 
                 if not self.options['stobads']:
-                    certain_good_poll = poll_best_improvement > self.sufficient_improvement
+                    certain_good_poll = poll_best_improvement > self.sufficient_improvement         
 
+            # StoBads
             if self.options['stobads']:
                 sto_success = self.sto_success_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size, self.gamma_uncertain_interval)
                 certain_good_poll = sto_success == 1
@@ -1538,7 +1537,7 @@ class BADS:
         if not self.options['stobads']:
             if (poll_best_improvement > 0 and self.options['sloppyimprovement']) or \
                 poll_best_improvement > self.sufficient_improvement:
-                
+
                 # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
                 self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
                 is_poll_moved = True
@@ -1576,12 +1575,14 @@ class BADS:
                 # certain unsucessfull poll
                     self.mesh_size_integer -= 1
             else:
-                # check stalling
+                # Check stalling
                 iter = self.optim_state['iter']
                 if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
                     f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
                     f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
-                    self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval, f_sd_base, self.fsd, self.options['improvementquantile'])
+                    self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
+                                                                            f_sd_base, self.fsd,
+                                                                            self.options['improvementquantile'])
                     if self.f_q_historic_improvement < self.options['tolfun']:
                         self.mesh_size_integer -= 1
             
@@ -1632,6 +1633,13 @@ class BADS:
         self.gp_stats.record('fval', fval, iter)
         self.gp_stats.record('ymu', ymu, iter)
         self.gp_stats.record('ys', ys, iter)
+
+    def _find_bump_(self, fval_new):
+        if (self.optim_state['iter'] > 0):
+            iter = self.optim_state['iter']-1
+            fval = self.iteration_history.get('fval')[iter]
+            if (fval_new - fval > 6.):
+                self.logger.warn("found BUMP")
 
 
     
@@ -1798,7 +1806,6 @@ class BADS:
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
                 self.iteration_history.record('gp', gp, i)
-                self.iteration_history.record('fcount', self.function_logger.func_count, i)
 
             
             self.optim_state['last_re_eval'] = self.function_logger.func_count
