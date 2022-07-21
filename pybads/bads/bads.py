@@ -509,7 +509,7 @@ class BADS:
         self.mesh_size = optim_state["mesh_size"]
         optim_state['search_mesh_size'] = float(self.options.get("pollmeshmultiplier"))**optim_state['search_size_integer']
         self.search_mesh_size = optim_state['search_mesh_size']
-        optim_state["scale"] = 1.
+        optim_state['scale'] = 1.
         
 
         # Compute transformation of variables
@@ -549,7 +549,7 @@ class BADS:
         optim_state["ub_search"] = ub_search
         
         # Starting point in grid coordinates
-        u0 =  force_to_grid(grid_units(self.x0, self.var_transf, optim_state["scale"]), optim_state['search_mesh_size'])
+        u0 =  force_to_grid(grid_units(self.x0, self.var_transf, optim_state['scale']), optim_state['search_mesh_size'])
         
         # Adjust points that fall outside bounds due to gridization
         u0[u0 < self.lower_bounds] = u0[u0 < self.lower_bounds] + optim_state['search_mesh_size']
@@ -805,7 +805,8 @@ class BADS:
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(16, self.options['ninit']), self.options['maxfunevals'])
+            self.options['ninit'] = np.minimum(np.maximum(4, self.options['ninit']),
+                                            self.options['maxfunevals'])
 
         # set up strings for logging of the iteration
         self.display_format = self._setup_logging_display_format()
@@ -822,7 +823,7 @@ class BADS:
                 # enforce periodicity TODO function
                 u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
 
-                # Force points to be on the search grid.
+                # Force points to be in the search grid.
                 u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
 
                 # Remove already evaluated or unfeasible points from search set 
@@ -834,6 +835,7 @@ class BADS:
                 idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1])
                 self.u = self.function_logger.X[idx_yval]
                 self.yval = self.function_logger.Y[idx_yval].item()
+                self.fval = self.yval
                 self.logging_action.append('Initial points')
                 self._display_function_log_(0, 'Initial mesh')
             else:
@@ -842,7 +844,6 @@ class BADS:
         if not np.isfinite(self.yval):
             raise ValueError('init mesh: Cannot find valid starting point.')
 
-        self.fval = self.yval
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
         
@@ -903,6 +904,7 @@ class BADS:
             self.plausible_lower_bounds, self.plausible_upper_bounds)
 
         self.gp_stats = IterationHistory(["iter_gp","fval","ymu","ys","gp",])
+        self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
         
         return gp, Ns_gp, sn2hpd, hyp_dict, 
 
@@ -932,7 +934,7 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
-        self.gp_best = copy.deepcopy(gp)
+        #self.gp_best = copy.deepcopy(gp)
         self.search_es_hedge = None # init search hedge to None
 
         if self.options['outputfcn'] is not None:
@@ -1013,7 +1015,8 @@ class BADS:
             if self.options['plot'] == 'scatter':
                 pass
 
-            self.gp_best = copy.deepcopy(gp) # GP hyperparameters at end of iteration
+            # GP hyperparameters at end of iteration
+            self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
 
             # TODO: remove 
             msg = ''
@@ -1044,7 +1047,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options['tolfun']:
                     is_finished = True
                     exit_flag = 2
-                    msg = 'Optimization terminated: mesh size less than options.tolfun.'
+                    msg = 'Optimization terminated: change in the function value less than options.TolFun.'
                 
             
             # Store best points at the end of each iteration, or upon termination
@@ -1056,7 +1059,7 @@ class BADS:
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
                 self.iteration_history.record('mesh_size', self.mesh_size, poll_iteration)
                 self.iteration_history.record('search_mesh_size', self.search_mesh_size, poll_iteration)
-                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration)
+                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration) #corresponds to self.best_gp_hyp
                 self.iteration_history.record('gp', gp, poll_iteration)
                 self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
 
@@ -1067,6 +1070,8 @@ class BADS:
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
+                self.best_gp_hyp = self.iteration_history.get('gp_hyp_full')[poll_iteration]
+                gp = self.iteration_history.get('gp')[poll_iteration]
 
                 f_q_re_impr = self.eval_improvement(self.fval, self.iteration_history.get('fval').astype(np.float64),
                                                     self.fsd, self.iteration_history.get('fsd').astype(np.float64),
@@ -1081,10 +1086,12 @@ class BADS:
                 # Check if any point got better
                 if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
+                    self._find_bump_(self.iteration_history.get('fval')[idx_impr])
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
                     self.u = self.iteration_history.get('u')[idx_impr]
                     self.best_u = self.u.copy()
+                    self.best_gp_hyp = self.iteration_history.get('gp_hyp_full')[idx_impr]
                     gp = self.iteration_history.get('gp')[idx_impr] # overwrite best gp        
             
             # if isFinished_flag
@@ -1115,10 +1122,13 @@ class BADS:
 
             # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
+            self._find_bump_(self.iteration_history.get('fval')[min_q_beta_idx])
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
             self.u_best = self.u.copy() 
+            self.best_gp_hyp = self.iteration_history.get('gp_hyp_full')[min_q_beta_idx]
+            gp = self.iteration_history.get('gp')[min_q_beta_idx]
 
             # Re-evalate estimated function value and SD at final point
             if self.options['noisefinalsamples'] > 0:
@@ -1134,6 +1144,7 @@ class BADS:
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
+                self._find_bump_(np.mean(yval_vec).item())
                 self.fval = np.mean(yval_vec).item()
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
@@ -1180,8 +1191,8 @@ class BADS:
         # End fitting            
 
         # Update Target from GP prediction
-        fmu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, self.gp_best)
-        self.optim_state["fval"] = fmu.item()
+        f_target_mu, f_target_s, f_target = self._get_target_from_gp_(self.u_best, gp, self.best_gp_hyp)
+        self.optim_state["f_target_mu"] = f_target_mu.item()
         self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
         self.optim_state["f_target"] = f_target.item()
 
@@ -1242,7 +1253,7 @@ class BADS:
 
             # If the function is non-deterministic we update the posterior of the GP with the new point
             if self.optim_state["uncertainty_handling_level"] > 0:
-                new_gp = copy.deepcopy(gp)
+                new_gp = copy.deepcopy(gp) 
                 # Update priors and posteriors
                 new_gp, _ = local_gp_fitting(new_gp, u_search, self.function_logger, self.options,
                                     self.optim_state, self.iteration_history, False)
@@ -1310,6 +1321,7 @@ class BADS:
             self._update_incumbent_(u_search, y_search, f_mu_search, f_sd_search)
             if self.optim_state['uncertainty_handling_level'] > 0:
                 gp = new_gp
+
             self.reset_gp = True
 
         else:
@@ -1374,13 +1386,12 @@ class BADS:
 
     
     def _poll_step_(self, gp:GP):
-
         poll_best_improvement = 0
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
         f_poll_best = self.fval
         f_sd_poll_best = self.fsd
-        gp_poll = copy.deepcopy(self.gp_best) # gp hyper-parameters at best point
+        gp_poll_hyp_best = self.best_gp_hyp.copy()
         poll_count = 0
         certain_good_poll = False
         sto_success = 0
@@ -1441,8 +1452,8 @@ class BADS:
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
             
             # Update Target from GP prediction
-            fval, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp_poll)
-            self.optim_state["fval"] = fval.item()
+            f_target_mu, f_target_s, f_target = self._get_target_from_gp_(u_poll_best, gp, gp_poll_hyp_best)
+            self.optim_state["f_target_mu"] = f_target_mu.item()
             self.optim_state["f_target_s"] = f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
             self.optim_state["f_target"] = f_target.item()
 
@@ -1517,8 +1528,8 @@ class BADS:
                 u_poll_best = u_new.copy()
                 y_poll_best = y_poll
                 f_poll_best = f_poll
-                gp_poll = copy.deepcopy(gp)
                 f_sd_poll_best = f_sd_poll
+                gp_poll_hyp_best = gp.get_hyperparameters(as_array=True)
                 poll_best_improvement = poll_improvement
 
                 if not self.options['stobads']:
@@ -1580,11 +1591,14 @@ class BADS:
                 if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
                     f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
                     f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
+                    u_base = self.iteration_history.get('u')[iter - self.options['acceleratemeshsteps']]
                     self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
                                                                             f_sd_base, self.fsd,
                                                                             self.options['improvementquantile'])
-                    if self.f_q_historic_improvement < self.options['tolfun']:
+                    if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
+                        
                         self.mesh_size_integer -= 1
+                        logger.warn("bads: The optimization is stalling, decreasing further the mesh size")
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
@@ -1701,29 +1715,29 @@ class BADS:
 
 
     # Corresponds to Matlab: updateTarget
-    
-    def _get_target_from_gp_(self, u, gp:GP):
+    def _get_target_from_gp_(self, u, gp:GP, hyp_best):
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
-
-            fmu, fs2 = gp.predict(np.atleast_2d(u))
+            tmp_gp = copy.deepcopy(gp)
+            tmp_gp.set_hyperparameters(hyp_best)
+            f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
             
             f_target_s = np.sqrt(np.max(fs2, axis=0))
-            if ~np.isfinite(fmu) | ~np.isreal(f_target_s) | ~np.isfinite(f_target_s):
-                fmu = self.optim_state['fval']
+            if ~np.isfinite(f_target_mu) | ~np.isreal(f_target_s) | ~np.isfinite(f_target_s):
+                f_target_mu = self.optim_state['fval']
                 f_target_s = self.optim_state['fsd']
             
             # f_target: Set optimization target slightly below the current incumbent
             if self.options['alternativeincumbent']:
-                f_target = fmu - np.sqrt(self.D) / np.sqrt(self.function_logger.func_count) * f_target_s
+                f_target = f_target_mu - np.sqrt(self.D) / np.sqrt(self.function_logger.func_count) * f_target_s
             else:
-                f_target = fmu - self.optim_state['sd_level'] * np.sqrt(fs2 + self.options['tolfun']**2)
+                f_target = f_target_mu - self.optim_state['sd_level'] * np.sqrt(fs2 + self.options['tolfun']**2)
         else:
             f_target = self.optim_state['fval'] - self.options['tolfun']
-            fmu = self.optim_state['fval']
+            f_target_mu = self.optim_state['fval']
             f_target_s = 0
             
-        return fmu, f_target_s, f_target        
+        return f_target_mu, f_target_s, f_target        
 
     def _update_search_bounds_(self):
         lb = self.optim_state['lb']
@@ -1739,6 +1753,7 @@ class BADS:
         """
             Move incumbent (current point) to a new point.
         """
+        self._find_bump_(fval_new)
         self.optim_state['u'] = u_new.copy()
         self.optim_state['yval'] = yval_new
         self.optim_state['fval'] = fval_new
@@ -1802,12 +1817,12 @@ class BADS:
                 fval, fsd = gp.predict(np.atleast_2d(u))
                 fval = fval.item()
                 fsd = np.sqrt(fsd).item()
-
+                
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
                 self.iteration_history.record('gp', gp, i)
+                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), i)
 
-            
             self.optim_state['last_re_eval'] = self.function_logger.func_count
 
 

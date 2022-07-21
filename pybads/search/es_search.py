@@ -71,8 +71,8 @@ class SearchES(ABC):
         
         self.mesh_size = optim_state['mesh_size']
         self.search_factor = optim_state['search_factor']
-        self.search_mesh_size = optim_state["search_mesh_size"]
-        self.tol_mesh = optim_state["tol_mesh"]
+        self.search_mesh_size = optim_state['search_mesh_size']
+        self.tol_mesh = optim_state['tol_mesh']
 
         U = gp.X
         nvars = U.shape[1]
@@ -162,7 +162,7 @@ class SearchESWM(SearchES):
         U = gp.X
         Y = gp.y.flatten()
         # Compute vector weights
-        nvars = len(U)
+        nvars =  U.shape[1]
         mu = self.frac * U.shape[0]
         
         weights = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu+1)))
@@ -174,7 +174,7 @@ class SearchESWM(SearchES):
         Ubest = U[idx_sel].copy()
 
         # Compute weighted covariance matrix wrt u0
-        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodic_vars'])
+        C = ucov(Ubest, u, weights, optim_state['ub'], optim_state['lb'], optim_state['scale'], optim_state['periodic_vars'])
         if self.active_flag:
             U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]]
             negC = ucov(U_worst, u, weights, optim_state)
@@ -205,13 +205,13 @@ class SearchESCMA(SearchESWM):
         self.frac = 0.25
 
     def get_jitter(self, optim_state):
-        return optim_state["search_mesh_size"]
+        return optim_state['search_mesh_size']
 
 
 class SearchESELL(SearchES):
 
     def _initialize_(self, u, gp:GP, optim_state, sum_rule):
-        rescaled_len_scale = gp.temporary_data["poll_scale"]
+        rescaled_len_scale = gp.temporary_data['poll_scale']
         rescaled_len_scale = rescaled_len_scale / np.sqrt(np.sum(rescaled_len_scale**2))
         sqrt_sigma = np.diag(rescaled_len_scale)
         

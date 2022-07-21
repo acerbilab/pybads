@@ -11,7 +11,8 @@ def rosenbrocks_fcn(x):
 
 def quadratic_unknown_noisy_fcn(x):
     X = np.atleast_2d(x)
-    return np.sum(X**2, axis=1) + np.random.randn(X.shape[0])
+    noise =  np.random.lognormal(size=X.shape[0])  + np.sqrt(np.abs(np.min(X, axis=1)))
+    return np.sum(X**2, axis=1) + noise
 
 def quadratic_noisy_fcn(x):
     X = np.atleast_2d(x)
@@ -41,7 +42,7 @@ def ackley_fcn(X):
     f = -20 * np.exp(-0.2 * np.sqrt(np.sum(U*U, axis=1) / U.shape[1])) \
                 - np.exp(np.sum(np.cos(2*np.pi*U), axis=1) / U.shape[1]) \
                 + 20 + 2.7182818284590452353602874713526625
-    return f
+    return f + np.random.normal(scale=1.0, size=(U.shape[0], 1))
 
 def rastrigin(X):
     U = np.atleast_2d(X)

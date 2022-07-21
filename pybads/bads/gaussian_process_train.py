@@ -283,7 +283,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # TODO warp function (Matlab  gpdefbads line-code 302)
         pass
 
-    # Re-fit Guassian Process (optimize or sample -- only optimization supported)
+    # Re-fit gaussian Process (optimize or sample -- only optimization supported)
     gp_priors['covariance_log_outputscale'] = ('gaussian', (sd_y, 2.))
     gp.set_priors(gp_priors)
 
@@ -358,6 +358,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         for i in range(hyp_n_samples):
             ll[i, :] = options['gprescalepoll'] * dic_hyp_gp[i]['covariance_log_lengthscale']
         #ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
+        ll = ll - np.mean(ll)
+        ll = np.exp(np.sum(ll, axis=0)) 
 
         # Take bounded limits
         ub_bounded = optim_state['ub'].copy()
@@ -367,9 +369,8 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
 
         ll = np.minimum(np.maximum(ll, optim_state['search_mesh_size']), \
                 (ub_bounded-lb_bounded)/optim_state['scale']) # Perhaps this should just be PUB - PLB?
-        ll = ll - np.mean(ll)
-        ll = np.exp(np.sum(ll, axis=0))
-        gp.temporary_data['pollscale'] = ll
+           
+        gp.temporary_data['poll_scale'] = ll.flatten()
 
         if options['useeffectiveradius']:
             if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
@@ -526,9 +527,9 @@ def get_random_samples_from_priors(gp:gpr.GP):
     hyp = gp.get_hyperparameters()[-1] #copy of the hyper-params
     for key, value in gp.get_priors().items():
         if value[0] == 'gaussian':
-            guass_parameter = value[1]
-            mean_priors = guass_parameter[0]
-            sigma_priors = guass_parameter[1]
+            gauss_parameter = value[1]
+            mean_priors = gauss_parameter[0]
+            sigma_priors = gauss_parameter[1]
             if 'log' in key:
                 mean_priors = np.exp(mean_priors)
                 sigma_priors = np.exp(sigma_priors)
