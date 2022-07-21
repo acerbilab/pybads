@@ -3,8 +3,6 @@ from pybads.bads.bads import BADS
 from pybads.bads.bads_dump import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, quadratic_noisy_fcn, extra_noisy_quadratic_fcn
 
-np.random.seed(23)
-
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
@@ -29,7 +27,7 @@ bads_dump = BADSDump("./dumps/stobads_noise")
 bads_dump.to_JSON(bads.x, bads.u, bads.fval, bads.fsd, bads.iteration_history,
             x_global_min)
 
-extra_noise = True
+extra_noise = False
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
