@@ -1,14 +1,15 @@
 from tkinter import FALSE
 import numpy as np
 from pybads.bads.bads import BADS
-from pybads.function_examples import ackley_fcn
+from pybads.function_examples import ackley_fcn, rastrigin
 
 lb = np.array([[-32, -32]])     # Lower bounds
 ub = np.array([[32, 32]])       # Upper bounds
+np.random.seed(7)
 x0 = np.random.uniform(low=lb+1, high=ub)
 #plb = lb.copy() if plb is None else lb 
 #pub = ub.copy() if pub is None else pub
-
+x0 = np.array([[-27.11626948006674, 17.914802703367336]])
 title = 'Basic usage'
 print("\n *** Example 1: " + title)
 print("\t Simple usage of BADS on Ackley's function in 2D.")

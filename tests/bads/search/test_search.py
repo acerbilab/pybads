@@ -139,9 +139,9 @@ def test_grid_search_neighbors():
 
     f.X_max_idx = 3
     
-    gp.temporary_data["len_scale"] = 1.
-    bads.optim_state["scale"] = 1.
-    bads.options["gpradius"] = 3
+    gp.temporary_data['len_scale'] = 1.
+    bads.optim_state['scale'] = 1.
+    bads.options['gpradius'] = 3
     
     result = get_grid_search_neighbors(f, np.array([[0, 0]]), gp, bads.options, bads.optim_state)[0]
     assert result[0, 0] == 0. and np.isclose(result[1, 0], -0.1055, 1e-3) and np.isclose(result[2, 0], -0.3555, 1e-3)
