@@ -1054,7 +1054,7 @@ class BADS:
             if do_poll_step or is_finished:
                 self.iteration_history.record('u', self.u, poll_iteration)
                 self.iteration_history.record('x', self.var_transf.inverse_transf(self.u), poll_iteration)
-                self.iteration_history.record('yval', self.yval, poll_iteration)
+                self.iteration_history.record('yval', float(self.yval), poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
                 self.iteration_history.record('mesh_size', self.mesh_size, poll_iteration)
@@ -1073,8 +1073,8 @@ class BADS:
                 self.best_gp_hyp = self.iteration_history.get('gp_hyp_full')[poll_iteration]
                 gp = self.iteration_history.get('gp')[poll_iteration]
 
-                f_q_re_impr = self.eval_improvement(self.fval, self.iteration_history.get('fval').astype(np.float64),
-                                                    self.fsd, self.iteration_history.get('fsd').astype(np.float64),
+                f_q_re_impr = self.eval_improvement(self.fval, self.iteration_history.get('fval').astype('float'),
+                                                    self.fsd, self.iteration_history.get('fsd').astype('float'),
                                                     self.options['improvementquantile'])
                 f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
@@ -1082,11 +1082,11 @@ class BADS:
                 
                 idx_impr = idx_impr + 1 # offset original index without skip
                 
-                #TODO: Improvement rule
+               
                 # Check if any point got better
                 if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
-                    self._find_bump_(self.iteration_history.get('fval')[idx_impr])
+                    #self._find_bump_(float(self.iteration_history.get('fval')[idx_impr]))
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
                     self.u = self.iteration_history.get('u')[idx_impr]
@@ -1122,7 +1122,7 @@ class BADS:
 
             # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
-            self._find_bump_(self.iteration_history.get('fval')[min_q_beta_idx])
+            #self._find_bump_(self.iteration_history.get('fval')[min_q_beta_idx])
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
@@ -1144,7 +1144,7 @@ class BADS:
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
-                self._find_bump_(np.mean(yval_vec).item())
+                #self._find_bump_(np.mean(yval_vec).item())
                 self.fval = np.mean(yval_vec).item()
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
