@@ -34,8 +34,8 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     # get the training set by retrieving the sorted NEAREST neighbors from u
                     
     U_max_idx = function_logger.X_max_idx
-    U = function_logger.X[0:U_max_idx+1]
-    Y = function_logger.Y[0:U_max_idx+1]
+    U = function_logger.X[0:U_max_idx+1].copy()
+    Y = function_logger.Y[0:U_max_idx+1].copy()
 
     if function_logger.noise_flag:
         S = function_logger.S[0:U_max_idx+1]

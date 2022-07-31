@@ -5,11 +5,11 @@ from pybads.function_examples import ackley_fcn, rastrigin
 
 lb = np.array([[-32, -32]])     # Lower bounds
 ub = np.array([[32, 32]])       # Upper bounds
-np.random.seed(7)
-x0 = np.random.uniform(low=lb+1, high=ub)
+np.random.seed(6)
 #plb = lb.copy() if plb is None else lb 
 #pub = ub.copy() if pub is None else pub
-x0 = np.array([[-27.11626948006674, 17.914802703367336]])
+x0 = np.array([[ 25.14304969, -10.75329246]])
+
 title = 'Basic usage'
 print("\n *** Example 1: " + title)
 print("\t Simple usage of BADS on Ackley's function in 2D.")

@@ -7,7 +7,8 @@ lb = np.array([[-20, -20]])     # Lower bounds
 ub = np.array([[20, 20]])       # Upper bounds
 plb = np.ones((1, 2)) * -5.12
 pub = np.ones((1, 2)) * 5.12
-x0 = np.random.uniform(low=lb+1, high=ub)
+#x0 = np.random.uniform(low=lb+1, high=ub)
+x0 = np.array([[-4.3386, 2.8664]])
 
 title = 'Basic usage'
 print("\n *** Example 1: " + title)

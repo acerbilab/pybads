@@ -805,7 +805,7 @@ class BADS:
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(4, self.options['ninit']),
+            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']),
                                             self.options['maxfunevals'])
 
         # set up strings for logging of the iteration
@@ -833,7 +833,7 @@ class BADS:
                     self.function_logger(u1[u_idx])
                 
                 idx_yval = np.argmin(self.function_logger.Y[:self.function_logger.Xn+1])
-                self.u = self.function_logger.X[idx_yval]
+                self.u = self.function_logger.X[idx_yval].copy()
                 self.yval = self.function_logger.Y[idx_yval].item()
                 self.fval = self.yval
                 self.logging_action.append('Initial points')
@@ -1066,7 +1066,7 @@ class BADS:
             # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
                 and poll_iteration > 0:
-                self._re_evaluate_history_(poll_iteration)
+                self._re_evaluate_history_(poll_iteration, gp)
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
@@ -1112,7 +1112,7 @@ class BADS:
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
-            self._re_evaluate_history_(poll_iteration)
+            self._re_evaluate_history_(poll_iteration, gp)
 
             # Order by lowest probabilistic upper bound and choose best iterate
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
@@ -1660,16 +1660,16 @@ class BADS:
     def is_gp_refit_time(self, alpha):
         # Check calibration of Gaussian process prediction
         
-        if self.function_logger.func_count < self.options['maxiter'] / self.D:
+        if self.function_logger.func_count < 200:
             refit_period = np.maximum(10, self.D * 2)
         else:
             refit_period = self.D * 5
         
-        gp_iter_idx = self.gp_stats.get('gp_iter')
+        gp_iter_idx = self.gp_stats.get('iter_gp')
 
         do_gp_calibration = False
         # empty stats
-        if gp_iter_idx is None or len(gp_iter_idx) == 0 or gp_iter_idx == 0:
+        if gp_iter_idx is None or len(gp_iter_idx) == 0 or gp_iter_idx[-1] == 0:
             if gp_iter_idx is None:
                 gp_iter_idx = 0
             do_gp_calibration = True
@@ -1678,8 +1678,11 @@ class BADS:
         
         # if stats data is available check z_score
         if not do_gp_calibration:
-            zscore = self.gp_stats.get('fval')[:gp_iter_idx+1] - self.gp_stats.get('ymu')[:gp_iter_idx+1]
-            zscore = zscore / (self.gp_stats.get('ys')[:gp_iter_idx+1])
+            fvals = self.gp_stats.get('fval')[:gp_iter_idx+1].flatten().astype('float')
+            yvals = self.gp_stats.get('ymu')[:gp_iter_idx+1].flatten().astype('float')
+            zscore = fvals - yvals
+            gp_ys = self.gp_stats.get('ys')[:gp_iter_idx+1].flatten().astype('float')
+            zscore = zscore / gp_ys
 
             if np.any(np.isnan(zscore)):
                 do_gp_calibration = True
@@ -1806,22 +1809,21 @@ class BADS:
         return search_stats
 
     
-    def _re_evaluate_history_(self, iter):
-        
+    def _re_evaluate_history_(self, iter, gp:GP):
+        tmp_gp = copy.deepcopy(gp)
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             for i in range(iter):
-                gp = self.iteration_history.get('gp')[i]
+                gp_hyp = self.iteration_history.get('gp_hyp_full')[i]
+                tmp_gp.set_hyperparameters(gp_hyp)
                 u = self.iteration_history.get('u')[i]
-                gp, _ = local_gp_fitting(gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
-                fval, fsd = gp.predict(np.atleast_2d(u))
+                tmp_gp, _ = local_gp_fitting(tmp_gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
+                fval, fsd = tmp_gp.predict(np.atleast_2d(u))
                 fval = fval.item()
                 fsd = np.sqrt(fsd).item()
                 
                 self.iteration_history.record('fval', fval, i)
                 self.iteration_history.record('fsd', fsd, i)
-                self.iteration_history.record('gp', gp, i)
-                self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), i)
 
             self.optim_state['last_re_eval'] = self.function_logger.func_count
 
