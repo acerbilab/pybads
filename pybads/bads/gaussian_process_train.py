@@ -163,7 +163,16 @@ def train_gp(
     ):
         hyp0 = hyp_dict["hyp_vp"]
 
-    _, _, res = gp.fit(x_train, y_train, s2_train, hyp0=hyp0, options=gp_train)
+    try:
+        _, _, res = gp.fit(x_train, y_train, s2_train, hyp0=hyp0, options=gp_train)
+    except np.linalg.LinAlgError:
+        # In case the initial hyperparameters fails
+        new_hyp = get_random_samples_from_priors(gp)
+        _, _, res = gp.fit(x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train)
+        hyp0 = new_hyp
+        hyp_dict["hyp"] = hyp0
+
+
 
     if res is not None:
         # Pre-thinning GP hyperparameters
