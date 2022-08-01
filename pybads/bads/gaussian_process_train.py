@@ -1,5 +1,6 @@
 from asyncio.log import logger
 from copy import deepcopy
+import logging
 import math
 from turtle import width
 import traceback
@@ -163,35 +164,33 @@ def train_gp(
     ):
         hyp0 = hyp_dict["hyp_vp"]
 
-    try:
-        _, _, res = gp.fit(x_train, y_train, s2_train, hyp0=hyp0, options=gp_train)
-    except np.linalg.LinAlgError:
-        # In case the initial hyperparameters fails
-        new_hyp = get_random_samples_from_priors(gp)
-        _, _, res = gp.fit(x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train)
-        hyp0 = new_hyp
-        hyp_dict["hyp"] = hyp0
-
-
-
-    if res is not None:
-        # Pre-thinning GP hyperparameters
-        hyp_dict["full"] = res["samples"]
-        hyp_dict["logp"] = res["log_priors"]
-
-        # Missing port: currently not used since we do
-        # not support samplers other than slice sampling.
-        # if isfield(gpoutput,'hyp_vp')
-        #     hypstruct.hyp_vp = gpoutput.hyp_vp;
-        # end
-
-        # if isfield(gpoutput,'stepsize')
-        #     optimState.gpmala_stepsize = gpoutput.stepsize;
-        #     gpoutput.stepsize
-        # end
-
-    # TODO: think about the purpose of this line elsewhere in the program.
-    # gp.t = t_train
+    fitted = False
+    training_failures = 0
+    while not fitted:
+        try:
+            if training_failures == 0:
+                _, _, _ = gp.fit(x_train, y_train, s2_train, hyp0=hyp0, options=gp_train)
+                fitted = True
+            elif training_failures == 3:
+                #All zero initilization like BADS after the second failure
+                new_hyp = np.zeros(shape=hyp0.shape)
+                _, _, _ = gp.fit(x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train)
+                hyp0 = new_hyp
+                hyp_dict["hyp"] = hyp0
+                fitted = True
+            else:
+                # Sample random from prior
+                # In case the initial hyperparameters fails
+                new_hyp = get_random_samples_from_priors(gp)
+                _, _, _ = gp.fit(x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train)
+                hyp0 = new_hyp
+                hyp_dict["hyp"] = hyp0
+                fitted = True
+            
+        except np.linalg.LinAlgError:
+            training_failures+=1
+            logger.warning(f'bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init.')
+    # end gp hyp. init
 
     # Update running average of GP hyperparameter covariance (coarse)
     if hyp_dict["full"] is not None and hyp_dict["full"].shape[1] > 1:
