@@ -1066,7 +1066,7 @@ class BADS:
             # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
                 and poll_iteration > 0:
-                self._re_evaluate_history_(poll_iteration, gp)
+                self._re_evaluate_history_(gp)
                 self.yval = self.iteration_history.get('yval')[poll_iteration]
                 self.fval = self.iteration_history.get('fval')[poll_iteration]
                 self.fsd = self.iteration_history.get('fsd')[poll_iteration]
@@ -1112,7 +1112,7 @@ class BADS:
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
-            self._re_evaluate_history_(poll_iteration, gp)
+            self._re_evaluate_history_(gp)
 
             # Order by lowest probabilistic upper bound and choose best iterate
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
@@ -1809,7 +1809,7 @@ class BADS:
         return search_stats
 
     
-    def _re_evaluate_history_(self, iter, gp:GP):
+    def _re_evaluate_history_(self, gp:GP):
         tmp_gp = copy.deepcopy(gp)
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
             # Re-evaluate gp outputs
