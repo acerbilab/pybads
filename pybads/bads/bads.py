@@ -1813,10 +1813,11 @@ class BADS:
         tmp_gp = copy.deepcopy(gp)
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
             # Re-evaluate gp outputs
-            for i in range(iter):
+            u_history = self.iteration_history.get('u')
+            for i in range(u_history.shape[0]):
                 gp_hyp = self.iteration_history.get('gp_hyp_full')[i]
                 tmp_gp.set_hyperparameters(gp_hyp)
-                u = self.iteration_history.get('u')[i]
+                u = u_history[i]
                 tmp_gp, _ = local_gp_fitting(tmp_gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 fval, fsd = tmp_gp.predict(np.atleast_2d(u))
                 fval = fval.item()
