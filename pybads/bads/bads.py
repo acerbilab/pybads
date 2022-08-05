@@ -1051,8 +1051,8 @@ class BADS:
             
             # Store best points at the end of each iteration, or upon termination
             if do_poll_step or is_finished:
-                self.iteration_history.record('u', self.u, poll_iteration)
-                self.iteration_history.record('x', self.var_transf.inverse_transf(self.u), poll_iteration)
+                self.iteration_history.record('u', self.u.flatten(), poll_iteration)
+                self.iteration_history.record('x', self.var_transf.inverse_transf(self.u.flatten()), poll_iteration)
                 self.iteration_history.record('yval', float(self.yval), poll_iteration)
                 self.iteration_history.record('fval', self.fval, poll_iteration)
                 self.iteration_history.record('fsd', self.fsd, poll_iteration)
