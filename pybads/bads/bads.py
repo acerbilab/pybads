@@ -934,7 +934,6 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
-        #self.gp_best = copy.deepcopy(gp)
         self.search_es_hedge = None # init search hedge to None
 
         if self.options['outputfcn'] is not None:
@@ -1810,13 +1809,12 @@ class BADS:
 
     
     def _re_evaluate_history_(self, gp:GP):
-        tmp_gp = copy.deepcopy(gp)
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             u_history = self.iteration_history.get('u')
+            gps = self.iteration_history.get('gp')
             for i in range(u_history.shape[0]):
-                gp_hyp = self.iteration_history.get('gp_hyp_full')[i]
-                tmp_gp.set_hyperparameters(gp_hyp)
+                tmp_gp = gps[i]
                 u = u_history[i]
                 tmp_gp, _ = local_gp_fitting(tmp_gp, u, self.function_logger, self.options, self.optim_state, self.iteration_history, False)
                 fval, fsd = tmp_gp.predict(np.atleast_2d(u))
