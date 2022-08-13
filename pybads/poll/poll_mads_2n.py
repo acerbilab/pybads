@@ -5,7 +5,10 @@ from gpyreg.gaussian_process import GP
 
 
 def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size):
-    
+    """
+    POLLMADS2N Poll 2N random basis vectors (mesh-adaptive direct search).
+
+    """    
     n_max = np.maximum(1, np.round(search_mesh_size / mesh_size))
 
     if n_max > 0:

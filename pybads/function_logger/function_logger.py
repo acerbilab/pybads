@@ -149,7 +149,7 @@ class FunctionLogger:
 
         # Check returned function SD
         if self.noise_flag and (
-            not np.isscalar(fsd) or not np.isfinite(fsd) or not np.isreal(fsd)
+            not np.isfinite(fsd) or not np.isreal(fsd)
         ):
             error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)

@@ -246,6 +246,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         noise_size = options['noisesize']
     
     # Update GP Noise
+    old_priors = gp.get_priors()
     gp_priors = gp.get_priors()
     prior_noise = gp_priors['noise_log_scale'] 
     mu_noise_prior = np.log(noise_size) + options['meshnoisemultiplier'] * np.log(optim_state['mesh_size'])
@@ -396,8 +397,11 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     try:
         gp.update(hyp=hyp_gp)
     except np.linalg.LinAlgError:
-        #Posterior update failed (due to Cholesky decomposition)
+        #Posterior GP update failed (due to Cholesky decomposition)
+        logging.warning('bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition')
+        gp.set_priors(old_priors)
         gp.set_hyperparameters(old_hyp_gp)
+        #gp.set_hyperparameters(iteration_history.get('gp_hyp_full')[-1])
         exit_flag = -2
 
     return gp, exit_flag
@@ -453,6 +457,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                 break
             except np.linalg.LinAlgError:
                 #handle
+                logging.warning('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
                 success_flag[i_try] = False
                 if i_try > options['removepointsaftertries'] -1:
                     idx_drop_out = np.zeros(len(Y)).astype(bool)

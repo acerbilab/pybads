@@ -884,7 +884,7 @@ class BADS:
             if self.options['noisesize'] is None:
                 self.options['noisesize'] = np.sqrt(self.options['tolfun'])
             self.fsd = 0.0
-            #TODO: Ask Since the function is fully-deterministic no need of stobads
+            #Since the function is fully-deterministic no need of stobads
             if self.options['stobads']:
                 self.options['stobads'] = False
         
@@ -1521,7 +1521,6 @@ class BADS:
 
             poll_improvement = self.eval_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
 
-            
             # Check if current point improves over best polled point so far
             if poll_improvement > poll_best_improvement:
                 u_poll_best = u_new.copy()
