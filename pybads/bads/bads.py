@@ -1280,7 +1280,7 @@ class BADS:
         
         fval_old = self.fval
 
-        #TODO: StoBads
+        # StoBads
         # Evaluate search
         if not self.options['stobads']:
             search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
@@ -1291,10 +1291,14 @@ class BADS:
                 and self.options['sloppyimprovement'] or is_search_success)
             
         else:
-            # StoBads, a success implies an improvement for StoBads
+            # For StoBads an improvement corresponds to a success
             sto_success = self.sto_success_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size, self.gamma_uncertain_interval)
-            is_search_improved = sto_success == 1
-            is_search_success = is_search_improved
+            if self.options['opp_stobads']:
+                is_search_improved  = sto_success > -1
+                is_search_success = sto_success == 1
+            else:
+                is_search_improved = sto_success == 1
+                is_search_success = is_search_improved
 
         # A search improvement implies an update of the incumbent
         if is_search_improved:
@@ -1304,7 +1308,7 @@ class BADS:
             else:
                 method = self.search_es_hedge.chosen_search_fun
             
-            #TODO: StoBads or sufficient improvement
+            # StoBads or sufficient improvement
             if is_search_success:
                 self.search_success += 1
                 search_string = f'Successful search ({method})'
@@ -1372,7 +1376,11 @@ class BADS:
         else:
             gamma = gamma_uncertain_interval # gamma = norminv(0.975)
 
-        ub_uncertain_interval = gamma * epsilon * frame_size**2
+        if self.options['stobads_scaling']:
+            ub_uncertain_interval = gamma * epsilon * frame_size**2
+        else:    
+            ub_uncertain_interval = gamma * epsilon
+            
         if mu >= ub_uncertain_interval:
             # Successful
             return 1
@@ -1554,7 +1562,10 @@ class BADS:
                 is_poll_moved = False
         else:
             #TODO: StoBads
-            if certain_good_poll:
+            if self.options['opp_stobads'] and sto_success > -1:
+                self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
+                is_poll_moved = True
+            elif certain_good_poll:
                 # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
                 self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
                 is_poll_moved = True
@@ -1580,23 +1591,23 @@ class BADS:
             self.mesh_size_integer -= 1
         
             # Accelerated mesh reduction if certain unsucessfull or  stalling
-            if self.options['stobads'] and sto_success < 0:
+            #if self.options['stobads'] and sto_success < 0:
                 # certain unsucessfull poll
-                    self.mesh_size_integer -= 1
-            else:
+            #        self.mesh_size_integer -= 1
+            #else:
                 # Check stalling
-                iter = self.optim_state['iter']
-                if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
-                    f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
-                    f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
-                    u_base = self.iteration_history.get('u')[iter - self.options['acceleratemeshsteps']]
-                    self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
-                                                                            f_sd_base, self.fsd,
-                                                                            self.options['improvementquantile'])
-                    if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
-                        
-                        self.mesh_size_integer -= 1
-                        logger.warn("bads: The optimization is stalling, decreasing further the mesh size")
+            iter = self.optim_state['iter']
+            if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
+                f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
+                u_base = self.iteration_history.get('u')[iter - self.options['acceleratemeshsteps']]
+                self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
+                                                                        f_sd_base, self.fsd,
+                                                                        self.options['improvementquantile'])
+                if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
+                    
+                    self.mesh_size_integer -= 1
+                    logger.warn("bads: The optimization is stalling, decreasing further the mesh size")
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
