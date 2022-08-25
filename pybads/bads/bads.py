@@ -993,7 +993,6 @@ class BADS:
                         
                         self.mesh_size_integer = np.minimum(self.mesh_size_integer + self.options['searchmeshincrement'],
                                                     self.options['maxpollgridnumber'])
-                        # TODO: shouldn't we update also the search_size_integer and the search_mesh_size
                 else:
                     do_poll_step = True
                     self.search_spree = 0
@@ -1010,14 +1009,14 @@ class BADS:
 
             # Finalize the iteration
             
-            #TODO: Scatter plot of iteration
+            #TODO: Iteration plot
             if self.options['plot'] == 'scatter':
                 pass
 
             # GP hyperparameters at end of iteration
             self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
 
-            # TODO: remove 
+            
             msg = ''
             # Check termination conditions
             if self.function_logger.func_count >= self.options['maxfunevals']:
@@ -1375,11 +1374,8 @@ class BADS:
             gamma = 1.96 # gamma = norminv(0.975)
         else:
             gamma = gamma_uncertain_interval # gamma = norminv(0.975)
-
-        if self.options['stobads_scaling']:
-            ub_uncertain_interval = gamma * epsilon * frame_size**2
-        else:    
-            ub_uncertain_interval = gamma * epsilon
+        
+        ub_uncertain_interval = gamma * epsilon * frame_size**(self.options['stobads_frame_size_scaling_power'])
             
         if mu >= ub_uncertain_interval:
             # Successful
@@ -1561,7 +1557,7 @@ class BADS:
             else:
                 is_poll_moved = False
         else:
-            #TODO: StoBads
+            # StoBads
             if self.options['opp_stobads'] and sto_success > -1:
                 self._update_incumbent_(u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best)
                 is_poll_moved = True
@@ -1639,7 +1635,7 @@ class BADS:
 
         self._display_function_log_(self.optim_state['iter'], poll_string)   
 
-        #TODO: if self.output_function is not None
+        #TODO: if self.output_function is not None -> Implemente output function for saving the result in a file.
         
         self.reset_gp = is_poll_moved
 

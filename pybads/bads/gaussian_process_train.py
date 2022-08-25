@@ -218,7 +218,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     gp.X, gp.y, s2 = get_grid_search_neighbors(function_logger, current_point, gp, options, optim_state)
     D = gp.X.shape[1]
     if s2 is not None:
-        gp.s2 = s2                    
+        gp.s2 = s2
 
     # TODO: Transformation of objective function
     if options['fitnessshaping']:
