@@ -1923,7 +1923,7 @@ class BADS:
             self.logger.info(self.display_format.format(
                                 iteration,
                                 self.function_logger.func_count,
-                                self.fval,
+                                float(self.fval),
                                 self.optim_state["mesh_size"],
                                 method,
                                 "".join(self.logging_action[-1]),))

@@ -1,13 +1,18 @@
 import json
+from pathlib import Path
 
 import numpy as np
 from pybads.utils.iteration_history import IterationHistory
 from collections import namedtuple
 
-class BADSDump:
+class BADSDump:        
 
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, file_name, dir_path=None):
+        if dir_path is None:
+            dir_path = "./dumps/"
+
+        Path(dir_path).mkdir(exist_ok=True)
+        self.file_path = dir_path + file_name
 
     def set_attributes(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history:IterationHistory,
                  x_true_global_min):
