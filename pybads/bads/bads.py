@@ -46,15 +46,14 @@ class BADS:
     Parameters
     ----------
     fun : callable
-        A given target log posterior `fun`. `fun` accepts input `x` and returns 
-        the value of the target log-joint, that is the unnormalized 
-        log-posterior density, at `x`.
+        A given target `fun`. `fun` accepts input `x` and returns 
+        the value of the target and the noise if provided.
     x0 : np.ndarray, optional
         Starting point.
     lower_bounds, upper_bounds : np.ndarray, optional
         `lower_bounds` (`LB`) and `upper_bounds` (`UB`) define a set
         of strict lower and upper bounds for the coordinate vector, `x`, so 
-        that the posterior has support on `LB` < `x` < `UB`.
+        that the unknown function has support on `LB` < `x` < `UB`.
         If scalars, the bound is replicated in each dimension. Use
         ``None`` for `LB` and `UB` if no bounds exist. Set `LB` [`i`] = -``inf``
         and `UB` [`i`] = ``inf`` if the `i`-th coordinate is unbounded (while 
@@ -68,7 +67,7 @@ class BADS:
         "plausible" range, which should denote a region of the global minimum.
 
     nonbondcons: callable
-        A given nNon-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
 
     user_options : dict, optional
         Additional options can be passed as a dict. Please refer to the
@@ -91,7 +90,6 @@ class BADS:
             In Advances in Neural Information Processing Systems 30, pages 1834-1844.
             (arXiv preprint: https://arxiv.org/abs/1705.04405).
 
-    Examples
     --------
     """
 
@@ -246,7 +244,7 @@ class BADS:
         nonbondcons: callable = None
     ):
         """
-        Private function to do the initial check of the BADS bounds.
+        Private function for initial checks of the BADS bounds.
         """
 
         N0, D = x0.shape
@@ -477,8 +475,7 @@ class BADS:
 
     def _init_optim_state(self):
         """
-        A private function to init the optim_state dict that contains
-        information about BADS variables.
+        A private function to init the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates)
         y_orig = np.array(self.options.get("fvals")).flatten()
@@ -762,6 +759,11 @@ class BADS:
         return optim_state
 
     def _init_mesh_(self):
+        """
+        A private function to init the mesh frame and the optimization problem. 
+        It evaluates the initial points, which includes the starting point and the generated point retrieved from a sobol sequence generating method.
+        The init_mesh also assess if the target function is stochastic and set the parameter of BADS for handling stochastic targets.
+        """
         # Evaluate starting point and initial mesh, determine if function is noisy
         self.yval, self.fsd, _ = self.function_logger(self.u)
         if self.fsd is None:
@@ -850,6 +852,10 @@ class BADS:
         return
 
     def _init_optimization_(self):
+        """
+        A private function to init the optimization problem.
+        It calls the init_mesh, sets the option configurations required by BADS, and initializes the Guassian Process (GP)
+        """
         gp = None
         self.reset_gp = False
         hyp_dict = {}
@@ -911,7 +917,7 @@ class BADS:
     
     def optimize(self):
         """
-        Run inference on an initialized ``BADS`` object. 
+        Run inference on an initialized ``PyBADS`` object. 
 
         Parameters
         ----------
@@ -1176,6 +1182,22 @@ class BADS:
     
     
     def _search_step_(self, gp: GP):
+        """
+        A private method that performs the search strategy.
+
+        Parameters
+        ----------
+        gp : gpyreg.gaussian_process.GP
+
+        Returns
+        ----------
+        u_search : np.ndarray
+            candidate search point
+        search_dist : 
+        f_mu_search : float
+        f_sd_search : float
+        gp : gpyreg.gaussian_process.GP
+        """
         # Check whether it is time to refit the GP
         refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
 
