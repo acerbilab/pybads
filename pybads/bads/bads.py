@@ -500,7 +500,7 @@ class BADS:
         )
 
         # Grid parameters
-        self.mesh_size_integer = 0 # Mesh size in log base units
+        self.mesh_size_integer = self.options['init_mesh_size_integer'] # Mesh size in log base units
         optim_state['search_size_integer'] = np.minimum(0, self.mesh_size_integer * self.options.get("searchgridmultiplier") - self.options.get("searchgridnumber"))
         optim_state["mesh_size"] =  float(self.options.get("pollmeshmultiplier"))**self.mesh_size_integer
         self.mesh_size = optim_state["mesh_size"]
