@@ -27,7 +27,7 @@ bads_dump = BADSDump("stobads_noise")
 bads_dump.to_JSON(bads.x, bads.u, bads.fval, bads.fsd, bads.iteration_history,
             x_global_min)
 
-extra_noise = False
+extra_noise = True
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)

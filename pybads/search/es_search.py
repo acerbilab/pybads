@@ -13,7 +13,7 @@ from pybads.function_logger.function_logger import FunctionLogger
 
 from pybads.search.grid_functions import force_to_grid
 
-class SearchES(ABC):
+class ESSearch(ABC):
 
     def __init__(self, mu, lamb, options_dict):
         self.mu = mu
@@ -147,7 +147,7 @@ class SearchES(ABC):
         return us[0], z[0]
 
 
-class SearchESWM(SearchES):
+class ESSearchWM(ESSearch):
 
     def __init__(self, mu, lamb, options_dict):
         super().__init__(mu, lamb, options_dict)
@@ -198,7 +198,7 @@ class SearchESWM(SearchES):
         return optim_state["mesh_size"]
 
 
-class SearchESCMA(SearchESWM):
+class ESSearchCMA(ESSearchWM):
     def __init__(self, mu, lamb, options_dict):
         super().__init__(mu, lamb, options_dict)
         self.active_flag = True
@@ -208,7 +208,7 @@ class SearchESCMA(SearchESWM):
         return optim_state['search_mesh_size']
 
 
-class SearchESELL(SearchES):
+class ESSearchELL(ESSearch):
 
     def _initialize_(self, u, gp:GP, optim_state, sum_rule):
         rescaled_len_scale = gp.temporary_data['poll_scale']

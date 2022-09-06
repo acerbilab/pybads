@@ -18,7 +18,7 @@ from pybads import function_logger
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.poll.poll_mads_2n import poll_mads_2n
 
-from pybads.search.search_hedge import SearchESHedge
+from pybads.search.search_hedge import ESSearchHedge
 
 from pybads.function_logger import FunctionLogger
 from pybads.init_functions.init_sobol import init_sobol
@@ -40,14 +40,14 @@ class BADS:
        min F(X)  subject to:  LB <= X <= UB
         X                        C(X) <= 0        (optional)
 
-    Initialize a ``BADS`` object to set up the optimization problem, then run
-    ``optimize()``. See the examples for more details.
+    Initialize a ``PyBADS`` object to set up the optimization problem, then run
+    ``optimize()``. See the examples for more details under the `examples` directory.
 
     Parameters
     ----------
     fun : callable
-        A given target `fun`. `fun` accepts input `x` and returns 
-        the value of the target and the noise if provided.
+        A given target `fun`. `fun` accepts input `x` and returns a scalar function
+        value of the target evaluated at 'x' and the noise if provided.
     x0 : np.ndarray, optional
         Starting point.
     lower_bounds, upper_bounds : np.ndarray, optional
@@ -65,14 +65,26 @@ class BADS:
         `plausible_upper_bounds` (`PUB`) such that `LB` < `PLB` < `PUB` < `UB`.
         Both `PLB` and `PUB` need to be finite. `PLB` and `PUB` represent a
         "plausible" range, which should denote a region of the global minimum.
+        As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that 
+        there is > 90% probability that the minimum is found within the box 
+        (where in doubt, just set PLB=LB and PUB=UB).
 
     nonbondcons: callable
         A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
 
     user_options : dict, optional
         Additional options can be passed as a dict. Please refer to the
-        BDAS options page for the default options. If no `user_options` are 
+        BADS options page for the default options. If no `user_options` are 
         passed, the default options are used.
+        To run BADS on a noisy (stochastic) objective function, set: 
+            * user_options.uncertaintyhandling = true
+            * user_options.noisesize = SIGMA
+                **  SIGMA is an estimate of the SD of the noise in your problem in
+                    a good region of the parameter space. (If not specified, default 
+                    SIGMA = 1). To help BADS work better, it is recommended that you
+                    provide to BADS an estimate of the noise at each location.
+        If user_options.UncertaintyHandling is not specified, BADS will determine at
+        runtime if the objective function is noisy.
 
     Raises
     ------
@@ -200,7 +212,7 @@ class BADS:
                 raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
             
 
-        self.optim_state = self._init_optim_state()
+        self.optim_state = self._init_optim_state_()
 
         # create and init the function logger
         self.function_logger = FunctionLogger(
@@ -473,9 +485,9 @@ class BADS:
             plausible_upper_bounds,
         )
 
-    def _init_optim_state(self):
+    def _init_optim_state_(self):
         """
-        A private function to init the optim_state dict that contains information about BADS variables.
+        A private function to initialize the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates)
         y_orig = np.array(self.options.get("fvals")).flatten()
@@ -760,7 +772,7 @@ class BADS:
 
     def _init_mesh_(self):
         """
-        A private function to init the mesh frame and the optimization problem. 
+        A private function to initialize the mesh frame and the optimization problem. 
         It evaluates the initial points, which includes the starting point and the generated point retrieved from a sobol sequence generating method.
         The init_mesh also assess if the target function is stochastic and set the parameter of BADS for handling stochastic targets.
         """
@@ -853,7 +865,7 @@ class BADS:
 
     def _init_optimization_(self):
         """
-        A private function to init the optimization problem.
+        A private function initialize the optimization problem.
         It calls the init_mesh, sets the option configurations required by BADS, and initializes the Guassian Process (GP)
         """
         gp = None
@@ -912,20 +924,35 @@ class BADS:
         self.gp_stats = IterationHistory(["iter_gp","fval","ymu","ys","gp",])
         self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
         
-        return gp, Ns_gp, sn2hpd, hyp_dict, 
+        return gp, Ns_gp, sn2hpd, hyp_dict,
+    
 
+    def get_iteration_history(self):
+        """
+        ----------
+            Returns
+            iteration_history: pybads.utils.IterationHistory
+                It returns an object that that holds the history information of the optimization problem. 
+                It stores information of each iteration based informaton, like the trajectories, incumbents, iteration mesh size, GPs etc...
+        """
+        return self.iteration_history
     
     def optimize(self):
         """
-        Run inference on an initialized ``PyBADS`` object. 
+        Run the optimization on an initialized ``PyBADS`` object.
+        BADS starts at X0 and finds a local minimum X of the 
+        target function 'fun'.
+        
+        A history of the optimization problem can be found in the self.iteration_history variable of the ``PyBADS`` object, see get_iteration_history() method.
 
-        Parameters
-        ----------
+        See some given examples in the `examples` directory.
 
         Returns
         ----------
-            x: solution point of the objective function self.fun
-            fval: function value at the minimum point x
+            x: np.array
+                Solution point of the objective function self.fun
+            fval: float
+                Function value at the minimum point x
         """
         is_finished = False
         poll_iteration = -1
@@ -1021,7 +1048,6 @@ class BADS:
 
             # GP hyperparameters at end of iteration
             self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
-
             
             msg = ''
             # Check termination conditions
@@ -1045,7 +1071,7 @@ class BADS:
                 idx = poll_iteration - self.options['tolstalliters']
                 f_base = self.iteration_history.get('fval')[idx]
                 f_sd_base = self.iteration_history.get('fsd')[idx]
-                self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
+                self.f_q_historic_improvement = self._eval_improvement_(f_base, self.fval,
                                         f_sd_base, self.fsd, self.options['improvementquantile'])
                 
                 if self.f_q_historic_improvement < self.options['tolfun']:
@@ -1077,7 +1103,7 @@ class BADS:
                 self.best_gp_hyp = self.iteration_history.get('gp_hyp_full')[poll_iteration]
                 gp = self.iteration_history.get('gp')[poll_iteration]
 
-                f_q_re_impr = self.eval_improvement(self.fval, self.iteration_history.get('fval').astype('float'),
+                f_q_re_impr = self._eval_improvement_(self.fval, self.iteration_history.get('fval').astype('float'),
                                                     self.fsd, self.iteration_history.get('fsd').astype('float'),
                                                     self.options['improvementquantile'])
                 f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
@@ -1090,7 +1116,6 @@ class BADS:
                 # Check if any point got better
                 if improvement > self.options['tolfun']:
                     self.yval = self.iteration_history.get('yval')[idx_impr]
-                    #self._find_bump_(float(self.iteration_history.get('fval')[idx_impr]))
                     self.fval = self.iteration_history.get('fval')[idx_impr]
                     self.fsd = self.iteration_history.get('fsd')[idx_impr]
                     self.u = self.iteration_history.get('u')[idx_impr]
@@ -1126,7 +1151,6 @@ class BADS:
 
             # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
-            #self._find_bump_(self.iteration_history.get('fval')[min_q_beta_idx])
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
             self.u = self.iteration_history.get('u')[min_q_beta_idx]
@@ -1148,7 +1172,6 @@ class BADS:
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 
-                #self._find_bump_(np.mean(yval_vec).item())
                 self.fval = np.mean(yval_vec).item()
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
                 self.iteration_history.record('fval', self.fval, poll_iteration)
@@ -1183,7 +1206,8 @@ class BADS:
     
     def _search_step_(self, gp: GP):
         """
-        A private method that performs the search strategy.
+        A private method that performs the search method using hedging search of Evolotion Strategy (ES) searches.
+        It also evaluates the performance of the search (success, unsuccess)
 
         Parameters
         ----------
@@ -1192,14 +1216,17 @@ class BADS:
         Returns
         ----------
         u_search : np.ndarray
-            candidate search point
-        search_dist : 
+            Candidate search point.
+        search_dist : np.ndarray
+            Distance of the search point from thecurrent point.
         f_mu_search : float
+            Estimated mean function at the candidate search point.
         f_sd_search : float
+            Estimated noise at the candidate search point.
         gp : gpyreg.gaussian_process.GP
         """
         # Check whether it is time to refit the GP
-        refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
+        refit_flag, do_gp_calibration = self._is_gp_refit_time_(self.options['normalphalevel'])
 
         if refit_flag or self.optim_state['search_count'] == 0 or self.reset_gp:
             # Local GP approximation on current incumbent
@@ -1220,7 +1247,7 @@ class BADS:
         self.optim_state['search_count'] += 1
         
         if self.search_es_hedge is None:
-            self.search_es_hedge = SearchESHedge(self.options['searchmethod'], self.options, self.nonbondcons)
+            self.search_es_hedge = ESSearchHedge(self.options['searchmethod'], self.options, self.nonbondcons)
         u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
@@ -1304,7 +1331,7 @@ class BADS:
         # StoBads
         # Evaluate search
         if not self.options['stobads']:
-            search_improvement = self.eval_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
+            search_improvement = self._eval_improvement_(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
 
             # Declare if search was success or not
             is_search_success = search_improvement > self.optim_state['search_sufficient_improvement']
@@ -1313,7 +1340,7 @@ class BADS:
             
         else:
             # For StoBads an improvement corresponds to a success
-            sto_success = self.sto_success_improvement(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size, self.gamma_uncertain_interval)
+            sto_success = self._sto_success_improvement_(self.fval, f_mu_search, self.fsd, f_sd_search, self.mesh_size, self.gamma_uncertain_interval)
             if self.options['opp_stobads']:
                 is_search_improved  = sto_success > -1
                 is_search_success = sto_success == 1
@@ -1368,10 +1395,14 @@ class BADS:
 
         return u_search, search_dist, f_mu_search, f_sd_search, gp
     
-    def eval_improvement(self, f_base, f_new, s_base, s_new, q):
+    def _eval_improvement_(self, f_base, f_new, s_base, s_new, q):
         """
-            Evaluate optimization improvement. Returns the improvement of FNEW over 
-            FBASE for a minimization problem (larger improvements are better).
+            A private method that compute the optimization improvement.
+            
+            Returns
+            ----------
+            z : np.array
+                It is the improvement of f_new over f_base for a minimization problem (larger improvements are better).
         """
         if s_base is None or s_new is None:
             z = f_base - f_new
@@ -1384,11 +1415,20 @@ class BADS:
             z = z.flatten()
 
         return z
-    
 
-    def sto_success_improvement(self, f_base, f_new, s_base, s_new, frame_size, gamma_uncertain_interval=None):
+    def _sto_success_improvement_(self, f_base, f_new, s_base, s_new, frame_size, gamma_uncertain_interval=None):
         """
-            Return
+            A private method that evaluate if an improvement using the uncertain interval method proposed in Sto-MADS [1].
+        Returns    
+        ----------
+            int : Return a flag integer value
+                1   : sucessuful improvement
+                0   : uncertain unsuccessful incumbent
+                -1  : certain unsuccessful incumbent
+                
+        References
+        ----------
+        [1] Audet, Charles, Kwassi Joseph Dzahini, Michael Kokkolaras, and Sébastien Le Digabel. ‘Stochastic Mesh Adaptive Direct Search for Blackbox Optimization Using Probabilistic Estimates’. Computational Optimization and Applications 79, no. 1 (May 2021): 1–34. https://doi.org/10.1007/s10589-020-00249-0.
         """
         epsilon = np.sqrt(s_base**2 + s_new**2)
         mu = f_base - f_new
@@ -1411,6 +1451,11 @@ class BADS:
 
     
     def _poll_step_(self, gp:GP):
+        """
+            A private method that performs poll step using LT-MADS poll direction method.
+            It also evaluates and update the incumbent and the poll configuration according to the found improvement.
+        """
+        
         poll_best_improvement = 0
         u_poll_best = self.u.copy()
         y_poll_best = self.yval
@@ -1464,7 +1509,7 @@ class BADS:
                 break
 
             #Check whether it is time to refit the GP
-            refit_flag, do_gp_calibration = self.is_gp_refit_time(self.options['normalphalevel'])
+            refit_flag, do_gp_calibration = self._is_gp_refit_time_(self.options['normalphalevel'])
 
             if not self.options['polltraining']  and self.optim_state["iter"] > 0:
                 refit_flag  = False
@@ -1545,7 +1590,7 @@ class BADS:
                 f_poll = y_poll
                 f_sd_poll = 0
 
-            poll_improvement = self.eval_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
+            poll_improvement = self._eval_improvement_(self.fval, f_poll, self.fsd, f_sd_poll, self.options['improvementquantile'])
 
             # Check if current point improves over best polled point so far
             if poll_improvement > poll_best_improvement:
@@ -1561,7 +1606,7 @@ class BADS:
 
             # StoBads
             if self.options['stobads']:
-                sto_success = self.sto_success_improvement(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size, self.gamma_uncertain_interval)
+                sto_success = self._sto_success_improvement_(self.fval, f_poll, self.fsd, f_sd_poll, self.mesh_size, self.gamma_uncertain_interval)
                 certain_good_poll = sto_success == 1
 
             # Increase poll counter
@@ -1619,7 +1664,7 @@ class BADS:
                 f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
                 f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
                 u_base = self.iteration_history.get('u')[iter - self.options['acceleratemeshsteps']]
-                self.f_q_historic_improvement = self.eval_improvement(f_base, self.fval,
+                self.f_q_historic_improvement = self._eval_improvement_(f_base, self.fval,
                                                                         f_sd_base, self.fsd,
                                                                         self.options['improvementquantile'])
                 if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
@@ -1674,19 +1719,10 @@ class BADS:
         self.gp_stats.record('fval', fval, iter)
         self.gp_stats.record('ymu', ymu, iter)
         self.gp_stats.record('ys', ys, iter)
-
-    def _find_bump_(self, fval_new):
-        if (self.optim_state['iter'] > 0):
-            iter = self.optim_state['iter']-1
-            fval = self.iteration_history.get('fval')[iter]
-            if (fval_new - fval > 6.):
-                self.logger.warn("found BUMP")
-
-
-    
-    def is_gp_refit_time(self, alpha):
-        # Check calibration of Gaussian process prediction
         
+    def _is_gp_refit_time_(self, alpha):
+        """ A private method that checks the calibration of the GP prediction.
+        """
         if self.function_logger.func_count < 200:
             refit_period = np.maximum(10, self.D * 2)
         else:
@@ -1744,8 +1780,28 @@ class BADS:
         return refit_flag, do_gp_calibration
 
 
-    # Corresponds to Matlab: updateTarget
+    
     def _get_target_from_gp_(self, u, gp:GP, hyp_best):
+        """ A private method that retrieve the prediction of the gp at the input ``u``.
+            If the target function is stochastic then set the optimization target ``f_target`` slightly below the mean prediction. 
+            
+        Parameters
+        ----------
+            u : np.array
+                input point u
+            gp : GP
+            hyp_best : np.ndarray
+                Hyperparameter used by the GP in the prediction
+
+        Returns:
+            f_target_mu : 
+                GP prediction, it corresponds to the mean values.
+            f_target_s :   
+                GP variance/noise at point u.
+            f_target : optimization target, it is slighly below the GP prediction when the target function is stochastic. 
+            
+        """
+        # Corresponds to Matlab: updateTarget
         if self.optim_state['uncertainty_handling_level'] > 0 \
             or self.options['uncertainincumbent']:
             tmp_gp = copy.deepcopy(gp)
@@ -1781,9 +1837,8 @@ class BADS:
 
     def _update_incumbent_(self, u_new, yval_new, fval_new, fsd_new):
         """
-            Move incumbent (current point) to a new point.
+            Move the incumbent (current point) to a new point.
         """
-        self._find_bump_(fval_new)
         self.optim_state['u'] = u_new.copy()
         self.optim_state['yval'] = yval_new
         self.optim_state['fval'] = fval_new
@@ -1860,47 +1915,17 @@ class BADS:
             self.mesh_overflows += 1
             if self.mesh_overflows == np.ceil(self.options['meshoverflowswarning']):
                 self.logger.warn('bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening PLB and PUB.')
-        
-
     
     def _create_result_dict(self, idx_best: int, termination_message: str):
         """
         Private method to create the result dict.
         """
-        output = dict()
-        output["function"] = str(self.function_logger.fun)
-        if np.all(np.isinf(self.optim_state["lb"])) and np.all(
-            np.isinf(self.optim_state["ub"])
-        ):
-            output["problemtype"] = "unconstrained"
-        else:
-            output["problemtype"] = "boundconstraints"
 
-        output["iterations"] = self.optim_state["iter"]
-        output["func_count"] = self.function_logger.func_count
-        output["bestiter"] = idx_best
-        output["trainsetsize"] = self.iteration_history["n_eff"][idx_best]
-        output["components"] = self.vp.K
-        #output["rindex"] = self.iteration_history["rindex"][idx_best]
-        if self.iteration_history["stable"][idx_best]:
-            output["convergencestatus"] = "probable"
-        else:
-            output["convergencestatus"] = "no"
-
-        output["overhead"] = np.NaN
-        output["rngstate"] = "rng"
-        output["algorithm"] = "Variational Bayesian Monte Carlo"
-        output["version"] = "0.0.1"
-        output["message"] = termination_message
-
-        output["elbo"] = self.vp.stats["elbo"]
-        output["elbo_sd"] = self.vp.stats["elbo_sd"]
-
-        return output
+        return None
 
     def _log_column_headers(self):
         """
-        Private method to log column headers for the iteration log.
+        Private method to log the column headers for the iteration log.
         """
         if self.optim_state["cache_active"]:
             self.logger.info(
@@ -1949,4 +1974,3 @@ class BADS:
                                 self.optim_state["mesh_size"],
                                 method,
                                 "".join(self.logging_action[-1]),))
-        return
