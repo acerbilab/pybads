@@ -5,7 +5,11 @@ import numpy as np
 from pybads.utils.iteration_history import IterationHistory
 from collections import namedtuple
 
-class BADSDump:        
+class BADSDump:
+    """ 
+        This class is responsible for storing a dump of BADS in json format.
+        It includes the information of the optimization solution and the iteration history of the algorithm.
+    """     
 
     def __init__(self, file_name, dir_path=None):
         if dir_path is None:

@@ -14,6 +14,8 @@ from pybads.function_logger.function_logger import FunctionLogger
 from pybads.search.grid_functions import force_to_grid
 
 class ESSearch(ABC):
+    """An Abstract class describing an Evolutionary Strategy Search.
+    """
 
     def __init__(self, mu, lamb, options_dict):
         self.mu = mu
@@ -36,7 +38,7 @@ class ESSearch(ABC):
 
     def _get_selection_idx_mask_(self, mu, lamb):
         """
-            Corresponds to esupdate of the Matlab version.
+            Corresponds to esupdate of the  BADS Matlab version 
         """
 
         tot = mu + lamb
@@ -68,6 +70,25 @@ class ESSearch(ABC):
         return None
 
     def __call__(self, u, LB:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
+        """Main method for computing the search.
+
+        Parameters
+        ----------
+            u (np.ndarray): incumbent point
+            LB (np.ndarray): lower bound
+            ub (np.ndarray): upper bound
+            func_logger (FunctionLogger):
+            gp (GP): 
+            optim_state :
+            sum_rule (bool, optional) :
+            nonbondcons (Callable, optional): A given non-bound constraints function.
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         
         self.mesh_size = optim_state['mesh_size']
         self.search_factor = optim_state['search_factor']

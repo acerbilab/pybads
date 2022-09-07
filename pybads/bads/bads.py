@@ -16,6 +16,7 @@ from scipy.stats import shapiro
 from sqlalchemy import true
 from pybads import function_logger
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
+from pybads.bads.bads_dump import BADSDump
 from pybads.poll.poll_mads_2n import poll_mads_2n
 
 from pybads.search.search_hedge import ESSearchHedge
@@ -28,7 +29,7 @@ from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.utils.constraints_check import contraints_check
-from pybads.bads.gaussian_process_train import local_gp_fitting, reupdate_gp, train_gp
+from pybads.bads.gaussian_process_train import local_gp_fitting, reupdate_gp, init_and_train_gp
 from gpyreg.gaussian_process import GP
 from pybads.bads.options import Options
 
@@ -918,7 +919,7 @@ class BADS:
         self.optim_state['f_success'] = []
         
         # Initialize Gaussian Process (GP) structure
-        gp, Ns_gp, sn2hpd, hyp_dict = train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
+        gp, Ns_gp, sn2hpd, hyp_dict = init_and_train_gp(hyp_dict, self.optim_state, self.function_logger, self.iteration_history, self.options,
             self.plausible_lower_bounds, self.plausible_upper_bounds)
 
         self.gp_stats = IterationHistory(["iter_gp","fval","ymu","ys","gp",])
@@ -1418,7 +1419,7 @@ class BADS:
 
     def _sto_success_improvement_(self, f_base, f_new, s_base, s_new, frame_size, gamma_uncertain_interval=None):
         """
-            A private method that evaluate if an improvement using the uncertain interval method proposed in Sto-MADS [1].
+            A private method that evaluates if the improvement in the candidate incumbent using the uncertain interval method proposed in Sto-MADS [1].
         Returns    
         ----------
             int : Return a flag integer value
@@ -1452,8 +1453,20 @@ class BADS:
     
     def _poll_step_(self, gp:GP):
         """
-            A private method that performs poll step using LT-MADS poll direction method.
-            It also evaluates and update the incumbent and the poll configuration according to the found improvement.
+            A private method that performs poll step using the LTMADS poll direction method.
+            It also evaluates and update the incumbent and the poll parameters (like the ``mesh_size_integer``) according to the found improvement.
+            
+            Returns
+            ---------
+            u_poll_best : np.array 
+                Best poll point.
+            f_poll_best : float
+                GP prediction of the best poll point.
+            y_poll_best : float
+                Function value at the best poll point.
+            f_sd_poll_best : float
+                Estimated GP variance at the best poll point.
+            gp : gpyreg.gaussian_process.GP
         """
         
         poll_best_improvement = 0
@@ -1721,7 +1734,7 @@ class BADS:
         self.gp_stats.record('ys', ys, iter)
         
     def _is_gp_refit_time_(self, alpha):
-        """ A private method that checks the calibration of the GP prediction.
+        """ A private method that checks the calibration of the GP prediction and if a fitting is required.
         """
         if self.function_logger.func_count < 200:
             refit_period = np.maximum(10, self.D * 2)
@@ -1892,6 +1905,9 @@ class BADS:
 
     
     def _re_evaluate_history_(self, gp:GP):
+        """ A private method used in the case of a stochastic target function.
+            It updates the predicted values and the variance for each stored GP at each iteration, by computing the posterior on the current training set without refitting the parameters.
+        """
         if self.optim_state['last_re_eval'] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             u_history = self.iteration_history.get('u')
@@ -1920,7 +1936,10 @@ class BADS:
         """
         Private method to create the result dict.
         """
-
+        # TODO: save using BADSDump
+        # bads_dump = BADSDump('bads_dump')
+        # bads_dump.to_JSON(self.x, self.u, self.fval, self.fsd, self.iteration_history, )
+        logging.info(termination_message)
         return None
 
     def _log_column_headers(self):
