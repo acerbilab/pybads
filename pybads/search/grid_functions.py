@@ -15,7 +15,7 @@ def force_to_grid(x, search_mesh_size, tol = None):
 
 def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None):
     '''
-    GRIDUNITS Convert vector(s) coordinates to grid-normalized units
+    grid_units convert vector(s) coordinates to grid-normalized units
     '''
     if var_trans is not None:
         if len(x) == 1:
@@ -31,8 +31,15 @@ def grid_units(x, var_trans : VariableTransformer = None, x0 = None, scale=None)
 
 
 def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, optim_state):
+    """ Retrieve a sorted matrix based on distance from the current incumbent `u`.
+    Return
+    ----------
+        tuple : (U, Y, S)
+            U (np.ndarray) : nearest neighbors from the incumbent `u`
+            Y (np.ndarray) : predicted values at U
+            S (np.ndarray) : estimated variance at U
+    """
     # get the training set by retrieving the sorted NEAREST neighbors from u
-                    
     U_max_idx = function_logger.X_max_idx
     U = function_logger.X[0:U_max_idx+1].copy()
     Y = function_logger.Y[0:U_max_idx+1].copy()
@@ -75,17 +82,18 @@ def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     idx_periods = np.nonzero(periodic_vars)[0]
     if len(idx_periods) > 0:
         # Can be improved by using cdist, but we have to be careful with the scaling and
-        rows = u2.shape[0]
-        if len(u2.shape) > 1:
-            rows = np.maximum(rows, u2.shape[0])
-        diff = U[:, np.newaxis] - u2[np.newaxis, :]
-        diff = diff.reshape((rows, U.shape[1]))
+        A = np.atleast_2d(U)
+        B = np.atleast_2d(u2)
+        A2 = np.sum(A**2, axis=-1)
+        B2 = np.sum(B**2, axis=-1)
+        diff = A2[:, None] - 2* A @ B.T + B2[None, :]
 
-        w_s = (ub - lb) / bound_scale #scaled width (w_s)
+        w_s =   (ub - lb) / bound_scale #scaled width
         diff[idx_periods] = np.minimum(np.abs(diff[idx_periods]),
-                                w_s - np.abs(diff)[idx_periods])
-        diff = (diff/len_scale)**2
-        return np.sum(diff, axis=1)
+                                np.sum(np.atleast_2d(w_s) - np.abs(diff)[idx_periods], axis=-1)**2)
+        
+        diff = (diff/(len_scale)**2)
+        return diff
 
     else:
         dist = cdist(np.atleast_2d(U)/len_scale, np.atleast_2d(u2)/len_scale)
