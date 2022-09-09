@@ -22,7 +22,7 @@ def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
         Returns
         ==========
         z: lower confidence bound
-        f_mu: GP prediction on xi
+        f_mu: GP prediction at xi
         f_s: GP variance
     """
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
