@@ -383,7 +383,7 @@ class FunctionLogger:
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
             # Not implemented in bads, in vbmc the transformation transform the input (a pdf) in a new pdf
-            # Thus to make the inverse the jacobian is needed
+            # Thus to make the inverse transformation the jacobian is needed
             #if self.transform_variables: 
             #    fval += self.variable_transformer.log_abs_det_jacobian(
             #        np.reshape(x, (1, x.shape[0]))

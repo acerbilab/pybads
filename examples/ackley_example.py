@@ -1,7 +1,7 @@
 from tkinter import FALSE
 import numpy as np
 from pybads.bads.bads import BADS
-from pybads.function_examples import ackley_fcn, rastrigin
+from pybads.function_examples import ackley_fcn
 
 lb = np.array([[-32, -32]])     # Lower bounds
 ub = np.array([[32, 32]])       # Upper bounds

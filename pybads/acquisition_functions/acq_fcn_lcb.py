@@ -6,12 +6,12 @@ from pybads.function_logger.function_logger import FunctionLogger
 
 def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
     """
-        Lower confidence bound (LCB) acquisition function
+        This method corresponds to the Lower Confidence Bound (LCB) acquisition function.
 
         Parameters
         ==========
         xi: np.ndarray
-            Candidate points
+            current points
         func_logger: FunctionLogger
             function value
         gp: GP
