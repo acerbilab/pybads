@@ -241,7 +241,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
 
     # Update GP
     
-    # Update piors hyperparameters using empirical Bayes method.
+    # Update priors hyperparameters using empirical Bayes method.
     
     if options.get('specifytargetnoise'):    
         noise_size = options['tolfun']   #Additional jitter to specified noise

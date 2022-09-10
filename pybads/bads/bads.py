@@ -1144,13 +1144,12 @@ class BADS:
         if self.optim_state['uncertainty_handling_level'] > 0 and poll_iteration > 0:
             self._re_evaluate_history_(gp)
 
-            # Order by lowest probabilistic upper bound and choose best iterate
+            # Order by lowest probabilistic upper bound and choose
+            # the point with the lowest quantile values of the history of the optimization run: inf{x: F(x)>p}.
             sigma_multiplier = np.sqrt(2) * erfcinv(2*self.options['finalquantile']) # Using inverted convention
             q_beta = self.iteration_history.get('fval') + sigma_multiplier * self.iteration_history.get('fsd')
             min_q_beta_idx = np.argmin(q_beta[1:]) # Skip first iteration
             min_q_beta_idx += 1 # offset original index with no skip
-
-            # Best iterate
             self.yval = self.iteration_history.get('yval')[min_q_beta_idx]
             self.fval = self.iteration_history.get('fval')[min_q_beta_idx]
             self.fsd = self.iteration_history.get('fsd')[min_q_beta_idx]
