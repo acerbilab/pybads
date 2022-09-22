@@ -19,7 +19,7 @@ print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval = {fval}\n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n\t overhead: {round(bads.optim_state['overhead'], 2)}")
 print(f"The true global minimum is at x = [1, 1], where fval = 0\n\n")
 
-run_non_bound_contr = False
+run_non_bound_contr = True
 if run_non_bound_contr:
     x0 = np.array([[0, 0]]);      # Starting point
     lb = np.array([[-1, -1]])     # Lower bounds

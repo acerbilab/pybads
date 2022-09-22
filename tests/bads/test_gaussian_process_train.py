@@ -6,7 +6,7 @@ from pybads.bads.bads import BADS
 import pytest
 
 from pybads.bads.gaussian_process_train import (
-    train_gp,
+    init_and_train_gp,
     _cov_identifier_to_covariance_function,
     _estimate_noise,
     _get_gp_training_options,

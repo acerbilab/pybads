@@ -41,6 +41,7 @@ class FunctionLogger:
         self.D: int = D
         self.noise_flag: bool = noise_flag
         self.uncertainty_handling_level: int = uncertainty_handling_level
+        self.he_noise_flag =  uncertainty_handling_level == 2 
         self.transform_variables = variable_transformer is not None
         self.variable_transformer = variable_transformer
         self.cache_size = cache_size
@@ -109,14 +110,11 @@ class FunctionLogger:
 
         try:
             timer.start_timer("funtime")
-            if self.noise_flag and self.uncertainty_handling_level == 2:
+            if self.he_noise_flag:
                 fval_orig, fsd = self.fun(x_orig)
             else:
                 fval_orig = self.fun(x_orig)
-                if self.noise_flag:
-                    fsd = 1
-                else:
-                    fsd = None
+                fsd = None
                     
             if isinstance(fval_orig, np.ndarray):
                 # fval_orig can only be an array with size 1
@@ -148,8 +146,8 @@ class FunctionLogger:
             raise ValueError(error_message.format(str(fval_orig)))
 
         # Check returned function SD
-        if self.noise_flag and (
-            not np.isscalar(fsd) or not np.isfinite(fsd) or not np.isreal(fsd)
+        if self.he_noise_flag and (
+            not np.isfinite(fsd) or not np.isreal(fsd) or fsd <= 0. 
         ):
             error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)
@@ -385,7 +383,7 @@ class FunctionLogger:
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
             # Not implemented in bads, in vbmc the transformation transform the input (a pdf) in a new pdf
-            # Thus to make the inverse the jacobian is needed
+            # Thus to make the inverse transformation the jacobian is needed
             #if self.transform_variables: 
             #    fval += self.variable_transformer.log_abs_det_jacobian(
             #        np.reshape(x, (1, x.shape[0]))

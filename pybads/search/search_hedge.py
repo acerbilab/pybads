@@ -3,11 +3,31 @@ from encodings import search_function
 from scipy.special import erfc
 import numpy as np
 from gpyreg.gaussian_process import GP
-from .es_search import SearchESWM, SearchESELL
+from .es_search import ESSearchWM, ESSearchELL
 
-class SearchESHedge():
+class ESSearchHedge():
+    """
+    It performs a hedging search, that chooses between different kinds of evolution strategies inspired search. 
+    It tracks the record of cumulative improvements of all the search strategies according to the Hedge algorithm [1] (default).
+    Right now it handles two different search strategies: ES-wcm and ES-ell.
 
-    def __init__(self, search_fcns, options_dict, nonbondcons=None):
+    Parameters
+    ----------
+    search_fcns : array of tuples
+        Array of search strategies to use in the hedge search.
+    options_dict : dict
+        Options for the hedge search
+    nonbondcons: callable function
+        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+        
+    ----------
+    References
+    [1]. Hoffman, M. D., Brochu, E., & de Freitas, N. (2011). Portfolio Allocation for Bayesian Optimization. In *UAI* (pp. 327-336). ([link](https://pdfs.semanticscholar.org/1a7f/d7b566697c9b69e64b27b68db4384314d925.pdf))
+    [2]. Hansen, N., Müller, S. D., & Koumoutsakos, P. (2003). Reducing the time complexity of the derandomized evolution strategy with covariance matrix adaptation (CMA-ES). *Evolutionary Computation*, **11**(1), 1-18. ([link](https://www.lri.fr/~hansen/evco_11_1_1_0.pdf))
+
+    """
+
+    def __init__(self, search_fcns=[('ES-wcm',1), ('ES-ell',1)], options_dict=None, nonbondcons=None):
         
         self.search_fcns = search_fcns
         self.n_funs = len(search_fcns)
@@ -21,7 +41,7 @@ class SearchESHedge():
         self.beta = options_dict["hedgebeta"]
         self.decay = options_dict["hedgedecay"]
 
-        # Create vector of ES weights (for SearchES)
+        # Create vector of ES weights (for ESSearch)
         es_iter = self.options_dict['nsearchiter']
         self.mu = int(self.options_dict['nsearch'] / es_iter)
         self.lamb = self.mu
@@ -47,17 +67,21 @@ class SearchESHedge():
         
         self.chosen_search_fun = self.search_fcns[self.chosen_hedge.item()]
         if self.chosen_search_fun[0] == 'ES-wcm':
-            search = SearchESWM(self.mu, self.lamb, self.options_dict)
+            search = ESSearchWM(self.mu, self.lamb, self.options_dict)
             us, z = search(u, lb, ub, func_logger, gp, optim_state, self.chosen_search_fun[1], self.nonbondcons)
             return us, z
         elif self.chosen_search_fun[0] == 'ES-ell':
-            search = SearchESELL(self.mu, self.lamb, self.options_dict)
+            search = ESSearchELL(self.mu, self.lamb, self.options_dict)
             us, z = search(u, lb, ub, func_logger, gp, optim_state,  self.chosen_search_fun[1], self.nonbondcons)
             return us, z
         else:
             raise ValueError("search_hedge:Requested search method not implemented yet")
 
+
     def update_hedge(self, u_search, fval_old, f, fs, gp:GP, mesh_size):
+        """
+        Update the probability of improvement which will be used for updating the weight of the hedge strategy
+        """
 
         for i_hedge in range(self.n_funs):
 

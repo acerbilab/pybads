@@ -7,14 +7,14 @@ from pybads.search.grid_functions import get_grid_search_neighbors
 import pytest
 
 from pybads.bads.bads import BADS
-from pybads.search.es_search import SearchESELL, SearchESWM, ucov
+from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from tests.bads.utils_test import load_options
 from pybads.bads.variables_transformer import VariableTransformer
-from pybads.bads.gaussian_process_train import train_gp
+from pybads.bads.gaussian_process_train import init_and_train_gp
 from pybads.utils.iteration_history import IterationHistory
 from pybads.function_logger import FunctionLogger
 from pybads.function_examples import rosenbrocks_fcn
-from pybads.search.search_hedge import SearchESHedge
+from pybads.search.search_hedge import ESSearchHedge
 from pybads.utils.constraints_check import contraints_check
 
 import gpyreg as gpr
@@ -68,13 +68,13 @@ def test_search():
     es_iter = bads.options['nsearchiter']
     mu = int(bads.options['nsearch'] / es_iter)
     lamb = mu
-    search_es = SearchESWM(mu, lamb, bads.options)
+    search_es = ESSearchWM(mu, lamb, bads.options)
     us, z = search_es(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state, True, None)
 
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-    search_es = SearchESELL(mu, lamb, bads.options)
+    search_es = ESSearchELL(mu, lamb, bads.options)
     us, z = search_es(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state, True, None)
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
@@ -85,7 +85,7 @@ def test_search_selection_mask():
     mu = 1
     lamb = 2048
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
-    search_es = SearchESWM(mu, lamb, options)
+    search_es = ESSearchWM(mu, lamb, options)
     mask = search_es._get_selection_idx_mask_(mu, lamb)
     assert np.sum(mask) == 885072 
     assert np.min(mask + 1) == 1
@@ -104,7 +104,7 @@ def test_search_hedge():
     bads.options['ninit'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     
-    search_hedge = SearchESHedge(bads.options['searchmethod'], bads.options)
+    search_hedge = ESSearchHedge(bads.options['searchmethod'], bads.options)
     
     us, z = search_hedge(bads.u, lb, ub, bads.function_logger, gp, bads.optim_state)
     print(search_hedge.chosen_search_fun)
@@ -139,9 +139,9 @@ def test_grid_search_neighbors():
 
     f.X_max_idx = 3
     
-    gp.temporary_data["len_scale"] = 1.
-    bads.optim_state["scale"] = 1.
-    bads.options["gpradius"] = 3
+    gp.temporary_data['len_scale'] = 1.
+    bads.optim_state['scale'] = 1.
+    bads.options['gpradius'] = 3
     
     result = get_grid_search_neighbors(f, np.array([[0, 0]]), gp, bads.options, bads.optim_state)[0]
     assert result[0, 0] == 0. and np.isclose(result[1, 0], -0.1055, 1e-3) and np.isclose(result[2, 0], -0.3555, 1e-3)

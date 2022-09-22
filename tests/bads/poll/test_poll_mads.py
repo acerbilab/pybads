@@ -5,10 +5,10 @@ import sys
 import pytest
 
 from pybads.bads.bads import BADS
-from pybads.search.es_search import SearchESELL, SearchESWM
+from pybads.search.es_search import ESSearchELL, ESSearchWM
 from tests.bads.utils_test import load_options
 from pybads.bads.variables_transformer import VariableTransformer
-from pybads.bads.gaussian_process_train import train_gp
+from pybads.bads.gaussian_process_train import init_and_train_gp
 from pybads.utils.iteration_history import IterationHistory
 from pybads.function_logger import FunctionLogger
 from pybads.function_examples import rosenbrocks_fcn

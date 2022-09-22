@@ -86,10 +86,10 @@ class VariableTransformer:
         # A variable is converted to log scale if all bounds are positive and 
         # the plausible range spans at least one order of magnitude
         for i in np.argwhere(np.isnan(self.apply_log_t.squeeze())):
-            self.apply_log_t[:, i] = np.all(np.concatenate([self.ub[:, i], self.ub[:, i], self.plb[:, i], self.pub[:, i]]) > 0) \
+            self.apply_log_t[:, i] = np.all(np.concatenate([self.lb[:, i], self.ub[:, i], self.plb[:, i], self.pub[:, i]]) > 0) \
                 and (self.pub[:, i]/self.plb[:, i] >= 10).item()       
         self.apply_log_t = self.apply_log_t.astype(bool)
-
+        
         self.lb[self.apply_log_t] = np.log(self.lb[self.apply_log_t])
         self.ub[self.apply_log_t] = np.log(self.ub[self.apply_log_t])
         self.plb[self.apply_log_t] = np.log(self.plb[self.apply_log_t])
@@ -115,13 +115,13 @@ class VariableTransformer:
                         + maskindex(np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)), self.apply_log_t)
 
         #check that the transform works correctly in the range
-        lbtest = self.lb.copy()
+        lbtest = self.orig_lb.copy()
         eps = np.spacing(1.0)
-        lbtest[~np.isfinite(self.lb)] = -1/np.sqrt(eps)
+        lbtest[~np.isfinite(self.orig_lb)] = -1/np.sqrt(eps)
         
-        ubtest = self.ub.copy()
-        ubtest[~np.isfinite(self.ub)] = 1/np.sqrt(eps)
-        ubtest[np.logical_and((~np.isfinite(self.ub)), self.apply_log_t)] = 1e6
+        ubtest = self.orig_ub.copy()
+        ubtest[~np.isfinite(self.orig_ub)] = 1/np.sqrt(eps)
+        ubtest[np.logical_and((~np.isfinite(self.orig_ub)), self.apply_log_t)] = 1e6
 
         numeps = 1e-6 #accepted numerical error
         tests = np.zeros(4)
@@ -131,7 +131,7 @@ class VariableTransformer:
         tests[3] = np.all(np.abs(ginv(g(self.pub)) - self.pub) < numeps)
         assert np.all(tests), 'Cannot invert the transform to obtain the identity at the provided boundaries.'
 
-        return (g(self.lb), g(self.ub), g(self.plb), g(self.pub), g, ginv, z, zlog)
+        return (g(self.orig_lb), g(self.orig_ub), g(self.orig_plb), g(self.orig_pub), g, ginv, z, zlog)
 
     def __call__(self, input: np.ndarray):
         y = self.g(input)

@@ -149,3 +149,6 @@ docsrc/_build/
 
 # IntelliJ PyCharm env
 .idea/
+
+# Saved bads opti dumps
+dumps/

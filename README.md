@@ -3,7 +3,7 @@
 `pybads` is the port of the BADS (Bayesian Adaptive Direct Search) algorithm to Python 3.x.
 The reference code is the [MATLAB toolbox](https://github.com/lacerbi/bads).
 
-## How to install and run the package (temporary)
+## How to install and run the package
 
 We are using the dependencies listed in `requirements.txt`. Please list all used dependencies there.
 For convenience, we also have a temporary installer in `setup.py`. Also list the used dependencies there.
@@ -16,7 +16,8 @@ The most stable way to install and run `pybads` at the moment is:
 2. Create a new environment in conda: `conda create --name pybads-dev python=3.9`
 3. Activate the environment: `conda activate pybads-dev`
 4. From the `pybads` folder, run: `pip install -e .`
-5. Install Jupyter notebook: `conda install jupyter`
+5. Install `gpyreg` package (read below, in the next section)
+6. Install Jupyter notebook: `conda install jupyter`
 
 If the list of requirements subsequently changes, you will only need to rerun `pip install -e .`.
 
@@ -47,3 +48,10 @@ The `environment.yml` seems not to work properly in some setups (e.g., Windows),
 
 ### Run examples ###
 
+Examples of usages of PyBADS are present in the directory `examples` of the repository. In order to run any of these examples ensure you have followed the installation guideliinne, then you can run them using the following commands:
+
+1. Activate the environment: `conda activate pybads-dev`
+2. From the `pybads` folder, run: `python examples/example_file`
+
+The `example_file` can be any file present in the `examples` directory.
+ 

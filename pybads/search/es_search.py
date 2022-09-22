@@ -13,7 +13,9 @@ from pybads.function_logger.function_logger import FunctionLogger
 
 from pybads.search.grid_functions import force_to_grid
 
-class SearchES(ABC):
+class ESSearch(ABC):
+    """An Abstract class describing an Evolutionary Strategy Search.
+    """
 
     def __init__(self, mu, lamb, options_dict):
         self.mu = mu
@@ -36,7 +38,7 @@ class SearchES(ABC):
 
     def _get_selection_idx_mask_(self, mu, lamb):
         """
-            Corresponds to esupdate of the Matlab version.
+            Corresponds to esupdate of the  BADS Matlab version 
         """
 
         tot = mu + lamb
@@ -68,11 +70,30 @@ class SearchES(ABC):
         return None
 
     def __call__(self, u, LB:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
+        """Main method for computing the search.
+
+        Parameters
+        ----------
+            u (np.ndarray): incumbent point
+            LB (np.ndarray): lower bound
+            ub (np.ndarray): upper bound
+            func_logger (FunctionLogger):
+            gp (GP): 
+            optim_state :
+            sum_rule (bool, optional) :
+            nonbondcons (Callable, optional): A given non-bound constraints function.
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         
         self.mesh_size = optim_state['mesh_size']
         self.search_factor = optim_state['search_factor']
-        self.search_mesh_size = optim_state["search_mesh_size"]
-        self.tol_mesh = optim_state["tol_mesh"]
+        self.search_mesh_size = optim_state['search_mesh_size']
+        self.tol_mesh = optim_state['tol_mesh']
 
         U = gp.X
         nvars = U.shape[1]
@@ -147,7 +168,7 @@ class SearchES(ABC):
         return us[0], z[0]
 
 
-class SearchESWM(SearchES):
+class ESSearchWM(ESSearch):
 
     def __init__(self, mu, lamb, options_dict):
         super().__init__(mu, lamb, options_dict)
@@ -162,7 +183,7 @@ class SearchESWM(SearchES):
         U = gp.X
         Y = gp.y.flatten()
         # Compute vector weights
-        nvars = len(U)
+        nvars =  U.shape[1]
         mu = self.frac * U.shape[0]
         
         weights = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu+1)))
@@ -174,7 +195,7 @@ class SearchESWM(SearchES):
         Ubest = U[idx_sel].copy()
 
         # Compute weighted covariance matrix wrt u0
-        C = ucov(Ubest, u, weights, optim_state["ub"], optim_state["lb"], optim_state["scale"], optim_state['periodic_vars'])
+        C = ucov(Ubest, u, weights, optim_state['ub'], optim_state['lb'], optim_state['scale'], optim_state['periodic_vars'])
         if self.active_flag:
             U_worst = U[y_idx[-1:-1: (len(y_idx) - np.floor(mu)+1)]]
             negC = ucov(U_worst, u, weights, optim_state)
@@ -198,20 +219,20 @@ class SearchESWM(SearchES):
         return optim_state["mesh_size"]
 
 
-class SearchESCMA(SearchESWM):
+class ESSearchCMA(ESSearchWM):
     def __init__(self, mu, lamb, options_dict):
         super().__init__(mu, lamb, options_dict)
         self.active_flag = True
         self.frac = 0.25
 
     def get_jitter(self, optim_state):
-        return optim_state["search_mesh_size"]
+        return optim_state['search_mesh_size']
 
 
-class SearchESELL(SearchES):
+class ESSearchELL(ESSearch):
 
     def _initialize_(self, u, gp:GP, optim_state, sum_rule):
-        rescaled_len_scale = gp.temporary_data["poll_scale"]
+        rescaled_len_scale = gp.temporary_data['poll_scale']
         rescaled_len_scale = rescaled_len_scale / np.sqrt(np.sum(rescaled_len_scale**2))
         sqrt_sigma = np.diag(rescaled_len_scale)
         
