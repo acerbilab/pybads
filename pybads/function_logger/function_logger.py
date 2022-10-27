@@ -68,7 +68,7 @@ class FunctionLogger:
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
-    def __call__(self, x: np.ndarray):
+    def __call__(self, x: np.ndarray, add_data: bool = True):
         """
         Evaluates the function FUN at x and caches values.
 
@@ -77,6 +77,8 @@ class FunctionLogger:
         x : np.ndarray
             The point at which the function will be evaluated. The shape of x
             should be (1, D) or (D,).
+        add_data : bool, optional (default True)
+            Flag to indicate whether the data is added to training data.
 
         Returns
         -------
@@ -157,8 +159,7 @@ class FunctionLogger:
         # record timer stats
         funtime = timer.get_duration("funtime")
 
-        self.func_count += 1
-        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime)
+        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, add_data=add_data)
 
         return fval, fsd, idx
 
@@ -311,6 +312,7 @@ class FunctionLogger:
         fval_orig: float,
         fsd: float,
         fun_evaltime: float,
+        add_data: bool = True,
     ):
         """
         A private method to save function values to class attributes.
@@ -343,30 +345,14 @@ class FunctionLogger:
         ValueError
             Raise if there is more than one match for a duplicate entry.
         """
-        duplicate_flag = self.X == x
-        # The duplicate case is not implemented in BADS (MATLAB)
-        if np.any(np.all(duplicate_flag, axis=1)): 
-            if np.sum((duplicate_flag).all(axis=1)) > 1:
-                raise ValueError("More than one match for duplicate entry.")
-            idx = np.argwhere(duplicate_flag)[0, 0]
-            N = self.nevals[idx]
-            if fsd is not None:
-                tau_n = 1 / self.S[idx] ** 2
-                tau_1 = 1 / fsd ** 2
-                self.Y_orig[idx] = (tau_n * self.Y_orig[idx] + tau_1 * fval_orig) / (tau_n + tau_1)
-                self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
-            else:
-                self.Y_orig[idx] = (N * self.Y_orig[idx] + fval_orig) / (N + 1)
-
-            fval = self.Y_orig[idx]
-            #if self.transform_variables:
-            #    fval += self.variable_transformer.log_abs_det_jacobian(x)
-            self.Y[idx] = fval
-            self.fun_evaltime[idx] = (
-                N * self.fun_evaltime[idx] + fun_evaltime
-            ) / (N + 1)
+        
+        # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
+        if not add_data:
+            idx = self.Xn
             self.nevals[idx] += 1
-            return fval, idx
+            self.func_count += 1
+            self.fun_evaltime[idx] = (self.fun_evaltime[idx] + fun_evaltime ) /2
+            return fval_orig, idx
         else:
             self.Xn += 1
             if self.Xn > self.X_orig.shape[0] - 1:
@@ -389,4 +375,5 @@ class FunctionLogger:
             self.X_flag[self.Xn] = True
             self.nevals[self.Xn] = np.maximum(1, self.nevals[self.Xn] + 1)
             self.Y_max = np.amax(self.Y[self.X_flag])
+            self.func_count += 1
             return fval, self.Xn

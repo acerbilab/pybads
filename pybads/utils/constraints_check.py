@@ -4,7 +4,7 @@ import numpy as np
 
 from pybads.function_logger import FunctionLogger
 
-def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, function_logger:FunctionLogger, proj=True, nonbondcons:Callable=None):
+def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, function_logger:FunctionLogger, proj=True, nonboxcons:Callable=None):
     """
         Return a new incumbent that satisfies the boundaries. Projection is applied in case of constraint violations
     """
@@ -32,11 +32,11 @@ def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, funct
         u1_idx = idx_sort[idx_sort < len(u1)]
         return U_new[u1_idx]
         
-    if nonbondcons is not None:
+    if nonboxcons is not None:
         if function_logger is None:
             raise ValueError("contraints_check: function_logger not passed, non bondcons requires it.")
         X = function_logger.variable_transformer.inverse_transf(U_new)
-        C = nonbondcons(X)
+        C = nonboxcons(X)
         idx = C <= 0 
         U_new = U_new[idx]
 

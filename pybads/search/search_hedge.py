@@ -17,7 +17,7 @@ class ESSearchHedge():
         Array of search strategies to use in the hedge search.
     options_dict : dict
         Options for the hedge search
-    nonbondcons: callable function
+    nonboxcons: callable function
         A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
         
     ----------
@@ -27,7 +27,7 @@ class ESSearchHedge():
 
     """
 
-    def __init__(self, search_fcns=[('ES-wcm',1), ('ES-ell',1)], options_dict=None, nonbondcons=None):
+    def __init__(self, search_fcns=[('ES-wcm',1), ('ES-ell',1)], options_dict=None, nonboxcons=None):
         
         self.search_fcns = search_fcns
         self.n_funs = len(search_fcns)
@@ -35,7 +35,7 @@ class ESSearchHedge():
         self.g[0] = 10
         self.count = -1
         self.options_dict=options_dict
-        self.nonbondcons = nonbondcons
+        self.nonboxcons = nonboxcons
         
         self.gamma = options_dict["hedgegamma"]
         self.beta = options_dict["hedgebeta"]
@@ -68,11 +68,11 @@ class ESSearchHedge():
         self.chosen_search_fun = self.search_fcns[self.chosen_hedge.item()]
         if self.chosen_search_fun[0] == 'ES-wcm':
             search = ESSearchWM(self.mu, self.lamb, self.options_dict)
-            us, z = search(u, lb, ub, func_logger, gp, optim_state, self.chosen_search_fun[1], self.nonbondcons)
+            us, z = search(u, lb, ub, func_logger, gp, optim_state, self.chosen_search_fun[1], self.nonboxcons)
             return us, z
         elif self.chosen_search_fun[0] == 'ES-ell':
             search = ESSearchELL(self.mu, self.lamb, self.options_dict)
-            us, z = search(u, lb, ub, func_logger, gp, optim_state,  self.chosen_search_fun[1], self.nonbondcons)
+            us, z = search(u, lb, ub, func_logger, gp, optim_state,  self.chosen_search_fun[1], self.nonboxcons)
             return us, z
         else:
             raise ValueError("search_hedge:Requested search method not implemented yet")

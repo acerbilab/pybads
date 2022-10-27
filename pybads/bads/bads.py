@@ -70,7 +70,7 @@ class BADS:
         there is > 90% probability that the minimum is found within the box 
         (where in doubt, just set PLB=LB and PUB=UB).
 
-    nonbondcons: callable
+    nonboxcons: callable
         A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
 
     user_options : dict, optional
@@ -114,14 +114,14 @@ class BADS:
         upper_bounds: np.ndarray = None,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonbondcons: callable = None,
+        nonboxcons: callable = None,
         gamma_uncertain_interval = None,
         user_options: dict = None
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
-        self.nonbondcons = nonbondcons
+        self.nonboxcons = nonboxcons
 
         # variable to keep track of logging actions
         self.logging_action = []
@@ -196,7 +196,7 @@ class BADS:
             upper_bounds,
             plausible_lower_bounds,
             plausible_upper_bounds,
-            nonbondcons
+            nonboxcons
         )
         
         self.gamma_uncertain_interval = gamma_uncertain_interval
@@ -208,8 +208,8 @@ class BADS:
             self.x0 = 0.5 * (self.plausible_lower_bounds + self.plausible_upper_bounds)
         
         # evaluate  starting point non-bound constraint
-        if nonbondcons is not None:
-            if nonbondcons(self.x0) > 0:
+        if nonboxcons is not None:
+            if nonboxcons(self.x0) > 0:
                 raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
             
 
@@ -254,7 +254,7 @@ class BADS:
         upper_bounds: np.ndarray,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonbondcons: callable = None
+        nonboxcons: callable = None
     ):
         """
         Private function for initial checks of the BADS bounds.
@@ -363,7 +363,7 @@ class BADS:
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
-            nonbondconspoints X0 are not inside the provided hard bounds LB and UB."""
+            nonboxconspoints X0 are not inside the provided hard bounds LB and UB."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -463,8 +463,8 @@ class BADS:
             )
 
         # Check non bound constraints
-        if nonbondcons is not None:
-            y = nonbondcons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
+        if nonboxcons is not None:
+            y = nonboxcons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
             if y.shape[0] != 2  and y.ndim == 1:
                 raise ValueError("bads:NONBCON "
                     + "NONBCON should be a function that takes a matrix X as input"
@@ -785,8 +785,8 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
 
-        if self.nonbondcons is not None:
-            c = self.nonbondcons(self.u)
+        if self.nonboxcons is not None:
+            c = self.nonboxcons(self.u)
             if c > 0: 
                 self.yval = np.NaN 
                 raise ValueError("Initial starting point X0 does not satisfy non-bound constraint.")
@@ -794,8 +794,7 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
-            yval_bis, _, _ = self.function_logger(self.u)
-            self.function_logger.func_count += 1
+            yval_bis, _, _ = self.function_logger(self.u, add_data=False)
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
                 self.logging_action.append('Uncertainty test')
@@ -842,7 +841,7 @@ class BADS:
                 u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
 
                 # Remove already evaluated or unfeasible points from search set 
-                u1 = contraints_check(u1, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state["tol_mesh"], self.function_logger, True, self.nonbondcons)
+                u1 = contraints_check(u1, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state["tol_mesh"], self.function_logger, True, self.nonboxcons)
                 
                 for u_idx in range(len(u1)):
                     self.function_logger(u1[u_idx])
@@ -1167,7 +1166,7 @@ class BADS:
                 yval_vec = np.empty(self.options['noisefinalsamples'])
                 for i_sample in range(self.options['noisefinalsamples']):
                     # y, f_sd, _ = self.function_logger(self.u)
-                    yval_vec[i_sample] = self.function_logger(self.u)[0].item()
+                    yval_vec[i_sample] = self.function_logger(self.u, add_data=False)[0]
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
@@ -1247,7 +1246,7 @@ class BADS:
         self.optim_state['search_count'] += 1
         
         if self.search_es_hedge is None:
-            self.search_es_hedge = ESSearchHedge(self.options['searchmethod'], self.options, self.nonbondcons)
+            self.search_es_hedge = ESSearchHedge(self.options['searchmethod'], self.options, self.nonboxcons)
         u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
@@ -1258,7 +1257,7 @@ class BADS:
 
         # Remove already evaluated or unfeasible points from search set 
         u_search_set = contraints_check(u_search_set, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state['tol_mesh'],
-                            self.function_logger, True, self.nonbondcons)
+                            self.function_logger, True, self.nonboxcons)
 
         # The Acquisition Hedge policy is not yet supported (even in Matlab)
         index_acq = None
@@ -1503,7 +1502,7 @@ class BADS:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
                 u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds,
-                    self.optim_state['tol_mesh'], self.function_logger, False, self.nonbondcons)
+                    self.optim_state['tol_mesh'], self.function_logger, False, self.nonboxcons)
 
                 # Add new poll points to polling set
                 if u_poll is None:
@@ -1683,7 +1682,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
                     
                     self.mesh_size_integer -= 1
-                    logger.warn("bads: The optimization is stalling, decreasing further the mesh size")
+                    logger.warn("bads: The optimization is stalling, further decrease of the mesh size")
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
