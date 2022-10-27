@@ -1,4 +1,4 @@
-# PyBADS Example 1: Basic usage
+# PyBADS Example 2: Non-box constraints
 # (code only - see Jupyter notebook version for a full description)
 
 import numpy as np
@@ -9,15 +9,17 @@ def rosenbrocks_fcn(x):
     x_2d = np.atleast_2d(x)
     return np.sum(100 * (x_2d[:, 0:-1]**2 - x_2d[:, 1:])**2 + (x_2d[:, 0:-1]-1)**2, axis=1)
 
-target = rosenbrocks_fcn;
+x0 = np.array([[0, 0]]);      # Starting point
+lb = np.array([[-1, -1]])     # Lower bounds
+ub = np.array([[1, 1]])       # Upper bounds
 
-lb = np.array([[-20, -20]])     # Lower bounds
-ub = np.array([[20, 20]])       # Upper bounds
-plb = np.array([[-5, -5]])      # Plausible lower bounds
-pub = np.array([[5, 5]])        # Plausible upper bounds
-x0 = np.array([[0, 0]]);        # Starting point
+def circle_constr(x):
+    """Return constraints violation outside the unit circle."""
+    x_2d = np.atleast_2d(x)
+    # Note that nonboxcons assumes the function takes a 2D input 
+    return np.sum(x_2d**2, axis=1) > 1
 
-bads = BADS(target, x0, lb, ub, plb, pub)
+bads = BADS(rosenbrocks_fcn, x0, lb, ub, None, None, nonbondcons=circle_constr)
 x_min, fval = bads.optimize()
 
 print(f"BADS minimum at: x = {x_min.flatten()}, fval = {fval:.4g}")
