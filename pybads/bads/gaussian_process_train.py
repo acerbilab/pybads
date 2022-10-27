@@ -401,7 +401,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp.update(hyp=hyp_gp)
     except np.linalg.LinAlgError:
         #Posterior GP update failed (due to Cholesky decomposition)
-        logging.warning('bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition')
+        logging.debug('bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition')
         gp.set_priors(old_priors)
         gp.set_hyperparameters(old_hyp_gp)
         #gp.set_hyperparameters(iteration_history.get('gp_hyp_full')[-1])
@@ -463,7 +463,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
             break
         except np.linalg.LinAlgError:
             #handle
-            logging.warning('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
+            logging.debug('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
             success_flag[i_try] = False
             if i_try > options['removepointsaftertries'] -1:
                 idx_drop_out = np.zeros(len(Y)).astype(bool)

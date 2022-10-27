@@ -1551,7 +1551,8 @@ class BADS:
             if index_acq is None or index_acq.size < 1 or np.any(~np.isfinite(index_acq)):
                 self.logger.warn("bads:optimze: Acquisition function failed")
                 index_acq = np.random.randint(0, len(u_poll)+1)
-            
+            if logging.getLogger().level > logging.DEBUG:
+                np.seterr(divide='ignore')
             gamma_z = (self.optim_state['f_target'] - self.sufficient_improvement - f_mu) / fs
             if np.all(np.isfinite(gamma_z)) and np.all(np.isreal(gamma_z)):
                 f_pi = 0.5* erfc(-gamma_z/np.sqrt(2))

@@ -3,7 +3,6 @@ import pytest
 
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.function_examples import rosenbrocks_fcn
-from pybads.function_examples import rosenbrocks_fcn_single_sample
 
 from pybads.function_logger import FunctionLogger
 
@@ -45,9 +44,9 @@ def test_call_noisy_function_level_1():
     fval, fsd, idx = f_logger(x)
     fval2 = non_noisy_function(x)
     assert fval == fval2
-    assert fsd == 1
+    assert fsd is None
     assert idx == 0
-    assert f_logger.S[0] == 1
+    assert np.isnan(f_logger.S[0])[0]
 
 
 def test_call_noisy_function_level_2():
@@ -60,7 +59,6 @@ def test_call_noisy_function_level_2():
     assert idx == 0
     assert f_logger.S[0] == fsd2
 
-
 def test_call_expand_cache():
     x = np.array([3, 4, 5])
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0, cache_size=1)
@@ -68,7 +66,7 @@ def test_call_expand_cache():
     f_logger(x)
     f_logger(x * 2)
     y = non_noisy_function(x * 2)
-    assert np.all(f_logger.y_orig[1] == y)
+    assert np.all(f_logger.Y_orig[1] == y)
 
 
 def test_add_expand_cache():
@@ -79,7 +77,7 @@ def test_add_expand_cache():
     f_logger.add(x, y, None)
     f_logger.add(x * 2, y, None)
     assert np.all(f_logger.X[1] == x * 2)
-    assert np.all(f_logger.y_orig[1] == y)
+    assert np.all(f_logger.Y_orig[1] == y)
     assert f_logger.cache_count == 2
 
 
@@ -101,7 +99,7 @@ def test_add_no_fsd():
     f_logger.add(x, y, None)
     f_logger.add(x * 2, y, None)
     assert np.all(f_logger.X[1] == x * 2)
-    assert np.all(f_logger.y_orig[1] == y)
+    assert np.all(f_logger.Y_orig[1] == y)
     assert np.all(f_logger.S[1] == 1)
 
 
@@ -112,8 +110,8 @@ def test_call_record_stats():
         f_logger(x * i)
     assert f_logger.total_fun_evaltime == np.nansum(f_logger.fun_evaltime)
     assert np.all(f_logger.X_orig[9] == x * 9)
-    assert f_logger.y_orig[9] == non_noisy_function(x * 9)
-    assert f_logger.ymax == non_noisy_function(x * 9)
+    assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
+    assert f_logger.Y_max == non_noisy_function(x * 9)
     assert np.sum(f_logger.X_flag) == 10
     assert f_logger.Xn == 9
     assert f_logger.cache_count == 0
@@ -128,8 +126,8 @@ def test_add_record_stats():
     assert f_logger.total_fun_evaltime == 0
     assert np.nansum(f_logger.fun_evaltime) == 0
     assert np.all(f_logger.X_orig[9] == x * 9)
-    assert f_logger.y_orig[9] == non_noisy_function(x * 9)
-    assert f_logger.ymax == non_noisy_function(x * 9)
+    assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
+    assert f_logger.Y_max == non_noisy_function(x * 9)
     assert np.sum(f_logger.X_flag) == 10
     assert f_logger.Xn == 9
     assert f_logger.func_count == 0
@@ -138,19 +136,24 @@ def test_add_record_stats():
 
 def test_record_duplicate_existing_already():
     x = np.array([3, 4, 5])
+    lb = np.array([[-3, -4, -5]])
+    ub = np.array([[13, 14, 15]])
     f_logger = FunctionLogger(
-        non_noisy_function, 3, False, 0, 500, VariableTransformer(3)
+        non_noisy_function, 3, False, 0, 500, VariableTransformer(3, lb, ub)
     )
     f_logger._record(x, x, 9, None, 10)
     f_logger.X[1] = x
     with pytest.raises(ValueError):
         f_logger._record(x, x, 9, None, 10)
 
+test_record_duplicate_existing_already()
 
 def test_record_duplicate():
     x = np.array([3, 4, 5])
+    lb = np.array([[-3, -4, -5]])
+    ub = np.array([[13, 14, 15]])
     f_logger = FunctionLogger(
-        non_noisy_function, 3, False, 0, 500, VariableTransformer(3)
+        non_noisy_function, 3, False, 0, 500, VariableTransformer(3, lb, ub)
     )
     f_logger._record(x * 2, x * 2, 18, None, 9)
     f_logger._record(x, x, 9, None, 9)
@@ -160,15 +163,17 @@ def test_record_duplicate():
     assert f_logger.nevals[0] == 1
     assert f_logger.nevals[1] == 2
     assert np.all(f_logger.X[1] == x)
-    assert f_logger.y[1] == 5
-    assert f_logger.y_orig[1] == 5
+    assert f_logger.Y[1] == 5
+    assert f_logger.Y_orig[1] == 5
     assert f_logger.fun_evaltime[1] == 5
 
 
 def test_record_duplicate_fsd():
     x = np.array([3, 4, 5])
+    lb = np.array([[-3, -4, -5]])
+    ub = np.array([[13, 14, 15]])
     f_logger = FunctionLogger(
-        non_noisy_function, 3, True, 1, 500, VariableTransformer(3)
+        non_noisy_function, 3, True, 1, 500, VariableTransformer(3, lb, ub)
     )
     f_logger._record(x * 2, x * 2, 18, 2, 9)
     f_logger._record(x, x, 9, 3, 9)
@@ -178,8 +183,8 @@ def test_record_duplicate_fsd():
     assert f_logger.nevals[0] == 1
     assert f_logger.nevals[1] == 2
     assert np.all(f_logger.X[1] == x)
-    assert np.isclose(f_logger.y[1], 5, rtol=1e-12, atol=1e-14)
-    assert np.isclose(f_logger.y_orig[1], 5, rtol=1e-12, atol=1e-14)
+    assert np.isclose(f_logger.Y[1], 5, rtol=1e-12, atol=1e-14)
+    assert np.isclose(f_logger.Y_orig[1], 5, rtol=1e-12, atol=1e-14)
     assert f_logger.fun_evaltime[1] == 5
     assert f_logger.S[1] == 1 / np.sqrt(1 / 9 + 1 / 9)
 
@@ -192,53 +197,53 @@ def test_finalize():
     f_logger.finalize()
     assert f_logger.total_fun_evaltime == np.sum(f_logger.fun_evaltime)
     assert np.all(f_logger.X_orig[9] == x * 9)
-    assert f_logger.y_orig[9] == non_noisy_function(x * 9)
-    assert f_logger.ymax == non_noisy_function(x * 9)
+    assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
+    assert f_logger.Y_max == non_noisy_function(x * 9)
     assert np.sum(f_logger.X_flag) == 10
     assert f_logger.Xn == 9
     assert f_logger.func_count == 10
     assert f_logger.X_orig.shape[0] == 10
-    assert f_logger.y_orig.shape[0] == 10
+    assert f_logger.Y_orig.shape[0] == 10
     assert f_logger.X.shape[0] == 10
-    assert f_logger.y.shape[0] == 10
+    assert f_logger.Y.shape[0] == 10
     assert f_logger.X_flag.shape[0] == 10
     assert f_logger.fun_evaltime.shape[0] == 10
 
     # noise level 2
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
     for i in range(10):
-        f_logger(x * i)
+        f_logger(x * (i+1))
     f_logger.finalize()
-    fval, fsd = noisy_function(x * 9)
-    assert f_logger.S[9] == fsd
-    assert f_logger.y_orig[9] == fval
+    fval, fsd = noisy_function(x)
+    assert f_logger.S[0] == fsd
+    assert f_logger.Y_orig[0] == fval
     assert f_logger.S.shape[0] == 10
 
-
 def test_call_parameter_transform_no_constraints():
-    x = np.array([3, 4, 5])
-    variable_transformer = VariableTransformer(3)
+    x = np.array([0, 0, 0])
     f_logger = FunctionLogger(
-        non_noisy_function, 3, False, 0, 500, variable_transformer
+        non_noisy_function, 3, False, 0, 500, None
     )
     fval, _, _ = f_logger(x)
     assert np.all(f_logger.X[0] == f_logger.X_orig[0])
-    assert np.all(f_logger.y[0] == f_logger.y_orig[0])
+    assert np.all(f_logger.Y[0] == f_logger.Y_orig[0])
     assert np.all(fval == non_noisy_function(x))
 
-
 def test_add_parameter_transform():
-    x = np.array([3, 4, 5])
-    variable_transformer = VariableTransformer(3)
+    x = np.array([0, 0, 0])
+    lb = np.array([[-3, -4, -5]])
+    ub = np.array([[3, 4, 5]])
+    variable_transformer = VariableTransformer(3, lb, ub)
     f_logger = FunctionLogger(
         non_noisy_function, 3, False, 0, 500, variable_transformer
     )
     fval_orig = non_noisy_function(x)
     f_logger.add(x, fval_orig)
     assert np.all(f_logger.X[0] == f_logger.X_orig[0])
-    assert np.all(f_logger.y[0] == f_logger.y_orig[0])
-    assert np.all(f_logger.y_orig[0] == fval_orig)
+    assert np.all(f_logger.Y[0] == f_logger.Y_orig[0])
+    assert np.all(f_logger.Y_orig[0] == fval_orig)
 
+test_add_parameter_transform()
 
 def test_call_invalid_func_value():
     x = np.array([3, 4, 5])
@@ -279,7 +284,7 @@ def test_call_non_scalar_return():
     f_logger(x)
     f_logger(x * 2)
     y = np.sum(x * 2)
-    assert np.all(f_logger.y_orig[1] == y)
+    assert np.all(f_logger.Y_orig[1] == y)
 
 
 def test_add_invalid_func_value():

@@ -64,7 +64,7 @@ class FunctionLogger:
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
         self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
-        self.total_fun_evaltime = 0
+        self.total_fun_evaltime = 0.
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
@@ -210,7 +210,7 @@ class FunctionLogger:
         assert x.size == x.shape[0]
         # Convert back to original space
         if self.transform_variables:
-            x_orig = self.variable_transformer.inverse(
+            x_orig = self.variable_transformer.inverse_transf(
                 np.reshape(x, (1, x.shape[0]))
             )[0]
         else:
@@ -344,7 +344,7 @@ class FunctionLogger:
             Raise if there is more than one match for a duplicate entry.
         """
         duplicate_flag = self.X == x
-        # The duplicate case is not implemented in BADS
+        # The duplicate case is not implemented in BADS (MATLAB)
         if np.any(np.all(duplicate_flag, axis=1)): 
             if np.sum((duplicate_flag).all(axis=1)) > 1:
                 raise ValueError("More than one match for duplicate entry.")
@@ -382,12 +382,7 @@ class FunctionLogger:
             self.X[self.Xn] = x.copy()
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
-            # Not implemented in bads, in vbmc the transformation transform the input (a pdf) in a new pdf
-            # Thus to make the inverse transformation the jacobian is needed
-            #if self.transform_variables: 
-            #    fval += self.variable_transformer.log_abs_det_jacobian(
-            #        np.reshape(x, (1, x.shape[0]))
-            #    )[0]
+            
             self.Y[self.Xn] = fval 
             if fsd is not None:
                 self.S[self.Xn] = fsd
