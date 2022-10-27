@@ -4,7 +4,11 @@
 import numpy as np
 from pybads.bads.bads import BADS
 
-from pybads.function_examples import rosenbrocks_fcn
+def rosenbrocks_fcn(x):
+    """Rosenbrock's 'banana' function in any dimension."""
+    x_2d = np.atleast_2d(x)
+    return np.sum(100 * (x_2d[:, 0:-1]**2 - x_2d[:, 1:])**2 + (x_2d[:, 0:-1]-1)**2, axis=1)
+
 target = rosenbrocks_fcn;
 
 lb = np.array([[-20, -20]])     # Lower bounds
