@@ -71,6 +71,7 @@ class FunctionLogger:
     def __call__(self, x: np.ndarray, add_data: bool = True):
         """
         Evaluates the function FUN at x and caches values.
+        Right now, the function only fully support single function evaluation.
 
         Parameters
         ----------
@@ -119,8 +120,11 @@ class FunctionLogger:
                 fsd = None
                     
             if isinstance(fval_orig, np.ndarray):
-                # fval_orig can only be an array with size 1
+                # fval_orig can only be an array with size 1 since we support just single evaluation
                 fval_orig = fval_orig.item()
+            if isinstance(fsd, np.ndarray):
+                # fsd can only be an array with size 1 since we support just single evaluation
+                fsd = fsd.item()
             timer.stop_timer("funtime")
 
         except Exception as err:
@@ -160,6 +164,7 @@ class FunctionLogger:
         funtime = timer.get_duration("funtime")
 
         fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, add_data=add_data)
+        self.func_count += 1 
 
         return fval, fsd, idx
 
@@ -350,7 +355,6 @@ class FunctionLogger:
         if not add_data:
             idx = self.Xn
             self.nevals[idx] += 1
-            self.func_count += 1
             self.fun_evaltime[idx] = (self.fun_evaltime[idx] + fun_evaltime ) /2
             return fval_orig, idx
         else:
@@ -375,5 +379,4 @@ class FunctionLogger:
             self.X_flag[self.Xn] = True
             self.nevals[self.Xn] = np.maximum(1, self.nevals[self.Xn] + 1)
             self.Y_max = np.amax(self.Y[self.X_flag])
-            self.func_count += 1
             return fval, self.Xn

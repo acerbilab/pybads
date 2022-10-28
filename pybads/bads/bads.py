@@ -70,21 +70,21 @@ class BADS:
         there is > 90% probability that the minimum is found within the box 
         (where in doubt, just set PLB=LB and PUB=UB).
 
-    nonboxcons: callable
+    non_box_cons: callable
         A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
 
-    user_options : dict, optional
+    options : dict, optional
         Additional options can be passed as a dict. Please refer to the
-        BADS options page for the default options. If no `user_options` are 
+        BADS options page for the default options. If no `options` are 
         passed, the default options are used.
         To run BADS on a noisy (stochastic) objective function, set: 
-            * user_options.uncertaintyhandling = true
-            * user_options.noisesize = SIGMA
+            * options.uncertainty_handling = true
+            * options.noise_size = SIGMA
                 **  SIGMA is an estimate of the SD of the noise in your problem in
                     a good region of the parameter space. (If not specified, default 
                     SIGMA = 1). To help BADS work better, it is recommended that you
                     provide to BADS an estimate of the noise at each location.
-        If user_options.UncertaintyHandling is not specified, BADS will determine at
+        If options.uncertainty_handling is not specified, BADS will determine at
         runtime if the objective function is noisy.
 
     Raises
@@ -114,14 +114,14 @@ class BADS:
         upper_bounds: np.ndarray = None,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonboxcons: callable = None,
+        non_box_cons: callable = None,
         gamma_uncertain_interval = None,
-        user_options: dict = None
+        options: dict = None
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
-        self.nonboxcons = nonboxcons
+        self.non_box_cons = non_box_cons
 
         # variable to keep track of logging actions
         self.logging_action = []
@@ -150,7 +150,7 @@ class BADS:
         self.options = Options(
             basic_path,
             evaluation_parameters={"D": self.D},
-            user_options=user_options,
+            user_options=options,
         )
         advanced_path = (
             pybads_path + "/option_configs/advanced_bads_options.ini"
@@ -196,7 +196,7 @@ class BADS:
             upper_bounds,
             plausible_lower_bounds,
             plausible_upper_bounds,
-            nonboxcons
+            non_box_cons
         )
         
         self.gamma_uncertain_interval = gamma_uncertain_interval
@@ -208,8 +208,8 @@ class BADS:
             self.x0 = 0.5 * (self.plausible_lower_bounds + self.plausible_upper_bounds)
         
         # evaluate  starting point non-bound constraint
-        if nonboxcons is not None:
-            if nonboxcons(self.x0) > 0:
+        if non_box_cons is not None:
+            if non_box_cons(self.x0) > 0:
                 raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
             
 
@@ -254,7 +254,7 @@ class BADS:
         upper_bounds: np.ndarray,
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
-        nonboxcons: callable = None
+        non_box_cons: callable = None
     ):
         """
         Private function for initial checks of the BADS bounds.
@@ -363,7 +363,7 @@ class BADS:
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
-            nonboxconspoints X0 are not inside the provided hard bounds LB and UB."""
+            non_box_conspoints X0 are not inside the provided hard bounds LB and UB."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -463,8 +463,8 @@ class BADS:
             )
 
         # Check non bound constraints
-        if nonboxcons is not None:
-            y = nonboxcons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
+        if non_box_cons is not None:
+            y = non_box_cons(np.vstack([plausible_lower_bounds, plausible_upper_bounds]))
             if y.shape[0] != 2  and y.ndim == 1:
                 raise ValueError("bads:NONBCON "
                     + "NONBCON should be a function that takes a matrix X as input"
@@ -523,7 +523,7 @@ class BADS:
         
 
         # Compute transformation of variables
-        if self.options['nonlinearscaling']:
+        if self.options['non_linear_scaling']:
             logflag = np.full((1, self.D), np.NaN)
             periodicvars = self.options['periodicvars']
             if periodicvars is not None and len(periodicvars) != 0:
@@ -675,31 +675,31 @@ class BADS:
 
         # Copy maximum number of fcn. evaluations,
         # used by some acquisition fcns.
-        optim_state["max_fun_evals"] = self.options.get("maxfunevals")
+        optim_state["max_fun_evals"] = self.options.get("max_fun_evals")
 
         # Deal with user specified target noise
-        if self.options['specifytargetnoise'] is None:
-            self.options['specifytargetnoise'] = False
+        if self.options['specify_target_noise'] is None:
+            self.options['specify_target_noise'] = False
 
-        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is None:
-            self.options["uncertaintyhandling"] = False
+        if self.options['specify_target_noise'] and self.options["uncertainty_handling"] is None:
+            self.options["uncertainty_handling"] = False
         
-        if self.options['specifytargetnoise'] and self.options["uncertaintyhandling"] is not None \
-            and self.options["uncertaintyhandling"] == False:
-            raise ValueError('If options.specifytargetnoise is ON, options.uncertaintyhandling should be ON as well. \
-                                Leave options.uncertaintyhandling empty or set it to ON to avoid this error.')
-        if self.options['specifytargetnoise'] and \
-            self.options['noisesize'] is not None \
-            and np.array(self.options['noisesize'] > 0)[0]:
-            self.logger.warn('If options.specifytargetnoise is ON, options.noisesize is ignored. \
-                Leave options.noisesize empty or set it to 0 to silence this warning.')
+        if self.options['specify_target_noise'] and self.options["uncertainty_handling"] is not None \
+            and self.options["uncertainty_handling"] == False:
+            raise ValueError('If options.specify_target_noise is ON, options.uncertainty_handling should be ON as well. \
+                                Leave options.uncertainty_handling empty or set it to ON to avoid this error.')
+        if self.options['specify_target_noise'] and \
+            self.options['noise_size'] is not None \
+            and np.array(self.options['noise_size'] > 0)[0]:
+            self.logger.warn('If options.specify_target_noise is ON, options.noise_size is ignored. \
+                Leave options.noise_size empty or set it to 0 to silence this warning.')
 
 
         # Set uncertainty handling level
         # (0: none; 1: unknown noise level; 2: user-provided noise)
-        if self.options.get("specifytargetnoise"):
+        if self.options.get("specify_target_noise"):
             optim_state["uncertainty_handling_level"] = 2
-        elif self.options["uncertaintyhandling"] is not None and self.options["uncertaintyhandling"]:
+        elif self.options["uncertainty_handling"] is not None and self.options["uncertainty_handling"]:
             optim_state["uncertainty_handling_level"] = 1
         else:
             optim_state["uncertainty_handling_level"] = 0
@@ -785,8 +785,8 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
 
-        if self.nonboxcons is not None:
-            c = self.nonboxcons(self.u)
+        if self.non_box_cons is not None:
+            c = self.non_box_cons(self.u)
             if c > 0: 
                 self.yval = np.NaN 
                 raise ValueError("Initial starting point X0 does not satisfy non-bound constraint.")
@@ -802,7 +802,7 @@ class BADS:
             self.logging_action.append('')
 
         if self.optim_state["uncertainty_handling_level"] > 0:
-            if self.options['specifytargetnoise']:
+            if self.options['specify_target_noise']:
                 self.logger.info(
                         "Beginning optimization of a STOCHASTIC objective function (specified noise)\n")
             else:
@@ -813,14 +813,14 @@ class BADS:
                         "Beginning optimization of a DETERMINISTIC objective function\n")  
         
         # Only one function evaluation
-        if self.options['maxfunevals'] == 1:
+        if self.options['max_fun_evals'] == 1:
             is_finished = True
             return
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']),
-                                            self.options['maxfunevals'])
+                                            self.options['max_fun_evals'])
 
         # set up strings for logging of the iteration
         self.display_format = self._setup_logging_display_format()
@@ -828,8 +828,8 @@ class BADS:
         self._display_function_log_(0, '')
 
         if self.options['ninit'] > 0:
-            # Evaluate initial points but not more than options.maxfunevals
-            ninit = np.minimum(self.options['ninit'], self.options['maxfunevals'] - 1)
+            # Evaluate initial points but not more than options.max_fun_evals
+            ninit = np.minimum(self.options['ninit'], self.options['max_fun_evals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
@@ -841,7 +841,7 @@ class BADS:
                 u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
 
                 # Remove already evaluated or unfeasible points from search set 
-                u1 = contraints_check(u1, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state["tol_mesh"], self.function_logger, True, self.nonboxcons)
+                u1 = contraints_check(u1, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state["tol_mesh"], self.function_logger, True, self.non_box_cons)
                 
                 for u_idx in range(len(u1)):
                     self.function_logger(u1[u_idx])
@@ -883,11 +883,11 @@ class BADS:
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
-            if self.options['noisesize'] is None or len(self.options['noisesize']) == 0:
-                self.options['noisesize'] = 1.
+            if self.options['noise_size'] is None or len(self.options['noise_size']) == 0:
+                self.options['noise_size'] = 1.
             # Keep some function evaluations for the final resampling
-            self.options['noisefinalsamples'] = min(self.options['noisefinalsamples'] , self.options['maxfunevals']  - self.function_logger.func_count)
-            self.options['maxfunevals'] = self.options['maxfunevals']  - self.options['noisefinalsamples']
+            self.options['noise_final_samples'] = min(self.options['noise_final_samples'] , self.options['max_fun_evals']  - self.function_logger.func_count)
+            self.options['max_fun_evals'] = self.options['max_fun_evals']  - self.options['noise_final_samples']
             
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
@@ -896,11 +896,11 @@ class BADS:
                 self.fsd = self.function_logger.S[idx_min_y]
                 self.fsd = self.fsd.item()
             else:
-                self.fsd = self.options['noisesize']
+                self.fsd = self.options['noise_size']
 
         else:
-            if self.options['noisesize'] is None:
-                self.options['noisesize'] = np.sqrt(self.options['tolfun'])
+            if self.options['noise_size'] is None:
+                self.options['noise_size'] = np.sqrt(self.options['tolfun'])
             self.fsd = 0.0
             #Since the function is fully-deterministic no need of stobads
             if self.options['stobads']:
@@ -1051,15 +1051,15 @@ class BADS:
             
             msg = ''
             # Check termination conditions
-            if self.function_logger.func_count >= self.options['maxfunevals']:
+            if self.function_logger.func_count >= self.options['max_fun_evals']:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of function evaluations options.maxfunevals.'
+                msg = 'Optimization terminated: reached maximum number of function evaluations options.max_fun_evals.'
             
-            if poll_iteration >= self.options['maxiter'] -1:
+            if poll_iteration >= self.options['max_iter'] -1:
                 is_finished = True
                 #exit_flag = 0
-                msg = 'Optimization terminated: reached maximum number of iterations options.maxiter.'
+                msg = 'Optimization terminated: reached maximum number of iterations options.max_iter.'
             
             if self.optim_state['mesh_size'] < self.optim_state['tol_mesh']:
                 is_finished = True
@@ -1158,13 +1158,13 @@ class BADS:
             gp = self.iteration_history.get('gp')[min_q_beta_idx]
 
             # Re-evalate estimated function value and SD at final point
-            if self.options['noisefinalsamples'] > 0:
+            if self.options['noise_final_samples'] > 0:
                 # Estimate function value and standard deviation at final point.
                 # Note that by default we do *not* use YVAL because it is biased 
                 # (since it was an incumbent at some iteration, it is more likely to be a 
                 # random fluctuation lower than the mean)
-                yval_vec = np.empty(self.options['noisefinalsamples'])
-                for i_sample in range(self.options['noisefinalsamples']):
+                yval_vec = np.empty(self.options['noise_final_samples'])
+                for i_sample in range(self.options['noise_final_samples']):
                     # y, f_sd, _ = self.function_logger(self.u)
                     yval_vec[i_sample] = self.function_logger(self.u, add_data=False)[0]
                 
@@ -1186,7 +1186,10 @@ class BADS:
         # Compute total running time and fractional overhead
         timer.stop_timer('BADS')
         total_time  = timer.get_duration('BADS')
-        overhead = total_time / self.function_logger.total_fun_evaltime -1
+        if self.function_logger.total_fun_evaltime > 0.:
+            overhead = total_time / self.function_logger.total_fun_evaltime -1
+        else:
+            overhead = np.nan
         self.optim_state['total_time'] = total_time
         self.optim_state['overhead'] = overhead
 
@@ -1246,7 +1249,7 @@ class BADS:
         self.optim_state['search_count'] += 1
         
         if self.search_es_hedge is None:
-            self.search_es_hedge = ESSearchHedge(self.options['searchmethod'], self.options, self.nonboxcons)
+            self.search_es_hedge = ESSearchHedge(self.options['searchmethod'], self.options, self.non_box_cons)
         u_search_set, z = self.search_es_hedge(self.u, self.lower_bounds, self.upper_bounds, self.function_logger, gp , self.optim_state)
         
         # Enforce periodicity
@@ -1257,7 +1260,7 @@ class BADS:
 
         # Remove already evaluated or unfeasible points from search set 
         u_search_set = contraints_check(u_search_set, self.optim_state['lb_search'], self.optim_state['ub_search'], self.optim_state['tol_mesh'],
-                            self.function_logger, True, self.nonboxcons)
+                            self.function_logger, True, self.non_box_cons)
 
         # The Acquisition Hedge policy is not yet supported (even in Matlab)
         index_acq = None
@@ -1482,7 +1485,7 @@ class BADS:
         
         # Poll loop
         while ((u_poll is not None and len(u_poll) > 0) or (B is None  or len(B) == 0))\
-                and self.function_logger.func_count < self.options['maxfunevals']\
+                and self.function_logger.func_count < self.options['max_fun_evals']\
                 and poll_count < self.D * 2:
             
             # Fill in basis vectors (when poll_count == 0)
@@ -1502,7 +1505,7 @@ class BADS:
                     u_poll_new = force_to_grid(u_poll_new, self.optim_state['search_mesh_size'])
                 
                 u_poll_new = contraints_check(u_poll_new, self.lower_bounds, self.upper_bounds,
-                    self.optim_state['tol_mesh'], self.function_logger, False, self.nonboxcons)
+                    self.optim_state['tol_mesh'], self.function_logger, False, self.non_box_cons)
 
                 # Add new poll points to polling set
                 if u_poll is None:
@@ -1563,7 +1566,7 @@ class BADS:
                 do_gp_calibration = True
             
             # Consider whether to stop polling
-            if not self.options['completepoll']:
+            if not self.options['complete_poll']:
                 # Stop polling if last poll was good
                 if certain_good_poll:
                     if do_gp_calibration:
@@ -1672,10 +1675,10 @@ class BADS:
             #else:
                 # Check stalling
             iter = self.optim_state['iter']
-            if self.options['acceleratemesh'] and iter > self.options['acceleratemeshsteps']:
-                f_base = self.iteration_history.get('fval')[iter - self.options['acceleratemeshsteps']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['acceleratemeshsteps']]
-                u_base = self.iteration_history.get('u')[iter - self.options['acceleratemeshsteps']]
+            if self.options['accelerate_mesh'] and iter > self.options['accelerate_meshsteps']:
+                f_base = self.iteration_history.get('fval')[iter - self.options['accelerate_meshsteps']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['accelerate_meshsteps']]
+                u_base = self.iteration_history.get('u')[iter - self.options['accelerate_meshsteps']]
                 self.f_q_historic_improvement = self._eval_improvement_(f_base, self.fval,
                                                                         f_sd_base, self.fsd,
                                                                         self.options['improvementquantile'])

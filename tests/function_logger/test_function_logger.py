@@ -133,21 +133,6 @@ def test_add_record_stats():
     assert f_logger.func_count == 0
     assert f_logger.cache_count == 10
 
-
-def test_record_duplicate_existing_already():
-    x = np.array([3, 4, 5])
-    lb = np.array([[-3, -4, -5]])
-    ub = np.array([[13, 14, 15]])
-    f_logger = FunctionLogger(
-        non_noisy_function, 3, False, 0, 500, VariableTransformer(3, lb, ub)
-    )
-    f_logger._record(x, x, 9, None, 10)
-    f_logger.X[1] = x
-    with pytest.raises(ValueError):
-        f_logger._record(x, x, 9, None, 10)
-
-test_record_duplicate_existing_already()
-
 def test_record_duplicate():
     x = np.array([3, 4, 5])
     lb = np.array([[-3, -4, -5]])
@@ -155,16 +140,16 @@ def test_record_duplicate():
     f_logger = FunctionLogger(
         non_noisy_function, 3, False, 0, 500, VariableTransformer(3, lb, ub)
     )
-    f_logger._record(x * 2, x * 2, 18, None, 9)
-    f_logger._record(x, x, 9, None, 9)
-    _, idx = f_logger._record(x, x, 1, None, 1)
+    f_logger._record(x * 2, x * 2, 30, None, 9)
+    f_logger._record(x, x, 18, None, 9)
+    _, idx = f_logger._record(x, x, 1, None, 1, add_data=False)
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.nevals[0] == 1
     assert f_logger.nevals[1] == 2
     assert np.all(f_logger.X[1] == x)
-    assert f_logger.Y[1] == 5
-    assert f_logger.Y_orig[1] == 5
+    assert f_logger.Y[1] == 18
+    assert f_logger.Y_orig[1] == 18
     assert f_logger.fun_evaltime[1] == 5
 
 
@@ -177,17 +162,16 @@ def test_record_duplicate_fsd():
     )
     f_logger._record(x * 2, x * 2, 18, 2, 9)
     f_logger._record(x, x, 9, 3, 9)
-    _, idx = f_logger._record(x, x, 1, 3, 1)
+    _, idx = f_logger._record(x, x, 9, 3, 9, add_data=False)
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.nevals[0] == 1
     assert f_logger.nevals[1] == 2
     assert np.all(f_logger.X[1] == x)
-    assert np.isclose(f_logger.Y[1], 5, rtol=1e-12, atol=1e-14)
-    assert np.isclose(f_logger.Y_orig[1], 5, rtol=1e-12, atol=1e-14)
-    assert f_logger.fun_evaltime[1] == 5
-    assert f_logger.S[1] == 1 / np.sqrt(1 / 9 + 1 / 9)
-
+    assert np.isclose(f_logger.Y[1], 9, rtol=1e-12, atol=1e-14)
+    assert np.isclose(f_logger.Y_orig[1], 9, rtol=1e-12, atol=1e-14)
+    assert f_logger.fun_evaltime[1] == 9
+    assert f_logger.S[1] == 3
 
 def test_finalize():
     x = np.array([3, 4, 5])

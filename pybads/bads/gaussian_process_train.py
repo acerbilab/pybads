@@ -198,7 +198,7 @@ def init_and_train_gp(
         if hyp_dict["run_cov"] is None or options["hyprunweight"] == 0:
             hyp_dict["run_cov"] = hyp_cov
         else:
-            w = options["hyprunweight"] ** options["funevalsperiter"]
+            w = options["hyprunweight"] ** options["fun_evals_per_iter"]
             hyp_dict["run_cov"] = (1 - w) * hyp_cov + w * hyp_dict["run_cov"]
     else:
         hyp_dict["run_cov"] = None
@@ -243,10 +243,10 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     
     # Update priors hyperparameters using empirical Bayes method.
     
-    if options.get('specifytargetnoise'):    
+    if options.get('specify_target_noise'):    
         noise_size = options['tolfun']   #Additional jitter to specified noise
     else:
-        noise_size = options['noisesize']
+        noise_size = options['noise_size']
     
     # Update GP Noise
     old_priors = gp.get_priors()
@@ -306,13 +306,13 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
         last_dic_hyp_gp = dic_hyp_gp[-1] # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
         # Check for possible high-noise mode
-        if np.isscalar(options['noisesize']) or len(options['noisesize'] == 1) or \
-            (len(options['noisesize']) > 1 and ~np.isfinite(options['noisesize'][1])):
+        if np.isscalar(options['noise_size']) or len(options['noise_size'] == 1) or \
+            (len(options['noise_size']) > 1 and ~np.isfinite(options['noise_size'][1])):
             noise = 1
-            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noise_size']) + 2*noise
         else:
-            noise = options['noisesize'][1]
-            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize'][0]) + 2*noise
+            noise = options['noise_size'][1]
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noise_size'][0]) + 2*noise
         
         is_low_mean = False
         if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
@@ -695,10 +695,10 @@ def _gp_hyp(
     # Hyperparams over observation noise
     if options['fitlik']:
         # Unknown noise level (even for deterministic function, it helps for regularization)
-        if options.get('specifytargetnoise'):    
+        if options.get('specify_target_noise'):    
             noise_size = options['tolfun']   #Additional jitter to specified noise
         else:
-            noise_size = options['noisesize']
+            noise_size = options['noise_size']
         
         if np.isscalar(noise_size) or np.size(noise_size) == 1:
             noise_std = 1
@@ -964,7 +964,7 @@ def _get_gp_training_options(
     c = 3 * a
     d = options["gptrainninit"]
     x = (n_eff - options["funevalstart"]) / (
-        min(options["maxfunevals"], 1e3) - options["funevalstart"]
+        min(options["max_fun_evals"], 1e3) - options["funevalstart"]
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
     init_N = max(round(f(x)), 9)
@@ -1060,11 +1060,11 @@ def _get_hyp_cov(
                             np.log(
                                 iteration_history["sKL"][optim_state["iter"] - i]
                                 / options["tolskl"]
-                                * options["funevalsperiter"]
+                                * options["fun_evals_per_iter"]
                             ),
                         )
                     w *= options["hyprunweight"] ** (
-                        options["funevalsperiter"] * diff_mult
+                        options["fun_evals_per_iter"] * diff_mult
                     )
                 # Check if weight is getting too small.
                 if w < options["tolcovweight"]:

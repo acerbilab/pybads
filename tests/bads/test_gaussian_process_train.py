@@ -101,9 +101,9 @@ def test_get_training_data_noise():
     x0 = np.ones((2, D)) * 3
     plb = np.ones((1, D)) * -1
     pub = np.ones((1, D)) * 1
-    user_options = {"specifytargetnoise": True}
+    options = {"specify_target_noise": True}
 
-    bads = BADS(f, x0, None, None, plb, pub, user_options)
+    bads = BADS(f, x0, None, None, plb, pub, options)
 
     # Make sure we get nothing out before data has not been added.
     X_train, y_train, s2_train, t_train = _get_training_data(

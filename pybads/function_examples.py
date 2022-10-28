@@ -23,7 +23,7 @@ def rosebrocks_hetsk_noisy_fcn(x):
     X = np.atleast_2d(x)
     f_X = rosenbrocks_fcn(X)
     f_min = 0.
-    noise = np.random.normal() + 1 + 0.1 * (f_X - f_min)
+    noise = np.random.lognormal() + 1 + 0.1 * (f_X - f_min)
     return (f_X + noise, noise)
     
 
@@ -36,6 +36,11 @@ def quadratic_non_bound_constr(x):
     X = np.atleast_2d(x)
     return np.sum(X**2, axis=1) > 1
 
+def circle_constr(x):
+    """Return constraints violation outside the unit circle."""
+    x_2d = np.atleast_2d(x)
+    # Note that non_box_cons assumes the function takes a 2D input 
+    return np.sum(x_2d**2, axis=1) > 1
 
 def ackley_fcn(X):
     U = np.atleast_2d(X)
