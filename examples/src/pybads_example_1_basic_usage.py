@@ -20,5 +20,5 @@ x0 = np.array([[0, 0]]);        # Starting point
 bads = BADS(target, x0, lb, ub, plb, pub)
 x_min, fval = bads.optimize()
 
-print(f"BADS minimum at: x = {x_min.flatten()}, fval = {fval:.4g}")
+print(f"BADS minimum at: x_min = {x_min.flatten()}, fval = {fval:.4g}")
 print(f"total f-count: {bads.function_logger.func_count-1}, time: {round(bads.optim_state['total_time'], 2)} s")

@@ -22,5 +22,5 @@ def circle_constr(x):
 bads = BADS(rosenbrocks_fcn, x0, lb, ub, None, None, nonbondcons=circle_constr)
 x_min, fval = bads.optimize()
 
-print(f"BADS minimum at: x = {x_min.flatten()}, fval = {fval:.4g}")
+print(f"BADS minimum at: x_min = {x_min.flatten()}, fval = {fval:.4g}")
 print(f"total f-count: {bads.function_logger.func_count-1}, time: {round(bads.optim_state['total_time'], 2)} s")
