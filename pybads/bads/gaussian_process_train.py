@@ -352,7 +352,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # FIT GP
         gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options) # TODO: it's actually always 0, since we only optimize.
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
-        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, s2, hyp_gp, gp_train, optim_state, options)
+        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, gp.s2, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)

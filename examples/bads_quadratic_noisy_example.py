@@ -1,8 +1,7 @@
 import numpy as np
 from pybads.bads.bads import BADS
 from pybads.bads.bads_dump import BADSDump
-from pybads.function_examples import quadratic_unknown_noisy_fcn, rosebrocks_hetsk_noisy_fcn, extra_noisy_quadratic_fcn
-
+from pybads.function_examples import quadratic_unknown_noisy_fcn, extra_noisy_quadratic_fcn, quadratic_hetsk_noisy_fcn, rosebrocks_hetsk_noisy_fcn
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
@@ -36,12 +35,12 @@ if extra_noise:
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
    
-heteroskedastic_noise = False 
+heteroskedastic_noise = True 
 if heteroskedastic_noise:
     user_dict = {"uncertainty_handling": True, "specify_target_noise": True}
     title = 'Heteroskedastic Noise objective function'
     print("\n *** Example 5: " + title)
-    bads = BADS(rosebrocks_hetsk_noisy_fcn, x0, lb, ub, plb, pub, options=user_dict)
+    bads = BADS(quadratic_hetsk_noisy_fcn, x0, lb, ub, plb, pub, options=user_dict)
     x_min, fval = bads.optimize()
     print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
