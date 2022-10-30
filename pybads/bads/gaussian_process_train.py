@@ -80,7 +80,7 @@ def init_and_train_gp(
     D = x_train.shape[1]
 
     # Heuristic fitness shaping (unused even in MATLAB)
-    # if options.FitnessShaping
+    # if options.fitness_shaping
     #     [y_train,s2_train] = outputwarp_vbmc(X_train,y_train,s2_train,
     #                                           optimState,options);
     #  end
@@ -127,6 +127,8 @@ def init_and_train_gp(
 
     # Build starting points
     hyp0 = np.empty((0, np.size(hyp_dict["hyp"])))
+    
+    # TODO: Not used in PyBADS
     if gp_train["init_N"] > 0 and optim_state["iter"] > 0:
         # Be very careful with off-by-one errors compared to MATLAB in the
         # range here.
@@ -224,7 +226,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp.s2 = s2
 
     # TODO: Transformation of objective function
-    if options['fitnessshaping']:
+    if options['fitness_shaping']:
         #logger.warn("bads:opt:Fitness shaping not implemented yet")
         pass
     
@@ -235,14 +237,13 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         if 'S' in optim_state:
             gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
             
-    gp.temporary_data['erry'] = ~idx_finite_y
+    gp.temporary_data['err_y'] = ~idx_finite_y
 
     #TODO: Rotate dataset (unsupported)
 
     # Update GP
     
-    # Update priors hyperparameters using empirical Bayes method.
-    
+    ## Update priors hyperparameters using empirical Bayes method.
     if options.get('specify_target_noise'):    
         noise_size = options['tolfun']   #Additional jitter to specified noise
     else:
@@ -314,10 +315,11 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             noise = options['noise_size'][1]
             is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noise_size'][0]) + 2*noise
         
-        is_low_mean = False
+        is_low_mean = False # Check for mean stuck below minimum
         if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
             is_low_mean = last_dic_hyp_gp['mean_const'] < np.min(gp.y)
         
+        # Conditions for performing a second fit
         second_fit = options['doublerefit'] | is_high_noise | is_low_mean
         dic_hyp_gp[-1] = last_dic_hyp_gp 
         
@@ -341,14 +343,14 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
                 new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
                 dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
-        # Matlab: remove undefined points (no need)
-        # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem.
+        # Matlab: remove undefined points (Not used in BADS, therefore not implemented)
+        # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem. (Not used in single sample optimization, therefore not implemented)
         
         gp.set_hyperparameters(dic_hyp_gp, compute_posterior=False)
         hyp_gp = gp.get_hyperparameters(as_array=True)
         
         # FIT GP
-        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
+        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options) # TODO: it's actually always 0, since we only optimize.
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
         x_train, y_train, s2_train, _ = _get_training_data(function_logger)
         gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
@@ -384,7 +386,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
            
         gp.temporary_data['poll_scale'] = ll.flatten()
 
-        if options['useeffectiveradius']:
+        if options['use_effective_radius']:
             if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
                 alpha = np.zeros((hyp_n_samples))
                 for i in range(hyp_n_samples):

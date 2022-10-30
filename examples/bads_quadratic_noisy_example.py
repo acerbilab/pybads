@@ -8,6 +8,7 @@ lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
 plb = np.array([[-2, -2]])      # Plausible lower bounds
 pub = np.array([[2, 2]])        # Plausible upper bounds
+np.random.seed(15)
 
 title = 'Noise objective function'
 print("\n *** Example 3: " + title)
@@ -25,7 +26,7 @@ bads_dump = BADSDump("stobads_noise")
 bads_dump.to_JSON(bads.x, bads.u, bads.fval, bads.fsd, bads.iteration_history,
             x_global_min)
 
-extra_noise = False
+extra_noise = True
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
@@ -34,7 +35,7 @@ if extra_noise:
     x_min, fval = bads.optimize()
     print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
-    print(f"The true global minimum is at x = [1, 1], where fval = 0\n")
+    print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
    
 heteroskedastic_noise = False 
 if heteroskedastic_noise:

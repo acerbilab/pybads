@@ -762,7 +762,7 @@ class BADS:
         # more logic here in matlab
 
         # Starting threshold on y for output warping
-        if self.options.get("fitnessshaping"):
+        if self.options.get("fitness_shaping"):
             optim_state["outwarp_delta"] = self.options.get(
                 "outwarpthreshbase"
             )
@@ -1170,6 +1170,7 @@ class BADS:
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
+                self.optim_state['yval_vec'] = np.copy(yval_vec)
                 
                 self.fval = np.mean(yval_vec).item()
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
@@ -1292,7 +1293,7 @@ class BADS:
             
             # Add search point to training setMeshSize
             if u_search.size > 0 & self.search_es_hedge.count < self.options["searchntry"]:
-                # TODO: Handle FitnessShaping and rotate gp axes (latter one is unsupported)
+                # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)
 
                 # update posterior, since we added the new point
                 gp = reupdate_gp(self.function_logger, gp)
