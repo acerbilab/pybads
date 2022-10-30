@@ -119,16 +119,9 @@ def init_and_train_gp(
         optim_state, iteration_history, options, hyp_dict, gp_s_N, function_logger
     )
 
-    # In some cases the model can change so be careful.
-    if gp_train["widths"] is not None and np.size(
-        gp_train["widths"]
-    ) != np.size(hyp0):
-        gp_train["widths"] = None
-
     # Build starting points
     hyp0 = np.empty((0, np.size(hyp_dict["hyp"])))
     
-    # TODO: Not used in PyBADS
     if gp_train["init_N"] > 0 and optim_state["iter"] > 0:
         # Be very careful with off-by-one errors compared to MATLAB in the
         # range here.
@@ -159,13 +152,6 @@ def init_and_train_gp(
     if hyp0.shape[1] != np.size(gp.hyper_priors["mu"]):
         hyp0 = None
 
-    if (
-        "hyp_vp" in hyp_dict
-        and hyp_dict["hyp_vp"] is not None
-        and gp_train["sampler"] == "npv"
-    ):
-        hyp0 = hyp_dict["hyp_vp"]
-
     fitted = False
     training_failures = 0
     while not fitted:
@@ -174,7 +160,7 @@ def init_and_train_gp(
                 _, _, _ = gp.fit(x_train, y_train, s2_train, hyp0=hyp0, options=gp_train)
                 fitted = True
             elif training_failures == 3:
-                #All zero initilization like BADS after the second failure
+                #Initialize the hyper-params. to zero after the second failure (like in BADS)
                 new_hyp = np.zeros(shape=hyp0.shape)
                 _, _, _ = gp.fit(x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train)
                 hyp0 = new_hyp
@@ -259,17 +245,17 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
     # TODO: warped likelihood (unsupported)
 
     # Update GP Mean
-    y_mean = np.percentile(gp.y, options['gpmeanpercentile'])
-    y_range = options['gpmeanrangefun'](y_mean, gp.y)
+    y_mean = np.percentile(gp.y, options['gp_mean_percentile'])
+    y_range = options['gp_mean_range_fun'](y_mean, gp.y)
 
     prior_mean = None
     if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         prior_mean = gp_priors['mean_const']
         prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
     
-    if prior_mean is not None and ~options['gpfixedmean']:
+    if prior_mean is not None and ~options['gp_fixed_mean']:
         prior_mean = (prior_mean[0], (prior_mean[1][0], y_range**(1/4)))
-    elif options['gpfixedmean']:
+    elif options['gp_fixed_mean']:
         # TODO: update hyp mean by assigning ymean
         pass 
 
@@ -350,7 +336,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         hyp_gp = gp.get_hyperparameters(as_array=True)
         
         # FIT GP
-        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options) # TODO: it's actually always 0, since we only optimize.
+        gp_s_N = 0
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
         gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, gp.s2, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
@@ -466,7 +452,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
             #handle
             logging.debug('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
             success_flag[i_try] = False
-            if i_try > options['removepointsaftertries'] -1:
+            if i_try > options['remove_points_after_tries'] -1:
                 idx_drop_out = np.zeros(len(Y)).astype(bool)
                 # Remove closest pair sample
                 dist = cdist(X, X)
@@ -503,7 +489,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
             else: # if the slice sampler fail, due to che Cholesky decomposition
                 new_hyp = old_hyp_gp
 
-            nudge = options['noisenudge']
+            nudge = options['noise_nudge']
             if nudge is None or len(nudge) == 0:
                 nudge = np.array([0, 0])
             elif len(nudge) == 1:
@@ -530,7 +516,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
         gp.set_hyperparameters(new_hyp, False)
     if np.any(~success_flag):
         # at least one failed
-        if options['gpwarnings']:
+        if options['gp_warnings']:
             logger.warning(f'bads:gpHyperOptFail: Failed optimization of hyper-parameters ({n_try} attempts). GP approximation might be unreliable.')
 
     if np.all(~success_flag):
@@ -561,7 +547,7 @@ def _get_random_samples_from_priors_(gp:gpr.GP):
                 new_sample.append(np.random.normal(m_p, sigma_priors[idx]))
             
             hyp[key] = np.array(new_sample)
-            #
+            
     return gp.hyperparameters_from_dict(hyp)
 
 def get_samples_from_slice_sampler(gp:gpr.GP, hyp_gp, optim_state, options):
@@ -676,7 +662,7 @@ def _gp_hyp(
     """
 
     # Get high posterior density dataset.
-    hpd_X, hpd_y, _, _ = get_hpd(X, y, options["hpdfrac"])
+    hpd_X, hpd_y, _, _ = get_hpd(X, y, options["hpd_frac"])
     D = hpd_X.shape[1]
     # s2 = None
 
@@ -794,46 +780,12 @@ def _gp_hyp(
     # Missing port: output warping priors
 
     ## Number of GP hyperparameter samples.
-    gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
+    gp_s_N = 0
 
     gp.set_bounds(bounds)
     gp.set_priors(priors)
 
     return gp, hyp0, round(gp_s_N)
-
-def _get_numb_gp_samples(function_logger:FunctionLogger, optim_state, options):
-    """ 
-        Retrieve the number of GP hyperparameter samples.
-    """
-    stop_sampling = optim_state["stop_sampling"]
-
-    tr_N = function_logger.Xn+1 # Number of training inputs
-
-    if stop_sampling == 0 and tr_N != 0:
-        # Number of samples
-        gp_s_N = options["nsgpmax"] / np.sqrt(tr_N)
-
-        # Maximum sample cutoff
-        if optim_state["warmup"]:
-            gp_s_N = np.minimum(gp_s_N, options["nsgpmaxwarmup"])
-        else:
-            gp_s_N = np.minimum(gp_s_N, options["nsgpmaxmain"])
-
-        # Stop sampling after reaching max number of training points
-        if tr_N >= options["stablegpsampling"]:
-            stop_sampling = tr_N
-
-        # Stop sampling after reaching threshold of variational components
-        if optim_state["vpK"] >= options["stablegpvpk"]:
-            stop_sampling = tr_N
-    else:
-        # No training points
-        pass
-
-    if stop_sampling > 0:
-        gp_s_N = options["stablegpsamples"]
-
-    return gp_s_N
 
 
 def _get_gp_training_options(
@@ -871,239 +823,42 @@ def _get_gp_training_options(
         Raised if the MCMC sampler for GP hyperparameters is unknown.
 
     """
-
     iteration = optim_state["iter"]
-    
 
     n_eff = np.sum(
         function_logger.nevals[function_logger.X_flag]
     )
 
     gp_train = {}
-    gp_train["thin"] = options["gpsamplethin"]  # MCMC thinning
     gp_train["init_method"] = options["gptraininitmethod"]
     gp_train["tol_opt"] = options["gptolopt"]
-    gp_train["tol_opt_mcmc"] = options["gptoloptmcmc"]
     gp_train["widths"] = None
 
-    # Get hyperparameter posterior covariance from previous iterations
-    hyp_cov = _get_hyp_cov(optim_state, iteration_history, options, hyp_dict)
-
-    if iteration > 0:
-        if options["gpsamplewidths"] > 0 and hyp_cov is not None and "rindex" in iteration_history:
-            r_index = iteration_history["rindex"][iteration - 1]
-    else:
-        r_index = np.inf
-
-    # Setup MCMC sampler
-    if options["gphypsampler"] == "slicesample":
-        gp_train["sampler"] = "slicesample"
-        if options["gpsamplewidths"] > 0 and hyp_cov is not None:
-            width_mult = np.maximum(options["gpsamplewidths"], r_index)
-            hyp_widths = np.sqrt(np.diag(hyp_cov).T)
-            gp_train["widths"] = np.maximum(hyp_widths, 1e-3) * width_mult
-
-    elif options["gphypsampler"] == "npv":
-        gp_train["sampler"] = "npv"
-
-    elif options["gphypsampler"] == "mala":
-        gp_train["sampler"] = "mala"
-        if hyp_cov is not None:
-            gp_train["widths"] = np.sqrt(np.diag(hyp_cov).T)
-        if "gpmala_stepsize" in optim_state:
-            gp_train["step_size"] = optim_state["gpmala_stepsize"]
-
-    elif options["gphypsampler"] == "slicelite":
-        gp_train["sampler"] = "slicelite"
-        if options["gpsamplewidths"] > 0 and hyp_cov is not None:
-            width_mult = np.maximum(options["gpsamplewidths"], r_index)
-            hyp_widths = np.sqrt(np.diag(hyp_cov).T)
-            gp_train["widths"] = np.maximum(hyp_widths, 1e-3) * width_mult
-
-    elif options["gphypsampler"] == "splitsample":
-        gp_train["sampler"] = "splitsample"
-        if options["gpsamplewidths"] > 0 and hyp_cov is not None:
-            width_mult = np.maximum(options["gpsamplewidths"], r_index)
-            hyp_widths = np.sqrt(np.diag(hyp_cov).T)
-            gp_train["widths"] = np.maximum(hyp_widths, 1e-3) * width_mult
-
-    elif options["gphypsampler"] == "covsample":
-        if options["gpsamplewidths"] > 0 and hyp_cov is not None:
-            width_mult = np.maximum(options["gpsamplewidths"], r_index)
-            if np.all(np.isfinite(width_mult)) and np.all(
-                r_index < options["covsamplethresh"]
-            ):
-                hyp_n = hyp_cov.shape[0]
-                gp_train["widths"] = (
-                    hyp_cov + 1e-6 * np.eye(hyp_n)
-                ) * width_mult ** 2
-                gp_train["sampler"] = "covsample"
-                gp_train["thin"] *= math.ceil(np.sqrt(hyp_n))
-            else:
-                hyp_widths = np.sqrt(np.diag(hyp_cov).T)
-                gp_train["widths"] = np.maximum(hyp_widths, 1e-3) * width_mult
-                gp_train["sampler"] = "slicesample"
-        else:
-            gp_train["sampler"] = "covsample"
-
-    elif options["gphypsampler"] == "laplace":
-        if n_eff < 30:
-            gp_train["sampler"] = "slicesample"
-            if options["gpsamplewidths"] > 0 and hyp_cov is not None:
-                width_mult = np.maximum(options["gpsamplewidths"], r_index)
-                hyp_widths = np.sqrt(np.diag(hyp_cov).T)
-                gp_train["widths"] = np.maximum(hyp_widths, 1e-3) * width_mult
-        else:
-            gp_train["sampler"] = "laplace"
-
-    else:
-        raise ValueError("Unknown MCMC sampler for GP hyperparameters")
+    # Set GP training options
+    gp_train["sampler"] = "slicesample"
 
     # N-dependent initial training points.
     a = -(options["gp_train_n_init"] - options["gp_train_n_init_final"])
     b = -3 * a
     c = 3 * a
     d = options["gp_train_n_init"]
-    x = (n_eff - options["funevalstart"]) / (
-        min(options["max_fun_evals"], options['ndata']) - options["funevalstart"]
+    x = (n_eff - options["fun_eval_start"]) / (
+        min(options["max_fun_evals"], options['ndata']) - options["fun_eval_start"]
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
     init_N = max(round(f(x)), options["gp_train_n_init_final"])
-    iteration_history.record('init_N', init_N, optim_state['iter']+1)
+    iteration_history.record('init_N', init_N, iteration+1) # +1 offset because the gp initialization is done before starting the optimization.
     
-    # Set other hyperparameter fitting parameters
-    if "recompute_var_post" in optim_state and optim_state["recompute_var_post"]:
-        gp_train["burn"] = gp_train["thin"] * gp_s_N
-        gp_train["init_N"] = init_N
-        if gp_s_N > 0:
-            gp_train["opts_N"] = 1
-        else:
-            gp_train["opts_N"] = 2
+    gp_train["init_N"] = init_N
+    gp_train["opts_N"] = 2
+    if gp_s_N > 0:
+        gp_train["opts_N"] = 1
     else:
-        gp_train["burn"] = gp_train["thin"] * 3
-        if (
-            iteration > 1 and "rindex" in iteration_history
-            and iteration_history["rindex"][iteration - 1]
-            < options["gpretrainthreshold"]
-        ):
-            gp_train["init_N"] = 0
-            if options["gphypsampler"] == "slicelite":
-                # TODO: gpretrainthreshold is by default 1, so we get
-                #       division by zero. what should the default be?
-                gp_train["burn"] = (
-                    max(
-                        1,
-                        math.ceil(
-                            gp_train["thin"]
-                            * np.log(
-                                iteration_history["rindex"][iteration - 1]
-                                / np.log(options["gpretrainthreshold"])
-                            )
-                        ),
-                    )
-                    * gp_s_N
-                )
-                gp_train["thin"] = 1
-            if gp_s_N > 0:
-                gp_train["opts_N"] = 0
-            else:
-                gp_train["opts_N"] = 1
-        else:
-            gp_train["init_N"] = init_N
-            if gp_s_N > 0:
-                gp_train["opts_N"] = 1
-            else:
-                gp_train["opts_N"] = 2
+        gp_train["opts_N"] = 2
 
     gp_train["n_samples"] = round(gp_s_N)
-    gp_train["burn"] = round(gp_train["burn"])
 
     return gp_train
-
-
-def _get_hyp_cov(
-    optim_state: dict,
-    iteration_history: IterationHistory,
-    options: Options,
-    hyp_dict: dict,
-):
-    """
-    Get hyperparameter posterior covariance.
-
-    Parameters
-    ==========
-    optim_state : dict
-        Optimization state from the BADS instance we are calling this from.
-    iteration_history : IterationHistory
-        Iteration history from the BADS instance we are calling this from.
-    options : Options
-        Options from the BADS instance we are calling this from.
-    hyp_dict : dict
-        Hyperparameter summary statistic dictionary.
-
-    Returns
-    =======
-    hyp_cov : ndarray, optional
-        The hyperparameter posterior covariance if it can be computed.
-    """
-
-    if optim_state["iter"] > 0:
-        if options["weightedhypcov"]:
-            w_list = []
-            hyp_list = []
-            w = 1
-            for i in range(0, optim_state["iter"]):
-                if i > 0:
-                    # Be careful with off-by-ones compared to MATLAB here
-                    diff_mult = 1
-                    if 'sKL' in iteration_history:
-                        diff_mult = max(
-                            1,
-                            np.log(
-                                iteration_history["sKL"][optim_state["iter"] - i]
-                                / options["tolskl"]
-                                * options["fun_evals_per_iter"]
-                            ),
-                        )
-                    w *= options["hyprunweight"] ** (
-                        options["fun_evals_per_iter"] * diff_mult
-                    )
-                # Check if weight is getting too small.
-                if w < options["tolcovweight"]:
-                    break
-
-                hyp = iteration_history["gp_hyp_full"][
-                    optim_state["iter"] - 1 - i
-                ]
-                hyp_n = hyp.shape[1]
-                if len(hyp_list) == 0 or np.shape(hyp_list)[2] == hyp.shape[0]:
-                    hyp_list.append(hyp.T)
-                    w_list.append(w * np.ones((hyp_n, 1)) / hyp_n)
-
-            w_list = np.concatenate(w_list)
-            hyp_list = np.concatenate(hyp_list)
-
-            # Normalize weights
-            w_list /= np.sum(w_list, axis=0)
-            # Weighted mean
-            mu_star = np.sum(hyp_list * w_list, axis=0)
-
-            # Weighted covariance matrix
-            hyp_n = np.shape(hyp_list)[1]
-            hyp_cov = np.zeros((hyp_n, hyp_n))
-            for j in range(0, np.shape(hyp_list)[0]):
-                hyp_cov += np.dot(
-                    w_list[j],
-                    np.dot((hyp_list[j] - mu_star).T, hyp_list[j] - mu_star),
-                )
-
-            hyp_cov /= 1 - np.sum(w_list ** 2)
-
-            return hyp_cov
-
-        return hyp_dict["run_cov"]
-
-    return None
 
 
 def _get_fevals_data(function_logger: FunctionLogger):
