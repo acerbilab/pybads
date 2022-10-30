@@ -29,7 +29,7 @@ from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.utils.constraints_check import contraints_check
-from pybads.bads.gaussian_process_train import local_gp_fitting, reupdate_gp, init_and_train_gp
+from pybads.bads.gaussian_process_train import local_gp_fitting, add_and_update_gp, init_and_train_gp
 from gpyreg.gaussian_process import GP
 from pybads.bads.options import Options
 
@@ -1294,9 +1294,7 @@ class BADS:
             # Add search point to training setMeshSize
             if u_search.size > 0 & self.search_es_hedge.count < self.options["searchntry"]:
                 # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)
-
-                # update posterior, since we added the new point
-                gp = reupdate_gp(self.function_logger, gp)
+                gp = add_and_update_gp(self.function_logger, gp, u_search, y_search, f_sd_search, self.options)
 
                 if np.any(~np.isfinite(gp.y)):
                     self.logger.warn("bads:opt: GP prediction is non-finite")
@@ -1598,7 +1596,7 @@ class BADS:
 
             if self.optim_state['uncertainty_handling_level'] > 0:
                 # Update posterior with the new polled point
-                gp = reupdate_gp(self.function_logger, gp) # u_new is already added from the function logger
+                gp = add_and_update_gp(self.function_logger, gp, u_new, y_poll, y_sd_poll, self.options) # u_new is already added from the function logger
                 f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
                 f_sd_poll = np.sqrt(f_sd_poll).item()
                 f_poll = f_poll.item()
@@ -1659,8 +1657,6 @@ class BADS:
             # Successful poll, increase mesh size
             self.mesh_size_integer = np.minimum(self.mesh_size_integer + 1, self.options['maxpollgridnumber'])
             
-            #TODO shouldn't we increase the search_size_integer ? min(max(search_size_integer +1, self.mesh_size_integer))
-            
             self.optim_state['u_success'].append(self.u_best.copy)
             self.optim_state['y_success'].append(self.yval)
             self.optim_state['f_success'].append(self.fval)
@@ -1718,7 +1714,7 @@ class BADS:
 
         self._display_function_log_(self.optim_state['iter'], poll_string)   
 
-        #TODO: if self.output_function is not None -> Implemente output function for saving the result in a file.
+        #TODO: if self.output_function is not None -> Implement output function for saving the result in a file.
         
         self.reset_gp = is_poll_moved
 

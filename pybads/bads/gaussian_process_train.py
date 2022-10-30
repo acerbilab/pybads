@@ -76,7 +76,7 @@ def init_and_train_gp(
         hyp_dict["run_cov"] = None
 
     # Get training dataset.
-    x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
+    x_train, y_train, s2_train, t_train = _get_fevals_data(function_logger)
     D = x_train.shape[1]
 
     # Heuristic fitness shaping (unused even in MATLAB)
@@ -352,8 +352,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # FIT GP
         gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options) # TODO: it's actually always 0, since we only optimize.
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
-        x_train, y_train, s2_train, _ = _get_training_data(function_logger)
-        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
+        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, s2, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)
@@ -1106,9 +1105,9 @@ def _get_hyp_cov(
     return None
 
 
-def _get_training_data(function_logger: FunctionLogger):
+def _get_fevals_data(function_logger: FunctionLogger):
     """
-    Get training data for building GP surrogate.
+    Get all evaluated data.
 
     Parameters
     ==========
@@ -1128,18 +1127,18 @@ def _get_training_data(function_logger: FunctionLogger):
         data.
     """
 
-    x_train = function_logger.X[function_logger.X_flag, :]
-    y_train = function_logger.Y[function_logger.X_flag]
+    x = function_logger.X[function_logger.X_flag, :]
+    y = function_logger.Y[function_logger.X_flag]
     if function_logger.noise_flag:
-        s2_train = function_logger.S[function_logger.X_flag] ** 2
+        s2 = function_logger.S[function_logger.X_flag] ** 2
     else:
-        s2_train = None
+        s2 = None
 
     # Missing port: noiseshaping
 
-    t_train = function_logger.fun_evaltime[function_logger.X_flag]
+    evals_time = function_logger.fun_evaltime[function_logger.X_flag]
 
-    return x_train, y_train, s2_train, t_train
+    return x, y, s2, evals_time
 
 
 def _estimate_noise_(gp: gpr.GP):
@@ -1184,7 +1183,7 @@ def _estimate_noise_(gp: gpr.GP):
     return np.median(np.mean(sn2, axis=1))
 
 
-def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
+def add_and_update_gp(function_logger: FunctionLogger, gp: gpr.GP, x_new, y_new, sd_new=None, options=None):
     """
     Quick posterior reupdate of Gaussian process.
 
@@ -1199,12 +1198,11 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp : GP
         The updated Gaussian process.
     """
+    gp.X = np.concatenate((gp.X, np.atleast_2d(x_new)))
+    gp.y = np.concatenate((gp.y, np.atleast_2d(y_new)))
+    if options['specify_target_noise'] and sd_new is not None:
+        gp.s2 = np.concatenate((gp.s2, np.atleast_2d(sd_new)))
 
-    x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
-    gp.X = x_train
-    gp.y = y_train
-    gp.s2 = s2_train
-    # Missing port: gp.t = t_train
     gp.update(compute_posterior=True)
 
     # Missing port: intmean part

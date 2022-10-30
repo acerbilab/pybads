@@ -11,7 +11,7 @@ from pybads.bads.gaussian_process_train import (
     _estimate_noise,
     _get_gp_training_options,
     _get_hyp_cov,
-    _get_training_data,
+    _get_fevals_data,
     _meanfun_name_to_mean_function,
 )
 from scipy.stats import norm
@@ -50,7 +50,7 @@ def test_estimate_noise():
     assert np.isclose(noise_estimate, 0.106582207806606)
 
 
-def test_get_training_data_no_noise():
+def test_get_fevals_data_no_noise():
     D = 3
     f = lambda x: np.sum(x + 2, axis=1)
     x0 = np.ones((2, D)) * 3
@@ -60,7 +60,7 @@ def test_get_training_data_no_noise():
     bads = BADS(f, x0, None, None, plb, pub)
 
     # Make sure we get nothing out before data has not been added.
-    X_train, y_train, s2_train, t_train = _get_training_data(
+    X_train, y_train, s2_train, t_train = _get_fevals_data(
         bads.function_logger
     )
 
@@ -85,7 +85,7 @@ def test_get_training_data_no_noise():
         bads.function_logger.fun_evaltime[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
-    X_train, y_train, s2_train, t_train = _get_training_data(
+    X_train, y_train, s2_train, t_train = _get_fevals_data(
         bads.function_logger
     )
 
@@ -95,7 +95,7 @@ def test_get_training_data_no_noise():
     assert np.all(t_train == 1e-5)
 
 
-def test_get_training_data_noise():
+def test_get_fevals_data_noise():
     D = 3
     f = lambda x: np.sum(x + 2, axis=1)
     x0 = np.ones((2, D)) * 3
@@ -106,7 +106,7 @@ def test_get_training_data_noise():
     bads = BADS(f, x0, None, None, plb, pub, options)
 
     # Make sure we get nothing out before data has not been added.
-    X_train, y_train, s2_train, t_train = _get_training_data(
+    X_train, y_train, s2_train, t_train = _get_fevals_data(
         bads.function_logger
     )
 
@@ -132,7 +132,7 @@ def test_get_training_data_noise():
         bads.function_logger.fun_evaltime[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
-    X_train, y_train, s2_train, t_train = _get_training_data(
+    X_train, y_train, s2_train, t_train = _get_fevals_data(
         bads.function_logger
     )
 
