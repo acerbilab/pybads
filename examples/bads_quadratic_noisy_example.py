@@ -8,7 +8,6 @@ lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
 plb = np.array([[-2, -2]])      # Plausible lower bounds
 pub = np.array([[2, 2]])        # Plausible upper bounds
-np.random.seed(15)
 
 title = 'Noise objective function'
 print("\n *** Example 3: " + title)
