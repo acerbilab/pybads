@@ -243,6 +243,7 @@ class BADS:
                 "timer",
                 "optim_state",
                 "n_eff",
+                "init_N",
                 "logging_action",
             ]
         )

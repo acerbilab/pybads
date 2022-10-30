@@ -960,16 +960,17 @@ def _get_gp_training_options(
         raise ValueError("Unknown MCMC sampler for GP hyperparameters")
 
     # N-dependent initial training points.
-    a = -(options["gptrainninit"] - options["gptrainninitfinal"])
+    a = -(options["gp_train_n_init"] - options["gp_train_n_init_final"])
     b = -3 * a
     c = 3 * a
-    d = options["gptrainninit"]
+    d = options["gp_train_n_init"]
     x = (n_eff - options["funevalstart"]) / (
-        min(options["max_fun_evals"], 1e3) - options["funevalstart"]
+        min(options["max_fun_evals"], options['ndata']) - options["funevalstart"]
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
-    init_N = max(round(f(x)), 9)
-
+    init_N = max(round(f(x)), options["gp_train_n_init_final"])
+    iteration_history.record('init_N', init_N, optim_state['iter']+1)
+    
     # Set other hyperparameter fitting parameters
     if "recompute_var_post" in optim_state and optim_state["recompute_var_post"]:
         gp_train["burn"] = gp_train["thin"] * gp_s_N

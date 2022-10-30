@@ -24,7 +24,7 @@ bads_dump = BADSDump("stobads_noise")
 bads_dump.to_JSON(bads.x, bads.u, bads.fval, bads.fsd, bads.iteration_history,
             x_global_min)
 
-extra_noise = True
+extra_noise = False
 if extra_noise:
     title = 'Extra Noise objective function'
     print("\n *** Example 4: " + title)
@@ -35,7 +35,7 @@ if extra_noise:
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
    
-heteroskedastic_noise = True 
+heteroskedastic_noise = False 
 if heteroskedastic_noise:
     user_dict = {"uncertainty_handling": True, "specify_target_noise": True}
     title = 'Heteroskedastic Noise objective function'
