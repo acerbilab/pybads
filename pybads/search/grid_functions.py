@@ -56,14 +56,14 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
 
     # Keep only points within a certain (rescale) radius from target
     radius = options["gpradius"] * gp.temporary_data["effective_radius"]
-    ntrain = np.minimum(options["ndata"], np.sum(dist<=radius**2))
+    ntrain = np.minimum(options["ntrain_max"], np.sum(dist<=radius**2))
 
     # Minimum number of point to keep
-    ntrain = np.max([options["minndata"], options["ndata"] - options["bufferndata"], ntrain])
+    ntrain = np.max([options["ntrain_min"], options["ntrain_max"] - options["buffer_ntrain"], ntrain])
 
     # Up to the maximum number of available points
     ntrain = np.minimum(ntrain, function_logger.X_max_idx)
-    
+    optim_state['ntrain'] = ntrain
     # Take points closest to reference points
     res_S = None
     if function_logger.noise_flag:

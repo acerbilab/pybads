@@ -227,7 +227,7 @@ class BADS:
         self.iteration_history = IterationHistory(
             [
                 "iter",
-                "fcount",
+                "func_count",
                 "u",
                 "x",
                 "fval",
@@ -243,6 +243,7 @@ class BADS:
                 "timer",
                 "optim_state",
                 "n_eff",
+                "ntrain",
                 "init_N",
                 "logging_action",
             ]
@@ -820,7 +821,7 @@ class BADS:
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']),
+            self.options['fun_eval_start'] = np.minimum(np.maximum(20, self.options['fun_eval_start']),
                                             self.options['max_fun_evals'])
 
         # set up strings for logging of the iteration
@@ -828,13 +829,13 @@ class BADS:
         self._log_column_headers()
         self._display_function_log_(0, '')
 
-        if self.options['ninit'] > 0:
+        if self.options['fun_eval_start'] > 0:
             # Evaluate initial points but not more than options.max_fun_evals
-            ninit = np.minimum(self.options['ninit'], self.options['max_fun_evals'] - 1)
+            fun_eval_start = np.minimum(self.options['fun_eval_start'], self.options['max_fun_evals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
-                            self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
+                            self.plausible_lower_bounds, self.plausible_upper_bounds, fun_eval_start)
                 # enforce periodicity TODO function
                 u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
 
@@ -862,6 +863,10 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
         
+        # Save the efffective number of initial starting points, which can match with options['fun_eval_start']
+        # but it might be different for example when considering a noisy target function OR when applying a non-box-contraint function.
+        self.optim_state['eff_starting_points'] = self.function_logger.Xn + 1
+        
         return
 
     def _init_optimization_(self):
@@ -875,12 +880,12 @@ class BADS:
 
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
-            
+        
         # Change options for uncertainty handling
         if self.optim_state['uncertainty_handling_level'] > 0:
             self.options['tolstalliters'] = 2 * self.options['tolstalliters']
-            self.options['ndata'] = max(200,self.options['ndata'])
-            self.options['minndata'] = 2 * self.options['minndata']
+            self.options['ntrain_max'] = max(200,self.options['ntrain_max'])
+            self.options['ntrain_min'] = 2 * self.options['ntrain_min']
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
@@ -1092,7 +1097,7 @@ class BADS:
                 self.iteration_history.record('search_mesh_size', self.search_mesh_size, poll_iteration)
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration) #corresponds to self.best_gp_hyp
                 self.iteration_history.record('gp', gp, poll_iteration)
-                self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
+                self.iteration_history.record('func_count', self.function_logger.func_count, poll_iteration)
 
             # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \

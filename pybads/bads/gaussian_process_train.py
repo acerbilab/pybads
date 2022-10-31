@@ -842,12 +842,15 @@ def _get_gp_training_options(
     b = -3 * a
     c = 3 * a
     d = options["gp_train_n_init"]
-    x = (n_eff - options["fun_eval_start"]) / (
-        min(options["max_fun_evals"], options['ndata']) - options["fun_eval_start"]
+    eff_starting_points = optim_state['eff_starting_points']
+    x = (n_eff - eff_starting_points) / (
+        min(options["max_fun_evals"], options['ntrain_max']) - eff_starting_points
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
     init_N = max(round(f(x)), options["gp_train_n_init_final"])
-    iteration_history.record('init_N', init_N, iteration+1) # +1 offset because the gp initialization is done before starting the optimization.
+    if iteration >=0 : # the first time is called when the gp is initialized, and iteration is -1
+        iteration_history.record('init_N', init_N, iteration)
+        iteration_history.record('ntrain', optim_state['ntrain'], iteration)
     
     gp_train["init_N"] = init_N
     gp_train["opts_N"] = 2

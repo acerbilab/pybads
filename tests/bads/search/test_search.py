@@ -62,7 +62,7 @@ def test_search():
     options = load_options(D, "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads")
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options['ninit'] = 0
+    bads.options['fun_eval_start'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     es_iter = bads.options['nsearchiter']
@@ -101,7 +101,7 @@ def test_search_hedge():
     D = 3
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options['ninit'] = 0
+    bads.options['fun_eval_start'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     
     search_hedge = ESSearchHedge(bads.options['searchmethod'], bads.options)
@@ -129,7 +129,7 @@ def test_grid_search_neighbors():
     D = 2
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options['ninit'] = 0
+    bads.options['fun_eval_start'] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
     f = FunctionLogger(rosenbrocks_fcn, D, False, 0)
