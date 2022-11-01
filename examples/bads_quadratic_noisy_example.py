@@ -3,8 +3,6 @@ from pybads.bads.bads import BADS
 from pybads.bads.bads_dump import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, extra_noisy_quadratic_fcn, quadratic_hetsk_noisy_fcn, rosebrocks_hetsk_noisy_fcn
 
-from matplotlib import pyplot as plt
-
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
