@@ -2,18 +2,22 @@ import numpy as np
 from pybads.bads.bads import BADS
 from pybads.bads.bads_dump import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, extra_noisy_quadratic_fcn, quadratic_hetsk_noisy_fcn, rosebrocks_hetsk_noisy_fcn
+
+from matplotlib import pyplot as plt
+
 x0 = np.array([[-3, -3]]);        # Starting point
 lb = np.array([[-5, -5]])     # Lower bounds
 ub = np.array([[5, 5]])       # Upper bounds
 plb = np.array([[-2, -2]])      # Plausible lower bounds
 pub = np.array([[2, 2]])        # Plausible upper bounds
+np.random.seed(13)
 
 title = 'Noise objective function'
 print("\n *** Example 3: " + title)
 print("\t We test BADS on a noisy quadratic function with unit Gaussian noise.")
 bads = BADS(quadratic_unknown_noisy_fcn, x0, lb, ub, plb, pub)
 
-x_min, fval = bads.optimize()
+x_min, fval, optimize_result = bads.optimize()
 print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
 x_global_min = np.array([0., 0.])
@@ -30,7 +34,7 @@ if extra_noise:
     print("\n *** Example 4: " + title)
     print("\t We test BADS on a particularly noisy function.")
     bads = BADS(extra_noisy_quadratic_fcn, x0, lb, ub, plb, pub)
-    x_min, fval = bads.optimize()
+    x_min, fval, optimize_result = bads.optimize()
     print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [0, 0], where fval = 0\n")
@@ -41,7 +45,7 @@ if heteroskedastic_noise:
     title = 'Heteroskedastic Noise objective function'
     print("\n *** Example 5: " + title)
     bads = BADS(quadratic_hetsk_noisy_fcn, x0, lb, ub, plb, pub, options=user_dict)
-    x_min, fval = bads.optimize()
+    x_min, fval, optimize_result = bads.optimize()
     print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [1, 1], where fval = 0\n")
