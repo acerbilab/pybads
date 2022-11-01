@@ -11,7 +11,7 @@ from pytest import Function
 from gpyreg.slice_sample import SliceSampler
 
 from pybads.function_logger import FunctionLogger
-from pybads.search.grid_functions import get_grid_search_neighbors, udist
+from pybads.search.grid_functions import udist
 from scipy.spatial.distance import cdist
 
 from .options import Options
@@ -862,6 +862,46 @@ def _get_gp_training_options(
     gp_train["n_samples"] = round(gp_s_N)
 
     return gp_train
+
+def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, optim_state):
+    """ Retrieve a sorted matrix based on distance from the current incumbent `u`.
+    Return
+    ----------
+        tuple : (U, Y, S)
+            U (np.ndarray) : nearest neighbors from the incumbent `u`
+            Y (np.ndarray) : predicted values at U
+            S (np.ndarray) : estimated variance at U
+    """
+    # get the training set by retrieving the sorted NEAREST neighbors from u
+    U_max_idx = function_logger.X_max_idx
+    U = function_logger.X[0:U_max_idx+1].copy()
+    Y = function_logger.Y[0:U_max_idx+1].copy()
+
+    if function_logger.noise_flag:
+        S = function_logger.S[0:U_max_idx+1]
+    
+    dist = udist(U, u, gp.temporary_data["len_scale"],
+        optim_state["lb"], optim_state["ub"], optim_state['scale'],
+            optim_state['periodic_vars'])
+    if dist.ndim > 1:
+        dist = np.min(dist, axis=1) 
+    sort_idx = np.argsort(dist) # Ascending sort
+
+    # Keep only points within a certain (rescale) radius from target
+    radius = options["gpradius"] * gp.temporary_data["effective_radius"]
+    ntrain = np.minimum(options["ntrain_max"], np.sum(dist<=radius**2))
+
+    # Minimum number of point to keep
+    ntrain = np.max([options["ntrain_min"], options["ntrain_max"] - options["buffer_ntrain"], ntrain])
+
+    # Up to the maximum number of available points
+    ntrain = np.minimum(ntrain, function_logger.X_max_idx)
+    optim_state['ntrain'] = ntrain
+    # Take points closest to reference points
+    res_S = None
+    if function_logger.noise_flag:
+        res_S = function_logger.S[sort_idx[0:ntrain]]
+    return (U[sort_idx[0:ntrain]], Y[sort_idx[0:ntrain]], res_S)
 
 
 def _get_fevals_data(function_logger: FunctionLogger):
