@@ -849,8 +849,8 @@ def _get_gp_training_options(
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
     init_N = max(round(f(x)), options["gp_train_n_init_final"])
     if iteration >=0 : # the first time is called when the gp is initialized, and iteration is -1
-        iteration_history.record('init_N', init_N, iteration)
-        iteration_history.record('ntrain', optim_state['ntrain'], iteration)
+        iteration_history.record('init_N', int(init_N), iteration)
+        iteration_history.record('ntrain', int(optim_state['ntrain']), iteration)
     
     gp_train["init_N"] = init_N
     gp_train["opts_N"] = 2
