@@ -1692,7 +1692,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
                     
                     self.mesh_size_integer -= 1
-                    logger.warn("bads: The optimization is stalling, further decrease of the mesh size")
+                    logger.debug("bads: The optimization is stalling, further decrease of the mesh size")
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
