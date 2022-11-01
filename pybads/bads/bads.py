@@ -17,13 +17,14 @@ from sqlalchemy import true
 from pybads import function_logger
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.bads.bads_dump import BADSDump
+from pybads.bads.optimize_result import OptimizeResult
 from pybads.poll.poll_mads_2n import poll_mads_2n
 
 from pybads.search.search_hedge import ESSearchHedge
 
 from pybads.function_logger import FunctionLogger
 from pybads.init_functions.init_sobol import init_sobol
-from pybads.search.grid_functions import force_to_grid, grid_units, get_grid_search_neighbors, udist 
+from pybads.search.grid_functions import force_to_grid, grid_units, udist 
 from pybads.utils.period_check import period_check
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
@@ -105,7 +106,6 @@ class BADS:
 
     --------
     """
-
     def __init__(
         self,
         fun: callable,
@@ -210,7 +210,7 @@ class BADS:
         # evaluate  starting point non-bound constraint
         if non_box_cons is not None:
             if non_box_cons(self.x0) > 0:
-                raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
+                raise ValueError('Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).')
             
 
         self.optim_state = self._init_optim_state_()
@@ -343,12 +343,12 @@ class BADS:
             )
 
         # Fixed variables (all bounds equal) are not supported
-        fixidx = (
+        fix_idx = (
             (lower_bounds == upper_bounds)
             & (upper_bounds == plausible_lower_bounds)
             & (plausible_lower_bounds == plausible_upper_bounds)
         )
-        if np.any(fixidx):
+        if np.any(fix_idx):
             raise ValueError(
                 """bads:FixedVariables BADS does not support fixed 
             variables. Lower and upper bounds should be different."""
@@ -1085,6 +1085,7 @@ class BADS:
                     exit_flag = 2
                     msg = 'Optimization terminated: change in the function value less than options.TolFun.'
                 
+            self.optim_state['termination_msg'] = msg
             
             # Store best points at the end of each iteration, or upon termination
             if do_poll_step or is_finished:
@@ -1209,8 +1210,11 @@ class BADS:
                 self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
             self.logger.warn(f'Function value at minimum: {self.fval}\n')
+            
+        # BADS's output 
+        optimize_result = OptimizeResult(self)
 
-        return self.x, self.fval
+        return (self.x, self.fval, optimize_result)
     
     
     def _search_step_(self, gp: GP):
@@ -1941,9 +1945,11 @@ class BADS:
         """
         Private method to create the result dict.
         """
+        
         # TODO: save using BADSDump
         # bads_dump = BADSDump('bads_dump')
         # bads_dump.to_JSON(self.x, self.u, self.fval, self.fsd, self.iteration_history, )
+        
         logging.info(termination_message)
         return None
 
