@@ -894,7 +894,7 @@ class BADS:
             self.options['meshnoisemultiplier'] = 0
             if self.options['noise_size'] is None:
                 self.options['noise_size'] = 1.
-            if isinstance(self.options['noise_size'], np.ndarray): # ensure the noise_size o be a scalar
+            if isinstance(self.options['noise_size'], np.ndarray): # ensure the noise_size is a scalar
                 self.options['noise_size'] = self.options['noise_size'].item()
                 
             # Keep some function evaluations for the final resampling
