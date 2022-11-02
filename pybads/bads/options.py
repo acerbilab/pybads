@@ -22,7 +22,7 @@ class Options(MutableMapping, dict):
 
     Attributes
     ----------
-    useroptions : set
+    user_options : set
         This set contains all options that have set by the user,
         if there are none it is empty. These ``useroptions`` are immutable to
         changes using :py:meth:`load_options_file`.

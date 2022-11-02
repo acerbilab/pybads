@@ -76,11 +76,11 @@ def init_and_train_gp(
         hyp_dict["run_cov"] = None
 
     # Get training dataset.
-    x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
+    x_train, y_train, s2_train, t_train = _get_fevals_data(function_logger)
     D = x_train.shape[1]
 
     # Heuristic fitness shaping (unused even in MATLAB)
-    # if options.FitnessShaping
+    # if options.fitness_shaping
     #     [y_train,s2_train] = outputwarp_vbmc(X_train,y_train,s2_train,
     #                                           optimState,options);
     #  end
@@ -127,6 +127,8 @@ def init_and_train_gp(
 
     # Build starting points
     hyp0 = np.empty((0, np.size(hyp_dict["hyp"])))
+    
+    # TODO: Not used in PyBADS
     if gp_train["init_N"] > 0 and optim_state["iter"] > 0:
         # Be very careful with off-by-one errors compared to MATLAB in the
         # range here.
@@ -198,7 +200,7 @@ def init_and_train_gp(
         if hyp_dict["run_cov"] is None or options["hyprunweight"] == 0:
             hyp_dict["run_cov"] = hyp_cov
         else:
-            w = options["hyprunweight"] ** options["funevalsperiter"]
+            w = options["hyprunweight"] ** options["fun_evals_per_iter"]
             hyp_dict["run_cov"] = (1 - w) * hyp_cov + w * hyp_dict["run_cov"]
     else:
         hyp_dict["run_cov"] = None
@@ -224,7 +226,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp.s2 = s2
 
     # TODO: Transformation of objective function
-    if options['fitnessshaping']:
+    if options['fitness_shaping']:
         #logger.warn("bads:opt:Fitness shaping not implemented yet")
         pass
     
@@ -235,18 +237,17 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         if 'S' in optim_state:
             gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
             
-    gp.temporary_data['erry'] = ~idx_finite_y
+    gp.temporary_data['err_y'] = ~idx_finite_y
 
     #TODO: Rotate dataset (unsupported)
 
     # Update GP
     
-    # Update priors hyperparameters using empirical Bayes method.
-    
-    if options.get('specifytargetnoise'):    
+    ## Update priors hyperparameters using empirical Bayes method.
+    if options.get('specify_target_noise'):    
         noise_size = options['tolfun']   #Additional jitter to specified noise
     else:
-        noise_size = options['noisesize']
+        noise_size = options['noise_size']
     
     # Update GP Noise
     old_priors = gp.get_priors()
@@ -306,18 +307,19 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         # In our configuration we have just one sample hyperparameter, in case of multiple we should randomly pick one
         last_dic_hyp_gp = dic_hyp_gp[-1] # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
         # Check for possible high-noise mode
-        if np.isscalar(options['noisesize']) or len(options['noisesize'] == 1) or \
-            (len(options['noisesize']) > 1 and ~np.isfinite(options['noisesize'][1])):
+        if np.isscalar(options['noise_size']) or len(options['noise_size'] == 1) or \
+            (len(options['noise_size']) > 1 and ~np.isfinite(options['noise_size'][1])):
             noise = 1
-            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize']) + 2*noise
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noise_size']) + 2*noise
         else:
-            noise = options['noisesize'][1]
-            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noisesize'][0]) + 2*noise
+            noise = options['noise_size'][1]
+            is_high_noise = last_dic_hyp_gp['noise_log_scale'] > np.log(options['noise_size'][0]) + 2*noise
         
-        is_low_mean = False
+        is_low_mean = False # Check for mean stuck below minimum
         if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
             is_low_mean = last_dic_hyp_gp['mean_const'] < np.min(gp.y)
         
+        # Conditions for performing a second fit
         second_fit = options['doublerefit'] | is_high_noise | is_low_mean
         dic_hyp_gp[-1] = last_dic_hyp_gp 
         
@@ -341,17 +343,16 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
                 new_hyp = np.minimum(np.maximum(new_hyp, gp.lower_bounds), gp.upper_bounds)
                 dic_hyp_gp.append(gp.hyperparameters_to_dict(new_hyp)[-1])
         
-        # Matlab: remove undefined points (no need)
-        # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem.
+        # Matlab: remove undefined points (Not used in BADS, therefore not implemented)
+        # Matlab uses hyperSVGD when using multiple samples in the hyp. optimization problem. (Not used in single sample optimization, therefore not implemented)
         
         gp.set_hyperparameters(dic_hyp_gp, compute_posterior=False)
         hyp_gp = gp.get_hyperparameters(as_array=True)
         
         # FIT GP
-        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options)
+        gp_s_N = _get_numb_gp_samples(function_logger, optim_state, options) # TODO: it's actually always 0, since we only optimize.
         gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
-        x_train, y_train, s2_train, _ = _get_training_data(function_logger)
-        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, x_train, y_train, s2_train, hyp_gp, gp_train, optim_state, options)
+        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, gp.s2, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
         hyp_n_samples = len(dic_hyp_gp)
@@ -384,7 +385,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
            
         gp.temporary_data['poll_scale'] = ll.flatten()
 
-        if options['useeffectiveradius']:
+        if options['use_effective_radius']:
             if isinstance(gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD):
                 alpha = np.zeros((hyp_n_samples))
                 for i in range(hyp_n_samples):
@@ -401,7 +402,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         gp.update(hyp=hyp_gp)
     except np.linalg.LinAlgError:
         #Posterior GP update failed (due to Cholesky decomposition)
-        logging.warning('bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition')
+        logging.debug('bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition')
         gp.set_priors(old_priors)
         gp.set_hyperparameters(old_hyp_gp)
         #gp.set_hyperparameters(iteration_history.get('gp_hyp_full')[-1])
@@ -463,7 +464,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
             break
         except np.linalg.LinAlgError:
             #handle
-            logging.warning('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
+            logging.debug('bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition')
             success_flag[i_try] = False
             if i_try > options['removepointsaftertries'] -1:
                 idx_drop_out = np.zeros(len(Y)).astype(bool)
@@ -695,10 +696,10 @@ def _gp_hyp(
     # Hyperparams over observation noise
     if options['fitlik']:
         # Unknown noise level (even for deterministic function, it helps for regularization)
-        if options.get('specifytargetnoise'):    
+        if options.get('specify_target_noise'):    
             noise_size = options['tolfun']   #Additional jitter to specified noise
         else:
-            noise_size = options['noisesize']
+            noise_size = options['noise_size']
         
         if np.isscalar(noise_size) or np.size(noise_size) == 1:
             noise_std = 1
@@ -964,7 +965,7 @@ def _get_gp_training_options(
     c = 3 * a
     d = options["gptrainninit"]
     x = (n_eff - options["funevalstart"]) / (
-        min(options["maxfunevals"], 1e3) - options["funevalstart"]
+        min(options["max_fun_evals"], 1e3) - options["funevalstart"]
     )
     f = lambda x_: a * x_ ** 3 + b * x ** 2 + c * x + d
     init_N = max(round(f(x)), 9)
@@ -1060,11 +1061,11 @@ def _get_hyp_cov(
                             np.log(
                                 iteration_history["sKL"][optim_state["iter"] - i]
                                 / options["tolskl"]
-                                * options["funevalsperiter"]
+                                * options["fun_evals_per_iter"]
                             ),
                         )
                     w *= options["hyprunweight"] ** (
-                        options["funevalsperiter"] * diff_mult
+                        options["fun_evals_per_iter"] * diff_mult
                     )
                 # Check if weight is getting too small.
                 if w < options["tolcovweight"]:
@@ -1104,9 +1105,9 @@ def _get_hyp_cov(
     return None
 
 
-def _get_training_data(function_logger: FunctionLogger):
+def _get_fevals_data(function_logger: FunctionLogger):
     """
-    Get training data for building GP surrogate.
+    Get all evaluated data.
 
     Parameters
     ==========
@@ -1126,18 +1127,18 @@ def _get_training_data(function_logger: FunctionLogger):
         data.
     """
 
-    x_train = function_logger.X[function_logger.X_flag, :]
-    y_train = function_logger.Y[function_logger.X_flag]
+    x = function_logger.X[function_logger.X_flag, :]
+    y = function_logger.Y[function_logger.X_flag]
     if function_logger.noise_flag:
-        s2_train = function_logger.S[function_logger.X_flag] ** 2
+        s2 = function_logger.S[function_logger.X_flag] ** 2
     else:
-        s2_train = None
+        s2 = None
 
     # Missing port: noiseshaping
 
-    t_train = function_logger.fun_evaltime[function_logger.X_flag]
+    evals_time = function_logger.fun_evaltime[function_logger.X_flag]
 
-    return x_train, y_train, s2_train, t_train
+    return x, y, s2, evals_time
 
 
 def _estimate_noise_(gp: gpr.GP):
@@ -1182,7 +1183,7 @@ def _estimate_noise_(gp: gpr.GP):
     return np.median(np.mean(sn2, axis=1))
 
 
-def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
+def add_and_update_gp(function_logger: FunctionLogger, gp: gpr.GP, x_new, y_new, sd_new=None, options=None):
     """
     Quick posterior reupdate of Gaussian process.
 
@@ -1197,12 +1198,11 @@ def reupdate_gp(function_logger: FunctionLogger, gp: gpr.GP):
     gp : GP
         The updated Gaussian process.
     """
+    gp.X = np.concatenate((gp.X, np.atleast_2d(x_new)))
+    gp.y = np.concatenate((gp.y, np.atleast_2d(y_new)))
+    if options['specify_target_noise'] and sd_new is not None:
+        gp.s2 = np.concatenate((gp.s2, np.atleast_2d(sd_new)))
 
-    x_train, y_train, s2_train, t_train = _get_training_data(function_logger)
-    gp.X = x_train
-    gp.y = y_train
-    gp.s2 = s2_train
-    # Missing port: gp.t = t_train
     gp.update(compute_posterior=True)
 
     # Missing port: intmean part

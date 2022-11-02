@@ -64,19 +64,22 @@ class FunctionLogger:
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
         self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
-        self.total_fun_evaltime = 0
+        self.total_fun_evaltime = 0.
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
-    def __call__(self, x: np.ndarray):
+    def __call__(self, x: np.ndarray, add_data: bool = True):
         """
         Evaluates the function FUN at x and caches values.
+        Right now, the function only fully support single function evaluation.
 
         Parameters
         ----------
         x : np.ndarray
             The point at which the function will be evaluated. The shape of x
             should be (1, D) or (D,).
+        add_data : bool, optional (default True)
+            Flag to indicate whether the data is added to training data.
 
         Returns
         -------
@@ -117,8 +120,11 @@ class FunctionLogger:
                 fsd = None
                     
             if isinstance(fval_orig, np.ndarray):
-                # fval_orig can only be an array with size 1
+                # fval_orig can only be an array with size 1 since we support just single evaluation
                 fval_orig = fval_orig.item()
+            if isinstance(fsd, np.ndarray):
+                # fsd can only be an array with size 1 since we support just single evaluation
+                fsd = fsd.item()
             timer.stop_timer("funtime")
 
         except Exception as err:
@@ -157,8 +163,8 @@ class FunctionLogger:
         # record timer stats
         funtime = timer.get_duration("funtime")
 
-        self.func_count += 1
-        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime)
+        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, add_data=add_data)
+        self.func_count += 1 
 
         return fval, fsd, idx
 
@@ -210,7 +216,7 @@ class FunctionLogger:
         assert x.size == x.shape[0]
         # Convert back to original space
         if self.transform_variables:
-            x_orig = self.variable_transformer.inverse(
+            x_orig = self.variable_transformer.inverse_transf(
                 np.reshape(x, (1, x.shape[0]))
             )[0]
         else:
@@ -311,6 +317,7 @@ class FunctionLogger:
         fval_orig: float,
         fsd: float,
         fun_evaltime: float,
+        add_data: bool = True,
     ):
         """
         A private method to save function values to class attributes.
@@ -343,30 +350,13 @@ class FunctionLogger:
         ValueError
             Raise if there is more than one match for a duplicate entry.
         """
-        duplicate_flag = self.X == x
-        # The duplicate case is not implemented in BADS
-        if np.any(np.all(duplicate_flag, axis=1)): 
-            if np.sum((duplicate_flag).all(axis=1)) > 1:
-                raise ValueError("More than one match for duplicate entry.")
-            idx = np.argwhere(duplicate_flag)[0, 0]
-            N = self.nevals[idx]
-            if fsd is not None:
-                tau_n = 1 / self.S[idx] ** 2
-                tau_1 = 1 / fsd ** 2
-                self.Y_orig[idx] = (tau_n * self.Y_orig[idx] + tau_1 * fval_orig) / (tau_n + tau_1)
-                self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
-            else:
-                self.Y_orig[idx] = (N * self.Y_orig[idx] + fval_orig) / (N + 1)
-
-            fval = self.Y_orig[idx]
-            #if self.transform_variables:
-            #    fval += self.variable_transformer.log_abs_det_jacobian(x)
-            self.Y[idx] = fval
-            self.fun_evaltime[idx] = (
-                N * self.fun_evaltime[idx] + fun_evaltime
-            ) / (N + 1)
+        
+        # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
+        if not add_data:
+            idx = self.Xn
             self.nevals[idx] += 1
-            return fval, idx
+            self.fun_evaltime[idx] = (self.fun_evaltime[idx] + fun_evaltime ) /2
+            return fval_orig, idx
         else:
             self.Xn += 1
             if self.Xn > self.X_orig.shape[0] - 1:
@@ -382,12 +372,7 @@ class FunctionLogger:
             self.X[self.Xn] = x.copy()
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
-            # Not implemented in bads, in vbmc the transformation transform the input (a pdf) in a new pdf
-            # Thus to make the inverse transformation the jacobian is needed
-            #if self.transform_variables: 
-            #    fval += self.variable_transformer.log_abs_det_jacobian(
-            #        np.reshape(x, (1, x.shape[0]))
-            #    )[0]
+            
             self.Y[self.Xn] = fval 
             if fsd is not None:
                 self.S[self.Xn] = fsd

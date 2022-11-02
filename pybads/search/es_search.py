@@ -69,7 +69,7 @@ class ESSearch(ABC):
         
         return None
 
-    def __call__(self, u, LB:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, nonbondcons:Callable=None):
+    def __call__(self, u, LB:np.ndarray, ub:np.ndarray, func_logger:FunctionLogger, gp:GP, optim_state, sum_rule=True, non_box_cons:Callable=None):
         """Main method for computing the search.
 
         Parameters
@@ -81,7 +81,7 @@ class ESSearch(ABC):
             gp (GP): 
             optim_state :
             sum_rule (bool, optional) :
-            nonbondcons (Callable, optional): A given non-bound constraints function.
+            non_box_cons (Callable, optional): A given non-bound constraints function.
 
         Raises:
             ValueError: _description_
@@ -121,7 +121,7 @@ class ESSearch(ABC):
 
             # Remove already evaluated or unfeasible points from search set
             u_new = contraints_check(u_new, optim_state['lb_search'], optim_state['ub_search'],
-                        optim_state["tol_mesh"], func_logger, True, nonbondcons)
+                        optim_state["tol_mesh"], func_logger, True, non_box_cons)
 
             if self.search_acq_fcn[0] == 'acq_LCB':
                 z_new, fmu, fs = acq_fcn_lcb(u_new, func_logger, gp, self.search_acq_fcn[1])

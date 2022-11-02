@@ -67,8 +67,8 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
     # Take points closest to reference points
     res_S = None
     if function_logger.noise_flag:
-        res_S = function_logger.S[sort_idx[0:ntrain+1]]
-    return (U[sort_idx[0:ntrain+1]], Y[sort_idx[0:ntrain+1]], res_S)
+        res_S = function_logger.S[sort_idx[0:ntrain]]
+    return (U[sort_idx[0:ntrain]], Y[sort_idx[0:ntrain]], res_S)
 
 
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
