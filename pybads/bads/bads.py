@@ -364,8 +364,8 @@ class BADS:
         # Check that all X0 are inside the bounds
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
-                """bads:InitialPointsNotInsideBounds: The starting
-            non_box_conspoints X0 are not inside the provided hard bounds LB and UB."""
+                """bads:InitialPointsNotInsideBounds: The starting 
+                points X0 are not inside the provided hard bounds LB and UB."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -493,15 +493,18 @@ class BADS:
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates)
-        y_orig = np.array(self.options.get("fvals")).flatten()
-        if len(y_orig) == 0:
+        if self.options['fvals'] is not None:
+            y_orig = np.array(self.options.get("fvals")).flatten()
+            if len(y_orig) == 0:
+                y_orig = np.full([self.x0.shape[0]], np.nan)
+            if len(self.x0) != len(y_orig):
+                raise ValueError(
+                    """bads:MismatchedStartingInputs The number of
+                points in X0 and of their function values as specified in
+                self.options.fvals are not the same."""
+                )
+        else:
             y_orig = np.full([self.x0.shape[0]], np.nan)
-        if len(self.x0) != len(y_orig):
-            raise ValueError(
-                """bads:MismatchedStartingInputs The number of
-            points in X0 and of their function values as specified in
-            self.options.fvals are not the same."""
-            )
 
         optim_state = dict()
         optim_state["cache"] = dict()
@@ -525,11 +528,11 @@ class BADS:
         
 
         # Compute transformation of variables
-        if self.options['non_linear_scaling']:
+        if self.options['nonlinear_scaling']:
             logflag = np.full((1, self.D), np.NaN)
-            periodicvars = self.options['periodicvars']
-            if periodicvars is not None and len(periodicvars) != 0:
-                logflag[periodicvars] = 0
+            periodic_vars = self.options['periodic_vars']
+            if periodic_vars is not None and len(periodic_vars) != 0:
+                logflag[:, periodic_vars] = 0 # Never transform periodic variables
         else:
             logflag = np.zeros((1, self.D))
 
@@ -584,13 +587,13 @@ class BADS:
                 
 
         #Periodic variables
-        idx_periodic_vars = self.options['periodicvars']
+        idx_periodic_vars = self.options['periodic_vars']
         periodic_vars = np.zeros((1, self.D)).astype(bool)
-        if idx_periodic_vars is not None or len(idx_periodic_vars) != 0:
-            periodic_vars[idx_periodic_vars] = True
-            finite_periodicvars = np.all(np.isfinite(self.lower_bounds[idx_periodic_vars])) and \
-                np.all(np.isfinite(self.upper_bounds[idx_periodic_vars]))
-            if not finite_periodicvars:
+        if idx_periodic_vars is not None:
+            periodic_vars[:, idx_periodic_vars] = True
+            finite_periodic_vars = np.all(np.isfinite(self.lower_bounds[:, idx_periodic_vars])) and \
+                np.all(np.isfinite(self.upper_bounds[:, idx_periodic_vars]))
+            if not finite_periodic_vars:
                 raise ValueError('bads:InitOptimState:Periodic variables need to have finite lower and upper bounds.')
             self.logger.info(f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}")
         optim_state['periodic_vars'] = periodic_vars
@@ -837,7 +840,7 @@ class BADS:
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
                             self.plausible_lower_bounds, self.plausible_upper_bounds, fun_eval_start)
                 # enforce periodicity TODO function
-                u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
+                u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodic_vars'])
 
                 # Force points to be in the search grid.
                 u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
@@ -889,8 +892,11 @@ class BADS:
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
-            if self.options['noise_size'] is None or len(self.options['noise_size']) == 0:
+            if self.options['noise_size'] is None:
                 self.options['noise_size'] = 1.
+            if isinstance(self.options['noise_size'], np.ndarray): # ensure the noise_size o be a scalar
+                self.options['noise_size'] = self.options['noise_size'].item()
+                
             # Keep some function evaluations for the final resampling
             self.options['noise_final_samples'] = min(self.options['noise_final_samples'] , self.options['max_fun_evals']  - self.function_logger.func_count)
             self.options['max_fun_evals'] = self.options['max_fun_evals']  - self.options['noise_final_samples']
@@ -1682,10 +1688,10 @@ class BADS:
             #else:
                 # Check stalling
             iter = self.optim_state['iter']
-            if self.options['accelerate_mesh'] and iter > self.options['accelerate_meshsteps']:
-                f_base = self.iteration_history.get('fval')[iter - self.options['accelerate_meshsteps']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['accelerate_meshsteps']]
-                u_base = self.iteration_history.get('u')[iter - self.options['accelerate_meshsteps']]
+            if self.options['accelerate_mesh'] and iter > self.options['accelerate_mesh_steps']:
+                f_base = self.iteration_history.get('fval')[iter - self.options['accelerate_mesh_steps']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['accelerate_mesh_steps']]
+                u_base = self.iteration_history.get('u')[iter - self.options['accelerate_mesh_steps']]
                 self.f_q_historic_improvement = self._eval_improvement_(f_base, self.fval,
                                                                         f_sd_base, self.fsd,
                                                                         self.options['improvementquantile'])
