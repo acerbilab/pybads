@@ -11,13 +11,13 @@ class OptimizeResult(dict):
              'status',
              'message',
              'fun',
-             'nfev',        # Number of evaluations of the objective functions
-             'nit',         # Number of iterations performed by the optimizer.
+             'func_count',          # Number of evaluations of the objective functions
+             'iterations',          # Number of iterations performed by the optimizer.
              'target_type',
              'problem_type',
              'mesh_size',
-             'maxcv',       # The maximum constraint violation.
-             'yval_vec',        # corresponds to yval_vec
+             'non_box_cons',        # non_box_constraint function
+             'yval_vec',       
              'fval',
              'fsd',
              'total_time',
@@ -34,6 +34,7 @@ class OptimizeResult(dict):
         
     def _set_attributes(self, bads):
         self['fun'] = bads.function_logger.fun
+        self['non_box_cons'] = bads.non_box_cons
         if bads.optim_state["uncertainty_handling_level"] > 0:
             if bads.options['specify_target_noise']:
                 self['target_type'] = 'stochastic (specified noise)'
@@ -51,8 +52,8 @@ class OptimizeResult(dict):
         else:
             self['problem_type'] = 'non-box constraints'
             
-        self['nit'] = bads.optim_state['iter']
-        self['nfev'] = bads.function_logger.func_count
+        self['iterations'] = bads.optim_state['iter']
+        self['func_count'] = bads.function_logger.func_count
         self['mesh_size'] = bads.mesh_size
         self['overhead'] = bads.optim_state['overhead']
         self['algorithm'] = 'Bayesian adaptive direct search'

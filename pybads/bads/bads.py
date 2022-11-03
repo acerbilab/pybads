@@ -526,6 +526,9 @@ class BADS:
         self.search_mesh_size = optim_state['search_mesh_size']
         optim_state['scale'] = 1.
         
+        # Check if periodic_vars is not None and raise error, since it is not yet supported
+        if self.options['periodic_vars'] is not None:
+            raise ValueError("Periodic variables are not yet supported. Please set periodic_vars to None.")
 
         # Compute transformation of variables
         if self.options['nonlinear_scaling']:
@@ -584,7 +587,6 @@ class BADS:
 
         # Put TOLMESH on space
         optim_state['tol_mesh'] = self.options['pollmeshmultiplier']**np.ceil(np.log(self.options['tolmesh']) / np.log(self.options['pollmeshmultiplier']))
-                
 
         #Periodic variables
         idx_periodic_vars = self.options['periodic_vars']
@@ -649,34 +651,14 @@ class BADS:
         optim_state["iterlist"]["fsd"] = []
         optim_state["iterlist"]["fhyp"] = []
 
-        
         #optim_state['es'] = es_update(es_mu, es_lambda)
 
         # Hedge struct
         optim_state['search_hedge'] = dict()
 
-
         # Before first iteration
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
-
-        # When GP hyperparameter sampling is switched with optimization
-        if self.options.get("nsgpmax") > 0:
-            optim_state["stop_sampling"] = 0
-        else:
-            optim_state["stop_sampling"] = np.Inf
-
-        # Start with warm-up?
-        optim_state["warmup"] = self.options.get("warmup")
-        if self.options.get("warmup"):
-            optim_state["last_warmup"] = np.inf
-        else:
-            optim_state["last_warmup"] = 0
-        
-        optim_state["vpK"] = self.options.get("kwarmup")
-
-        # Tolerance threshold on GP variance (used by some acquisition fcns)
-        optim_state["tol_gp_var"] = self.options.get("tolgpvar")
 
         # Copy maximum number of fcn. evaluations,
         # used by some acquisition fcns.
@@ -764,15 +746,6 @@ class BADS:
             egquad, and se"""
             )
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
-        # more logic here in matlab
-
-        # Starting threshold on y for output warping
-        if self.options.get("fitness_shaping"):
-            optim_state["outwarp_delta"] = self.options.get(
-                "outwarpthreshbase"
-            )
-        else:
-            optim_state["outwarp_delta"] = []
 
         return optim_state
 
@@ -799,7 +772,7 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
-            yval_bis, _, _ = self.function_logger(self.u, add_data=False)
+            yval_bis, _, _ = self.function_logger(self.u, record_duplicate_data=False)
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
                 self.logging_action.append('Uncertainty test')
@@ -1179,7 +1152,7 @@ class BADS:
                 yval_vec = np.empty(self.options['noise_final_samples'])
                 for i_sample in range(self.options['noise_final_samples']):
                     # y, f_sd, _ = self.function_logger(self.u)
-                    yval_vec[i_sample] = self.function_logger(self.u, add_data=False)[0]
+                    yval_vec[i_sample] = self.function_logger(self.u, record_duplicate_data=False)[0]
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
@@ -1200,8 +1173,8 @@ class BADS:
         # Compute total running time and fractional overhead
         timer.stop_timer('BADS')
         total_time  = timer.get_duration('BADS')
-        if self.function_logger.total_fun_evaltime > 0.:
-            overhead = total_time / self.function_logger.total_fun_evaltime -1
+        if self.function_logger.total_fun_eval_time > 0.:
+            overhead = total_time / self.function_logger.total_fun_eval_time -1
         else:
             overhead = np.nan
         self.optim_state['total_time'] = total_time
@@ -1220,7 +1193,7 @@ class BADS:
         # BADS's output 
         optimize_result = OptimizeResult(self)
 
-        return (self.x, self.fval, optimize_result)
+        return optimize_result
     
     
     def _search_step_(self, gp: GP):
@@ -1345,7 +1318,7 @@ class BADS:
         
         fval_old = self.fval
 
-        # StoBads
+        
         # Evaluate search
         if not self.options['stobads']:
             search_improvement = self._eval_improvement_(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])

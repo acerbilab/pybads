@@ -82,7 +82,7 @@ def test_get_fevals_data_no_noise():
         bads.function_logger.X_flag[sample_idx] = True
         bads.function_logger.X[sample_idx] = Xs[sample_idx]
         bads.function_logger.Y[sample_idx] = ys[sample_idx]
-        bads.function_logger.fun_evaltime[sample_idx] = 1e-5
+        bads.function_logger.fun_eval_time[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
     X_train, y_train, s2_train, t_train = _get_fevals_data(
@@ -129,7 +129,7 @@ def test_get_fevals_data_noise():
         bads.function_logger.X[sample_idx] = Xs[sample_idx]
         bads.function_logger.Y[sample_idx] = ys[sample_idx]
         bads.function_logger.S[sample_idx] = 1
-        bads.function_logger.fun_evaltime[sample_idx] = 1e-5
+        bads.function_logger.fun_eval_time[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
     X_train, y_train, s2_train, t_train = _get_fevals_data(

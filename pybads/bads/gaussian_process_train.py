@@ -307,6 +307,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         
         # Conditions for performing a second fit
         second_fit = options['doublerefit'] | is_high_noise | is_low_mean
+        optim_state['second_fit'] = second_fit
         dic_hyp_gp[-1] = last_dic_hyp_gp 
         
         if second_fit:
@@ -316,13 +317,13 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
                 new_hyp = get_samples_from_slice_sampler(gp, prev_hyp_gp, optim_state, options)
             else:
                 new_hyp = _get_random_samples_from_priors_(gp)
+                
             if new_hyp is not None:
                 new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
                 new_hyp = gp.hyperparameters_to_dict(new_hyp)
-                
                 if is_high_noise:
-                    new_hyp[0]["noise_log_scale"] = np.random.randn()-2
-                if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+                    new_hyp[0]["noise_log_scale"] = np.random.randn()-2 #Retry with low noise magnitude
+                if is_low_mean and isinstance(gp.mean, gpr.mean_functions.ConstantMean): #Retry with mean from median
                     new_hyp[0]['mean_const'] = np.median(gp.y)
                 
                 new_hyp = gp.hyperparameters_from_dict(new_hyp)
@@ -337,7 +338,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
         
         # FIT GP
         gp_s_N = 0
-        gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger)
+        gp_train = _get_gp_training_options(optim_state, iteration_history, options, hyp_gp, gp_s_N, function_logger, second_fit=second_fit)
         gp, hyp_gp, res, exit_flag = _robust_gp_fit_(gp, gp.X, gp.y, gp.s2, hyp_gp, gp_train, optim_state, options)
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
@@ -794,7 +795,8 @@ def _get_gp_training_options(
     options: Options,
     hyp_dict: dict,
     gp_s_N: int,
-    function_logger:FunctionLogger
+    function_logger:FunctionLogger,
+    second_fit=False
 ):
     """
     Get options for training GP hyperparameters.
@@ -826,7 +828,7 @@ def _get_gp_training_options(
     iteration = optim_state["iter"]
 
     n_eff = np.sum(
-        function_logger.nevals[function_logger.X_flag]
+        function_logger.n_evals[function_logger.X_flag]
     )
 
     gp_train = {}
@@ -853,11 +855,10 @@ def _get_gp_training_options(
         iteration_history.record('ntrain', int(optim_state['ntrain']), iteration)
     
     gp_train["init_N"] = init_N
-    gp_train["opts_N"] = 2
-    if gp_s_N > 0:
-        gp_train["opts_N"] = 1
-    else:
+    if second_fit:
         gp_train["opts_N"] = 2
+    else:
+        gp_train["opts_N"] = 1
 
     gp_train["n_samples"] = round(gp_s_N)
 
@@ -935,7 +936,7 @@ def _get_fevals_data(function_logger: FunctionLogger):
 
     # Missing port: noiseshaping
 
-    evals_time = function_logger.fun_evaltime[function_logger.X_flag]
+    evals_time = function_logger.fun_eval_time[function_logger.X_flag]
 
     return x, y, s2, evals_time
 
