@@ -904,7 +904,6 @@ def get_grid_search_neighbors(function_logger: FunctionLogger, u, gp, options, o
         res_S = function_logger.S[sort_idx[0:ntrain]]
     return (U[sort_idx[0:ntrain]], Y[sort_idx[0:ntrain]], res_S)
 
-
 def _get_fevals_data(function_logger: FunctionLogger):
     """
     Get all evaluated data.

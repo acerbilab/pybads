@@ -211,7 +211,6 @@ class BADS:
         if non_box_cons is not None:
             if non_box_cons(self.x0) > 0:
                 raise ValueError('Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).')
-            
 
         self.optim_state = self._init_optim_state_()
 

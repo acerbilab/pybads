@@ -49,6 +49,7 @@ if heteroskedastic_noise:
     optimize_result = bads.optimize()
     x_min = optimize_result['x']
     fval = optimize_result['fval'] 
+
     print(f"BADS minimum at: \n\n\t x = {x_min.flatten()} \n\t fval= {fval} \n\t \
     total time: {round(bads.optim_state['total_time'], 2)} s \n overhead: {round(bads.optim_state['overhead'], 2)}")
     print(f"The true global minimum is at x = [1, 1], where fval = 0\n")
