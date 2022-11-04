@@ -122,7 +122,9 @@ class FunctionLogger:
                     fval_orig, fsd = self.fun(x_orig)
                 else:
                     wrong_format_target_function = True
-                    error_message = "The target function should return two outputs: the function value and the target noise.\n"
+                    error_message = "'The `specify_target_noise` option has been set to `True`" \
+                                    + "The target function should return two outputs: the function value and the target noise.\n" \
+                                    + "Please, adjust the target function to return two outputs."
                     raise ValueError(error_message)
             else:
                 fval_orig = fun_res
@@ -136,8 +138,6 @@ class FunctionLogger:
                 fsd = fsd.item()
         except Exception as err:
             if wrong_format_target_function:
-                #err.args = ('The `specify_target_noise` option has been set to `True`. " \
-                #            + "The target function should return two outputs: the function value and the target noise.\n', )
                 err.args = (error_message, )
                 
             else:
