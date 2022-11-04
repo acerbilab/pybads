@@ -118,8 +118,8 @@ class FunctionLogger:
             fun_res = self.fun(x_orig)
             timer.stop_timer("funtime")
             if self.he_noise_flag:
-                if (type(fun_res) is tuple):
-                    fval_orig, fsd = self.fun(x_orig)
+                if (type(fun_res) is tuple) and len(fun_res) == 2:
+                        fval_orig, fsd= fun_res 
                 else:
                     wrong_format_target_function = True
                     error_message = "\n 'The `specify_target_noise` option has been set to `True`.\n" \
