@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from pybads.bads.variables_transformer import VariableTransformer
 from pybads.utils.timer import Timer
@@ -53,7 +54,7 @@ class FunctionLogger:
         self.X = np.full([cache_size, self.D], np.nan)
         self.Y = np.full([cache_size, 1], np.nan)
         self.Y_max = np.nan
-        self.nevals = np.zeros([cache_size, 1])
+        self.n_evals = np.zeros([cache_size, 1])
 
         if self.noise_flag:
             self.S = np.full([cache_size, 1], np.nan)
@@ -63,12 +64,12 @@ class FunctionLogger:
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
-        self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
-        self.total_fun_evaltime = 0.
+        self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
+        self.total_fun_eval_time = 0.
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
-    def __call__(self, x: np.ndarray, add_data: bool = True):
+    def __call__(self, x: np.ndarray, record_duplicate_data: bool = True):
         """
         Evaluates the function FUN at x and caches values.
         Right now, the function only fully support single function evaluation.
@@ -78,7 +79,7 @@ class FunctionLogger:
         x : np.ndarray
             The point at which the function will be evaluated. The shape of x
             should be (1, D) or (D,).
-        add_data : bool, optional (default True)
+        record_duplicate_data : bool, optional (default True)
             Flag to indicate whether the data is added to training data.
 
         Returns
@@ -163,7 +164,7 @@ class FunctionLogger:
         # record timer stats
         funtime = timer.get_duration("funtime")
 
-        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, add_data=add_data)
+        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, record_duplicate_data=record_duplicate_data)
         self.func_count += 1 
 
         return fval, fsd, idx
@@ -173,7 +174,7 @@ class FunctionLogger:
         x: np.ndarray,
         fval_orig: float,
         fsd: float = None,
-        fun_evaltime=np.nan,
+        fun_eval_time=np.nan,
     ):
         """
         Add an previously evaluated function sample to the function cache.
@@ -188,7 +189,7 @@ class FunctionLogger:
         fsd : float, optional
             The (estimated) SD of the returned value (if heteroskedastic noise
             handling is on) of the evaluation of the function, by default None.
-        fun_evaltime : float
+        fun_eval_time : float
             The duration of the time it took to evaluate the function,
             by default np.nan.
 
@@ -249,7 +250,7 @@ class FunctionLogger:
             raise ValueError(error_message.format(str(fsd)))
 
         self.cache_count += 1
-        fval, idx = self._record(x_orig, x, fval_orig, fsd, fun_evaltime)
+        fval, idx = self._record(x_orig, x, fval_orig, fsd, fun_eval_time)
         return fval, fsd, idx
 
     def finalize(self):
@@ -266,10 +267,10 @@ class FunctionLogger:
         if self.noise_flag:
             self.S = self.S[: self.Xn + 1]
         self.X_flag = self.X_flag[: self.Xn + 1]
-        self.fun_evaltime = self.fun_evaltime[: self.Xn + 1]
+        self.fun_eval_time = self.fun_eval_time[: self.Xn + 1]
 
-    def reset_fun_evaltime(self):
-        self.fun_evaltime = np.full([self.cache_size, 1], np.nan)
+    def reset_fun_eval_time(self):
+        self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
 
     def _expand_arrays(self, resize_amount: int = None):
         """
@@ -303,11 +304,11 @@ class FunctionLogger:
         self.X_flag = np.append(
             self.X_flag, np.full((resize_amount,), False, dtype=bool)
         )
-        self.fun_evaltime = np.append(
-            self.fun_evaltime, np.full([resize_amount, 1], np.nan), axis=0
+        self.fun_eval_time = np.append(
+            self.fun_eval_time, np.full([resize_amount, 1], np.nan), axis=0
         )
-        self.nevals = np.append(
-            self.nevals, np.zeros([resize_amount, 1]), axis=0
+        self.n_evals = np.append(
+            self.n_evals, np.zeros([resize_amount, 1]), axis=0
         )
 
     def _record(
@@ -316,8 +317,8 @@ class FunctionLogger:
         x: float,
         fval_orig: float,
         fsd: float,
-        fun_evaltime: float,
-        add_data: bool = True,
+        fun_eval_time: float,
+        record_duplicate_data: bool = True,
     ):
         """
         A private method to save function values to class attributes.
@@ -335,7 +336,7 @@ class FunctionLogger:
         fsd : float
             The (estimated) SD of the returned value
             (if heteroskedastic noise handling is on).
-        fun_evaltime : float
+        fun_eval_time : float
             The duration of the time it took to evaluate the function.
 
         Returns
@@ -352,20 +353,57 @@ class FunctionLogger:
         """
         
         # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
-        if not add_data:
-            idx = self.Xn
-            self.nevals[idx] += 1
-            self.fun_evaltime[idx] = (self.fun_evaltime[idx] + fun_evaltime ) /2
-            return fval_orig, idx
+        if not record_duplicate_data:
+            duplicate_flag = self.X == x
+            if np.any(duplicate_flag):
+                if np.sum(duplicate_flag.all(axis=1)) > 1:
+                    raise ValueError("More than one match for duplicate entry.")
+                idx = np.argwhere(duplicate_flag)[0, 0]
+                N = self.n_evals[idx]
+                self.fun_eval_time[idx] = (N * self.fun_eval_time[idx] + fun_eval_time) / (N + 1)
+                self.n_evals[idx] += 1
+                return fval_orig, idx
+            else:
+                logging.getLogger("BADS").debug('function_logger: Asked to NOT record duplicate data, but NO duplicate points have found.')
+                
         else:
+            # check if the noise is heteroskedastic 
+            if fsd is not None:
+                # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
+                duplicate_flag = self.X == x
+                if np.any(duplicate_flag):
+                    if np.sum(duplicate_flag.all(axis=1)) > 1:
+                        raise ValueError("More than one match for duplicate entry.")
+                    idx = np.argwhere(duplicate_flag)[0, 0]
+                    N = self.n_evals[idx]
+                    
+                    #if fsd is not None: # We already in the case of the heteroskedastic noise
+                    tau_n = 1 / self.S[idx] ** 2
+                    tau_1 = 1 / fsd**2
+                    self.Y[idx] = (
+                        tau_n * self.Y[idx] + tau_1 * fval_orig
+                    ) / (tau_n + tau_1)
+                    self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
+                    #else: 
+                    #    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked
+                        
+                    f_val = self.Y[idx]
+                    self.Y[idx] = f_val
+                    self.fun_eval_time[idx] = (
+                        N * self.fun_eval_time[idx] + fun_eval_time
+                    ) / (N + 1)
+                    self.n_evals[idx] += 1
+                    return f_val, idx
+
+            # Add the new point
             self.Xn += 1
             if self.Xn > self.X_orig.shape[0] - 1:
                 self._expand_arrays()
 
             # record function time
-            if not np.isnan(fun_evaltime):
-                self.fun_evaltime[self.Xn] = fun_evaltime
-                self.total_fun_evaltime += fun_evaltime
+            if not np.isnan(fun_eval_time):
+                self.fun_eval_time[self.Xn] = fun_eval_time
+                self.total_fun_eval_time += fun_eval_time
 
             self.X_max_idx = np.minimum(self.X_max_idx + 1, self.X.shape[0])
             self.X_orig[self.Xn] = x_orig.copy()
@@ -377,6 +415,6 @@ class FunctionLogger:
             if fsd is not None:
                 self.S[self.Xn] = fsd
             self.X_flag[self.Xn] = True
-            self.nevals[self.Xn] = np.maximum(1, self.nevals[self.Xn] + 1)
+            self.n_evals[self.Xn] = np.maximum(1, self.n_evals[self.Xn] + 1)
             self.Y_max = np.amax(self.Y[self.X_flag])
             return fval, self.Xn

@@ -17,13 +17,14 @@ from sqlalchemy import true
 from pybads import function_logger
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.bads.bads_dump import BADSDump
+from pybads.bads.optimize_result import OptimizeResult
 from pybads.poll.poll_mads_2n import poll_mads_2n
 
 from pybads.search.search_hedge import ESSearchHedge
 
 from pybads.function_logger import FunctionLogger
 from pybads.init_functions.init_sobol import init_sobol
-from pybads.search.grid_functions import force_to_grid, grid_units, get_grid_search_neighbors, udist 
+from pybads.search.grid_functions import force_to_grid, grid_units, udist 
 from pybads.utils.period_check import period_check
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
@@ -105,7 +106,6 @@ class BADS:
 
     --------
     """
-
     def __init__(
         self,
         fun: callable,
@@ -210,8 +210,7 @@ class BADS:
         # evaluate  starting point non-bound constraint
         if non_box_cons is not None:
             if non_box_cons(self.x0) > 0:
-                raise ValueError('Initial starting point X0 does not satisfy non-bound constraints NONBCON.')
-            
+                raise ValueError('Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).')
 
         self.optim_state = self._init_optim_state_()
 
@@ -227,7 +226,7 @@ class BADS:
         self.iteration_history = IterationHistory(
             [
                 "iter",
-                "fcount",
+                "func_count",
                 "u",
                 "x",
                 "fval",
@@ -243,6 +242,8 @@ class BADS:
                 "timer",
                 "optim_state",
                 "n_eff",
+                "ntrain",
+                "init_N",
                 "logging_action",
             ]
         )
@@ -341,12 +342,12 @@ class BADS:
             )
 
         # Fixed variables (all bounds equal) are not supported
-        fixidx = (
+        fix_idx = (
             (lower_bounds == upper_bounds)
             & (upper_bounds == plausible_lower_bounds)
             & (plausible_lower_bounds == plausible_upper_bounds)
         )
-        if np.any(fixidx):
+        if np.any(fix_idx):
             raise ValueError(
                 """bads:FixedVariables BADS does not support fixed 
             variables. Lower and upper bounds should be different."""
@@ -362,8 +363,8 @@ class BADS:
         # Check that all X0 are inside the bounds
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
-                """bads:InitialPointsNotInsideBounds: The starting
-            non_box_conspoints X0 are not inside the provided hard bounds LB and UB."""
+                """bads:InitialPointsNotInsideBounds: The starting 
+                points X0 are not inside the provided hard bounds LB and UB."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -491,15 +492,18 @@ class BADS:
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates)
-        y_orig = np.array(self.options.get("fvals")).flatten()
-        if len(y_orig) == 0:
+        if self.options['fvals'] is not None:
+            y_orig = np.array(self.options.get("fvals")).flatten()
+            if len(y_orig) == 0:
+                y_orig = np.full([self.x0.shape[0]], np.nan)
+            if len(self.x0) != len(y_orig):
+                raise ValueError(
+                    """bads:MismatchedStartingInputs The number of
+                points in X0 and of their function values as specified in
+                self.options.fvals are not the same."""
+                )
+        else:
             y_orig = np.full([self.x0.shape[0]], np.nan)
-        if len(self.x0) != len(y_orig):
-            raise ValueError(
-                """bads:MismatchedStartingInputs The number of
-            points in X0 and of their function values as specified in
-            self.options.fvals are not the same."""
-            )
 
         optim_state = dict()
         optim_state["cache"] = dict()
@@ -521,13 +525,16 @@ class BADS:
         self.search_mesh_size = optim_state['search_mesh_size']
         optim_state['scale'] = 1.
         
+        # Check if periodic_vars is not None and raise error, since it is not yet supported
+        if self.options['periodic_vars'] is not None:
+            raise ValueError("Periodic variables are not yet supported. Please set periodic_vars to None.")
 
         # Compute transformation of variables
-        if self.options['non_linear_scaling']:
+        if self.options['nonlinear_scaling']:
             logflag = np.full((1, self.D), np.NaN)
-            periodicvars = self.options['periodicvars']
-            if periodicvars is not None and len(periodicvars) != 0:
-                logflag[periodicvars] = 0
+            periodic_vars = self.options['periodic_vars']
+            if periodic_vars is not None and len(periodic_vars) != 0:
+                logflag[:, periodic_vars] = 0 # Never transform periodic variables
         else:
             logflag = np.zeros((1, self.D))
 
@@ -579,16 +586,15 @@ class BADS:
 
         # Put TOLMESH on space
         optim_state['tol_mesh'] = self.options['pollmeshmultiplier']**np.ceil(np.log(self.options['tolmesh']) / np.log(self.options['pollmeshmultiplier']))
-                
 
         #Periodic variables
-        idx_periodic_vars = self.options['periodicvars']
+        idx_periodic_vars = self.options['periodic_vars']
         periodic_vars = np.zeros((1, self.D)).astype(bool)
-        if idx_periodic_vars is not None or len(idx_periodic_vars) != 0:
-            periodic_vars[idx_periodic_vars] = True
-            finite_periodicvars = np.all(np.isfinite(self.lower_bounds[idx_periodic_vars])) and \
-                np.all(np.isfinite(self.upper_bounds[idx_periodic_vars]))
-            if not finite_periodicvars:
+        if idx_periodic_vars is not None:
+            periodic_vars[:, idx_periodic_vars] = True
+            finite_periodic_vars = np.all(np.isfinite(self.lower_bounds[:, idx_periodic_vars])) and \
+                np.all(np.isfinite(self.upper_bounds[:, idx_periodic_vars]))
+            if not finite_periodic_vars:
                 raise ValueError('bads:InitOptimState:Periodic variables need to have finite lower and upper bounds.')
             self.logger.info(f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}")
         optim_state['periodic_vars'] = periodic_vars
@@ -644,34 +650,14 @@ class BADS:
         optim_state["iterlist"]["fsd"] = []
         optim_state["iterlist"]["fhyp"] = []
 
-        
         #optim_state['es'] = es_update(es_mu, es_lambda)
 
         # Hedge struct
         optim_state['search_hedge'] = dict()
 
-
         # Before first iteration
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
-
-        # When GP hyperparameter sampling is switched with optimization
-        if self.options.get("nsgpmax") > 0:
-            optim_state["stop_sampling"] = 0
-        else:
-            optim_state["stop_sampling"] = np.Inf
-
-        # Start with warm-up?
-        optim_state["warmup"] = self.options.get("warmup")
-        if self.options.get("warmup"):
-            optim_state["last_warmup"] = np.inf
-        else:
-            optim_state["last_warmup"] = 0
-        
-        optim_state["vpK"] = self.options.get("kwarmup")
-
-        # Tolerance threshold on GP variance (used by some acquisition fcns)
-        optim_state["tol_gp_var"] = self.options.get("tolgpvar")
 
         # Copy maximum number of fcn. evaluations,
         # used by some acquisition fcns.
@@ -759,15 +745,6 @@ class BADS:
             egquad, and se"""
             )
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
-        # more logic here in matlab
-
-        # Starting threshold on y for output warping
-        if self.options.get("fitness_shaping"):
-            optim_state["outwarp_delta"] = self.options.get(
-                "outwarpthreshbase"
-            )
-        else:
-            optim_state["outwarp_delta"] = []
 
         return optim_state
 
@@ -794,7 +771,7 @@ class BADS:
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy 
             self.logging_action.append('Uncertainty test')
-            yval_bis, _, _ = self.function_logger(self.u, add_data=False)
+            yval_bis, _, _ = self.function_logger(self.u, record_duplicate_data=False)
             if (np.abs(self.yval - yval_bis) > self.options['tolnoise'] ):
                 self.optim_state['uncertainty_handling_level'] = 1
                 self.logging_action.append('Uncertainty test')
@@ -819,7 +796,7 @@ class BADS:
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options['ninit'] = np.minimum(np.maximum(20, self.options['ninit']),
+            self.options['fun_eval_start'] = np.minimum(np.maximum(20, self.options['fun_eval_start']),
                                             self.options['max_fun_evals'])
 
         # set up strings for logging of the iteration
@@ -827,15 +804,15 @@ class BADS:
         self._log_column_headers()
         self._display_function_log_(0, '')
 
-        if self.options['ninit'] > 0:
+        if self.options['fun_eval_start'] > 0:
             # Evaluate initial points but not more than options.max_fun_evals
-            ninit = np.minimum(self.options['ninit'], self.options['max_fun_evals'] - 1)
+            fun_eval_start = np.minimum(self.options['fun_eval_start'], self.options['max_fun_evals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
                 u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
-                            self.plausible_lower_bounds, self.plausible_upper_bounds, ninit)
+                            self.plausible_lower_bounds, self.plausible_upper_bounds, fun_eval_start)
                 # enforce periodicity TODO function
-                u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodicvars'])
+                u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodic_vars'])
 
                 # Force points to be in the search grid.
                 u1 = force_to_grid(u1, self.optim_state['search_mesh_size'])
@@ -861,6 +838,10 @@ class BADS:
         self.optim_state['fval'] = self.fval
         self.optim_state['yval'] = self.yval
         
+        # Save the efffective number of initial starting points, which can match with options['fun_eval_start']
+        # but it might be different for example when considering a noisy target function OR when applying a non-box-contraint function.
+        self.optim_state['eff_starting_points'] = self.function_logger.Xn + 1
+        
         return
 
     def _init_optimization_(self):
@@ -874,17 +855,20 @@ class BADS:
 
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
-            
+        
         # Change options for uncertainty handling
         if self.optim_state['uncertainty_handling_level'] > 0:
             self.options['tolstalliters'] = 2 * self.options['tolstalliters']
-            self.options['ndata'] = max(200,self.options['ndata'])
-            self.options['minndata'] = 2 * self.options['minndata']
+            self.options['ntrain_max'] = max(200,self.options['ntrain_max'])
+            self.options['ntrain_min'] = 2 * self.options['ntrain_min']
             self.options['meshoverflowswarning'] = 2 * self.options['meshoverflowswarning']
             self.options['minfailedpollsteps'] = np.inf
             self.options['meshnoisemultiplier'] = 0
-            if self.options['noise_size'] is None or len(self.options['noise_size']) == 0:
+            if self.options['noise_size'] is None:
                 self.options['noise_size'] = 1.
+            if isinstance(self.options['noise_size'], np.ndarray): # ensure the noise_size is a scalar
+                self.options['noise_size'] = self.options['noise_size'].item()
+                
             # Keep some function evaluations for the final resampling
             self.options['noise_final_samples'] = min(self.options['noise_final_samples'] , self.options['max_fun_evals']  - self.function_logger.func_count)
             self.options['max_fun_evals'] = self.options['max_fun_evals']  - self.options['noise_final_samples']
@@ -1079,6 +1063,7 @@ class BADS:
                     exit_flag = 2
                     msg = 'Optimization terminated: change in the function value less than options.TolFun.'
                 
+            self.optim_state['termination_msg'] = msg
             
             # Store best points at the end of each iteration, or upon termination
             if do_poll_step or is_finished:
@@ -1091,7 +1076,7 @@ class BADS:
                 self.iteration_history.record('search_mesh_size', self.search_mesh_size, poll_iteration)
                 self.iteration_history.record('gp_hyp_full', gp.get_hyperparameters(True), poll_iteration) #corresponds to self.best_gp_hyp
                 self.iteration_history.record('gp', gp, poll_iteration)
-                self.iteration_history.record('fcount', self.function_logger.func_count, poll_iteration)
+                self.iteration_history.record('func_count', self.function_logger.func_count, poll_iteration)
 
             # Re-evaluate all noisy estimates at the end of the iteration
             if self.optim_state['uncertainty_handling_level'] > 0 and do_poll_step \
@@ -1166,7 +1151,7 @@ class BADS:
                 yval_vec = np.empty(self.options['noise_final_samples'])
                 for i_sample in range(self.options['noise_final_samples']):
                     # y, f_sd, _ = self.function_logger(self.u)
-                    yval_vec[i_sample] = self.function_logger(self.u, add_data=False)[0]
+                    yval_vec[i_sample] = self.function_logger(self.u, record_duplicate_data=False)[0]
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
@@ -1187,8 +1172,8 @@ class BADS:
         # Compute total running time and fractional overhead
         timer.stop_timer('BADS')
         total_time  = timer.get_duration('BADS')
-        if self.function_logger.total_fun_evaltime > 0.:
-            overhead = total_time / self.function_logger.total_fun_evaltime -1
+        if self.function_logger.total_fun_eval_time > 0.:
+            overhead = total_time / self.function_logger.total_fun_eval_time -1
         else:
             overhead = np.nan
         self.optim_state['total_time'] = total_time
@@ -1203,8 +1188,11 @@ class BADS:
                 self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
             self.logger.warn(f'Function value at minimum: {self.fval}\n')
+            
+        # BADS's output 
+        optimize_result = OptimizeResult(self)
 
-        return self.x, self.fval
+        return optimize_result
     
     
     def _search_step_(self, gp: GP):
@@ -1329,7 +1317,7 @@ class BADS:
         
         fval_old = self.fval
 
-        # StoBads
+        
         # Evaluate search
         if not self.options['stobads']:
             search_improvement = self._eval_improvement_(self.fval, f_mu_search, self.fsd, f_sd_search, self.options['improvementquantile'])
@@ -1672,17 +1660,17 @@ class BADS:
             #else:
                 # Check stalling
             iter = self.optim_state['iter']
-            if self.options['accelerate_mesh'] and iter > self.options['accelerate_meshsteps']:
-                f_base = self.iteration_history.get('fval')[iter - self.options['accelerate_meshsteps']]
-                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['accelerate_meshsteps']]
-                u_base = self.iteration_history.get('u')[iter - self.options['accelerate_meshsteps']]
+            if self.options['accelerate_mesh'] and iter > self.options['accelerate_mesh_steps']:
+                f_base = self.iteration_history.get('fval')[iter - self.options['accelerate_mesh_steps']]
+                f_sd_base = self.iteration_history.get('fsd')[iter - self.options['accelerate_mesh_steps']]
+                u_base = self.iteration_history.get('u')[iter - self.options['accelerate_mesh_steps']]
                 self.f_q_historic_improvement = self._eval_improvement_(f_base, self.fval,
                                                                         f_sd_base, self.fsd,
                                                                         self.options['improvementquantile'])
                 if self.f_q_historic_improvement < self.options['tolfun']: #or np.all(u_base.flatten() == self.u.flatten()):
                     
                     self.mesh_size_integer -= 1
-                    logger.warn("bads: The optimization is stalling, further decrease of the mesh size")
+                    logger.debug("bads: The optimization is stalling, further decrease of the mesh size")
             
             self.optim_state['search_size_integer'] = np.minimum(self.optim_state['search_size_integer'],
                                          self.mesh_size_integer * self.options['searchgridmultiplier'] - self.options['searchgridnumber'])
@@ -1935,9 +1923,11 @@ class BADS:
         """
         Private method to create the result dict.
         """
+        
         # TODO: save using BADSDump
         # bads_dump = BADSDump('bads_dump')
         # bads_dump.to_JSON(self.x, self.u, self.fval, self.fsd, self.iteration_history, )
+        
         logging.info(termination_message)
         return None
 

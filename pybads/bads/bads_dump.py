@@ -32,6 +32,8 @@ class BADSDump:
             'search_mesh_size': iteration_history['search_mesh_size'].tolist(),
             'yval': iteration_history['yval'].tolist(),
             'x_true_global_min': x_true_global_min.tolist(),
+            'init_N': iteration_history['init_N'].tolist(),
+            'ntrain': iteration_history['ntrain'].tolist(),
         }
 
     def to_JSON(self, x:np.ndarray, u:np.ndarray, fval, fsd, iteration_history, x_true_global_min):

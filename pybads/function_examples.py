@@ -11,7 +11,7 @@ def rosenbrocks_fcn(x):
 
 def quadratic_unknown_noisy_fcn(x):
     X = np.atleast_2d(x)
-    noise =  np.random.normal(size=X.shape[0])  + np.sqrt(np.abs(np.min(X, axis=1)))
+    noise =  np.random.normal(size=X.shape[0])
     return np.sum(X**2, axis=1) + noise
 
 def quadratic_hetsk_noisy_fcn(x):

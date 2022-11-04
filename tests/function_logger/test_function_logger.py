@@ -88,8 +88,8 @@ def test_add_record_funtime():
     f_logger.add(x, y, None, 10)
     f_logger.add(x * 2, y, None, 10)
     f_logger.add(x * 3, y, None)
-    assert f_logger.total_fun_evaltime == np.nansum(f_logger.fun_evaltime)
-    assert f_logger.total_fun_evaltime == 20
+    assert f_logger.total_fun_eval_time == np.nansum(f_logger.fun_eval_time)
+    assert f_logger.total_fun_eval_time == 20
 
 
 def test_add_no_fsd():
@@ -108,7 +108,7 @@ def test_call_record_stats():
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
     for i in range(10):
         f_logger(x * i)
-    assert f_logger.total_fun_evaltime == np.nansum(f_logger.fun_evaltime)
+    assert f_logger.total_fun_eval_time == np.nansum(f_logger.fun_eval_time)
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)
@@ -123,8 +123,8 @@ def test_add_record_stats():
     for i in range(10):
         y = non_noisy_function(x * i)
         f_logger.add(x * i, y, None)
-    assert f_logger.total_fun_evaltime == 0
-    assert np.nansum(f_logger.fun_evaltime) == 0
+    assert f_logger.total_fun_eval_time == 0
+    assert np.nansum(f_logger.fun_eval_time) == 0
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)
@@ -142,15 +142,15 @@ def test_record_duplicate():
     )
     f_logger._record(x * 2, x * 2, 30, None, 9)
     f_logger._record(x, x, 18, None, 9)
-    _, idx = f_logger._record(x, x, 1, None, 1, add_data=False)
+    _, idx = f_logger._record(x, x, 1, None, 1, record_duplicate_data=False)
     assert idx == 1
     assert f_logger.Xn == 1
-    assert f_logger.nevals[0] == 1
-    assert f_logger.nevals[1] == 2
+    assert f_logger.n_evals[0] == 1
+    assert f_logger.n_evals[1] == 2
     assert np.all(f_logger.X[1] == x)
     assert f_logger.Y[1] == 18
     assert f_logger.Y_orig[1] == 18
-    assert f_logger.fun_evaltime[1] == 5
+    assert f_logger.fun_eval_time[1] == 5
 
 
 def test_record_duplicate_fsd():
@@ -162,15 +162,15 @@ def test_record_duplicate_fsd():
     )
     f_logger._record(x * 2, x * 2, 18, 2, 9)
     f_logger._record(x, x, 9, 3, 9)
-    _, idx = f_logger._record(x, x, 9, 3, 9, add_data=False)
+    _, idx = f_logger._record(x, x, 9, 3, 9, record_duplicate_data=False)
     assert idx == 1
     assert f_logger.Xn == 1
-    assert f_logger.nevals[0] == 1
-    assert f_logger.nevals[1] == 2
+    assert f_logger.n_evals[0] == 1
+    assert f_logger.n_evals[1] == 2
     assert np.all(f_logger.X[1] == x)
     assert np.isclose(f_logger.Y[1], 9, rtol=1e-12, atol=1e-14)
     assert np.isclose(f_logger.Y_orig[1], 9, rtol=1e-12, atol=1e-14)
-    assert f_logger.fun_evaltime[1] == 9
+    assert f_logger.fun_eval_time[1] == 9
     assert f_logger.S[1] == 3
 
 def test_finalize():
@@ -179,7 +179,7 @@ def test_finalize():
     for i in range(10):
         f_logger(x * i)
     f_logger.finalize()
-    assert f_logger.total_fun_evaltime == np.sum(f_logger.fun_evaltime)
+    assert f_logger.total_fun_eval_time == np.sum(f_logger.fun_eval_time)
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)
@@ -191,7 +191,7 @@ def test_finalize():
     assert f_logger.X.shape[0] == 10
     assert f_logger.Y.shape[0] == 10
     assert f_logger.X_flag.shape[0] == 10
-    assert f_logger.fun_evaltime.shape[0] == 10
+    assert f_logger.fun_eval_time.shape[0] == 10
 
     # noise level 2
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
