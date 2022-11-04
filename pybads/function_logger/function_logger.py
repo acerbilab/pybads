@@ -112,6 +112,7 @@ class FunctionLogger:
         else:
             x_orig = x
 
+        wrong_format_target_function = False
         try:
             timer.start_timer("funtime")
             fun_res = self.fun(x_orig)
@@ -120,7 +121,8 @@ class FunctionLogger:
                 if (type(fun_res) is tuple):
                     fval_orig, fsd = self.fun(x_orig)
                 else:
-                    error_message = 'The `specify_target_noise` option has been set to `True`. The target function should return two outputs: the function value and the target noise.\n'
+                    wrong_format_target_function = True
+                    error_message = "The target function should return two outputs: the function value and the target noise.\n"
                     raise ValueError(error_message)
             else:
                 fval_orig = fun_res
@@ -133,12 +135,18 @@ class FunctionLogger:
                 # fsd can only be an array with size 1 since we support just single evaluation
                 fsd = fsd.item()
         except Exception as err:
-            err.args += (
-                "FunctionLogger:FuncError "
-                + "Error in executing the logged function"
-                + "with input: "
-                + str(x_orig),
-            )
+            if wrong_format_target_function:
+                #err.args = ('The `specify_target_noise` option has been set to `True`. " \
+                #            + "The target function should return two outputs: the function value and the target noise.\n', )
+                err.args = (error_message, )
+                
+            else:
+                err.args += (
+                    "\n FunctionLogger:FuncError "
+                    + "Error in executing the logged function"
+                    + "with input: "
+                    + str(x_orig),
+                )
             raise
 
         # if fval is an array with only one element, extract that element
