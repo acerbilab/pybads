@@ -114,10 +114,16 @@ class FunctionLogger:
 
         try:
             timer.start_timer("funtime")
+            fun_res = self.fun(x_orig)
+            timer.stop_timer("funtime")
             if self.he_noise_flag:
-                fval_orig, fsd = self.fun(x_orig)
+                if (type(fun_res) is tuple):
+                    fval_orig, fsd = self.fun(x_orig)
+                else:
+                    error_message = 'The `specify_target_noise` option has been set to `True`. The target function should return two outputs: the function value and the target noise.\n'
+                    raise ValueError(error_message)
             else:
-                fval_orig = self.fun(x_orig)
+                fval_orig = fun_res
                 fsd = None
                     
             if isinstance(fval_orig, np.ndarray):
@@ -126,8 +132,6 @@ class FunctionLogger:
             if isinstance(fsd, np.ndarray):
                 # fsd can only be an array with size 1 since we support just single evaluation
                 fsd = fsd.item()
-            timer.stop_timer("funtime")
-
         except Exception as err:
             err.args += (
                 "FunctionLogger:FuncError "

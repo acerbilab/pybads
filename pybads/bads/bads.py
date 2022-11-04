@@ -1149,13 +1149,17 @@ class BADS:
                 # (since it was an incumbent at some iteration, it is more likely to be a 
                 # random fluctuation lower than the mean)
                 yval_vec = np.empty(self.options['noise_final_samples'])
+                ysd_vec = np.empty(self.options['noise_final_samples'])
                 for i_sample in range(self.options['noise_final_samples']):
                     # y, f_sd, _ = self.function_logger(self.u)
-                    yval_vec[i_sample] = self.function_logger(self.u, record_duplicate_data=False)[0]
+                    y, y_sd, _ = self.function_logger(self.u, record_duplicate_data=False)
+                    yval_vec[i_sample] = y
+                    ysd_vec[i_sample] = y_sd
                 
                 if yval_vec.size == 1:
                     yval_vec = np.vstack(yval_vec, self.yval)
                 self.optim_state['yval_vec'] = np.copy(yval_vec)
+                self.optim_state['ysd_vec'] = np.copy(ysd_vec)
                 
                 self.fval = np.mean(yval_vec).item()
                 self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()

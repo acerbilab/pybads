@@ -17,7 +17,8 @@ class OptimizeResult(dict):
              'problem_type',
              'mesh_size',
              'non_box_cons',        # non_box_constraint function
-             'yval_vec',       
+             'yval_vec',
+             'ysd_vec',
              'fval',
              'fsd',
              'total_time',
@@ -61,6 +62,11 @@ class OptimizeResult(dict):
             self['yval_vec'] = bads.optim_state['yval_vec'].copy()
         else: 
             self['yval_vec'] = None
+        
+        if bads.options['specify_target_noise']:
+            self['ysd_vec'] = bads.optim_state['ysd_vec']
+        else:
+            self['ysd_vec'] = None
         
         self['x'] = bads.x.copy()
         self['fval'] = bads.fval
