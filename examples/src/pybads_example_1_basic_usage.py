@@ -1,5 +1,5 @@
 # PyBADS Example 1: Basic usage
-# (code only - see Jupyter notebook version for a full description)
+# (code only - see Jupyter notebook for the tutorial)
 
 import numpy as np
 from pybads.bads.bads import BADS
@@ -18,7 +18,10 @@ pub = np.array([[5, 5]])        # Plausible upper bounds
 x0 = np.array([[0, 0]]);        # Starting point
 
 bads = BADS(target, x0, lb, ub, plb, pub)
-x_min, fval = bads.optimize()
+optimize_result = bads.optimize()
+
+x_min = optimize_result['x']
+fval = optimize_result['fval']
 
 print(f"BADS minimum at: x_min = {x_min.flatten()}, fval = {fval:.4g}")
-print(f"total f-count: {bads.function_logger.func_count-1}, time: {round(bads.optim_state['total_time'], 2)} s")
+print(f"total f-count: {optimize_result['func_count']}, time: {round(optimize_result['total_time'], 2)} s")
