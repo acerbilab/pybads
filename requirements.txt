@@ -7,6 +7,7 @@ kaleido
 matplotlib
 numpy
 scipy
+jupyter
 
 # testing and linting
 pylint

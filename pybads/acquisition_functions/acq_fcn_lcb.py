@@ -30,7 +30,7 @@ def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
     n = xi.shape[0]
     n_vars = xi.shape[1]
     t = func_logger.func_count + 1
-    if sqrt_beta is None or len(sqrt_beta) == 0:
+    if sqrt_beta is None:
         delta, nu = 0.1, 0.2
         sqrt_beta = np.sqrt(nu*2*np.log(n_vars * t**2 * np.pi**2 / (6 * delta) ))
     elif callable(sqrt_beta):

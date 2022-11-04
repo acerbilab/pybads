@@ -30,8 +30,8 @@ def get_hpd(X: np.ndarray, y: np.ndarray, hpd_frac: float = 0.8):
     N, D = X.shape
 
     # Subsample high posterior density dataset.
-    # Sort by descending order, not ascending.
-    order = np.argsort(y, axis=None)[::-1]
+    # Sort by ascending.
+    order = np.argsort(y, axis=None)[::]
     hpd_N = round(hpd_frac * N)
     indices = order[0:hpd_N]
     hpd_X = X[indices]
