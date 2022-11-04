@@ -1157,7 +1157,10 @@ class BADS:
                     ysd_vec[i_sample] = y_sd
                 
                 if yval_vec.size == 1:
-                    yval_vec = np.vstack(yval_vec, self.yval)
+                    yval_vec = np.vstack((yval_vec, self.yval))
+                    if self.options['specify_target_noise']:
+                        ysd_vec = np.vstack((ysd_vec, self.function_logger.S[self.function_logger.Xn]))
+                        
                 self.optim_state['yval_vec'] = np.copy(yval_vec)
                 self.optim_state['ysd_vec'] = np.copy(ysd_vec)
                 

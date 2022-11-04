@@ -58,12 +58,12 @@ class OptimizeResult(dict):
         self['mesh_size'] = bads.mesh_size
         self['overhead'] = bads.optim_state['overhead']
         self['algorithm'] = 'Bayesian adaptive direct search'
-        if bads.optim_state['uncertainty_handling_level'] > 0:
+        if bads.optim_state['uncertainty_handling_level'] > 0 and bads.options['noise_final_samples'] > 0:
             self['yval_vec'] = bads.optim_state['yval_vec'].copy()
         else: 
             self['yval_vec'] = None
         
-        if bads.options['specify_target_noise']:
+        if bads.options['specify_target_noise'] and bads.options['noise_final_samples'] > 0:
             self['ysd_vec'] = bads.optim_state['ysd_vec']
         else:
             self['ysd_vec'] = None
