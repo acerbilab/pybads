@@ -1151,7 +1151,6 @@ class BADS:
                 yval_vec = np.empty(self.options['noise_final_samples'])
                 ysd_vec = np.empty(self.options['noise_final_samples'])
                 for i_sample in range(self.options['noise_final_samples']):
-                    # y, f_sd, _ = self.function_logger(self.u)
                     y, y_sd, _ = self.function_logger(self.u, record_duplicate_data=False)
                     yval_vec[i_sample] = y
                     ysd_vec[i_sample] = y_sd
