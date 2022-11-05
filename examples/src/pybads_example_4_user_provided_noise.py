@@ -31,8 +31,13 @@ x_min = optimize_result['x']
 fval = optimize_result['fval']
 fsd = optimize_result['fsd']
 
+x_min = optimize_result['x']
+fval = optimize_result['fval']
+fsd = optimize_result['fsd']
+
 print(f"BADS minimum at: x_min = {x_min.flatten()}, fval (estimated) = {fval:.4g} +/- {fsd:.2g}")
 print(f"total f-count: {optimize_result['func_count']}, time: {round(optimize_result['total_time'], 2)} s")
 print(f"final evaluations (shape): {optimize_result['yval_vec'].shape}")
+print(f"final evaluations SD (shape): {optimize_result['ysd_vec'].shape}")
 
 print(f"The true, noiseless value of f(x_min) is {noisy_sphere_estimated_noise(x_min,scale=0)[0][0]:.3g}.")
