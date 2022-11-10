@@ -7,6 +7,7 @@ import pkg_resources
 class OptimizeResult(dict):
     
     _keys = ['x',
+             'x0',                  # Initial starting point
              'success',
              'status',
              'message',
@@ -68,6 +69,7 @@ class OptimizeResult(dict):
         else:
             self['ysd_vec'] = None
         
+        self['x0'] = bads.x0.copy()
         self['x'] = bads.x.copy()
         self['fval'] = bads.fval
         self['fsd'] = bads.fsd
