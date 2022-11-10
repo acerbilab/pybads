@@ -1951,7 +1951,7 @@ class BADS:
         else:
             if self.optim_state["uncertainty_handling_level"] > 0:
                 self.logger.info(
-                    " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions\n")
+                    " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions")
             else:
                 self.logger.info(
                     " Iteration    f-count         f(x)           MeshScale          Method             Actions")
