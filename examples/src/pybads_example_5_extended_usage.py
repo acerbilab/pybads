@@ -12,10 +12,10 @@ def camelback6(x):
     f = (4 - 2.1*(x1*x1) + (x1*x1*x1*x1)/3.0)*(x1*x1) + x1*x2 + (-4 + 4*(x2*x2))*(x2*x2)
     return f
 
-lb = np.array([[-3, -2]])       # Lower bounds
-ub = np.array([[3, 2]])         # Upper bounds
-plb = np.array([[-2.9, -1.9]])  # Plausible lower bounds
-pub = np.array([[2.9, 1.9]])    # Plausible upper bounds
+lb = np.array([-3, -2])       # Lower bounds
+ub = np.array([3, 2])         # Upper bounds
+plb = np.array([-2.9, -1.9])  # Plausible lower bounds
+pub = np.array([2.9, 1.9])    # Plausible upper bounds
 
 options = {
     "display" : 'off',             # We switch off the printing
@@ -24,7 +24,7 @@ options = {
 
 num_opts = 10
 optimize_results = []
-x_vec = np.zeros((num_opts,lb.shape[1]))
+x_vec = np.zeros((num_opts,lb.shape[0]))
 fval_vec = np.zeros(num_opts)
 
 for opt_count in range(num_opts):

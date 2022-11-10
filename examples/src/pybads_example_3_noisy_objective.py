@@ -11,11 +11,11 @@ def noisy_sphere(x,sigma=1.0):
     noise = sigma*np.random.normal(size=x_2d.shape[0])
     return f + noise
 
-x0 = np.array([[-3, -3]]);      # Starting point
-lb = np.array([[-5, -5]])       # Lower bounds
-ub = np.array([[5, 5]])         # Upper bounds
-plb = np.array([[-2, -2]])      # Plausible lower bounds
-pub = np.array([[2, 2]])        # Plausible upper bounds
+x0 = np.array([-3, -3]);      # Starting point
+lb = np.array([-5, -5])       # Lower bounds
+ub = np.array([5, 5])         # Upper bounds
+plb = np.array([-2, -2]])      # Plausible lower bounds
+pub = np.array([2, 2])        # Plausible upper bounds
 
 options = {
     "uncertainty_handling": True,

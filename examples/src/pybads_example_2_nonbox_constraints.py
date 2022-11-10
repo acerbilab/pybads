@@ -9,9 +9,9 @@ def rosenbrocks_fcn(x):
     x_2d = np.atleast_2d(x)
     return np.sum(100 * (x_2d[:, 0:-1]**2 - x_2d[:, 1:])**2 + (x_2d[:, 0:-1]-1)**2, axis=1)
 
-x0 = np.array([[0, 0]]);      # Starting point
-lb = np.array([[-1, -1]])     # Lower bounds
-ub = np.array([[1, 1]])       # Upper bounds
+x0 = np.array([0, 0]);      # Starting point
+lb = np.array([-1, -1])     # Lower bounds
+ub = np.array([1, 1])       # Upper bounds
 
 def circle_constr(x):
     """Return constraints violation outside the unit circle."""
