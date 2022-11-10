@@ -480,7 +480,7 @@ class BADS:
         ninfs = np.sum(np.isinf(np.concatenate([lower_bounds, upper_bounds])))
         if ninfs > 0:
             if ninfs == 2 *D:
-                self.logger.warning("Detected fully unconstrainer optimization.")
+                self.logger.warning("Detected fully unconstrained optimization.")
             else:
                 self.logger.warning(f"Detected {ninfs} infinite bound(s).")
 
@@ -1193,11 +1193,11 @@ class BADS:
         self.logger.info(msg)
         if self.optim_state['uncertainty_handling_level'] > 0:
             if np.isscalar(yval_vec) or yval_vec.size == 1:
-                self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
+                self.logger.info(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
             else:
-                self.logger.warn(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
+                self.logger.info(f'Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)')
         else:
-            self.logger.warn(f'Function value at minimum: {self.fval}\n')
+            self.logger.info(f'Function value at minimum: {self.fval}\n')
             
         # BADS's output 
         optimize_result = OptimizeResult(self)
@@ -1353,7 +1353,7 @@ class BADS:
                 # Acquisition hedge (acquisition portfolio) not supported yet
                 pass
             else:
-                method = self.search_es_hedge.chosen_search_fun
+                method = self.search_es_hedge.chosen_search_fun[0]
             
             # StoBads or sufficient improvement
             if is_search_success:
@@ -1947,14 +1947,14 @@ class BADS:
         """
         if self.optim_state["cache_active"]:
             self.logger.info(
-                " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
+                " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method       Actions")
         else:
             if self.optim_state["uncertainty_handling_level"] > 0:
                 self.logger.info(
-                    " Iteration f-count     E[f(x)]     SD[f(x)]     MeshScale     Method     Actions")
+                    " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions\n")
             else:
                 self.logger.info(
-                    " Iteration f-count     f(x)     MeshScale     Method     Actions")
+                    " Iteration    f-count         f(x)           MeshScale          Method             Actions")
 
     def _setup_logging_display_format(self):
         """
@@ -1965,11 +1965,11 @@ class BADS:
             display_format += ("{:12.6f}  {:12.6f}     {}       {}")
         else:
             if self.optim_state["uncertainty_handling_level"] > 0:
-                display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
-                display_format += ("{:12.6f}  {:12.6f}     {}       {}")
+                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+                display_format += ("{:12.6g}    {:12.6g}      {:^20s}        {}")
             else:
-                display_format = " {:5.0f}     {:5.0f}   {:12.6f}  "
-                display_format += ("{:12.6f}     {}       {}")
+                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+                display_format += ("{:12.6g}     {:^20s}        {}")
 
         return display_format
 
