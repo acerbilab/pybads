@@ -518,7 +518,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
     if np.any(~success_flag):
         # at least one failed
         if options['gp_warnings']:
-            logger.warning(f'bads:gpHyperOptFail: Failed optimization of hyper-parameters ({n_try} attempts). GP approximation might be unreliable.')
+            logger.warning(f'bads:gpHyperOptFail: Failed optimization of hyper-parameters (after {n_try} attempts). GP approximation might be unreliable.')
 
     if np.all(~success_flag):
         success = -1
