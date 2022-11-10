@@ -141,7 +141,8 @@ class BADS:
                 )
             else:
                 x0 = np.full((plausible_lower_bounds.shape), np.NaN)
-
+                
+        x0 = np.atleast_2d(x0)
         self.D = x0.shape[1]
 
         # load basic and advanced options and validate the names
@@ -174,7 +175,6 @@ class BADS:
         elif self.options.get("display") == "full":
             self.logger.setLevel(logging.DEBUG)
 
-
         # Empty LB and UB are Infs
         if lower_bounds is None:
             lower_bounds = np.ones((1, self.D)) * -np.inf
@@ -190,7 +190,7 @@ class BADS:
             self.plausible_lower_bounds,
             self.plausible_upper_bounds,
 
-        ) = self._boundscheck_(
+        ) = self._bounds_check_(
             x0.copy(),
             lower_bounds,
             upper_bounds,
@@ -203,9 +203,10 @@ class BADS:
         
         # starting point
         if not np.all(np.isfinite(self.x0)):
-            self.logger.warn('Initial starting point is invalid or not provided.\
-                 Starting from center of plausible region.\n')
-            self.x0 = 0.5 * (self.plausible_lower_bounds + self.plausible_upper_bounds)
+            self.x0 = np.random.uniform(low=self.plausible_lower_bounds,
+                                        high=self.plausible_upper_bounds, size=(1, self.D))
+            self.logger.log(25, 'Initial starting point is invalid or not provided.' \
+                                    +' Initial point randomly sampled uniformly from plausible box\n')
         
         # evaluate  starting point non-bound constraint
         if non_box_cons is not None:
@@ -248,7 +249,7 @@ class BADS:
             ]
         )
 
-    def _boundscheck_(
+    def _bounds_check_(
         self,
         x0: np.ndarray,
         lower_bounds: np.ndarray,
@@ -302,13 +303,17 @@ class BADS:
                 if plausible_upper_bounds is None:
                     plausible_upper_bounds = np.copy(upper_bounds)
 
+        # ensure at least 2d dimensions
+        upper_bounds = np.atleast_2d(upper_bounds)
+        lower_bounds = np.atleast_2d(lower_bounds)
+        plausible_upper_bounds = np.atleast_2d(plausible_upper_bounds)
+        plausible_lower_bounds = np.atleast_2d(plausible_lower_bounds)
         # check that all bounds are row vectors with D elements
-        if (
-            np.ndim(lower_bounds) != 2
-            or np.ndim(upper_bounds) != 2
-            or np.ndim(plausible_lower_bounds) != 2
-            or np.ndim(plausible_upper_bounds) != 2
-            or lower_bounds.shape != (1, D)
+        upper_bounds = np.atleast_2d(upper_bounds)
+        lower_bounds = np.atleast_2d(lower_bounds)
+        plausible_upper_bounds = np.atleast_2d(plausible_upper_bounds)
+        plausible_lower_bounds = np.atleast_2d(plausible_lower_bounds)
+        if (lower_bounds.shape != (1, D)
             or upper_bounds.shape != (1, D)
             or plausible_lower_bounds.shape != (1, D)
             or plausible_upper_bounds.shape != (1, D)
@@ -1185,8 +1190,7 @@ class BADS:
         self.optim_state['total_time'] = total_time
         self.optim_state['overhead'] = overhead
 
-        #TODO:  Print final message
-        self.logger.warning(msg)
+        self.logger.info(msg)
         if self.optim_state['uncertainty_handling_level'] > 0:
             if np.isscalar(yval_vec) or yval_vec.size == 1:
                 self.logger.warn(f'Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).')
