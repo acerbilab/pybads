@@ -4,6 +4,7 @@ from typing import Callable, final
 import logging
 from abc import ABC, abstractclassmethod
 import numpy as np
+import scipy
 
 from gpyreg.gaussian_process import GP
 
@@ -204,7 +205,7 @@ class ESSearchWM(ESSearch):
             C = C - negcov * negC
 
         # Rescale covariance matrix according to mean vector length
-        eig_values, E = np.linalg.eig(C)
+        eig_values, E =  scipy.linalg.eigh(C)
         eig_values = np.maximum(0, eig_values) + self.jit**2
         if sum_rule:
             eig_values = eig_values/np.sum(eig_values)
