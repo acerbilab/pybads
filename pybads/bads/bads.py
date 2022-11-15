@@ -814,7 +814,7 @@ class BADS:
             fun_eval_start = np.minimum(self.options['fun_eval_start'], self.options['max_fun_evals'] - 1)
             if self.options['initfcn'] == 'init_sobol':
                 
-                u1 = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
+                u1, _ = init_sobol(self.u, self.lower_bounds, self.upper_bounds,
                             self.plausible_lower_bounds, self.plausible_upper_bounds, fun_eval_start)
                 # enforce periodicity TODO function
                 u1 = period_check(u1, self.lower_bounds, self.upper_bounds, self.options['periodic_vars'])

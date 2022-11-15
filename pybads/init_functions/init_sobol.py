@@ -32,4 +32,4 @@ def init_sobol(u0, lb, ub, plb, pub, fun_eval_start):
     
     u_init = plb + samples * (pub - plb)
     
-    return u_init
+    return u_init, n_samples
