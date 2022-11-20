@@ -384,7 +384,7 @@ class FunctionLogger:
             if fsd is not None:
                 # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
                 duplicate_flag = self.X == x
-                if np.any(duplicate_flag):
+                if np.any(duplicate_flag.all(axis=1)):
                     if np.sum(duplicate_flag.all(axis=1)) > 1:
                         raise ValueError("More than one match for duplicate entry.")
                     idx = np.argwhere(duplicate_flag)[0, 0]
