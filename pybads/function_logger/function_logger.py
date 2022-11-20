@@ -366,25 +366,25 @@ class FunctionLogger:
         
         # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
         if not record_duplicate_data:
-            duplicate_flag = self.X == x
-            if np.any(duplicate_flag):
+            duplicate_flag = np.all(self.X == x, axis=1)
+            if np.any(duplicate_flag) :
                 # Since we do not record the new duplicate point in the training set
                 # and we might have more than one duplicate points (e.g for NON-heteroskedastic cases)
                 # we register the function evaluation time and increase the counter of function evaluations in the last duplicate
-                last_idx = np.argwhere(duplicate_flag.all(axis=1))[-1].item()
+                last_idx = np.argwhere(duplicate_flag)[-1].item()
                 N = self.n_evals[last_idx]
                 self.fun_eval_time[last_idx] = (N * self.fun_eval_time[last_idx] + fun_eval_time) / (N + 1)
                 self.n_evals[last_idx] += 1
                 return fval_orig, last_idx
             else:
-                logging.getLogger("BADS").debug('function_logger: Asked to NOT record duplicate data, but NO duplicate points have found.')
+                return fval_orig, None
                 
         else:
             # check if the noise is heteroskedastic 
             if fsd is not None:
                 # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
                 duplicate_flag = self.X == x
-                if np.any(duplicate_flag):
+                if np.any(duplicate_flag.all(axis=1)):
                     if np.sum(duplicate_flag.all(axis=1)) > 1:
                         raise ValueError("More than one match for duplicate entry.")
                     idx = np.argwhere(duplicate_flag)[0, 0]

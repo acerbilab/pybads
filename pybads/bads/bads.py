@@ -1099,7 +1099,6 @@ class BADS:
                 f_q_re_impr = f_q_re_impr[1:] # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
                 improvement = f_q_re_impr[idx_impr]
-                
                 idx_impr = idx_impr + 1 # offset original index without skip
                 
                
@@ -1334,8 +1333,7 @@ class BADS:
 
             # Declare if search was success or not
             is_search_success = search_improvement > self.optim_state['search_sufficient_improvement']
-            is_search_improved = not self.options['stobads']  and (search_improvement > 0 \
-                and self.options['sloppyimprovement'] or is_search_success)
+            is_search_improved = (search_improvement > 0 and self.options['sloppyimprovement'] or is_search_success)
             
         else:
             # For StoBads an improvement corresponds to a success
