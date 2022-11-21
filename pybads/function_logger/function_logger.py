@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-from pybads.bads.variables_transformer import VariableTransformer
+from pybads.variable_transformer import VariableTransformer
 from pybads.utils.timer import Timer
 
 

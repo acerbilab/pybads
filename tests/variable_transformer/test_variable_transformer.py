@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pybads.bads.variables_transformer import VariableTransformer
+from pybads.variable_transformer import VariableTransformer
 
 D = 3
 

@@ -2,7 +2,7 @@ import numpy as np
 
 import gpyreg as gpr
 
-from pybads.function_logger.function_logger import FunctionLogger
+from pybads.function_logger import FunctionLogger
 
 def acq_fcn_lcb(xi, func_logger:FunctionLogger, gp:gpr.GP, sqrt_beta=None):
     """

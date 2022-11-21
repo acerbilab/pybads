@@ -1,9 +1,7 @@
 from matplotlib.pyplot import axis
 import numpy as np
-from pybads.bads.variables_transformer import VariableTransformer
+from pybads.variable_transformer import VariableTransformer
 from scipy.spatial.distance import cdist
-
-from pybads.function_logger.function_logger import FunctionLogger
 
 def force_to_grid(x, search_mesh_size, tol = None):
 

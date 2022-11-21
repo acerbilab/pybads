@@ -2,7 +2,7 @@
 
 import gpyreg as gpr
 import numpy as np
-from pybads.bads.bads import BADS
+from pybads import BADS
 import pytest
 
 from pybads.bads.gaussian_process_train import (

@@ -5,16 +5,15 @@ import sys
 from pybads import function_logger
 import pytest
 
-from pybads.bads.bads import BADS
+from pybads import BADS
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from tests.bads.utils_test import load_options
-from pybads.bads.variables_transformer import VariableTransformer
+from pybads.variable_transformer import VariableTransformer
 from pybads.bads.gaussian_process_train import init_and_train_gp, get_grid_search_neighbors
 from pybads.utils.iteration_history import IterationHistory
-from pybads.function_logger import FunctionLogger
+from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.search.search_hedge import ESSearchHedge
-from pybads.utils.constraints_check import contraints_check
 
 import gpyreg as gpr
 

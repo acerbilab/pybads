@@ -1,39 +1,35 @@
 from asyncio.log import logger
 import copy
 import logging
-import math
-import os
-import sys
+import sys, os
 
-import gpyreg as gpr
 import matplotlib.pyplot as plt
 import numpy as np
-from requests import options
 from scipy.special import gammaincinv
 from scipy.special import erfcinv
 from scipy.special import erfc
 from scipy.stats import shapiro
-from sqlalchemy import true
-from pybads import function_logger
-from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
-from pybads.bads.bads_dump import BADSDump
-from pybads.bads.optimize_result import OptimizeResult
-from pybads.poll.poll_mads_2n import poll_mads_2n
 
-from pybads.search.search_hedge import ESSearchHedge
+from gpyreg.gaussian_process import GP
 
 from pybads.function_logger import FunctionLogger
-from pybads.init_functions.init_sobol import init_sobol
+from pybads.init_functions import init_sobol
 from pybads.search.grid_functions import force_to_grid, grid_units, udist 
-from pybads.utils.period_check import period_check
+from pybads.acquisition_functions import acq_fcn_lcb
+from pybads.poll import poll_mads_2n
+from pybads.search import ESSearchHedge
+
+from pybads.utils import period_check
 from pybads.utils.timer import Timer
 from pybads.utils.iteration_history import IterationHistory
-from pybads.bads.variables_transformer import VariableTransformer
-from pybads.utils.constraints_check import contraints_check
-from pybads.bads.gaussian_process_train import local_gp_fitting, add_and_update_gp, init_and_train_gp
-from gpyreg.gaussian_process import GP
-from pybads.bads.options import Options
 
+from pybads.function_logger import contraints_check
+from pybads.variable_transformer import VariableTransformer
+
+from .gaussian_process_train import local_gp_fitting, add_and_update_gp, init_and_train_gp
+
+from .optimize_result import OptimizeResult
+from .options import Options
 
 class BADS:
     """
@@ -1926,18 +1922,6 @@ class BADS:
             self.mesh_overflows += 1
             if self.mesh_overflows == np.ceil(self.options['meshoverflowswarning']):
                 self.logger.warn('bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening PLB and PUB.')
-    
-    def _create_result_dict(self, idx_best: int, termination_message: str):
-        """
-        Private method to create the result dict.
-        """
-        
-        # TODO: save using BADSDump
-        # bads_dump = BADSDump('bads_dump')
-        # bads_dump.to_JSON(self.x, self.u, self.fval, self.fsd, self.iteration_history, )
-        
-        logging.info(termination_message)
-        return None
 
     def _log_column_headers(self):
         """

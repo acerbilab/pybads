@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pybads.bads.variables_transformer import VariableTransformer
+from pybads.variable_transformer import VariableTransformer
 from pybads.function_examples import rosenbrocks_fcn
 
 from pybads.function_logger import FunctionLogger
