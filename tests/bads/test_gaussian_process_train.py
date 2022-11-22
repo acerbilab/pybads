@@ -8,47 +8,12 @@ import pytest
 from pybads.bads.gaussian_process_train import (
     init_and_train_gp,
     _cov_identifier_to_covariance_function,
-    _estimate_noise,
     _get_gp_training_options,
-    _get_hyp_cov,
     _get_fevals_data,
     _meanfun_name_to_mean_function,
 )
+
 from scipy.stats import norm
-
-def test_estimate_noise():
-    # Back-up random number generator so as not to affect other tests
-    # that might want to use different random numbers each run.
-    state = np.random.get_state()
-    np.random.seed(1234)
-
-    N = 31
-    D = 1
-    X = -5 + np.random.rand(N, 1) * 10
-    s2 = 0.05 * np.exp(0.5 * X)
-    y = np.sin(X) + np.sqrt(s2) * norm.ppf(np.random.random_sample(X.shape))
-    y[y < 0] = -np.abs(3 * y[y < 0]) ** 2
-
-    gp = gpr.GP(
-        D=D,
-        covariance=gpr.covariance_functions.Matern(degree=3),
-        mean=gpr.mean_functions.NegativeQuadratic(),
-        noise=gpr.noise_functions.GaussianNoise(
-            constant_add=True, user_provided_add=True
-        ),
-    )
-
-    hyp = np.array([[-2.5, 1.7, -7.5, 0.3, 2.6, 1.2]])
-    gp.update(X_new=X, y_new=y, s2_new=s2, hyp=hyp)
-
-    noise_estimate = _estimate_noise(gp)
-
-    np.random.set_state(state)
-
-    # Value taken from MATLAB which only applies for this exact setup.
-    # Change any part of the test and it will not apply.
-    assert np.isclose(noise_estimate, 0.106582207806606)
-
 
 def test_get_fevals_data_no_noise():
     D = 3
@@ -185,40 +150,6 @@ def test_cov_identifier_to_covariance_function():
 
     with pytest.raises(ValueError):
         c6 = _cov_identifier_to_covariance_function(0)
-
-
-def test_get_hyp_cov():
-    D = 3
-    lb = np.ones((1, D)) * 1
-    ub = np.ones((1, D)) * 5
-    x0 = np.ones((2, D)) * 3
-    plb = np.ones((1, D)) * 2
-    pub = np.ones((1, D)) * 4
-    f = lambda x: np.sum(x + 2)
-    bads = BADS(f, x0, lb, ub, plb, pub)
-    hyp_dict = {"run_cov": 42}
-
-    res1 = _get_hyp_cov(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict
-    )
-
-    assert res1 is None
-
-    bads.optim_state["iter"] = 1
-    bads.options["weightedhypcov"] = False
-    res2 = _get_hyp_cov(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict
-    )
-
-    assert res2 == 42
-
-    # TODO: figure out some sort of a set-up for testing this.
-    #       currently I don't have reference values
-    #       maybe something like checking whether the returned thing is
-    #       a covariance matrix?
-    # bads.options["weightedhypcov"] = True
-    # res3 = _get_hyp_cov(bads.optim_state, bads.iteration_history,
-    #                       bads.options, hyp_dict)
 
 
 def test_get_gp_training_options_samplers():
