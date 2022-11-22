@@ -2,7 +2,7 @@
 # (code only - see Jupyter notebook for a tutorial)
 
 import numpy as np
-from pybads.bads.bads import BADS
+from pybads import BADS
 
 def camelback6(x):
     """Six-hump camelback function."""

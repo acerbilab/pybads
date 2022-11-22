@@ -2,7 +2,7 @@ from multiprocessing.sharedctypes import Value
 from typing import Callable
 import numpy as np
 
-from pybads.function_logger import FunctionLogger
+from .function_logger import FunctionLogger
 
 def contraints_check(U:np.ndarray, lb:np.ndarray, ub:np.ndarray, tol_mesh, function_logger:FunctionLogger, proj=True, non_box_cons:Callable=None):
     """

@@ -1,7 +1,6 @@
 
 import numpy as np
 import copy
-import pkg_resources
 
 
 class OptimizeResult(dict):

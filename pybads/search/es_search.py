@@ -9,10 +9,10 @@ import scipy
 from gpyreg.gaussian_process import GP
 
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
-from pybads.utils.constraints_check import contraints_check
-from pybads.function_logger.function_logger import FunctionLogger
+from pybads.function_logger.constraints_check import contraints_check
+from pybads.function_logger import FunctionLogger
 
-from pybads.search.grid_functions import force_to_grid
+from .grid_functions import force_to_grid
 
 class ESSearch(ABC):
     """An Abstract class describing an Evolutionary Strategy Search.

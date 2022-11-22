@@ -15,8 +15,8 @@ from pybads.search.grid_functions import udist
 from scipy.spatial.distance import cdist
 
 from .options import Options
-from pybads.stats.get_hpd import get_hpd
-from pybads.utils.iteration_history import IterationHistory
+from pybads.stats import get_hpd
+from pybads.utils import IterationHistory
 
 
 
@@ -314,7 +314,7 @@ def local_gp_fitting(gp: gpr.GP, current_point, function_logger:FunctionLogger, 
             # Sample the hyper-params from priors
             prev_hyp_gp = gp.get_hyperparameters(as_array=True)
             if options['use_slice_sampler']:
-                new_hyp = get_samples_from_slice_sampler(gp, prev_hyp_gp, optim_state, options)
+                new_hyp = _get_samples_from_slice_sampler_(gp, prev_hyp_gp, optim_state, options)
             else:
                 new_hyp = _get_random_samples_from_priors_(gp)
                 
@@ -482,7 +482,7 @@ def _robust_gp_fit_(gp: gpr.GP, x_train, y_train, s2_train, hyp_gp, gp_train, op
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 if len(new_hyp) > 1:
                     new_hyp = new_hyp[-1].copy()
-                new_hyp = get_samples_from_slice_sampler(tmp_gp, new_hyp, optim_state, options)
+                new_hyp = _get_samples_from_slice_sampler_(tmp_gp, new_hyp, optim_state, options)
             else:
                 new_hyp = _get_random_samples_from_priors_(gp)
             if new_hyp is not None:
@@ -551,7 +551,7 @@ def _get_random_samples_from_priors_(gp:gpr.GP):
             
     return gp.hyperparameters_from_dict(hyp)
 
-def get_samples_from_slice_sampler(gp:gpr.GP, hyp_gp, optim_state, options):
+def _get_samples_from_slice_sampler_(gp:gpr.GP, hyp_gp, optim_state, options):
     """
         A private method that retrieves a new set of parameters using the slice sampler method.
     """

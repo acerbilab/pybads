@@ -2,7 +2,7 @@
 # (code only - see Jupyter notebook for the tutorial)
 
 import numpy as np
-from pybads.bads.bads import BADS
+from pybads import BADS
 
 def rosenbrocks_fcn(x):
     """Rosenbrock's 'banana' function in any dimension."""

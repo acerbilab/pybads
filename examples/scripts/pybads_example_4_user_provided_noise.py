@@ -1,30 +1,35 @@
-# PyBADS Example 3: Noisy objective function
+# PyBADS Example 4: Noisy objective with user-provided noise estimates
 # (code only - see Jupyter notebook for a tutorial)
 
 import numpy as np
-from pybads.bads.bads import BADS
+from pybads import BADS
 
-def noisy_sphere(x,sigma=1.0):
-    """Simple quadratic function with added noise."""
+def noisy_sphere_estimated_noise(x,scale=1.0):
+    """Quadratic function with heteroskedastic noise; also return noise estimate."""
     x_2d = np.atleast_2d(x)
     f = np.sum(x_2d**2, axis=1)
-    noise = sigma*np.random.normal(size=x_2d.shape[0])
-    return f + noise
+    sigma = scale*(1.0 + np.sqrt(f))
+    y = f + sigma*np.random.normal(size=x_2d.shape[0])
+    return y, sigma
 
 x0 = np.array([-3, -3]);      # Starting point
 lb = np.array([-5, -5])       # Lower bounds
 ub = np.array([5, 5])         # Upper bounds
-plb = np.array([-2, -2]])      # Plausible lower bounds
+plb = np.array([-2, -2])      # Plausible lower bounds
 pub = np.array([2, 2])        # Plausible upper bounds
 
 options = {
     "uncertainty_handling": True,
-    "max_fun_evals": 300,
+    "specify_target_noise": True,
     "noise_final_samples": 100
 }
 
-bads = BADS(noisy_sphere, x0, lb, ub, plb, pub, options=options)
+bads = BADS(noisy_sphere_estimated_noise, x0, lb, ub, plb, pub, options=options)
 optimize_result = bads.optimize()
+
+x_min = optimize_result['x']
+fval = optimize_result['fval']
+fsd = optimize_result['fsd']
 
 x_min = optimize_result['x']
 fval = optimize_result['fval']
@@ -33,5 +38,6 @@ fsd = optimize_result['fsd']
 print(f"BADS minimum at: x_min = {x_min.flatten()}, fval (estimated) = {fval:.4g} +/- {fsd:.2g}")
 print(f"total f-count: {optimize_result['func_count']}, time: {round(optimize_result['total_time'], 2)} s")
 print(f"final evaluations (shape): {optimize_result['yval_vec'].shape}")
+print(f"final evaluations SD (shape): {optimize_result['ysd_vec'].shape}")
 
-print(f"The true, noiseless value of f(x_min) is {noisy_sphere(x_min,sigma=0)[0]:.3g}.")
+print(f"The true, noiseless value of f(x_min) is {noisy_sphere_estimated_noise(x_min,scale=0)[0][0]:.3g}.")
