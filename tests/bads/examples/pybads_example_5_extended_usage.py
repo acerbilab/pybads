@@ -2,7 +2,9 @@
 # (code only - see Jupyter notebook for a tutorial)
 
 import numpy as np
+
 from pybads.bads.bads import BADS
+
 
 def camelback6(x):
     """Six-hump camelback function."""
@@ -34,7 +36,7 @@ for opt_count in range(num_opts):
     optimize_results.append(bads.optimize())
     x_vec[opt_count] = optimize_results[opt_count].x
     fval_vec[opt_count] = optimize_results[opt_count].fval
-    
+
 print('Found solutions:')
 print(x_vec)
 

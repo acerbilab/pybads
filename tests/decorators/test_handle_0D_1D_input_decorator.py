@@ -1,5 +1,7 @@
 import numpy as np
+
 from pybads.decorators.handle_0D_1D_input import handle_0D_1D_input
+
 
 def test_1D_kwarg():
     class Foo:

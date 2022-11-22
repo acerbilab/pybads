@@ -54,4 +54,3 @@ Examples of usages of PyBADS are present in the directory `examples` of the repo
 2. From the `pybads` folder, run: `python examples/example_file`
 
 The `example_file` can be any file present in the `examples` directory.
- 

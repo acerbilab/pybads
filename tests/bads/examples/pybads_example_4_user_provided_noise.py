@@ -2,7 +2,9 @@
 # (code only - see Jupyter notebook for a tutorial)
 
 import numpy as np
+
 from pybads.bads.bads import BADS
+
 
 def noisy_sphere_estimated_noise(x,scale=1.0):
     """Quadratic function with heteroskedastic noise; also return noise estimate."""

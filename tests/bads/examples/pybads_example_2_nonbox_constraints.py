@@ -2,7 +2,9 @@
 # (code only - see Jupyter notebook for the tutorial)
 
 import numpy as np
+
 from pybads.bads.bads import BADS
+
 
 def rosenbrocks_fcn(x):
     """Rosenbrock's 'banana' function in any dimension."""
@@ -16,7 +18,7 @@ ub = np.array([1, 1])       # Upper bounds
 def circle_constr(x):
     """Return constraints violation outside the unit circle."""
     x_2d = np.atleast_2d(x)
-    # Note that nonboxcons assumes the function takes a 2D input 
+    # Note that nonboxcons assumes the function takes a 2D input
     return np.sum(x_2d**2, axis=1) > 1
 
 bads = BADS(rosenbrocks_fcn, x0, lb, ub, non_box_cons=circle_constr)

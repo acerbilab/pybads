@@ -2,7 +2,9 @@
 # (code only - see Jupyter notebook for a tutorial)
 
 import numpy as np
+
 from pybads.bads.bads import BADS
+
 
 def noisy_sphere(x,sigma=1.0):
     """Simple quadratic function with added noise."""
@@ -14,7 +16,7 @@ def noisy_sphere(x,sigma=1.0):
 x0 = np.array([-3, -3]);      # Starting point
 lb = np.array([-5, -5])       # Lower bounds
 ub = np.array([5, 5])         # Upper bounds
-plb = np.array([-2, -2]])      # Plausible lower bounds
+plb = np.array([-2, -2])      # Plausible lower bounds
 pub = np.array([2, 2])        # Plausible upper bounds
 
 options = {

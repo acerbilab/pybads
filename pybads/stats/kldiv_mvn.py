@@ -1,4 +1,5 @@
 import numpy as np
+
 from pybads.decorators import handle_0D_1D_input
 
 

@@ -5,6 +5,7 @@ from pybads.bads.variables_transformer import VariableTransformer
 
 D = 3
 
+
 def test_init_no_lower_bounds():
     with pytest.raises(ValueError):
         VariableTransformer(D=D)
@@ -55,6 +56,7 @@ def test_init_bounds_check():
             plausible_upper_bounds=np.ones((1, D)) * -20,
         )
 
+
 def test_init_type_3():
     parameter_transformer = VariableTransformer(
         D=D,
@@ -62,6 +64,7 @@ def test_init_type_3():
         upper_bounds=np.ones((1, D)) * 2,
     )
     assert np.all(parameter_transformer.apply_log_t == 0)
+
 
 def test_init_mu_inf_bounds():
     parameter_transformer = VariableTransformer(D=D)
