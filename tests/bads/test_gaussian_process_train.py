@@ -1,19 +1,17 @@
-
-
 import gpyreg as gpr
 import numpy as np
-from pybads import BADS
 import pytest
+from scipy.stats import norm
 
+from pybads import BADS
 from pybads.bads.gaussian_process_train import (
-    init_and_train_gp,
     _cov_identifier_to_covariance_function,
-    _get_gp_training_options,
     _get_fevals_data,
+    _get_gp_training_options,
     _meanfun_name_to_mean_function,
+    init_and_train_gp,
 )
 
-from scipy.stats import norm
 
 def test_get_fevals_data_no_noise():
     D = 3
@@ -270,7 +268,6 @@ def test_get_gp_training_options_opts_N():
     )
     assert res1["opts_N"] == 2
 
-    
     bads.options["gphypsampler"] = "slicelite"
     bads.optim_state["recompute_var_post"] = False
     res2 = _get_gp_training_options(

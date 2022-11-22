@@ -1,7 +1,7 @@
-import logging
 import numpy as np
-from pybads.variable_transformer import VariableTransformer
+
 from pybads.utils.timer import Timer
+from pybads.variable_transformer import VariableTransformer
 
 
 class FunctionLogger:
@@ -42,7 +42,7 @@ class FunctionLogger:
         self.D: int = D
         self.noise_flag: bool = noise_flag
         self.uncertainty_handling_level: int = uncertainty_handling_level
-        self.he_noise_flag =  uncertainty_handling_level == 2 
+        self.he_noise_flag = uncertainty_handling_level == 2
         self.transform_variables = variable_transformer is not None
         self.variable_transformer = variable_transformer
         self.cache_size = cache_size
@@ -60,12 +60,12 @@ class FunctionLogger:
             self.S = np.full([cache_size, 1], np.nan)
 
         self.Xn: int = -1  # Last filled entry
-        self.X_max_idx = -1 # Last filled entry in the cache memory.
+        self.X_max_idx = -1  # Last filled entry in the cache memory.
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
         self.y_max = float("-Inf")
         self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
-        self.total_fun_eval_time = 0.
+        self.total_fun_eval_time = 0.0
 
         # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
@@ -108,7 +108,9 @@ class FunctionLogger:
         assert x.size == x.shape[0]
         # Convert back to original space
         if self.transform_variables:
-            x_orig = self.variable_transformer.inverse_transf(np.reshape(x, (1, x.shape[0])))[0]
+            x_orig = self.variable_transformer.inverse_transf(
+                np.reshape(x, (1, x.shape[0]))
+            )[0]
         else:
             x_orig = x
 
@@ -119,17 +121,19 @@ class FunctionLogger:
             timer.stop_timer("funtime")
             if self.he_noise_flag:
                 if (type(fun_res) is tuple) and len(fun_res) == 2:
-                    fval_orig, fsd = fun_res 
+                    fval_orig, fsd = fun_res
                 else:
                     wrong_format_target_function = True
-                    error_message = "The `specify_target_noise` option has been set to `True`.\n" \
-                                    + "The target function should return two outputs: the function value and the target noise.\n" \
-                                    + "Please adjust the target function to return two outputs."
+                    error_message = (
+                        "The `specify_target_noise` option has been set to `True`.\n"
+                        + "The target function should return two outputs: the function value and the target noise.\n"
+                        + "Please adjust the target function to return two outputs."
+                    )
                     raise ValueError(error_message)
             else:
                 fval_orig = fun_res
                 fsd = None
-                    
+
             if isinstance(fval_orig, np.ndarray):
                 # fval_orig can only be an array with size 1 since we support just single evaluation
                 fval_orig = fval_orig.item()
@@ -138,8 +142,8 @@ class FunctionLogger:
                 fsd = fsd.item()
         except Exception as err:
             if wrong_format_target_function:
-                err.args = (error_message, )
-                
+                err.args = (error_message,)
+
             else:
                 err.args += (
                     "\n FunctionLogger:FuncError "
@@ -166,7 +170,7 @@ class FunctionLogger:
 
         # Check returned function SD
         if self.he_noise_flag and (
-            not np.isfinite(fsd) or not np.isreal(fsd) or fsd <= 0. 
+            not np.isfinite(fsd) or not np.isreal(fsd) or fsd <= 0.0
         ):
             error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)
@@ -176,8 +180,15 @@ class FunctionLogger:
         # record timer stats
         funtime = timer.get_duration("funtime")
 
-        fval, idx = self._record(x_orig, x, fval_orig, fsd, funtime, record_duplicate_data=record_duplicate_data)
-        self.func_count += 1 
+        fval, idx = self._record(
+            x_orig,
+            x,
+            fval_orig,
+            fsd,
+            funtime,
+            record_duplicate_data=record_duplicate_data,
+        )
+        self.func_count += 1
 
         return fval, fsd, idx
 
@@ -363,43 +374,47 @@ class FunctionLogger:
         ValueError
             Raise if there is more than one match for a duplicate entry.
         """
-        
+
         # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
         if not record_duplicate_data:
             duplicate_flag = np.all(self.X == x, axis=1)
-            if np.any(duplicate_flag) :
+            if np.any(duplicate_flag):
                 # Since we do not record the new duplicate point in the training set
                 # and we might have more than one duplicate points (e.g for NON-heteroskedastic cases)
                 # we register the function evaluation time and increase the counter of function evaluations in the last duplicate
                 last_idx = np.argwhere(duplicate_flag)[-1].item()
                 N = self.n_evals[last_idx]
-                self.fun_eval_time[last_idx] = (N * self.fun_eval_time[last_idx] + fun_eval_time) / (N + 1)
+                self.fun_eval_time[last_idx] = (
+                    N * self.fun_eval_time[last_idx] + fun_eval_time
+                ) / (N + 1)
                 self.n_evals[last_idx] += 1
                 return fval_orig, last_idx
             else:
                 return fval_orig, None
-                
+
         else:
-            # check if the noise is heteroskedastic 
+            # check if the noise is heteroskedastic
             if fsd is not None:
                 # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
                 duplicate_flag = self.X == x
                 if np.any(duplicate_flag.all(axis=1)):
                     if np.sum(duplicate_flag.all(axis=1)) > 1:
-                        raise ValueError("More than one match for duplicate entry.")
+                        raise ValueError(
+                            "More than one match for duplicate entry."
+                        )
                     idx = np.argwhere(duplicate_flag)[0, 0]
                     N = self.n_evals[idx]
-                    
-                    #if fsd is not None: # We already in the case of the heteroskedastic noise
+
+                    # if fsd is not None: # We already in the case of the heteroskedastic noise
                     tau_n = 1 / self.S[idx] ** 2
                     tau_1 = 1 / fsd**2
-                    self.Y[idx] = (
-                        tau_n * self.Y[idx] + tau_1 * fval_orig
-                    ) / (tau_n + tau_1)
+                    self.Y[idx] = (tau_n * self.Y[idx] + tau_1 * fval_orig) / (
+                        tau_n + tau_1
+                    )
                     self.S[idx] = 1 / np.sqrt(tau_n + tau_1)
-                    #else: 
+                    # else:
                     #    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked
-                        
+
                     f_val = self.Y[idx]
                     self.Y[idx] = f_val
                     self.fun_eval_time[idx] = (
@@ -423,8 +438,8 @@ class FunctionLogger:
             self.X[self.Xn] = x.copy()
             self.Y_orig[self.Xn] = fval_orig
             fval = fval_orig
-            
-            self.Y[self.Xn] = fval 
+
+            self.Y[self.Xn] = fval
             if fsd is not None:
                 self.S[self.Xn] = fsd
             self.X_flag[self.Xn] = True

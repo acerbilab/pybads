@@ -12,4 +12,3 @@ profile = "black"
 
 [tool.pycln]
 all = true
-Footer
