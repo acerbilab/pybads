@@ -1600,7 +1600,7 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimze: Acquisition function failed")
+                self.logger.warn("bads:optimize: Acquisition function failed")
                 index_acq = np.random.randint(0, len(u_search_set) + 1)
 
             # u_search at the candidate acquisition point
@@ -1994,7 +1994,7 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimze: Acquisition function failed")
+                self.logger.warn("bads:optimize: Acquisition function failed")
                 index_acq = np.random.randint(0, len(u_poll) + 1)
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")
