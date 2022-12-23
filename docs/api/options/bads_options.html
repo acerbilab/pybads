@@ -1,0 +1,913 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>BADS options &#8212; PyBADS</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="canonical" href="https://acerbilab.github.io/pybads/api/options/bads_options.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="PyBADS Example 1: Basic usage" href="../../_examples/pybads_example_1_basic_usage.html" />
+    <link rel="prev" title="get_hpd" href="../functions/get_hpd.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">PyBADS</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../quickstart.html">
+   Getting started
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../classes/bads.html">
+   BADS
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../classes/optimize_result.html">
+   OptimizeResult
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../advanced_docs.html">
+   Advanced documentation
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/acquisition_functions.html">
+     Acquisition Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/bads.html">
+     BADS
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/function_logger.html">
+     FunctionLogger
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/iteration_history.html">
+     IterationHistory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/optimize_result.html">
+     OptimizeResult
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/options.html">
+     Options
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/parameter_transformer.html">
+     VariableTransformer
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../classes/timer.html">
+     Timer
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../functions/decorators.html">
+     decorators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../functions/get_hpd.html">
+     get_hpd
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     BADS options
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../_examples/pybads_example_1_basic_usage.html">
+   PyBADS Example 1: Basic usage
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../_examples/pybads_example_2_nonbox_constraints.html">
+   PyBADS Example 2: Non-box constraints
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../_examples/pybads_example_3_noisy_objective.html">
+   PyBADS Example 3: Noisy objective function
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../_examples/pybads_example_4_user_provided_noise.html">
+   PyBADS Example 4: Noisy objective with user-provided noise estimates
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../_examples/pybads_example_5_extended_usage.html">
+   PyBADS Example 5: Extended usage
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../development.html">
+   Instructions for developers and contributors
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../about_us.html">
+   About us
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/acerbilab/pybads"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2Fapi/options/bads_options.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/acerbilab/pybads/edit/main/api/options/bads_options.rst"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Edit this page"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="headerbtn__text-container">suggest edit</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../../_sources/api/options/bads_options.rst"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#basic-options">
+   Basic options
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#advanced-options">
+   Advanced Options
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>BADS options</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#basic-options">
+   Basic options
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#advanced-options">
+   Advanced Options
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section id="bads-options">
+<h1>BADS options<a class="headerlink" href="#bads-options" title="Permalink to this headline">#</a></h1>
+<dl class="simple">
+<dt>The options can be divided into two types of options:</dt><dd><ul class="simple">
+<li><p><strong>Basic default options:</strong> We expect that these options are changed by many users.</p></li>
+<li><p><strong>Advanced options:</strong> These options are for advanced users of BADS. Do not modify them unless you <em>know</em> what you are doing.</p></li>
+</ul>
+</dd>
+</dl>
+<p>You can find the default options for both groups below.</p>
+<section id="basic-options">
+<h2>Basic options<a class="headerlink" href="#basic-options" title="Permalink to this headline">#</a></h2>
+<p>We expect that these options are changed by many users.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">BasicOptions</span><span class="p">]</span>
+<span class="c1"># Level of display (&quot;iter&quot;, &quot;notify&quot;, &quot;final&quot;, or &quot;off&quot;)</span>
+<span class="n">display</span> <span class="o">=</span> <span class="s2">&quot;iter&quot;</span>
+<span class="c1"># Max number of iterations</span>
+<span class="n">max_iter</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="n">D</span>
+<span class="c1"># Max number of target fcn evals</span>
+<span class="n">max_fun_evals</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">D</span>
+<span class="c1"># Automatic nonlinear rescaling of variables</span>
+<span class="n">nonlinear_scaling</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Complete polling around the current iterate</span>
+<span class="n">complete_poll</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Accelerate mesh contraction</span>
+<span class="n">accelerate_mesh</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Explicit noise handling (if None, determine at runtime)</span>
+<span class="n">uncertainty_handling</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Base observation noise magnitude (SD), e.g noise_size = 1.0</span>
+<span class="n">noise_size</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Target function returns noise estimate (SD) as second output</span>
+<span class="n">specify_target_noise</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Samples to estimate FVAL at the end (for noisy objectives)</span>
+<span class="n">noise_final_samples</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-options">
+<h2>Advanced Options<a class="headerlink" href="#advanced-options" title="Permalink to this headline">#</a></h2>
+<p>These options are for advanced users of BADS. Do not modify them unless you know
+what you are doing.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">AdvancedOptions</span><span class="p">]</span>
+<span class="c1"># Show optimization plots (&quot;profile&quot;, &quot;scatter&quot;, or &quot;False&quot;)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Tolerance and termination conditions</span>
+<span class="c1"># Tolerance on mesh size</span>
+<span class="n">tolmesh</span> <span class="o">=</span> <span class="mf">1e-6</span>
+<span class="c1"># Min significant change of objective fcn</span>
+<span class="n">tolfun</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="c1"># Max iterations with no significant change (doubled under uncertainty)</span>
+<span class="n">tolstalliters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+<span class="c1"># Min variabitility for a fcn to be considered noisy</span>
+<span class="n">tolnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">spacing</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tolfun&quot;</span><span class="p">)</span>
+
+<span class="c1">#Initialization</span>
+<span class="c1"># Initialization function</span>
+<span class="n">initfcn</span> <span class="o">=</span> <span class="s2">&quot;init_sobol&quot;</span>
+<span class="c1"># Number of restarts attempts</span>
+<span class="n">restarts</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Size of cache for storing fcn evaluations</span>
+<span class="n">cachesize</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="c1"># Number of initial objective fcn evaluations</span>
+<span class="n">fun_eval_start</span> <span class="o">=</span> <span class="n">D</span>
+<span class="c1"># Pregress fcn evaluation with Y and X fields</span>
+<span class="n">funvalues</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1"># Array with indices of periodic variables, like periodic_vars = [1, 2]</span>
+<span class="n">periodic_vars</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Poll Options</span>
+<span class="c1"># Poll function</span>
+<span class="n">pollmethod</span>                              <span class="o">=</span> <span class="s1">&#39;poll_mads_2n&#39;</span>        
+
+<span class="n">nbasis</span>                                  <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">D</span>
+<span class="c1"># Mesh multiplicative factor between iterations</span>
+<span class="n">pollmeshmultiplier</span>                      <span class="o">=</span> <span class="mf">2.0</span>                   
+<span class="c1"># Force poll vectors to be on mesh</span>
+<span class="n">forcepollmesh</span>                           <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># Maximum poll integer</span>
+<span class="n">maxpollgridnumber</span>                       <span class="o">=</span> <span class="mi">0</span>                     
+<span class="c1"># Use alternative incumbent offset&#39;</span>
+<span class="n">alternativeincumbent</span>                    <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># Adaptive multiplier to incumbent uncertainty&#39;</span>
+<span class="n">adaptiveincumbentshift</span>                  <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># GP-based geometric scaling factor of poll vectors&#39;</span>
+<span class="n">gprescalepoll</span>                           <span class="o">=</span> <span class="mf">1.0</span>                   
+<span class="c1"># Threshold probability of improvement (PoI); set to 0 to always complete polling&#39;</span>
+<span class="n">tolpoi</span>                                  <span class="o">=</span> <span class="mf">1e-6</span><span class="o">/</span><span class="n">D</span>                
+<span class="c1"># Skip polling if PoI below threshold, even with no success&#39;</span>
+<span class="n">skippoll</span>                                <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Allow consecutive incomplete polls&#39;</span>
+<span class="n">consecutiveskipping</span>                     <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Skip polling after successful search&#39;</span>
+<span class="n">skippollaftersearch</span>                     <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Number of failed fcn evaluations before skipping is allowed&#39;</span>
+<span class="n">minfailedpollsteps</span>                      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span>                
+<span class="c1"># Accelerate mesh after this number of stalled iterations&#39;</span>
+<span class="n">accelerate_mesh_steps</span>                     <span class="o">=</span> <span class="mi">3</span>                  
+<span class="c1"># Move incumbent even after insufficient improvement</span>
+<span class="n">sloppyimprovement</span>                       <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Move incumbent even for the uncertain unsuccess when Sto-BADS is configured</span>
+<span class="n">opp_stobads</span>                             <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Power value of the Sto-BADS incumbent decision rule:  \gamma *  \epsilon * frame_size**(power_value)</span>
+<span class="n">stobads_frame_size_scaling_power</span>        <span class="o">=</span> <span class="mi">2</span>                     
+<span class="c1"># Threshold # mesh overflows for warning&#39;;</span>
+<span class="n">meshoverflowswarning</span>                    <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span>               
+<span class="c1"># Initial mesh size (power value)</span>
+<span class="n">init_mesh_size_integer</span>                  <span class="o">=</span> <span class="mi">0</span>                     
+
+<span class="c1"># StoBADS option, if True switch to stochastic optimization and uncertain incumbent</span>
+<span class="n">stobads</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Improvement parameters</span>
+<span class="c1"># Minimum significant improvement at unit mesh size&#39;</span>
+<span class="n">tolimprovement</span>          <span class="o">=</span> <span class="mi">1</span>                    
+<span class="c1"># Exponent of forcing function&#39;</span>
+<span class="n">forcingexponent</span>         <span class="o">=</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span>                  
+<span class="c1"># Multiplier to incumbent uncertainty for acquisition functions&#39;</span>
+<span class="n">incumbentsigmamultiplier</span> <span class="o">=</span> <span class="mf">0.1</span>                 
+<span class="c1"># Quantile when computing improvement (&lt;0.5 for conservative improvement)&#39;</span>
+<span class="n">improvementquantile</span>     <span class="o">=</span> <span class="mf">0.5</span>                  
+<span class="c1"># Top quantile when choosing final iteration&#39;</span>
+<span class="n">finalquantile</span>           <span class="o">=</span> <span class="mf">1e-3</span>                 
+
+<span class="c1"># Search properties</span>
+<span class="c1"># Number of candidate search points&#39;</span>
+<span class="n">nsearch</span>                 <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">12</span>                
+<span class="c1"># Number of optimization iterations for search&#39;</span>
+<span class="n">nsearchiter</span>             <span class="o">=</span> <span class="mi">2</span>                    
+<span class="c1"># Multiplier in ES&#39;</span>
+<span class="n">esbeta</span>                  <span class="o">=</span> <span class="mi">1</span>                    
+<span class="c1"># Starting scale value in ES&#39;</span>
+<span class="n">esstart</span>                 <span class="o">=</span> <span class="mf">0.25</span>                 
+<span class="c1"># Fraction of candidate search points with (slower) improved estimate&#39;</span>
+<span class="n">searchimprovefrac</span>       <span class="o">=</span> <span class="mi">0</span>                    
+<span class="c1"># Search radius expansion factor for successful search&#39;</span>
+<span class="n">searchscalesuccess</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>           
+<span class="c1"># Search radius expansion factor for incremental search&#39;</span>
+<span class="n">searchscaleincremental</span>  <span class="o">=</span> <span class="mi">2</span>                    
+<span class="c1"># Search radius contraction factor for failed search&#39;</span>
+<span class="n">searchscalefailure</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>         
+<span class="n">searchfactormin</span>         <span class="o">=</span> <span class="mf">0.5</span>
+<span class="c1"># Search function(s) (list of tuples with function name and sumrule flag)&#39;</span>
+<span class="n">searchmethod</span>            <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;ES-wcm&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ES-ell&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>  
+<span class="c1"># Iteration scale factor between poll and search&#39;</span>
+<span class="n">searchgridnumber</span>        <span class="o">=</span> <span class="mi">10</span>                   
+<span class="c1"># Multiplier integer scale factor between poll and search&#39;</span>
+<span class="n">searchgridmultiplier</span>    <span class="o">=</span> <span class="mi">2</span>                    
+<span class="c1"># Relative search scale factor locked to poll scale factor&#39;</span>
+<span class="n">searchsizelocked</span>       <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Number of searches per iteration&#39;</span>
+<span class="n">searchntry</span>              <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span> 
+<span class="c1"># Search-triggered mesh expansion after this number of successful search rounds&#39;</span>
+<span class="n">searchmeshexpand</span>        <span class="o">=</span> <span class="mi">0</span>                    
+<span class="c1"># Mesh size increment after search-triggered mesh expansion&#39;</span>
+<span class="n">searchmeshincrement</span>     <span class="o">=</span> <span class="mi">1</span>                    
+<span class="c1"># Further optimize acquisition function&#39;</span>
+<span class="n">searchoptimize</span>          <span class="o">=</span> <span class="kc">False</span>                
+
+<span class="c1"># Noise parameters</span>
+<span class="c1"># Treat incumbent as if uncertain regardless of uncertainty handling&#39;</span>
+<span class="n">uncertainincumbent</span>      <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Contribution to log noise magnitude from log mesh size (0 for noisy functions)&#39;</span>
+<span class="n">meshnoisemultiplier</span>      <span class="o">=</span> <span class="mf">0.5</span>                  
+
+<span class="c1"># Gaussian process properties</span>
+<span class="c1"># Number of training data (minimum 200 under uncertainty)</span>
+<span class="n">ntrain_max</span>                <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">D</span>           
+<span class="c1"># Minimum number of training data (doubled under uncertainty)</span>
+<span class="n">ntrain_min</span>                <span class="o">=</span> <span class="mi">50</span>                  
+<span class="c1"># Max number of training data removed if too far from current point</span>
+<span class="n">buffer_ntrain</span>             <span class="o">=</span> <span class="mi">100</span>                 
+<span class="c1"># Hyperparameters samples (0 = optimize)</span>
+<span class="n">gpsamples</span>                 <span class="o">=</span> <span class="mi">0</span>                     
+<span class="c1"># MCMC sampler for GP hyperparameters</span>
+<span class="n">gphypsampler</span> <span class="o">=</span> <span class="s2">&quot;slicesample&quot;</span>                    
+<span class="c1"># High Posterior Density region (fraction of training inputs)</span>
+<span class="n">hpd_frac</span> <span class="o">=</span> <span class="mf">0.8</span>                                  
+<span class="c1"># Switch to covariance sampling below this threshold of stability index</span>
+<span class="n">covsamplethresh</span> <span class="o">=</span> <span class="mi">10</span>                            
+<span class="c1"># Multiplier to widths from previous posterior for GP sampling (Inf = do not use previous widths)</span>
+<span class="n">gpsamplewidths</span> <span class="o">=</span> <span class="mi">0</span>                              
+<span class="c1"># Use weighted hyperparameter posterior covariance</span>
+<span class="n">weightedhypcov</span><span class="o">=</span><span class="kc">True</span>                             
+<span class="c1"># Minimum weight for weighted hyperparameter posterior covariance</span>
+<span class="n">tolcovweight</span> <span class="o">=</span> <span class="mi">0</span>                                
+<span class="c1"># Weight of previous trials (per trial) for running avg of GP hyperparameter covariance</span>
+<span class="n">hyprunweight</span> <span class="o">=</span> <span class="mi">1</span>                                
+<span class="c1"># Minimum fcn evals before refitting the GP</span>
+<span class="n">minrefittime</span>            <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">D</span>                   
+<span class="c1"># Train GP also during poll stage</span>
+<span class="n">polltraining</span>            <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Always try a second GP fit</span>
+<span class="n">doublerefit</span>             <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># GP mean function</span>
+<span class="n">gp_meanfun</span>              <span class="o">=</span> <span class="s1">&#39;const&#39;</span>
+<span class="n">gp_covfun</span>               <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Percentile of empirical GP mean</span>
+<span class="n">gp_mean_percentile</span>        <span class="o">=</span> <span class="mi">90</span>                    
+<span class="c1"># Empirical range of hyperprior over the mean</span>
+<span class="n">gp_mean_range_fun</span>          <span class="o">=</span> <span class="k">lambda</span> <span class="n">ym</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">ym</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">/</span><span class="mi">5</span><span class="o">*</span><span class="mi">2</span>   
+<span class="c1"># GP definition fcn&#39;</span>
+<span class="n">gpdeffcn</span>                <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;gp_def_bads&#39;</span><span class="p">,</span><span class="s1">&#39;rq&#39;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>  
+<span class="c1"># GP training set selection method&#39;</span>
+<span class="n">gpmethod</span>                <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>             
+<span class="c1"># Cluster additional points during training</span>
+<span class="n">gpcluster</span>               <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># Rotate GP basis</span>
+<span class="n">rotategp</span>                <span class="o">=</span> <span class="kc">False</span>                 
+<span class="c1"># Radius of training set</span>
+<span class="n">gpradius</span>                <span class="o">=</span> <span class="mi">3</span>                     
+<span class="n">use_effective_radius</span>      <span class="o">=</span> <span class="kc">True</span>                
+<span class="c1"># GP hyper-prior over covariance&#39;</span>
+<span class="n">gpcovprior</span>              <span class="o">=</span> <span class="s1">&#39;iso&#39;</span>                  
+<span class="n">gp_fixed_mean</span>             <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Fit the likelihood term</span>
+<span class="n">fitlik</span>                  <span class="o">=</span> <span class="kc">True</span>                  
+<span class="c1"># Acquisition fcn for poll stage</span>
+<span class="n">pollacqfcn</span>              <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acq_LCB&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>         
+<span class="c1"># Acquisition fcn for search stage</span>
+<span class="n">searchacqfcn</span>            <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acq_LCB&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>         
+<span class="c1"># Hedge acquisition function</span>
+<span class="n">acqhedge</span>                <span class="o">=</span> <span class="kc">False</span>                  
+<span class="c1"># Attempts at performing the Cholesky decomposition</span>
+<span class="n">cholattempts</span>            <span class="o">=</span> <span class="mi">0</span>                    
+<span class="c1"># Increase nudge to noise in case of Cholesky failure</span>
+<span class="n">noise_nudge</span>             <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>                
+<span class="c1"># Start removing training points after this number of failures</span>
+<span class="n">remove_points_after_tries</span>  <span class="o">=</span> <span class="mi">1</span>                    
+<span class="c1"># SVGD iterations for GP training</span>
+<span class="n">gpsvditers</span>              <span class="o">=</span> <span class="mi">200</span>                  
+<span class="c1"># Issue warning if GP hyperparameters fit fails</span>
+<span class="n">gp_warnings</span>             <span class="o">=</span> <span class="kc">False</span>          
+<span class="c1"># Alpha level for normality test of gp predictions</span>
+<span class="n">normalphalevel</span>          <span class="o">=</span> <span class="mf">1e-6</span>                 
+<span class="c1"># Number of target fcn evals per iteration</span>
+<span class="n">fun_evals_per_iter</span> <span class="o">=</span> <span class="mi">1</span>                      
+<span class="c1"># Thinning for GP hyperparameter sampling</span>
+<span class="n">gpsamplethin</span> <span class="o">=</span> <span class="mi">5</span>                            
+<span class="c1"># Force stable GP hyperparameter sampling (reduce samples or start optimizing)</span>
+<span class="n">stablegpsampling</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">D</span>             
+<span class="c1"># Initial design points for GP hyperparameter training</span>
+<span class="n">gp_train_n_init</span> <span class="o">=</span> <span class="mi">128</span>                         
+<span class="c1"># Final design points for GP hyperparameter training</span>
+<span class="n">gp_train_n_init_final</span> <span class="o">=</span> <span class="mi">8</span>                      
+<span class="c1"># Initial design method for GP hyperparameter training</span>
+<span class="n">gptraininitmethod</span> <span class="o">=</span> <span class="s2">&quot;rand&quot;</span>                  
+<span class="c1"># Tolerance for optimization of GP hyperparameters</span>
+<span class="n">gptolopt</span> <span class="o">=</span> <span class="mf">1e-5</span>                             
+<span class="c1"># Tolerance for optimization of GP hyperparameters preliminary to MCMC</span>
+<span class="n">gptoloptmcmc</span> <span class="o">=</span> <span class="mf">1e-2</span>                         
+<span class="c1"># Max GP hyperparameter samples (decreases with training points)</span>
+<span class="n">nsgpmax</span> <span class="o">=</span> <span class="mi">0</span>                                 
+<span class="c1"># Max GP hyperparameter samples during warmup</span>
+<span class="n">nsgpmaxwarmup</span> <span class="o">=</span> <span class="mi">8</span>                           
+<span class="c1"># Max GP hyperparameter samples during main algorithm</span>
+<span class="n">nsgpmaxmain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span>                        
+<span class="c1"># Number of GP samples when GP is stable (0 = optimize)</span>
+<span class="n">stablegpsamples</span> <span class="o">=</span> <span class="mi">0</span>                         
+<span class="c1"># Tolerance for optimization of GP hyperparameters during active sampling</span>
+<span class="n">gptoloptactive</span> <span class="o">=</span> <span class="mf">1e-4</span>                       
+<span class="c1"># Tolerance for optimization of GP hyperparameters preliminary to MCMC during active sampling</span>
+<span class="n">gptoloptmcmcactive</span> <span class="o">=</span> <span class="mf">1e-2</span>                   
+<span class="c1"># Threshold True GP variance used by regulatized acquisition fcns</span>
+<span class="n">tolgpvar</span> <span class="o">=</span> <span class="mf">1e-4</span>                             
+<span class="c1"># Threshold True GP variance used to stabilize sampling</span>
+<span class="n">tolgpvarmcmc</span> <span class="o">=</span> <span class="mf">1e-4</span>                         
+<span class="c1"># GP mean function</span>
+<span class="n">gpmeanfun</span> <span class="o">=</span> <span class="s2">&quot;const&quot;</span>                         
+<span class="c1"># Perform GP training after each active sample</span>
+<span class="n">activesamplegpupdate</span> <span class="o">=</span> <span class="kc">False</span>                
+<span class="c1"># Extra variational components sampled from GP profile</span>
+<span class="n">sampleextravpmeans</span> <span class="o">=</span> <span class="mi">0</span>                      
+<span class="c1"># Try integrating GP mean function</span>
+<span class="n">integrategpmean</span> <span class="o">=</span> <span class="kc">False</span>                     
+<span class="c1"># Tolerance True ELBO uncertainty for stopping (if variational posterior is stable)</span>
+<span class="n">tolsd</span> <span class="o">=</span> <span class="mf">0.1</span>                                 
+<span class="c1"># Stopping threshold True change of variational posterior per training point</span>
+<span class="n">tolskl</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>                  
+<span class="c1"># Number of stable fcn evals for stopping warmup</span>
+<span class="n">tolstablewarmup</span> <span class="o">=</span> <span class="mi">15</span>                        
+<span class="c1"># MCMC sampler for variational posteriors</span>
+<span class="n">variationalsampler</span> <span class="o">=</span> <span class="s2">&quot;malasample&quot;</span>           
+<span class="c1"># Use Gaussian approximation for symmetrized KL-divergence b\w iters</span>
+<span class="n">klgauss</span> <span class="o">=</span> <span class="kc">True</span>                              
+<span class="c1"># Variational components during warmup</span>
+<span class="n">kwarmup</span> <span class="o">=</span> <span class="mi">2</span>                                 
+<span class="c1"># Force stable GP hyperparameter sampling after reaching this number of components</span>
+<span class="n">stablegpvpk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span>                        
+<span class="c1"># GP warping function type</span>
+<span class="n">warpfunc</span> <span class="o">=</span> <span class="mi">0</span>                                
+<span class="c1"># Slice sampler option for prior hyper-parameter sampling method</span>
+<span class="n">use_slice_sampler</span> <span class="o">=</span> <span class="kc">False</span>                   
+
+<span class="c1"># Adaptive basis (unsupported)</span>
+<span class="n">hessianupdate</span>           <span class="o">=</span> <span class="kc">False</span>                 <span class="c1"># Update Hessian as you go</span>
+<span class="n">hessianmethod</span>           <span class="o">=</span> <span class="s1">&#39;bfgs&#39;</span>               <span class="c1"># Hessian update method</span>
+<span class="n">hessianalternate</span>        <span class="o">=</span> <span class="kc">False</span>                 <span class="c1"># Alternate Hessian iterations</span>
+
+<span class="c1"># Hedge heuristic parameters (currently used during the search stage)</span>
+<span class="n">hedgegamma</span>              <span class="o">=</span> <span class="mf">0.125</span>
+<span class="n">hedgebeta</span>               <span class="o">=</span> <span class="mf">1e-3</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tolfun&#39;</span><span class="p">)</span>
+<span class="n">hedgedecay</span>              <span class="o">=</span> <span class="mf">0.1</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">D</span><span class="p">))</span>
+
+<span class="c1"># Max number of consecutive repeated measurements for noisy inputs</span>
+<span class="n">maxrepeatedobservations</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Multiplicative discount True acquisition fcn to repeat measurement at the same location</span>
+<span class="n">repeatedacqdiscount</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Base step size for stochastic gradient descent</span>
+<span class="n">sgdstepsize</span> <span class="o">=</span> <span class="mf">0.005</span>
+<span class="c1"># Use ranking criterion to pick best non-converged solution</span>
+<span class="n">rankcriterion</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Run in diagnostics mode get additional info</span>
+<span class="n">diagnostics</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Output function</span>
+<span class="n">outputfcn</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Evaluated fcn values at X0</span>
+<span class="n">fvals</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Samples for fast acquisition fcn eval per new point</span>
+<span class="n">nssearch</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">13</span>
+<span class="c1"># Set stochastic optimization stepsize via GP hyperparameters</span>
+<span class="n">gpstochasticstepsize</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Min number of fcn evals</span>
+<span class="n">minfunevals</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">D</span>
+<span class="c1"># Min number of iterations</span>
+<span class="n">miniter</span> <span class="o">=</span> <span class="n">D</span>
+<span class="c1"># Fraction of search points from heavy-tailed variational posterior</span>
+<span class="n">heavytailsearchfrac</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1"># Fraction of search points from multivariate normal</span>
+<span class="n">mvnsearchfrac</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1"># Fraction of search points from multivariate normal fitted to HPD points</span>
+<span class="n">hpdsearchfrac</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Fraction of search points from uniform random box based True training inputs</span>
+<span class="n">boxsearchfrac</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1"># Fraction of search points from previous iterations</span>
+<span class="n">searchcachefrac</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Empirical Bayes prior over some GP hyperparameters</span>
+<span class="n">empiricalgpprior</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Minimum GP observation noise</span>
+<span class="n">tolgpnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">)</span>
+<span class="c1"># Prior mean over GP input length scale (in plausible units)</span>
+<span class="n">gplengthpriormean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">D</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span>
+<span class="c1"># Prior std over GP input length scale (in plausible units)</span>
+<span class="n">gplengthpriorstd</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e3</span><span class="p">)</span>
+<span class="c1"># Upper bound True GP input lengths based True plausible box (0 = ignore)</span>
+<span class="n">uppergplengthfactor</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Initial samples (plausible is uniform in the plausible box)</span>
+<span class="n">initdesign</span> <span class="o">=</span> <span class="s2">&quot;plausible&quot;</span>
+<span class="c1"># Stricter upper bound True GP negative quadratic mean function</span>
+<span class="n">gpquadraticmeanbound</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Bandwidth parameter for GP smoothing (in units of plausible box)</span>
+<span class="n">bandwidth</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Heuristic output warping (fitness shaping)</span>
+<span class="n">fitness_shaping</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Output warping starting threshold</span>
+<span class="n">outwarpthreshbase</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">D</span>
+<span class="c1"># Output warping threshold multiplier when failed sub-threshold check</span>
+<span class="n">outwarpthreshmult</span> <span class="o">=</span> <span class="mf">1.25</span>
+<span class="c1"># Output warping base threshold tolerance (fraction of current threshold)</span>
+<span class="n">outwarpthreshtol</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="c1"># Temperature for posterior tempering (allowed values T = 1234)</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Use separate GP with constant mean for active search</span>
+<span class="n">separatesearchgp</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Discount observations from extremely low-density regions</span>
+<span class="n">noiseshaping</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Threshold from max observed value to start discounting</span>
+<span class="n">noiseshapingthreshold</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">D</span>
+<span class="c1"># Proportionality factor of added noise wrt distance from threshold</span>
+<span class="n">noiseshapingfactor</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="c1"># Past iterations window to judge acquisition fcn improvement</span>
+<span class="n">acqhedgeiterwindow</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="c1"># Portfolio value decay per function evaluation</span>
+<span class="n">acqhedgedecay</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+<span class="c1"># Active search bound multiplier</span>
+<span class="n">activesearchbound</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># Tolerance True closeness to bound constraints (fraction of total range)</span>
+<span class="n">tolboundx</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="c1"># Recompute LCB max for each iteration based True current GP estimate</span>
+<span class="n">recomputelcbmax</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Input transform for bounded variables</span>
+<span class="n">boundedtransform</span> <span class="o">=</span> <span class="s2">&quot;logit&quot;</span>
+<span class="c1"># Use double GP</span>
+<span class="n">doublegp</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Warp every this number of iterations</span>
+<span class="n">warpeveryiters</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="c1"># Increase delay between warpings</span>
+<span class="n">incrementalwarpdelay</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Threshold True reliability index to perform warp</span>
+<span class="n">warptolreliability</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="c1"># Rotate and scale input</span>
+<span class="n">warprotoscaling</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Regularization weight towards diagonal covariance matrix for N training inputs</span>
+<span class="n">warpcovreg</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Threshold True correlation matrix for roto-scaling</span>
+<span class="n">warprotocorrthresh</span> <span class="o">=</span> <span class="mf">0.05</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="../functions/get_hpd.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">get_hpd</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../../_examples/pybads_example_1_basic_usage.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">PyBADS Example 1: Basic usage</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+      &copy; Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
