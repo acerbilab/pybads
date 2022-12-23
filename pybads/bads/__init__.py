@@ -10,3 +10,4 @@ from .gaussian_process_train import (
     local_gp_fitting,
 )
 from .options import Options
+from .optimize_result import OptimizeResult

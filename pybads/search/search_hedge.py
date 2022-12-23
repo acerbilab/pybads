@@ -7,9 +7,9 @@ from .es_search import ESSearchELL, ESSearchWM
 
 class ESSearchHedge:
     """
-    It performs a hedging search, that chooses between different kinds of evolution strategies inspired search.
+    It performs a hedging search, that chooses between different evolution strategies.
     It tracks the record of cumulative improvements of all the search strategies according to the Hedge algorithm [1] (default).
-    Right now it handles two different search strategies: ES-wcm and ES-ell.
+    It currently handles two different search strategies: ES-wcm and ES-ell.
 
     Parameters
     ----------

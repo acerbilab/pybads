@@ -2,8 +2,35 @@ import copy
 
 import numpy as np
 
-
 class OptimizeResult(dict):
+    """
+    Represents the optimization result.
+    
+    Attributes:
+    
+        - fun: callable
+        - x0: array
+        - x: array
+        - fval: float
+        - fsd: float
+        - yval_vec: array
+        - ysd_vec: array
+        - success: bool
+        - status: int
+        - message: str
+        - func_count: int
+        - iterations: int
+        - problem_type: str
+        - mesh_size: float
+        - non_box_cons: callable
+        - total_time: float
+        - overhead: float
+        - random_seed: int
+        - version: str
+    
+    Parameters:
+        bads: pybads.BADS    
+    """
 
     _keys = [
         "x",
