@@ -28,8 +28,8 @@ Running the optimizer in step 3 only involves a couple of lines of code:
 
 with input arguments:
 
-- ``target``: the target function, it takes as input a vector and returns its function evaluations;
-- ``x0``: the starting point of the optimization problem. If not given the starting point is randomly drawn from the problems bounds;
+- ``target``: the target function, it takes as input a vector and returns its function evaluation;
+- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is randomly drawn from the problems bounds;
 - ``LB`` and ``UB``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
 - ``PLB`` and ``PUB``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable non-bound constraints function.
