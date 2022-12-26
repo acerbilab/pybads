@@ -71,14 +71,14 @@ class FunctionLogger:
 
     def __call__(self, x: np.ndarray, record_duplicate_data: bool = True):
         """
-        Evaluates the function FUN at x and caches values.
-        Right now, the function only fully support single function evaluation.
+        Evaluates the function ``self.fun`` at x and caches values.
 
         Parameters
         ----------
         x : np.ndarray
             The point at which the function will be evaluated. The shape of x
             should be (1, D) or (D,).
+            
         record_duplicate_data : bool, optional (default True)
             Flag to indicate whether the data is added to training data.
 
@@ -200,7 +200,7 @@ class FunctionLogger:
         fun_eval_time=np.nan,
     ):
         """
-        Add an previously evaluated function sample to the function cache.
+        Add a previously evaluated function to the function cache.
 
         Parameters
         ----------
