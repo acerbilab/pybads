@@ -90,6 +90,7 @@ To setup an existing PyBADS repository for building documentation, please follow
 2. From the ``main`` branch render new documentation::
 
     cd /docsrc (navigate to documentation source folder)
+    conda active pybads-env (activate conda environment)
     make github  (this builds the doc and copies the build version to ./docs)
 
    (If you are using Windows, run ``.\make.bat github`` with ``cmd`` instead.)
