@@ -35,7 +35,7 @@ class BADS:
     BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).
     
     BADS attempts to solve problems of the form:
-       argmin F(X)  subject to:  LB <= X <= UB and optionally C(X) <= 0
+       argmin F(X)  \t subject to:  LB <= X <= UB, and optionally C(X) <= 0
         X                       
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
@@ -102,8 +102,8 @@ class BADS:
             
     Examples
     --------
-    For `VBMC` usage examples, please look up the Jupyter notebook tutorials
-    in the PyVBMC documentation:
+    For `BADS` usage examples, please look up the Jupyter notebook tutorials
+    in the PyBADS documentation:
     https://acerbilab.github.io/pybads/_examples/pybads_example_1.html
     """
 
