@@ -838,8 +838,8 @@ class BADS:
         ):
             optim_state["gp_noisefun"][1] = 1
 
-        optim_state["gp_meanfun"] = self.options.get("gpmeanfun")
-        valid_gpmeanfuns = [
+        optim_state["gp_meanfun"] = self.options.get("gp_meanfun")
+        valid_gp_meanfuns = [
             "zero",
             "const",
             "negquad",
@@ -854,7 +854,7 @@ class BADS:
             "negquadmix",
         ]
 
-        if not optim_state["gp_meanfun"] in valid_gpmeanfuns:
+        if not optim_state["gp_meanfun"] in valid_gp_meanfuns:
             raise ValueError(
                 """bads:UnknownGPmean:Unknown/unsupported GP mean
             function. Supported mean functions are zero, const,
@@ -1579,7 +1579,7 @@ class BADS:
         index_acq = None
         if u_search_set.size > 0:
             # Batch evaluation of acquisition function on search set
-            z, f_mu, fs = acq_fcn_lcb(u_search_set, self.func_logger.func_count, gp)
+            z, f_mu, fs = acq_fcn_lcb(u_search_set, self.function_logger.func_count, gp)
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
@@ -1973,7 +1973,7 @@ class BADS:
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
-            z, f_mu, fs = acq_fcn_lcb(u_poll, self.func_logger.func_count, gp)
+            z, f_mu, fs = acq_fcn_lcb(u_poll, self.function_logger.func_count, gp)
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
