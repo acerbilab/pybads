@@ -147,6 +147,9 @@ cython_debug/
 # do not commit build docs in docsrc folder
 docsrc/_build/
 
+# Sphinx documentation
+docs/
+
 # IntelliJ PyCharm env
 .idea/
 
