@@ -9,6 +9,7 @@ import pybads.stats
 import pybads.utils
 
 from .bads import BADS
+from .bads.optimize_result import OptimizeResult
 from .function_examples import (
     ackley_fcn,
     circle_constr,
