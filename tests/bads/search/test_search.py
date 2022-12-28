@@ -2,11 +2,9 @@ import gpyreg as gpr
 import numpy as np
 import pytest
 
-from pybads import BADS, function_logger
+from pybads import BADS
 from pybads.bads.gaussian_process_train import (
-    get_grid_search_neighbors,
-    init_and_train_gp,
-)
+    get_grid_search_neighbors)
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov

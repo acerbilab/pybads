@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from pybads.poll import poll_mads_2n
 
 def poll_mads_2n_ones_test():
