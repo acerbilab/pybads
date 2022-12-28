@@ -229,6 +229,21 @@ class VariableTransformer:
         )
 
     def __call__(self, input: np.ndarray):
+        """
+        Performs direct transform of original variables ``input`` into
+        the hypercube space.
+
+        Parameters
+        ----------
+        input : np.ndarray
+            A N x D array, where N is the number of input data
+            and D is the number of dimensions
+
+        Returns
+        -------
+        u : np.ndarray
+            The variables transformed.
+        """
         y = self.g(input)
         y = np.minimum(
             np.maximum(y, self.lb), self.ub
@@ -236,6 +251,20 @@ class VariableTransformer:
         return y
 
     def inverse_transf(self, input: np.ndarray):
+        """
+        Performs inverse transform of the transformed variables  ``u`` in the hypercube into
+        the original space.
+
+        Parameters
+        ----------
+        input : np.ndarray
+            The transformed variables that will be mapped in the original space.
+
+        Returns
+        -------
+        x : np.ndarray
+            The original variables retrieved by the inverse transform.
+        """
         x = self.ginv(input)
         x = np.minimum(
             np.maximum(x, self.orig_lb), self.orig_ub
