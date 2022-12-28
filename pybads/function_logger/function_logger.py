@@ -25,8 +25,8 @@ class FunctionLogger:
     cache_size : int, optional
         The initial size of caching table (default 500), number of stored function values.
     variable_transformer : VariableTransformer, optional
-        A VariableTransformer is required to transform the parameters
-        between constrained and unconstrained space, by default None.
+        A VariableTransformer is required for linear and non-linear transformation of the input space.
+        By default None.
     """
 
     def __init__(
