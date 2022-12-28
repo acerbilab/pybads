@@ -35,8 +35,8 @@ class BADS:
     BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).
     
     BADS attempts to solve problems of the form:
-       argmin F(X)  \t subject to:  LB <= X <= UB, and optionally C(X) <= 0
-        X                       
+       :math:`\mathtt{argmin}_X  f(X)`  subject to:  LB :math:`<= X <=` UB, and optionally :math:`C(X) <= 0`
+                               
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
     ``optimize()``. See the examples for more details under the `examples` directory.
@@ -49,7 +49,7 @@ class BADS:
     x0 : np.ndarray, optional
         Starting point.
     lower_bounds, upper_bounds : np.ndarray, optional
-        `lower_bounds` (`LB`) and `upper_bounds` (`UB`) define a set
+        `lower_bounds` (`lb`) and `upper_bounds` (`ub`) define a set
         of strict lower and upper bounds for the coordinate vector, `x`, so
         that the unknown function has support on `LB` < `x` < `UB`.
         If scalars, the bound is replicated in each dimension. Use
@@ -68,7 +68,7 @@ class BADS:
         (where in doubt, just set `PLB`=`LB` and `PUB`=`UB`).
 
     non_box_cons: callable, optional
-        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+        A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)>1``
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the
