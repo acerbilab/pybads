@@ -252,7 +252,7 @@ class VariableTransformer:
 
     def inverse_transf(self, input: np.ndarray):
         """
-        Performs inverse transform of the transformed variables  ``u`` in the hypercube into
+        Performs inverse transform of the transformed variables  ``input`` in the hypercube into
         the original space.
 
         Parameters
