@@ -11,16 +11,12 @@ from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from pybads.search.search_hedge import ESSearchHedge
-from pybads.utils.iteration_history import IterationHistory
-from pybads.variable_transformer import VariableTransformer
-from tests.bads.utils_test import load_options
-
+from pybads.bads.options import Options
 
 def test_incumbent_constraint_check():
-
-    # check duplicates
     D = 3
     U = np.random.normal(size=(10, D))
+    # check duplicates
     U = np.unique(U, axis=0)
     lb = np.array([[-5] * D]) * 100
     ub = np.array([[5] * D]) * 100
@@ -28,14 +24,10 @@ def test_incumbent_constraint_check():
     for i in range(len(U)):
         y, y_sd, idx_y = f(U[i])
 
-    input = np.random.normal(size=(5, D))
-    U = np.vstack((U, input))
+    U = np.vstack((U, U[-1])) # add duplicate
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
     assert U_new.size != U.size
-    print(f.func_count)
-    assert U_new.shape[0] == U.shape[0] - f.func_count
-    print(U.shape)
-    print(U_new.shape)
+    assert U_new.shape[0] == U.shape[0] - 1
 
     # Check outliers and project them
     lb = np.array([[-0.5] * D])
@@ -47,6 +39,22 @@ def test_incumbent_constraint_check():
     inbounds = np.all(U_new >= lb) & np.all(U_new <= ub)
     assert inbounds
 
+def load_options(D, path_dir):
+    """Load basic and advanced options and validate the names"""
+    pybads_path = path_dir
+    basic_path = pybads_path + "/option_configs/basic_bads_options.ini"
+    options = Options(
+        basic_path,
+        evaluation_parameters={"D": D},
+        user_options=None,
+    )
+    advanced_path = pybads_path + "/option_configs/advanced_bads_options.ini"
+    options.load_options_file(
+        advanced_path,
+        evaluation_parameters={"D": D},
+    )
+    options.validate_option_names([basic_path, advanced_path])
+    return options
 
 def test_search():
 
@@ -57,12 +65,6 @@ def test_search():
     plb = np.array([[-5, -5, -5]])  # Plausible lower bounds
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
-
-    options = load_options(
-        D,
-        "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads",
-    )
-
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
     bads.options["fun_eval_start"] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
@@ -85,7 +87,6 @@ def test_search():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-
 def test_search_selection_mask():
 
     D = 3
@@ -93,7 +94,7 @@ def test_search_selection_mask():
     lamb = 2048
     options = load_options(
         D,
-        "/home/gurjeet/Documents/UniPd/Helsinki/machine-human-intelligence/pybads/pybads/bads",
+        "./pybads/bads",
     )
     search_es = ESSearchWM(mu, lamb, options)
     mask = search_es._get_selection_idx_mask_(mu, lamb)
