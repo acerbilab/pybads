@@ -44,3 +44,5 @@ The outputs are:
 The ``optimize_result`` object can be manipulated in various ways, see the :ref:`OptimizeResult` class documentation.
 
 See the examples for more detailed information. The :ref:`Basic options` may also be useful.
+
+In addition, checkout the `BADS FAQ <https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions>`__ page for practical recommendations, such as how to set `LB` and `UB`, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS.
