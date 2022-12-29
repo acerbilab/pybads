@@ -63,9 +63,9 @@ Running the optimizer in step 3 only involves a couple of lines of code:
 
 ```
 from pybads import BADS
-  # ...
-  bads = BADS(target, x0, LB, UB, PLB, PUB)
-  optimize_result = bads.optimize()
+# ...
+bads = BADS(target, x0, LB, UB, PLB, PUB)
+optimize_result = bads.optimize()
 ```
 
 with input arguments:
@@ -97,7 +97,7 @@ In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads
 
 ## References and citation
 
-1. Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](<https://arxiv.org/abs/1705.04405>), [NeurIPS Proceedings](<https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
+1. Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](https://arxiv.org/abs/1705.04405), [NeurIPS Proceedings](https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
 
 You can cite BADS in your work with something along the lines of
 
