@@ -2,7 +2,7 @@
 # PyBADS: Bayesian Adaptive Direct Search in Python
 
 ## What is it?
-`PyBads` is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications).
+PyBads is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](<https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
 
 In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 [[1](#references-and-citation)].
 
