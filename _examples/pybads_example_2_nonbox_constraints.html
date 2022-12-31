@@ -1,0 +1,732 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>PyBADS Example 2: Non-box constraints &#8212; PyBADS</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="canonical" href="https://acerbilab.github.io/pybads/_examples/pybads_example_2_nonbox_constraints.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PyBADS Example 3: Noisy objective function" href="pybads_example_3_noisy_objective.html" />
+    <link rel="prev" title="PyBADS Example 1: Basic usage" href="pybads_example_1_basic_usage.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">PyBADS</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Getting started
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api/classes/bads.html">
+   BADS
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api/classes/optimize_result.html">
+   OptimizeResult
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api/advanced_docs.html">
+   Advanced documentation
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/acquisition_functions.html">
+     Acquisition Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/bads.html">
+     BADS
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/function_logger.html">
+     FunctionLogger
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/iteration_history.html">
+     IterationHistory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/optimize_result.html">
+     OptimizeResult
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/options.html">
+     Options
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/parameter_transformer.html">
+     VariableTransformer
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/classes/timer.html">
+     Timer
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/functions/decorators.html">
+     decorators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/functions/get_hpd.html">
+     get_hpd
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/options/bads_options.html">
+     BADS options
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="pybads_example_1_basic_usage.html">
+   PyBADS Example 1: Basic usage
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   PyBADS Example 2: Non-box constraints
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="pybads_example_3_noisy_objective.html">
+   PyBADS Example 3: Noisy objective function
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="pybads_example_4_user_provided_noise.html">
+   PyBADS Example 4: Noisy objective with user-provided noise estimates
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="pybads_example_5_extended_usage.html">
+   PyBADS Example 5: Extended usage
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../development.html">
+   Instructions for developers and contributors
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../about_us.html">
+   About us
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_2_nonbox_constraints.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_2_nonbox_constraints.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Colab"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_colab.png">
+  </span>
+<span class="headerbtn__text-container">Colab</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/acerbilab/pybads"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_examples/pybads_example_2_nonbox_constraints.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_2_nonbox_constraints.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Edit this page"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="headerbtn__text-container">suggest edit</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/_examples/pybads_example_2_nonbox_constraints.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#constrained-optimization">
+   0. Constrained optimization
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#problem-setup">
+   1. Problem setup
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#run-the-optimization">
+   2. Run the optimization
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#results-and-conclusions">
+   3. Results and conclusions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#remarks">
+     Remarks
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#example-2-full-code">
+   Example 2: Full code
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>PyBADS Example 2: Non-box constraints</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#constrained-optimization">
+   0. Constrained optimization
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#problem-setup">
+   1. Problem setup
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#run-the-optimization">
+   2. Run the optimization
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#results-and-conclusions">
+   3. Results and conclusions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#remarks">
+     Remarks
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#example-2-full-code">
+   Example 2: Full code
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="pybads-example-2-non-box-constraints">
+<h1>PyBADS Example 2: Non-box constraints<a class="headerlink" href="#pybads-example-2-non-box-constraints" title="Permalink to this headline">#</a></h1>
+<p>In this example, we will show how to set more complex constraints in PyBADS, besides a simple bounded box.</p>
+<p>This notebook is Part 2 of a series of notebooks in which we present various example usages for BADS with the PyBADS package.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pybads</span> <span class="kn">import</span> <span class="n">BADS</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="constrained-optimization">
+<h2>0. Constrained optimization<a class="headerlink" href="#constrained-optimization" title="Permalink to this headline">#</a></h2>
+<p>PyBADS naturally supports box constraints <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>, as we saw in the <a class="reference internal" href="pybads_example_1_basic_usage.html"><span class="doc std std-doc">previous example</span></a>. However, some optimization problems might have more complex constraints over the variables. Formally, we may wish to solve the problem</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}^\star = \arg\min_{\mathbf{x} \in \mathcal{X}} f(\mathbf{x})
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{X} \subseteq \mathbb{R}^D\)</span> is the admissible region for the optimization.</p>
+<p>We can do this in PyBADS by providing a function <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> that defines constraints <em>violation</em>, that is a function <span class="math notranslate nohighlight">\(g(\mathbf{x})\)</span> which returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if <span class="math notranslate nohighlight">\(\mathbf{x} \notin \mathcal{X}\)</span> (and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise), as demonstrated below.</p>
+</section>
+<section id="problem-setup">
+<h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this headline">#</a></h2>
+<p>We optimize <a class="reference external" href="https://en.wikipedia.org/wiki/Rosenbrock_function">Rosenbrock’s banana function</a> in 2D as in the <a class="reference internal" href="pybads_example_1_basic_usage.html"><span class="doc std std-doc">previous example</span></a>, but here we force the input to stay within a circle with unit radius.</p>
+<p>Since we know the optimization region, we set tight box bounds <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code> around the circle. This step is not necessary, but it will further help the search.</p>
+<p>The function passed to <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>:</p>
+<ul class="simple">
+<li><p>takes as input an array <span class="math notranslate nohighlight">\(\mathbf{x}_1, \ldots, \mathbf{x}_M\)</span> with shape <code class="docutils literal notranslate"><span class="pre">(M,</span> <span class="pre">D)</span></code>, where each <span class="math notranslate nohighlight">\(\mathbf{x}_m \in \mathbb{R}^D\)</span>;</p></li>
+<li><p>outputs a <code class="docutils literal notranslate"><span class="pre">bool</span></code> array with shape <code class="docutils literal notranslate"><span class="pre">(M,</span> <span class="pre">1)</span></code>, where the <span class="math notranslate nohighlight">\(m\)</span>-th value is <code class="docutils literal notranslate"><span class="pre">True</span></code> if <span class="math notranslate nohighlight">\(\mathbf{x}_m\)</span> <em>violates</em> the constraint, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise (<span class="math notranslate nohighlight">\(M\)</span> is an arbitrary number of inputs).</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">rosenbrocks_fcn</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rosenbrock&#39;s &#39;banana&#39; function in any dimension.&quot;&quot;&quot;</span>
+    <span class="n">x_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_2d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">x_2d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x_2d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]);</span>      <span class="c1"># Starting point</span>
+<span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>     <span class="c1"># Lower bounds</span>
+<span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>       <span class="c1"># Upper bounds</span>
+
+<span class="k">def</span> <span class="nf">circle_constr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return constraints violation outside the unit circle.&quot;&quot;&quot;</span>
+    <span class="n">x_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># Note that nonboxcons assumes the function takes a 2D input </span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_2d</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="run-the-optimization">
+<h2>2. Run the optimization<a class="headerlink" href="#run-the-optimization" title="Permalink to this headline">#</a></h2>
+<p>We initialize <code class="docutils literal notranslate"><span class="pre">bads</span></code> with the non-box constraints defined by <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>. Note that we also still specify standard box constraints <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>, as this will help the search.</p>
+<p>Here BADS will complain because we did not specify the plausible bounds explicitly. In the absence of plausible bounds, BADS will create them based on the lower/upper bounds instead. As a general rule, it is strongly recommended to specify the plausible bounds.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">rosenbrocks_fcn</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">non_box_cons</span><span class="o">=</span><span class="n">circle_constr</span><span class="p">)</span>
+<span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               1               1                                 Uncertainty test
+     0           5               1               1         Initial mesh            Initial points
+     0           9               1             0.5         Refine grid             Train
+     1          13        0.767214             0.5     Incremental search (ES-wcm)        
+     1          17        0.767214            0.25         Refine grid             Train
+     2          19        0.580625            0.25     Successful search (ES-ell)        
+     2          20        0.401071            0.25     Successful search (ES-ell)        
+     2          23        0.231718            0.25     Successful search (ES-wcm)        
+     2          24        0.136006            0.25     Incremental search (ES-wcm)        
+     2          25       0.0459402            0.25     Incremental search (ES-ell)        
+     2          31       0.0459402           0.125         Refine grid             
+     3          35       0.0457466           0.125     Incremental search (ES-wcm)        
+     3          37       0.0457466          0.0625         Refine grid             
+     4          43       0.0457466         0.03125         Refine grid             
+     5          44       0.0457105         0.03125     Incremental search (ES-ell)        
+     5          49       0.0457105       0.0078125         Refine grid             
+     6          50       0.0456749       0.0078125     Incremental search (ES-wcm)        
+     6          55       0.0456749      0.00195312         Refine grid             
+Optimization terminated: change in the function value less than options.TolFun.
+Function value at minimum: 0.04567486581177021
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="results-and-conclusions">
+<h2>3. Results and conclusions<a class="headerlink" href="#results-and-conclusions" title="Permalink to this headline">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x_min</span> <span class="o">=</span> <span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+<span class="n">fval</span> <span class="o">=</span> <span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;fval&#39;</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BADS minimum at: x_min = </span><span class="si">{</span><span class="n">x_min</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="si">}</span><span class="s2">, fval = </span><span class="si">{</span><span class="n">fval</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;total f-count: </span><span class="si">{</span><span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;func_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, time: </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem type: </span><span class="si">{</span><span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;problem_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.78642143 0.61769016], fval = 0.04567
+total f-count: 56, time: 2.91 s
+Problem type: non-box constraints
+</pre></div>
+</div>
+</div>
+</div>
+<p>The true global minimum of the Rosenbrock function under these constraints is at <span class="math notranslate nohighlight">\(\textbf{x}^\star = [0.786,0.618]\)</span>, where <span class="math notranslate nohighlight">\(f^\star = 0.0457\)</span>.</p>
+<section id="remarks">
+<h3>Remarks<a class="headerlink" href="#remarks" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>While in theory <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> can receive any arbitrary constraints, in practice PyBADS will likely work well only within relatively simple domains (e.g., simple convex regions), as the current version of (Py)BADS uses a simple heuristic to reject samples outside the admissible region.</p></li>
+<li><p>In particular, PyBADS does <em>not</em> support equality constraints (e.g., of the form <span class="math notranslate nohighlight">\(x_1 + x_2 + x_3 = 1\)</span>).</p></li>
+</ul>
+</section>
+</section>
+<section id="example-2-full-code">
+<h2>Example 2: Full code<a class="headerlink" href="#example-2-full-code" title="Permalink to this headline">#</a></h2>
+<p>See <a class="reference download internal" download="" href="../_downloads/f3c67215dbe688f40d2a84390d9ecb79/pybads_example_2_nonbox_constraints.py"><span class="xref download myst">here</span></a> for a Python file with the code used in this example, with no extra fluff.</p>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="pybads_example_1_basic_usage.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">PyBADS Example 1: Basic usage</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="pybads_example_3_noisy_objective.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">PyBADS Example 3: Noisy objective function</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+      &copy; Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
