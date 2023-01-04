@@ -2,7 +2,7 @@
 PyBADS
 ******
 
-PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented :labrepos:`in MATLAB <bads>`.
+PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, originally implemented :labrepos:`in MATLAB <bads>`.
 
 What is it?
 ###########
@@ -11,7 +11,7 @@ BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficul
 
 BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 `(Acerbi, 2017) <#references>`_.
 
-BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as `fminsearch`.
+BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in `scipy.optimize.minimize`.
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
 
@@ -90,7 +90,7 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was funded by the `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+Work on the PyBADS package was partly funded by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 .. toctree::
    :maxdepth: 1
