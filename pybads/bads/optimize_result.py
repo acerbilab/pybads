@@ -4,7 +4,7 @@ import numpy as np
 
 class OptimizeResult(dict):
     """
-    It Represents the optimization result.
+    It represents the optimization result.
     
     Attributes:
     
