@@ -36,13 +36,13 @@ with input arguments:
 
 The outputs are:
 
-- ``optimize_result``: a ``OptimizeResult`` which presents the most important information about the solution and the optimization problem.
+- ``optimize_result``: a ``OptimizeResult`` which presents the most important information about the solution and the optimization problem. In particular:
 
   - ``"x"``: the minimum point found by the optimizer;
   - ``"fval"``: the value of the function at the given solution.
 
-The ``optimize_result`` object can be manipulated in various ways, see the :ref:`OptimizeResult` class documentation.
+The ``optimize_result`` object contains more information about the optimization solution, see the :ref:`OptimizeResult` class documentation.
 
 See the examples for more detailed information. The :ref:`Basic options` may also be useful.
 
-In addition, checkout the `BADS FAQ <https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions>`__ page for practical recommendations, such as how to set `LB` and `UB`, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS.
+In addition, checkout the `BADS FAQ <https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions>`__ page for practical recommendations, such as how to set `LB` and `UB`, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS.
