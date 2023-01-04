@@ -78,12 +78,6 @@ def init_and_train_gp(
     x_train, y_train, s2_train, t_train = _get_fevals_data(function_logger)
     D = x_train.shape[1]
 
-    # Heuristic fitness shaping (unused even in MATLAB)
-    # if options.fitness_shaping
-    #     [y_train,s2_train] = outputwarp_vbmc(X_train,y_train,s2_train,
-    #                                           optimState,options);
-    #  end
-
     # Pick the mean function
     mean_f = _meanfun_name_to_mean_function(optim_state["gp_meanfun"])
 

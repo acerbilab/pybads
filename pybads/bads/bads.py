@@ -32,10 +32,11 @@ from .options import Options
 
 class BADS:
     """
-    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1)
+    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).
+    
     BADS attempts to solve problems of the form:
-       min F(X)  subject to:  LB <= X <= UB
-        X                        C(X) <= 0        (optional)
+       :math:`\mathtt{argmin}_X  f(X)`  subject to:  LB :math:`<= X <=` UB, and optionally :math:`C(X) <= 0`
+                               
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
     ``optimize()``. See the examples for more details under the `examples` directory.
@@ -48,7 +49,7 @@ class BADS:
     x0 : np.ndarray, optional
         Starting point.
     lower_bounds, upper_bounds : np.ndarray, optional
-        `lower_bounds` (`LB`) and `upper_bounds` (`UB`) define a set
+        `lower_bounds` (`lb`) and `upper_bounds` (`ub`) define a set
         of strict lower and upper bounds for the coordinate vector, `x`, so
         that the unknown function has support on `LB` < `x` < `UB`.
         If scalars, the bound is replicated in each dimension. Use
@@ -64,30 +65,30 @@ class BADS:
         "plausible" range, which should denote a region of the global minimum.
         As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that
         there is > 90% probability that the minimum is found within the box
-        (where in doubt, just set PLB=LB and PUB=UB).
+        (where in doubt, just set `PLB`=`LB` and `PUB`=`UB`).
 
-    non_box_cons: callable
-        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+    non_box_cons: callable, optional
+        A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)>1``
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the
         BADS options page for the default options. If no `options` are
         passed, the default options are used.
         To run BADS on a noisy (stochastic) objective function, set:
-            * options.uncertainty_handling = true
-            * options.noise_size = SIGMA
-                **  SIGMA is an estimate of the SD of the noise in your problem in
+            * ``options.uncertainty_handling`` = ``True``
+            * ``options.noise_size`` = SIGMA
+                *  SIGMA is an estimate of the SD of the noise in your problem in
                     a good region of the parameter space. (If not specified, default
                     SIGMA = 1). To help BADS work better, it is recommended that you
                     provide to BADS an estimate of the noise at each location.
-        If options.uncertainty_handling is not specified, BADS will determine at
+        If ``options.uncertainty_handling`` is not specified, BADS will determine at
         runtime if the objective function is noisy.
 
     Raises
     ------
     ValueError
-        When neither `x0` or (`plausible_lower_bounds` and
-        `plausible_upper_bounds`) are specified.
+        When neither ``x0`` or (``plausible_lower_bounds`` and
+        ``plausible_upper_bounds``) are specified.
     ValueError
         When various checks for the bounds (LB, UB, PLB, PUB) of BADS fail.
 
@@ -98,8 +99,12 @@ class BADS:
             Optimization for Model Fitting with Bayesian Adaptive Direct Search".
             In Advances in Neural Information Processing Systems 30, pages 1834-1844.
             (arXiv preprint: https://arxiv.org/abs/1705.04405).
-
+            
+    Examples
     --------
+    For `BADS` usage examples, please look up the Jupyter notebook tutorials
+    in the PyBADS documentation:
+    https://acerbilab.github.io/pybads/_examples/pybads_example_1.html
     """
 
     def __init__(
@@ -833,8 +838,8 @@ class BADS:
         ):
             optim_state["gp_noisefun"][1] = 1
 
-        optim_state["gp_meanfun"] = self.options.get("gpmeanfun")
-        valid_gpmeanfuns = [
+        optim_state["gp_meanfun"] = self.options.get("gp_meanfun")
+        valid_gp_meanfuns = [
             "zero",
             "const",
             "negquad",
@@ -849,7 +854,7 @@ class BADS:
             "negquadmix",
         ]
 
-        if not optim_state["gp_meanfun"] in valid_gpmeanfuns:
+        if not optim_state["gp_meanfun"] in valid_gp_meanfuns:
             raise ValueError(
                 """bads:UnknownGPmean:Unknown/unsupported GP mean
             function. Supported mean functions are zero, const,
@@ -1088,32 +1093,22 @@ class BADS:
             hyp_dict,
         )
 
-    def get_iteration_history(self):
-        """
-        ----------
-            Returns
-            iteration_history: pybads.utils.IterationHistory
-                It returns an object that that holds the history information of the optimization problem.
-                It stores information of each iteration based informaton, like the trajectories, incumbents, iteration mesh size, GPs etc...
-        """
-        return self.iteration_history
-
     def optimize(self):
         """
         Run the optimization on an initialized ``PyBADS`` object.
+        
         BADS starts at X0 and finds a local minimum X of the
         target function 'fun'.
 
-        A history of the optimization problem can be found in the self.iteration_history variable of the ``PyBADS`` object, see get_iteration_history() method.
-
-        See some given examples in the `examples` directory.
+        A history of the optimization problem can be found at the ``self.iteration_history`` variable of the ``PyBADS`` object.
 
         Returns
         ----------
-            x: np.array
-                Solution point of the objective function self.fun
-            fval: float
-                Function value at the minimum point x
+            optimize_result: OptimizeResult
+                Dictionary containing the result of the optimization. See the documentation of the ``OptimizeResult`` class for more details.
+                For example, retrieve the final solution with the following attributes:
+                    -  ``optimize_result.x``
+                    -  ``optimize_result.fval`` 
         """
         is_finished = False
         poll_iteration = -1
@@ -1450,10 +1445,6 @@ class BADS:
                 )
                 self.iteration_history.record("fsd", self.fsd, poll_iteration)
 
-        # TODO
-        # if ~isempty(outputfun)
-        #    isFinished_flag = outputfun(origunits(u,optimState),optimState,'done');
-
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
 
@@ -1486,10 +1477,10 @@ class BADS:
         optimize_result = OptimizeResult(self)
 
         return optimize_result
-
+    
     def _search_step_(self, gp: GP):
         """
-        A private method that performs the search method using hedging search of Evolotion Strategy (ES) searches.
+        A private method that performs the search method using hedging search of Evolution Strategy (ES) searches.
         It also evaluates the performance of the search (success, unsuccess)
 
         Parameters
@@ -1588,7 +1579,7 @@ class BADS:
         index_acq = None
         if u_search_set.size > 0:
             # Batch evaluation of acquisition function on search set
-            z, f_mu, fs = acq_fcn_lcb(u_search_set, self.function_logger, gp)
+            z, f_mu, fs = acq_fcn_lcb(u_search_set, self.function_logger.func_count, gp)
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
@@ -1600,7 +1591,7 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimze: Acquisition function failed")
+                self.logger.warn("bads:optimize: Acquisition function failed")
                 index_acq = np.random.randint(0, len(u_search_set) + 1)
 
             # u_search at the candidate acquisition point
@@ -1982,7 +1973,7 @@ class BADS:
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
-            z, f_mu, fs = acq_fcn_lcb(u_poll, self.function_logger, gp)
+            z, f_mu, fs = acq_fcn_lcb(u_poll, self.function_logger.func_count, gp)
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
@@ -1994,7 +1985,7 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimze: Acquisition function failed")
+                self.logger.warn("bads:optimize: Acquisition function failed")
                 index_acq = np.random.randint(0, len(u_poll) + 1)
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")

@@ -2,8 +2,51 @@ import copy
 
 import numpy as np
 
-
 class OptimizeResult(dict):
+    """
+    It represents the optimization result.
+    
+    Attributes:
+    
+        - fun: callable
+            - The objective function to be minimized.
+        - non_box_cons: callable
+            - Non-bound constraints function (if any).
+        - x0: np.ndarray
+            - Initial starting point.
+        - x: np.ndarray
+            - The solution of the optimization.
+        - fval: float
+            - Value of objective function at solution.
+        - fsd: float
+            - Standard deviation of objective function at solution.
+        - yval_vec: np.ndarray
+            - Final sampled observations at the solution.
+        - ysd_vec: np.ndarray
+            - Standard deviations of the final sampled observations (``"yval_vec"``).
+        - mesh_size: float
+            - Final mesh size.
+        - func_count: int
+            - Number of evaluations of the objective functions.
+        - iterations: int
+            - Number of iterations performed by the optimizer.
+        - message: str
+            - Termination message.
+        - problem_type: str
+            - Type of problem (unconstrained, bound constraints, non-box constraints).
+        - total_time: float
+            - Total time taken by the optimizer.
+        - overhead: float
+            - Overhead time taken by the optimizer.
+        - random_seed: int
+            - Random seed used by the optimizer.
+        - version: str
+            - Version of the optimizer.
+    
+    Parameters:
+        bads: pybads.BADS
+            - An Instance of the BADS class. It is used to set the attributes of the optimization result.
+    """
 
     _keys = [
         "x",
@@ -32,9 +75,15 @@ class OptimizeResult(dict):
     def __init__(self, bads=None):
         super().__init__()
         if bads is not None:
-            self._set_attributes(bads)
+            self.set_attributes(bads)
 
-    def _set_attributes(self, bads):
+    def set_attributes(self, bads):
+        """Set the attributes of the dictionary.
+        
+        Parameters:
+            - bads: pybads.BADS
+                An Instance of the BADS class. It is used to set the attributes of the optimization result.
+        """
         self["fun"] = bads.function_logger.fun
         self["non_box_cons"] = bads.non_box_cons
         if bads.optim_state["uncertainty_handling_level"] > 0:

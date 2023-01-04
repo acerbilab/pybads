@@ -6,8 +6,31 @@ from pybads.decorators import handle_0D_1D_input
 class VariableTransformer:
     """
     A class enabling linear or non-linear transformation of the bounds (PLB and PUB) and map them to an hypercube [-1, 1]^D
+    
+    Parameters
+    ----------
+    D : int
+        The dimension of the space.
+    lower_bounds : np.ndarray, optional
+        The lower bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set
+        of strict lower and upper bounds for each variable, given in the
+        original space. By default `None`.
+    upper_bounds : np.ndarray, optional
+        The upper bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set
+        of strict lower and upper bounds for each variable, given in the
+        original space. By default `None`.
+    plausible_lower_bounds : np.ndarray, optional
+        The plausible lower bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
+        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
+        for each variable, given in the original space. By default `None`.
+    plausible_upper_bounds : np.ndarray, optional
+        The plausible upper bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
+        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
+        for each variable, given in the original space. By default `None`.
+    apply_log_t : np.ndarray, optional
+        A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation. 
+        By default `None`, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.
     """
-
     def __init__(
         self,
         D,
@@ -17,14 +40,17 @@ class VariableTransformer:
         plausible_upper_bounds: np.ndarray = None,
         apply_log_t=None,
     ):
+        # Empty LB and UB are Infs
+        if lower_bounds is None:
+            lower_bounds = np.ones((1, D)) * -np.inf
+        if upper_bounds is None:
+            upper_bounds = np.ones((1, D)) * np.inf
 
-        if (lower_bounds is None and plausible_lower_bounds is None) or (
-            upper_bounds is None and plausible_upper_bounds is None
-        ):
-            raise ValueError(
-                """hypercube_trans: At least one among LB, \
-                         PLB and one among UB, PUB needs to be nonempty."""
-            )
+        # Empty plausible bounds equal hard bounds
+        if plausible_lower_bounds is None:
+            plausible_lower_bounds = np.copy(lower_bounds)
+        if plausible_upper_bounds is None:
+            plausible_upper_bounds = np.copy(upper_bounds)
 
         lb = (
             lower_bounds.copy()
@@ -110,16 +136,15 @@ class VariableTransformer:
 
         """
         # Check finiteness of plausible range
-        assert np.all(
-            np.isfinite(np.concatenate([self.plb, self.pub]))
-        ), "Plausible interval ranges PLB and PUB need to be finite."
+        if not (np.all(np.isfinite(np.concatenate([self.plb, self.pub])))):
+            raise ValueError("Plausible interval ranges PLB and PUB need to be finite.")
 
         # Check that the order of bounds is respected
-        assert (
-            np.all(self.lb <= self.plb)
-            and np.all(self.plb < self.pub)
-            and np.all(self.pub <= self.ub)
-        ), "Interval bounds needs to respect the order LB <= PLB < PUB <= UB for all coordinates."
+        if  not (np.all(self.lb <= self.plb) \
+            and np.all(self.plb < self.pub)\
+            and np.all(self.pub <= self.ub)):
+                raise ValueError("Interval bounds needs to respect the order LB <= PLB < PUB <= UB for all coordinates.")
+         
 
         # A variable is converted to log scale if all bounds are positive and
         # the plausible range spans at least one order of magnitude
@@ -189,9 +214,8 @@ class VariableTransformer:
         tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
         tests[2] = np.all(np.abs(ginv(g(self.plb)) - self.plb) < numeps)
         tests[3] = np.all(np.abs(ginv(g(self.pub)) - self.pub) < numeps)
-        assert np.all(
-            tests
-        ), "Cannot invert the transform to obtain the identity at the provided boundaries."
+        if not np.all(tests):
+            raise ValueError("Cannot invert the transform to obtain the identity at the provided boundaries.")
 
         return (
             g(self.orig_lb),
@@ -205,6 +229,21 @@ class VariableTransformer:
         )
 
     def __call__(self, input: np.ndarray):
+        """
+        Performs direct transform of original variables ``input`` into
+        the hypercube space.
+
+        Parameters
+        ----------
+        input : np.ndarray
+            A N x D array, where N is the number of input data
+            and D is the number of dimensions
+
+        Returns
+        -------
+        u : np.ndarray
+            The variables transformed.
+        """
         y = self.g(input)
         y = np.minimum(
             np.maximum(y, self.lb), self.ub
@@ -212,6 +251,20 @@ class VariableTransformer:
         return y
 
     def inverse_transf(self, input: np.ndarray):
+        """
+        Performs inverse transform of the transformed variables  ``input`` in the hypercube into
+        the original space.
+
+        Parameters
+        ----------
+        input : np.ndarray
+            The transformed variables that will be mapped in the original space.
+
+        Returns
+        -------
+        x : np.ndarray
+            The original variables retrieved by the inverse transform.
+        """
         x = self.ginv(input)
         x = np.minimum(
             np.maximum(x, self.orig_lb), self.orig_ub
@@ -220,63 +273,11 @@ class VariableTransformer:
 
         return x
 
-    @handle_0D_1D_input(
-        patched_kwargs=["u"], patched_argpos=[0], return_scalar=True
-    )
-    def log_abs_det_jacobian(self, u: np.ndarray):
-        r"""
-        log_abs_det_jacobian returns the log absolute value of the determinant
-        of the Jacobian of the parameter transformation evaluated at U, that is
-        log \|D \du(g^-1(u))\|
-
-        Parameters
-        ----------
-        u : np.ndarray
-            The points where the log determinant of the Jacobian should be
-            evaluated (in transformed space).
-
-        Returns
-        -------
-        p : np.ndarray
-            The log absolute determinant of the Jacobian.
-        """
-        u_c = np.copy(u)
-
-        # # rotate input (copy array before)
-        # if self.R_mat is not None:
-        #     u_c = u_c * self.R_mat
-        # # rescale input
-        # if scale is not None:
-        #     print(scale)
-
-        p = np.zeros(u_c.shape)
-
-        # Unbounded scalars
-        mask = self.type == 0
-        if np.any(mask):
-            p[:, mask] = np.log(self.delta[mask])[np.newaxis]
-
-        # Lower and upper bounded scalars
-        mask = self.type == 3
-        if np.any(mask):
-            u_c[:, mask] = u_c[:, mask] * self.delta[mask] + self.mu[mask]
-            z = -np.log1p(np.exp(-u_c[:, mask]))
-            p[:, mask] = (
-                np.log(self.ub_orig - self.lb_orig) - u_c[:, mask] + 2 * z
-            )
-            p[:, mask] = p[:, mask] + np.log(self.delta[mask])
-
-        # Scale transform
-        # if scale is not None:
-        #     p + np.log(scale)
-        p = np.sum(p, axis=1)
-        return p
-
 
 def maskindex(vector, bool_index):
     """
     Mask non-indexed elements in vector
     """
     result = vector.copy()
-    result[~bool_index] = 0
+    result[:, ~bool_index.flatten()] = 0
     return result

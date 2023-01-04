@@ -151,7 +151,7 @@ class ESSearch(ABC):
 
             if self.search_acq_fcn[0] == "acq_LCB":
                 z_new, fmu, fs = acq_fcn_lcb(
-                    u_new, func_logger, gp, self.search_acq_fcn[1]
+                    u_new, func_logger.func_count, gp, self.search_acq_fcn[1]
                 )
                 z_new = z_new.flatten()
             else:

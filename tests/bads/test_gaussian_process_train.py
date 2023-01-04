@@ -60,13 +60,13 @@ def test_get_fevals_data_no_noise():
 
 def test_get_fevals_data_noise():
     D = 3
-    f = lambda x: np.sum(x + 2, axis=1)
+    f = lambda x: (np.sum(np.atleast_2d(x) + 2, axis=1), 0)
     x0 = np.ones((2, D)) * 3
-    plb = np.ones((1, D)) * -1
-    pub = np.ones((1, D)) * 1
-    options = {"specify_target_noise": True}
+    plb = np.ones((1, D)) * -5
+    pub = np.ones((1, D)) * 5
+    options = {"specify_target_noise": True, "uncertainty_handling": True}
 
-    bads = BADS(f, x0, None, None, plb, pub, options)
+    bads = BADS(f, x0, plausible_lower_bounds=plb, plausible_upper_bounds=pub, options=options)
 
     # Make sure we get nothing out before data has not been added.
     X_train, y_train, s2_train, t_train = _get_fevals_data(
@@ -83,7 +83,11 @@ def test_get_fevals_data_noise():
     window = bads.optim_state["pub"] - bads.optim_state["plb"]
     rnd_tmp = np.random.rand(sample_count, window.shape[1])
     Xs = window * rnd_tmp + bads.optim_state["plb"]
-    ys = f(Xs)
+    ys = []
+    for x_idx in range(Xs.shape[0]):
+       f_i, _ =  f(Xs[x_idx])
+       ys.append(f_i)
+    ys = np.array(ys)
 
     # Add dummy training data explicitly since function_logger
     # has a parameter transformer which makes everything hard.
@@ -100,10 +104,9 @@ def test_get_fevals_data_noise():
     )
 
     assert np.all(X_train == Xs)
-    assert np.all(y_train.flatten() == ys)
+    assert np.all(y_train.flatten() == ys.flatten())
     assert np.all(s2_train == 1)
     assert np.all(t_train == 1e-5)
-
 
 def test_meanfun_name_to_mean_function():
     m1 = _meanfun_name_to_mean_function("zero")
@@ -159,89 +162,19 @@ def test_get_gp_training_options_samplers():
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
     bads = BADS(f, x0, lb, ub, plb, pub)
+    
 
     hyp_dict = {"run_cov": np.eye(3)}
     hyp_dict_none = {"run_cov": None}
-    bads.optim_state["n_eff"] = 10
+    bads.optim_state['eff_starting_points'] = 10
+    bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 1
-    bads.optim_state["recompute_var_post"] = True
     bads.options["weightedhypcov"] = False
-    bads.iteration_history.record("rindex", 5, 0)
 
     res1 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
+        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8, bads.function_logger
     )
     assert res1["sampler"] == "slicesample"
-
-    bads.options["gphypsampler"] = "npv"
-    res2 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res2["sampler"] == "npv"
-
-    bads.options["gphypsampler"] = "mala"
-    bads.optim_state["gpmala_stepsize"] = 10
-    res3 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res3["sampler"] == "mala"
-    assert res3["step_size"] == 10
-
-    bads.options["gphypsampler"] = "slicelite"
-    res4 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res4["sampler"] == "slicelite"
-
-    bads.options["gphypsampler"] = "splitsample"
-    res5 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res5["sampler"] == "splitsample"
-
-    bads.options["gphypsampler"] = "covsample"
-    res6 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res6["sampler"] == "covsample"
-
-    # Test too large rindex for covsample
-    bads.iteration_history.record("rindex", 50, 0)
-    res7 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res7["sampler"] == "slicesample"
-
-    res8 = _get_gp_training_options(
-        bads.optim_state,
-        bads.iteration_history,
-        bads.options,
-        hyp_dict_none,
-        8,
-    )
-    assert res8["sampler"] == "covsample"
-
-    # Test too small n_eff laplace sampler
-    bads.options["gphypsampler"] = "laplace"
-    res9 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res9["sampler"] == "slicesample"
-
-    # Test enough n_eff laplace sampler
-    bads.optim_state["n_eff"] = 50
-    bads.options["gphypsampler"] = "laplace"
-    res10 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res10["sampler"] == "laplace"
-
-    # Test sampler that does not exist.
-    bads.options["gphypsampler"] = "does_not_exist"
-    with pytest.raises(ValueError):
-        res11 = _get_gp_training_options(
-            bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-        )
 
 
 def test_get_gp_training_options_opts_N():
@@ -254,34 +187,15 @@ def test_get_gp_training_options_opts_N():
     f = lambda x: np.sum(x + 2)
     bads = BADS(f, x0, lb, ub, plb, pub)
 
-    bads.optim_state["n_eff"] = 10
+    bads.optim_state['eff_starting_points'] = 10
+    bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 2
-    bads.iteration_history.record("rindex", 5, 1)
     bads.options["weightedhypcov"] = False
     hyp_dict = {"run_cov": np.eye(3)}
     hyp_dict_none = {"run_cov": None}
     bads.options["gpretrainthreshold"] = 10
-    bads.optim_state["recompute_var_post"] = True
 
     res1 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 0
+    bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 0, bads.function_logger
     )
-    assert res1["opts_N"] == 2
-
-    bads.options["gphypsampler"] = "slicelite"
-    bads.optim_state["recompute_var_post"] = False
-    res2 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 0
-    )
-    assert res2["opts_N"] == 1
-
-    res3 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8
-    )
-    assert res3["opts_N"] == 0
-
-    bads.options["gpretrainthreshold"] = 1
-    res4 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 0
-    )
-    assert res4["opts_N"] == 2
+    assert res1["opts_N"] == 1

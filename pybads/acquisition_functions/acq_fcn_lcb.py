@@ -1,19 +1,18 @@
 import gpyreg as gpr
 import numpy as np
 
-from pybads.function_logger import FunctionLogger
 
-
-def acq_fcn_lcb(xi, func_logger: FunctionLogger, gp: gpr.GP, sqrt_beta=None):
+def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
     """
-    This method corresponds to the Lower Confidence Bound (LCB) acquisition function.
+    Lower Confidence Bound (LCB) acquisition function.
+    It retrieves the point at the lower confidence bound of the GP surrogate model.
 
     Parameters
     ==========
     xi: np.ndarray
-        current points
-    func_logger: FunctionLogger
-        function value
+        Input points
+    func_count: int
+        Number of function evaluations
     gp: GP
         Gaussian process
     sqrt_beta: float
@@ -22,14 +21,17 @@ def acq_fcn_lcb(xi, func_logger: FunctionLogger, gp: gpr.GP, sqrt_beta=None):
     Returns
     ==========
     z: lower confidence bound
+        Point at the lower confidence bound
     f_mu: GP prediction at xi
+        GP prediction at z.
     f_s: GP variance
+        GP variance at z.
     """
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
 
     n = xi.shape[0]
     n_vars = xi.shape[1]
-    t = func_logger.func_count + 1
+    t = func_count + 1
     if sqrt_beta is None:
         delta, nu = 0.1, 0.2
         sqrt_beta = np.sqrt(

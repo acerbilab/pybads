@@ -3,7 +3,7 @@ import time
 
 class Timer:
     """
-    A small Timer class
+    A small Timer class used to time the different parts of PyBADS.
     """
 
     def __init__(self, eps_t=1e-9):

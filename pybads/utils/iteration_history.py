@@ -6,7 +6,7 @@ import numpy as np
 
 class IterationHistory(MutableMapping, dict):
     """
-    This class is responsible for storing the history information for each iteration of the algorithm.
+    This class is responsible for storing the history information for each iteration of PyBADS.
 
     Parameters
     ----------

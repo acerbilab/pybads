@@ -5,7 +5,13 @@ from numpy import random as rnd
 
 def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size):
     """
-    POLLMADS2N Poll 2N random basis vectors (mesh-adaptive direct search, LTMADS).
+    Practical Implementation of the MADS POLL method -- LTMADS [1].
+    
+    It retrieves random basis vectors which are dense refining directions in the hypertangent cone. The methods is the core method of the MADS framework for the theoretical convergence guarantees towards the Clarke's local stationary point.
+    
+    References
+        ----------
+        [1] Audet, Charles, Kwassi Joseph Dzahini, Michael Kokkolaras, and Sébastien Le Digabel. ‘Stochastic Mesh Adaptive Direct Search for Blackbox Optimization Using Probabilistic Estimates’. Computational Optimization and Applications 79, no. 1 (May 2021): 1–34. https://doi.org/10.1007/s10589-020-00249-0.
     """
     n_max = np.maximum(1, np.round(search_mesh_size / mesh_size))
 
