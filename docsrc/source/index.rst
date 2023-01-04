@@ -90,7 +90,7 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was partly funded by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+Work on the PyBADS package was supported by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 .. toctree::
    :maxdepth: 1
