@@ -4,7 +4,7 @@
 ## What is it?
 PyBads is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
 
-In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper ([Acerbi, 2017](#references-and-citation)).
+In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper ([Acerbi and Ma, 2017](#references-and-citation)).
 
 BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as `fminsearch`.
 
@@ -97,7 +97,7 @@ In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads
 
 ## References and citation
 
-1. Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](https://arxiv.org/abs/1705.04405), [NeurIPS Proceedings](https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
+1. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](https://arxiv.org/abs/1705.04405), [NeurIPS Proceedings](https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
 
 You can cite BADS in your work with something along the lines of
 
