@@ -442,7 +442,7 @@ def local_gp_fitting(
         ll = np.minimum(
             np.maximum(ll, optim_state["search_mesh_size"]),
             (ub_bounded - lb_bounded) / optim_state["scale"],
-        )  # Perhaps this should just be PUB - PLB?
+        )  # Perhaps this should just be pub - plb?
 
         gp.temporary_data["poll_scale"] = ll.flatten()
 

@@ -4,7 +4,7 @@
 ## What is it?
 PyBads is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
 
-In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 [[1](#references-and-citation)].
+In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper ([Acerbi, 2017](#references-and-citation)).
 
 BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as `fminsearch`.
 
@@ -64,7 +64,7 @@ Running the optimizer in step 3 only involves a couple of lines of code:
 ```
 from pybads import BADS
 # ...
-bads = BADS(target, x0, LB, UB, PLB, PUB)
+bads = BADS(target, x0, lb, ub, plb, pub)
 optimize_result = bads.optimize()
 ```
 
@@ -72,8 +72,8 @@ with input arguments:
 
 - ``target``: the target function, it takes as input a vector and returns its function evaluation;
 - ``x0``: the starting point of the optimization problem. If it is not given, the starting point is randomly drawn from the problems bounds;
-- ``LB`` and ``UB``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
-- ``PLB`` and ``PUB``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
+- ``lb`` and ``ub``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
+- ``plb`` and ``pub``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable non-bound constraints function.
 
 The outputs are:
@@ -92,7 +92,7 @@ In order to run any of these examples ensure you have followed the installation 
 1. Activate the environment: `conda activate pybads-dev`
 2. From the `pybads` folder, run: `python examples/example_file`
 
-In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions) page for practical recommendations, such as how to set `LB` and `UB`, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS. 
+In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions) page for practical recommendations, such as how to set `lb` and `ub`, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS. 
 
 
 ## References and citation
