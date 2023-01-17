@@ -9,7 +9,9 @@ What is it?
 
 BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to fitting computational models (e.g., `via maximum likelihood estimation <https://en.wikipedia.org/wiki/Maximum_likelihood_estimation>`__).
 
-BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 `(Acerbi, 2017) <#references>`_.
+BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications).
+
+In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper `(Acerbi, 2017) <#references>`_.
 
 BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in `scipy.optimize.minimize`.
 
