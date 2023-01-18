@@ -116,7 +116,7 @@ PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/ab
 
 See [here](https://github.com/lacerbi/optimviz) for a visualization of several optimizers at work, including BADS.
 
-See our paper for more details [[1](#reference)].
+See our paper for more details ([Acerbi and Ma, 2017](#references-and-citation)).
 
 ## Troubleshooting and contact
 
