@@ -357,7 +357,7 @@ title="Open an issue"
 
 <div class="viewcode-block" id="VariableTransformer"><a class="viewcode-back" href="../../../api/classes/parameter_transformer.html#pybads.variable_transformer.VariableTransformer">[docs]</a><span class="k">class</span> <span class="nc">VariableTransformer</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class enabling linear or non-linear transformation of the bounds (PLB and PUB) and map them to an hypercube [-1, 1]^D</span>
+<span class="sd">    A class enabling linear or non-linear transformation of the bounds (plb and pub) and map them to an hypercube [-1, 1]^D</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -392,7 +392,7 @@ title="Open an issue"
         <span class="n">plausible_upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">apply_log_t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="c1"># Empty LB and UB are Infs</span>
+        <span class="c1"># Empty lb and ub are Infs</span>
         <span class="k">if</span> <span class="n">lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span> <span class="o">*</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="k">if</span> <span class="n">upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -471,9 +471,9 @@ title="Open an issue"
     <span class="k">def</span> <span class="nf">__create_hypercube_trans__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standardize variables via linear or nonlinear transformation.</span>
-<span class="sd">        The standardized transform maps PLB and PUB to the hypercube [-1,1]^D.</span>
-<span class="sd">        If PLB and/or PUB are empty, LB and/or UB are used instead. Note that</span>
-<span class="sd">        at least one among LB, PLB and one among UB, PUB needs to be nonempty.</span>
+<span class="sd">        The standardized transform maps plb and pub to the hypercube [-1,1]^D.</span>
+<span class="sd">        If plb and/or pub are empty, lb and/or ub are used instead. Note that</span>
+<span class="sd">        at least one among lb, plb and one among ub, pub needs to be nonempty.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -489,13 +489,13 @@ title="Open an issue"
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check finiteness of plausible range</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">plb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">])))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plausible interval ranges PLB and PUB need to be finite.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plausible interval ranges plb and pub need to be finite.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Check that the order of bounds is respected</span>
         <span class="k">if</span>  <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lb</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plb</span><span class="p">)</span> \
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plb</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">)</span>\
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pub</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ub</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval bounds needs to respect the order LB &lt;= PLB &lt; PUB &lt;= UB for all coordinates.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval bounds needs to respect the order lb &lt;= plb &lt; pub &lt;= ub for all coordinates.&quot;</span><span class="p">)</span>
          
 
         <span class="c1"># A variable is converted to log scale if all bounds are positive and</span>

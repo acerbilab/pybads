@@ -2,22 +2,42 @@
 PyBADS
 ******
 
-PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented :labrepos:`in MATLAB <bads>`.
+PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, originally implemented :labrepos:`in MATLAB <bads>`.
 
 What is it?
 ###########
 
 BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to fitting computational models (e.g., `via maximum likelihood estimation <https://en.wikipedia.org/wiki/Maximum_likelihood_estimation>`__).
 
-BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 `(Acerbi, 2017) <#references>`_.
+BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications).
 
-BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as `fminsearch`.
+In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper (`Acerbi and Ma, 2017 <#references>`_).
+
+BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in `scipy.optimize.minimize`.
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
 
-Example run
+How does it work?
 -----------
-TODO: Put a Gif here showing a BADS run on a simple problem (e.g on the Rosenbrock's banana function).
+
+PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**). 
+
+- In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise. 
+- In the **search** stage, a `Gaussian process <https://en.wikipedia.org/wiki/Gaussian_process>`__ (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
+
+.. image:: _static/bads-cartoon.png
+    :align: center
+    :alt: Fig 1: BADS procedure
+
+Fig 1: BADS procedure
+
+See `here <https://github.com/lacerbi/optimviz>`__ for a visualization of several optimizers at work, including BADS.
+
+See our paper for more details (`Acerbi and Ma, 2017 <#references>`_).
+
+.. Example run
+   -----------
+   TODO: Put a Gif here showing a BADS run on a simple problem (e.g on the Rosenbrock's banana function).
 
 Should I use PyBADS?
 --------------------
@@ -61,7 +81,7 @@ Contributing
 References
 ###############
 
-1. Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
+1. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
 
 You can cite BADS in your work with something along the lines of
 
@@ -90,7 +110,7 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was funded by the `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+Work on the PyBADS package was supported by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 .. toctree::
    :maxdepth: 1

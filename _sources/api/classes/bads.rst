@@ -6,7 +6,7 @@ BADS
 
   The ``BADS`` class implements the Bayesian Adaptive Direct Search (BADS) algorithm.
 
-  BADS attempts to solve a constraint optimization for rough and possible noisy functions, by finding optimistically its global minimum.
+  BADS attempts to solve an unbounded, bounded or nonlinearly constrained optimization (minimization) problem, and is compatible with both noiseless and noisy target functions.
 
   To perform the optimization, first initialize a ``BADS`` object and then call ``bads.optimize()`` on the instance.
 

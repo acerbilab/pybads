@@ -469,7 +469,7 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 <p>Running the optimizer in step 3 only involves a couple of lines of code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybads</span> <span class="kn">import</span> <span class="n">BADS</span>
 <span class="c1"># ...</span>
-<span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">LB</span><span class="p">,</span> <span class="n">UB</span><span class="p">,</span> <span class="n">PLB</span><span class="p">,</span> <span class="n">PUB</span><span class="p">)</span>
+<span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">)</span>
 <span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -477,22 +477,22 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">target</span></code>: the target function, it takes as input a vector and returns its function evaluation;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: the starting point of the optimization problem. If it is not given, the starting point is randomly drawn from the problems bounds;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LB</span></code> and <code class="docutils literal notranslate"><span class="pre">UB</span></code>: hard lower and upper bounds for the optimization region (can be <code class="docutils literal notranslate"><span class="pre">-inf</span></code> and <code class="docutils literal notranslate"><span class="pre">inf</span></code>, or bounded);</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PLB</span></code> and <code class="docutils literal notranslate"><span class="pre">PUB</span></code>: <em>plausible</em> lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>: hard lower and upper bounds for the optimization region (can be <code class="docutils literal notranslate"><span class="pre">-inf</span></code> and <code class="docutils literal notranslate"><span class="pre">inf</span></code>, or bounded);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plb</span></code> and <code class="docutils literal notranslate"><span class="pre">pub</span></code>: <em>plausible</em> lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> (optional): a callable non-bound constraints function.</p></li>
 </ul>
 <p>The outputs are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">optimize_result</span></code>: a <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> which presents the most important information about the solution and the optimization problem.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_result</span></code>: a <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> which presents the most important information about the solution and the optimization problem. In particular:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>: the minimum point found by the optimizer;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;fval&quot;</span></code>: the value of the function at the given solution.</p></li>
 </ul>
 </li>
 </ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code> object can be manipulated in various ways, see the <a class="reference internal" href="api/classes/optimize_result.html#optimizeresult"><span class="std std-ref">OptimizeResult</span></a> class documentation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code> object contains more information about the optimization solution, see the <a class="reference internal" href="api/classes/optimize_result.html#optimizeresult"><span class="std std-ref">OptimizeResult</span></a> class documentation.</p>
 <p>See the examples for more detailed information. The <a class="reference internal" href="api/options/bads_options.html#basic-options"><span class="std std-ref">Basic options</span></a> may also be useful.</p>
-<p>In addition, checkout the <a class="reference external" href="https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions">BADS FAQ</a> page for practical recommendations, such as how to set <cite>LB</cite> and <cite>UB</cite>, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS.</p>
+<p>In addition, checkout the <a class="reference external" href="https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions">BADS FAQ</a> page for practical recommendations, such as how to set <cite>lb</cite> and <cite>ub</cite>, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS.</p>
 </section>
 </section>
 

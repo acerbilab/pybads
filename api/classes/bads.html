@@ -422,7 +422,7 @@ title="Print to PDF"
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">BADS</span></code> class implements the Bayesian Adaptive Direct Search (BADS) algorithm.</p>
-<p>BADS attempts to solve a constraint optimization for rough and possible noisy functions, by finding optimistically its global minimum.</p>
+<p>BADS attempts to solve an unbounded, bounded or nonlinearly constrained optimization (minimization) problem, and is compatible with both noiseless and noisy target functions.</p>
 <p>To perform the optimization, first initialize a <code class="docutils literal notranslate"><span class="pre">BADS</span></code> object and then call <code class="docutils literal notranslate"><span class="pre">bads.optimize()</span></code> on the instance.</p>
 <p>See below for more details on the <code class="docutils literal notranslate"><span class="pre">BADS</span></code> class methods and interface. The primary entry-points for users are the <code class="docutils literal notranslate"><span class="pre">BADS</span></code> class, which initializes the algorithm, and the <a class="reference internal" href="optimize_result.html#optimizeresult"><span class="std std-ref">OptimizeResult</span></a> class, which represents the returned optimization solution. The <a class="reference internal" href="../options/bads_options.html#basic-options"><span class="std std-ref">Basic options</span></a> may also be useful.</p>
 </div>
@@ -431,7 +431,7 @@ title="Print to PDF"
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pybads.bads.</span></span><span class="sig-name descname"><span class="pre">BADS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_box_cons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_uncertain_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pybads/bads/bads.html#BADS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.bads.BADS" title="Permalink to this definition">#</a></dt>
 <dd><p>BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).</p>
 <dl class="simple">
-<dt>BADS attempts to solve problems of the form:</dt><dd><p><span class="math notranslate nohighlight">\(\mathtt{argmin}_X  f(X)\)</span>  subject to:  LB <span class="math notranslate nohighlight">\(&lt;= X &lt;=\)</span> UB, and optionally <span class="math notranslate nohighlight">\(C(X) &lt;= 0\)</span></p>
+<dt>BADS attempts to solve problems of the form:</dt><dd><p><span class="math notranslate nohighlight">\(\mathtt{argmin}_X  f(X)\)</span>  subject to:  lb <span class="math notranslate nohighlight">\(&lt;= X &lt;=\)</span> ub, and optionally <span class="math notranslate nohighlight">\(C(X) &lt;= 0\)</span></p>
 </dd>
 </dl>
 <p>Initialize a <code class="docutils literal notranslate"><span class="pre">PyBADS</span></code> object to set up the optimization problem, then run
@@ -446,21 +446,21 @@ value of the target evaluated at ‘x’ and the noise if provided.</p>
 </dd>
 <dt><strong>lower_bounds, upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p><cite>lower_bounds</cite> (<cite>lb</cite>) and <cite>upper_bounds</cite> (<cite>ub</cite>) define a set
 of strict lower and upper bounds for the coordinate vector, <cite>x</cite>, so
-that the unknown function has support on <cite>LB</cite> &lt; <cite>x</cite> &lt; <cite>UB</cite>.
+that the unknown function has support on <cite>lb</cite> &lt; <cite>x</cite> &lt; <cite>ub</cite>.
 If scalars, the bound is replicated in each dimension. Use
-<code class="docutils literal notranslate"><span class="pre">None</span></code> for <cite>LB</cite> and <cite>UB</cite> if no bounds exist. Set <cite>LB</cite> [<cite>i</cite>] = -<code class="docutils literal notranslate"><span class="pre">inf</span></code>
-and <cite>UB</cite> [<cite>i</cite>] = <code class="docutils literal notranslate"><span class="pre">inf</span></code> if the <cite>i</cite>-th coordinate is unbounded (while
-other coordinates may be bounded). Note that if <cite>LB</cite> and <cite>UB</cite> contain
-unbounded variables, the respective values of <cite>PLB</cite> and <cite>PUB</cite> need to
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for <cite>lb</cite> and <cite>ub</cite> if no bounds exist. Set <cite>lb</cite> [<cite>i</cite>] = -<code class="docutils literal notranslate"><span class="pre">inf</span></code>
+and <cite>ub</cite> [<cite>i</cite>] = <code class="docutils literal notranslate"><span class="pre">inf</span></code> if the <cite>i</cite>-th coordinate is unbounded (while
+other coordinates may be bounded). Note that if <cite>lb</cite> and <cite>ub</cite> contain
+unbounded variables, the respective values of <cite>plb</cite> and <cite>pub</cite> need to
 be specified (see below), by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
-<dt><strong>plausible_lower_bounds, plausible_upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>Specifies a set of <cite>plausible_lower_bounds</cite> (<cite>PLB</cite>) and
-<cite>plausible_upper_bounds</cite> (<cite>PUB</cite>) such that <cite>LB</cite> &lt; <cite>PLB</cite> &lt; <cite>PUB</cite> &lt; <cite>UB</cite>.
-Both <cite>PLB</cite> and <cite>PUB</cite> need to be finite. <cite>PLB</cite> and <cite>PUB</cite> represent a
+<dt><strong>plausible_lower_bounds, plausible_upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>Specifies a set of <cite>plausible_lower_bounds</cite> (<cite>plb</cite>) and
+<cite>plausible_upper_bounds</cite> (<cite>pub</cite>) such that <cite>lb</cite> &lt; <cite>plb</cite> &lt; <cite>pub</cite> &lt; <cite>ub</cite>.
+Both <cite>plb</cite> and <cite>pub</cite> need to be finite. <cite>plb</cite> and <cite>pub</cite> represent a
 “plausible” range, which should denote a region of the global minimum.
 As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that
 there is &gt; 90% probability that the minimum is found within the box
-(where in doubt, just set <cite>PLB`=`LB</cite> and <cite>PUB`=`UB</cite>).</p>
+(where in doubt, just set <cite>plb`=`lb</cite> and <cite>pub`=`ub</cite>).</p>
 </dd>
 <dt><strong>non_box_cons: callable, optional</strong></dt><dd><p>A given non-bound constraints function. e.g : <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">x:</span> <span class="pre">np.sum(x.^2,1)&gt;1</span></code></p>
 </dd>
@@ -496,7 +496,7 @@ runtime if the objective function is noisy.</p>
 <dt>ValueError</dt><dd><p>When neither <code class="docutils literal notranslate"><span class="pre">x0</span></code> or (<code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and
 <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code>) are specified.</p>
 </dd>
-<dt>ValueError</dt><dd><p>When various checks for the bounds (LB, UB, PLB, PUB) of BADS fail.</p>
+<dt>ValueError</dt><dd><p>When various checks for the bounds (lb, ub, plb, pub) of BADS fail.</p>
 </dd>
 </dl>
 </dd>

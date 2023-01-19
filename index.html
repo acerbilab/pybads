@@ -418,8 +418,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#example-run">
-     Example run
+    <a class="reference internal nav-link" href="#how-does-it-work">
+     How does it work?
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -491,8 +491,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#example-run">
-     Example run
+    <a class="reference internal nav-link" href="#how-does-it-work">
+     How does it work?
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -551,16 +551,25 @@ title="Print to PDF"
                 
   <section id="pybads">
 <h1>PyBADS<a class="headerlink" href="#pybads" title="Permalink to this headline">#</a></h1>
-<p>PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented <a class="reference external" href="https://github.com/acerbilab/bads">in MATLAB</a>.</p>
+<p>PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, originally implemented <a class="reference external" href="https://github.com/acerbilab/bads">in MATLAB</a>.</p>
 <section id="what-is-it">
 <h2>What is it?<a class="headerlink" href="#what-is-it" title="Permalink to this headline">#</a></h2>
 <p>BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to fitting computational models (e.g., <a class="reference external" href="https://en.wikipedia.org/wiki/Maximum_likelihood_estimation">via maximum likelihood estimation</a>).</p>
-<p>BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see <a class="reference external" href="https://scholar.google.co.uk/scholar?cites=7209174494000095753&amp;as_sdt=2005&amp;sciodt=0,5&amp;hl=en">Google Scholar</a> for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as <cite>fminsearch</cite>, <cite>fmincon</cite>, and <cite>cmaes</cite> as shown in the original paper presented at NeurIPS in 2017 <a class="reference external" href="#references">(Acerbi, 2017)</a>.</p>
-<p>BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as <cite>fminsearch</cite>.</p>
+<p>BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see <a class="reference external" href="https://scholar.google.co.uk/scholar?cites=7209174494000095753&amp;as_sdt=2005&amp;sciodt=0,5&amp;hl=en">Google Scholar</a> for many example applications).</p>
+<p>In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper (<a class="reference external" href="#references">Acerbi and Ma, 2017</a>).</p>
+<p>BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in <cite>scipy.optimize.minimize</cite>.</p>
 <p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (<a class="reference external" href="https://github.com/acerbilab/pyvbmc">PyVBMC</a>), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.</p>
-<section id="example-run">
-<h3>Example run<a class="headerlink" href="#example-run" title="Permalink to this headline">#</a></h3>
-<p>TODO: Put a Gif here showing a BADS run on a simple problem (e.g on the Rosenbrock’s banana function).</p>
+<section id="how-does-it-work">
+<h3>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">#</a></h3>
+<p>PyBADS/BADS follows a <a class="reference external" href="http://epubs.siam.org/doi/abs/10.1137/040603371">mesh adaptive direct search</a> (MADS) procedure for function minimization that alternates <strong>poll</strong> steps and <strong>search</strong> steps (see <strong>Fig 1</strong>).</p>
+<ul class="simple">
+<li><p>In the <strong>poll</strong> stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.</p></li>
+<li><p>In the <strong>search</strong> stage, a <a class="reference external" href="https://en.wikipedia.org/wiki/Gaussian_process">Gaussian process</a> (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a <em>lower confidence bound</em> strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).</p></li>
+</ul>
+<img alt="Fig 1: BADS procedure" class="align-center" src="_images/bads-cartoon.png" />
+<p>Fig 1: BADS procedure</p>
+<p>See <a class="reference external" href="https://github.com/lacerbi/optimviz">here</a> for a visualization of several optimizers at work, including BADS.</p>
+<p>See our paper for more details (<a class="reference external" href="#references">Acerbi and Ma, 2017</a>).</p>
 </section>
 <section id="should-i-use-pybads">
 <h3>Should I use PyBADS?<a class="headerlink" href="#should-i-use-pybads" title="Permalink to this headline">#</a></h3>
@@ -608,7 +617,7 @@ title="Print to PDF"
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">#</a></h2>
 <ol class="arabic simple">
-<li><p>Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In <em>Advances in Neural Information Processing Systems 31</em>: 8222-8232. (<a class="reference external" href="https://arxiv.org/abs/1705.04405">paper + supplement on arXiv</a>, <a class="reference external" href="https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html">NeurIPS Proceedings</a>)</p></li>
+<li><p>Acerbi, L. &amp; Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In <em>Advances in Neural Information Processing Systems 31</em>: 8222-8232. (<a class="reference external" href="https://arxiv.org/abs/1705.04405">paper + supplement on arXiv</a>, <a class="reference external" href="https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html">NeurIPS Proceedings</a>)</p></li>
 </ol>
 <p>You can cite BADS in your work with something along the lines of</p>
 <blockquote>
@@ -636,7 +645,7 @@ You may also want to check out the original <a class="reference external" href="
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments:<a class="headerlink" href="#acknowledgments" title="Permalink to this headline">#</a></h2>
-<p>Work on the PyBADS package was funded by the <a class="reference external" href="https://fcai.fi/">Finnish Center for Artificial Intelligence FCAI</a>.</p>
+<p>Work on the PyBADS package was supported by the Academy of Finland Flagship programme: <a class="reference external" href="https://fcai.fi/">Finnish Center for Artificial Intelligence FCAI</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
