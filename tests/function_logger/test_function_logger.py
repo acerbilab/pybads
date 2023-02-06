@@ -183,7 +183,7 @@ def test_finalize():
     for i in range(10):
         f_logger(x * i)
     f_logger.finalize()
-    assert f_logger.total_fun_eval_time == np.sum(f_logger.fun_eval_time)
+    assert np.isclose(f_logger.total_fun_eval_time, np.sum(f_logger.fun_eval_time))
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)
