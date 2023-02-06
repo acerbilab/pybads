@@ -79,7 +79,7 @@ class ESSearch(ABC):
     def __call__(
         self,
         u,
-        LB: np.ndarray,
+        lb: np.ndarray,
         ub: np.ndarray,
         func_logger: FunctionLogger,
         gp: GP,
@@ -92,7 +92,7 @@ class ESSearch(ABC):
         Parameters
         ----------
             u (np.ndarray): incumbent point
-            LB (np.ndarray): lower bound
+            lb (np.ndarray): lower bound
             ub (np.ndarray): upper bound
             func_logger (FunctionLogger):
             gp (GP):

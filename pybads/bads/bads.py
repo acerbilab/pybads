@@ -35,7 +35,7 @@ class BADS:
     BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).
     
     BADS attempts to solve problems of the form:
-       :math:`\mathtt{argmin}_X  f(X)`  subject to:  LB :math:`<= X <=` UB, and optionally :math:`C(X) <= 0`
+       :math:`\mathtt{argmin}_X  f(X)`  subject to:  lb :math:`<= X <=` ub, and optionally :math:`C(X) <= 0`
                                
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
@@ -51,21 +51,21 @@ class BADS:
     lower_bounds, upper_bounds : np.ndarray, optional
         `lower_bounds` (`lb`) and `upper_bounds` (`ub`) define a set
         of strict lower and upper bounds for the coordinate vector, `x`, so
-        that the unknown function has support on `LB` < `x` < `UB`.
+        that the unknown function has support on `lb` < `x` < `ub`.
         If scalars, the bound is replicated in each dimension. Use
-        ``None`` for `LB` and `UB` if no bounds exist. Set `LB` [`i`] = -``inf``
-        and `UB` [`i`] = ``inf`` if the `i`-th coordinate is unbounded (while
-        other coordinates may be bounded). Note that if `LB` and `UB` contain
-        unbounded variables, the respective values of `PLB` and `PUB` need to
+        ``None`` for `lb` and `ub` if no bounds exist. Set `lb` [`i`] = -``inf``
+        and `ub` [`i`] = ``inf`` if the `i`-th coordinate is unbounded (while
+        other coordinates may be bounded). Note that if `lb` and `ub` contain
+        unbounded variables, the respective values of `plb` and `pub` need to
         be specified (see below), by default ``None``.
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
-        Specifies a set of `plausible_lower_bounds` (`PLB`) and
-        `plausible_upper_bounds` (`PUB`) such that `LB` < `PLB` < `PUB` < `UB`.
-        Both `PLB` and `PUB` need to be finite. `PLB` and `PUB` represent a
+        Specifies a set of `plausible_lower_bounds` (`plb`) and
+        `plausible_upper_bounds` (`pub`) such that `lb` < `plb` < `pub` < `ub`.
+        Both `plb` and `pub` need to be finite. `plb` and `pub` represent a
         "plausible" range, which should denote a region of the global minimum.
         As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that
         there is > 90% probability that the minimum is found within the box
-        (where in doubt, just set `PLB`=`LB` and `PUB`=`UB`).
+        (where in doubt, just set `plb`=`lb` and `pub`=`ub`).
 
     non_box_cons: callable, optional
         A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)>1``
@@ -90,7 +90,7 @@ class BADS:
         When neither ``x0`` or (``plausible_lower_bounds`` and
         ``plausible_upper_bounds``) are specified.
     ValueError
-        When various checks for the bounds (LB, UB, PLB, PUB) of BADS fail.
+        When various checks for the bounds (lb, ub, plb, pub) of BADS fail.
 
 
     References
@@ -140,7 +140,7 @@ class BADS:
             ):
                 raise ValueError(
                     """bads:UnknownDims If no starting point is
-                 provided, PLB and PUB need to be specified."""
+                 provided, plb and pub need to be specified."""
                 )
             else:
                 x0 = np.full((plausible_lower_bounds.shape), np.NaN)
@@ -178,7 +178,7 @@ class BADS:
         elif self.options.get("display") == "full":
             self.logger.setLevel(logging.DEBUG)
 
-        # Empty LB and UB are Infs
+        # Empty lb and ub are Infs
         if lower_bounds is None:
             lower_bounds = np.ones((1, self.D)) * -np.inf
 
@@ -277,11 +277,11 @@ class BADS:
 
         N0, D = x0.shape
 
-        # Estimation of the PLB and PUB if any of them is not specified
+        # Estimation of the plb and pub if any of them is not specified
         if plausible_lower_bounds is None or plausible_upper_bounds is None:
             if N0 > 1:
                 self.logger.warning(
-                    "PLB and/or PUB not specified. Estimating"
+                    "plb and/or pub not specified. Estimating"
                     + "plausible bounds from starting set X0..."
                 )
                 width = x0.max(0) - x0.min(0)
@@ -307,8 +307,8 @@ class BADS:
                     )
             else:
                 self.logger.warning(
-                    "bads:pbUnspecified: Plausible lower/upper bounds PLB and"
-                    "/or PUB not specified and X0 is not a valid starting set. "
+                    "bads:pbUnspecified: Plausible lower/upper bounds plb and"
+                    "/or pub not specified and X0 is not a valid starting set. "
                     + "Using hard upper/lower bounds instead."
                 )
                 if plausible_lower_bounds is None:
@@ -343,7 +343,7 @@ class BADS:
             np.invert(np.isfinite(plausible_upper_bounds))
         ):
             raise ValueError(
-                "Plausible interval bounds PLB and PUB need to be finite."
+                "Plausible interval bounds plb and pub need to be finite."
             )
 
         # Test that all vectors are real-valued
@@ -383,7 +383,7 @@ class BADS:
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
-                points X0 are not inside the provided hard bounds LB and UB."""
+                points X0 are not inside the provided hard bounds lb and ub."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -405,7 +405,7 @@ class BADS:
 
         if np.any(LB_eff >= UB_eff):
             raise ValueError(
-                """bads:StrictBoundsTooClose: Hard bounds LB and UB
+                """bads:StrictBoundsTooClose: Hard bounds lb and ub
                 are numerically too close. Make them more separate."""
             )
 
@@ -413,7 +413,7 @@ class BADS:
         if np.any(x0 < LB_eff) or np.any(x0 > UB_eff):
             self.logger.warning(
                 "bads:InitialPointsTooClosePB: The starting points X0 are on "
-                + "or numerically too close to the hard bounds LB and UB. "
+                + "or numerically too close to the hard bounds lb and ub. "
                 + "Moving the initial points more inside..."
             )
             x0 = np.maximum((np.minimum(x0, UB_eff)), LB_eff)
@@ -427,7 +427,7 @@ class BADS:
         if np.any(np.invert(ordidx)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering LB < PLB < PUB < UB."""
+            plausible bounds should respect the ordering lb < plb < pub < ub."""
             )
 
         # Test that plausible bounds are reasonably separated from hard bounds
@@ -447,8 +447,8 @@ class BADS:
         if np.any(x0 <= LB_eff) or np.any(x0 >= UB_eff):
             self.logger.warning(
                 "bads:InitialPointsOutsidePB. The starting points X0"
-                + " are not inside the provided plausible bounds PLB and "
-                + "PUB. Expanding the plausible bounds..."
+                + " are not inside the provided plausible bounds plb and "
+                + "pub. Expanding the plausible bounds..."
             )
             plausible_lower_bounds = np.minimum(
                 plausible_lower_bounds, x0.min(0)
@@ -466,7 +466,7 @@ class BADS:
         if np.any(np.invert(ordidx)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering LB <= PLB < PUB <= UB."""
+            plausible bounds should respect the ordering lb <= plb < pub <= ub."""
             )
 
         # Check that variables are either bounded or unbounded
@@ -641,10 +641,10 @@ class BADS:
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
             self.logger.error(
-                "Initial starting point u0 is not within the hard bounds LB and UB"
+                "Initial starting point u0 is not within the hard bounds lb and ub"
             )
             raise ValueError(
-                """bads:Initpoint: Initial starting point u0 is not within the hard bounds LB and UB"""
+                """bads:Initpoint: Initial starting point u0 is not within the hard bounds lb and ub"""
             )
 
         # Report variable transformation
@@ -2504,7 +2504,7 @@ class BADS:
                 self.options["meshoverflowswarning"]
             ):
                 self.logger.warn(
-                    "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening PLB and PUB."
+                    "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plb and pub."
                 )
 
     def _log_column_headers(self):
