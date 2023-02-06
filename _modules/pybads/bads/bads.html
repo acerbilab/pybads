@@ -21,8 +21,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -31,13 +30,8 @@
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script>let toggleHintShow = 'Click to show';</script>
-    <script>let toggleHintHide = 'Click to hide';</script>
-    <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../../_static/togglebutton.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_modules/pybads/bads/bads.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -383,7 +377,7 @@ title="Open an issue"
 
 
 <div class="viewcode-block" id="BADS"><a class="viewcode-back" href="../../../api/classes/bads.html#pybads.bads.BADS">[docs]</a><span class="k">class</span> <span class="nc">BADS</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).</span>
 <span class="sd">    </span>
 <span class="sd">    BADS attempts to solve problems of the form:</span>
@@ -491,7 +485,7 @@ title="Open an issue"
                 <span class="ow">or</span> <span class="n">plausible_upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span>
             <span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sd">&quot;&quot;&quot;bads:UnknownDims If no starting point is</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:UnknownDims If no starting point is</span>
 <span class="sd">                 provided, plb and pub need to be specified.&quot;&quot;&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -623,7 +617,7 @@ title="Open an issue"
         <span class="n">plausible_upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">non_box_cons</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Private function for initial checks of the BADS bounds.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -685,7 +679,7 @@ title="Open an issue"
             <span class="ow">or</span> <span class="n">plausible_upper_bounds</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;All input vectors (x0, lower_bounds, upper_bounds,</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;All input vectors (x0, lower_bounds, upper_bounds,</span>
 <span class="sd">                 plausible_lower_bounds, plausible_upper_bounds), if specified,</span>
 <span class="sd">                 need to be row vectors with D elements.&quot;&quot;&quot;</span>
             <span class="p">)</span>
@@ -707,7 +701,7 @@ title="Open an issue"
             <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">plausible_upper_bounds</span><span class="p">)))</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;All input vectors (x0, lower_bounds, upper_bounds,</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;All input vectors (x0, lower_bounds, upper_bounds,</span>
 <span class="sd">                 plausible_lower_bounds, plausible_upper_bounds), if specified,</span>
 <span class="sd">                 need to be real valued.&quot;&quot;&quot;</span>
             <span class="p">)</span>
@@ -720,21 +714,21 @@ title="Open an issue"
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">fix_idx</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:FixedVariables BADS does not support fixed</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:FixedVariables BADS does not support fixed</span>
 <span class="sd">            variables. Lower and upper bounds should be different.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Test that plausible bounds are different</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">plausible_lower_bounds</span> <span class="o">==</span> <span class="n">plausible_upper_bounds</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:MatchingPB:For all variables,</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:MatchingPB:For all variables,</span>
 <span class="sd">            plausible lower and upper bounds need to be distinct.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Check that all X0 are inside the bounds</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">lower_bounds</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&gt;</span> <span class="n">upper_bounds</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:InitialPointsNotInsideBounds: The starting</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:InitialPointsNotInsideBounds: The starting</span>
 <span class="sd">                points X0 are not inside the provided hard bounds lb and ub.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -757,7 +751,7 @@ title="Open an issue"
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">LB_eff</span> <span class="o">&gt;=</span> <span class="n">UB_eff</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:StrictBoundsTooClose: Hard bounds lb and ub</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBoundsTooClose: Hard bounds lb and ub</span>
 <span class="sd">                are numerically too close. Make them more separate.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -778,7 +772,7 @@ title="Open an issue"
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">ordidx</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
 <span class="sd">            plausible bounds should respect the ordering lb &lt; plb &lt; pub &lt; ub.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -817,7 +811,7 @@ title="Open an issue"
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">ordidx</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
 <span class="sd">            plausible bounds should respect the ordering lb &lt;= plb &lt; pub &lt;= ub.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -830,7 +824,7 @@ title="Open an issue"
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">upper_bounds</span><span class="p">))</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:HalfBounds: Each variable needs to be unbounded or</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:HalfBounds: Each variable needs to be unbounded or</span>
 <span class="sd">            bounded. Variables bounded only below/above are not supported.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -865,7 +859,7 @@ title="Open an issue"
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_init_optim_state_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private function to initialize the optim_state dict that contains information about BADS variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Record starting points (original coordinates)</span>
@@ -875,7 +869,7 @@ title="Open an issue"
                 <span class="n">y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_orig</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sd">&quot;&quot;&quot;bads:MismatchedStartingInputs The number of</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:MismatchedStartingInputs The number of</span>
 <span class="sd">                points in X0 and of their function values as specified in</span>
 <span class="sd">                self.options.fvals are not the same.&quot;&quot;&quot;</span>
                 <span class="p">)</span>
@@ -996,7 +990,7 @@ title="Open an issue"
                 <span class="s2">&quot;Initial starting point u0 is not within the hard bounds lb and ub&quot;</span>
             <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:Initpoint: Initial starting point u0 is not within the hard bounds lb and ub&quot;&quot;&quot;</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:Initpoint: Initial starting point u0 is not within the hard bounds lb and ub&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Report variable transformation</span>
@@ -1037,7 +1031,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">fun_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fun_values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;X&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fun_values</span> <span class="ow">or</span> <span class="s2">&quot;Y&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fun_values</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sd">&quot;&quot;&quot;bads:funvalues: The &#39;FunValue&#39; field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)&quot;&quot;&quot;</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:funvalues: The &#39;FunValue&#39; field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)&quot;&quot;&quot;</span>
                 <span class="p">)</span>
 
             <span class="n">X</span> <span class="o">=</span> <span class="n">fun_values</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span>
@@ -1208,7 +1202,7 @@ title="Open an issue"
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_meanfun&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">valid_gp_meanfuns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;bads:UnknownGPmean:Unknown/unsupported GP mean</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:UnknownGPmean:Unknown/unsupported GP mean</span>
 <span class="sd">            function. Supported mean functions are zero, const,</span>
 <span class="sd">            egquad, and se&quot;&quot;&quot;</span>
             <span class="p">)</span>
@@ -1217,7 +1211,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">optim_state</span>
 
     <span class="k">def</span> <span class="nf">_init_mesh_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private function to initialize the mesh frame and the optimization problem.</span>
 <span class="sd">        It evaluates the initial points, which includes the starting point and the generated point retrieved from a sobol sequence generating method.</span>
 <span class="sd">        The init_mesh also assess if the target function is stochastic and set the parameter of BADS for handling stochastic targets.</span>
@@ -1348,7 +1342,7 @@ title="Open an issue"
         <span class="k">return</span>
 
     <span class="k">def</span> <span class="nf">_init_optimization_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private function initialize the optimization problem.</span>
 <span class="sd">        It calls the init_mesh, sets the option configurations required by BADS, and initializes the Guassian Process (GP)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1446,7 +1440,7 @@ title="Open an issue"
         <span class="p">)</span>
 
 <div class="viewcode-block" id="BADS.optimize"><a class="viewcode-back" href="../../../api/classes/bads.html#pybads.bads.BADS.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the optimization on an initialized ``PyBADS`` object.</span>
 <span class="sd">        </span>
 <span class="sd">        BADS starts at X0 and finds a local minimum X of the</span>
@@ -1831,7 +1825,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">optimize_result</span></div>
     
     <span class="k">def</span> <span class="nf">_search_step_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GP</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private method that performs the search method using hedging search of Evolution Strategy (ES) searches.</span>
 <span class="sd">        It also evaluates the performance of the search (success, unsuccess)</span>
 
@@ -2125,7 +2119,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">u_search</span><span class="p">,</span> <span class="n">search_dist</span><span class="p">,</span> <span class="n">f_mu_search</span><span class="p">,</span> <span class="n">f_sd_search</span><span class="p">,</span> <span class="n">gp</span>
 
     <span class="k">def</span> <span class="nf">_eval_improvement_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_base</span><span class="p">,</span> <span class="n">f_new</span><span class="p">,</span> <span class="n">s_base</span><span class="p">,</span> <span class="n">s_new</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private method that compute the optimization improvement.</span>
 
 <span class="sd">        Returns</span>
@@ -2154,7 +2148,7 @@ title="Open an issue"
         <span class="n">frame_size</span><span class="p">,</span>
         <span class="n">gamma_uncertain_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            A private method that evaluates if the improvement in the candidate incumbent using the uncertain interval method proposed in Sto-MADS [1].</span>
 <span class="sd">        Returns</span>
 <span class="sd">        ----------</span>
@@ -2191,7 +2185,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">_poll_step_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GP</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A private method that performs poll step using the LTMADS poll direction method.</span>
 <span class="sd">        It also evaluates and update the incumbent and the poll parameters (like the ``mesh_size_integer``) according to the found improvement.</span>
 
@@ -2585,7 +2579,7 @@ title="Open an issue"
         <span class="bp">self</span><span class="o">.</span><span class="n">gp_stats</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="s2">&quot;ys&quot;</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="nb">iter</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_is_gp_refit_time_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A private method that checks the calibration of the GP prediction and if a fitting is required.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A private method that checks the calibration of the GP prediction and if a fitting is required.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">func_count</span> <span class="o">&lt;</span> <span class="mi">200</span><span class="p">:</span>
             <span class="n">refit_period</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2678,7 +2672,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">refit_flag</span><span class="p">,</span> <span class="n">do_gp_calibration</span>
 
     <span class="k">def</span> <span class="nf">_get_target_from_gp_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GP</span><span class="p">,</span> <span class="n">hyp_best</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A private method that retrieve the prediction of the gp at the input ``u``.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A private method that retrieve the prediction of the gp at the input ``u``.</span>
 <span class="sd">            If the target function is stochastic then set the optimization target ``f_target`` slightly below the mean prediction.</span>
 
 <span class="sd">        Parameters</span>
@@ -2749,7 +2743,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">lb_search</span><span class="p">,</span> <span class="n">ub_search</span>
 
     <span class="k">def</span> <span class="nf">_update_incumbent_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_new</span><span class="p">,</span> <span class="n">yval_new</span><span class="p">,</span> <span class="n">fval_new</span><span class="p">,</span> <span class="n">fsd_new</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move the incumbent (current point) to a new point.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_new</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -2821,7 +2815,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">search_stats</span>
 
     <span class="k">def</span> <span class="nf">_re_evaluate_history_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GP</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A private method used in the case of a stochastic target function.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A private method used in the case of a stochastic target function.</span>
 <span class="sd">        It updates the predicted values and the variance for each stored GP at each iteration, by computing the posterior on the current training set without refitting the parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;last_re_eval&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">func_count</span><span class="p">:</span>
@@ -2860,7 +2854,7 @@ title="Open an issue"
                 <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_log_column_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Private method to log the column headers for the iteration log.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;cache_active&quot;</span><span class="p">]:</span>
@@ -2878,7 +2872,7 @@ title="Open an issue"
                 <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_setup_logging_display_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Private method to set up the display format for logging the iterations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;cache_active&quot;</span><span class="p">]:</span>

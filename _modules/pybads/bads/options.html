@@ -21,8 +21,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -31,13 +30,8 @@
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script>let toggleHintShow = 'Click to show';</script>
-    <script>let toggleHintHide = 'Click to hide';</script>
-    <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../../_static/togglebutton.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_modules/pybads/bads/options.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -360,7 +354,7 @@ title="Open an issue"
 
 
 <div class="viewcode-block" id="Options"><a class="viewcode-back" href="../../../api/classes/options.html#pybads.bads.Options">[docs]</a><span class="k">class</span> <span class="nc">Options</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class is responsible for Options.</span>
 
 <span class="sd">    Parameters</span>
@@ -386,7 +380,7 @@ title="Open an issue"
         <span class="n">evaluation_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">user_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the options using default options and specified options from</span>
 <span class="sd">        the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -409,7 +403,7 @@ title="Open an issue"
         <span class="n">evaluation_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">other</span><span class="p">:</span> <span class="n">Options</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize an options instance using default options and another options</span>
 <span class="sd">        instance.</span>
 
@@ -443,7 +437,7 @@ title="Open an issue"
 <div class="viewcode-block" id="Options.load_options_file"><a class="viewcode-back" href="../../../api/classes/options.html#pybads.bads.Options.load_options_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_options_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">options_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">evaluation_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load options from an ini file and evaluate them using the specified</span>
 <span class="sd">        ``evaluation_parameters``.</span>
 
@@ -469,7 +463,7 @@ title="Open an issue"
                 <span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span></div>
 
 <div class="viewcode-block" id="Options.validate_option_names"><a class="viewcode-back" href="../../../api/classes/options.html#pybads.bads.Options.validate_option_names">[docs]</a>    <span class="k">def</span> <span class="nf">validate_option_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check that ini files specified by the list of ``options_paths`` contain</span>
 <span class="sd">        the option names from this options object at least once.</span>
 
@@ -514,7 +508,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="nb">dict</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Options.eval"><a class="viewcode-back" href="../../../api/classes/options.html#pybads.bads.Options.eval">[docs]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">evaluation_parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate an option using `evaluation_parameters` if it is a callable,</span>
 <span class="sd">        otherwise return the value of the option.</span>
 
@@ -538,7 +532,7 @@ title="Open an issue"
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the options in a format key: value (description).</span>
 
 <span class="sd">        Returns</span>
@@ -555,7 +549,7 @@ title="Open an issue"
 
 
 <span class="k">def</span> <span class="nf">_read_config_file</span><span class="p">(</span><span class="n">options_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Private helper method to read a config file and return the options as a</span>
 <span class="sd">    list of tuples (key, value, description).</span>
 

@@ -21,8 +21,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -31,13 +30,8 @@
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script>let toggleHintShow = 'Click to show';</script>
-    <script>let toggleHintHide = 'Click to hide';</script>
-    <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../../_static/togglebutton.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_modules/pybads/variable_transformer/variables_transformer.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -356,7 +350,7 @@ title="Open an issue"
 
 
 <div class="viewcode-block" id="VariableTransformer"><a class="viewcode-back" href="../../../api/classes/parameter_transformer.html#pybads.variable_transformer.VariableTransformer">[docs]</a><span class="k">class</span> <span class="nc">VariableTransformer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class enabling linear or non-linear transformation of the bounds (plb and pub) and map them to an hypercube [-1, 1]^D</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
@@ -469,7 +463,7 @@ title="Open an issue"
         <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_hypercube_trans__</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__create_hypercube_trans__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standardize variables via linear or nonlinear transformation.</span>
 <span class="sd">        The standardized transform maps plb and pub to the hypercube [-1,1]^D.</span>
 <span class="sd">        If plb and/or pub are empty, lb and/or ub are used instead. Note that</span>
@@ -581,7 +575,7 @@ title="Open an issue"
         <span class="p">)</span>
 
 <div class="viewcode-block" id="VariableTransformer.__call__"><a class="viewcode-back" href="../../../api/classes/parameter_transformer.html#pybads.variable_transformer.VariableTransformer.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs direct transform of original variables ``input`` into</span>
 <span class="sd">        the hypercube space.</span>
 
@@ -603,7 +597,7 @@ title="Open an issue"
         <span class="k">return</span> <span class="n">y</span></div>
 
 <div class="viewcode-block" id="VariableTransformer.inverse_transf"><a class="viewcode-back" href="../../../api/classes/parameter_transformer.html#pybads.variable_transformer.VariableTransformer.inverse_transf">[docs]</a>    <span class="k">def</span> <span class="nf">inverse_transf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs inverse transform of the transformed variables  ``input`` in the hypercube into</span>
 <span class="sd">        the original space.</span>
 
@@ -627,7 +621,7 @@ title="Open an issue"
 
 
 <span class="k">def</span> <span class="nf">maskindex</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">bool_index</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mask non-indexed elements in vector</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
