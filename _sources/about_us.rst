@@ -18,7 +18,7 @@ Core developers
 Active developers, in order of joining:
 
 - `Luigi Acerbi <https://www2.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people#section-99451>`_, University of Helsinki
-- `Gurjeet Singh <https://gurjeetsinghsangra.github.io/academic/>`_, University of Helsinki
+- `Gurjeet Singh <https://gurjeetsinghsangra.github.io/academic/>`_, University of Geneva
 
 Development team alumni
 -------------------------
