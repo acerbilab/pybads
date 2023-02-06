@@ -2,11 +2,11 @@
 # PyBADS: Bayesian Adaptive Direct Search in Python
 
 ## What is it?
-PyBads is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderate expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
+PyBads is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and mildly expensive optimization problems, originally implemented [in MATLAB](https://github.com/lacerbi/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
 
-In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, such as `fminsearch`, `fmincon`, and `cmaes` as shown in the original paper presented at NeurIPS in 2017 [[1](#references-and-citation)].
+In a benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original paper presented at NeurIPS in 2017 [[1](#references-and-citation)].
 
-BADS requires no specific tuning and runs off-the-shelf like other built-in MATLAB optimizers such as `fminsearch`.
+PyBADS requires no specific tuning and runs off-the-shelf like other Python optimizers (e.g., `scipy.optimize.minimize`).
 
 ## Documentation
 The full documentation is available at: https://acerbilab.github.io/pybads/
@@ -78,28 +78,27 @@ with input arguments:
 
 The outputs are:
 
-- ``optimize_result``: a ``OptimizeResult`` which presents the most important information about the solution and the optimization problem.
-
+- ``optimize_result``: a ``OptimizeResult`` which presents relevant information about the solution and the optimization problem. In particular:
   - ``"x"``: the minimum point found by the optimizer;
   - ``"fval"``: the value of the function at the given solution.
 
-The ``optimize_result`` object can be manipulated in various ways, see the [OptimizeResult](https://acerbilab.github.io/pybads/api/classes/optimize_result.html) class documentation.
+For a full list and description of the entries of the ``optimize_result`` object, see the [OptimizeResult](https://acerbilab.github.io/pybads/api/classes/optimize_result.html) class documentation.
 
-Examples of usages of PyBADS are present in the directory `examples` of the repository, which provides a Tutorial from simple to more complex problems like noisy targets (see [this example notebook](examples/pybads_example_3_noisy_objective.ipynb)).
+Examples of usages of PyBADS are present in the directory `examples` of the repository, which provides a tutorial going from simpler to more complex problems, such as noisy targets (see [this example notebook](examples/pybads_example_3_noisy_objective.ipynb)).
 
-In order to run any of these examples ensure you have followed the installation guideline, then you can run them using the following commands:
+In order to run any of these examples, ensure you have followed the installation guideline; then you can run them using the following commands:
 
 1. Activate the environment: `conda activate pybads-dev`
 2. From the `pybads` folder, run: `python examples/example_file`
 
-In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions) page for practical recommendations, such as how to set `LB` and `UB`, and other practical insights. Although, the FAQ refers to the MATLAB version of BADS, most of the concepts still apply for PyBADS. 
+In addition, checkout the [BADS FAQ](https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions) page for practical recommendations, such as how to set the bounds `LB` and `UB`, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS. 
 
 
 ## References and citation
 
 1. Acerbi, L. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](https://arxiv.org/abs/1705.04405), [NeurIPS Proceedings](https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
 
-You can cite BADS in your work with something along the lines of
+You can cite PyBADS in your work with something along the lines of
 
 > We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017). BADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.
 
@@ -131,4 +130,4 @@ PyBADS is released under the terms of the [BSD 3-Clause License](LICENSE).
 
 ### Acknowledgments
 
-PyBADS was developed from the original MATLAB toolbox by [members](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people) (past and current) of the [Machine and Human Intelligence Lab](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/) at the University of Helsinki. The ongoing Python port is being supported by the Academy of Finland Flagship programme: [Finnish Center for Artificial Intelligence FCAI](https://fcai.fi/).
+PyBADS was developed from the original MATLAB toolbox by [members](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people) (past and current) of the [Machine and Human Intelligence Lab](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/) at the University of Helsinki. The Python port was partially supported by the Academy of Finland Flagship programme: [Finnish Center for Artificial Intelligence FCAI](https://fcai.fi/).
