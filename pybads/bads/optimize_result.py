@@ -142,7 +142,7 @@ class OptimizeResult(dict):
         ] = None  # TODO: PyBADS does not receive seed as input right now
         self[
             "version"
-        ] = "0.0.1"  # TODO: Retrieve the version from setup.py, or define it somewhere in BADS class.
+        ] = "0.8.0"  # TODO: Retrieve the version from setup.py, or define it somewhere in BADS class.
         # version = pkg_resources.require("pybads")[0].version
         self["message"] = bads.optim_state["termination_msg"]
 
