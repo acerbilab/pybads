@@ -11,6 +11,8 @@ from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from pybads.search.search_hedge import ESSearchHedge
 from pybads.bads.options import Options
 
+from pybads.bads.option_configs import get_pybads_option_dir_path
+
 def test_incumbent_constraint_check():
     D = 3
     U = np.random.normal(size=(10, D))
@@ -40,13 +42,13 @@ def test_incumbent_constraint_check():
 def load_options(D, path_dir):
     """Load basic and advanced options and validate the names"""
     pybads_path = path_dir
-    basic_path = pybads_path + "/option_configs/basic_bads_options.ini"
+    basic_path = pybads_path + "/basic_bads_options.ini"
     options = Options(
         basic_path,
         evaluation_parameters={"D": D},
         user_options=None,
     )
-    advanced_path = pybads_path + "/option_configs/advanced_bads_options.ini"
+    advanced_path = pybads_path + "/advanced_bads_options.ini"
     options.load_options_file(
         advanced_path,
         evaluation_parameters={"D": D},
@@ -92,13 +94,12 @@ def test_search_selection_mask():
     lamb = 2048
     options = load_options(
         D,
-        "./pybads/bads",
+        get_pybads_option_dir_path(),
     )
     search_es = ESSearchWM(mu, lamb, options)
     mask = search_es._get_selection_idx_mask_(mu, lamb)
     assert np.sum(mask) == 885072
     assert np.min(mask + 1) == 1
-
 
 def test_search_hedge():
 
