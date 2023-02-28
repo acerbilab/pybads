@@ -3,7 +3,6 @@ import math
 import traceback
 from asyncio.log import logger
 from copy import deepcopy
-from turtle import width
 
 import gpyreg as gpr
 import numpy as np
