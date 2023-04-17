@@ -4,7 +4,7 @@ About us
 
 PyBADS is an open-source Python software for resource-efficient optimization problems.
 
-The development of PyBADS has been partly funded by the `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+The development of PyBADS has been supported by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 
 Development team
