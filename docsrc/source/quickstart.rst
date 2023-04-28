@@ -36,12 +36,12 @@ with input arguments:
 
 The outputs are:
 
-- ``optimize_result``: a ``OptimizeResult`` which presents the most important information about the solution and the optimization problem. In particular:
+- ``optimize_result``: an ``OptimizeResult`` which presents the most important information about the solution and the optimization problem. In particular:
 
   - ``"x"``: the minimum point found by the optimizer;
   - ``"fval"``: the value of the function at the given solution.
 
-The ``optimize_result`` object contains more information about the optimization solution, see the :ref:`OptimizeResult` class documentation.
+The ``optimize_result`` object contains more information about the optimization solution, see the :ref:`\`\`OptimizeResult\`\`` class documentation.
 
 See the examples for more detailed information. The :ref:`Basic options` may also be useful.
 

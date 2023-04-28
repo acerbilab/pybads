@@ -1,5 +1,5 @@
 ==========
-decorators
+Decorators
 ==========
 
 handle_0D_1D_input

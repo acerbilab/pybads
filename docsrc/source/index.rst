@@ -18,7 +18,7 @@ BADS requires no specific tuning and runs off-the-shelf similarly to other Pytho
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
 
 How does it work?
------------
+-----------------
 
 PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**). 
 
@@ -49,26 +49,16 @@ BADS is particularly recommended when:
 - the gradient is unavailable (black-box function);
 - the number of input parameters is up to about `D = 20` or so.
 
-Documentation
+How-to
 #############
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :titlesonly:
 
    installation
    quickstart
-   api/classes/bads
-   api/classes/optimize_result
-   api/advanced_docs
-
-Examples
-########
-.. toctree::
-   :maxdepth: 1
-   :titlesonly:
-   :glob:
-
-   _examples/*
+   examples
+   documentation
 
 Contributing
 ############
