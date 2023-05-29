@@ -44,28 +44,30 @@ class BADS:
     Parameters
     ----------
     fun : callable
-        A given target `fun`. `fun` accepts input `x` and returns a scalar function
-        value of the target evaluated at 'x' and the noise if provided.
+        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar function
+        value of the target evaluated at `'x'` and the noise if provided.
+        In case the target function ``fun`` requires additional data/parameters, they can be handled using an anonymous function.
+        For example: ```fun_for_pybads = lambda x: fun(x, data, extra_params)```, where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` are given in the outer scope.
     x0 : np.ndarray, optional
         Starting point.
     lower_bounds, upper_bounds : np.ndarray, optional
-        `lower_bounds` (`lb`) and `upper_bounds` (`ub`) define a set
-        of strict lower and upper bounds for the coordinate vector, `x`, so
-        that the unknown function has support on `lb` < `x` < `ub`.
+        `lower_bounds` (``lb``) and `upper_bounds` (``ub``) define a set
+        of strict lower and upper bounds for the coordinate vector, ``x``, so
+        that the unknown function has support on ``lb`` < ``x`` < ``ub``.
         If scalars, the bound is replicated in each dimension. Use
-        ``None`` for `lb` and `ub` if no bounds exist. Set `lb` [`i`] = -``inf``
-        and `ub` [`i`] = ``inf`` if the `i`-th coordinate is unbounded (while
-        other coordinates may be bounded). Note that if `lb` and `ub` contain
-        unbounded variables, the respective values of `plb` and `pub` need to
+        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set ```lb[i] = -inf```
+        and ```ub [i] = inf``` if the `i`-th coordinate is unbounded (while
+        other coordinates may be bounded). Note that if ``lb`` and ``ub`` contain
+        unbounded variables, the respective values of ``plb`` and ``pub`` need to
         be specified (see below), by default ``None``.
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
-        Specifies a set of `plausible_lower_bounds` (`plb`) and
-        `plausible_upper_bounds` (`pub`) such that `lb` < `plb` < `pub` < `ub`.
-        Both `plb` and `pub` need to be finite. `plb` and `pub` represent a
+        Specifies a set of `plausible_lower_bounds` (``plb``) and
+        `plausible_upper_bounds` (``pub``) such that ``lb`` < ``plb`` < ``pub`` < ``ub``.
+        Both ``plb`` and ``pub`` need to be finite. ``plb`` and ``pub`` represent a
         "plausible" range, which should denote a region of the global minimum.
         As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that
         there is > 90% probability that the minimum is found within the box
-        (where in doubt, just set `plb`=`lb` and `pub`=`ub`).
+        (where in doubt, just set ``plb``=``lb`` and ``pub``=``ub``).
 
     non_box_cons: callable, optional
         A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)>1``
