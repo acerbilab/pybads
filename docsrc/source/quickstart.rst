@@ -43,6 +43,25 @@ The outputs are:
 
 The ``optimize_result`` object contains more information about the optimization solution, see the :ref:`\`\`OptimizeResult\`\`` class documentation.
 
-See the examples for more detailed information. The :ref:`Basic options` may also be useful.
+**Additional data/parameters in the target function?**
+
+In case the ``target`` function requires additional data/parameters, they can be easily handled using an anonymous function. For example:
+
+.. code-block:: python
+
+  data = None # define your data
+  extra_params = None # define your function-specific parameters
+
+  def fun_for_pybads(x):
+    return fun(x, data, extra_params)
+
+  # Pass fun_for_pybads to PyBADS
+
+where ``fun`` is the function to optimize, note that ``fun_for_pybads`` only depends on ``x`` now, ``data`` and ``extra_params`` are given in the outer scope.
+
+Examples & FAQ
+=================
+
+See the :ref:`Examples` for more detailed information. The :ref:`Basic options` may also be useful.
 
 In addition, checkout the `BADS FAQ <https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions>`__ page for practical recommendations, such as how to set `lb` and `ub`, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS.
