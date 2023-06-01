@@ -1047,7 +1047,7 @@ def get_grid_search_neighbors(
     )
 
     # Up to the maximum number of available points
-    ntrain = np.minimum(ntrain, function_logger.X_max_idx)
+    ntrain = np.minimum(ntrain, function_logger.X_max_idx +1)
     optim_state["ntrain"] = ntrain
     # Take points closest to reference points
     res_S = None
