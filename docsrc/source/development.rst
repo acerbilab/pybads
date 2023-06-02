@@ -11,7 +11,7 @@ The documentation is available at: https://acerbilab.github.io/pybads/
 Installation instructions for developers
 ########################################
 
-Release versions of PyBADS are available via ``pip`` (and soon, ``conda-forge``), but developers will need to work with the latest source code. They should follow these steps to install:
+Release versions of PyBADS are available via ``pip`` and ``conda-forge``, but developers will need to work with the latest source code. They should follow these steps to install:
 
 1. (Optional, but recommended for development): Create a new environment in Conda and activate it. Requires Python 3.9 or newer::
 
@@ -27,9 +27,9 @@ Release versions of PyBADS are available via ``pip`` (and soon, ``conda-forge``)
 3. Install the packages and their optional development dependencies::
 
      cd ./gpyreg
-     pip install -e '.[dev]'
+     pip install -e ".[dev]"
      cd ../pybads
-     pip install -e '.[dev]'
+     pip install -e ".[dev]"
 
 4. Install Jupyter to view the examples You can skip this step if you're working from a Conda environment which already has Jupyter, but be aware that if the wrong ``jupyter`` executable is found on your path then import errors may arise. ::
 

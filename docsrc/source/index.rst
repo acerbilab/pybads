@@ -2,20 +2,20 @@
 PyBADS
 ******
 
-PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, originally implemented :labrepos:`in MATLAB <bads>`.
+PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, previously implemented :labrepos:`in MATLAB <bads>`.
 
 What is it?
 ###########
 
 BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to fitting computational models (e.g., `via maximum likelihood estimation <https://en.wikipedia.org/wiki/Maximum_likelihood_estimation>`__).
 
-BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications).
+BADS has been intensively tested for model fitting in science and engineering and is currently used in many computational labs around the world (see `Google Scholar <https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en>`__ for many example applications).
 
-In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper (`Acerbi and Ma, 2017 <#references>`_).
+In our benchmark with real model-fitting problems from computational and cognitive neuroscience, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper (`Acerbi and Ma, 2017 <#references>`_).
 
-BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in `scipy.optimize.minimize`.
+BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in ``scipy.optimize.minimize``.
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
 
 How does it work?
 -----------------
@@ -23,7 +23,7 @@ How does it work?
 PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**). 
 
 - In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise. 
-- In the **search** stage, a `Gaussian process <https://en.wikipedia.org/wiki/Gaussian_process>`__ (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
+- In the **search** stage, a `Gaussian process <https://distill.pub/2019/visual-exploration-gaussian-processes/>`__ (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
 .. image:: _static/bads-cartoon.png
     :align: center
