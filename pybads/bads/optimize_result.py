@@ -1,5 +1,8 @@
 import copy
 
+import toml
+from setuptools_scm import get_version
+
 import numpy as np
 
 class OptimizeResult(dict):
@@ -131,19 +134,16 @@ class OptimizeResult(dict):
         self["fval"] = bads.fval
         self["fsd"] = bads.fsd
         self["total_time"] = bads.optim_state["total_time"]
+        
+        self["random_seed"] = bads.optim_state["rng_seed"]
 
-        # self['version'] = bads.version   # part of setuptools version = pkg_resources.require("MyProject")[0].version
-        #'status',
+
+        version_value = get_version()
+        self["version"] = version_value
+        
         self[
             "success"
         ] = True  # TODO: In our case when an error occurs, the application just stops.
-        self[
-            "random_seed"
-        ] = None  # TODO: PyBADS does not receive seed as input right now
-        self[
-            "version"
-        ] = "0.8.0"  # TODO: Retrieve the version from setup.py, or define it somewhere in BADS class.
-        # version = pkg_resources.require("pybads")[0].version
         self["message"] = bads.optim_state["termination_msg"]
 
     def __getattr__(self, name):

@@ -30,7 +30,7 @@ def contraints_check(
     _, idx_sort = np.unique(U_new, axis=0, return_index=True)
     U_new = U_new[np.sort(idx_sort), :]
 
-    # Remove previously evaluated vectors (within TolMesh)
+    # Remove previously evaluated vectors (within tol_mesh)
     if U_new.size > 0:
         tol = tol_mesh / 2.0
         u1 = np.round(U_new / tol)
