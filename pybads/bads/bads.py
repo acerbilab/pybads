@@ -85,6 +85,7 @@ class BADS:
                     provide to BADS an estimate of the noise at each location.
         If ``options.uncertainty_handling`` is not specified, BADS will determine at
         runtime if the objective function is noisy.
+        To reproduce reproducible results of the optimization, set ``options.rng_seed`` to a fixed value integer value.
 
     Raises
     ------
@@ -1011,6 +1012,7 @@ class BADS:
             # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
             self.optim_state["rng_seed"] = int(self.options["rng_seed"])
             np.random.seed(self.optim_state["rng_seed"])
+            self.logger.info(f"Random seed set to {self.optim_state['rng_seed']}")
         else:
             self.optim_state["rng_seed"] = None
         
