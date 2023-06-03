@@ -1,6 +1,5 @@
 import copy
 
-import toml
 from setuptools_scm import get_version
 
 import numpy as np
