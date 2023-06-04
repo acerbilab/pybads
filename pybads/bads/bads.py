@@ -2286,6 +2286,10 @@ class BADS:
                 .flatten()
                 .astype("float")
             )
+            # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
+            idx_zero_gp_ys = np.where(np.isclose(0., gp_ys))[0]
+            gp_ys[idx_zero_gp_ys] = 1e-6
+            
             zscore = zscore / gp_ys
 
             if np.any(np.isnan(zscore)):
