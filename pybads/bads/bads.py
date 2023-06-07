@@ -45,7 +45,7 @@ class BADS:
     ----------
     fun : callable
         A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar function
-        value of the target evaluated at `'x'` and the noise if provided.
+        value of the target evaluated at ``x`` and the noise if provided.
         In case the target function ``fun`` requires additional data/parameters, they can be handled using an anonymous function.
         For example: ```fun_for_pybads = lambda x: fun(x, data, extra_params)```, where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` are given in the outer scope.
     x0 : np.ndarray, optional
