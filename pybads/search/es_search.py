@@ -22,7 +22,7 @@ class ESSearch(ABC):
         self.lamb = lamb
         self.vec = np.array([-1, 0])
         self.w = (
-            options_dict["pollmeshmultiplier"] ** self.vec
+            options_dict["poll_mesh_multiplier"] ** self.vec
         )  # helps with the stability
         self.ns = np.diff(
             np.round(np.linspace(0, self.mu, np.size(self.w) + 1)).astype(int)

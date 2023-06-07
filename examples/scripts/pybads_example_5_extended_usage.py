@@ -36,7 +36,7 @@ fval_vec = np.zeros(num_opts)
 
 for opt_count in range(num_opts):
     print('Running optimization ' + str(opt_count) + '...')
-    options['rng_seed'] = opt_count
+    options['random_seed'] = opt_count
     bads = BADS(
         camelback6, None, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, options=options
     )

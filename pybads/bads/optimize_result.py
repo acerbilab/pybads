@@ -135,7 +135,7 @@ class OptimizeResult(dict):
         self["fsd"] = bads.fsd
         self["total_time"] = bads.optim_state["total_time"]
         
-        self["random_seed"] = bads.optim_state["rng_seed"]
+        self["random_seed"] = bads.optim_state["random_seed"]
 
         try:
             __version__ = version("pybads")

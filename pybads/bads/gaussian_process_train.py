@@ -1085,7 +1085,7 @@ def _get_fevals_data(function_logger: FunctionLogger):
     else:
         s2 = None
 
-    # Missing port: noiseshaping
+    # Missing port: noise_shaping
 
     evals_time = function_logger.fun_eval_time[function_logger.X_flag]
 

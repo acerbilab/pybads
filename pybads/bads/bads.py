@@ -77,15 +77,15 @@ class BADS:
         BADS options page for the default options. If no `options` are
         passed, the default options are used.
         To run BADS on a noisy (stochastic) objective function, set:
-            * ``options.uncertainty_handling`` = ``True``
-            * ``options.noise_size`` = SIGMA
+            * ``options['uncertainty_handling']`` = ``True``
+            * ``options['noise_size']`` = SIGMA
                 *  SIGMA is an estimate of the SD of the noise in your problem in
                     a good region of the parameter space. (If not specified, default
                     SIGMA = 1). To help BADS work better, it is recommended that you
                     provide to BADS an estimate of the noise at each location.
-        If ``options.uncertainty_handling`` is not specified, BADS will determine at
+        If ``options['uncertainty_handling']`` is not specified, BADS will determine at
         runtime if the objective function is noisy.
-        To reproduce reproducible results of the optimization, set ``options.rng_seed`` to a fixed value integer value.
+        To reproduce reproducible results of the optimization, set ``options['random_seed']`` to a fixed value integer value.
 
     Raises
     ------
@@ -171,6 +171,9 @@ class BADS:
         if self.options["stobads"] is None or self.options["stobads"] == False:
             self.options["stobads"] = False
 
+        # set up random seed
+        self._init_random_seed_()
+
         # set up BADS logger
         self.logger = logging.getLogger("BADS")
         self.logger.setLevel(logging.INFO)
@@ -236,7 +239,7 @@ class BADS:
             uncertainty_handling_level=self.optim_state.get(
                 "uncertainty_handling_level"
             ),
-            cache_size=self.options.get("cachesize"),
+            cache_size=self.options.get("cache_size"),
             variable_transformer=self.var_transf,
         )
 
@@ -264,6 +267,8 @@ class BADS:
                 "logging_action",
             ]
         )
+        print(f"Random seed: {self._random_seed}")
+        print(self.x0)
 
     def _bounds_check_(
         self,
@@ -528,12 +533,13 @@ class BADS:
                 raise ValueError(
                     """bads:MismatchedStartingInputs The number of
                 points in X0 and of their function values as specified in
-                self.options.fvals are not the same."""
+                self.options.['fvals'] are not the same."""
                 )
         else:
             y_orig = np.full([self.x0.shape[0]], np.nan)
 
         optim_state = dict()
+        optim_state["random_seed"] = self._random_seed
         optim_state["cache"] = dict()
         optim_state["cache"]["x_orig"] = self.x0
         optim_state["cache"]["y_orig"] = y_orig
@@ -550,16 +556,16 @@ class BADS:
         ]  # Mesh size in log base units
         optim_state["search_size_integer"] = np.minimum(
             0,
-            self.mesh_size_integer * self.options.get("searchgridmultiplier")
-            - self.options.get("searchgridnumber"),
+            self.mesh_size_integer * self.options.get("search_grid_multiplier")
+            - self.options.get("search_grid_number"),
         )
         optim_state["mesh_size"] = (
-            float(self.options.get("pollmeshmultiplier"))
+            float(self.options.get("poll_mesh_multiplier"))
             ** self.mesh_size_integer
         )
         self.mesh_size = optim_state["mesh_size"]
         optim_state["search_mesh_size"] = (
-            float(self.options.get("pollmeshmultiplier"))
+            float(self.options.get("poll_mesh_multiplier"))
             ** optim_state["search_size_integer"]
         )
         self.search_mesh_size = optim_state["search_mesh_size"]
@@ -658,10 +664,10 @@ class BADS:
 
         # Put tol_mesh on space
         optim_state["tol_mesh"] = self.options[
-            "pollmeshmultiplier"
+            "poll_mesh_multiplier"
         ] ** np.ceil(
             np.log(self.options["tol_mesh"])
-            / np.log(self.options["pollmeshmultiplier"])
+            / np.log(self.options["poll_mesh_multiplier"])
         )
 
         # Periodic variables
@@ -684,11 +690,11 @@ class BADS:
         # Setup covariance information (unused)
 
         # Import prior function evaluations
-        fun_values = self.options["funvalues"]
+        fun_values = self.options["fun_values"]
         if fun_values is not None and len(fun_values) != 0:
             if "X" not in fun_values or "Y" not in fun_values:
                 raise ValueError(
-                    """bads:funvalues: The 'FunValue' field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)"""
+                    """bads:fun_values: The 'fun_values' field in options need to have X and Y fields (respectively, inputs and their function values)"""
                 )
 
             X = fun_values["X"]
@@ -696,7 +702,7 @@ class BADS:
 
             if len(X) != len(Y):
                 raise ValueError(
-                    "X and Y arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point)."
+                    "X and Y arrays in the options['fun_values'] need to have the same number of rows (each row is a tested point)."
                 )
             if (
                 (not np.all(np.isfinite(X)))
@@ -722,7 +728,7 @@ class BADS:
                 S = fun_values["S"]
                 if len(S) != len(Y):
                     raise ValueError(
-                        "X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point)."
+                        "X, Y, and S arrays in the options['fun_values'] need to have the same number of rows (each row is a tested point)."
                     )
                 S = np.atleast_2d(S).T
                 if len(S) != 0 and S.shape[1] != 1:
@@ -785,8 +791,8 @@ class BADS:
             and self.options["uncertainty_handling"] == False
         ):
             raise ValueError(
-                "If options.specify_target_noise is ON, options.uncertainty_handling should be ON as well. \
-                                Leave options.uncertainty_handling empty or set it to ON to avoid this error."
+                "If options['specify_target_noise'] is True, options['uncertainty_handling'] should be True as well. \
+                                Leave options['uncertainty_handling'] empty or set it to True to avoid this error."
             )
         if (
             self.options["specify_target_noise"]
@@ -794,8 +800,8 @@ class BADS:
             and np.array(self.options["noise_size"] > 0)[0]
         ):
             self.logger.warn(
-                "If options.specify_target_noise is ON, options.noise_size is ignored. \
-                Leave options.noise_size empty or set it to 0 to silence this warning."
+                "If options['specify_target_noise'] is True, options['noise_size'] is ignored. \
+                Leave options['noise_size'] empty or set it to 0 to silence this warning."
             )
 
         # Set uncertainty handling level
@@ -811,7 +817,7 @@ class BADS:
             optim_state["uncertainty_handling_level"] = 0
 
         # Empty hedge struct for acquisition functions
-        if self.options.get("acqhedge"):
+        if self.options.get("acq_hedge"):
             optim_state["acq_hedge"] = dict()
 
         # List of points at the end of each iteration
@@ -836,7 +842,7 @@ class BADS:
             optim_state["gp_noisefun"] = [1, 1, 0]
 
         if (
-            self.options.get("noiseshaping")
+            self.options.get("noise_shaping")
             and optim_state["gp_noisefun"][1] == 0
         ):
             optim_state["gp_noisefun"][1] = 1
@@ -866,6 +872,18 @@ class BADS:
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 
         return optim_state
+
+    def _init_random_seed_(self):
+        # set random seed if provided
+        if "random_seed" in self.options and \
+            self.options["random_seed"] is not None:
+            # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
+            random_seed = int(self.options["random_seed"])
+            np.random.seed(random_seed)
+        else:
+            random_seed = None
+        self._random_seed = random_seed
+        return random_seed
 
     def _init_mesh_(self):
         """
@@ -933,7 +951,7 @@ class BADS:
         self._display_function_log_(0, "")
 
         if self.options["fun_eval_start"] > 0:
-            # Evaluate initial points but not more than options.max_fun_evals
+            # Evaluate initial points but not more than options['max_fun_evals']
             fun_eval_start = np.minimum(
                 self.options["fun_eval_start"],
                 self.options["max_fun_evals"] - 1,
@@ -1007,14 +1025,7 @@ class BADS:
         self.reset_gp = False
         hyp_dict = {}
         # set random seed if provided
-        if "rng_seed" in self.options and \
-            self.options["rng_seed"] is not None:
-            # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
-            self.optim_state["rng_seed"] = int(self.options["rng_seed"])
-            np.random.seed(self.optim_state["rng_seed"])
-            self.logger.info(f"Random seed set to {self.optim_state['rng_seed']}")
-        else:
-            self.optim_state["rng_seed"] = None
+        self.optim_state["random_seed"] = self._init_random_seed_()
         
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
@@ -1136,6 +1147,8 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
+        print(f"Random seed: {self.optim_state['random_seed']}")
+        print(self.x0)
         self.search_es_hedge = None  # init search hedge to None
 
         if self.options["outputfcn"] is not None:
@@ -1155,7 +1168,7 @@ class BADS:
             )
 
             # Compute mesh size and search mesh size
-            self.mesh_size = self.options["pollmeshmultiplier"] ** (
+            self.mesh_size = self.options["poll_mesh_multiplier"] ** (
                 self.mesh_size_integer
             )
             self.optim_state["mesh_size"] = self.mesh_size
@@ -1164,12 +1177,12 @@ class BADS:
                 self.optim_state["search_size_integer"] = np.minimum(
                     0,
                     self.mesh_size_integer
-                    * self.options["searchgridmultiplier"]
-                    - self.options["searchgridnumber"],
+                    * self.options["search_grid_multiplier"]
+                    - self.options["search_grid_number"],
                 )
 
             self.optim_state["search_mesh_size"] = (
-                self.options["pollmeshmultiplier"]
+                self.options["poll_mesh_multiplier"]
                 ** self.optim_state["search_size_integer"]
             )
             self.search_mesh_size = self.optim_state["search_mesh_size"]
@@ -1271,17 +1284,17 @@ class BADS:
             ):
                 is_finished = True
                 # exit_flag = 0
-                msg = "Optimization terminated: reached maximum number of function evaluations options.max_fun_evals."
+                msg = "Optimization terminated: reached maximum number of function evaluations options['max_fun_evals']."
 
             if poll_iteration >= self.options["max_iter"] - 1:
                 is_finished = True
                 # exit_flag = 0
-                msg = "Optimization terminated: reached maximum number of iterations options.max_iter."
+                msg = "Optimization terminated: reached maximum number of iterations options['max_iter']."
 
             if self.optim_state["mesh_size"] < self.optim_state["tol_mesh"]:
                 is_finished = True
                 # exit_flag = 1
-                msg = "Optimization terminated: change in the function value less than options.tol_mesh"
+                msg = "Optimization terminated: change in the function value less than options['tol_mesh']"
 
             # Historic improvement
             if poll_iteration > self.options["tolstalliters"] - 1:
@@ -1299,7 +1312,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options["tol_fun"]:
                     is_finished = True
                     exit_flag = 2
-                    msg = "Optimization terminated: change in the function value less than options.tol_fun."
+                    msg = "Optimization terminated: change in the function value less than options['tol_fun']."
 
             self.optim_state["termination_msg"] = msg
 
@@ -1729,7 +1742,7 @@ class BADS:
 
         # A search improvement implies an update of the incumbent
         if is_search_improved:
-            if self.options["acqhedge"]:
+            if self.options["acq_hedge"]:
                 # Acquisition hedge (acquisition portfolio) not supported yet
                 pass
             else:
@@ -2191,8 +2204,8 @@ class BADS:
 
             self.optim_state["search_size_integer"] = np.minimum(
                 self.optim_state["search_size_integer"],
-                self.mesh_size_integer * self.options["searchgridmultiplier"]
-                - self.options["searchgridnumber"],
+                self.mesh_size_integer * self.options["search_grid_multiplier"]
+                - self.options["search_grid_number"],
             )
 
             # TODO: Profile plot iteration
@@ -2201,7 +2214,7 @@ class BADS:
 
         # Update mesh size
         self.mesh_size = (
-            self.options["pollmeshmultiplier"] ** self.mesh_size_integer
+            self.options["poll_mesh_multiplier"] ** self.mesh_size_integer
         )
         self.optim_state["mesh_size"] = self.mesh_size
 
