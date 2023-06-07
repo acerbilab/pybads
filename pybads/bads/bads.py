@@ -267,8 +267,6 @@ class BADS:
                 "logging_action",
             ]
         )
-        print(f"Random seed: {self._random_seed}")
-        print(self.x0)
 
     def _bounds_check_(
         self,
@@ -1147,8 +1145,7 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
-        print(f"Random seed: {self.optim_state['random_seed']}")
-        print(self.x0)
+        
         self.search_es_hedge = None  # init search hedge to None
 
         if self.options["outputfcn"] is not None:
