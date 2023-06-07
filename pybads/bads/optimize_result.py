@@ -1,6 +1,7 @@
 import copy
 
-from setuptools_scm import get_version
+from importlib.metadata import version, PackageNotFoundError
+import logging
 
 import numpy as np
 
@@ -136,9 +137,15 @@ class OptimizeResult(dict):
         
         self["random_seed"] = bads.optim_state["rng_seed"]
 
-
-        version_value = get_version()
-        self["version"] = version_value
+        try:
+            __version__ = version("pybads")
+        except PackageNotFoundError:
+            # package is not installed
+            __version__ = None
+            logger = logging.getLogger("BADS")
+            logger.warning("Cannot read version number from package metadata.")
+            
+        self["version"] = __version__
         
         self[
             "success"

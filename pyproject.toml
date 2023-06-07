@@ -19,7 +19,6 @@ dependencies = [
     "pytest-mock >= 3.6.1",
     "pytest-rerunfailures >= 10.2",
     "scipy >= 1.7.3",
-    "setuptools_scm >= 6.2",
 ]
 requires-python = ">=3.9"
 
@@ -67,3 +66,4 @@ profile = "black"
 all = true
 
 [tool.setuptools_scm]
+write_to = "pybads/_version.py"
