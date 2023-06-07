@@ -1,4 +1,5 @@
-import numpy as np
+from importlib.metadata import version, PackageNotFoundError
+import pytest
 
-from pybads import BADS
-from pybads.function_examples import rosenbrocks_fcn
+def test_version():
+    __version__ = version("pybads")
