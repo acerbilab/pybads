@@ -85,6 +85,7 @@ class BADS:
                     provide to BADS an estimate of the noise at each location.
         If ``options.uncertainty_handling`` is not specified, BADS will determine at
         runtime if the objective function is noisy.
+        To reproduce reproducible results of the optimization, set ``options.rng_seed`` to a fixed value integer value.
 
     Raises
     ------
@@ -283,7 +284,7 @@ class BADS:
         if plausible_lower_bounds is None or plausible_upper_bounds is None:
             if N0 > 1:
                 self.logger.warning(
-                    "plb and/or pub not specified. Estimating"
+                    "plausible_lower_bounds and/or plausible_upper_bounds not specified. Estimating"
                     + "plausible bounds from starting set X0..."
                 )
                 width = x0.max(0) - x0.min(0)
@@ -309,8 +310,8 @@ class BADS:
                     )
             else:
                 self.logger.warning(
-                    "bads:pbUnspecified: Plausible lower/upper bounds plb and"
-                    "/or pub not specified and X0 is not a valid starting set. "
+                    "bads:pbUnspecified: Plausible lower/upper bounds"
+                    " not specified and X0 is not a valid starting set. "
                     + "Using hard upper/lower bounds instead."
                 )
                 if plausible_lower_bounds is None:
@@ -345,7 +346,7 @@ class BADS:
             np.invert(np.isfinite(plausible_upper_bounds))
         ):
             raise ValueError(
-                "Plausible interval bounds plb and pub need to be finite."
+                "Plausible interval bounds plausible_lower_bounds and plausible_upper_bounds need to be finite."
             )
 
         # Test that all vectors are real-valued
@@ -385,7 +386,7 @@ class BADS:
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
-                points X0 are not inside the provided hard bounds lb and ub."""
+                points X0 are not inside the provided hard bounds lower_bounds and upper_bounds."""
             )
 
         # # Compute "effective" bounds (slightly inside provided hard bounds)
@@ -407,7 +408,7 @@ class BADS:
 
         if np.any(LB_eff >= UB_eff):
             raise ValueError(
-                """bads:StrictBoundsTooClose: Hard bounds lb and ub
+                """bads:StrictBoundsTooClose: Hard bounds lower_bounds and upper_bounds
                 are numerically too close. Make them more separate."""
             )
 
@@ -415,7 +416,7 @@ class BADS:
         if np.any(x0 < LB_eff) or np.any(x0 > UB_eff):
             self.logger.warning(
                 "bads:InitialPointsTooClosePB: The starting points X0 are on "
-                + "or numerically too close to the hard bounds lb and ub. "
+                + "or numerically too close to the hard bounds lower_bounds and upper_bounds. "
                 + "Moving the initial points more inside..."
             )
             x0 = np.maximum((np.minimum(x0, UB_eff)), LB_eff)
@@ -429,7 +430,7 @@ class BADS:
         if np.any(np.invert(ordidx)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering lb < plb < pub < ub."""
+            plausible bounds should respect the ordering lower_bounds < plausible_lower_bounds < plausible_upper_bounds < upper_bounds."""
             )
 
         # Test that plausible bounds are reasonably separated from hard bounds
@@ -449,8 +450,8 @@ class BADS:
         if np.any(x0 <= LB_eff) or np.any(x0 >= UB_eff):
             self.logger.warning(
                 "bads:InitialPointsOutsidePB. The starting points X0"
-                + " are not inside the provided plausible bounds plb and "
-                + "pub. Expanding the plausible bounds..."
+                + " are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds)."
+                + " Expanding the plausible bounds..."
             )
             plausible_lower_bounds = np.minimum(
                 plausible_lower_bounds, x0.min(0)
@@ -468,7 +469,7 @@ class BADS:
         if np.any(np.invert(ordidx)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering lb <= plb < pub <= ub."""
+            plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
             )
 
         # Check that variables are either bounded or unbounded
@@ -643,10 +644,10 @@ class BADS:
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
             self.logger.error(
-                "Initial starting point u0 is not within the hard bounds lb and ub"
+                "Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"
             )
             raise ValueError(
-                """bads:Initpoint: Initial starting point u0 is not within the hard bounds lb and ub"""
+                """bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"""
             )
 
         # Report variable transformation
@@ -655,11 +656,11 @@ class BADS:
                 f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}"
             )
 
-        # Put TOLMESH on space
+        # Put tol_mesh on space
         optim_state["tol_mesh"] = self.options[
             "pollmeshmultiplier"
         ] ** np.ceil(
-            np.log(self.options["tolmesh"])
+            np.log(self.options["tol_mesh"])
             / np.log(self.options["pollmeshmultiplier"])
         )
 
@@ -1005,7 +1006,16 @@ class BADS:
         gp = None
         self.reset_gp = False
         hyp_dict = {}
-
+        # set random seed if provided
+        if "rng_seed" in self.options and \
+            self.options["rng_seed"] is not None:
+            # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
+            self.optim_state["rng_seed"] = int(self.options["rng_seed"])
+            np.random.seed(self.optim_state["rng_seed"])
+            self.logger.info(f"Random seed set to {self.optim_state['rng_seed']}")
+        else:
+            self.optim_state["rng_seed"] = None
+        
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
 
@@ -1050,7 +1060,7 @@ class BADS:
 
         else:
             if self.options["noise_size"] is None:
-                self.options["noise_size"] = np.sqrt(self.options["tolfun"])
+                self.options["noise_size"] = np.sqrt(self.options["tol_fun"])
             self.fsd = 0.0
             # Since the function is fully-deterministic no need of stobads
             if self.options["stobads"]:
@@ -1176,7 +1186,7 @@ class BADS:
             )
             if self.options["sloppyimprovement"]:
                 self.sufficient_improvement = np.maximum(
-                    self.sufficient_improvement, self.options["tolfun"]
+                    self.sufficient_improvement, self.options["tol_fun"]
                 )
 
             self.optim_state[
@@ -1271,7 +1281,7 @@ class BADS:
             if self.optim_state["mesh_size"] < self.optim_state["tol_mesh"]:
                 is_finished = True
                 # exit_flag = 1
-                msg = "Optimization terminated: mesh size less than options.tolmesh."
+                msg = "Optimization terminated: change in the function value less than options.tol_mesh"
 
             # Historic improvement
             if poll_iteration > self.options["tolstalliters"] - 1:
@@ -1286,10 +1296,10 @@ class BADS:
                     self.options["improvementquantile"],
                 )
 
-                if self.f_q_historic_improvement < self.options["tolfun"]:
+                if self.f_q_historic_improvement < self.options["tol_fun"]:
                     is_finished = True
                     exit_flag = 2
-                    msg = "Optimization terminated: change in the function value less than options.TolFun."
+                    msg = "Optimization terminated: change in the function value less than options.tol_fun."
 
             self.optim_state["termination_msg"] = msg
 
@@ -1354,7 +1364,7 @@ class BADS:
                 idx_impr = idx_impr + 1  # offset original index without skip
 
                 # Check if any point got better
-                if improvement > self.options["tolfun"]:
+                if improvement > self.options["tol_fun"]:
                     self.yval = self.iteration_history.get("yval")[idx_impr]
                     self.fval = self.iteration_history.get("fval")[idx_impr]
                     self.fsd = self.iteration_history.get("fsd")[idx_impr]
@@ -2171,7 +2181,7 @@ class BADS:
                     self.options["improvementquantile"],
                 )
                 if (
-                    self.f_q_historic_improvement < self.options["tolfun"]
+                    self.f_q_historic_improvement < self.options["tol_fun"]
                 ):  # or np.all(u_base.flatten() == self.u.flatten()):
 
                     self.mesh_size_integer -= 1
@@ -2276,6 +2286,10 @@ class BADS:
                 .flatten()
                 .astype("float")
             )
+            # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
+            idx_zero_gp_ys = np.where(np.isclose(0., gp_ys))[0]
+            gp_ys[idx_zero_gp_ys] = 1e-6
+            
             zscore = zscore / gp_ys
 
             if np.any(np.isnan(zscore)):
@@ -2376,9 +2390,9 @@ class BADS:
             else:
                 f_target = f_target_mu - self.optim_state[
                     "sd_level"
-                ] * np.sqrt(fs2 + self.options["tolfun"] ** 2)
+                ] * np.sqrt(fs2 + self.options["tol_fun"] ** 2)
         else:
-            f_target = self.optim_state["fval"] - self.options["tolfun"]
+            f_target = self.optim_state["fval"] - self.options["tol_fun"]
             f_target_mu = self.optim_state["fval"]
             f_target_s = 0
 

@@ -29,7 +29,9 @@ def circle_constr(x):
     return np.sum(x_2d**2, axis=1) > 1
 
 
-bads = BADS(rosenbrocks_fcn, x0, lb, ub, non_box_cons=circle_constr)
+options = {}
+options["rng_seed"] = 3
+bads = BADS(rosenbrocks_fcn, x0, lb, ub, non_box_cons=circle_constr, options=options)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]

@@ -248,7 +248,7 @@ def local_gp_fitting(
 
     ## Update priors hyperparameters using empirical Bayes method.
     if options.get("specify_target_noise"):
-        noise_size = options["tolfun"]  # Additional jitter to specified noise
+        noise_size = options["tol_fun"]  # Additional jitter to specified noise
     else:
         noise_size = options["noise_size"]
 
@@ -808,7 +808,7 @@ def _gp_hyp(
         # Unknown noise level (even for deterministic function, it helps for regularization)
         if options.get("specify_target_noise"):
             noise_size = options[
-                "tolfun"
+                "tol_fun"
             ]  # Additional jitter to specified noise
         else:
             noise_size = options["noise_size"]
@@ -821,7 +821,7 @@ def _gp_hyp(
             noise_std = noise_size[1]
 
     else:
-        noise_size = options["tolfun"]
+        noise_size = options["tol_fun"]
         noise_mu = np.log(noise_size)
 
     noise_x0[0] = noise_mu
@@ -839,13 +839,13 @@ def _gp_hyp(
             np.log(options["uppergplengthfactor"] * (pub - plb)),
         )
     # Increase minimum noise.
-    bounds["noise_log_scale"] = (np.log(options["tolfun"]) - 1, 5)
+    bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
     # Set priors over hyperparameters
     priors = gp.get_priors()
 
     tol_mesh = optim_state["tol_mesh"]
-    tol_fun = options["tolfun"]
+    tol_fun = options["tol_fun"]
 
     D = X.shape[1]
     cov_range = (optim_state["ub"] - optim_state["lb"]) / optim_state["scale"]
