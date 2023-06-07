@@ -16,10 +16,9 @@ def rosenbrocks_fcn(x):
     )
 
 
-x0 = np.array([0, 0])
-# Starting point
-lb = np.array([-1, -1])  # Lower bounds
-ub = np.array([1, 1])  # Upper bounds
+x0 = np.array([0, 0])  # Starting point
+lower_bounds = np.array([-1, -1])
+upper_bounds = np.array([1, 1])
 
 
 def circle_constr(x):
@@ -31,7 +30,7 @@ def circle_constr(x):
 
 options = {}
 options["rng_seed"] = 3
-bads = BADS(rosenbrocks_fcn, x0, lb, ub, non_box_cons=circle_constr, options=options)
+bads = BADS(rosenbrocks_fcn, x0, lower_bounds, upper_bounds, non_box_cons=circle_constr)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]
