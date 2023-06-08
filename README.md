@@ -52,7 +52,7 @@ PyBADS is available via `pip` and `conda-forge`.
 
 If you wish to install directly from latest source code, please see the [instructions for developers and contributors](/docs/development.html#installation-instructions-for-developers).
 
-### Quick start
+## Quick start
 
 The typical workflow of PyBADS follows four steps:
 
