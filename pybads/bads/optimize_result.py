@@ -14,7 +14,7 @@ class OptimizeResult(dict):
         - fun: callable
             - The objective function to be minimized.
         - non_box_cons: callable
-            - Non-bound constraints function (if any).
+            - Non-box constraints function (if any).
         - x0: np.ndarray
             - Initial starting point.
         - x: np.ndarray
@@ -22,7 +22,7 @@ class OptimizeResult(dict):
         - fval: float
             - Value of objective function at solution.
         - fsd: float
-            - Standard deviation of objective function at solution.
+            - Standard deviation of objective function at solution (0 if noiseless).
         - yval_vec: np.ndarray
             - Final sampled observations at the solution.
         - ysd_vec: np.ndarray
@@ -40,9 +40,9 @@ class OptimizeResult(dict):
         - total_time: float
             - Total time taken by the optimizer.
         - overhead: float
-            - Overhead time taken by the optimizer.
+            - Fractional overhead taken by the optimizer, compared to function time.
         - random_seed: int
-            - Random seed used by the optimizer.
+            - Random seed used by the optimizer (``None`` if not set).
         - version: str
             - Version of the optimizer.
     

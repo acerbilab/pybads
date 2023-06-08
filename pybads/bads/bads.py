@@ -32,10 +32,10 @@ from .options import Options
 
 class BADS:
     """
-    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).
+    BADS Constrained optimization using Bayesian Adaptive Direct Search.
     
     BADS attempts to solve problems of the form:
-       :math:`\mathtt{argmin}_X  f(X)`  subject to:  lb :math:`<= X <=` ub, and optionally :math:`C(X) <= 0`
+       :math:`\mathtt{argmin}_x  f(x)`  subject to:  lower_bounds :math:`<= x <=` upper_bounds, and optionally :math:`C(x) <= 0`
                                
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
@@ -44,48 +44,60 @@ class BADS:
     Parameters
     ----------
     fun : callable
-        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar function
-        value of the target evaluated at ``x`` and the noise if provided.
-        In case the target function ``fun`` requires additional data/parameters, they can be handled using an anonymous function.
-        For example: ```fun_for_pybads = lambda x: fun(x, data, extra_params)```, where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` are given in the outer scope.
+        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar 
+        function value of the target evaluated at ``x`` and the noise if provided.
+        In case the target function ``fun`` requires additional data/parameters, 
+        they can be handled using an anonymous function.
+        For example: ``fun_for_pybads = lambda x: fun(x, data, extra_params)``, 
+        where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` 
+        are given in the outer scope.
     x0 : np.ndarray, optional
-        Starting point.
+        Starting point for the optimization. If not specified or ``None``, the 
+        starting point ``x0`` is uniformly randomly drawn inside the plausible 
+        box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see 
+        below).
     lower_bounds, upper_bounds : np.ndarray, optional
-        `lower_bounds` (``lb``) and `upper_bounds` (``ub``) define a set
+        ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set
         of strict lower and upper bounds for the coordinate vector, ``x``, so
-        that the unknown function has support on ``lb`` < ``x`` < ``ub``.
+        that the unknown function has support on ``lb`` <= ``x`` <= ``ub``.
         If scalars, the bound is replicated in each dimension. Use
-        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set ```lb[i] = -inf```
-        and ```ub [i] = inf``` if the `i`-th coordinate is unbounded (while
+        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set ``lb[i] = -inf``
+        and ``ub [i] = inf`` if the `i`-th coordinate is unbounded (while
         other coordinates may be bounded). Note that if ``lb`` and ``ub`` contain
         unbounded variables, the respective values of ``plb`` and ``pub`` need to
-        be specified (see below), by default ``None``.
+        be specified (see below). By default ``None``.
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
-        Specifies a set of `plausible_lower_bounds` (``plb``) and
-        `plausible_upper_bounds` (``pub``) such that ``lb`` < ``plb`` < ``pub`` < ``ub``.
+        Specifies a set of ``plausible_lower_bounds`` (``plb``) and
+        ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``.
         Both ``plb`` and ``pub`` need to be finite. ``plb`` and ``pub`` represent a
-        "plausible" range, which should denote a region of the global minimum.
-        As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that
-        there is > 90% probability that the minimum is found within the box
-        (where in doubt, just set ``plb``=``lb`` and ``pub``=``ub``).
+        `plausible` range, which should denote a region where the global minimum
+        is expected to be found. As a rule of thumb, set ``plausible_lower_bounds`` 
+        and ``plausible_upper_bounds`` such that there is > 90% probability that 
+        the minimum is found within the box (where in doubt, just set 
+        ``plb = lb`` and ``pub = ub``).
 
     non_box_cons: callable, optional
-        A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)>1``
+        A given non-box constraints function that specifies constraint 
+        `violations`, e.g : ``lambda x: np.sum(x.^2,1)>1``
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the
         BADS options page for the default options. If no `options` are
         passed, the default options are used.
-        To run BADS on a noisy (stochastic) objective function, set:
-            * ``options['uncertainty_handling']`` = ``True``
-            * ``options['noise_size']`` = SIGMA
-                *  SIGMA is an estimate of the SD of the noise in your problem in
-                    a good region of the parameter space. (If not specified, default
-                    SIGMA = 1). To help BADS work better, it is recommended that you
-                    provide to BADS an estimate of the noise at each location.
-        If ``options['uncertainty_handling']`` is not specified, BADS will determine at
-        runtime if the objective function is noisy.
-        To reproduce reproducible results of the optimization, set ``options['random_seed']`` to a fixed value integer value.
+        To run BADS on a noisy (stochastic) objective function, set 
+        ``options['uncertainty_handling']`` = ``True``. You can help BADS by 
+        providing an estimate of the noise. ``options['noise_size'] = sigma`` provides a global estimate of the 
+        SD of the noise in your problem in a good region of the parameter 
+        space. (If not specified, default ``sigma = 1.0``). 
+        Alternatively, you can specify the target noise `at each location` 
+        with ``options['specify_target_noise']`` = ``True``. In this case, 
+        ``fun`` is expected to return `two` values, the estimate of the
+        target at ``x`` and an estimate of the SD of the noise at ``x`` 
+        (see the examples). 
+        If ``options['uncertainty_handling']`` is not specified, BADS will 
+        determine at runtime if the objective function is noisy.
+        To obtain reproducible results of the optimization, set ``options['random_seed']`` 
+        to a fixed integer value.
 
     Raises
     ------
@@ -93,21 +105,22 @@ class BADS:
         When neither ``x0`` or (``plausible_lower_bounds`` and
         ``plausible_upper_bounds``) are specified.
     ValueError
-        When various checks for the bounds (lb, ub, plb, pub) of BADS fail.
+        When various checks for the bounds (``lower_bounds``, ``upper_bounds``, 
+        ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
 
 
     References
     ----------
     .. [1]  Acerbi, L. & Ma, W. J. (2017). "Practical Bayesian
             Optimization for Model Fitting with Bayesian Adaptive Direct Search".
-            In Advances in Neural Information Processing Systems 30, pages 1834-1844.
+            In `Advances in Neural Information Processing Systems` 30, pages 1834-1844.
             (arXiv preprint: https://arxiv.org/abs/1705.04405).
             
     Examples
     --------
     For `BADS` usage examples, please look up the Jupyter notebook tutorials
     in the PyBADS documentation:
-    https://acerbilab.github.io/pybads/_examples/pybads_example_1.html
+    https://acerbilab.github.io/pybads/examples.html
     """
 
     def __init__(
@@ -143,7 +156,7 @@ class BADS:
             ):
                 raise ValueError(
                     """bads:UnknownDims If no starting point is
-                 provided, plb and pub need to be specified."""
+                 provided, plausible_lower_bounds and plausible_upper_bounds need to be specified."""
                 )
             else:
                 x0 = np.full((plausible_lower_bounds.shape), np.NaN)
