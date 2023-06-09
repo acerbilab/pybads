@@ -69,8 +69,8 @@ def test_search():
     bads.options["fun_eval_start"] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
-    es_iter = bads.options["nsearchiter"]
-    mu = int(bads.options["nsearch"] / es_iter)
+    es_iter = bads.options["n_search_iter"]
+    mu = int(bads.options["n_search"] / es_iter)
     lamb = mu
     search_es = ESSearchWM(mu, lamb, bads.options)
     us, z = search_es(
@@ -115,7 +115,7 @@ def test_search_hedge():
     bads.options["fun_eval_start"] = 0
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
-    search_hedge = ESSearchHedge(bads.options["searchmethod"], bads.options)
+    search_hedge = ESSearchHedge(bads.options["search_method"], bads.options)
 
     us, z = search_hedge(
         bads.u, lb, ub, bads.function_logger, gp, bads.optim_state

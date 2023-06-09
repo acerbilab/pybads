@@ -755,9 +755,9 @@ class BADS:
 
         # Other variables initializations
         optim_state["search_factor"] = 1
-        optim_state["sd_level"] = self.options["incumbentsigmamultiplier"]
+        optim_state["sd_level"] = self.options["incumbent_sigma_multiplier"]
         optim_state["search_count"] = self.options[
-            "searchntry"
+            "search_n_try"
         ]  # Skip search at first iteration
         optim_state["lastreeval"] = -np.inf
         # Last time function values were re-evaluated
@@ -924,7 +924,7 @@ class BADS:
             yval_bis, _, _ = self.function_logger(
                 self.u, record_duplicate_data=False
             )
-            if np.abs(self.yval - yval_bis) > self.options["tolnoise"]:
+            if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
                 self.logging_action.append("Uncertainty test")
         else:
@@ -967,7 +967,7 @@ class BADS:
                 self.options["fun_eval_start"],
                 self.options["max_fun_evals"] - 1,
             )
-            if self.options["initfcn"] == "init_sobol":
+            if self.options["init_fun"] == "init_sobol":
 
                 u1, _ = init_sobol(
                     self.u,
@@ -1012,7 +1012,7 @@ class BADS:
                 self._display_function_log_(0, "Initial mesh")
             else:
                 raise ValueError(
-                    "bads:initfcn:Initialization function not implemented yet"
+                    "bads:init_fun:Initialization function not implemented yet"
                 )
 
         if not np.isfinite(self.yval):
@@ -1043,14 +1043,14 @@ class BADS:
 
         # Change options for uncertainty handling
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options["tolstalliters"] = 2 * self.options["tolstalliters"]
+            self.options["tol_stall_iters"] = 2 * self.options["tol_stall_iters"]
             self.options["ntrain_max"] = max(200, self.options["ntrain_max"])
             self.options["ntrain_min"] = 2 * self.options["ntrain_min"]
-            self.options["meshoverflowswarning"] = (
-                2 * self.options["meshoverflowswarning"]
+            self.options["mesh_overflow_warning"] = (
+                2 * self.options["mesh_overflow_warning"]
             )
-            self.options["minfailedpollsteps"] = np.inf
-            self.options["meshnoisemultiplier"] = 0
+            self.options["min_failed_poll_steps"] = np.inf
+            self.options["mesh_noise_multiplier"] = 0
             if self.options["noise_size"] is None:
                 self.options["noise_size"] = 1.0
             if isinstance(
@@ -1183,7 +1183,7 @@ class BADS:
             )
             self.optim_state["mesh_size"] = self.mesh_size
 
-            if self.options["searchsizelocked"]:
+            if self.options["search_size_locked"]:
                 self.optim_state["search_size_integer"] = np.minimum(
                     0,
                     self.mesh_size_integer
@@ -1204,10 +1204,10 @@ class BADS:
             ) = self._update_search_bounds_()
 
             # Minimum improvement for a poll/search to be considered successful
-            self.sufficient_improvement = self.options["tolimprovement"] * (
-                self.mesh_size ** (self.options["forcingexponent"])
+            self.sufficient_improvement = self.options["tol_improvement"] * (
+                self.mesh_size ** (self.options["forcing_exponent"])
             )
-            if self.options["sloppyimprovement"]:
+            if self.options["sloppy_improvement"]:
                 self.sufficient_improvement = np.maximum(
                     self.sufficient_improvement, self.options["tol_fun"]
                 )
@@ -1217,7 +1217,7 @@ class BADS:
             ] = self.sufficient_improvement.copy()
 
             do_search_step_flag = (
-                self.optim_state["search_count"] < self.options["searchntry"]
+                self.optim_state["search_count"] < self.options["search_n_try"]
                 and len(self.function_logger.Y[self.function_logger.X_flag])
                 > self.D
             )
@@ -1237,31 +1237,31 @@ class BADS:
             if (
                 self.optim_state["search_count"] == 0
                 or self.optim_state["search_count"]
-                == self.options["searchntry"]
+                == self.options["search_n_try"]
             ):
 
                 self.optim_state["search_count"] = 0
                 if (
                     self.search_success > 0
-                    and self.options["skippollaftersearch"]
+                    and self.options["skip_poll_after_search"]
                 ):
                     do_poll_step = False
                     self.search_spree += 1
                     if (
-                        self.options["searchmeshexpand"] > 0
+                        self.options["search_mesh_expand"] > 0
                         and np.mod(
-                            self.search_spree, self.options["searchmeshexpand"]
+                            self.search_spree, self.options["search_mesh_expand"]
                         )
                         == 0
-                        and self.options["searchmeshincrement"] > 0
+                        and self.options["search_mesh_increment"] > 0
                     ):
                         # Check if mesh size is already maximal
                         self._check_mesh_overflow_()
 
                         self.mesh_size_integer = np.minimum(
                             self.mesh_size_integer
-                            + self.options["searchmeshincrement"],
-                            self.options["maxpollgridnumber"],
+                            + self.options["search_mesh_increment"],
+                            self.options["max_poll_grid_number"],
                         )
                 else:
                     do_poll_step = True
@@ -1307,8 +1307,8 @@ class BADS:
                 msg = "Optimization terminated: change in the function value less than options['tol_mesh']"
 
             # Historic improvement
-            if poll_iteration > self.options["tolstalliters"] - 1:
-                idx = poll_iteration - self.options["tolstalliters"]
+            if poll_iteration > self.options["tol_stall_iters"] - 1:
+                idx = poll_iteration - self.options["tol_stall_iters"]
                 f_base = self.iteration_history.get("fval")[idx]
                 f_sd_base = self.iteration_history.get("fsd")[idx]
                 self.f_q_historic_improvement = self._eval_improvement_(
@@ -1316,7 +1316,7 @@ class BADS:
                     self.fval,
                     f_sd_base,
                     self.fsd,
-                    self.options["improvementquantile"],
+                    self.options["improvement_quantile"],
                 )
 
                 if self.f_q_historic_improvement < self.options["tol_fun"]:
@@ -1379,7 +1379,7 @@ class BADS:
                     self.iteration_history.get("fval").astype("float"),
                     self.fsd,
                     self.iteration_history.get("fsd").astype("float"),
-                    self.options["improvementquantile"],
+                    self.options["improvement_quantile"],
                 )
                 f_q_re_impr = f_q_re_impr[1:]  # Skip the first iteration
                 idx_impr = np.argmax(f_q_re_impr)
@@ -1426,7 +1426,7 @@ class BADS:
             # Order by lowest probabilistic upper bound and choose
             # the point with the lowest quantile values of the history of the optimization run: inf{x: F(x)>p}.
             sigma_multiplier = np.sqrt(2) * erfcinv(
-                2 * self.options["finalquantile"]
+                2 * self.options["final_quantile"]
             )  # Using inverted convention
             q_beta = self.iteration_history.get(
                 "fval"
@@ -1575,7 +1575,7 @@ class BADS:
 
         if self.search_es_hedge is None:
             self.search_es_hedge = ESSearchHedge(
-                self.options["searchmethod"], self.options, self.non_box_cons
+                self.options["search_method"], self.options, self.non_box_cons
             )
         u_search_set, z = self.search_es_hedge(
             self.u,
@@ -1633,7 +1633,7 @@ class BADS:
             u_search = u_search_set[index_acq]
 
             # TODO: Local optimization of the acquisition function (generally it does not improve results)
-            if self.options["searchoptimize"]:
+            if self.options["search_optimize"]:
                 pass
 
             y_search, f_sd_search, idx = self.function_logger(u_search)
@@ -1646,7 +1646,7 @@ class BADS:
             if (
                 u_search.size
                 > 0 & self.search_es_hedge.count
-                < self.options["searchntry"]
+                < self.options["search_n_try"]
             ):
                 # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)
                 gp = add_and_update_gp(
@@ -1719,7 +1719,7 @@ class BADS:
                 f_mu_search,
                 self.fsd,
                 f_sd_search,
-                self.options["improvementquantile"],
+                self.options["improvement_quantile"],
             )
 
             # Declare if search was success or not
@@ -1729,7 +1729,7 @@ class BADS:
             )
             is_search_improved = (
                 search_improvement > 0
-                and self.options["sloppyimprovement"]
+                and self.options["sloppy_improvement"]
                 or is_search_success
             )
 
@@ -1940,7 +1940,7 @@ class BADS:
                     self.optim_state["periodic_vars"],
                 )
 
-                if self.options["forcepollmesh"]:
+                if self.options["force_poll_mesh"]:
                     u_poll_new = force_to_grid(
                         u_poll_new, self.optim_state["search_mesh_size"]
                     )
@@ -2046,7 +2046,7 @@ class BADS:
                 if certain_good_poll:
                     if do_gp_calibration:
                         break  # GP is unreliable, just stop polling
-                    elif p_less > 1 - self.options["tolpoi"]:
+                    elif p_less > 1 - self.options["tol_poi"]:
                         break  # Use GP prediction whether to stop polling
                 else:
                     # No good polling so far -- if GP is reliable, stop polling
@@ -2054,11 +2054,11 @@ class BADS:
                     if (
                         not do_gp_calibration
                         and (
-                            self.options["consecutiveskipping"]
+                            self.options["consecutive_skipping"]
                             or self.last_skipped < self.optim_state["iter"] - 1
                         )
-                        and poll_count >= self.options["minfailedpollsteps"]
-                        and p_less > (1 - self.options["tolpoi"])
+                        and poll_count >= self.options["min_failed_poll_steps"]
+                        and p_less > (1 - self.options["tol_poi"])
                     ):
 
                         self.last_skipped = self.optim_state["iter"]
@@ -2096,7 +2096,7 @@ class BADS:
                 f_poll,
                 self.fsd,
                 f_sd_poll,
-                self.options["improvementquantile"],
+                self.options["improvement_quantile"],
             )
 
             # Check if current point improves over best polled point so far
@@ -2132,7 +2132,7 @@ class BADS:
         # Evaluate poll
         if not self.options["stobads"]:
             if (
-                poll_best_improvement > 0 and self.options["sloppyimprovement"]
+                poll_best_improvement > 0 and self.options["sloppy_improvement"]
             ) or poll_best_improvement > self.sufficient_improvement:
 
                 # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
@@ -2165,7 +2165,7 @@ class BADS:
             self._check_mesh_overflow_()
             # Successful poll, increase mesh size
             self.mesh_size_integer = np.minimum(
-                self.mesh_size_integer + 1, self.options["maxpollgridnumber"]
+                self.mesh_size_integer + 1, self.options["max_poll_grid_number"]
             )
 
             self.optim_state["u_success"].append(self.u_best.copy)
@@ -2201,7 +2201,7 @@ class BADS:
                     self.fval,
                     f_sd_base,
                     self.fsd,
-                    self.options["improvementquantile"],
+                    self.options["improvement_quantile"],
                 )
                 if (
                     self.f_q_historic_improvement < self.options["tol_fun"]
@@ -2387,7 +2387,7 @@ class BADS:
         # Corresponds to Matlab: updateTarget
         if (
             self.optim_state["uncertainty_handling_level"] > 0
-            or self.options["uncertainincumbent"]
+            or self.options["uncertain_incumbent"]
         ):
             tmp_gp = copy.deepcopy(gp)
             tmp_gp.set_hyperparameters(hyp_best)
@@ -2403,7 +2403,7 @@ class BADS:
                 f_target_s = self.optim_state["fsd"]
 
             # f_target: Set optimization target slightly below the current incumbent
-            if self.options["alternativeincumbent"]:
+            if self.options["alternative_incumbent"]:
                 f_target = (
                     f_target_mu
                     - np.sqrt(self.D)
@@ -2473,18 +2473,18 @@ class BADS:
             search_stats["success"].append(1.0)
             self.optim_state["search_factor"] = (
                 self.optim_state["search_factor"]
-                * self.options["searchscalesuccess"]
+                * self.options["search_scale_success"]
             )
-            if self.options["adaptiveincumbentshift"]:
+            if self.options["adaptive_incumbent_shift"]:
                 self.optim_state["sd_level"] = self.optim_state["sd_level"] * 2
 
         elif search_status == "incremental":
             search_stats["success"].append(0.5)
             self.optim_state["search_factor"] = (
                 self.optim_state["search_factor"]
-                * self.options["searchscaleincremental"]
+                * self.options["search_scale_incremental"]
             )
-            if self.options["adaptiveincumbentshift"]:
+            if self.options["adaptive_incumbent_shift"]:
                 self.optim_state["sd_level"] = (
                     self.optim_state["sd_level"] * 2**2
                 )
@@ -2493,16 +2493,16 @@ class BADS:
             search_stats["success"].append(0.0)
             self.optim_state["search_factor"] = (
                 self.optim_state["search_factor"]
-                * self.options["searchscalefailure"]
+                * self.options["search_scale_failure"]
             )
-            if self.options["adaptiveincumbentshift"]:
+            if self.options["adaptive_incumbent_shift"]:
                 self.optim_state["sd_level"] = np.maximum(
-                    self.options["incumbentsigmamultiplier"],
+                    self.options["incumbent_sigma_multiplier"],
                     self.optim_state["sd_level"] / 2,
                 )
 
         # Reset search factor at the end of each search
-        if self.optim_state["search_count"] == self.options["searchntry"]:
+        if self.optim_state["search_count"] == self.options["search_n_try"]:
             self.optim_state["search_factor"] = 1
 
         return search_stats
@@ -2537,10 +2537,10 @@ class BADS:
             self.optim_state["last_re_eval"] = self.function_logger.func_count
 
     def _check_mesh_overflow_(self):
-        if self.mesh_size_integer == self.options["maxpollgridnumber"]:
+        if self.mesh_size_integer == self.options["max_poll_grid_number"]:
             self.mesh_overflows += 1
             if self.mesh_overflows == np.ceil(
-                self.options["meshoverflowswarning"]
+                self.options["mesh_overflow_warning"]
             ):
                 self.logger.warn(
                     "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plb and pub."

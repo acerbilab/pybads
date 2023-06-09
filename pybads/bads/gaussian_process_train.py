@@ -257,7 +257,7 @@ def local_gp_fitting(
     gp_priors = gp.get_priors()
     prior_noise = gp_priors["noise_log_scale"]
     mu_noise_prior = np.log(noise_size) + options[
-        "meshnoisemultiplier"
+        "mesh_noise_multiplier"
     ] * np.log(optim_state["mesh_size"])
     prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
 
@@ -421,7 +421,7 @@ def local_gp_fitting(
         ll = np.zeros((hyp_n_samples, D))
         for i in range(hyp_n_samples):
             ll[i, :] = (
-                options["gprescalepoll"]
+                options["gp_rescale_poll"]
                 * dic_hyp_gp[i]["covariance_log_lengthscale"]
             )
         # ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
@@ -662,7 +662,7 @@ def _get_samples_from_slice_sampler_(gp: gpr.GP, hyp_gp, optim_state, options):
     """
     A private method that retrieves a new set of parameters using the slice sampler method.
     """
-    hyp_sampler_name = options.get("gphypsampler", "slicesample")
+    hyp_sampler_name = options.get("gp_hyp_sampler", "slicesample")
     if hyp_sampler_name != "slicesample":
         raise ValueError("Wrong sampler")
 
