@@ -107,7 +107,7 @@ def _root(function: callable, N: int, args: tuple):
 
 
 def _scottrule1d(samples: np.ndarray):
-    """Compute the kernel bandwidth according to Scott's rule for 1D samples.
+    """Compute the kernel band_width according to Scott's rule for 1D samples.
 
     Parameters
     ----------
@@ -116,8 +116,8 @@ def _scottrule1d(samples: np.ndarray):
 
     Returns
     -------
-    bandwidth : float
-        Scott's bandwidth.
+    band_width : float
+        Scott's band_width.
     """
     sigma = np.std(samples, ddof=1)
     sigma_iqr = (
@@ -148,7 +148,7 @@ def kde1d(
     r"""Reliable and extremely fast kernel density estimator for 1D data.
 
     One-dimensional kernel density estimator based on fast Fourier transform.
-    A Gaussian kernel is assumed and the bandwidth is chosen automatically
+    A Gaussian kernel is assumed and the band_width is chosen automatically
     using the technique developed by Botev et al. (2010) [1]_.
 
     Parameters
@@ -176,19 +176,19 @@ def kde1d(
         at the grid points.
     xmesh : np.ndarray
         1D vector of grid over which the density estimate is computed.
-    bandwidth : np.ndarray
-        The optimal bandwidth (Gaussian kernel assumed).
+    band_width : np.ndarray
+        The optimal band_width (Gaussian kernel assumed).
 
     Notes
     -----
     This implementation is based on the MATLAB implementation by Zdravko Botev,
     and was further inspired by the Python implementations by Daniel B. Smith
-    and the bandwidth selection code in KDEpy [2]_. We thank Zdravko Botev for
+    and the band_width selection code in KDEpy [2]_. We thank Zdravko Botev for
     useful clarifications on the implementation of the fixed_point function.
 
     Unlike other implementations, this one is immune to problems caused by
     multimodal densities with widely separated modes (see example). The
-    bandwidth estimation does not deteriorate for multimodal densities because
+    band_width estimation does not deteriorate for multimodal densities because
     a parametric model is never assumed for the data.
 
     References
@@ -237,17 +237,17 @@ def kde1d(
     # Compute the Discrete Cosine Transform (DCT) of the data
     a = fftpack.dct(initial_data, type=2)
 
-    # Compute the bandwidth
+    # Compute the band_width
     irange_squared = np.arange(1, n, dtype=np.float64) ** 2.0
     a2 = a[1:] ** 2.0 / 4.0
     t_star = _root(_fixed_point, N, args=(N, irange_squared, a2))
 
     if t_star is None:
-        # Automated bandwidth selection failed, use Scott's rule
-        bandwidth = _scottrule1d(samples)
-        t_star = (bandwidth / delta) ** 2.0
+        # Automated band_width selection failed, use Scott's rule
+        band_width = _scottrule1d(samples)
+        t_star = (band_width / delta) ** 2.0
     else:
-        bandwidth = np.sqrt(t_star) * delta
+        band_width = np.sqrt(t_star) * delta
 
     # Smooth the discrete cosine transform of initial data using t_star
     a_t = a * np.exp(
@@ -258,4 +258,4 @@ def kde1d(
     density = fftpack.idct(a_t) / (2.0 * delta)
     density[density < 0] = 0.0  # remove negatives due to round-off error
 
-    return density.ravel(), xmesh.ravel(), bandwidth
+    return density.ravel(), xmesh.ravel(), band_width

@@ -42,9 +42,9 @@ class ESSearchHedge:
         self.options_dict = options_dict
         self.non_box_cons = non_box_cons
 
-        self.gamma = options_dict["hedgegamma"]
-        self.beta = options_dict["hedgebeta"]
-        self.decay = options_dict["hedgedecay"]
+        self.gamma = options_dict["hedge_gamma"]
+        self.beta = options_dict["hedge_beta"]
+        self.decay = options_dict["hedge_decay"]
 
         # Create vector of ES weights (for ESSearch)
         es_iter = self.options_dict["n_search_iter"]

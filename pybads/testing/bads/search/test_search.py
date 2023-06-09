@@ -165,7 +165,7 @@ def test_grid_search_neighbors():
 
     gp.temporary_data["len_scale"] = 1.0
     bads.optim_state["scale"] = 1.0
-    bads.options["gpradius"] = 3
+    bads.options["gp_radius"] = 3
 
     result = get_grid_search_neighbors(
         f, np.array([[0, 0]]), gp, bads.options, bads.optim_state

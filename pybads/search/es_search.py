@@ -36,7 +36,7 @@ class ESSearch(ABC):
 
         self.scale = options_dict["es_start"]
         self.n_search_iter = options_dict["n_search_iter"]
-        self.search_acq_fcn = options_dict["searchacqfcn"]
+        self.search_acq_fcn = options_dict["search_acq_fcn"]
         self.es_beta = options_dict["es_beta"]
         self.logger = logging.getLogger("BADS")
         logging.basicConfig(stream=sys.stdout, format="%(message)s")

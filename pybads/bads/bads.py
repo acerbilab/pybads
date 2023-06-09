@@ -536,15 +536,15 @@ class BADS:
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates)
-        if self.options["fvals"] is not None:
-            y_orig = np.array(self.options.get("fvals")).flatten()
+        if self.options["f_vals"] is not None:
+            y_orig = np.array(self.options.get("f_vals")).flatten()
             if len(y_orig) == 0:
                 y_orig = np.full([self.x0.shape[0]], np.nan)
             if len(self.x0) != len(y_orig):
                 raise ValueError(
                     """bads:MismatchedStartingInputs The number of
                 points in X0 and of their function values as specified in
-                self.options.['fvals'] are not the same."""
+                self.options.['f_vals'] are not the same."""
                 )
         else:
             y_orig = np.full([self.x0.shape[0]], np.nan)
@@ -840,7 +840,7 @@ class BADS:
 
         # Initialize Gaussian process settings
         # Squared exponential kernel with separate length scales
-        optim_state["gp_covfun"] = 1
+        optim_state["gp_cov_fun"] = 1
 
         if optim_state.get("uncertainty_handling_level") == 0:
             # Observation noise for stability
@@ -858,8 +858,8 @@ class BADS:
         ):
             optim_state["gp_noisefun"][1] = 1
 
-        optim_state["gp_meanfun"] = self.options.get("gp_meanfun")
-        valid_gp_meanfuns = [
+        optim_state["gp_mean_fun"] = self.options.get("gp_mean_fun")
+        valid_gp_mean_funs = [
             "zero",
             "const",
             "negquad",
@@ -874,7 +874,7 @@ class BADS:
             "negquadmix",
         ]
 
-        if not optim_state["gp_meanfun"] in valid_gp_meanfuns:
+        if not optim_state["gp_mean_fun"] in valid_gp_mean_funs:
             raise ValueError(
                 """bads:UnknownGPmean:Unknown/unsupported GP mean
             function. Supported mean functions are zero, const,
@@ -1044,8 +1044,8 @@ class BADS:
         # Change options for uncertainty handling
         if self.optim_state["uncertainty_handling_level"] > 0:
             self.options["tol_stall_iters"] = 2 * self.options["tol_stall_iters"]
-            self.options["ntrain_max"] = max(200, self.options["ntrain_max"])
-            self.options["ntrain_min"] = 2 * self.options["ntrain_min"]
+            self.options["n_train_max"] = max(200, self.options["n_train_max"])
+            self.options["n_train_min"] = 2 * self.options["n_train_min"]
             self.options["mesh_overflow_warning"] = (
                 2 * self.options["mesh_overflow_warning"]
             )
@@ -1161,8 +1161,8 @@ class BADS:
         
         self.search_es_hedge = None  # init search hedge to None
 
-        if self.options["outputfcn"] is not None:
-            output_fcn = self.options["outputfcn"]
+        if self.options["output_fcn"] is not None:
+            output_fcn = self.options["output_fcn"]
             is_finished = output_fcn(
                 self.var_transf.inverse_transf(self.u), "init"
             )
@@ -1536,7 +1536,7 @@ class BADS:
         """
         # Check whether it is time to refit the GP
         refit_flag, do_gp_calibration = self._is_gp_refit_time_(
-            self.options["normalphalevel"]
+            self.options["normalpha_level"]
         )
 
         if (
@@ -1705,8 +1705,8 @@ class BADS:
 
         # TODO: CMA-ES like estimation of local covariance structure (unused)
         if (
-            self.options["hessianupdate"]
-            and self.options["hessianmethod"] == "cmaes"
+            self.options["hessian_update"]
+            and self.options["hessian_method"] == "cmaes"
         ):
             pass
 
@@ -1972,11 +1972,11 @@ class BADS:
 
             # Check whether it is time to refit the GP
             refit_flag, do_gp_calibration = self._is_gp_refit_time_(
-                self.options["normalphalevel"]
+                self.options["normalpha_level"]
             )
 
             if (
-                not self.options["polltraining"]
+                not self.options["poll_training"]
                 and self.optim_state["iter"] > 0
             ):
                 refit_flag = False
@@ -2293,7 +2293,7 @@ class BADS:
 
         # if stats data is available check z_score
         if not do_gp_calibration:
-            fvals = (
+            f_vals = (
                 self.gp_stats.get("fval")[: gp_iter_idx + 1]
                 .flatten()
                 .astype("float")
@@ -2303,7 +2303,7 @@ class BADS:
                 .flatten()
                 .astype("float")
             )
-            zscore = fvals - yvals
+            zscore = f_vals - yvals
             gp_ys = (
                 self.gp_stats.get("ys")[: gp_iter_idx + 1]
                 .flatten()
@@ -2341,7 +2341,7 @@ class BADS:
 
         refit_flag = (
             self.optim_state["lastfitgp"]
-            < (func_count - self.options["minrefittime"])
+            < (func_count - self.options["min_refit_time"])
             and (gp_iter_idx >= refit_period or do_gp_calibration)
             and func_count > self.D
         )
