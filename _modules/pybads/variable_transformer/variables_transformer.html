@@ -322,7 +322,7 @@ document.write(`
 
 <div class="viewcode-block" id="VariableTransformer"><a class="viewcode-back" href="../../../api/classes/parameter_transformer.html#pybads.variable_transformer.VariableTransformer">[docs]</a><span class="k">class</span> <span class="nc">VariableTransformer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class enabling linear or non-linear transformation of the bounds (plb and pub) and map them to an hypercube [-1, 1]^D</span>
+<span class="sd">    A class enabling linear or non-linear transformation of the bounds (plausible_lower_bounds and plausible_upper_bounds) and map them to an hypercube [-1, 1]^D</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -436,9 +436,9 @@ document.write(`
     <span class="k">def</span> <span class="nf">__create_hypercube_trans__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standardize variables via linear or nonlinear transformation.</span>
-<span class="sd">        The standardized transform maps plb and pub to the hypercube [-1,1]^D.</span>
-<span class="sd">        If plb and/or pub are empty, lb and/or ub are used instead. Note that</span>
-<span class="sd">        at least one among lb, plb and one among ub, pub needs to be nonempty.</span>
+<span class="sd">        The standardized transform maps ``plausible_lower_bounds`` (``plb``) and plausible_upper_bounds (``pub``) to the hypercube [-1,1]^D.</span>
+<span class="sd">        If plb and/or pub are empty, ``lower_bound``(``lb``) and/or ``upper_bound``(``ub``) are used instead. Note that</span>
+<span class="sd">        at least one among ``lb``, ``plb`` and one among ``ub``, ``pub`` needs to be nonempty.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -454,13 +454,13 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check finiteness of plausible range</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">plb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">])))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plausible interval ranges plb and pub need to be finite.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plausible interval ranges plausible_lower_bounds and plausible_upper_bounds need to be finite.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Check that the order of bounds is respected</span>
         <span class="k">if</span>  <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lb</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plb</span><span class="p">)</span> \
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plb</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="p">)</span>\
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pub</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ub</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval bounds needs to respect the order lb &lt;= plb &lt; pub &lt;= ub for all coordinates.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval bounds needs to respect the order lower_bound &lt;= plausible_lower_bounds &lt; plausible_upper_bounds &lt;= upper_bound for all coordinates.&quot;</span><span class="p">)</span>
          
 
         <span class="c1"># A variable is converted to log scale if all bounds are positive and</span>
