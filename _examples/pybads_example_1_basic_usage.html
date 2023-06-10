@@ -1,558 +1,459 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>PyBADS Example 1: Basic usage &#8212; PyBADS</title>
-    
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-    
-  <link rel="stylesheet"
-    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_examples/pybads_example_1_basic_usage';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_examples/pybads_example_1_basic_usage.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="PyBADS Example 2: Non-box constraints" href="pybads_example_2_nonbox_constraints.html" />
-    <link rel="prev" title="BADS options" href="../api/options/bads_options.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+    <link rel="prev" title="Examples" href="../examples.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="../index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">PyBADS</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../installation.html">
-   Installation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../quickstart.html">
-   Getting started
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../api/classes/bads.html">
-   BADS
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../api/classes/optimize_result.html">
-   OptimizeResult
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../api/advanced_docs.html">
-   Advanced documentation
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/acquisition_functions.html">
-     Acquisition Functions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/bads.html">
-     BADS
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/function_logger.html">
-     FunctionLogger
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/iteration_history.html">
-     IterationHistory
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/optimize_result.html">
-     OptimizeResult
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/options.html">
-     Options
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/parameter_transformer.html">
-     VariableTransformer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/timer.html">
-     Timer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/functions/decorators.html">
-     decorators
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/functions/get_hpd.html">
-     get_hpd
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/options/bads_options.html">
-     BADS options
-    </a>
-   </li>
-  </ul>
- </li>
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">PyBADS</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 1: Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
 </ul>
-<ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   PyBADS Example 1: Basic usage
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_2_nonbox_constraints.html">
-   PyBADS Example 2: Non-box constraints
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_3_noisy_objective.html">
-   PyBADS Example 3: Noisy objective function
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_4_user_provided_noise.html">
-   PyBADS Example 4: Noisy objective with user-provided noise estimates
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_5_extended_usage.html">
-   PyBADS Example 5: Extended usage
-  </a>
- </li>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/options/bads_options.html">BADS options</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/advanced_docs.html">Advanced documentation</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/classes/classes.html">Classes</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/function_logger.html"><code class="docutils literal notranslate"><span class="pre">FunctionLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/iteration_history.html"><code class="docutils literal notranslate"><span class="pre">IterationHistory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/options.html"><code class="docutils literal notranslate"><span class="pre">Options</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/parameter_transformer.html"><code class="docutils literal notranslate"><span class="pre">VariableTransformer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/timer.html"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/bads_options.html">BADS options</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../development.html">
-   Instructions for developers and contributors
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Instructions for developers and contributors</a></li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../about_us.html">
-   About us
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../about_us.html">About us</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
-</div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
 
 
-          
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
 
-
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
 <div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
 
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
   
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
     </div>
-    <div class="header-article__right">
-<div class="menu-dropdown menu-dropdown-launch-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Launch interactive content">
-      <i class="fas fa-rocket"></i>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_1_basic_usage.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Binder"
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_1_basic_usage.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch onBinder"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   
     <img src="../_static/images/logo_binder.svg">
   </span>
-<span class="headerbtn__text-container">Binder</span>
+<span class="btn__text-container">Binder</span>
 </a>
-
-      </li>
+</li>
       
-      <li>
-        <a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_1_basic_usage.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Colab"
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_1_basic_usage.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch onColab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   
     <img src="../_static/images/logo_colab.png">
   </span>
-<span class="headerbtn__text-container">Colab</span>
+<span class="btn__text-container">Colab</span>
 </a>
-
-      </li>
+</li>
       
-    </ul>
-  </div>
+  </ul>
 </div>
 
-<button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_1_basic_usage.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_examples/pybads_example_1_basic_usage.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/_examples/pybads_example_1_basic_usage.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
-<div class="menu-dropdown menu-dropdown-repository-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Source repositories">
-      <i class="fab fa-github"></i>
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="https://github.com/acerbilab/pybads"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
+`);
+</script>
 
-<span class="headerbtn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="headerbtn__text-container">repository</span>
-</a>
-
-      </li>
-      
-      <li>
-        <a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_examples/pybads_example_1_basic_usage.html&body=Your%20issue%20content%20here."
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="headerbtn__text-container">open issue</span>
-</a>
-
-      </li>
-      
-      <li>
-        <a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_1_basic_usage.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Edit this page"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-pencil-alt"></i>
-  </span>
-<span class="headerbtn__text-container">suggest edit</span>
-</a>
-
-      </li>
-      
-    </ul>
-  </div>
-</div>
-
-<div class="menu-dropdown menu-dropdown-download-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Download this page">
-      <i class="fas fa-download"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="../_sources/_examples/pybads_example_1_basic_usage.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="headerbtn__text-container">.ipynb</span>
-</a>
-
-      </li>
-      
-      <li>
-        
-<button onclick="printPdf(this)"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="headerbtn__text-container">.pdf</span>
-</button>
-
-      </li>
-      
-    </ul>
-  </div>
-</div>
-<label for="__page-toc"
-  class="headerbtn headerbtn-page-toc"
-  
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-list"></i>
-  </span>
-
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </label>
-
+</div></div>
+      
     </div>
+  
 </div>
-
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-    <div class="tocsection onthispage pt-5 pb-3">
-        <i class="fas fa-list"></i> Contents
-    </div>
-    <nav id="bd-toc-nav" aria-label="Page">
-        <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#what-is-py-bads">
-   0. What is (Py)BADS?
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#optimization-problem">
-     Optimization problem
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#problem-setup">
-   1. Problem setup
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#initialize-and-run-the-optimization">
-   2. Initialize and run the optimization
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#results-and-conclusions">
-   3. Results and conclusions
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example-1-full-code">
-   Example 1: Full code
-  </a>
- </li>
-</ul>
-
-    </nav>
 </div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1>PyBADS Example 1: Basic usage</h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                        <div>
-                            <h2> Contents </h2>
-                        </div>
-                        <nav aria-label="Page">
-                            <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#what-is-py-bads">
-   0. What is (Py)BADS?
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#optimization-problem">
-     Optimization problem
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#problem-setup">
-   1. Problem setup
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#initialize-and-run-the-optimization">
-   2. Initialize and run the optimization
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#results-and-conclusions">
-   3. Results and conclusions
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example-1-full-code">
-   Example 1: Full code
-  </a>
- </li>
-</ul>
+              
+              
 
-                        </nav>
-                    </div>
-                </div>
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>PyBADS Example 1: Basic usage</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
             </div>
-            <main id="main-content" role="main">
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-py-bads">0. What is (Py)BADS?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization-problem">Optimization problem</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-setup">1. Problem setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize-and-run-the-optimization">2. Initialize and run the optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results-and-conclusions">3. Results and conclusions</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
                 
-              <div>
-                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <section class="tex2jax_ignore mathjax_ignore" id="pybads-example-1-basic-usage">
-<h1>PyBADS Example 1: Basic usage<a class="headerlink" href="#pybads-example-1-basic-usage" title="Permalink to this headline">#</a></h1>
+<h1>PyBADS Example 1: Basic usage<a class="headerlink" href="#pybads-example-1-basic-usage" title="Permalink to this heading">#</a></h1>
 <p>In this introductory example, we will show a simple usage of Bayesian Adaptive Direct Search (BADS) to perform optimization of a synthetic target function.</p>
-<p>This notebook is Part 1 of a series of notebooks in which we present various example usages for BADS with the PyBADS package.</p>
+<p>This notebook is Part 1 of a series of notebooks in which we present various example usages for BADS with the PyBADS package.
+The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/06743557a28bcbf4dca92af04c48319b/pybads_example_1_basic_usage.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -562,7 +463,7 @@ title="Print to PDF"
 </div>
 </div>
 <section id="what-is-py-bads">
-<h2>0. What is (Py)BADS?<a class="headerlink" href="#what-is-py-bads" title="Permalink to this headline">#</a></h2>
+<h2>0. What is (Py)BADS?<a class="headerlink" href="#what-is-py-bads" title="Permalink to this heading">#</a></h2>
 <p>BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to parameter estimation – aka model fitting – of computational models (e.g., via maximum-likelihood or maximum-a-posteriori estimation). <strong>PyBADS is its Python implementation</strong>.</p>
 <p>BADS has been intensively tested for fitting a variety of computational models, and is currently used by many research groups around the world (see <a class="reference external" href="https://scholar.google.co.uk/scholar?cites=7209174494000095753&amp;as_sdt=2005&amp;sciodt=0,5&amp;hl=en">Google Scholar</a> for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the <a class="reference external" href="https://arxiv.org/abs/1705.04405">original BADS paper</a>.</p>
 <p>BADS is particularly recommended when:</p>
@@ -572,24 +473,24 @@ title="Print to PDF"
 <li><p>the gradient is unavailable;</p></li>
 <li><p>the number of input parameters is up to about <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">20</span></code> or so.</p></li>
 </ul>
-<p>BADS requires no specific tuning and runs off-the-shelf like other built-in optimizers (e.g., from <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>).</p>
-<p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python (PyVBMC), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.</p>
+<p>BADS requires no specific tuning and runs off-the-shelf like other built-in Python optimizers (e.g., from <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>).</p>
+<p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out <a class="reference external" href="https://github.com/acerbilab/pyvbmc">Variational Bayesian Monte Carlo for Python (PyVBMC)</a>, a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.</p>
 <section id="optimization-problem">
-<h3>Optimization problem<a class="headerlink" href="#optimization-problem" title="Permalink to this headline">#</a></h3>
+<h3>Optimization problem<a class="headerlink" href="#optimization-problem" title="Permalink to this heading">#</a></h3>
 <p>Formally, the goal of BADS is to <em>minimize</em> a target (or objective) function <span class="math notranslate nohighlight">\(f(\mathbf{x}): \mathbb{R}^D \rightarrow \mathbb{R}\)</span>, for <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^D\)</span>,
 $<span class="math notranslate nohighlight">\(
-\mathbf{x}^\star = \arg\min_\mathbf{x} f(\mathbf{x}) \qquad \text{with} \; \text{lb}_d \le x_d \le \text{ub}_d \; \text{ for } 1\le d \le D,
+\mathbf{x}^\star = \arg\min_\mathbf{x} f(\mathbf{x}) \qquad \text{with} \; \text{lower_bounds}_d \le x_d \le \text{upper_bounds}_d \; \text{ for } 1\le d \le D,
 \)</span><span class="math notranslate nohighlight">\(
-where \)</span>D$ is the dimensionality of the problem and <code class="docutils literal notranslate"><span class="pre">lb</span></code>, <code class="docutils literal notranslate"><span class="pre">ub</span></code> are arrays representing lower/upper bound constraints, which can be set to infinite for unbounded parameters.</p>
+where \)</span>D$ is the dimensionality of the problem and <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> are arrays representing lower/upper bound constraints, which can be set to infinite for unbounded parameters.</p>
 </section>
 </section>
 <section id="problem-setup">
-<h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this headline">#</a></h2>
+<h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this heading">#</a></h2>
 <p>Here we show PyBADS at work on <a class="reference external" href="https://en.wikipedia.org/wiki/Rosenbrock_function">Rosenbrock’s banana function</a> in 2D as target function.</p>
 <p>We specify wide hard bounds and tighter plausible bounds that (hopefully) contain the solution.</p>
 <ul class="simple">
-<li><p>Hard lower/upper bounds <code class="docutils literal notranslate"><span class="pre">lb</span></code>, <code class="docutils literal notranslate"><span class="pre">ub</span></code> are the actual optimization bounds; PyBADS will not evaluate the target function outside these bounds, but might evaluate the target on the bounds. You can use <code class="docutils literal notranslate"><span class="pre">-np.inf</span></code> and <code class="docutils literal notranslate"><span class="pre">np.inf</span></code> for unbounded parameters.</p></li>
-<li><p>Plausible lower/upper bounds <code class="docutils literal notranslate"><span class="pre">plb</span></code>, <code class="docutils literal notranslate"><span class="pre">pub</span></code> represent our best guess at bounding the region where the solution might lie. The plausible bounds do not change the optimization problem, but help define the initial exploration and hyperparameters of PyBADS.</p></li>
+<li><p>Hard lower/upper bounds <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> are the actual optimization bounds; PyBADS will not evaluate the target function outside these bounds, but might evaluate the target on the bounds. You can use <code class="docutils literal notranslate"><span class="pre">-np.inf</span></code> and <code class="docutils literal notranslate"><span class="pre">np.inf</span></code> for unbounded parameters.</p></li>
+<li><p>Plausible lower/upper bounds <code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> represent our best guess at bounding the region where the solution might lie. The plausible bounds do not change the optimization problem, but help define the initial exploration and hyperparameters of PyBADS.</p></li>
 </ul>
 <p>We set as starting point for the optimization <span class="math notranslate nohighlight">\(\mathbf{x}_0 = (0, 0)\)</span>.</p>
 <div class="cell docutils container">
@@ -601,10 +502,10 @@ where \)</span>D$ is the dimensionality of the problem and <code class="docutils
 
 <span class="n">target</span> <span class="o">=</span> <span class="n">rosenbrocks_fcn</span><span class="p">;</span>
 
-<span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">])</span>     <span class="c1"># Lower bounds</span>
-<span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>       <span class="c1"># Upper bounds</span>
-<span class="n">plb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>      <span class="c1"># Plausible lower bounds</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>        <span class="c1"># Plausible upper bounds</span>
+<span class="n">lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">])</span>
+<span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">plausible_lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+<span class="n">plausible_upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
 <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]);</span>        <span class="c1"># Starting point</span>
 </pre></div>
 </div>
@@ -612,12 +513,12 @@ where \)</span>D$ is the dimensionality of the problem and <code class="docutils
 </div>
 </section>
 <section id="initialize-and-run-the-optimization">
-<h2>2. Initialize and run the optimization<a class="headerlink" href="#initialize-and-run-the-optimization" title="Permalink to this headline">#</a></h2>
+<h2>2. Initialize and run the optimization<a class="headerlink" href="#initialize-and-run-the-optimization" title="Permalink to this heading">#</a></h2>
 <p>Then, we initialize a <code class="docutils literal notranslate"><span class="pre">bads</span></code> instance which takes care of the optimization. For now, we use default options.<br />
 To run the optimization, we simply call <code class="docutils literal notranslate"><span class="pre">bads.optimize()</span></code>, which returns an <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> object.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="p">,</span> <span class="n">plausible_lower_bounds</span><span class="p">,</span> <span class="n">plausible_upper_bounds</span><span class="p">)</span>
 <span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -630,29 +531,26 @@ To run the optimization, we simply call <code class="docutils literal notranslat
      0           6               1               1         Initial mesh            Initial points
      0          10               1             0.5         Refine grid             Train
      1          18               1            0.25         Refine grid             Train
-     2          19       0.0600236            0.25     Successful search (ES-wcm)        
-     2          24      0.00320034            0.25     Incremental search (ES-ell)        
-     2          30      0.00320034           0.125         Refine grid             Train
-     3          34     0.000634688           0.125     Incremental search (ES-wcm)        
-     3          38     0.000634688          0.0625         Refine grid             
-     4          46     0.000634688         0.03125         Refine grid             
-     5          48     0.000629039         0.03125     Incremental search (ES-ell)        
-     5          54     0.000629039        0.015625         Refine grid             Train
-     6          58     0.000456147        0.015625     Incremental search (ES-ell)        
-     6          62     0.000456147      0.00390625         Refine grid             Train
-     7          63     0.000342996      0.00390625     Incremental search (ES-ell)        
-     7          70     0.000342996     0.000976562         Refine grid             
-     8          71     0.000320662     0.000976562     Incremental search (ES-wcm)        
-Optimization terminated: change in the function value less than options.TolFun.
-Function value at minimum: 0.0003206622739026016
+     2          22        0.250428            0.25     Successful search (ES-wcm)        
+     2          24       0.0851394            0.25     Successful search (ES-ell)        
+     2          26      0.00997961            0.25     Incremental search (ES-ell)        
+     2          27     0.000224117            0.25     Incremental search (ES-ell)        
+     2          34     0.000224117           0.125         Refine grid             
+     3          42     0.000224117          0.0625         Refine grid             Train
+     4          44     7.97867e-05          0.0625     Incremental search (ES-wcm)        
+     4          50     7.97867e-05         0.03125         Refine grid             
+     5          58     7.97867e-05       0.0078125         Refine grid             
+     6          66     7.97867e-05      0.00195312         Refine grid             Train
+Optimization terminated: change in the function value less than options[&#39;tol_fun&#39;].
+Function value at minimum: 7.97867122044391e-05
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="results-and-conclusions">
-<h2>3. Results and conclusions<a class="headerlink" href="#results-and-conclusions" title="Permalink to this headline">#</a></h2>
-<p>We examine now the result of the optimization stored in <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code>. The most important keys are the minimum, <code class="docutils literal notranslate"><span class="pre">optimize_result['x']</span></code>, and the value of the function at the solution, <code class="docutils literal notranslate"><span class="pre">optimize_result['fval']</span></code>.</p>
+<h2>3. Results and conclusions<a class="headerlink" href="#results-and-conclusions" title="Permalink to this heading">#</a></h2>
+<p>We examine now the result of the optimization stored in <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code>. The most important keys are the location of the minimum, <code class="docutils literal notranslate"><span class="pre">optimize_result['x']</span></code>, and the value of the function at the minimum, <code class="docutils literal notranslate"><span class="pre">optimize_result['fval']</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x_min</span> <span class="o">=</span> <span class="n">optimize_result</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
@@ -664,65 +562,120 @@ Function value at minimum: 0.0003206622739026016
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [1.01732125 1.0353968 ], fval = 0.0003207
-total f-count: 71, time: 4.07 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [1.00744247 1.01543427], fval = 7.979e-05
+total f-count: 67, time: 1.34 s
 </pre></div>
 </div>
 </div>
 </div>
-<p>The true minimum of the Rosenbrock function is at <span class="math notranslate nohighlight">\(\textbf{x}^\star = [1, 1]\)</span>, where <span class="math notranslate nohighlight">\(f^\star = 0\)</span>.</p>
+<p>For reference, the true minimum of the Rosenbrock function is at <span class="math notranslate nohighlight">\(\textbf{x}^\star = [1, 1]\)</span>, where <span class="math notranslate nohighlight">\(f^\star = 0\)</span>.</p>
 <p>In conclusion, PyBADS found the solution with a fairly small number of function evaluations (<code class="docutils literal notranslate"><span class="pre">f-count</span></code>), which is particularly important if the target function is mildly-to-very expensive to compute as in many computational models.</p>
-<p><em>Note</em>: PyBADS by default does not aim for extreme numerical precision of the target (e.g., beyond the 2nd or 3rd decimal place), since in most realistic model-fitting problems a higher resolution is typically pointless, e.g. due to noise or variability in the data.</p>
-</section>
-<section id="example-1-full-code">
-<h2>Example 1: Full code<a class="headerlink" href="#example-1-full-code" title="Permalink to this headline">#</a></h2>
-<p>See <a class="reference download internal" download="" href="../_downloads/06743557a28bcbf4dca92af04c48319b/pybads_example_1_basic_usage.py"><span class="xref download myst">here</span></a> for a Python file with the code used in this example, with no extra fluff.</p>
+<p><em>Note</em>: PyBADS by default does not aim for extreme numerical precision of the target (e.g., beyond the 2nd or 3rd decimal place), since in most realistic model-fitting problems a higher resolution is not particularly useful, e.g. due to noise or variability in the data.</p>
 </section>
 </section>
 
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="../api/options/bads_options.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">BADS options</p>
-        </div>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../examples.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
     </a>
-    <a class='right-next' id="next-link" href="pybads_example_2_nonbox_constraints.html" title="next page">
-    <div class="prev-next-info">
+    <a class="right-next"
+       href="pybads_example_2_nonbox_constraints.html"
+       title="next page">
+      <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">PyBADS Example 2: Non-box constraints</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
-    </a>
-</div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
-  
-      &copy; Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).<br/>
-</p>
-        </footer>
-    </div>
-    
-</div>
-
-
       </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-py-bads">0. What is (Py)BADS?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization-problem">Optimization problem</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-setup">1. Problem setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize-and-run-the-optimization">2. Initialize and run the optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results-and-conclusions">3. Results and conclusions</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

@@ -1,348 +1,319 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pybads.bads.bads &#8212; PyBADS</title>
-    
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-    
-  <link rel="stylesheet"
-    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pybads/bads/bads';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_modules/pybads/bads/bads.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="../../../index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">PyBADS</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">PyBADS</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../installation.html">
-   Installation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../quickstart.html">
-   Getting started
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../api/classes/bads.html">
-   BADS
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../api/classes/optimize_result.html">
-   OptimizeResult
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../../../api/advanced_docs.html">
-   Advanced documentation
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/acquisition_functions.html">
-     Acquisition Functions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/bads.html">
-     BADS
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/function_logger.html">
-     FunctionLogger
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/iteration_history.html">
-     IterationHistory
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/optimize_result.html">
-     OptimizeResult
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/options.html">
-     Options
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/parameter_transformer.html">
-     VariableTransformer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/classes/timer.html">
-     Timer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/functions/decorators.html">
-     decorators
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/functions/get_hpd.html">
-     get_hpd
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../../api/options/bads_options.html">
-     BADS options
-    </a>
-   </li>
-  </ul>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/options/bads_options.html">BADS options</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/advanced_docs.html">Advanced documentation</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/classes/classes.html">Classes</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/function_logger.html"><code class="docutils literal notranslate"><span class="pre">FunctionLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/iteration_history.html"><code class="docutils literal notranslate"><span class="pre">IterationHistory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/options.html"><code class="docutils literal notranslate"><span class="pre">Options</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/parameter_transformer.html"><code class="docutils literal notranslate"><span class="pre">VariableTransformer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/classes/timer.html"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/options/bads_options.html">BADS options</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">
-   PyBADS Example 1: Basic usage
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">
-   PyBADS Example 2: Non-box constraints
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">
-   PyBADS Example 3: Noisy objective function
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">
-   PyBADS Example 4: Noisy objective with user-provided noise estimates
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">
-   PyBADS Example 5: Extended usage
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Instructions for developers and contributors</a></li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../development.html">
-   Instructions for developers and contributors
-  </a>
- </li>
-</ul>
-<ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../../../about_us.html">
-   About us
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about_us.html">About us</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_modules/pybads/bads/bads.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
 </div>
 
 
-          
 
 
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
-<div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
-    </div>
-    <div class="header-article__right">
 <button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
-<div class="menu-dropdown menu-dropdown-repository-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Source repositories">
-      <i class="fab fa-github"></i>
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="https://github.com/acerbilab/pybads"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
+`);
+</script>
 
-<span class="headerbtn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="headerbtn__text-container">repository</span>
-</a>
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
 
-      </li>
+</div></div>
       
-      <li>
-        <a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_modules/pybads/bads/bads.html&body=Your%20issue%20content%20here."
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
+    </div>
   
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="headerbtn__text-container">open issue</span>
-</a>
-
-      </li>
-      
-    </ul>
-  </div>
 </div>
+</div>
+              
+              
 
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
     </div>
 </div>
 
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-</div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1></h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                    </div>
-                </div>
-            </div>
-            <main id="main-content" role="main">
+              
                 
-              <div>
-                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <h1>Source code for pybads.bads.bads</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -378,10 +349,10 @@ title="Open an issue"
 
 <div class="viewcode-block" id="BADS"><a class="viewcode-back" href="../../../api/classes/bads.html#pybads.bads.BADS">[docs]</a><span class="k">class</span> <span class="nc">BADS</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    BADS Constrained optimization using Bayesian Adaptive Direct Search (v0.0.1).</span>
+<span class="sd">    BADS Constrained optimization using Bayesian Adaptive Direct Search.</span>
 <span class="sd">    </span>
 <span class="sd">    BADS attempts to solve problems of the form:</span>
-<span class="sd">       :math:`\mathtt{argmin}_X  f(X)`  subject to:  lb :math:`&lt;= X &lt;=` ub, and optionally :math:`C(X) &lt;= 0`</span>
+<span class="sd">       :math:`\mathtt{argmin}_x  f(x)`  subject to:  lower_bounds :math:`&lt;= x &lt;=` upper_bounds, and optionally :math:`C(x) &lt;= 0`</span>
 <span class="sd">                               </span>
 
 <span class="sd">    Initialize a ``PyBADS`` object to set up the optimization problem, then run</span>
@@ -390,45 +361,60 @@ title="Open an issue"
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fun : callable</span>
-<span class="sd">        A given target `fun`. `fun` accepts input `x` and returns a scalar function</span>
-<span class="sd">        value of the target evaluated at &#39;x&#39; and the noise if provided.</span>
+<span class="sd">        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar </span>
+<span class="sd">        function value of the target evaluated at ``x`` and the noise if provided.</span>
+<span class="sd">        In case the target function ``fun`` requires additional data/parameters, </span>
+<span class="sd">        they can be handled using an anonymous function.</span>
+<span class="sd">        For example: ``fun_for_pybads = lambda x: fun(x, data, extra_params)``, </span>
+<span class="sd">        where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` </span>
+<span class="sd">        are given in the outer scope.</span>
 <span class="sd">    x0 : np.ndarray, optional</span>
-<span class="sd">        Starting point.</span>
+<span class="sd">        Starting point for the optimization. If not specified or ``None``, the </span>
+<span class="sd">        starting point ``x0`` is uniformly randomly drawn inside the plausible </span>
+<span class="sd">        box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see </span>
+<span class="sd">        below).</span>
 <span class="sd">    lower_bounds, upper_bounds : np.ndarray, optional</span>
-<span class="sd">        `lower_bounds` (`lb`) and `upper_bounds` (`ub`) define a set</span>
-<span class="sd">        of strict lower and upper bounds for the coordinate vector, `x`, so</span>
-<span class="sd">        that the unknown function has support on `lb` &lt; `x` &lt; `ub`.</span>
+<span class="sd">        ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set</span>
+<span class="sd">        of strict lower and upper bounds for the coordinate vector, ``x``, so</span>
+<span class="sd">        that the unknown function has support on ``lb`` &lt;= ``x`` &lt;= ``ub``.</span>
 <span class="sd">        If scalars, the bound is replicated in each dimension. Use</span>
-<span class="sd">        ``None`` for `lb` and `ub` if no bounds exist. Set `lb` [`i`] = -``inf``</span>
-<span class="sd">        and `ub` [`i`] = ``inf`` if the `i`-th coordinate is unbounded (while</span>
-<span class="sd">        other coordinates may be bounded). Note that if `lb` and `ub` contain</span>
-<span class="sd">        unbounded variables, the respective values of `plb` and `pub` need to</span>
-<span class="sd">        be specified (see below), by default ``None``.</span>
+<span class="sd">        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set ``lb[i] = -inf``</span>
+<span class="sd">        and ``ub [i] = inf`` if the `i`-th coordinate is unbounded (while</span>
+<span class="sd">        other coordinates may be bounded). Note that if ``lb`` and ``ub`` contain</span>
+<span class="sd">        unbounded variables, the respective values of ``plb`` and ``pub`` need to</span>
+<span class="sd">        be specified (see below). By default ``None``.</span>
 <span class="sd">    plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional</span>
-<span class="sd">        Specifies a set of `plausible_lower_bounds` (`plb`) and</span>
-<span class="sd">        `plausible_upper_bounds` (`pub`) such that `lb` &lt; `plb` &lt; `pub` &lt; `ub`.</span>
-<span class="sd">        Both `plb` and `pub` need to be finite. `plb` and `pub` represent a</span>
-<span class="sd">        &quot;plausible&quot; range, which should denote a region of the global minimum.</span>
-<span class="sd">        As a rule of thumb, set plausible_lower_bounds and plausible_upper_bounds such that</span>
-<span class="sd">        there is &gt; 90% probability that the minimum is found within the box</span>
-<span class="sd">        (where in doubt, just set `plb`=`lb` and `pub`=`ub`).</span>
+<span class="sd">        Specifies a set of ``plausible_lower_bounds`` (``plb``) and</span>
+<span class="sd">        ``plausible_upper_bounds`` (``pub``) such that ``lb`` &lt;= ``plb`` &lt; ``pub`` &lt;= ``ub``.</span>
+<span class="sd">        Both ``plb`` and ``pub`` need to be finite. ``plb`` and ``pub`` represent a</span>
+<span class="sd">        `plausible` range, which should denote a region where the global minimum</span>
+<span class="sd">        is expected to be found. As a rule of thumb, set ``plausible_lower_bounds`` </span>
+<span class="sd">        and ``plausible_upper_bounds`` such that there is &gt; 90% probability that </span>
+<span class="sd">        the minimum is found within the box (where in doubt, just set </span>
+<span class="sd">        ``plb = lb`` and ``pub = ub``).</span>
 
 <span class="sd">    non_box_cons: callable, optional</span>
-<span class="sd">        A given non-bound constraints function. e.g : ``lambda x: np.sum(x.^2,1)&gt;1``</span>
+<span class="sd">        A given non-box constraints function that specifies constraint </span>
+<span class="sd">        `violations`, e.g : ``lambda x: np.sum(x.^2,1)&gt;1``</span>
 
 <span class="sd">    options : dict, optional</span>
 <span class="sd">        Additional options can be passed as a dict. Please refer to the</span>
 <span class="sd">        BADS options page for the default options. If no `options` are</span>
 <span class="sd">        passed, the default options are used.</span>
-<span class="sd">        To run BADS on a noisy (stochastic) objective function, set:</span>
-<span class="sd">            * ``options.uncertainty_handling`` = ``True``</span>
-<span class="sd">            * ``options.noise_size`` = SIGMA</span>
-<span class="sd">                *  SIGMA is an estimate of the SD of the noise in your problem in</span>
-<span class="sd">                    a good region of the parameter space. (If not specified, default</span>
-<span class="sd">                    SIGMA = 1). To help BADS work better, it is recommended that you</span>
-<span class="sd">                    provide to BADS an estimate of the noise at each location.</span>
-<span class="sd">        If ``options.uncertainty_handling`` is not specified, BADS will determine at</span>
-<span class="sd">        runtime if the objective function is noisy.</span>
+<span class="sd">        To run BADS on a noisy (stochastic) objective function, set </span>
+<span class="sd">        ``options[&#39;uncertainty_handling&#39;]`` = ``True``. You can help BADS by </span>
+<span class="sd">        providing an estimate of the noise. ``options[&#39;noise_size&#39;] = sigma`` provides a global estimate of the </span>
+<span class="sd">        SD of the noise in your problem in a good region of the parameter </span>
+<span class="sd">        space. (If not specified, default ``sigma = 1.0``). </span>
+<span class="sd">        Alternatively, you can specify the target noise `at each location` </span>
+<span class="sd">        with ``options[&#39;specify_target_noise&#39;]`` = ``True``. In this case, </span>
+<span class="sd">        ``fun`` is expected to return `two` values, the estimate of the</span>
+<span class="sd">        target at ``x`` and an estimate of the SD of the noise at ``x`` </span>
+<span class="sd">        (see the examples). </span>
+<span class="sd">        If ``options[&#39;uncertainty_handling&#39;]`` is not specified, BADS will </span>
+<span class="sd">        determine at runtime if the objective function is noisy.</span>
+<span class="sd">        To obtain reproducible results of the optimization, set ``options[&#39;random_seed&#39;]`` </span>
+<span class="sd">        to a fixed integer value.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -436,32 +422,33 @@ title="Open an issue"
 <span class="sd">        When neither ``x0`` or (``plausible_lower_bounds`` and</span>
 <span class="sd">        ``plausible_upper_bounds``) are specified.</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        When various checks for the bounds (lb, ub, plb, pub) of BADS fail.</span>
+<span class="sd">        When various checks for the bounds (``lower_bounds``, ``upper_bounds``, </span>
+<span class="sd">        ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.</span>
 
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    .. [1]  Acerbi, L. &amp; Ma, W. J. (2017). &quot;Practical Bayesian</span>
 <span class="sd">            Optimization for Model Fitting with Bayesian Adaptive Direct Search&quot;.</span>
-<span class="sd">            In Advances in Neural Information Processing Systems 30, pages 1834-1844.</span>
+<span class="sd">            In `Advances in Neural Information Processing Systems` 30, pages 1834-1844.</span>
 <span class="sd">            (arXiv preprint: https://arxiv.org/abs/1705.04405).</span>
 <span class="sd">            </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    For `BADS` usage examples, please look up the Jupyter notebook tutorials</span>
 <span class="sd">    in the PyBADS documentation:</span>
-<span class="sd">    https://acerbilab.github.io/pybads/_examples/pybads_example_1.html</span>
+<span class="sd">    https://acerbilab.github.io/pybads/examples.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">fun</span><span class="p">:</span> <span class="n">callable</span><span class="p">,</span>
+        <span class="n">fun</span><span class="p">:</span> <span class="nb">callable</span><span class="p">,</span>
         <span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">lower_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">plausible_lower_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">plausible_upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">non_box_cons</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_box_cons</span><span class="p">:</span> <span class="nb">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gamma_uncertain_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -486,7 +473,7 @@ title="Open an issue"
             <span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:UnknownDims If no starting point is</span>
-<span class="sd">                 provided, plb and pub need to be specified.&quot;&quot;&quot;</span>
+<span class="sd">                 provided, plausible_lower_bounds and plausible_upper_bounds need to be specified.&quot;&quot;&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">plausible_lower_bounds</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">)</span>
@@ -513,6 +500,9 @@ title="Open an issue"
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;stobads&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;stobads&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;stobads&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># set up random seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_random_seed_</span><span class="p">()</span>
 
         <span class="c1"># set up BADS logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;BADS&quot;</span><span class="p">)</span>
@@ -579,7 +569,7 @@ title="Open an issue"
             <span class="n">uncertainty_handling_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;uncertainty_handling_level&quot;</span>
             <span class="p">),</span>
-            <span class="n">cache_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cachesize&quot;</span><span class="p">),</span>
+            <span class="n">cache_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cache_size&quot;</span><span class="p">),</span>
             <span class="n">variable_transformer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_transf</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -615,7 +605,7 @@ title="Open an issue"
         <span class="n">upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">plausible_lower_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">plausible_upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">non_box_cons</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_box_cons</span><span class="p">:</span> <span class="nb">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Private function for initial checks of the BADS bounds.</span>
@@ -627,7 +617,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">plausible_lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">plausible_upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">N0</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;plb and/or pub not specified. Estimating&quot;</span>
+                    <span class="s2">&quot;plausible_lower_bounds and/or plausible_upper_bounds not specified. Estimating&quot;</span>
                     <span class="o">+</span> <span class="s2">&quot;plausible bounds from starting set X0...&quot;</span>
                 <span class="p">)</span>
                 <span class="n">width</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -653,8 +643,8 @@ title="Open an issue"
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;bads:pbUnspecified: Plausible lower/upper bounds plb and&quot;</span>
-                    <span class="s2">&quot;/or pub not specified and X0 is not a valid starting set. &quot;</span>
+                    <span class="s2">&quot;bads:pbUnspecified: Plausible lower/upper bounds&quot;</span>
+                    <span class="s2">&quot; not specified and X0 is not a valid starting set. &quot;</span>
                     <span class="o">+</span> <span class="s2">&quot;Using hard upper/lower bounds instead.&quot;</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">plausible_lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -689,7 +679,7 @@ title="Open an issue"
             <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">plausible_upper_bounds</span><span class="p">))</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Plausible interval bounds plb and pub need to be finite.&quot;</span>
+                <span class="s2">&quot;Plausible interval bounds plausible_lower_bounds and plausible_upper_bounds need to be finite.&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Test that all vectors are real-valued</span>
@@ -729,7 +719,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">lower_bounds</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&gt;</span> <span class="n">upper_bounds</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:InitialPointsNotInsideBounds: The starting</span>
-<span class="sd">                points X0 are not inside the provided hard bounds lb and ub.&quot;&quot;&quot;</span>
+<span class="sd">                points X0 are not inside the provided hard bounds lower_bounds and upper_bounds.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># # Compute &quot;effective&quot; bounds (slightly inside provided hard bounds)</span>
@@ -751,7 +741,7 @@ title="Open an issue"
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">LB_eff</span> <span class="o">&gt;=</span> <span class="n">UB_eff</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBoundsTooClose: Hard bounds lb and ub</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBoundsTooClose: Hard bounds lower_bounds and upper_bounds</span>
 <span class="sd">                are numerically too close. Make them more separate.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
@@ -759,7 +749,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">LB_eff</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&gt;</span> <span class="n">UB_eff</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;bads:InitialPointsTooClosePB: The starting points X0 are on &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;or numerically too close to the hard bounds lb and ub. &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;or numerically too close to the hard bounds lower_bounds and upper_bounds. &quot;</span>
                 <span class="o">+</span> <span class="s2">&quot;Moving the initial points more inside...&quot;</span>
             <span class="p">)</span>
             <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">UB_eff</span><span class="p">)),</span> <span class="n">LB_eff</span><span class="p">)</span>
@@ -773,7 +763,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">ordidx</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
-<span class="sd">            plausible bounds should respect the ordering lb &lt; plb &lt; pub &lt; ub.&quot;&quot;&quot;</span>
+<span class="sd">            plausible bounds should respect the ordering lower_bounds &lt; plausible_lower_bounds &lt; plausible_upper_bounds &lt; upper_bounds.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Test that plausible bounds are reasonably separated from hard bounds</span>
@@ -793,8 +783,8 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&lt;=</span> <span class="n">LB_eff</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&gt;=</span> <span class="n">UB_eff</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;bads:InitialPointsOutsidePB. The starting points X0&quot;</span>
-                <span class="o">+</span> <span class="s2">&quot; are not inside the provided plausible bounds plb and &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;pub. Expanding the plausible bounds...&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds).&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; Expanding the plausible bounds...&quot;</span>
             <span class="p">)</span>
             <span class="n">plausible_lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
                 <span class="n">plausible_lower_bounds</span><span class="p">,</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -812,7 +802,7 @@ title="Open an issue"
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">ordidx</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:StrictBounds: For each variable, hard and</span>
-<span class="sd">            plausible bounds should respect the ordering lb &lt;= plb &lt; pub &lt;= ub.&quot;&quot;&quot;</span>
+<span class="sd">            plausible bounds should respect the ordering lower_bounds &lt;= plausible_lower_bounds &lt; plausible_upper_bounds &lt;= upper_bounds.&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Check that variables are either bounded or unbounded</span>
@@ -863,20 +853,21 @@ title="Open an issue"
 <span class="sd">        A private function to initialize the optim_state dict that contains information about BADS variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Record starting points (original coordinates)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;fvals&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fvals&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;f_vals&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;f_vals&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_orig</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_orig</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:MismatchedStartingInputs The number of</span>
 <span class="sd">                points in X0 and of their function values as specified in</span>
-<span class="sd">                self.options.fvals are not the same.&quot;&quot;&quot;</span>
+<span class="sd">                self.options.[&#39;f_vals&#39;] are not the same.&quot;&quot;&quot;</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
 
         <span class="n">optim_state</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_seed</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;cache&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;cache&quot;</span><span class="p">][</span><span class="s2">&quot;x_orig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;cache&quot;</span><span class="p">][</span><span class="s2">&quot;y_orig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_orig</span>
@@ -893,16 +884,16 @@ title="Open an issue"
         <span class="p">]</span>  <span class="c1"># Mesh size in log base units</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
             <span class="mi">0</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;searchgridmultiplier&quot;</span><span class="p">)</span>
-            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;searchgridnumber&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;search_grid_multiplier&quot;</span><span class="p">)</span>
+            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;search_grid_number&quot;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;mesh_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">))</span>
+            <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">))</span>
             <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;mesh_size&quot;</span><span class="p">]</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">))</span>
+            <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">))</span>
             <span class="o">**</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">search_mesh_size</span> <span class="o">=</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span>
@@ -987,10 +978,10 @@ title="Open an issue"
         <span class="c1"># Test starting point u0 is within bounds</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">u0</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">u0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bounds</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Initial starting point u0 is not within the hard bounds lb and ub&quot;</span>
+                <span class="s2">&quot;Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds&quot;</span>
             <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:Initpoint: Initial starting point u0 is not within the hard bounds lb and ub&quot;&quot;&quot;</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds&quot;&quot;&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Report variable transformation</span>
@@ -999,12 +990,12 @@ title="Open an issue"
                 <span class="sa">f</span><span class="s2">&quot;Variables (index) internally transformed to log coordinates: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_transf</span><span class="o">.</span><span class="n">apply_log_t</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-        <span class="c1"># Put TOLMESH on space</span>
+        <span class="c1"># Put tol_mesh on space</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;tol_mesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span>
-            <span class="s2">&quot;pollmeshmultiplier&quot;</span>
+            <span class="s2">&quot;poll_mesh_multiplier&quot;</span>
         <span class="p">]</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolmesh&quot;</span><span class="p">])</span>
-            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">])</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_mesh&quot;</span><span class="p">])</span>
+            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">])</span>
         <span class="p">)</span>
 
         <span class="c1"># Periodic variables</span>
@@ -1027,11 +1018,11 @@ title="Open an issue"
         <span class="c1"># Setup covariance information (unused)</span>
 
         <span class="c1"># Import prior function evaluations</span>
-        <span class="n">fun_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;funvalues&quot;</span><span class="p">]</span>
+        <span class="n">fun_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;fun_values&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">fun_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fun_values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;X&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fun_values</span> <span class="ow">or</span> <span class="s2">&quot;Y&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fun_values</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:funvalues: The &#39;FunValue&#39; field in OPTIONS need to have X and Y fields (respectively, inputs and their function values)&quot;&quot;&quot;</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;bads:fun_values: The &#39;fun_values&#39; field in options need to have X and Y fields (respectively, inputs and their function values)&quot;&quot;&quot;</span>
                 <span class="p">)</span>
 
             <span class="n">X</span> <span class="o">=</span> <span class="n">fun_values</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span>
@@ -1039,7 +1030,7 @@ title="Open an issue"
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;X and Y arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).&quot;</span>
+                    <span class="s2">&quot;X and Y arrays in the options[&#39;fun_values&#39;] need to have the same number of rows (each row is a tested point).&quot;</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">)))</span>
@@ -1065,7 +1056,7 @@ title="Open an issue"
                 <span class="n">S</span> <span class="o">=</span> <span class="n">fun_values</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;X, Y, and S arrays in the OPTIONS.FunValues need to have the same number of rows (each row is a tested point).&quot;</span>
+                        <span class="s2">&quot;X, Y, and S arrays in the options[&#39;fun_values&#39;] need to have the same number of rows (each row is a tested point).&quot;</span>
                     <span class="p">)</span>
                 <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">S</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">S</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -1081,9 +1072,9 @@ title="Open an issue"
 
         <span class="c1"># Other variables initializations</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;incumbentsigmamultiplier&quot;</span><span class="p">]</span>
+        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;incumbent_sigma_multiplier&quot;</span><span class="p">]</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span>
-            <span class="s2">&quot;searchntry&quot;</span>
+            <span class="s2">&quot;search_n_try&quot;</span>
         <span class="p">]</span>  <span class="c1"># Skip search at first iteration</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;lastreeval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="c1"># Last time function values were re-evaluated</span>
@@ -1128,8 +1119,8 @@ title="Open an issue"
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;If options.specify_target_noise is ON, options.uncertainty_handling should be ON as well. </span><span class="se">\</span>
-<span class="s2">                                Leave options.uncertainty_handling empty or set it to ON to avoid this error.&quot;</span>
+                <span class="s2">&quot;If options[&#39;specify_target_noise&#39;] is True, options[&#39;uncertainty_handling&#39;] should be True as well. </span><span class="se">\</span>
+<span class="s2">                                Leave options[&#39;uncertainty_handling&#39;] empty or set it to True to avoid this error.&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;specify_target_noise&quot;</span><span class="p">]</span>
@@ -1137,8 +1128,8 @@ title="Open an issue"
             <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;If options.specify_target_noise is ON, options.noise_size is ignored. </span><span class="se">\</span>
-<span class="s2">                Leave options.noise_size empty or set it to 0 to silence this warning.&quot;</span>
+                <span class="s2">&quot;If options[&#39;specify_target_noise&#39;] is True, options[&#39;noise_size&#39;] is ignored. </span><span class="se">\</span>
+<span class="s2">                Leave options[&#39;noise_size&#39;] empty or set it to 0 to silence this warning.&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Set uncertainty handling level</span>
@@ -1154,7 +1145,7 @@ title="Open an issue"
             <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Empty hedge struct for acquisition functions</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;acqhedge&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;acq_hedge&quot;</span><span class="p">):</span>
             <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;acq_hedge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
         <span class="c1"># List of points at the end of each iteration</span>
@@ -1166,7 +1157,7 @@ title="Open an issue"
 
         <span class="c1"># Initialize Gaussian process settings</span>
         <span class="c1"># Squared exponential kernel with separate length scales</span>
-        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_covfun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_cov_fun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">optim_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Observation noise for stability</span>
@@ -1179,13 +1170,13 @@ title="Open an issue"
             <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_noisefun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;noiseshaping&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;noise_shaping&quot;</span><span class="p">)</span>
             <span class="ow">and</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_noisefun&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="p">):</span>
             <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_noisefun&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_meanfun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gp_meanfun&quot;</span><span class="p">)</span>
-        <span class="n">valid_gp_meanfuns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_mean_fun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gp_mean_fun&quot;</span><span class="p">)</span>
+        <span class="n">valid_gp_mean_funs</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;zero&quot;</span><span class="p">,</span>
             <span class="s2">&quot;const&quot;</span><span class="p">,</span>
             <span class="s2">&quot;negquad&quot;</span><span class="p">,</span>
@@ -1200,7 +1191,7 @@ title="Open an issue"
             <span class="s2">&quot;negquadmix&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_meanfun&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">valid_gp_meanfuns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;gp_mean_fun&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">valid_gp_mean_funs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;bads:UnknownGPmean:Unknown/unsupported GP mean</span>
 <span class="sd">            function. Supported mean functions are zero, const,</span>
@@ -1209,6 +1200,18 @@ title="Open an issue"
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;int_meanfun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gpintmeanfun&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">optim_state</span>
+
+    <span class="k">def</span> <span class="nf">_init_random_seed_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># set random seed if provided</span>
+        <span class="k">if</span> <span class="s2">&quot;random_seed&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="ow">and</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># set random seed to numpy and consequently to scipy (scipy uses the same number generator)</span>
+            <span class="n">random_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">])</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">random_seed</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_random_seed</span> <span class="o">=</span> <span class="n">random_seed</span>
+        <span class="k">return</span> <span class="n">random_seed</span>
 
     <span class="k">def</span> <span class="nf">_init_mesh_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1238,7 +1241,7 @@ title="Open an issue"
             <span class="n">yval_bis</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="n">record_duplicate_data</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="o">-</span> <span class="n">yval_bis</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolnoise&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="o">-</span> <span class="n">yval_bis</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_noise&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logging_action</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Uncertainty test&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1276,12 +1279,12 @@ title="Open an issue"
         <span class="bp">self</span><span class="o">.</span><span class="n">_display_function_log_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;fun_eval_start&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Evaluate initial points but not more than options.max_fun_evals</span>
+            <span class="c1"># Evaluate initial points but not more than options[&#39;max_fun_evals&#39;]</span>
             <span class="n">fun_eval_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;fun_eval_start&quot;</span><span class="p">],</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;max_fun_evals&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;initfcn&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;init_sobol&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;init_fun&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;init_sobol&quot;</span><span class="p">:</span>
 
                 <span class="n">u1</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">init_sobol</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span>
@@ -1326,7 +1329,7 @@ title="Open an issue"
                 <span class="bp">self</span><span class="o">.</span><span class="n">_display_function_log_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Initial mesh&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;bads:initfcn:Initialization function not implemented yet&quot;</span>
+                    <span class="s2">&quot;bads:init_fun:Initialization function not implemented yet&quot;</span>
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="p">):</span>
@@ -1349,20 +1352,22 @@ title="Open an issue"
         <span class="n">gp</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_gp</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">hyp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-
+        <span class="c1"># set random seed if provided</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_random_seed_</span><span class="p">()</span>
+        
         <span class="c1"># Evaluate starting point and initial mesh,</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_mesh_</span><span class="p">()</span>
 
         <span class="c1"># Change options for uncertainty handling</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolstalliters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolstalliters&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ntrain_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ntrain_max&quot;</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ntrain_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ntrain_min&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;meshoverflowswarning&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;meshoverflowswarning&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_stall_iters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_stall_iters&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;n_train_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;n_train_max&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;n_train_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;n_train_min&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;mesh_overflow_warning&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;mesh_overflow_warning&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;minfailedpollsteps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;meshnoisemultiplier&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;min_failed_poll_steps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;mesh_noise_multiplier&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
@@ -1394,7 +1399,7 @@ title="Open an issue"
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;noise_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="c1"># Since the function is fully-deterministic no need of stobads</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;stobads&quot;</span><span class="p">]:</span>
@@ -1470,10 +1475,11 @@ title="Open an issue"
 
         <span class="c1"># Initialize gp</span>
         <span class="n">gp</span><span class="p">,</span> <span class="n">Ns_gp</span><span class="p">,</span> <span class="n">sn2hpd</span><span class="p">,</span> <span class="n">hyp_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_optimization_</span><span class="p">()</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">search_es_hedge</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># init search hedge to None</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;outputfcn&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">output_fcn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;outputfcn&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;output_fcn&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_fcn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;output_fcn&quot;</span><span class="p">]</span>
             <span class="n">is_finished</span> <span class="o">=</span> <span class="n">output_fcn</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">var_transf</span><span class="o">.</span><span class="n">inverse_transf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">),</span> <span class="s2">&quot;init&quot;</span>
             <span class="p">)</span>
@@ -1489,21 +1495,21 @@ title="Open an issue"
             <span class="p">)</span>
 
             <span class="c1"># Compute mesh size and search mesh size</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;mesh_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchsizelocked&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_size_locked&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
                     <span class="mi">0</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
-                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchgridmultiplier&quot;</span><span class="p">]</span>
-                    <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchgridnumber&quot;</span><span class="p">],</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_grid_multiplier&quot;</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_grid_number&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">]</span>
                 <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">search_mesh_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span>
@@ -1515,12 +1521,12 @@ title="Open an issue"
             <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_search_bounds_</span><span class="p">()</span>
 
             <span class="c1"># Minimum improvement for a poll/search to be considered successful</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolimprovement&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;forcingexponent&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_improvement&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;forcing_exponent&quot;</span><span class="p">])</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppyimprovement&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppy_improvement&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span>
@@ -1528,7 +1534,7 @@ title="Open an issue"
             <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
             <span class="n">do_search_step_flag</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchntry&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_n_try&quot;</span><span class="p">]</span>
                 <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">X_flag</span><span class="p">])</span>
                 <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span>
             <span class="p">)</span>
@@ -1548,31 +1554,31 @@ title="Open an issue"
             <span class="k">if</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
                 <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span>
-                <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchntry&quot;</span><span class="p">]</span>
+                <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_n_try&quot;</span><span class="p">]</span>
             <span class="p">):</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">search_success</span> <span class="o">&gt;</span> <span class="mi">0</span>
-                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;skippollaftersearch&quot;</span><span class="p">]</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;skip_poll_after_search&quot;</span><span class="p">]</span>
                 <span class="p">):</span>
                     <span class="n">do_poll_step</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">search_spree</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="k">if</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchmeshexpand&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_mesh_expand&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
                         <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">search_spree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchmeshexpand&quot;</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">search_spree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_mesh_expand&quot;</span><span class="p">]</span>
                         <span class="p">)</span>
                         <span class="o">==</span> <span class="mi">0</span>
-                        <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchmeshincrement&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                        <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_mesh_increment&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
                     <span class="p">):</span>
                         <span class="c1"># Check if mesh size is already maximal</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_check_mesh_overflow_</span><span class="p">()</span>
 
                         <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
-                            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchmeshincrement&quot;</span><span class="p">],</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;maxpollgridnumber&quot;</span><span class="p">],</span>
+                            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_mesh_increment&quot;</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;max_poll_grid_number&quot;</span><span class="p">],</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">do_poll_step</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1605,21 +1611,21 @@ title="Open an issue"
             <span class="p">):</span>
                 <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># exit_flag = 0</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: reached maximum number of function evaluations options.max_fun_evals.&quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: reached maximum number of function evaluations options[&#39;max_fun_evals&#39;].&quot;</span>
 
             <span class="k">if</span> <span class="n">poll_iteration</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># exit_flag = 0</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: reached maximum number of iterations options.max_iter.&quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: reached maximum number of iterations options[&#39;max_iter&#39;].&quot;</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;mesh_size&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;tol_mesh&quot;</span><span class="p">]:</span>
                 <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># exit_flag = 1</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: mesh size less than options.tolmesh.&quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: change in the function value less than options[&#39;tol_mesh&#39;]&quot;</span>
 
             <span class="c1"># Historic improvement</span>
-            <span class="k">if</span> <span class="n">poll_iteration</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolstalliters&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">idx</span> <span class="o">=</span> <span class="n">poll_iteration</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolstalliters&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">poll_iteration</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_stall_iters&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">poll_iteration</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_stall_iters&quot;</span><span class="p">]</span>
                 <span class="n">f_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fval&quot;</span><span class="p">)[</span><span class="n">idx</span><span class="p">]</span>
                 <span class="n">f_sd_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fsd&quot;</span><span class="p">)[</span><span class="n">idx</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_improvement_</span><span class="p">(</span>
@@ -1627,13 +1633,13 @@ title="Open an issue"
                     <span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
                     <span class="n">f_sd_base</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvementquantile&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvement_quantile&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]:</span>
                     <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">exit_flag</span> <span class="o">=</span> <span class="mi">2</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: change in the function value less than options.TolFun.&quot;</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Optimization terminated: change in the function value less than options[&#39;tol_fun&#39;].&quot;</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;termination_msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
 
@@ -1690,7 +1696,7 @@ title="Open an issue"
                     <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fsd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvementquantile&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvement_quantile&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
                 <span class="n">f_q_re_impr</span> <span class="o">=</span> <span class="n">f_q_re_impr</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># Skip the first iteration</span>
                 <span class="n">idx_impr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">f_q_re_impr</span><span class="p">)</span>
@@ -1698,7 +1704,7 @@ title="Open an issue"
                 <span class="n">idx_impr</span> <span class="o">=</span> <span class="n">idx_impr</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># offset original index without skip</span>
 
                 <span class="c1"># Check if any point got better</span>
-                <span class="k">if</span> <span class="n">improvement</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">improvement</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;yval&quot;</span><span class="p">)[</span><span class="n">idx_impr</span><span class="p">]</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fval&quot;</span><span class="p">)[</span><span class="n">idx_impr</span><span class="p">]</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fsd&quot;</span><span class="p">)[</span><span class="n">idx_impr</span><span class="p">]</span>
@@ -1737,7 +1743,7 @@ title="Open an issue"
             <span class="c1"># Order by lowest probabilistic upper bound and choose</span>
             <span class="c1"># the point with the lowest quantile values of the history of the optimization run: inf{x: F(x)&gt;p}.</span>
             <span class="n">sigma_multiplier</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">erfcinv</span><span class="p">(</span>
-                <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;finalquantile&quot;</span><span class="p">]</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;final_quantile&quot;</span><span class="p">]</span>
             <span class="p">)</span>  <span class="c1"># Using inverted convention</span>
             <span class="n">q_beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;fval&quot;</span>
@@ -1847,7 +1853,7 @@ title="Open an issue"
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check whether it is time to refit the GP</span>
         <span class="n">refit_flag</span><span class="p">,</span> <span class="n">do_gp_calibration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_gp_refit_time_</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;normalphalevel&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;normalpha_level&quot;</span><span class="p">]</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span>
@@ -1886,7 +1892,7 @@ title="Open an issue"
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_es_hedge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">search_es_hedge</span> <span class="o">=</span> <span class="n">ESSearchHedge</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchmethod&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_method&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span>
             <span class="p">)</span>
         <span class="n">u_search_set</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_es_hedge</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span>
@@ -1944,7 +1950,7 @@ title="Open an issue"
             <span class="n">u_search</span> <span class="o">=</span> <span class="n">u_search_set</span><span class="p">[</span><span class="n">index_acq</span><span class="p">]</span>
 
             <span class="c1"># TODO: Local optimization of the acquisition function (generally it does not improve results)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchoptimize&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_optimize&quot;</span><span class="p">]:</span>
                 <span class="k">pass</span>
 
             <span class="n">y_search</span><span class="p">,</span> <span class="n">f_sd_search</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="p">(</span><span class="n">u_search</span><span class="p">)</span>
@@ -1957,7 +1963,7 @@ title="Open an issue"
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">u_search</span><span class="o">.</span><span class="n">size</span>
                 <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_es_hedge</span><span class="o">.</span><span class="n">count</span>
-                <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchntry&quot;</span><span class="p">]</span>
+                <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_n_try&quot;</span><span class="p">]</span>
             <span class="p">):</span>
                 <span class="c1"># TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)</span>
                 <span class="n">gp</span> <span class="o">=</span> <span class="n">add_and_update_gp</span><span class="p">(</span>
@@ -2016,8 +2022,8 @@ title="Open an issue"
 
         <span class="c1"># TODO: CMA-ES like estimation of local covariance structure (unused)</span>
         <span class="k">if</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;hessianupdate&quot;</span><span class="p">]</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;hessianmethod&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;cmaes&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;hessian_update&quot;</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;hessian_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;cmaes&quot;</span>
         <span class="p">):</span>
             <span class="k">pass</span>
 
@@ -2030,7 +2036,7 @@ title="Open an issue"
                 <span class="n">f_mu_search</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="p">,</span>
                 <span class="n">f_sd_search</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvementquantile&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvement_quantile&quot;</span><span class="p">],</span>
             <span class="p">)</span>
 
             <span class="c1"># Declare if search was success or not</span>
@@ -2040,7 +2046,7 @@ title="Open an issue"
             <span class="p">)</span>
             <span class="n">is_search_improved</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">search_improvement</span> <span class="o">&gt;</span> <span class="mi">0</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppyimprovement&quot;</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppy_improvement&quot;</span><span class="p">]</span>
                 <span class="ow">or</span> <span class="n">is_search_success</span>
             <span class="p">)</span>
 
@@ -2063,7 +2069,7 @@ title="Open an issue"
 
         <span class="c1"># A search improvement implies an update of the incumbent</span>
         <span class="k">if</span> <span class="n">is_search_improved</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;acqhedge&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;acq_hedge&quot;</span><span class="p">]:</span>
                 <span class="c1"># Acquisition hedge (acquisition portfolio) not supported yet</span>
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
@@ -2251,7 +2257,7 @@ title="Open an issue"
                     <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;periodic_vars&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;forcepollmesh&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;force_poll_mesh&quot;</span><span class="p">]:</span>
                     <span class="n">u_poll_new</span> <span class="o">=</span> <span class="n">force_to_grid</span><span class="p">(</span>
                         <span class="n">u_poll_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span>
                     <span class="p">)</span>
@@ -2283,11 +2289,11 @@ title="Open an issue"
 
             <span class="c1"># Check whether it is time to refit the GP</span>
             <span class="n">refit_flag</span><span class="p">,</span> <span class="n">do_gp_calibration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_gp_refit_time_</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;normalphalevel&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;normalpha_level&quot;</span><span class="p">]</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span>
-                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;polltraining&quot;</span><span class="p">]</span>
+                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;poll_training&quot;</span><span class="p">]</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
             <span class="p">):</span>
                 <span class="n">refit_flag</span> <span class="o">=</span> <span class="kc">False</span>
@@ -2357,7 +2363,7 @@ title="Open an issue"
                 <span class="k">if</span> <span class="n">certain_good_poll</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">do_gp_calibration</span><span class="p">:</span>
                         <span class="k">break</span>  <span class="c1"># GP is unreliable, just stop polling</span>
-                    <span class="k">elif</span> <span class="n">p_less</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolpoi&quot;</span><span class="p">]:</span>
+                    <span class="k">elif</span> <span class="n">p_less</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_poi&quot;</span><span class="p">]:</span>
                         <span class="k">break</span>  <span class="c1"># Use GP prediction whether to stop polling</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># No good polling so far -- if GP is reliable, stop polling</span>
@@ -2365,11 +2371,11 @@ title="Open an issue"
                     <span class="k">if</span> <span class="p">(</span>
                         <span class="ow">not</span> <span class="n">do_gp_calibration</span>
                         <span class="ow">and</span> <span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;consecutiveskipping&quot;</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;consecutive_skipping&quot;</span><span class="p">]</span>
                             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_skipped</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
                         <span class="p">)</span>
-                        <span class="ow">and</span> <span class="n">poll_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;minfailedpollsteps&quot;</span><span class="p">]</span>
-                        <span class="ow">and</span> <span class="n">p_less</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolpoi&quot;</span><span class="p">])</span>
+                        <span class="ow">and</span> <span class="n">poll_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;min_failed_poll_steps&quot;</span><span class="p">]</span>
+                        <span class="ow">and</span> <span class="n">p_less</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_poi&quot;</span><span class="p">])</span>
                     <span class="p">):</span>
 
                         <span class="bp">self</span><span class="o">.</span><span class="n">last_skipped</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span>
@@ -2407,7 +2413,7 @@ title="Open an issue"
                 <span class="n">f_poll</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="p">,</span>
                 <span class="n">f_sd_poll</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvementquantile&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvement_quantile&quot;</span><span class="p">],</span>
             <span class="p">)</span>
 
             <span class="c1"># Check if current point improves over best polled point so far</span>
@@ -2443,7 +2449,7 @@ title="Open an issue"
         <span class="c1"># Evaluate poll</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;stobads&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">poll_best_improvement</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppyimprovement&quot;</span><span class="p">]</span>
+                <span class="n">poll_best_improvement</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;sloppy_improvement&quot;</span><span class="p">]</span>
             <span class="p">)</span> <span class="ow">or</span> <span class="n">poll_best_improvement</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sufficient_improvement</span><span class="p">:</span>
 
                 <span class="c1"># Update incumbent point (self.yval, self.fval, self.fsd) and optim_state</span>
@@ -2476,7 +2482,7 @@ title="Open an issue"
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_mesh_overflow_</span><span class="p">()</span>
             <span class="c1"># Successful poll, increase mesh size</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;maxpollgridnumber&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;max_poll_grid_number&quot;</span><span class="p">]</span>
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;u_success&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_best</span><span class="o">.</span><span class="n">copy</span><span class="p">)</span>
@@ -2512,10 +2518,10 @@ title="Open an issue"
                     <span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
                     <span class="n">f_sd_base</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvementquantile&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;improvement_quantile&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]</span>
                 <span class="p">):</span>  <span class="c1"># or np.all(u_base.flatten() == self.u.flatten()):</span>
 
                     <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">-=</span> <span class="mi">1</span>
@@ -2525,8 +2531,8 @@ title="Open an issue"
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_size_integer&quot;</span><span class="p">],</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchgridmultiplier&quot;</span><span class="p">]</span>
-                <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchgridnumber&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_grid_multiplier&quot;</span><span class="p">]</span>
+                <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_grid_number&quot;</span><span class="p">],</span>
             <span class="p">)</span>
 
             <span class="c1"># TODO: Profile plot iteration</span>
@@ -2535,7 +2541,7 @@ title="Open an issue"
 
         <span class="c1"># Update mesh size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pollmeshmultiplier&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;poll_mesh_multiplier&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;mesh_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size</span>
 
@@ -2604,7 +2610,7 @@ title="Open an issue"
 
         <span class="c1"># if stats data is available check z_score</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">do_gp_calibration</span><span class="p">:</span>
-            <span class="n">fvals</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">f_vals</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">gp_stats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fval&quot;</span><span class="p">)[:</span> <span class="n">gp_iter_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                 <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
@@ -2614,12 +2620,16 @@ title="Open an issue"
                 <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">zscore</span> <span class="o">=</span> <span class="n">fvals</span> <span class="o">-</span> <span class="n">yvals</span>
+            <span class="n">zscore</span> <span class="o">=</span> <span class="n">f_vals</span> <span class="o">-</span> <span class="n">yvals</span>
             <span class="n">gp_ys</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">gp_stats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ys&quot;</span><span class="p">)[:</span> <span class="n">gp_iter_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                 <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
             <span class="p">)</span>
+            <span class="c1"># Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)</span>
+            <span class="n">idx_zero_gp_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">gp_ys</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">gp_ys</span><span class="p">[</span><span class="n">idx_zero_gp_ys</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span>
+            
             <span class="n">zscore</span> <span class="o">=</span> <span class="n">zscore</span> <span class="o">/</span> <span class="n">gp_ys</span>
 
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">zscore</span><span class="p">)):</span>
@@ -2648,7 +2658,7 @@ title="Open an issue"
 
         <span class="n">refit_flag</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;lastfitgp&quot;</span><span class="p">]</span>
-            <span class="o">&lt;</span> <span class="p">(</span><span class="n">func_count</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;minrefittime&quot;</span><span class="p">])</span>
+            <span class="o">&lt;</span> <span class="p">(</span><span class="n">func_count</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;min_refit_time&quot;</span><span class="p">])</span>
             <span class="ow">and</span> <span class="p">(</span><span class="n">gp_iter_idx</span> <span class="o">&gt;=</span> <span class="n">refit_period</span> <span class="ow">or</span> <span class="n">do_gp_calibration</span><span class="p">)</span>
             <span class="ow">and</span> <span class="n">func_count</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span>
         <span class="p">)</span>
@@ -2694,7 +2704,7 @@ title="Open an issue"
         <span class="c1"># Corresponds to Matlab: updateTarget</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;uncertainincumbent&quot;</span><span class="p">]</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;uncertain_incumbent&quot;</span><span class="p">]</span>
         <span class="p">):</span>
             <span class="n">tmp_gp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span>
             <span class="n">tmp_gp</span><span class="o">.</span><span class="n">set_hyperparameters</span><span class="p">(</span><span class="n">hyp_best</span><span class="p">)</span>
@@ -2710,7 +2720,7 @@ title="Open an issue"
                 <span class="n">f_target_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;fsd&quot;</span><span class="p">]</span>
 
             <span class="c1"># f_target: Set optimization target slightly below the current incumbent</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;alternativeincumbent&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;alternative_incumbent&quot;</span><span class="p">]:</span>
                 <span class="n">f_target</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">f_target_mu</span>
                     <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">)</span>
@@ -2720,9 +2730,9 @@ title="Open an issue"
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">f_target</span> <span class="o">=</span> <span class="n">f_target_mu</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span>
                     <span class="s2">&quot;sd_level&quot;</span>
-                <span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fs2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fs2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">f_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;fval&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tolfun&quot;</span><span class="p">]</span>
+            <span class="n">f_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;fval&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">]</span>
             <span class="n">f_target_mu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;fval&quot;</span><span class="p">]</span>
             <span class="n">f_target_s</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -2780,18 +2790,18 @@ title="Open an issue"
             <span class="n">search_stats</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span>
-                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchscalesuccess&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_scale_success&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptiveincumbentshift&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptive_incumbent_shift&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
 
         <span class="k">elif</span> <span class="n">search_status</span> <span class="o">==</span> <span class="s2">&quot;incremental&quot;</span><span class="p">:</span>
             <span class="n">search_stats</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span>
-                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchscaleincremental&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_scale_incremental&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptiveincumbentshift&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptive_incumbent_shift&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">2</span>
                 <span class="p">)</span>
@@ -2800,16 +2810,16 @@ title="Open an issue"
             <span class="n">search_stats</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span>
-                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchscalefailure&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_scale_failure&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptiveincumbentshift&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;adaptive_incumbent_shift&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;incumbentsigmamultiplier&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;incumbent_sigma_multiplier&quot;</span><span class="p">],</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;sd_level&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span>
 
         <span class="c1"># Reset search factor at the end of each search</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;searchntry&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_count&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;search_n_try&quot;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">search_stats</span>
@@ -2844,10 +2854,10 @@ title="Open an issue"
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;last_re_eval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">func_count</span>
 
     <span class="k">def</span> <span class="nf">_check_mesh_overflow_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;maxpollgridnumber&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;max_poll_grid_number&quot;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mesh_overflows</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_overflows</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;meshoverflowswarning&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;mesh_overflow_warning&quot;</span><span class="p">]</span>
             <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                     <span class="s2">&quot;bads:meshOverflow </span><span class="se">\t</span><span class="s2"> The mesh attempted to expand above maximum size too many times. Try widening plb and pub.&quot;</span>
@@ -2915,34 +2925,69 @@ title="Open an issue"
             <span class="p">)</span></div>
 </pre></div>
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-</div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
   
-      &copy; Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).<br/>
-</p>
-        </footer>
-    </div>
-    
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
 </div>
 
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).
+      <br/>
+    
+  </p>
 
-      </div>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

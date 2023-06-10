@@ -1,548 +1,458 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>PyBADS Example 4: Noisy objective with user-provided noise estimates &#8212; PyBADS</title>
-    
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-    
-  <link rel="stylesheet"
-    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_examples/pybads_example_4_user_provided_noise';</script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_examples/pybads_example_4_user_provided_noise.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="PyBADS Example 5: Extended usage" href="pybads_example_5_extended_usage.html" />
     <link rel="prev" title="PyBADS Example 3: Noisy objective function" href="pybads_example_3_noisy_objective.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="../index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">PyBADS</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../installation.html">
-   Installation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../quickstart.html">
-   Getting started
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../api/classes/bads.html">
-   BADS
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../api/classes/optimize_result.html">
-   OptimizeResult
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../api/advanced_docs.html">
-   Advanced documentation
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/acquisition_functions.html">
-     Acquisition Functions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/bads.html">
-     BADS
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/function_logger.html">
-     FunctionLogger
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/iteration_history.html">
-     IterationHistory
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/optimize_result.html">
-     OptimizeResult
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/options.html">
-     Options
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/parameter_transformer.html">
-     VariableTransformer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/classes/timer.html">
-     Timer
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/functions/decorators.html">
-     decorators
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/functions/get_hpd.html">
-     get_hpd
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../api/options/bads_options.html">
-     BADS options
-    </a>
-   </li>
-  </ul>
- </li>
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">PyBADS</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
 </ul>
-<ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_1_basic_usage.html">
-   PyBADS Example 1: Basic usage
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_2_nonbox_constraints.html">
-   PyBADS Example 2: Non-box constraints
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_3_noisy_objective.html">
-   PyBADS Example 3: Noisy objective function
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   PyBADS Example 4: Noisy objective with user-provided noise estimates
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="pybads_example_5_extended_usage.html">
-   PyBADS Example 5: Extended usage
-  </a>
- </li>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/options/bads_options.html">BADS options</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/advanced_docs.html">Advanced documentation</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/classes/classes.html">Classes</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/bads.html"><code class="docutils literal notranslate"><span class="pre">BADS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/function_logger.html"><code class="docutils literal notranslate"><span class="pre">FunctionLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/iteration_history.html"><code class="docutils literal notranslate"><span class="pre">IterationHistory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/optimize_result.html"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/options.html"><code class="docutils literal notranslate"><span class="pre">Options</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/parameter_transformer.html"><code class="docutils literal notranslate"><span class="pre">VariableTransformer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/classes/timer.html"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/bads_options.html">BADS options</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../development.html">
-   Instructions for developers and contributors
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Instructions for developers and contributors</a></li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../about_us.html">
-   About us
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../about_us.html">About us</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
-</div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
 
 
-          
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
 
-
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
 <div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
 
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
   
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
     </div>
-    <div class="header-article__right">
-<div class="menu-dropdown menu-dropdown-launch-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Launch interactive content">
-      <i class="fas fa-rocket"></i>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_4_user_provided_noise.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Binder"
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_4_user_provided_noise.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch onBinder"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   
     <img src="../_static/images/logo_binder.svg">
   </span>
-<span class="headerbtn__text-container">Binder</span>
+<span class="btn__text-container">Binder</span>
 </a>
-
-      </li>
+</li>
       
-      <li>
-        <a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_4_user_provided_noise.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Colab"
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_4_user_provided_noise.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch onColab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   
     <img src="../_static/images/logo_colab.png">
   </span>
-<span class="headerbtn__text-container">Colab</span>
+<span class="btn__text-container">Colab</span>
 </a>
-
-      </li>
+</li>
       
-    </ul>
-  </div>
+  </ul>
 </div>
 
-<button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_4_user_provided_noise.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_examples/pybads_example_4_user_provided_noise.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/_examples/pybads_example_4_user_provided_noise.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
-<div class="menu-dropdown menu-dropdown-repository-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Source repositories">
-      <i class="fab fa-github"></i>
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="https://github.com/acerbilab/pybads"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
+`);
+</script>
 
-<span class="headerbtn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="headerbtn__text-container">repository</span>
-</a>
-
-      </li>
-      
-      <li>
-        <a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2F_examples/pybads_example_4_user_provided_noise.html&body=Your%20issue%20content%20here."
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="headerbtn__text-container">open issue</span>
-</a>
-
-      </li>
-      
-      <li>
-        <a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_4_user_provided_noise.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Edit this page"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-pencil-alt"></i>
-  </span>
-<span class="headerbtn__text-container">suggest edit</span>
-</a>
-
-      </li>
-      
-    </ul>
-  </div>
-</div>
-
-<div class="menu-dropdown menu-dropdown-download-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Download this page">
-      <i class="fas fa-download"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="../_sources/_examples/pybads_example_4_user_provided_noise.ipynb"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="headerbtn__text-container">.ipynb</span>
-</a>
-
-      </li>
-      
-      <li>
-        
-<button onclick="printPdf(this)"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="headerbtn__text-container">.pdf</span>
-</button>
-
-      </li>
-      
-    </ul>
-  </div>
-</div>
-<label for="__page-toc"
-  class="headerbtn headerbtn-page-toc"
-  
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-list"></i>
-  </span>
-
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </label>
-
+</div></div>
+      
     </div>
+  
 </div>
-
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-    <div class="tocsection onthispage pt-5 pb-3">
-        <i class="fas fa-list"></i> Contents
-    </div>
-    <nav id="bd-toc-nav" aria-label="Page">
-        <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#problem-setup">
-   1. Problem setup
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#run-the-optimization">
-   2. Run the optimization
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#results-and-conclusions">
-   3. Results and conclusions
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#remarks">
-     Remarks
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example-4-full-code">
-   Example 4: Full code
-  </a>
- </li>
-</ul>
-
-    </nav>
 </div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1>PyBADS Example 4: Noisy objective with user-provided noise estimates</h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                        <div>
-                            <h2> Contents </h2>
-                        </div>
-                        <nav aria-label="Page">
-                            <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#problem-setup">
-   1. Problem setup
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#run-the-optimization">
-   2. Run the optimization
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#results-and-conclusions">
-   3. Results and conclusions
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#remarks">
-     Remarks
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example-4-full-code">
-   Example 4: Full code
-  </a>
- </li>
-</ul>
+              
+              
 
-                        </nav>
-                    </div>
-                </div>
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>PyBADS Example 4: Noisy objective with user-provided noise estimates</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
             </div>
-            <main id="main-content" role="main">
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-setup">1. Problem setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-optimization">2. Run the optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results-and-conclusions">3. Results and conclusions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remarks">Remarks</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
                 
-              <div>
-                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <section class="tex2jax_ignore mathjax_ignore" id="pybads-example-4-noisy-objective-with-user-provided-noise-estimates">
-<h1>PyBADS Example 4: Noisy objective with user-provided noise estimates<a class="headerlink" href="#pybads-example-4-noisy-objective-with-user-provided-noise-estimates" title="Permalink to this headline">#</a></h1>
+<h1>PyBADS Example 4: Noisy objective with user-provided noise estimates<a class="headerlink" href="#pybads-example-4-noisy-objective-with-user-provided-noise-estimates" title="Permalink to this heading">#</a></h1>
 <p>In this example, we will show how to run PyBADS on a noisy target for which we can estimate the noise at each evaluation.</p>
-<p>This notebook is Part 4 of a series of notebooks in which we present various example usages for BADS with the PyBADS package.</p>
+<p>This notebook is Part 4 of a series of notebooks in which we present various example usages for BADS with the PyBADS package.
+The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/74f3ba26c810ad06a6a8c73b48d40b97/pybads_example_4_user_provided_noise.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -552,12 +462,12 @@ title="Print to PDF"
 </div>
 </div>
 <section id="problem-setup">
-<h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this headline">#</a></h2>
+<h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this heading">#</a></h2>
 <p>We assume you are already familiar with optimization of noisy targets with PyBADS, as described in the <a class="reference internal" href="pybads_example_3_noisy_objective.html"><span class="doc std std-doc">previous notebook</span></a>.</p>
-<p>Sometimes, you may be able to estimate the noise associated with <em>each</em> function evaluation, for example via bootstrap or more sophisticated estimation methods. If you can do that, it is highly recommended you do so and tell PyBADS by activating the <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code> option.</p>
+<p>Sometimes, you may be able to estimate the noise associated with <em>each</em> function evaluation, for example via bootstrap or more sophisticated estimation methods such as <a class="reference external" href="https://github.com/acerbilab/ibs">inverse binomial sampling</a>. If you can do that, it is highly recommended you do so and tell PyBADS by activating the <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code> option.</p>
 <p>In the user-specified noise case, the target function <code class="docutils literal notranslate"><span class="pre">fun</span></code> is expected to return <em>two</em> outputs:</p>
 <ul class="simple">
-<li><p>the noisy estimate of the function at <code class="docutils literal notranslate"><span class="pre">x</span></code> (as usual);</p></li>
+<li><p>the (noisy) estimate of the function at <code class="docutils literal notranslate"><span class="pre">x</span></code> (as usual);</p></li>
 <li><p>the estimate of the <em>standard deviation</em> of the noisy evaluation at <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
 </ul>
 <p>In this toy example below, we know the standard deviation <code class="docutils literal notranslate"><span class="pre">sigma</span></code> by construction. Note that the function is <em>heteroskedastic</em>, that is, the noise depends on the input location <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
@@ -572,10 +482,10 @@ title="Print to PDF"
     <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">sigma</span>
 
 <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">]);</span>      <span class="c1"># Starting point</span>
-<span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>       <span class="c1"># Lower bounds</span>
-<span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>         <span class="c1"># Upper bounds</span>
-<span class="n">plb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">])</span>      <span class="c1"># Plausible lower bounds</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>        <span class="c1"># Plausible upper bounds</span>
+<span class="n">lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+<span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">plausible_lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">plausible_upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
 <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;uncertainty_handling&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -588,11 +498,14 @@ title="Print to PDF"
 </div>
 </section>
 <section id="run-the-optimization">
-<h2>2. Run the optimization<a class="headerlink" href="#run-the-optimization" title="Permalink to this headline">#</a></h2>
+<h2>2. Run the optimization<a class="headerlink" href="#run-the-optimization" title="Permalink to this heading">#</a></h2>
 <p>As usual, we run <code class="docutils literal notranslate"><span class="pre">bads</span></code> with the user-defined <code class="docutils literal notranslate"><span class="pre">options</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span><span class="n">noisy_sphere_estimated_noise</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span>
+    <span class="n">noisy_sphere_estimated_noise</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="p">,</span> <span class="n">plausible_lower_bounds</span><span class="p">,</span> <span class="n">plausible_upper_bounds</span><span class="p">,</span> 
+    <span class="n">options</span><span class="o">=</span><span class="n">options</span>
+<span class="p">)</span>
 <span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -601,38 +514,106 @@ title="Print to PDF"
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Beginning optimization of a STOCHASTIC objective function (specified noise)
 
  Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions
-     0           1         16.7501         5.24264               1                                  
-     0          33        -3.06732         5.24264               1          Initial mesh            Initial points
-     0          37        -3.06732         2.34011             0.5          Refine grid             Train
-     1          45        -3.06732         2.34011            0.25          Refine grid             Train
-     2          46        -1.14815        0.690188            0.25      Successful search (ES-wcm)        
-     2          57        -1.14815        0.690188           0.125          Refine grid             Train
-     3          60       -0.943121        0.616439           0.125      Incremental search (ES-wcm)        
-     3          65       -0.943121        0.616439          0.0625          Refine grid             
-     4          73       -0.867326        0.565913         0.03125          Refine grid             
-     5          74       -0.860749        0.413042         0.03125      Successful search (ES-wcm)        
-     5          77       -0.935279        0.349014         0.03125      Successful search (ES-ell)        
-     5          85       -0.935279        0.349014        0.015625          Refine grid             
-     6          93       -0.736663        0.266592       0.0078125          Refine grid             Train
-     7          94       -0.585475        0.253256       0.0078125      Successful search (ES-ell)        
-     7          95       -0.624393        0.272181       0.0078125      Successful search (ES-ell)        
-     7         105       -0.624393        0.272181      0.00390625          Refine grid             
-     8         113       -0.375658        0.191345      0.00195312          Refine grid             Train
-     9         121       -0.321104        0.160472      0.00390625        Successful poll           Train
-    10         123       -0.350864        0.153459      0.00390625      Successful search (ES-ell)        
-    10         133       -0.350864        0.153459      0.00195312          Refine grid             Train
-    11         141       -0.285307        0.212967     0.000976562          Refine grid             Train
-    12         149       -0.223881         0.20821     0.000488281          Refine grid             Train
-    13         157       -0.170238        0.128325     0.000244141          Refine grid             Train
-Optimization terminated: change in the function value less than options.TolFun.
-Estimated function value at minimum: 0.046596422518582384 ± 0.1070371306603499 (mean ± SEM from 100 samples)
+     0           1         27.5352         5.24264               1                                  
+     0          33        -2.91026         5.24264               1          Initial mesh            Initial points
+     0          37        -2.91026         2.90933             0.5          Refine grid             Train
+     1          45        -2.91026         2.90933            0.25          Refine grid             Train
+     2          46       -0.763687        0.868669            0.25      Successful search (ES-wcm)        
+     2          57       -0.763687        0.868669           0.125          Refine grid             Train
+     3          58        0.275083        0.508241           0.125      Successful search (ES-ell)        
+     3          69        0.275083        0.508241          0.0625          Refine grid             Train
+     4          70        0.836853        0.340929          0.0625      Successful search (ES-ell)        
+     4          81        0.836853        0.340929         0.03125          Refine grid             Train
+     5          82          1.4029        0.277549         0.03125      Successful search (ES-ell)        
+     5          83         1.35267        0.401613         0.03125      Successful search (ES-wcm)        
+     5          84         1.11699         0.55322         0.03125      Successful search (ES-wcm)        
+     5          85        0.282006        0.579217         0.03125      Successful search (ES-wcm)        
+     5          86       0.0522514        0.534398         0.03125      Successful search (ES-wcm)        
+     5          88      -0.0275186        0.471638         0.03125      Successful search (ES-wcm)        
+     5          97      -0.0275186        0.471638        0.015625          Refine grid             
+     6          98          0.1502        0.247952        0.015625      Successful search (ES-wcm)        
+     6          99     -0.00438043        0.233882        0.015625      Successful search (ES-wcm)        
+     6         100      -0.0754532        0.227039        0.015625      Successful search (ES-wcm)        
+     6         101       -0.134933        0.231195        0.015625      Successful search (ES-wcm)        
+     6         109       -0.147044        0.193437         0.03125        Successful poll           
+     7         117       -0.147044        0.193437        0.015625          Refine grid             
+     8         121      -0.0511507        0.165127        0.015625      Incremental search (ES-ell)        
+     8         122      -0.0929799         0.16533         0.03125        Successful poll           Train
+     9         130       -0.136204        0.147907          0.0625        Successful poll           Train
+    10         132       -0.136762        0.159908          0.0625      Incremental search (ES-wcm)        
+    10         133       -0.143109        0.160052          0.0625      Incremental search (ES-ell)        
+    10         134        -0.15408        0.159411          0.0625      Incremental search (ES-ell)        
+    10         138       -0.165267        0.143339         0.03125          Refine grid             
+    11         146       -0.142635        0.138263        0.015625          Refine grid             Train
+    12         154       -0.103103        0.129585      0.00390625          Refine grid             Train
+    13         156       -0.036772        0.122827      0.00390625      Incremental search (ES-wcm)        
+    13         157      -0.0412922        0.121273      0.00390625      Successful search (ES-wcm)        
+    13         158      -0.0521136        0.120051      0.00390625      Successful search (ES-wcm)        
+    13         162      -0.0544248         0.11692      0.00390625      Successful search (ES-ell)        
+    13         165       -0.066474        0.114724      0.00390625      Successful search (ES-ell)        
+    13         166      -0.0730774        0.114275      0.00390625      Successful search (ES-ell)        
+    13         168      -0.0737546        0.113082      0.00390625      Incremental search (ES-ell)        
+    13         169      -0.0910154        0.113536      0.00390625      Successful search (ES-ell)        
+    13         173      -0.0921021        0.111431      0.00390625      Successful search (ES-wcm)        
+    13         174      -0.0921595        0.111604      0.00390625      Incremental search (ES-wcm)        
+    13         182      -0.0921595        0.111604      0.00195312          Refine grid             
+    14         183      -0.0564883        0.103933      0.00195312      Successful search (ES-wcm)        
+    14         185      -0.0603416        0.103084      0.00195312      Successful search (ES-wcm)        
+    14         186       -0.063154        0.102919      0.00195312      Successful search (ES-wcm)        
+    14         194      -0.0686494       0.0990548      0.00390625        Successful poll           
+    15         197      -0.0724876       0.0980083      0.00390625      Successful search (ES-wcm)        
+    15         199      -0.0747856       0.0982266      0.00390625      Successful search (ES-ell)        
+    15         204       -0.082064        0.096049      0.00390625      Successful search (ES-ell)        
+    15         205      -0.0842201       0.0948564      0.00390625      Successful search (ES-ell)        
+    15         206      -0.0855717       0.0946394      0.00390625      Successful search (ES-ell)        
+    15         207      -0.0970346       0.0951909      0.00390625      Successful search (ES-ell)        
+    15         210       -0.157229        0.234229      0.00390625      Successful search (ES-ell)        
+    15         211       -0.174686         0.26718      0.00390625      Successful search (ES-ell)        
+    15         222       -0.174686         0.26718      0.00195312          Refine grid             Train
+    16         230      -0.0871417        0.189485     0.000488281          Refine grid             Train
+    17         238      -0.0621804        0.092649     0.000244141          Refine grid             Train
+    18         239      -0.0540518        0.109407     0.000244141      Successful search (ES-wcm)        
+    18         240       -0.069655        0.109258     0.000244141      Successful search (ES-wcm)        
+    18         241      -0.0697666        0.109354     0.000244141      Incremental search (ES-wcm)        
+    18         242      -0.0788053        0.110422     0.000244141      Successful search (ES-wcm)        
+    18         243       -0.100884        0.135117     0.000244141      Successful search (ES-wcm)        
+    18         244       -0.132902        0.135261     0.000244141      Successful search (ES-wcm)        
+    18         254       -0.132902        0.135261      0.00012207          Refine grid             Train
+    19         262      -0.0550156        0.130951     0.000244141        Successful poll           Train
+    20         266      -0.0294325        0.102518     0.000244141      Successful search (ES-wcm)        
+    20         274      -0.0294325        0.102518      0.00012207          Refine grid             
+    21         282     -0.00985551       0.0988365     6.10352e-05          Refine grid             
+    22         283      0.00560284        0.095124     6.10352e-05      Successful search (ES-wcm)        
+    22         286      0.00267631       0.0963349     6.10352e-05      Successful search (ES-wcm)        
+    22         294      0.00267631       0.0963349     3.05176e-05          Refine grid             
+    23         296       0.0131204       0.0933549     3.05176e-05      Successful search (ES-wcm)        
+    23         297      0.00549339       0.0931934     3.05176e-05      Successful search (ES-wcm)        
+    23         298      -0.0600505        0.226728     3.05176e-05      Successful search (ES-wcm)        
+    23         299      -0.0945269        0.221667     3.05176e-05      Successful search (ES-wcm)        
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    23         300      -0.0975214        0.217002     3.05176e-05      Successful search (ES-wcm)        
+    23         303       -0.104548        0.212268     3.05176e-05      Successful search (ES-wcm)        
+    23         304       -0.144592        0.208421     3.05176e-05      Successful search (ES-wcm)        
+    23         305        -0.20207        0.204639     3.05176e-05      Successful search (ES-wcm)        
+    23         314        -0.20207        0.204639     1.52588e-05          Refine grid             
+    24         315       -0.103618        0.140386     1.52588e-05      Successful search (ES-wcm)        
+    24         316       -0.134944        0.148889     1.52588e-05      Successful search (ES-wcm)        
+    24         320       -0.510266        0.306413     1.52588e-05      Successful search (ES-wcm)        
+    24         330       -0.510266        0.306413     7.62939e-06          Refine grid             
+    25         331       -0.232391        0.214288     7.62939e-06      Successful search (ES-ell)        
+    25         342       -0.232391        0.214288      3.8147e-06          Refine grid             Train
+    26         350       -0.135337        0.202093     1.90735e-06          Refine grid             Train
+    27         358      -0.0627757        0.195314     4.76837e-07          Refine grid             Train
+Optimization terminated: change in the function value less than options[&#39;tol_mesh&#39;]
+Estimated function value at minimum: -0.009079534944637901 ± 0.116836714211856 (mean ± SEM from 100 samples)
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="results-and-conclusions">
-<h2>3. Results and conclusions<a class="headerlink" href="#results-and-conclusions" title="Permalink to this headline">#</a></h2>
+<h2>3. Results and conclusions<a class="headerlink" href="#results-and-conclusions" title="Permalink to this heading">#</a></h2>
 <p>As per noisy target optimization, <code class="docutils literal notranslate"><span class="pre">optimize_result['fval']</span></code> is the <em>estimated</em> function value at <code class="docutils literal notranslate"><span class="pre">optimize_result['x']</span></code>, here obtained by taking the <em>weighted</em> mean of the final sampled evaluations (each evaluation is weighted by its precision, or inverse variance).</p>
 <p>The final samples can be found in <code class="docutils literal notranslate"><span class="pre">optimize_result['yval_vec']</span></code>, and their estimated standard deviation in <code class="docutils literal notranslate"><span class="pre">optimize_result['ysd_vec']</span></code>.</p>
 <div class="cell docutils container">
@@ -649,8 +630,8 @@ Estimated function value at minimum: 0.046596422518582384 ± 0.1070371306603499 
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [ 0.03811932 -0.13176525], fval (estimated) = 0.0466 +/- 0.11
-total f-count: 258, time: 19.66 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [-0.11760458  0.02207676], fval (estimated) = -0.00908 +/- 0.12
+total f-count: 458, time: 17.98 s
 final evaluations (shape): (100,)
 final evaluations SD (shape): (100,)
 </pre></div>
@@ -665,69 +646,123 @@ final evaluations SD (shape): (100,)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The true, noiseless value of f(x_min) is 0.0188.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The true, noiseless value of f(x_min) is 0.0143.
 </pre></div>
 </div>
 </div>
 </div>
 <p>Compare this to the true global minimum of the sphere function at <span class="math notranslate nohighlight">\(\textbf{x}^\star = [0,0]\)</span>, where <span class="math notranslate nohighlight">\(f^\star = 0\)</span>.</p>
 <section id="remarks">
-<h3>Remarks<a class="headerlink" href="#remarks" title="Permalink to this headline">#</a></h3>
+<h3>Remarks<a class="headerlink" href="#remarks" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Due to the elevated level of noise, we do not necessarily expect high precision in the solution.</p></li>
 <li><p>For more information on optimizing noisy objective functions, see the BADS wiki: https://github.com/acerbilab/bads/wiki#noisy-objective-function (this link points to the MATLAB wiki, but many of the questions and answers apply to PyBADS as well).</p></li>
 </ul>
 </section>
 </section>
-<section id="example-4-full-code">
-<h2>Example 4: Full code<a class="headerlink" href="#example-4-full-code" title="Permalink to this headline">#</a></h2>
-<p>See <a class="reference download internal" download="" href="../_downloads/74f3ba26c810ad06a6a8c73b48d40b97/pybads_example_4_user_provided_noise.py"><span class="xref download myst">here</span></a> for a Python file with the code used in this example, with no extra fluff.</p>
-</section>
 </section>
 
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="pybads_example_3_noisy_objective.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">PyBADS Example 3: Noisy objective function</p>
-        </div>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="pybads_example_3_noisy_objective.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">PyBADS Example 3: Noisy objective function</p>
+      </div>
     </a>
-    <a class='right-next' id="next-link" href="pybads_example_5_extended_usage.html" title="next page">
-    <div class="prev-next-info">
+    <a class="right-next"
+       href="pybads_example_5_extended_usage.html"
+       title="next page">
+      <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">PyBADS Example 5: Extended usage</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
-    </a>
-</div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
-  
-      &copy; Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).<br/>
-</p>
-        </footer>
-    </div>
-    
-</div>
-
-
       </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-setup">1. Problem setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-optimization">2. Run the optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results-and-conclusions">3. Results and conclusions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remarks">Remarks</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2022, Machine and Human Intelligence research group (PI: Luigi Acerbi, University of Helsinki).
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>
