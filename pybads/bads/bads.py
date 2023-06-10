@@ -2543,7 +2543,7 @@ class BADS:
                 self.options["mesh_overflow_warning"]
             ):
                 self.logger.warn(
-                    "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plb and pub."
+                    "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."
                 )
 
     def _log_column_headers(self):
