@@ -14,12 +14,11 @@ def noisy_sphere(x, sigma=1.0):
     return f + noise
 
 
-x0 = np.array([-3, -3])
-# Starting point
-lb = np.array([-5, -5])  # Lower bounds
-ub = np.array([5, 5])  # Upper bounds
-plb = np.array([-2, -2])  # Plausible lower bounds
-pub = np.array([2, 2])  # Plausible upper bounds
+x0 = np.array([-3, -3])  # Starting point
+lower_bounds = np.array([-5, -5])
+upper_bounds = np.array([5, 5])
+plausible_lower_bounds = np.array([-2, -2])
+plausible_upper_bounds = np.array([2, 2])
 
 options = {
     "uncertainty_handling": True,
@@ -27,7 +26,7 @@ options = {
     "noise_final_samples": 100,
 }
 
-bads = BADS(noisy_sphere, x0, lb, ub, plb, pub, options=options)
+bads = BADS(noisy_sphere, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, options=options)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]

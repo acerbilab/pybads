@@ -19,10 +19,10 @@ def camelback6(x):
     return f
 
 
-lb = np.array([-3, -2])  # Lower bounds
-ub = np.array([3, 2])  # Upper bounds
-plb = np.array([-2.9, -1.9])  # Plausible lower bounds
-pub = np.array([2.9, 1.9])  # Plausible upper bounds
+lower_bounds = np.array([-3, -2])
+upper_bounds = np.array([3, 2])
+plausible_lower_bounds = np.array([-2.9, -1.9])
+plausible_upper_bounds = np.array([2.9, 1.9])
 
 options = {
     "display": "off",  # We switch off the printing
@@ -31,13 +31,15 @@ options = {
 
 num_opts = 10
 optimize_results = []
-x_vec = np.zeros((num_opts, lb.shape[0]))
+x_vec = np.zeros((num_opts,lower_bounds.shape[0]))
 fval_vec = np.zeros(num_opts)
 
 for opt_count in range(num_opts):
-    print("Running optimization " + str(opt_count) + "...")
-    x0 = np.random.uniform(low=plb, high=pub)
-    bads = BADS(camelback6, x0, lb, ub, plb, pub, options=options)
+    print('Running optimization ' + str(opt_count) + '...')
+    options['random_seed'] = opt_count
+    bads = BADS(
+        camelback6, None, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, options=options
+    )
     optimize_results.append(bads.optimize())
     x_vec[opt_count] = optimize_results[opt_count].x
     fval_vec[opt_count] = optimize_results[opt_count].fval

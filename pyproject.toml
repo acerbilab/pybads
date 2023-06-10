@@ -66,3 +66,4 @@ profile = "black"
 all = true
 
 [tool.setuptools_scm]
+write_to = "pybads/_version.py"

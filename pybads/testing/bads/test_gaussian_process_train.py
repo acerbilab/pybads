@@ -169,7 +169,7 @@ def test_get_gp_training_options_samplers():
     bads.optim_state['eff_starting_points'] = 10
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 1
-    bads.options["weightedhypcov"] = False
+    bads.options["weighted_hyp_cov"] = False
 
     res1 = _get_gp_training_options(
         bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8, bads.function_logger
@@ -190,7 +190,7 @@ def test_get_gp_training_options_opts_N():
     bads.optim_state['eff_starting_points'] = 10
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 2
-    bads.options["weightedhypcov"] = False
+    bads.options["weighted_hyp_cov"] = False
     hyp_dict = {"run_cov": np.eye(3)}
     hyp_dict_none = {"run_cov": None}
     bads.options["gpretrainthreshold"] = 10

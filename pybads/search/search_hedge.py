@@ -42,13 +42,13 @@ class ESSearchHedge:
         self.options_dict = options_dict
         self.non_box_cons = non_box_cons
 
-        self.gamma = options_dict["hedgegamma"]
-        self.beta = options_dict["hedgebeta"]
-        self.decay = options_dict["hedgedecay"]
+        self.gamma = options_dict["hedge_gamma"]
+        self.beta = options_dict["hedge_beta"]
+        self.decay = options_dict["hedge_decay"]
 
         # Create vector of ES weights (for ESSearch)
-        es_iter = self.options_dict["nsearchiter"]
-        self.mu = int(self.options_dict["nsearch"] / es_iter)
+        es_iter = self.options_dict["n_search_iter"]
+        self.mu = int(self.options_dict["n_search"] / es_iter)
         self.lamb = self.mu
 
     def __call__(self, u, lb, ub, func_logger, gp: GP, optim_state):

@@ -78,11 +78,11 @@ def init_and_train_gp(
     D = x_train.shape[1]
 
     # Pick the mean function
-    mean_f = _meanfun_name_to_mean_function(optim_state["gp_meanfun"])
+    mean_f = _meanfun_name_to_mean_function(optim_state["gp_mean_fun"])
 
     # Pick the covariance function.
     covariance_f = _cov_identifier_to_covariance_function(
-        optim_state["gp_covfun"]
+        optim_state["gp_cov_fun"]
     )
 
     # Pick the noise function.
@@ -190,10 +190,10 @@ def init_and_train_gp(
     # Update running average of GP hyperparameter covariance (coarse)
     if hyp_dict["full"] is not None and hyp_dict["full"].shape[1] > 1:
         hyp_cov = np.cov(hyp_dict["full"].T)
-        if hyp_dict["run_cov"] is None or options["hyprunweight"] == 0:
+        if hyp_dict["run_cov"] is None or options["hyp_run_weight"] == 0:
             hyp_dict["run_cov"] = hyp_cov
         else:
-            w = options["hyprunweight"] ** options["fun_evals_per_iter"]
+            w = options["hyp_run_weight"] ** options["fun_evals_per_iter"]
             hyp_dict["run_cov"] = (1 - w) * hyp_cov + w * hyp_dict["run_cov"]
     else:
         hyp_dict["run_cov"] = None
@@ -248,7 +248,7 @@ def local_gp_fitting(
 
     ## Update priors hyperparameters using empirical Bayes method.
     if options.get("specify_target_noise"):
-        noise_size = options["tolfun"]  # Additional jitter to specified noise
+        noise_size = options["tol_fun"]  # Additional jitter to specified noise
     else:
         noise_size = options["noise_size"]
 
@@ -257,7 +257,7 @@ def local_gp_fitting(
     gp_priors = gp.get_priors()
     prior_noise = gp_priors["noise_log_scale"]
     mu_noise_prior = np.log(noise_size) + options[
-        "meshnoisemultiplier"
+        "mesh_noise_multiplier"
     ] * np.log(optim_state["mesh_size"])
     prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
 
@@ -279,7 +279,7 @@ def local_gp_fitting(
         pass
 
     # Update GP Covariance length scale
-    if options["gpcovprior"] == "iso":
+    if options["gp_cov_prior"] == "iso":
         dist = udist(
             gp.X,
             gp.X,
@@ -306,7 +306,7 @@ def local_gp_fitting(
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
     # Empirical prior on covariance signal variance ((output scale)
-    if options["warpfunc"] == 0:
+    if options["warp_func"] == 0:
         sd_y = np.log(np.std(gp.y))
     else:
         # TODO warp function (Matlab  gpdefbads line-code 302)
@@ -350,7 +350,7 @@ def local_gp_fitting(
             is_low_mean = last_dic_hyp_gp["mean_const"] < np.min(gp.y)
 
         # Conditions for performing a second fit
-        second_fit = options["doublerefit"] | is_high_noise | is_low_mean
+        second_fit = options["double_refit"] | is_high_noise | is_low_mean
         optim_state["second_fit"] = second_fit
         dic_hyp_gp[-1] = last_dic_hyp_gp
 
@@ -421,7 +421,7 @@ def local_gp_fitting(
         ll = np.zeros((hyp_n_samples, D))
         for i in range(hyp_n_samples):
             ll[i, :] = (
-                options["gprescalepoll"]
+                options["gp_rescale_poll"]
                 * dic_hyp_gp[i]["covariance_log_lengthscale"]
             )
         # ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
@@ -662,7 +662,7 @@ def _get_samples_from_slice_sampler_(gp: gpr.GP, hyp_gp, optim_state, options):
     """
     A private method that retrieves a new set of parameters using the slice sampler method.
     """
-    hyp_sampler_name = options.get("gphypsampler", "slicesample")
+    hyp_sampler_name = options.get("gp_hyp_sampler", "slicesample")
     if hyp_sampler_name != "slicesample":
         raise ValueError("Wrong sampler")
 
@@ -804,11 +804,11 @@ def _gp_hyp(
     noise_x0 = noise_bounds_info["x0"]
 
     # Hyperparams over observation noise
-    if options["fitlik"]:
+    if options["fit_lik"]:
         # Unknown noise level (even for deterministic function, it helps for regularization)
         if options.get("specify_target_noise"):
             noise_size = options[
-                "tolfun"
+                "tol_fun"
             ]  # Additional jitter to specified noise
         else:
             noise_size = options["noise_size"]
@@ -821,7 +821,7 @@ def _gp_hyp(
             noise_std = noise_size[1]
 
     else:
-        noise_size = options["tolfun"]
+        noise_size = options["tol_fun"]
         noise_mu = np.log(noise_size)
 
     noise_x0[0] = noise_mu
@@ -832,20 +832,20 @@ def _gp_hyp(
     ## Change default bounds and set priors over hyperparameters.
 
     bounds = gp.get_bounds()
-    if options["uppergplengthfactor"] > 0:
+    if options["upper_gp_length_factor"] > 0:
         # Max GP input length scale
         bounds["covariance_log_lengthscale"] = (
             -np.inf,
-            np.log(options["uppergplengthfactor"] * (pub - plb)),
+            np.log(options["upper_gp_length_factor"] * (pub - plb)),
         )
     # Increase minimum noise.
-    bounds["noise_log_scale"] = (np.log(options["tolfun"]) - 1, 5)
+    bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
     # Set priors over hyperparameters
     priors = gp.get_priors()
 
     tol_mesh = optim_state["tol_mesh"]
-    tol_fun = options["tolfun"]
+    tol_fun = options["tol_fun"]
 
     D = X.shape[1]
     cov_range = (optim_state["ub"] - optim_state["lb"]) / optim_state["scale"]
@@ -888,9 +888,9 @@ def _gp_hyp(
         bounds["mean_const"] = (mean_bounds_info["LB"], mean_bounds_info["UB"])
 
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
-        if options["gpquadraticmeanbound"]:
+        if options["gp_quadratic_mean_bound"]:
             delta_y = max(
-                options["tolsd"],
+                options["tol_sd"],
                 min(D, np.max(hpd_y) - np.min(hpd_y)),
             )
             bounds["mean_const"] = (-np.inf, np.max(hpd_y) + delta_y)
@@ -898,7 +898,7 @@ def _gp_hyp(
         raise TypeError("The mean function is not supported by gpyreg.")
 
     # Prior over observation noise
-    if options["fitlik"]:
+    if options["fit_lik"]:
         priors["noise_log_scale"] = ("gaussian", (noise_mu, noise_std))
     else:
         # Known noise level
@@ -963,8 +963,8 @@ def _get_gp_training_options(
     n_eff = np.sum(function_logger.n_evals[function_logger.X_flag])
 
     gp_train = {}
-    gp_train["init_method"] = options["gptraininitmethod"]
-    gp_train["tol_opt"] = options["gptolopt"]
+    gp_train["init_method"] = options["gp_train_init_method"]
+    gp_train["tol_opt"] = options["gp_tol_opt"]
     gp_train["widths"] = None
 
     # Set GP training options
@@ -977,7 +977,7 @@ def _get_gp_training_options(
     d = options["gp_train_n_init"]
     eff_starting_points = optim_state["eff_starting_points"]
     x = (n_eff - eff_starting_points) / (
-        min(options["max_fun_evals"], options["ntrain_max"])
+        min(options["max_fun_evals"], options["n_train_max"])
         - eff_starting_points
     )
     f = lambda x_: a * x_**3 + b * x**2 + c * x + d
@@ -1034,20 +1034,20 @@ def get_grid_search_neighbors(
     sort_idx = np.argsort(dist)  # Ascending sort
 
     # Keep only points within a certain (rescale) radius from target
-    radius = options["gpradius"] * gp.temporary_data["effective_radius"]
-    ntrain = np.minimum(options["ntrain_max"], np.sum(dist <= radius**2))
+    radius = options["gp_radius"] * gp.temporary_data["effective_radius"]
+    ntrain = np.minimum(options["n_train_max"], np.sum(dist <= radius**2))
 
     # Minimum number of point to keep
     ntrain = np.max(
         [
-            options["ntrain_min"],
-            options["ntrain_max"] - options["buffer_ntrain"],
+            options["n_train_min"],
+            options["n_train_max"] - options["buffer_ntrain"],
             ntrain,
         ]
     )
 
     # Up to the maximum number of available points
-    ntrain = np.minimum(ntrain, function_logger.X_max_idx)
+    ntrain = np.minimum(ntrain, function_logger.X_max_idx +1)
     optim_state["ntrain"] = ntrain
     # Take points closest to reference points
     res_S = None
@@ -1085,7 +1085,7 @@ def _get_fevals_data(function_logger: FunctionLogger):
     else:
         s2 = None
 
-    # Missing port: noiseshaping
+    # Missing port: noise_shaping
 
     evals_time = function_logger.fun_eval_time[function_logger.X_flag]
 

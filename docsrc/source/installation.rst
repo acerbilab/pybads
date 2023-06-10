@@ -26,4 +26,10 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
      python -m pybads
 
+You can run PyVBMC's internal tests with ::
+
+  pytest --pyargs pybads --reruns=3
+
+The `--reruns=3` argument allows re-trying a failed test up to 3 times, as many of PyBADS's tests are stochastic in nature.
+
 If you wish to install directly from latest source code, please see the :ref:`installation instructions for developers`.

@@ -22,7 +22,7 @@ class ESSearch(ABC):
         self.lamb = lamb
         self.vec = np.array([-1, 0])
         self.w = (
-            options_dict["pollmeshmultiplier"] ** self.vec
+            options_dict["poll_mesh_multiplier"] ** self.vec
         )  # helps with the stability
         self.ns = np.diff(
             np.round(np.linspace(0, self.mu, np.size(self.w) + 1)).astype(int)
@@ -34,10 +34,10 @@ class ESSearch(ABC):
                 self.vec, self.w[i] * np.ones((self.ns[i], 1)), axis=0
             )
 
-        self.scale = options_dict["esstart"]
-        self.n_search_iter = options_dict["nsearchiter"]
-        self.search_acq_fcn = options_dict["searchacqfcn"]
-        self.es_beta = options_dict["esbeta"]
+        self.scale = options_dict["es_start"]
+        self.n_search_iter = options_dict["n_search_iter"]
+        self.search_acq_fcn = options_dict["search_acq_fcn"]
+        self.es_beta = options_dict["es_beta"]
         self.logger = logging.getLogger("BADS")
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
 

@@ -1,5 +1,8 @@
 import copy
 
+from importlib.metadata import version, PackageNotFoundError
+import logging
+
 import numpy as np
 
 class OptimizeResult(dict):
@@ -11,7 +14,7 @@ class OptimizeResult(dict):
         - fun: callable
             - The objective function to be minimized.
         - non_box_cons: callable
-            - Non-bound constraints function (if any).
+            - Non-box constraints function (if any).
         - x0: np.ndarray
             - Initial starting point.
         - x: np.ndarray
@@ -19,7 +22,7 @@ class OptimizeResult(dict):
         - fval: float
             - Value of objective function at solution.
         - fsd: float
-            - Standard deviation of objective function at solution.
+            - Standard deviation of objective function at solution (0 if noiseless).
         - yval_vec: np.ndarray
             - Final sampled observations at the solution.
         - ysd_vec: np.ndarray
@@ -37,9 +40,9 @@ class OptimizeResult(dict):
         - total_time: float
             - Total time taken by the optimizer.
         - overhead: float
-            - Overhead time taken by the optimizer.
+            - Fractional overhead taken by the optimizer, compared to function time.
         - random_seed: int
-            - Random seed used by the optimizer.
+            - Random seed used by the optimizer (``None`` if not set).
         - version: str
             - Version of the optimizer.
     
@@ -131,19 +134,22 @@ class OptimizeResult(dict):
         self["fval"] = bads.fval
         self["fsd"] = bads.fsd
         self["total_time"] = bads.optim_state["total_time"]
+        
+        self["random_seed"] = bads.optim_state["random_seed"]
 
-        # self['version'] = bads.version   # part of setuptools version = pkg_resources.require("MyProject")[0].version
-        #'status',
+        try:
+            __version__ = version("pybads")
+        except PackageNotFoundError:
+            # package is not installed
+            __version__ = None
+            logger = logging.getLogger("BADS")
+            logger.warning("Cannot read version number from package metadata.")
+            
+        self["version"] = __version__
+        
         self[
             "success"
         ] = True  # TODO: In our case when an error occurs, the application just stops.
-        self[
-            "random_seed"
-        ] = None  # TODO: PyBADS does not receive seed as input right now
-        self[
-            "version"
-        ] = "0.8.0"  # TODO: Retrieve the version from setup.py, or define it somewhere in BADS class.
-        # version = pkg_resources.require("pybads")[0].version
         self["message"] = bads.optim_state["termination_msg"]
 
     def __getattr__(self, name):
