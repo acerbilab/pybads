@@ -5,7 +5,7 @@ from pybads.decorators import handle_0D_1D_input
 
 class VariableTransformer:
     """
-    A class enabling linear or non-linear transformation of the bounds (plb and pub) and map them to an hypercube [-1, 1]^D
+    A class enabling linear or non-linear transformation of the bounds (plausible_lower_bounds and plausible_upper_bounds) and map them to an hypercube [-1, 1]^D
     
     Parameters
     ----------
@@ -119,9 +119,9 @@ class VariableTransformer:
     def __create_hypercube_trans__(self):
         """
         Standardize variables via linear or nonlinear transformation.
-        The standardized transform maps plb and pub to the hypercube [-1,1]^D.
-        If plb and/or pub are empty, lb and/or ub are used instead. Note that
-        at least one among lb, plb and one among ub, pub needs to be nonempty.
+        The standardized transform maps ``plausible_lower_bounds`` (``plb``) and plausible_upper_bounds (``pub``) to the hypercube [-1,1]^D.
+        If plb and/or pub are empty, ``lower_bound``(``lb``) and/or ``upper_bound``(``ub``) are used instead. Note that
+        at least one among ``lb``, ``plb`` and one among ``ub``, ``pub`` needs to be nonempty.
 
         Parameters
         ----------
@@ -137,13 +137,13 @@ class VariableTransformer:
         """
         # Check finiteness of plausible range
         if not (np.all(np.isfinite(np.concatenate([self.plb, self.pub])))):
-            raise ValueError("Plausible interval ranges plb and pub need to be finite.")
+            raise ValueError("Plausible interval ranges plausible_lower_bounds and plausible_upper_bounds need to be finite.")
 
         # Check that the order of bounds is respected
         if  not (np.all(self.lb <= self.plb) \
             and np.all(self.plb < self.pub)\
             and np.all(self.pub <= self.ub)):
-                raise ValueError("Interval bounds needs to respect the order lb <= plb < pub <= ub for all coordinates.")
+                raise ValueError("Interval bounds needs to respect the order lower_bound <= plausible_lower_bounds < plausible_upper_bounds <= upper_bound for all coordinates.")
          
 
         # A variable is converted to log scale if all bounds are positive and
