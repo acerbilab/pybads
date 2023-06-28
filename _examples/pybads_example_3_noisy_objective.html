@@ -465,10 +465,11 @@ The code used in this example is available as a script <a class="reference downl
 <section id="noisy-optimization">
 <h2>0. Noisy optimization<a class="headerlink" href="#noisy-optimization" title="Permalink to this heading">#</a></h2>
 <p>PyBADS is also able to optimize <em>noisy</em> objective functions. A noisy (or stochastic) objective function is an objective that will return different results if evaluated twice at the same point <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>. Conversely, a non-noisy objective function is known as noiseless or deterministic. For example, noisy objectives are common in model fitting when the model is evaluated through simulation (e.g., via sampling aka Monte Carlo methods).</p>
-<p>For a noisy objective, PyBADS aims to minimize the <em>expected value</em> of <span class="math notranslate nohighlight">\(f(\mathbf{x})\)</span>:
-$<span class="math notranslate nohighlight">\(
+<p>For a noisy objective, PyBADS aims to minimize the <em>expected value</em> of <span class="math notranslate nohighlight">\(f(\mathbf{x})\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
 \mathbf{x}^\star = \arg\min_{\mathbf{x} \in \mathcal{X} \subseteq \mathbb{R}^D} \mathbb{E}\left[f(\mathbf{x})\right].
-\)</span>$</p>
+\]</div>
 </section>
 <section id="problem-setup">
 <h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this heading">#</a></h2>

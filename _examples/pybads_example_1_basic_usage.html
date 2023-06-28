@@ -477,11 +477,12 @@ The code used in this example is available as a script <a class="reference downl
 <p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out <a class="reference external" href="https://github.com/acerbilab/pyvbmc">Variational Bayesian Monte Carlo for Python (PyVBMC)</a>, a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.</p>
 <section id="optimization-problem">
 <h3>Optimization problem<a class="headerlink" href="#optimization-problem" title="Permalink to this heading">#</a></h3>
-<p>Formally, the goal of BADS is to <em>minimize</em> a target (or objective) function <span class="math notranslate nohighlight">\(f(\mathbf{x}): \mathbb{R}^D \rightarrow \mathbb{R}\)</span>, for <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^D\)</span>,
-$<span class="math notranslate nohighlight">\(
+<p>Formally, the goal of BADS is to <em>minimize</em> a target (or objective) function <span class="math notranslate nohighlight">\(f(\mathbf{x}): \mathbb{R}^D \rightarrow \mathbb{R}\)</span>, for <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^D\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
 \mathbf{x}^\star = \arg\min_\mathbf{x} f(\mathbf{x}) \qquad \text{with} \; \text{lower_bounds}_d \le x_d \le \text{upper_bounds}_d \; \text{ for } 1\le d \le D,
-\)</span><span class="math notranslate nohighlight">\(
-where \)</span>D$ is the dimensionality of the problem and <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> are arrays representing lower/upper bound constraints, which can be set to infinite for unbounded parameters.</p>
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(D\)</span> is the dimensionality of the problem and <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> are arrays representing lower/upper bound constraints, which can be set to infinite for unbounded parameters.</p>
 </section>
 </section>
 <section id="problem-setup">
