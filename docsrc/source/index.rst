@@ -71,15 +71,26 @@ Contributing
 References
 ###############
 
-1. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
+1. Singh, S. G. & Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. *arXiv preprint*. https://arxiv.org/abs/2306.15576.
 
-You can cite BADS in your work with something along the lines of
+2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
 
-    We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017). BADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.
+Please cite both references if you use PyBADS in your work (the 2017 paper introduced the framework, and the latest one is its Python library). You can cite PyBADS in your work with something along the lines of
+
+    We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017), via the PyBADS software (Singh and Acerbi, 2023). PyBADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.
 
 BibTeX
 ------
 ::
+  @article{singh2023pybads,
+    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
+    author={Gurjeet Sangra Singh and Luigi Acerbi},
+    publisher = {preprint},
+    journal = {{arXiv}},
+    url = {https://arxiv.org/abs/2306.15576},
+    doi = {10.48550/ARXIV.2306.15576},
+    year = {2023},
+  }
 
   @article{acerbi2017practical,
     title={Practical {B}ayesian Optimization for Model Fitting with {B}ayesian Adaptive Direct Search},
@@ -100,7 +111,7 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was supported by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+Work on the PyBADS package was supported by the Research Council of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 .. toctree::
    :maxdepth: 1
