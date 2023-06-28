@@ -71,7 +71,7 @@ Contributing
 References
 ###############
 
-1. Singh, S. G. & Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. arXiv. https://arxiv.org/abs/2306.15576.
+1. Singh, S. G. & Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. *arXiv preprint*. https://arxiv.org/abs/2306.15576.
 
 2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
 
@@ -83,7 +83,7 @@ BibTeX
 ------
 ::
   @article{singh2023pybads,
-    title={PyBADS: Fast and robust black-box optimization in Python}, 
+    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
     author={Gurjeet Sangra Singh and Luigi Acerbi},
     publisher = {preprint},
     journal = {{arXiv}},
@@ -111,7 +111,7 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was supported by the Academy of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+Work on the PyBADS package was supported by the Research Council of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 .. toctree::
    :maxdepth: 1
