@@ -310,13 +310,9 @@ def ucov(U, u, w, ub, lb, scale, periodic_vars=None):
     u_shift = U_tmp - u_tmp
 
     if w.size != 0:
-        weights = w.reshape(
-            -1, *[1] * U.shape[1]
-        )  # For broadcasting weighted sum
-        C = np.sum(weights * (u_shift.T @ u_shift), axis=0)
-        C = C.reshape(
-            (U.shape[1], U.shape[1])
-        )  # Remove the extra dimesion from the broadcast result
+        weights = w.reshape(-1, *([1] * u_shift.ndim))  # For broadcasting weighted sum
+        C = np.matmul(u_shift.transpose(), weights * u_shift)
+        C = np.sum(C, axis=0)
     else:
         C = u_shift.T @ u_shift
 
