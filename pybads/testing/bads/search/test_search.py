@@ -142,6 +142,7 @@ def test_u_cov():
     C = ucov(U, u0, w, ub, lb, 1)
     assert C.shape == (U.shape[1], U.shape[1])
 
+test_u_cov()
 
 def test_grid_search_neighbors():
     x0 = np.array([[0, 0]])
