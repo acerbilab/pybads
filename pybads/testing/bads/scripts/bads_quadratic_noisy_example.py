@@ -3,11 +3,12 @@ from pybads import BADS
 from pybads.bads import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, extra_noisy_quadratic_fcn, quadratic_hetsk_noisy_fcn, rosebrocks_hetsk_noisy_fcn
 
-x0 = np.array([[-3, -3]]);        # Starting point
-lb = np.array([[-5, -5]])     # Lower bounds
-ub = np.array([[5, 5]])       # Upper bounds
-plb = np.array([[-2, -2]])      # Plausible lower bounds
-pub = np.array([[2, 2]])        # Plausible upper bounds
+D = 3
+x0 = np.ones((1, D)) * -3      # Starting point
+lb = np.ones((1, D)) * -7      # Lower bounds
+ub = np.ones((1, D)) * 7       # Upper bounds
+plb = np.ones((1, D)) * -3     # Plausible lower bounds
+pub = np.ones((1, D)) * 3     # Plausible upper bounds
 
 title = 'Noise objective function'
 print("\n *** Example 3: " + title)

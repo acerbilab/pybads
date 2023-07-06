@@ -6,8 +6,7 @@ from scipy.stats import norm
 from pybads.bads import BADS
 
 
-def get_test_opt_conf():
-    D = 3
+def get_test_opt_conf(D=3):
     x0 = np.ones((1, D)) * 4
     LB = -100*np.ones(D)                # Lower bound
     UB = 100*np.ones(D)                 # Upper bound
@@ -17,18 +16,19 @@ def get_test_opt_conf():
     return D, x0, LB, UB, PLB, PUB, tol_errs
 
 def run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min,
-            oracle_fun=None, non_box_cons=None, he_noise_flag=False,
-            assert_flag=False):
+            oracle_fun=None, non_box_cons=None, uncertainty_handling=False,
+            assert_flag=False, max_fun_evals=None):
     options = {}
     options["display"] = "full"#debug_flag = True
 
-    if he_noise_flag:
-        options["specify_target_noise"] = True
+    if uncertainty_handling > 0:
         options["uncertainty_handling"] = True
-        #options["noise_final_samples"] = 100
-        options["max_fun_evals"] = 200
+        options["max_fun_evals"] = 200 if max_fun_evals is None  else max_fun_evals
+        options["specify_target_noise"] = True
+        if uncertainty_handling > 1:
+            options["specify_target_noise"] = True
     else:
-        options["max_fun_evals"] = 100
+        options["max_fun_evals"] = 100 if max_fun_evals is None else max_fun_evals
 
     optimize_result = BADS(fun=fun, x0=x0, lower_bounds=LB,
                                     upper_bounds=UB, plausible_lower_bounds=PLB,
@@ -47,11 +47,17 @@ def run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min,
     if assert_flag:
         assert np.any(err < tol_errs), f"Error {err} is not smaller than tolerance {tol_errs} when optimizing {fun.__name__}."
     
+    return optimize_result, err
+    
 def test_ellipsoid_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
     fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
-    
+
+def test_high_dim_opt():
+    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=60)
+    fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=False, max_fun_evals=200)
 
 def test_sphere_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
@@ -77,4 +83,4 @@ def test_he_noisy_sphere_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
     fun = he_noisy_sphere
     oracle_fun = lambda x: np.sum(np.atleast_2d(x)**2, axis=1)                          # True objective function
-    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, oracle_fun=oracle_fun, he_noise_flag=True, assert_flag=True)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, oracle_fun=oracle_fun, uncertainty_handling=2, assert_flag=True)
