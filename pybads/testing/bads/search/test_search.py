@@ -66,7 +66,7 @@ def test_search():
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options["fun_eval_start"] = 0
+    bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     es_iter = bads.options["n_search_iter"]
@@ -112,7 +112,7 @@ def test_search_hedge():
     D = 3
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options["fun_eval_start"] = 0
+    bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
     search_hedge = ESSearchHedge(bads.options["search_method"], bads.options)
@@ -123,7 +123,6 @@ def test_search_hedge():
     print(search_hedge.chosen_search_fun)
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
-
 
 def test_u_cov():
     U = np.array(
@@ -142,7 +141,6 @@ def test_u_cov():
     C = ucov(U, u0, w, ub, lb, 1)
     assert C.shape == (U.shape[1], U.shape[1])
 
-
 def test_grid_search_neighbors():
     x0 = np.array([[0, 0]])
     # Starting point
@@ -153,7 +151,7 @@ def test_grid_search_neighbors():
     D = 2
 
     bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
-    bads.options["fun_eval_start"] = 0
+    bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
     f = FunctionLogger(rosenbrocks_fcn, D, False, 0)
@@ -175,3 +173,4 @@ def test_grid_search_neighbors():
         and np.isclose(result[1, 0], -0.1055, 1e-3)
         and np.isclose(result[2, 0], -0.3555, 1e-3)
     )
+    
