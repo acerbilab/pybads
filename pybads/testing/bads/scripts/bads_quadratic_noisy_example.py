@@ -3,7 +3,7 @@ from pybads import BADS
 from pybads.bads import BADSDump
 from pybads.function_examples import quadratic_unknown_noisy_fcn, extra_noisy_quadratic_fcn, quadratic_hetsk_noisy_fcn, rosebrocks_hetsk_noisy_fcn
 
-D = 3
+D = 2
 x0 = np.ones((1, D)) * -3      # Starting point
 lb = np.ones((1, D)) * -7      # Lower bounds
 ub = np.ones((1, D)) * 7       # Upper bounds
