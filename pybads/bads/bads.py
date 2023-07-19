@@ -1640,7 +1640,8 @@ class BADS:
 
             if z.size > 0:
                 # Save statistics of gp prediction,
-                self._save_gp_stats_(y_search, f_mu[index_acq], fs[index_acq])
+                self._save_gp_stats_(y_search, f_mu[index_acq].item(),
+                                    fs[index_acq].item())
 
             # Add search point to training setMeshSize
             if (
@@ -2072,7 +2073,8 @@ class BADS:
             u_poll = np.delete(u_poll, index_acq, axis=0)
 
             # Save statistics of gp prediction
-            self._save_gp_stats_(y_poll, f_mu[index_acq], fs[index_acq])
+            self._save_gp_stats_(y_poll, f_mu[index_acq].item(),
+                                fs[index_acq].item())
 
             if self.optim_state["uncertainty_handling_level"] > 0:
                 # Update posterior with the new polled point
@@ -2303,12 +2305,14 @@ class BADS:
                 .flatten()
                 .astype("float")
             )
+            
             zscore = f_vals - yvals
             gp_ys = (
                 self.gp_stats.get("ys")[: gp_iter_idx + 1]
                 .flatten()
                 .astype("float")
             )
+            
             # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
             idx_zero_gp_ys = np.where(np.isclose(0., gp_ys))[0]
             gp_ys[idx_zero_gp_ys] = 1e-6

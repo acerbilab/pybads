@@ -452,7 +452,9 @@ def local_gp_fitting(
             ):
                 alpha = np.zeros((hyp_n_samples))
                 for i in range(hyp_n_samples):
-                    alpha[i] = np.exp(dic_hyp_gp[i]["covariance_log_shape"])
+                    # Casting to a scalar suppress deprecation warnings in pytest runs.
+                    # "Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future."
+                    alpha[i] = np.exp(dic_hyp_gp[i]["covariance_log_shape"])[0]
 
                 gp.temporary_data["effective_radius"] = np.sqrt(
                     alpha * (np.exp(1 / alpha) - 1)
