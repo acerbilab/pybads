@@ -148,7 +148,8 @@ class VariableTransformer:
 
         # A variable is converted to log scale if all bounds are positive and
         # the plausible range spans at least one order of magnitude
-        for i in np.argwhere(np.isnan(self.apply_log_t.squeeze())):
+        check_idx_log_t = np.argwhere(np.isnan(self.apply_log_t.flatten()))
+        for i in check_idx_log_t:
             self.apply_log_t[:, i] = (
                 np.all(
                     np.concatenate(
@@ -212,8 +213,8 @@ class VariableTransformer:
         tests = np.zeros(4)
         tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
         tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(np.abs(ginv(g(self.plb)) - self.plb) < numeps)
-        tests[3] = np.all(np.abs(ginv(g(self.pub)) - self.pub) < numeps)
+        tests[2] = np.all(np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps)
+        tests[3] = np.all(np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps)
         if not np.all(tests):
             raise ValueError("Cannot invert the transform to obtain the identity at the provided boundaries.")
 
