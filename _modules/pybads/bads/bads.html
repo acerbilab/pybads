@@ -1957,7 +1957,8 @@ document.write(`
 
             <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># Save statistics of gp prediction,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_save_gp_stats_</span><span class="p">(</span><span class="n">y_search</span><span class="p">,</span> <span class="n">f_mu</span><span class="p">[</span><span class="n">index_acq</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">index_acq</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_gp_stats_</span><span class="p">(</span><span class="n">y_search</span><span class="p">,</span> <span class="n">f_mu</span><span class="p">[</span><span class="n">index_acq</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                                    <span class="n">fs</span><span class="p">[</span><span class="n">index_acq</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
 
             <span class="c1"># Add search point to training setMeshSize</span>
             <span class="k">if</span> <span class="p">(</span>
@@ -2389,7 +2390,8 @@ document.write(`
             <span class="n">u_poll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">u_poll</span><span class="p">,</span> <span class="n">index_acq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
             <span class="c1"># Save statistics of gp prediction</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_save_gp_stats_</span><span class="p">(</span><span class="n">y_poll</span><span class="p">,</span> <span class="n">f_mu</span><span class="p">[</span><span class="n">index_acq</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">index_acq</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_gp_stats_</span><span class="p">(</span><span class="n">y_poll</span><span class="p">,</span> <span class="n">f_mu</span><span class="p">[</span><span class="n">index_acq</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                                <span class="n">fs</span><span class="p">[</span><span class="n">index_acq</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># Update posterior with the new polled point</span>
@@ -2620,12 +2622,14 @@ document.write(`
                 <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
             <span class="p">)</span>
+            
             <span class="n">zscore</span> <span class="o">=</span> <span class="n">f_vals</span> <span class="o">-</span> <span class="n">yvals</span>
             <span class="n">gp_ys</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">gp_stats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ys&quot;</span><span class="p">)[:</span> <span class="n">gp_iter_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                 <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
             <span class="p">)</span>
+            
             <span class="c1"># Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)</span>
             <span class="n">idx_zero_gp_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">gp_ys</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">gp_ys</span><span class="p">[</span><span class="n">idx_zero_gp_ys</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span>
