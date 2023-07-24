@@ -54,6 +54,11 @@ def test_ellipsoid_opt():
     fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
 
+def test_1D_opt():
+    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=1)
+    fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+
 def test_high_dim_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=60)
     fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)

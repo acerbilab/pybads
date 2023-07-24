@@ -8,13 +8,9 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "cma >= 3.1.0",
-    "corner >= 2.2.1",
-    "dill >= 0.3.5.1",
     "gpyreg >= 0.1.0",
-    "imageio >= 2.13.5",
     "matplotlib >= 3.5.1",
     "numpy >= 1.22.1",
-    "plotly >= 5.11.0",
     "pytest >= 6.2.5",
     "pytest-mock >= 3.6.1",
     "pytest-rerunfailures >= 10.2",
@@ -34,6 +30,9 @@ package-dir = {"pybads.examples" = "examples"}
 
 [project.optional-dependencies]
 dev = [
+    "imageio >= 2.13.5",
+    "corner >= 2.2.1",
+    "dill >= 0.3.5.1",
     "myst_nb >= 0.13.1",
     "numpydoc >= 1.2.1",
     "pylint >= 2.15.5",
