@@ -238,6 +238,9 @@ class BADS:
         # evaluate  starting point non-bound constraint
         if non_box_cons is not None:
             if non_box_cons(self.x0) > 0:
+                self.logger.error(
+                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                )
                 raise ValueError(
                     "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
                 )
@@ -641,8 +644,8 @@ class BADS:
             - optim_state["search_mesh_size"]
         )
         optim_state["ub_search"] = ub_search
-
-        # Starting point in grid coordinates
+        
+        # Starting point in grid coordinates, gridization
         u0 = force_to_grid(
             grid_units(self.x0, self.var_transf, optim_state["scale"]),
             optim_state["search_mesh_size"],
@@ -655,6 +658,16 @@ class BADS:
         u0[u0 > self.upper_bounds] = (
             u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
         )
+        
+        # Check that the gridized points satisfies the non-bound constraints
+        if np.any(self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0):
+            self.logger.error(
+                """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
+            )
+            raise ValueError(
+                """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
+            )
+        
         optim_state["u"] = u0
         self.u = u0.flatten().copy()
 
@@ -909,14 +922,6 @@ class BADS:
         self.fval = self.yval
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
-
-        if self.non_box_cons is not None:
-            c = self.non_box_cons(self.u)
-            if c > 0:
-                self.yval = np.NaN
-                raise ValueError(
-                    "Initial starting point X0 does not satisfy non-bound constraint."
-                )
 
         if self.optim_state["uncertainty_handling_level"] < 1:
             # test if the function is noisy
