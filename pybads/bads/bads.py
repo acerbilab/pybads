@@ -660,7 +660,8 @@ class BADS:
         )
         
         # Check that the gridized points satisfies the non-bound constraints
-        if np.any(self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0):
+        if self.non_box_cons is not None and \
+            np.any(self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0):
             self.logger.error(
                 """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
             )
