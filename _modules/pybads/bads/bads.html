@@ -555,6 +555,9 @@ document.write(`
         <span class="c1"># evaluate  starting point non-bound constraint</span>
         <span class="k">if</span> <span class="n">non_box_cons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">non_box_cons</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).&quot;</span>
+                <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).&quot;</span>
                 <span class="p">)</span>
@@ -958,8 +961,8 @@ document.write(`
             <span class="o">-</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;ub_search&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ub_search</span>
-
-        <span class="c1"># Starting point in grid coordinates</span>
+        
+        <span class="c1"># Starting point in grid coordinates, gridization</span>
         <span class="n">u0</span> <span class="o">=</span> <span class="n">force_to_grid</span><span class="p">(</span>
             <span class="n">grid_units</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_transf</span><span class="p">,</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]),</span>
             <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">],</span>
@@ -972,6 +975,17 @@ document.write(`
         <span class="n">u0</span><span class="p">[</span><span class="n">u0</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">u0</span><span class="p">[</span><span class="n">u0</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">]</span> <span class="o">-</span> <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;search_mesh_size&quot;</span><span class="p">]</span>
         <span class="p">)</span>
+        
+        <span class="c1"># Check that the gridized points satisfies the non-bound constraints</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_transf</span><span class="o">.</span><span class="n">inverse_transf</span><span class="p">(</span><span class="n">u0</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid.&quot;&quot;&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid.&quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u0</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -1226,14 +1240,6 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">fval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;fval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;yval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_box_cons</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Initial starting point X0 does not satisfy non-bound constraint.&quot;</span>
-                <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">&quot;uncertainty_handling_level&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># test if the function is noisy</span>
