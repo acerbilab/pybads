@@ -145,9 +145,9 @@ class BADS:
 
         # Initialize variables and algorithm structures
         if plausible_lower_bounds is None and lower_bounds is not None:
-            plausible_lower_bounds = lower_bounds.copy()
+            plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
         if plausible_upper_bounds is None and upper_bounds is not None:
-            plausible_upper_bounds = upper_bounds.copy()
+            plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
 
         if x0 is None:
             if (
@@ -355,9 +355,9 @@ class BADS:
             or plausible_upper_bounds.shape != (1, D)
         ):
             raise ValueError(
-                """All input vectors (x0, lower_bounds, upper_bounds,
+                f"""All input vectors (lower_bounds, upper_bounds,
                  plausible_lower_bounds, plausible_upper_bounds), if specified,
-                 need to be row vectors with D elements."""
+                 need to be of dimension D={D} as the starting point x_0={x0}."""
             )
 
         # check that plausible bounds are finite
