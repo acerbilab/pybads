@@ -147,7 +147,7 @@ class FunctionLogger:
             else:
                 err.args += (
                     "\n FunctionLogger:FuncError "
-                    + "Error in executing the logged function"
+                    + "Error in executing the logged function "
                     + "with input: "
                     + str(x_orig),
                 )
