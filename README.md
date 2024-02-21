@@ -26,7 +26,7 @@ BADS is effective when:
 
 ## Installation
 
-PyBADS is available via `pip` and `conda-forge`.
+PyBADS is available via `pip` and `conda-forge`, and requires Python version 3.9 or newer.
 
 1. Install with:
     ```console
@@ -36,7 +36,6 @@ PyBADS is available via `pip` and `conda-forge`.
     ```console
     conda install --channel=conda-forge pybads
     ```
-    PyBADS requires Python version 3.9 or newer.
 2. (Optional): Install Jupyter to view the example Notebooks. You can skip this step if you are working from a Conda environment which already has Jupyter, but be aware that if the wrong `jupyter` executable is found on your path then import errors may arise.
    ```console
    conda install jupyter
