@@ -2,7 +2,36 @@ import numpy as np
 from scipy.stats.qmc import Sobol
 
 
-def init_sobol(u0, lb, ub, plb, pub, fun_eval_start):
+def init_sobol(u0=np.ndarray, lb=np.ndarray, ub=np.ndarray, plb=np.ndarray, pub=np.ndarray, fun_eval_start=int):
+    """
+    Initialize the Sobol sequence.
+    This method relies on the scipy.stats.qmc.Sobol class for generating the Sobol sequence (Roy et. al 2023).
+    You can find more information about the Sobol sequence in the documentation of the Sobol class.
+
+    Roy et al., (2023). Quasi-Monte Carlo Methods in Python. Journal of Open Source Software, 8(84), 5309, https://doi.org/10.21105/joss.05309
+
+    Parameters
+    ----------
+    u0 : array_like
+        Initial point.
+    lb : array_like
+        Lower bounds.
+    ub : array_like
+        Upper bounds.
+    plb : array_like
+        Lower bounds for the parameters.
+    pub : array_like
+        Upper bounds for the parameters.
+    fun_eval_start : int
+        Number of initial function evaluations.
+
+    Returns
+    -------
+    u_init : array_like
+        Initial points.
+    n_samples : int
+        Number of samples used for the initialization.
+    """
 
     max_seed = 997
     if np.all(np.isfinite(u0)):

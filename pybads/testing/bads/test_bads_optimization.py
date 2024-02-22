@@ -53,6 +53,14 @@ def test_ellipsoid_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
     fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+    
+def test_univariate_input_and_opt():
+    rfn = lambda x: x**2 + 3.2 + np.random.normal(scale=0.1)
+    plb = -5
+    pub = 5
+    x0 = 3
+    opt = BADS(rfn, x0, plausible_lower_bounds=plb, plausible_upper_bounds=pub)
+    opt.optimize()
 
 def test_1D_opt():
     D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=1)

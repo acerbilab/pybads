@@ -8,6 +8,8 @@ import numpy as np
 class OptimizeResult(dict):
     """
     It represents the optimization result.
+    The class is based on ``scipy.optimize.OptimizeResult``. 
+    See also: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html.
     
     Attributes:
     
