@@ -357,7 +357,7 @@ class BADS:
             raise ValueError(
                 f"""All input vectors (lower_bounds, upper_bounds,
                  plausible_lower_bounds, plausible_upper_bounds), if specified,
-                 need to be of dimension D={D} as the starting point x_0={x0}."""
+                 need to be of the same dimension D={D} as the starting point x_0={x0}."""
             )
 
         # check that plausible bounds are finite
