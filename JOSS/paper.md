@@ -75,6 +75,7 @@ The package is available on both PyPI (``pip install pybads``) and ``conda-forge
 # Acknowledgments
 
 We thank Bobby Huggins, Chengkun Li, Marlon Tobaben and Mikko Aarnos for helpful comments and feedback.
-Work on the PyBADS package is supported by the Academy of Finland Flagship programme: Finnish Center for Artificial Intelligence FCAI.
+We also acknowledge support from CSC – IT Center for Science, Finland, for computational resources.
+Work on the PyBADS package was supported by the Research Council of Finland Flagship programme: Finnish Center for Artificial Intelligence FCAI, and additionally by project grants 356498 and 358980.
 
 # References
