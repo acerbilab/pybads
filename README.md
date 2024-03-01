@@ -114,7 +114,7 @@ If you have trouble doing something with PyBADS, spot bugs or strange behavior, 
 
 ## References and citation
 
-1. Singh, S. G. & Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. *arXiv preprint*. https://arxiv.org/abs/2306.15576
+1. Singh, S. G. & Acerbi, L. (2024). PyBADS: Fast and robust black-box optimization in Python. Journal of Open Source Software, 9(94), 5694, https://doi.org/10.21105/joss.05694
 
 2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. ([paper + supplement on arXiv](https://arxiv.org/abs/1705.04405), [NeurIPS Proceedings](https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html))
 
@@ -135,14 +135,18 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 ### BibTeX
 
 ```BibTeX
+
 @article{singh2023pybads,
   title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
   author={Gurjeet Sangra Singh and Luigi Acerbi},
-  publisher = {preprint},
-  journal = {{arXiv}},
-  url = {https://arxiv.org/abs/2306.15576},
-  doi = {10.48550/ARXIV.2306.15576},
-  year = {2023},
+  publisher = {The Open Journal},
+  journal = {Journal of Open Source Software},
+  year = {2024},
+  volume = {9},
+  number = {94},
+  pages = {5694},
+  url = {https://doi.org/10.21105/joss.05694},
+  doi = {10.21105/joss.05694},
 }
 
 @article{acerbi2017practical,

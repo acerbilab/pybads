@@ -111,7 +111,11 @@ class BADS:
 
     References
     ----------
-    .. [1]  Acerbi, L. & Ma, W. J. (2017). "Practical Bayesian
+    .. [1]  Singh, S. G. & Acerbi, L. (2024). 
+            "PyBADS: Fast and robust black-box optimization in Python".
+            Journal of Open Source Software, 9(94), 5694, https://doi.org/10.21105/joss.05694.
+
+    .. [2]  Acerbi, L. & Ma, W. J. (2017). "Practical Bayesian
             Optimization for Model Fitting with Bayesian Adaptive Direct Search".
             In `Advances in Neural Information Processing Systems` 30, pages 1834-1844.
             (arXiv preprint: https://arxiv.org/abs/1705.04405).
