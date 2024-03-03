@@ -136,7 +136,7 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 
 ```BibTeX
 
-@article{singh2023pybads,
+@article{singh2024pybads,
   title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
   author={Gurjeet Sangra Singh and Luigi Acerbi},
   publisher = {The Open Journal},
