@@ -82,6 +82,7 @@ Please cite both references if you use PyBADS in your work (the 2017 paper intro
 BibTeX
 ------
 ::
+
   @article{singh2023pybads,
     title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
     author={Gurjeet Sangra Singh and Luigi Acerbi},
@@ -92,8 +93,8 @@ BibTeX
     number = {94},
     pages = {5694},
     url = {https://doi.org/10.21105/joss.05694},
-    doi = {10.21105/joss.05694},
-   }
+    doi = {10.21105/joss.05694}
+  }
 
   @article{acerbi2017practical,
     title={Practical {B}ayesian Optimization for Model Fitting with {B}ayesian Adaptive Direct Search},
