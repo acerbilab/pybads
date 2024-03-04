@@ -71,25 +71,29 @@ Contributing
 References
 ###############
 
-1. Singh, S. G. & Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. *arXiv preprint*. https://arxiv.org/abs/2306.15576.
+1. Singh, S. G. & Acerbi, L. (2024). PyBADS: Fast and robust black-box optimization in Python. Journal of Open Source Software, 9(94), 5694. (`paper on JOSS <https://doi.org/10.21105/joss.05694>`__).
 
 2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
 
 Please cite both references if you use PyBADS in your work (the 2017 paper introduced the framework, and the latest one is its Python library). You can cite PyBADS in your work with something along the lines of
 
-    We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017), via the PyBADS software (Singh and Acerbi, 2023). PyBADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.
+    We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017), via the PyBADS software (Singh and Acerbi, 2024). PyBADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.
 
 BibTeX
 ------
 ::
-  @article{singh2023pybads,
+
+  @article{singh2024pybads,
     title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
     author={Gurjeet Sangra Singh and Luigi Acerbi},
-    publisher = {preprint},
-    journal = {{arXiv}},
-    url = {https://arxiv.org/abs/2306.15576},
-    doi = {10.48550/ARXIV.2306.15576},
-    year = {2023},
+    publisher = {The Open Journal},
+    journal = {Journal of Open Source Software},
+    year = {2024},
+    volume = {9},
+    number = {94},
+    pages = {5694},
+    url = {https://doi.org/10.21105/joss.05694},
+    doi = {10.21105/joss.05694}
   }
 
   @article{acerbi2017practical,
