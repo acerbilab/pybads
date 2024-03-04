@@ -496,39 +496,38 @@ document.write(`
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Singh, S. G. &amp; Acerbi, L. (2023). PyBADS: Fast and robust black-box optimization in Python. <em>arXiv preprint</em>. <a class="reference external" href="https://arxiv.org/abs/2306.15576">https://arxiv.org/abs/2306.15576</a>.</p></li>
+<li><p>Singh, S. G. &amp; Acerbi, L. (2024). PyBADS: Fast and robust black-box optimization in Python. Journal of Open Source Software, 9(94), 5694. (<a class="reference external" href="https://doi.org/10.21105/joss.05694">paper on JOSS</a>).</p></li>
 <li><p>Acerbi, L. &amp; Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In <em>Advances in Neural Information Processing Systems 31</em>: 8222-8232. (<a class="reference external" href="https://arxiv.org/abs/1705.04405">paper + supplement on arXiv</a>, <a class="reference external" href="https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html">NeurIPS Proceedings</a>)</p></li>
 </ol>
 <p>Please cite both references if you use PyBADS in your work (the 2017 paper introduced the framework, and the latest one is its Python library). You can cite PyBADS in your work with something along the lines of</p>
 <blockquote>
-<div><p>We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017), via the PyBADS software (Singh and Acerbi, 2023). PyBADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.</p>
+<div><p>We optimized the log likelihoods of our models using Bayesian adaptive direct search (BADS; Acerbi and Ma, 2017), via the PyBADS software (Singh and Acerbi, 2024). PyBADS alternates between a series of fast, local Bayesian optimization steps and a systematic, slower exploration of a mesh grid.</p>
 </div></blockquote>
 <section id="bibtex">
 <h3>BibTeX<a class="headerlink" href="#bibtex" title="Link to this heading">#</a></h3>
-<dl>
-<dt>::</dt><dd><dl class="simple">
-<dt>&#64;article{singh2023pybads,</dt><dd><p>title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython},
-author={Gurjeet Sangra Singh and Luigi Acerbi},
-publisher = {preprint},
-journal = {{arXiv}},
-url = {<a class="reference external" href="https://arxiv.org/abs/2306.15576">https://arxiv.org/abs/2306.15576</a>},
-doi = {10.48550/ARXIV.2306.15576},
-year = {2023},</p>
-</dd>
-</dl>
-<p>}</p>
-<dl class="simple">
-<dt>&#64;article{acerbi2017practical,</dt><dd><p>title={Practical {B}ayesian Optimization for Model Fitting with {B}ayesian Adaptive Direct Search},
-author={Acerbi, Luigi and Ma, Wei Ji},
-journal={Advances in Neural Information Processing Systems},
-volume={30},
-pages={1834–1844},
-year={2017}</p>
-</dd>
-</dl>
-<p>}</p>
-</dd>
-</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">singh2024pybads</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{{</span><span class="n">PyBADS</span><span class="p">}:</span> <span class="p">{</span><span class="n">F</span><span class="p">}</span><span class="n">ast</span> <span class="ow">and</span> <span class="n">robust</span> <span class="n">black</span><span class="o">-</span><span class="n">box</span> <span class="n">optimization</span> <span class="ow">in</span> <span class="p">{</span><span class="n">P</span><span class="p">}</span><span class="n">ython</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Gurjeet</span> <span class="n">Sangra</span> <span class="n">Singh</span> <span class="ow">and</span> <span class="n">Luigi</span> <span class="n">Acerbi</span><span class="p">},</span>
+  <span class="n">publisher</span> <span class="o">=</span> <span class="p">{</span><span class="n">The</span> <span class="n">Open</span> <span class="n">Journal</span><span class="p">},</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span><span class="n">Journal</span> <span class="n">of</span> <span class="n">Open</span> <span class="n">Source</span> <span class="n">Software</span><span class="p">},</span>
+  <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2024</span><span class="p">},</span>
+  <span class="n">volume</span> <span class="o">=</span> <span class="p">{</span><span class="mi">9</span><span class="p">},</span>
+  <span class="n">number</span> <span class="o">=</span> <span class="p">{</span><span class="mi">94</span><span class="p">},</span>
+  <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">5694</span><span class="p">},</span>
+  <span class="n">url</span> <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.21105</span><span class="o">/</span><span class="n">joss</span><span class="mf">.05694</span><span class="p">},</span>
+  <span class="n">doi</span> <span class="o">=</span> <span class="p">{</span><span class="mf">10.21105</span><span class="o">/</span><span class="n">joss</span><span class="mf">.05694</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nd">@article</span><span class="p">{</span><span class="n">acerbi2017practical</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Practical</span> <span class="p">{</span><span class="n">B</span><span class="p">}</span><span class="n">ayesian</span> <span class="n">Optimization</span> <span class="k">for</span> <span class="n">Model</span> <span class="n">Fitting</span> <span class="k">with</span> <span class="p">{</span><span class="n">B</span><span class="p">}</span><span class="n">ayesian</span> <span class="n">Adaptive</span> <span class="n">Direct</span> <span class="n">Search</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Acerbi</span><span class="p">,</span> <span class="n">Luigi</span> <span class="ow">and</span> <span class="n">Ma</span><span class="p">,</span> <span class="n">Wei</span> <span class="n">Ji</span><span class="p">},</span>
+  <span class="n">journal</span><span class="o">=</span><span class="p">{</span><span class="n">Advances</span> <span class="ow">in</span> <span class="n">Neural</span> <span class="n">Information</span> <span class="n">Processing</span> <span class="n">Systems</span><span class="p">},</span>
+  <span class="n">volume</span><span class="o">=</span><span class="p">{</span><span class="mi">30</span><span class="p">},</span>
+  <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">1834</span><span class="o">--</span><span class="mi">1844</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2017</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="license-and-source">
 <h3>License and source<a class="headerlink" href="#license-and-source" title="Link to this heading">#</a></h3>
