@@ -163,7 +163,7 @@ class BADS:
                  provided, plausible_lower_bounds and plausible_upper_bounds need to be specified."""
                 )
             else:
-                x0 = np.full((plausible_lower_bounds.shape), np.NaN)
+                x0 = np.full((plausible_lower_bounds.shape), np.nan)
 
         x0 = np.atleast_2d(x0)
         self.D = x0.shape[1]
@@ -597,7 +597,7 @@ class BADS:
 
         # Compute transformation of variables
         if self.options["nonlinear_scaling"]:
-            logflag = np.full((1, self.D), np.NaN)
+            logflag = np.full((1, self.D), np.nan)
             periodic_vars = self.options["periodic_vars"]
             if periodic_vars is not None and len(periodic_vars) != 0:
                 logflag[
