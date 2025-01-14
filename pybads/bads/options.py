@@ -108,7 +108,8 @@ class Options(MutableMapping, dict):
 
         # evaluation_parameters
         for key, val in evaluation_parameters.items():
-            exec(key + "=val")
+            global_scope = globals()
+            exec(f"{key} = {val}", global_scope)
 
         options_list = _read_config_file(options_path)
         for (key, value, description) in options_list:

@@ -136,6 +136,18 @@ def test_inverse_on_boundaries():
     X2 = np.ones((10, D)) * -10.
     assert np.all(np.isclose(X, X2))
 
+def test_1D_transform():
+    """Test 1D variable transformation"""
+    parameter_transformer = VariableTransformer(
+        D=1,
+        lower_bounds=np.array([[-10]]),
+        upper_bounds=np.array([[10]]),
+    )
+    X = np.array([[3]])
+    Y = parameter_transformer(X)
+    Y2 = np.array([[0.3]])
+    assert np.all(np.isclose(Y, Y2, atol=1e-04))
+
 def test_inverse_min_space():
     parameter_transformer = VariableTransformer(
         D=D,
