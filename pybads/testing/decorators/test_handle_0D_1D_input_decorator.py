@@ -49,6 +49,16 @@ def test_1D_return_scalar():
 
     x = np.ones(10)
     assert np.ndim(Foo().bar(x)) == 0
+    
+    # Test single value array
+    x = np.array([1.0])
+    assert np.ndim(Foo().bar(x)) == 0
+    assert isinstance(Foo().bar(x), float)
+    
+    # Test scalar input
+    x = 1.0
+    assert np.ndim(Foo().bar(x)) == 0
+    assert isinstance(Foo().bar(x), float)
 
 
 def test_1D_return_multiple_returns():

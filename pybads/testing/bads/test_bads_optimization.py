@@ -62,9 +62,37 @@ def test_univariate_input_and_opt():
     opt = BADS(rfn, x0, plausible_lower_bounds=plb, plausible_upper_bounds=pub)
     opt.optimize()
 
-def test_1D_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=1)
-    fun = lambda x: np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
+def test_1D_opt_ndarray():
+    """Test optimization with 1D inputs and nd arrays"""
+    fun = lambda x: np.atleast_2d(x)**2
+    x0 = np.array([[2.0]])
+    LB = np.array([[-10.0]])
+    UB = np.array([[10.0]])
+    PLB = np.array([[-5.0]])
+    PUB = np.array([[5.0]])
+    tol_errs = np.array([0.1])
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+
+def test_1D_opt_1darray():
+    """Test optimization with 1D inputs and 1D arrays"""
+    fun = lambda x: np.atleast_2d(x)**2
+    x0 = np.array([2.0])
+    LB = np.array([-10.0])
+    UB = np.array([10.0])
+    PLB = np.array([-5.0])
+    PUB = np.array([5.0])
+    tol_errs = np.array([0.1])
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+
+def test_1D_opt_scalar():
+    """Test optimization with scalar inputs"""
+    fun = lambda x: np.atleast_2d(x)**2
+    x0 = 2.0
+    LB = -10.0
+    UB = 10.0
+    PLB = -5.0
+    PUB = 5.0
+    tol_errs = np.array([0.1])
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
 
 def test_high_dim_opt():
