@@ -16,29 +16,32 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'development';</script>
@@ -50,6 +53,7 @@
     <link rel="prev" title="get_hpd" href="api/functions/get_hpd.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -65,19 +69,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -85,7 +78,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -93,8 +85,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -110,7 +102,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -140,15 +133,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
@@ -202,9 +191,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -365,24 +359,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -434,7 +420,7 @@ document.write(`
   <section id="instructions-for-developers-and-contributors">
 <h1>Instructions for developers and contributors<a class="headerlink" href="#instructions-for-developers-and-contributors" title="Link to this heading">#</a></h1>
 <p>PyBADS is the port of the MATLAB BADS algorithm to Python 3.x (development has targeted version 3.9 and up).</p>
-<p>The reference code is the <a class="reference external" href="https://github.com/acerbilab/bads">MATLAB toolbox</a>.</p>
+<p>The reference code is the <a class="extlink-labrepos reference external" href="https://github.com/acerbilab/bads">MATLAB toolbox</a>.</p>
 <p>The documentation is available at: <a class="reference external" href="https://acerbilab.github.io/pybads/">https://acerbilab.github.io/pybads/</a></p>
 <section id="installation-instructions-for-developers">
 <h2>Installation instructions for developers<a class="headerlink" href="#installation-instructions-for-developers" title="Link to this heading">#</a></h2>
@@ -451,7 +437,7 @@ document.write(`
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">acerbilab</span><span class="o">/</span><span class="n">gpyreg</span>
 </pre></div>
 </div>
-<p>(PyBADS depends on <a class="reference external" href="https://github.com/acerbilab/gpyreg">GPyReg</a>, which is a package for lightweight Gaussian process regression in Python.)</p>
+<p>(PyBADS depends on <a class="extlink-labrepos reference external" href="https://github.com/acerbilab/gpyreg">GPyReg</a>, which is a package for lightweight Gaussian process regression in Python.)</p>
 </li>
 <li><p>Install the packages and their optional development dependencies:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">./</span><span class="n">gpyreg</span>
@@ -495,13 +481,13 @@ document.write(`
 There are add-ons to generate docstring blueprints using IDEs.</p>
 <ul class="simple">
 <li><p>See an example for a correct docstring from NumPy <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/example.html">here</a>.</p></li>
-<li><p>In PyBADS, the <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> class can be taken as an example of (mostly) correct docstring structure, see <a class="reference external" href="https://github.com/acerbilab/pybads/blob/main/pybads/bads/optimize_result.py">here</a>.</p></li>
+<li><p>In PyBADS, the <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> class can be taken as an example of (mostly) correct docstring structure, see <a class="extlink-mainbranch reference external" href="https://github.com/acerbilab/pybads/blob/main/pybads/bads/optimize_result.py">here</a>.</p></li>
 <li><p>In particular, see how the single quotes and double quotes are used; the math notation is used; full stops are added at the end of each sentence, etc.</p></li>
 </ul>
 </section>
 <section id="code-documentation">
 <h3>Code documentation<a class="headerlink" href="#code-documentation" title="Link to this heading">#</a></h3>
-<p>The documentation is currently hosted on <a class="reference internal" href="index.html"><span class="doc">github.io</span></a>. We build the PyBADS documentation using <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/quickstart.html">Sphinx</a>. The source code of the documentation is in the <a class="reference external" href="https://github.com/acerbilab/pybads/blob/main/docsrc">docsrc folder</a> and the build version is in the <a class="reference external" href="https://github.com/acerbilab/pybads/tree/gh-pages">gh-pages</a> branch. When the documentation is re-built, it should be pushed to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> instead of committing it on the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
+<p>The documentation is currently hosted on <a class="reference internal" href="index.html"><span class="doc">github.io</span></a>. We build the PyBADS documentation using <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/quickstart.html">Sphinx</a>. The source code of the documentation is in the <a class="extlink-mainbranch reference external" href="https://github.com/acerbilab/pybads/blob/main/docsrc">docsrc folder</a> and the build version is in the <a class="extlink-labrepos reference external" href="https://github.com/acerbilab/pybads/tree/gh-pages">gh-pages</a> branch. When the documentation is re-built, it should be pushed to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> instead of committing it on the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
 <p>To setup an existing PyBADS repository for building documentation, please follow the steps below:</p>
 <ol class="arabic">
 <li><p>One-time setup:</p>
@@ -546,7 +532,7 @@ The <code class="docutils literal notranslate"><span class="pre">.rst</span></co
 <p>Refer to existing documentation for an overview of the file structure. So far the documentation includes the following:</p>
 <ul class="simple">
 <li><p>Status of the port (what is missing?);</p></li>
-<li><p>Reference to the respective file of the original <a class="reference external" href="https://github.com/acerbilab/bads">MATLAB</a> implementation;</p></li>
+<li><p>Reference to the respective file of the original <a class="extlink-labrepos reference external" href="https://github.com/acerbilab/bads">MATLAB</a> implementation;</p></li>
 <li><p>Known issues (if something is currently suboptimal in PyBADS);</p></li>
 <li><p>The documentation of the Python code (generated from the docstrings).</p></li>
 </ul>
@@ -591,7 +577,7 @@ Tests can be run with:</p>
 <li><p>Please try to keep the total runtime of the tests minimal for the task at hand.</p></li>
 <li><p>As a good practice, please rerun all tests before major commits and pull requests (might take a while, but it is worth it to avoid surprises).</p></li>
 <li><p>A nice way of proceeding is ‘test first’: write a test first, make it fail, write the code until the test is passed.</p></li>
-<li><p>Many methods are tested against test cases produced with the original <a class="reference external" href="https://github.com/acerbilab/bads">MATLAB implementation</a>.</p></li>
+<li><p>Many methods are tested against test cases produced with the original <a class="extlink-labrepos reference external" href="https://github.com/acerbilab/bads">MATLAB implementation</a>.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">pytest-mock</span></code> library is very useful for testing. It allows you to replace parts of your system under test with mock objects and make assertions about how they have been used. (Perhaps we should switch to <code class="docutils literal notranslate"><span class="pre">unittest.mock</span></code> in the future, which is part of the Python standard library.)</p></li>
 </ul>
 </section>
@@ -634,7 +620,8 @@ Tests can be run with:</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -670,6 +657,10 @@ Tests can be run with:</p>
   
   <div class="footer-item">
     
+<p class="component-author">
+By Author name not set
+</p>
+
   </div>
   
   <div class="footer-item">
@@ -701,8 +692,8 @@ Tests can be run with:</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
   </footer>
