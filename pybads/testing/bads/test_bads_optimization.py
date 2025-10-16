@@ -24,7 +24,6 @@ def run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min,
     if uncertainty_handling > 0:
         options["uncertainty_handling"] = True
         options["max_fun_evals"] = 200 if max_fun_evals is None  else max_fun_evals
-        options["specify_target_noise"] = True
         if uncertainty_handling > 1:
             options["specify_target_noise"] = True
     else:
@@ -114,6 +113,38 @@ def test_noisy_sphere_opt():
     oracle_fun = lambda x: np.sum(np.atleast_2d(x)**2, axis=1)                          # True objective function
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, oracle_fun=oracle_fun, assert_flag=True)
     
+def test_small_noisy_func():
+    np.random.seed(42343)
+    def noisy_sphere(x, sigma=1.0):
+        """Simple quadratic function with added noise."""
+        x_2d = np.atleast_2d(x)
+        f = np.sum(x_2d**2, axis=1)
+        noise = 1e-4 * sigma * np.random.normal(size=x_2d.shape[0])
+        return f + noise
+    
+    x0 = np.array([-3, -3, -3])
+    LB = np.array([-5, -5, -5])
+    UB = np.array([5, 5, 5])
+    PLB = np.array([-2, -2, -2])
+    PUB = np.array([2, 2, 2])
+    tol_errs = np.array([0.1, 0.1, 0.1])
+
+    oracle_fun = lambda x: np.sum(np.atleast_2d(x)**2, axis=1)
+    run_bads(
+        noisy_sphere,
+        x0,
+        LB,
+        UB,
+        PLB,
+        PUB,
+        tol_errs,
+        f_min=0.0,
+        oracle_fun=oracle_fun,
+        uncertainty_handling=1,
+        assert_flag=True,
+        max_fun_evals=300
+    )
+    
 def he_noisy_sphere(x):
     y = np.sum(np.atleast_2d(x)**2, axis=1)
     s = 2 + 1*np.sqrt(y)
@@ -125,3 +156,4 @@ def test_he_noisy_sphere_opt():
     fun = he_noisy_sphere
     oracle_fun = lambda x: np.sum(np.atleast_2d(x)**2, axis=1)                          # True objective function
     run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, oracle_fun=oracle_fun, uncertainty_handling=2, assert_flag=True)
+    

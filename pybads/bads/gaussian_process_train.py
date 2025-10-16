@@ -572,8 +572,8 @@ def _robust_gp_fit_(
                 X = X[~idx_drop_out]
                 Y = Y[~idx_drop_out]
                 # Remove also user specified noise
-                if tmp_gp.s2 is not None and tmp_gp.s2.size > 0:
-                    tmp_gp.s2 = tmp_gp.s2[~idx_drop_out]
+                if s2 is not None and s2.size > 0:
+                    s2 = s2[~idx_drop_out]
 
             # Retry with random sample prior
             old_hyp_gp = (
