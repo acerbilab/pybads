@@ -63,5 +63,8 @@ profile = "black"
 [tool.pycln]
 all = true
 
+[tool.pytest.ini_options]
+testpaths = ["pybads/testing"]
+
 [tool.setuptools_scm]
 write_to = "pybads/_version.py"
