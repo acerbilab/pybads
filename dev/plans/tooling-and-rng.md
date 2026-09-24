@@ -63,6 +63,14 @@ questions early; Phase 9 answers all of them.
   read from the log.
 - If a check contradicts an assumption a step rests on, stop and report the
   mismatch to the user rather than improvise.
+- gpyreg is selected explicitly for every run that serves as evidence (the
+  fingerprint, the populations, the suite comparisons): `PYTHONPATH` names a
+  clone checked out at the release tag, `dev/scripts/runs/gpyreg/v1.3.1` or
+  `dev/scripts/runs/gpyreg/v1.3.2` (gitignored; listed with the command that
+  recreates them in `dev/scripts/runs/LOCAL.md`). The venv's editable
+  install follows `../gpyreg`, which other sessions move: a population run
+  on 2026-09-24 was split by its move from 1.3.1 to 1.3.2. The fingerprint
+  hash `fcf9451180c5172e` holds with the v1.3.1 clone.
 - From Phase 2 on, each user-visible change gets its `CHANGELOG.md` entry in
   the commit that makes it.
 - Until Phase 5, `--reruns=5 -x` fails about 5% of the time on
@@ -702,6 +710,13 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 **Goal**: answer the PyVBMC maintainers' questions (Context), with the
 population comparison for the effect of 1.3.2 on results.
 
+Amended on 2026-09-24: gpyreg 1.3.2 was released during Phase 7 (tag
+`v1.3.2`, `29b868c`, the merge of `w6-leftovers` into gpyreg's `main`; on
+PyPI), and the worktree `../gpyreg-w6-leftovers` was removed. Wherever the
+steps below name the branch or its worktree, use the clone
+`dev/scripts/runs/gpyreg/v1.3.2`; the questions of Phase 0 and of the two
+issues of step 4 were answered before the tag (Worklog).
+
 **Steps**:
 1. Record the head of `../gpyreg-w6-leftovers`; change nothing there.
 2. Suite on 1.3.1 and on the branch (`PYTHONPATH=../gpyreg-w6-leftovers`,
@@ -928,3 +943,18 @@ of Phase 9. This plan holds the execution status in its Worklog.
   build reads its version from the tags.
 - `dev-next` pushed at `989e360` (user's go): the `tests` smoke run
   (Ubuntu, Python 3.12, gpyreg pinned at `1dbbfc5`) passed, 95 tests.
+
+### Phase 7 (in progress) — 2026-09-24
+
+- Harness `4d9a127` (sub-agent; reviewed). The `default` suite has 15
+  configurations, not the full grid, to fit about 30 minutes at 30 seeds;
+  the non-box target uses MATLAB's constraint (`runtest.m`). Harness tests
+  14 passed; `--check` and `--smoke` pass.
+- The two issues of Phase 9 step 4, run early and reported for the gpyreg
+  tag: `fit_lik=False` raises `Unknown hyperprior type delta` under both
+  versions; the bound inversion of `_robust_gp_fit_` is not reached at
+  default options (at most 3 consecutive failures in about 1,500 calls per
+  version). Recorded in the survey (`028f000`).
+- A first baseline at `028f000` was split by the move of `../gpyreg` to
+  v1.3.2 (59 runs on 1.3.1, 391 on 1.3.2) and is discarded; the pinned
+  clones replace the editable install for evidence runs (Conventions).
