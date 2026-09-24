@@ -205,6 +205,23 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
 
+## Numerical gates
+
+A change that can move results is gated by the population comparison of
+`dev/scripts/population.py` against the current reference under
+`dev/experiments/` (its `README.md` holds the command, the provenance, the
+null check, the positive control and what "no flag" can detect at its
+number of seeds). A gate is evidence only if it reaches the changed code:
+the benchmark exercises the default options, so a change behind a
+non-default option needs a configuration that sets it. Every evidence run
+selects gpyreg explicitly, with `PYTHONPATH` naming a clone at the release
+tag (`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
+`../gpyreg`, which other work moves. A gpyreg release is a change to
+PyBADS's numerics; its gate is the comparison run with that release's
+clone, beside the test suite, with `gpyreg.__file__` printed. A change
+that must move nothing shows the same hash of `dev/scripts/fingerprint.py`
+before and after, on one machine and with the same gpyreg.
+
 ## Tests and their traps
 
 - `pybads/testing/bads/test_bads_optimization.py` runs whole optimizations

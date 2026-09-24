@@ -5,6 +5,31 @@ order.
 
 - [ ] **Tooling, CI, seeded runs and the benchmark harness.** In progress:
   [plan](plans/tooling-and-rng.md), whose Worklog records each phase.
+- [ ] **Investigate the crashes on unguarded GP updates.** In the benchmark
+  reference `dev/experiments/population_baseline_20260924/` (default suite
+  at 500 D, gpyreg 1.3.1), 2 of 540 runs stopped with `LinAlgError:
+  Singular matrix for L Cholesky decomposition`, raised by gpyreg's
+  training Cholesky factorization on a GP update that PyBADS does not
+  guard (`_robust_gp_fit_` retries only its own fits):
+  - `ellipsoid_D3`, seed 20, at 150 evaluations: `_poll_step_` →
+    `_get_target_from_gp_` → `gp.set_hyperparameters`;
+  - `ellipsoid_D10`, seed 7, at 951 evaluations: `_search_step_` →
+    `add_and_update_gp` → `gp.update`.
+
+  Both reproduce from their seeds
+  (`PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python dev/scripts/population.py run --only ellipsoid_D3 --seeds 20 --out <dir>`).
+  Both are gaps of the port: MATLAB BADS (`../bads` at `019f0b4`) guards
+  both calls. `UpdateTarget` (`bads.m`) predicts through `gppred`
+  (`utils/gppred.m`), which catches a failed prediction per hyperparameter
+  sample, and then falls back to the incumbent's `fval` and `fsd` when the
+  prediction is not finite; the port kept that fallback but not the
+  `try`, and gpyreg raises where MATLAB's prediction returned NaN.
+  `gpupdate(..., 'add', ...)` (`private/gpupdate.m`) tries a rank-1
+  posterior update, then a full recomputation, each in a `try`, and on
+  failure clears the posterior with `exitflag = -2`; the port calls
+  `gp.update(compute_posterior=True)` bare. To settle: restore those
+  guards (and what a cleared posterior means downstream in PyBADS), and
+  whether gpyreg 1.3.2's low-noise representation changes these runs.
 - [ ] **Bug hunt and verification against MATLAB BADS (deferred).** A
   systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point

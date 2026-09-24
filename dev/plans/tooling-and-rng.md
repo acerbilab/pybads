@@ -484,7 +484,7 @@ generator change of Phase 8 is held to it.
 
 **Executor**: Opus sub-agent (implementation, steps 1–5), Opus
 (orchestrator) (review and reference, steps 6–9)
-**Status**: [~] in progress (harness committed; baseline running)
+**Status**: [x] done (2026-09-24)
 **Goal**: the gate for every later change that moves results: a benchmark
 suite, populations of seeded runs of it, and a statistical comparison of
 two populations.
@@ -618,7 +618,7 @@ The original design follows.
    `gpyreg.__file__` printed. Commit.
 
 **Verification**:
-- [ ] Harness tests pass; null check clean; positive control flags on
+- [x] Harness tests pass; null check clean; positive control flags on
       `true_error`; reference committed with provenance.
 
 ### Phase 8: random-number generator objects
@@ -1000,3 +1000,12 @@ of Phase 9. This plan holds the execution status in its Worklog.
   multisensory_s1 483.5133436051275 (20 of 20 within 0.5; its minimum is a
   curve in the noise parameters). `--smoke`: 163 s per seed, about 82
   minutes at 30 seeds.
+
+### Phase 7 (done) — 2026-09-24
+
+- Reference `dev/experiments/population_baseline_20260924/`: 540 runs at
+  `2226883` with the v1.3.1 clone, clean, 75.7 minutes; 2 crashes (the
+  unguarded GP updates, TODO and survey). Null check clean (36 tests);
+  positive control (3 configurations at 50·D) flagged all three,
+  `ellipsoid_D10` on the error. Detectable at 30 seeds: KS 0.50, a paired
+  shift of about 0.87 SD (README). AGENTS.md gains "Numerical gates".

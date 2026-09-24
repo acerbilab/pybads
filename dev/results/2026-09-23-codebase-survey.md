@@ -81,6 +81,18 @@ suite `default`), seeds 0-9, about 1,500 calls under each gpyreg version,
 79% had no failure, and the most consecutive failures in one call was 3;
 every call recovered and every run finished.
 
+### Crashes on unguarded GP updates
+
+In the benchmark reference `dev/experiments/population_baseline_20260924/`
+(18 configurations × 30 seeds at 500 D, gpyreg 1.3.1), 2 of 540 runs
+stopped with `LinAlgError: Singular matrix for L Cholesky decomposition`
+from gpyreg's training Cholesky factorization: `ellipsoid_D3` seed 20 at
+150 evaluations (`_poll_step_` → `_get_target_from_gp_` →
+`gp.set_hyperparameters`) and `ellipsoid_D10` seed 7 at 951 evaluations
+(`_search_step_` → `add_and_update_gp` → `gp.update`). MATLAB BADS guards
+both calls, `gppred` and `gpupdate` catching the failure; the port does
+not (`dev/TODO.md`, where the MATLAB counterparts are named).
+
 ## Candidate defects (not verified)
 
 Found by reading the code, without a check of reach or effect and without
