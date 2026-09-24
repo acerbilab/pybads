@@ -489,7 +489,23 @@ generator change of Phase 8 is held to it.
 suite, populations of seeded runs of it, and a statistical comparison of
 two populations.
 
-**Design (settled; the sub-agent implements it)**:
+**Design (settled; the sub-agent implements it)**, amended on 2026-09-24
+after the first baseline: every configuration runs at BADS's default budget,
+500·D, not at a budget fitted to a 30-minute population. A calibration at
+500·D (4 seeds per configuration) found every run ending on BADS's own
+termination after 55 to 863 evaluations, whereas at the fitted budgets four
+configurations solved none of their runs and never reached the end of the
+algorithm (the fine mesh, the stopping rules, the GP near the optimum).
+Three real-data configurations join the suite: `timing_D5` and
+`multisensory_s1_D6`, the negative log-likelihoods of two of the lab's
+models ported from PyVBMC's benchmark with their pins and data
+(`dev/scripts/data/`), and `multisensory_s1_D6_homo`, the latter with
+additive noise; their reference minima come from
+`dev/scripts/make_reference_optima.py`, and a run is solved within 0.5
+log-likelihood units. The population runs in about 80 minutes. The positive
+control of step 8 becomes a few configurations at `--budget-scale 0.1`
+(50·D), where runs stop on the budget: halving 500·D binds no run.
+The original design follows.
 - `dev/scripts/benchmark_targets.py`, after
   `../pyvbmc/dev/scripts/benchmark_targets.py` (`Problem`, frozen `Config`,
   `SUITES`, `STRUCTURE_SEED`, `--list/--check/--smoke`), for optimization:
@@ -818,6 +834,17 @@ of Phase 9. This plan holds the execution status in its Worklog.
   cheap enough for distribution comparisons over 30 seeds; exact replay
   needs a trace format and matters once oracles exist. Rejected: PyVBMC's
   full golden-trace machinery now.
+- **Benchmark runs at BADS's default budget, ending on its own termination**
+  — every run covers the whole algorithm, and a calibration found the
+  suite at 30 seeds taking about an hour (80 minutes with the real
+  targets). Rejected: budgets fitted to a 30-minute population (half the
+  cost, but four configurations then solved no run and never reached the
+  fine mesh or the stopping rules).
+- **Real targets as maximum-likelihood fits** (negative log-likelihood
+  within the paper's bounds) — how BADS is used; the timing data carries
+  the paper's maximum-likelihood point to check the reference against.
+  Rejected: MAP under PyVBMC's priors (keeps the optimum off the bounds,
+  but has no published reference and tests less of BADS's bound handling).
 - **KS tests plus a paired signed-rank test, with effect sizes** —
   PyVBMC's KS test detects only gross changes at 30 seeds; the paired test
   uses the shared `x0` and noise streams of each seed, and the effect
@@ -958,3 +985,18 @@ of Phase 9. This plan holds the execution status in its Worklog.
 - A first baseline at `028f000` was split by the move of `../gpyreg` to
   v1.3.2 (59 runs on 1.3.1, 391 on 1.3.2) and is discarded; the pinned
   clones replace the editable install for evidence runs (Conventions).
+
+### Phase 7 (continued) — 2026-09-24
+
+- The short-budget baseline (`8baccaa`, 450 runs on the v1.3.1 clone,
+  clean) was superseded before its checks, when the budgets moved to 500·D
+  (`3f693a4`, after the calibration). Its null check was clean; the
+  positive control was stopped.
+- Real targets `469a505` (sub-agent; pins reproduced: timing exactly,
+  multisensory to 1.8e-10). Reference minima regenerated at the clean
+  commit (`5bcc430`) with identical `f_min` and `x_min`: timing
+  3839.1732706078164 (17 of 20 restarts within 0.5; a second basin 4.1 to
+  4.6 higher; 4.7e-8 below the paper's MLE, the same point),
+  multisensory_s1 483.5133436051275 (20 of 20 within 0.5; its minimum is a
+  curve in the noise parameters). `--smoke`: 163 s per seed, about 82
+  minutes at 30 seeds.
