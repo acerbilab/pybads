@@ -7,8 +7,7 @@ from pybads.function_examples import (
     rosenbrocks_fcn,
 )
 
-x0 = np.array([[0, 0]])
-# Starting point
+x0 = np.array([[0, 0]])  # Starting point
 lb = np.array([[-1, -1]])  # Lower bounds
 ub = np.array([[1, 1]])  # Upper bounds
 

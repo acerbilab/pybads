@@ -7,8 +7,7 @@ from pybads.function_examples import (
     rosenbrocks_fcn,
 )
 
-x0 = np.array([[0, 0]])
-# Starting point
+x0 = np.array([[0, 0]])  # Starting point
 lb = np.array([[-20, -20]])  # Lower bounds
 ub = np.array([[20, 20]])  # Upper bounds
 plb = np.array([[-5, -5]])  # Plausible lower bounds
@@ -31,8 +30,7 @@ print(f"The true global minimum is at x = [1, 1], where fval = 0\n\n")
 
 run_non_bound_contr = True
 if run_non_bound_contr:
-    x0 = np.array([[0, 0]])
-    # Starting point
+    x0 = np.array([[0, 0]])  # Starting point
     lb = np.array([[-1, -1]])  # Lower bounds
     ub = np.array([[1, 1]])  # Upper bo
 
