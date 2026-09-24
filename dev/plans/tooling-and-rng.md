@@ -1009,3 +1009,36 @@ of Phase 9. This plan holds the execution status in its Worklog.
   positive control (3 configurations at 50·D) flagged all three,
   `ellipsoid_D10` on the error. Detectable at 30 seeds: KS 0.50, a paired
   shift of about 0.87 SD (README). AGENTS.md gains "Numerical gates".
+
+### Resume point — 2026-09-24
+
+Phases 0–7 are done; the next session resumes at Phase 8, its steps 1–6
+briefed to an Opus sub-agent with the phase text, the orchestrator keeping
+the populations (steps 7–10). State at this entry:
+
+- Branch `dev-next` at the commit of this entry; `origin/dev-next` is at
+  `989e360` (the first push); the later commits are local, and a push
+  waits for the user's go.
+- Environment: the venv `.venv` (Python 3.12.6), with PyBADS editable and
+  gpyreg editable from `../gpyreg`, which now holds gpyreg 1.3.2 and moves
+  with other work; evidence runs therefore use the pinned clones of
+  `dev/scripts/runs/gpyreg/` (Conventions, `dev/scripts/runs/LOCAL.md`).
+  The venv also has pre-commit (hook installed), nbconvert, black 23.3.0
+  and isort 5.12.0; GNU Make 4.4.1 is on the `PATH`.
+- Reference for Phase 8's comparison:
+  `dev/experiments/population_baseline_20260924/` (18 configurations × 30
+  seeds, about 76 minutes). Phase 8's own population takes as long; its
+  `compare` should show no flag, with the effect sizes reported. The two
+  crashing seeds of the reference (`ellipsoid_D3` 20, `ellipsoid_D10` 7)
+  may crash again or not under the generator: a crash rising from zero in
+  another configuration flags.
+- The fingerprint changes with the generator (step 9 records the new
+  hash); until then `fcf9451180c5172e` with the v1.3.1 clone.
+- Phase 9 after the release of gpyreg 1.3.2 (its amendment above): the
+  clone `dev/scripts/runs/gpyreg/v1.3.2` stands for the branch; step 4's
+  two issues were run and reported before the tag (Phase 7 entries, the
+  survey), so step 4 needs only a rerun of the `fit_lik=False` check and
+  of the robust-fit counts at the released tag if the result note is to
+  cite them; the result note also says whether 1.3.2 changes the two
+  crashing runs (`dev/TODO.md`). The PyVBMC maintainers have both earlier
+  reports (Phase 0, the two issues); Phase 9's report is the remaining one.
