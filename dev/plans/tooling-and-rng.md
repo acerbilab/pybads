@@ -219,7 +219,7 @@ diffs show only their change.
 ### Phase 2: packaging, changelog and documentation
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [~] in progress
 **Goal**: dependencies that match what CI tests, pytest out of PyBADS's
 runtime dependencies, and a changelog. Before Phase 3, whose workflow
 installs the `test` extra and whose pin comment names the minimum set here.

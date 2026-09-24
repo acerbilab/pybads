@@ -7,7 +7,6 @@ from copy import deepcopy
 import gpyreg as gpr
 import numpy as np
 from gpyreg.slice_sample import SliceSampler
-from pytest import Function
 from scipy.spatial.distance import cdist
 
 from pybads.function_logger import FunctionLogger

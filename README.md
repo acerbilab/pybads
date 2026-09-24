@@ -26,7 +26,7 @@ BADS is effective when:
 
 ## Installation
 
-PyBADS is available via `pip` and `conda-forge`, and requires Python version 3.9 or newer.
+PyBADS is available via `pip` and `conda-forge`, and requires Python version 3.10 or newer.
 
 1. Install with:
     ```console

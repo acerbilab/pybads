@@ -66,9 +66,8 @@ under `dev/scripts/` run only when named by path.
 `merge-tests.yml` runs the suite on a PR to `main` only when it touches
 `pybads/`, `pyproject.toml` or `setup.py` (Ubuntu, Windows, macOS × Python
 3.9–3.11); `tests.yml` runs the same matrix on the 13th and 28th of each
-month. Both install gpyreg from the head of `acerbilab/gpyreg`, unpinned
-(`pyproject.toml` asks only for `gpyreg >= 0.1.0`), so a gpyreg push can
-break PyBADS's CI with no PyBADS change. `docs.yml` rebuilds the docs on
+month. Both install gpyreg from the head of `acerbilab/gpyreg`, unpinned,
+so a gpyreg push can break PyBADS's CI with no PyBADS change. `docs.yml` rebuilds the docs on
 every push to `main` and commits them to `gh-pages`. No workflow publishes
 to PyPI.
 
@@ -83,10 +82,10 @@ commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
 `pybads` and `pybads.examples` as packages: the subpackages and the `.ini`
 option files reach the wheel through `include-package-data` and
 setuptools_scm's file finder, which takes only files tracked by git, so a
-new module or data file ships only once committed. pytest, pytest-mock and
-pytest-rerunfailures are runtime dependencies because
-`bads/gaussian_process_train.py` imports `pytest` (an unused
-`from pytest import Function`); the import goes before the dependency can.
+new module or data file ships only once committed. The tests ship in the
+wheel: the conda-forge recipe runs them from the installed package
+(`pytest --pyargs pybads`). What they need is the `test` extra, which CI
+installs and `dev` includes; no package module imports pytest.
 
 Docstrings are numpydoc, with `OptimizeResult`
 (`pybads/bads/optimize_result.py`) as the reference style. Nothing generates
@@ -214,6 +213,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   attribution instructions ask for one. Pull requests are squash-merged
   into `main`, titled `<type>: <summary> (#NN)`, and need approval from
   another developer.
+- **Changelog.** A change that a user can notice is listed in `CHANGELOG.md`
+  under `Unreleased`, in the commit that makes it, in a sentence written for
+  users and relative to the last release (a fix to a feature that no
+  release has shipped belongs to that feature's entry). A change that can
+  stop a script written for the last release, or change what it returns,
+  also has one line in the "Upgrading from" list that opens the section,
+  kept in step with its entry.
 - **Modules.** No general `util`/`misc` modules: a general-purpose function
   goes into the module that fits it or into a module of its own.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use

@@ -2,7 +2,7 @@
 Instructions for developers and contributors
 ********************************************
 
-PyBADS is the port of the MATLAB BADS algorithm to Python 3.x (development has targeted version 3.9 and up).
+PyBADS is the port of the MATLAB BADS algorithm to Python 3.x (it requires Python 3.10 or later).
 
 The reference code is the :labrepos:`MATLAB toolbox <bads>`.
 
@@ -13,9 +13,14 @@ Installation instructions for developers
 
 Release versions of PyBADS are available via ``pip`` and ``conda-forge``, but developers will need to work with the latest source code. They should follow these steps to install:
 
-1. (Optional, but recommended for development): Create a new environment in Conda and activate it. Requires Python 3.9 or newer::
+1. (Optional, but recommended for development): Create a virtual environment in the PyBADS checkout and activate it, or a new environment in Conda. Requires Python 3.10 or newer::
 
-     conda create --name pybads-env python=3.9
+     python -m venv .venv
+     source .venv/bin/activate  # .venv\Scripts\activate on Windows
+
+   or::
+
+     conda create --name pybads-env python=3.10
      conda activate pybads-env
 
 2. Clone the PyBADS and GPyReg GitHub repos locally::
@@ -35,7 +40,7 @@ Release versions of PyBADS are available via ``pip`` and ``conda-forge``, but de
 
      conda install jupyter
 
-We are using the dependencies listed in ``pyproject.toml``. Please list all used dependencies there. Dependencies are separated into basic dependencies, and optional development dependencies included under ``dev``.
+We are using the dependencies listed in ``pyproject.toml``. Please list all used dependencies there. Dependencies are separated into basic dependencies, the dependencies of the test suite under ``test``, and the development dependencies under ``dev``, which include those of ``test``.
 
 The necessary packages can be installed with `conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_ or `pip <https://pypi.org/project/pip/>`_.
 

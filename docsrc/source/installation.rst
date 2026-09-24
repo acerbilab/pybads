@@ -12,7 +12,7 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
      conda install --channel=conda-forge pybads
 
-   PyBADS requires Python version 3.9 or newer.
+   PyBADS requires Python version 3.10 or newer.
 
 2. (Optional): Install Jupyter to view the examples. You can skip this step if you're working from a Conda environment which already has Jupyter, but be aware that if the wrong ``jupyter`` executable is found on your path then import errors may arise. ::
 
@@ -26,8 +26,9 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
      python -m pybads
 
-You can run PyVBMC's internal tests with ::
+You can run PyBADS's internal tests with ::
 
+  python -m pip install "pybads[test]"
   pytest --pyargs pybads --reruns=3
 
 The `--reruns=3` argument allows re-trying a failed test up to 3 times, as many of PyBADS's tests are stochastic in nature.
