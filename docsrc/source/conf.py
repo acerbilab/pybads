@@ -95,9 +95,9 @@ html_theme_options = {
     "use_issues_button": True,
     "use_repository_button": True,
     "use_download_button": True,
-    #"logo_only": True,
+    # "logo_only": True,
 }
-#html_logo = "../../logo.svg"
+# html_logo = "../../logo.svg"
 html_baseurl = "https://acerbilab.github.io/pybads/"
 html_js_files = [
     "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"

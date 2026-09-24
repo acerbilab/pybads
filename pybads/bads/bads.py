@@ -33,10 +33,10 @@ from .options import Options
 class BADS:
     """
     BADS Constrained optimization using Bayesian Adaptive Direct Search.
-    
+
     BADS attempts to solve problems of the form:
        :math:`\mathtt{argmin}_x  f(x)`  subject to:  lower_bounds :math:`<= x <=` upper_bounds, and optionally :math:`C(x) <= 0`
-                               
+
 
     Initialize a ``PyBADS`` object to set up the optimization problem, then run
     ``optimize()``. See the examples for more details under the `examples` directory.
@@ -44,17 +44,17 @@ class BADS:
     Parameters
     ----------
     fun : callable
-        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar 
+        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar
         function value of the target evaluated at ``x`` and the noise if provided.
-        In case the target function ``fun`` requires additional data/parameters, 
+        In case the target function ``fun`` requires additional data/parameters,
         they can be handled using an anonymous function.
-        For example: ``fun_for_pybads = lambda x: fun(x, data, extra_params)``, 
-        where ``fun`` is the function to optimize, and ``data`` and ``extra_params`` 
+        For example: ``fun_for_pybads = lambda x: fun(x, data, extra_params)``,
+        where ``fun`` is the function to optimize, and ``data`` and ``extra_params``
         are given in the outer scope.
     x0 : np.ndarray, optional
-        Starting point for the optimization. If not specified or ``None``, the 
-        starting point ``x0`` is uniformly randomly drawn inside the plausible 
-        box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see 
+        Starting point for the optimization. If not specified or ``None``, the
+        starting point ``x0`` is uniformly randomly drawn inside the plausible
+        box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
         below).
     lower_bounds, upper_bounds : np.ndarray, optional
         ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set
@@ -71,32 +71,32 @@ class BADS:
         ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``.
         Both ``plb`` and ``pub`` need to be finite. ``plb`` and ``pub`` represent a
         `plausible` range, which should denote a region where the global minimum
-        is expected to be found. As a rule of thumb, set ``plausible_lower_bounds`` 
-        and ``plausible_upper_bounds`` such that there is > 90% probability that 
-        the minimum is found within the box (where in doubt, just set 
+        is expected to be found. As a rule of thumb, set ``plausible_lower_bounds``
+        and ``plausible_upper_bounds`` such that there is > 90% probability that
+        the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
 
     non_box_cons: callable, optional
-        A given non-box constraints function that specifies constraint 
+        A given non-box constraints function that specifies constraint
         `violations`, e.g : ``lambda x: np.sum(x.^2,1)>1``
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the
         BADS options page for the default options. If no `options` are
         passed, the default options are used.
-        To run BADS on a noisy (stochastic) objective function, set 
-        ``options['uncertainty_handling']`` = ``True``. You can help BADS by 
-        providing an estimate of the noise. ``options['noise_size'] = sigma`` provides a global estimate of the 
-        SD of the noise in your problem in a good region of the parameter 
-        space. (If not specified, default ``sigma = 1.0``). 
-        Alternatively, you can specify the target noise `at each location` 
-        with ``options['specify_target_noise']`` = ``True``. In this case, 
+        To run BADS on a noisy (stochastic) objective function, set
+        ``options['uncertainty_handling']`` = ``True``. You can help BADS by
+        providing an estimate of the noise. ``options['noise_size'] = sigma`` provides a global estimate of the
+        SD of the noise in your problem in a good region of the parameter
+        space. (If not specified, default ``sigma = 1.0``).
+        Alternatively, you can specify the target noise `at each location`
+        with ``options['specify_target_noise']`` = ``True``. In this case,
         ``fun`` is expected to return `two` values, the estimate of the
-        target at ``x`` and an estimate of the SD of the noise at ``x`` 
-        (see the examples). 
-        If ``options['uncertainty_handling']`` is not specified, BADS will 
+        target at ``x`` and an estimate of the SD of the noise at ``x``
+        (see the examples).
+        If ``options['uncertainty_handling']`` is not specified, BADS will
         determine at runtime if the objective function is noisy.
-        To obtain reproducible results of the optimization, set ``options['random_seed']`` 
+        To obtain reproducible results of the optimization, set ``options['random_seed']``
         to a fixed integer value.
 
     Raises
@@ -105,13 +105,13 @@ class BADS:
         When neither ``x0`` or (``plausible_lower_bounds`` and
         ``plausible_upper_bounds``) are specified.
     ValueError
-        When various checks for the bounds (``lower_bounds``, ``upper_bounds``, 
+        When various checks for the bounds (``lower_bounds``, ``upper_bounds``,
         ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
 
 
     References
     ----------
-    .. [1]  Singh, S. G. & Acerbi, L. (2024). 
+    .. [1]  Singh, S. G. & Acerbi, L. (2024).
             "PyBADS: Fast and robust black-box optimization in Python".
             Journal of Open Source Software, 9(94), 5694, https://doi.org/10.21105/joss.05694.
 
@@ -119,7 +119,7 @@ class BADS:
             Optimization for Model Fitting with Bayesian Adaptive Direct Search".
             In `Advances in Neural Information Processing Systems` 30, pages 1834-1844.
             (arXiv preprint: https://arxiv.org/abs/1705.04405).
-            
+
     Examples
     --------
     For `BADS` usage examples, please look up the Jupyter notebook tutorials
@@ -648,7 +648,7 @@ class BADS:
             - optim_state["search_mesh_size"]
         )
         optim_state["ub_search"] = ub_search
-        
+
         # Starting point in grid coordinates, gridization
         u0 = force_to_grid(
             grid_units(self.x0, self.var_transf, optim_state["scale"]),
@@ -662,17 +662,18 @@ class BADS:
         u0[u0 > self.upper_bounds] = (
             u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
         )
-        
+
         # Check that the gridized points satisfies the non-bound constraints
-        if self.non_box_cons is not None and \
-            np.any(self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0):
+        if self.non_box_cons is not None and np.any(
+            self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0
+        ):
             self.logger.error(
                 """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
             )
             raise ValueError(
                 """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
             )
-        
+
         optim_state["u"] = u0
         self.u = u0.flatten().copy()
 
@@ -904,8 +905,10 @@ class BADS:
 
     def _init_random_seed_(self):
         # set random seed if provided
-        if "random_seed" in self.options and \
-            self.options["random_seed"] is not None:
+        if (
+            "random_seed" in self.options
+            and self.options["random_seed"] is not None
+        ):
             # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
             random_seed = int(self.options["random_seed"])
             np.random.seed(random_seed)
@@ -978,7 +981,6 @@ class BADS:
                 self.options["max_fun_evals"] - 1,
             )
             if self.options["init_fun"] == "init_sobol":
-
                 u1, _ = init_sobol(
                     self.u,
                     self.lower_bounds,
@@ -1047,13 +1049,15 @@ class BADS:
         hyp_dict = {}
         # set random seed if provided
         self.optim_state["random_seed"] = self._init_random_seed_()
-        
+
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
 
         # Change options for uncertainty handling
         if self.optim_state["uncertainty_handling_level"] > 0:
-            self.options["tol_stall_iters"] = 2 * self.options["tol_stall_iters"]
+            self.options["tol_stall_iters"] = (
+                2 * self.options["tol_stall_iters"]
+            )
             self.options["n_train_max"] = max(200, self.options["n_train_max"])
             self.options["n_train_min"] = 2 * self.options["n_train_min"]
             self.options["mesh_overflow_warning"] = (
@@ -1140,7 +1144,7 @@ class BADS:
     def optimize(self):
         """
         Run the optimization on an initialized ``PyBADS`` object.
-        
+
         BADS starts at X0 and finds a local minimum X of the
         target function 'fun'.
 
@@ -1152,7 +1156,7 @@ class BADS:
                 Dictionary containing the result of the optimization. See the documentation of the ``OptimizeResult`` class for more details.
                 For example, retrieve the final solution with the following attributes:
                     -  ``optimize_result.x``
-                    -  ``optimize_result.fval`` 
+                    -  ``optimize_result.fval``
         """
         is_finished = False
         poll_iteration = -1
@@ -1168,7 +1172,7 @@ class BADS:
 
         # Initialize gp
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
-        
+
         self.search_es_hedge = None  # init search hedge to None
 
         if self.options["output_fcn"] is not None:
@@ -1249,7 +1253,6 @@ class BADS:
                 or self.optim_state["search_count"]
                 == self.options["search_n_try"]
             ):
-
                 self.optim_state["search_count"] = 0
                 if (
                     self.search_success > 0
@@ -1260,7 +1263,8 @@ class BADS:
                     if (
                         self.options["search_mesh_expand"] > 0
                         and np.mod(
-                            self.search_spree, self.options["search_mesh_expand"]
+                            self.search_spree,
+                            self.options["search_mesh_expand"],
                         )
                         == 0
                         and self.options["search_mesh_increment"] > 0
@@ -1522,7 +1526,7 @@ class BADS:
         optimize_result = OptimizeResult(self)
 
         return optimize_result
-    
+
     def _search_step_(self, gp: GP):
         """
         A private method that performs the search method using hedging search of Evolution Strategy (ES) searches.
@@ -1624,7 +1628,9 @@ class BADS:
         index_acq = None
         if u_search_set.size > 0:
             # Batch evaluation of acquisition function on search set
-            z, f_mu, fs = acq_fcn_lcb(u_search_set, self.function_logger.func_count, gp)
+            z, f_mu, fs = acq_fcn_lcb(
+                u_search_set, self.function_logger.func_count, gp
+            )
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
@@ -1650,8 +1656,9 @@ class BADS:
 
             if z.size > 0:
                 # Save statistics of gp prediction,
-                self._save_gp_stats_(y_search, f_mu[index_acq].item(),
-                                    fs[index_acq].item())
+                self._save_gp_stats_(
+                    y_search, f_mu[index_acq].item(), fs[index_acq].item()
+                )
 
             # Add search point to training setMeshSize
             if (
@@ -1924,7 +1931,6 @@ class BADS:
             and self.function_logger.func_count < self.options["max_fun_evals"]
             and poll_count < self.D * 2
         ):
-
             # Fill in basis vectors (when poll_count == 0)
             if B is None or B.size == 0:
                 # Create new poll vectors
@@ -2019,7 +2025,9 @@ class BADS:
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
-            z, f_mu, fs = acq_fcn_lcb(u_poll, self.function_logger.func_count, gp)
+            z, f_mu, fs = acq_fcn_lcb(
+                u_poll, self.function_logger.func_count, gp
+            )
             # Evaluate best candidate point in original coordinates
             index_acq = np.argmin(z)
 
@@ -2071,7 +2079,6 @@ class BADS:
                         and poll_count >= self.options["min_failed_poll_steps"]
                         and p_less > (1 - self.options["tol_poi"])
                     ):
-
                         self.last_skipped = self.optim_state["iter"]
                         break
 
@@ -2083,8 +2090,9 @@ class BADS:
             u_poll = np.delete(u_poll, index_acq, axis=0)
 
             # Save statistics of gp prediction
-            self._save_gp_stats_(y_poll, f_mu[index_acq].item(),
-                                fs[index_acq].item())
+            self._save_gp_stats_(
+                y_poll, f_mu[index_acq].item(), fs[index_acq].item()
+            )
 
             if self.optim_state["uncertainty_handling_level"] > 0:
                 # Update posterior with the new polled point
@@ -2144,9 +2152,9 @@ class BADS:
         # Evaluate poll
         if not self.options["stobads"]:
             if (
-                poll_best_improvement > 0 and self.options["sloppy_improvement"]
+                poll_best_improvement > 0
+                and self.options["sloppy_improvement"]
             ) or poll_best_improvement > self.sufficient_improvement:
-
                 # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
                 self._update_incumbent_(
                     u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
@@ -2177,7 +2185,8 @@ class BADS:
             self._check_mesh_overflow_()
             # Successful poll, increase mesh size
             self.mesh_size_integer = np.minimum(
-                self.mesh_size_integer + 1, self.options["max_poll_grid_number"]
+                self.mesh_size_integer + 1,
+                self.options["max_poll_grid_number"],
             )
 
             self.optim_state["u_success"].append(self.u_best.copy)
@@ -2218,7 +2227,6 @@ class BADS:
                 if (
                     self.f_q_historic_improvement < self.options["tol_fun"]
                 ):  # or np.all(u_base.flatten() == self.u.flatten()):
-
                     self.mesh_size_integer -= 1
                     logger.debug(
                         "bads: The optimization is stalling, further decrease of the mesh size"
@@ -2265,7 +2273,6 @@ class BADS:
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
 
     def _save_gp_stats_(self, fval, ymu, ys):
-
         if (
             self.gp_stats.get("iter_gp") is None
             or len(self.gp_stats.get("iter_gp")) == 0
@@ -2315,18 +2322,18 @@ class BADS:
                 .flatten()
                 .astype("float")
             )
-            
+
             zscore = f_vals - yvals
             gp_ys = (
                 self.gp_stats.get("ys")[: gp_iter_idx + 1]
                 .flatten()
                 .astype("float")
             )
-            
+
             # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
-            idx_zero_gp_ys = np.where(np.isclose(0., gp_ys))[0]
+            idx_zero_gp_ys = np.where(np.isclose(0.0, gp_ys))[0]
             gp_ys[idx_zero_gp_ys] = 1e-6
-            
+
             zscore = zscore / gp_ys
 
             if np.any(np.isnan(zscore)):
@@ -2361,7 +2368,6 @@ class BADS:
         )
 
         if refit_flag:
-
             self.optim_state["lastfitgp"] = self.function_logger.func_count
 
             # Reset GP statistics GP
@@ -2597,7 +2603,6 @@ class BADS:
 
     def _display_function_log_(self, iteration, method):
         if self.optim_state["uncertainty_handling_level"] > 0:
-
             self.logger.info(
                 self.display_format.format(
                     iteration,

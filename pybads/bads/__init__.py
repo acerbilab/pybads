@@ -9,5 +9,5 @@ from .gaussian_process_train import (
     init_and_train_gp,
     local_gp_fitting,
 )
-from .options import Options
 from .optimize_result import OptimizeResult
+from .options import Options

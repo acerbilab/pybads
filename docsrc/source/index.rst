@@ -20,9 +20,9 @@ BADS requires no specific tuning and runs off-the-shelf similarly to other Pytho
 How does it work?
 -----------------
 
-PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**). 
+PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**).
 
-- In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise. 
+- In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
 - In the **search** stage, a `Gaussian process <https://distill.pub/2019/visual-exploration-gaussian-processes/>`__ (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
 .. image:: _static/bads-cartoon.png
@@ -84,7 +84,7 @@ BibTeX
 ::
 
   @article{singh2024pybads,
-    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
+    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython},
     author={Gurjeet Sangra Singh and Luigi Acerbi},
     publisher = {The Open Journal},
     journal = {Journal of Open Source Software},

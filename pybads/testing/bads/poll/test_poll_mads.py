@@ -1,5 +1,7 @@
 import numpy as np
+
 from pybads.poll import poll_mads_2n
+
 
 def poll_mads_2n_ones_test():
     poll_scale = np.ones((1, 3))
@@ -8,6 +10,7 @@ def poll_mads_2n_ones_test():
     D = 3
     B = poll_mads_2n(D, poll_scale, search_mesh_size, mesh_size)
     assert B.shape[0] == 6 and B.shape[1] == D
+
 
 def poll_mads_2n_test():
     poll_scale = np.array([[0.5133, 0.493, 3.9511]])

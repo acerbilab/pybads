@@ -33,7 +33,6 @@ class ESSearchHedge:
         options_dict=None,
         non_box_cons=None,
     ):
-
         self.search_fcns = search_fcns
         self.n_funs = len(search_fcns)
         self.g = np.zeros(self.n_funs)
@@ -110,7 +109,6 @@ class ESSearchHedge:
         """
 
         for i_hedge in range(self.n_funs):
-
             u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()
 
             if i_hedge == self.chosen_hedge:

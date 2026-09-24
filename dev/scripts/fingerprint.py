@@ -26,8 +26,13 @@ for fun, noisy in [(f, False), (fn, True)]:
         if noisy:
             o["uncertainty_handling"] = True
         r = BADS(
-            fun, np.ones(3) * 4, -100 * np.ones(3), 100 * np.ones(3),
-            -8 * np.ones(3), 12 * np.ones(3), options=o,
+            fun,
+            np.ones(3) * 4,
+            -100 * np.ones(3),
+            100 * np.ones(3),
+            -8 * np.ones(3),
+            12 * np.ones(3),
+            options=o,
         ).optimize()
         h.update(np.asarray(r["x"], dtype=float).tobytes())
         h.update(np.float64(r["fval"]).tobytes())

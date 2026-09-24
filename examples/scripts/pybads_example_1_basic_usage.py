@@ -25,7 +25,14 @@ plausible_upper_bounds = np.array([5, 5])
 x0 = np.array([0, 0])
 # Starting point
 
-bads = BADS(target, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds)
+bads = BADS(
+    target,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    plausible_lower_bounds,
+    plausible_upper_bounds,
+)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]

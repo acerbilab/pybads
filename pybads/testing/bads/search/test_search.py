@@ -3,15 +3,14 @@ import numpy as np
 import pytest
 
 from pybads import BADS
-from pybads.bads.gaussian_process_train import (
-    get_grid_search_neighbors)
+from pybads.bads.gaussian_process_train import get_grid_search_neighbors
+from pybads.bads.option_configs import get_pybads_option_dir_path
+from pybads.bads.options import Options
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from pybads.search.search_hedge import ESSearchHedge
-from pybads.bads.options import Options
 
-from pybads.bads.option_configs import get_pybads_option_dir_path
 
 def test_incumbent_constraint_check():
     D = 3
@@ -24,7 +23,7 @@ def test_incumbent_constraint_check():
     for i in range(len(U)):
         y, y_sd, idx_y = f(U[i])
 
-    U = np.vstack((U, U[-1])) # add duplicate
+    U = np.vstack((U, U[-1]))  # add duplicate
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
     assert U_new.size != U.size
     assert U_new.shape[0] == U.shape[0] - 1
@@ -38,6 +37,7 @@ def test_incumbent_constraint_check():
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
     inbounds = np.all(U_new >= lb) & np.all(U_new <= ub)
     assert inbounds
+
 
 def load_options(D, path_dir):
     """Load basic and advanced options and validate the names"""
@@ -56,8 +56,8 @@ def load_options(D, path_dir):
     options.validate_option_names([basic_path, advanced_path])
     return options
 
-def test_search():
 
+def test_search():
     x0 = np.array([[0, 0, 0]])
     # Starting point
     lb = np.array([[-20, -20, -20]])  # Lower bounds
@@ -87,8 +87,8 @@ def test_search():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
-def test_search_selection_mask():
 
+def test_search_selection_mask():
     D = 3
     mu = 1
     lamb = 2048
@@ -101,8 +101,8 @@ def test_search_selection_mask():
     assert np.sum(mask) == 885072
     assert np.min(mask + 1) == 1
 
-def test_search_hedge():
 
+def test_search_hedge():
     x0 = np.array([[0, 0, 0]])
     # Starting point
     lb = np.array([[-20, -20, -20]])  # Lower bounds
@@ -124,6 +124,7 @@ def test_search_hedge():
     assert us.size == 3 and (np.isscalar(z) or z.size == 1)
     assert np.all(gp.y >= z)
 
+
 def test_u_cov():
     U = np.array(
         [
@@ -140,6 +141,7 @@ def test_u_cov():
     w = np.array([0.4563, 0.2708, 0.1622, 0.0852, 0.0255])
     C = ucov(U, u0, w, ub, lb, 1)
     assert C.shape == (U.shape[1], U.shape[1])
+
 
 def test_grid_search_neighbors():
     x0 = np.array([[0, 0]])
@@ -173,4 +175,3 @@ def test_grid_search_neighbors():
         and np.isclose(result[1, 0], -0.1055, 1e-3)
         and np.isclose(result[2, 0], -0.3555, 1e-3)
     )
-    

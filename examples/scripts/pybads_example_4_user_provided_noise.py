@@ -28,8 +28,13 @@ options = {
 }
 
 bads = BADS(
-    noisy_sphere_estimated_noise, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, 
-    options=options
+    noisy_sphere_estimated_noise,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    plausible_lower_bounds,
+    plausible_upper_bounds,
+    options=options,
 )
 optimize_result = bads.optimize()
 

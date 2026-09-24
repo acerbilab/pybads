@@ -2,7 +2,14 @@ import numpy as np
 from scipy.stats.qmc import Sobol
 
 
-def init_sobol(u0=np.ndarray, lb=np.ndarray, ub=np.ndarray, plb=np.ndarray, pub=np.ndarray, fun_eval_start=int):
+def init_sobol(
+    u0=np.ndarray,
+    lb=np.ndarray,
+    ub=np.ndarray,
+    plb=np.ndarray,
+    pub=np.ndarray,
+    fun_eval_start=int,
+):
     """
     Initialize the Sobol sequence.
     This method relies on the scipy.stats.qmc.Sobol class for generating the Sobol sequence (Roy et. al 2023).

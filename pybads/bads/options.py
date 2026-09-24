@@ -112,7 +112,7 @@ class Options(MutableMapping, dict):
             exec(f"{key} = {val}", global_scope)
 
         options_list = _read_config_file(options_path)
-        for (key, value, description) in options_list:
+        for key, value, description in options_list:
             if key not in self.get("useroptions") and key != "useroptions":
                 self[key] = eval(value)
                 self.descriptions[key] = description
@@ -219,7 +219,7 @@ def _read_config_file(options_path: str):
     option_list = list()
     description = ""
     for section in conf.sections():
-        for (key, value) in conf.items(section):
+        for key, value in conf.items(section):
             if "#" in key:
                 description = key.strip("# ")
             else:

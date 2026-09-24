@@ -26,7 +26,15 @@ options = {
     "noise_final_samples": 100,
 }
 
-bads = BADS(noisy_sphere, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, options=options)
+bads = BADS(
+    noisy_sphere,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    plausible_lower_bounds,
+    plausible_upper_bounds,
+    options=options,
+)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]

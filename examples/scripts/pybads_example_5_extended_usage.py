@@ -31,14 +31,20 @@ options = {
 
 num_opts = 10
 optimize_results = []
-x_vec = np.zeros((num_opts,lower_bounds.shape[0]))
+x_vec = np.zeros((num_opts, lower_bounds.shape[0]))
 fval_vec = np.zeros(num_opts)
 
 for opt_count in range(num_opts):
-    print('Running optimization ' + str(opt_count) + '...')
-    options['random_seed'] = opt_count
+    print("Running optimization " + str(opt_count) + "...")
+    options["random_seed"] = opt_count
     bads = BADS(
-        camelback6, None, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, options=options
+        camelback6,
+        None,
+        lower_bounds,
+        upper_bounds,
+        plausible_lower_bounds,
+        plausible_upper_bounds,
+        options=options,
     )
     optimize_results.append(bads.optimize())
     x_vec[opt_count] = optimize_results[opt_count].x

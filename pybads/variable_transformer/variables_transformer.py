@@ -6,7 +6,7 @@ from pybads.decorators import handle_0D_1D_input
 class VariableTransformer:
     """
     A class enabling linear or non-linear transformation of the bounds (plausible_lower_bounds and plausible_upper_bounds) and map them to an hypercube [-1, 1]^D
-    
+
     Parameters
     ----------
     D : int
@@ -28,9 +28,10 @@ class VariableTransformer:
         upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
         for each variable, given in the original space. By default `None`.
     apply_log_t : np.ndarray, optional
-        A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation. 
+        A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation.
         By default `None`, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.
     """
+
     def __init__(
         self,
         D,
@@ -137,14 +138,19 @@ class VariableTransformer:
         """
         # Check finiteness of plausible range
         if not (np.all(np.isfinite(np.concatenate([self.plb, self.pub])))):
-            raise ValueError("Plausible interval ranges plausible_lower_bounds and plausible_upper_bounds need to be finite.")
+            raise ValueError(
+                "Plausible interval ranges plausible_lower_bounds and plausible_upper_bounds need to be finite."
+            )
 
         # Check that the order of bounds is respected
-        if  not (np.all(self.lb <= self.plb) \
-            and np.all(self.plb < self.pub)\
-            and np.all(self.pub <= self.ub)):
-                raise ValueError("Interval bounds needs to respect the order lower_bound <= plausible_lower_bounds < plausible_upper_bounds <= upper_bound for all coordinates.")
-         
+        if not (
+            np.all(self.lb <= self.plb)
+            and np.all(self.plb < self.pub)
+            and np.all(self.pub <= self.ub)
+        ):
+            raise ValueError(
+                "Interval bounds needs to respect the order lower_bound <= plausible_lower_bounds < plausible_upper_bounds <= upper_bound for all coordinates."
+            )
 
         # A variable is converted to log scale if all bounds are positive and
         # the plausible range spans at least one order of magnitude
@@ -213,10 +219,16 @@ class VariableTransformer:
         tests = np.zeros(4)
         tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
         tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps)
-        tests[3] = np.all(np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps)
+        tests[2] = np.all(
+            np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps
+        )
+        tests[3] = np.all(
+            np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps
+        )
         if not np.all(tests):
-            raise ValueError("Cannot invert the transform to obtain the identity at the provided boundaries.")
+            raise ValueError(
+                "Cannot invert the transform to obtain the identity at the provided boundaries."
+            )
 
         return (
             g(self.orig_lb),

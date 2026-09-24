@@ -132,7 +132,6 @@ class ESSearch(ABC):
         z = np.empty((us_rows, 1))
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
-
             # TODO: enforce periodicity
 
             # Force candidates points on search grid
@@ -310,7 +309,9 @@ def ucov(U, u, w, ub, lb, scale, periodic_vars=None):
     u_shift = U_tmp - u_tmp
 
     if w.size != 0:
-        weights = w.reshape(-1, *([1] * u_shift.ndim))  # For broadcasting weighted sum
+        weights = w.reshape(
+            -1, *([1] * u_shift.ndim)
+        )  # For broadcasting weighted sum
         C = np.matmul(u_shift.transpose(), weights * u_shift)
         C = np.sum(C, axis=0)
     else:

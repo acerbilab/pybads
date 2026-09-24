@@ -66,7 +66,13 @@ def test_get_fevals_data_noise():
     pub = np.ones((1, D)) * 5
     options = {"specify_target_noise": True, "uncertainty_handling": True}
 
-    bads = BADS(f, x0, plausible_lower_bounds=plb, plausible_upper_bounds=pub, options=options)
+    bads = BADS(
+        f,
+        x0,
+        plausible_lower_bounds=plb,
+        plausible_upper_bounds=pub,
+        options=options,
+    )
 
     # Make sure we get nothing out before data has not been added.
     X_train, y_train, s2_train, t_train = _get_fevals_data(
@@ -85,8 +91,8 @@ def test_get_fevals_data_noise():
     Xs = window * rnd_tmp + bads.optim_state["plb"]
     ys = []
     for x_idx in range(Xs.shape[0]):
-       f_i, _ =  f(Xs[x_idx])
-       ys.append(f_i)
+        f_i, _ = f(Xs[x_idx])
+        ys.append(f_i)
     ys = np.array(ys)
 
     # Add dummy training data explicitly since function_logger
@@ -107,6 +113,7 @@ def test_get_fevals_data_noise():
     assert np.all(y_train.flatten() == ys.flatten())
     assert np.all(s2_train == 1)
     assert np.all(t_train == 1e-5)
+
 
 def test_meanfun_name_to_mean_function():
     m1 = _meanfun_name_to_mean_function("zero")
@@ -162,17 +169,21 @@ def test_get_gp_training_options_samplers():
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
     bads = BADS(f, x0, lb, ub, plb, pub)
-    
 
     hyp_dict = {"run_cov": np.eye(3)}
     hyp_dict_none = {"run_cov": None}
-    bads.optim_state['eff_starting_points'] = 10
+    bads.optim_state["eff_starting_points"] = 10
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 1
     bads.options["weighted_hyp_cov"] = False
 
     res1 = _get_gp_training_options(
-        bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 8, bads.function_logger
+        bads.optim_state,
+        bads.iteration_history,
+        bads.options,
+        hyp_dict,
+        8,
+        bads.function_logger,
     )
     assert res1["sampler"] == "slicesample"
 
@@ -187,7 +198,7 @@ def test_get_gp_training_options_opts_N():
     f = lambda x: np.sum(x + 2)
     bads = BADS(f, x0, lb, ub, plb, pub)
 
-    bads.optim_state['eff_starting_points'] = 10
+    bads.optim_state["eff_starting_points"] = 10
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 2
     bads.options["weighted_hyp_cov"] = False
@@ -196,6 +207,11 @@ def test_get_gp_training_options_opts_N():
     bads.options["gpretrainthreshold"] = 10
 
     res1 = _get_gp_training_options(
-    bads.optim_state, bads.iteration_history, bads.options, hyp_dict, 0, bads.function_logger
+        bads.optim_state,
+        bads.iteration_history,
+        bads.options,
+        hyp_dict,
+        0,
+        bads.function_logger,
     )
     assert res1["opts_N"] == 1

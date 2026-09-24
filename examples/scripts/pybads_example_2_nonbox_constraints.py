@@ -30,7 +30,9 @@ def circle_constr(x):
 
 options = {}
 options["rng_seed"] = 3
-bads = BADS(rosenbrocks_fcn, x0, lower_bounds, upper_bounds, non_box_cons=circle_constr)
+bads = BADS(
+    rosenbrocks_fcn, x0, lower_bounds, upper_bounds, non_box_cons=circle_constr
+)
 optimize_result = bads.optimize()
 
 x_min = optimize_result["x"]

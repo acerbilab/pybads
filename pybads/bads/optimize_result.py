@@ -1,18 +1,18 @@
 import copy
-
-from importlib.metadata import version, PackageNotFoundError
 import logging
+from importlib.metadata import PackageNotFoundError, version
 
 import numpy as np
+
 
 class OptimizeResult(dict):
     """
     It represents the optimization result.
-    The class is based on ``scipy.optimize.OptimizeResult``. 
+    The class is based on ``scipy.optimize.OptimizeResult``.
     See also: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html.
-    
+
     Attributes:
-    
+
         - fun: callable
             - The objective function to be minimized.
         - non_box_cons: callable
@@ -47,7 +47,7 @@ class OptimizeResult(dict):
             - Random seed used by the optimizer (``None`` if not set).
         - version: str
             - Version of the optimizer.
-    
+
     Parameters:
         bads: pybads.BADS
             - An Instance of the BADS class. It is used to set the attributes of the optimization result.
@@ -84,7 +84,7 @@ class OptimizeResult(dict):
 
     def set_attributes(self, bads):
         """Set the attributes of the dictionary.
-        
+
         Parameters:
             - bads: pybads.BADS
                 An Instance of the BADS class. It is used to set the attributes of the optimization result.
@@ -136,7 +136,7 @@ class OptimizeResult(dict):
         self["fval"] = bads.fval
         self["fsd"] = bads.fsd
         self["total_time"] = bads.optim_state["total_time"]
-        
+
         self["random_seed"] = bads.optim_state["random_seed"]
 
         try:
@@ -146,9 +146,9 @@ class OptimizeResult(dict):
             __version__ = None
             logger = logging.getLogger("BADS")
             logger.warning("Cannot read version number from package metadata.")
-            
+
         self["version"] = __version__
-        
+
         self[
             "success"
         ] = True  # TODO: In our case when an error occurs, the application just stops.

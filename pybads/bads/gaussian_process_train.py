@@ -580,7 +580,6 @@ def _robust_gp_fit_(
                 hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
             )
             if options["use_slice_sampler"]:
-
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 if len(new_hyp) > 1:
                     new_hyp = new_hyp[-1].copy()
@@ -1049,7 +1048,7 @@ def get_grid_search_neighbors(
     )
 
     # Up to the maximum number of available points
-    ntrain = np.minimum(ntrain, function_logger.X_max_idx +1)
+    ntrain = np.minimum(ntrain, function_logger.X_max_idx + 1)
     optim_state["ntrain"] = ntrain
     # Take points closest to reference points
     res_S = None
