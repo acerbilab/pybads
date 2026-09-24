@@ -14,6 +14,7 @@ from pybads.acquisition_functions import acq_fcn_lcb
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.init_functions import init_sobol
 from pybads.poll import poll_mads_2n
+from pybads.rng import get_rng
 from pybads.search import ESSearchHedge
 from pybads.search.grid_functions import force_to_grid, grid_units, udist
 from pybads.utils import period_check
@@ -96,8 +97,24 @@ class BADS:
         (see the examples).
         If ``options['uncertainty_handling']`` is not specified, BADS will
         determine at runtime if the objective function is noisy.
-        To obtain reproducible results of the optimization, set ``options['random_seed']``
-        to a fixed integer value.
+        To obtain reproducible results of the optimization, set
+        ``options['random_seed']`` to a fixed integer (see ``rng`` below).
+
+    Attributes
+    ----------
+    rng : numpy.random.Generator
+        The generator of every random draw of the run, including the random
+        ``x0``. It is created from ``options['random_seed']``, which takes
+        what ``numpy.random.default_rng`` takes (an integer, a
+        ``SeedSequence`` or a ``Generator``, used as given); a float that is
+        a whole number is converted to an integer. If the option is
+        ``None`` (default), the generator is derived from NumPy's global
+        random state, so that ``np.random.seed`` before creating the ``BADS``
+        object fixes the run; deriving it advances that state by four draws.
+        Once the ``BADS`` object exists, the run neither draws from nor
+        seeds NumPy's global random state; a target that draws from it is
+        not fixed by ``random_seed``. Draws from ``rng`` before
+        ``optimize()`` change the run.
 
     Raises
     ------
@@ -188,8 +205,8 @@ class BADS:
         if self.options["stobads"] is None or self.options["stobads"] == False:
             self.options["stobads"] = False
 
-        # set up random seed
-        self._init_random_seed_()
+        # set up the random generator of the run
+        self._init_rng_()
 
         # set up BADS logger
         self.logger = logging.getLogger("BADS")
@@ -228,7 +245,7 @@ class BADS:
 
         # starting point
         if not np.all(np.isfinite(self.x0)):
-            self.x0 = np.random.uniform(
+            self.x0 = self.rng.uniform(
                 low=self.plausible_lower_bounds,
                 high=self.plausible_upper_bounds,
                 size=(1, self.D),
@@ -903,19 +920,21 @@ class BADS:
 
         return optim_state
 
-    def _init_random_seed_(self):
-        # set random seed if provided
-        if (
-            "random_seed" in self.options
-            and self.options["random_seed"] is not None
-        ):
-            # set random seed to numpy and consequently to scipy (scipy uses the same number generator)
-            random_seed = int(self.options["random_seed"])
-            np.random.seed(random_seed)
+    def _init_rng_(self):
+        """
+        Create ``self.rng`` from the ``random_seed`` option, and store in
+        ``self._random_seed`` the seed that the result reports: the option
+        when it is an integer (a whole-number float converted to one) or
+        ``None``, and ``None`` otherwise.
+        """
+        seed = self.options["random_seed"]
+        if isinstance(seed, (float, np.floating)) and float(seed).is_integer():
+            seed = int(seed)
+        self.rng = get_rng(seed)
+        if isinstance(seed, (int, np.integer)):
+            self._random_seed = int(seed)
         else:
-            random_seed = None
-        self._random_seed = random_seed
-        return random_seed
+            self._random_seed = None
 
     def _init_mesh_(self):
         """
@@ -988,6 +1007,7 @@ class BADS:
                     self.plausible_lower_bounds,
                     self.plausible_upper_bounds,
                     fun_eval_start,
+                    rng=self.rng,
                 )
                 # enforce periodicity TODO function
                 u1 = period_check(
@@ -1047,8 +1067,6 @@ class BADS:
         gp = None
         self.reset_gp = False
         hyp_dict = {}
-        # set random seed if provided
-        self.optim_state["random_seed"] = self._init_random_seed_()
 
         # Evaluate starting point and initial mesh,
         self._init_mesh_()
@@ -1121,6 +1139,7 @@ class BADS:
             self.options,
             self.plausible_lower_bounds,
             self.plausible_upper_bounds,
+            rng=self.rng,
         )
 
         self.gp_stats = IterationHistory(
@@ -1567,6 +1586,7 @@ class BADS:
                 self.optim_state,
                 self.iteration_history,
                 refit_flag,
+                rng=self.rng,
             )
 
             if refit_flag:
@@ -1589,7 +1609,10 @@ class BADS:
 
         if self.search_es_hedge is None:
             self.search_es_hedge = ESSearchHedge(
-                self.options["search_method"], self.options, self.non_box_cons
+                self.options["search_method"],
+                self.options,
+                self.non_box_cons,
+                rng=self.rng,
             )
         u_search_set, z = self.search_es_hedge(
             self.u,
@@ -1643,7 +1666,7 @@ class BADS:
                 or np.any(~np.isfinite(index_acq))
             ):
                 self.logger.warn("bads:optimize: Acquisition function failed")
-                index_acq = np.random.randint(0, len(u_search_set) + 1)
+                index_acq = self.rng.integers(0, len(u_search_set) + 1)
 
             # u_search at the candidate acquisition point
             u_search = u_search_set[index_acq]
@@ -1691,6 +1714,7 @@ class BADS:
                     self.optim_state,
                     self.iteration_history,
                     False,
+                    rng=self.rng,
                 )
                 f_mu_search, f_sd_search = new_gp.predict(
                     np.atleast_2d(u_search)
@@ -1939,6 +1963,7 @@ class BADS:
                     gp.temporary_data["poll_scale"],
                     self.optim_state["search_mesh_size"],
                     self.optim_state["mesh_size"],
+                    rng=self.rng,
                 )
 
                 # GP- based vector scaling (poll_scale broadcast)
@@ -2008,6 +2033,7 @@ class BADS:
                     self.optim_state,
                     self.iteration_history,
                     refit_flag,
+                    rng=self.rng,
                 )
                 if refit_flag:
                     self.gp_refitted_flag = True
@@ -2040,7 +2066,7 @@ class BADS:
                 or np.any(~np.isfinite(index_acq))
             ):
                 self.logger.warn("bads:optimize: Acquisition function failed")
-                index_acq = np.random.randint(0, len(u_poll) + 1)
+                index_acq = self.rng.integers(0, len(u_poll) + 1)
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")
             gamma_z = (
@@ -2546,6 +2572,7 @@ class BADS:
                     self.optim_state,
                     self.iteration_history,
                     False,
+                    rng=self.rng,
                 )
                 fval, fsd = tmp_gp.predict(np.atleast_2d(u))
                 fval = fval.item()

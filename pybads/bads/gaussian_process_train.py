@@ -10,6 +10,7 @@ from gpyreg.slice_sample import SliceSampler
 from scipy.spatial.distance import cdist
 
 from pybads.function_logger import FunctionLogger
+from pybads.rng import get_rng
 from pybads.search.grid_functions import udist
 from pybads.stats import get_hpd
 from pybads.utils import IterationHistory
@@ -25,6 +26,7 @@ def init_and_train_gp(
     options: Options,
     plb: np.ndarray,
     pub: np.ndarray,
+    rng=None,
 ):
     """
     Initialize and train the Gaussian process model.
@@ -47,6 +49,10 @@ def init_and_train_gp(
         Plausible lower bounds for hyperparameters.
     pub : ndarray, shape (hyp_N,)
         Plausible upper bounds for hyperparameters.
+    rng : numpy.random.Generator, optional
+        Generator of the random draws, passed on to ``gp.fit``. If ``None``,
+        a generator is derived from NumPy's global random state
+        (``pybads.rng.get_rng``).
 
     Returns
     =======
@@ -59,6 +65,8 @@ def init_and_train_gp(
     hyp_dict : dict
         The updated summary statistics.
     """
+
+    rng = get_rng(rng)
 
     # Initialize hyp_dict if empty.
     if "hyp" not in hyp_dict:
@@ -138,7 +146,7 @@ def init_and_train_gp(
         N0 = hyp0.shape[0]
         if N0 > gp_train["init_N"] / 2:
             hyp0 = hyp0[
-                np.random.choice(
+                rng.choice(
                     N0, math.ceil(gp_train["init_N"] / 2), replace=False
                 ),
                 :,
@@ -156,14 +164,24 @@ def init_and_train_gp(
         try:
             if training_failures == 0:
                 _, _, _ = gp.fit(
-                    x_train, y_train, s2_train, hyp0=hyp0, options=gp_train
+                    x_train,
+                    y_train,
+                    s2_train,
+                    hyp0=hyp0,
+                    options=gp_train,
+                    rng=rng,
                 )
                 fitted = True
             elif training_failures == 3:
                 # Initialize the hyper-params. to zero after the second failure (like in BADS)
                 new_hyp = np.zeros(shape=hyp0.shape)
                 _, _, _ = gp.fit(
-                    x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train
+                    x_train,
+                    y_train,
+                    s2_train,
+                    hyp0=new_hyp,
+                    options=gp_train,
+                    rng=rng,
                 )
                 hyp0 = new_hyp
                 hyp_dict["hyp"] = hyp0
@@ -171,9 +189,14 @@ def init_and_train_gp(
             else:
                 # Sample random from prior
                 # In case the initial hyperparameters fails
-                new_hyp = _get_random_samples_from_priors_(gp)
+                new_hyp = _get_random_samples_from_priors_(gp, rng)
                 _, _, _ = gp.fit(
-                    x_train, y_train, s2_train, hyp0=new_hyp, options=gp_train
+                    x_train,
+                    y_train,
+                    s2_train,
+                    hyp0=new_hyp,
+                    options=gp_train,
+                    rng=rng,
                 )
                 hyp0 = new_hyp
                 hyp_dict["hyp"] = hyp0
@@ -214,10 +237,17 @@ def local_gp_fitting(
     optim_state,
     iteration_history: IterationHistory,
     refit_flag,
+    rng=None,
 ):
     """
     Local GP approximation on current point. It updates the priors hyper-parameters and re-fit the Gaussian Process
+
+    The random draws of the refit come from ``rng``, a
+    ``numpy.random.Generator``, which is passed on to ``gp.fit``; if ``None``,
+    a generator is derived from NumPy's global random state
+    (``pybads.rng.get_rng``).
     """
+    rng = get_rng(rng)
 
     # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
     gp.X, gp.y, s2 = get_grid_search_neighbors(
@@ -358,17 +388,17 @@ def local_gp_fitting(
             prev_hyp_gp = gp.get_hyperparameters(as_array=True)
             if options["use_slice_sampler"]:
                 new_hyp = _get_samples_from_slice_sampler_(
-                    gp, prev_hyp_gp, optim_state, options
+                    gp, prev_hyp_gp, optim_state, options, rng
                 )
             else:
-                new_hyp = _get_random_samples_from_priors_(gp)
+                new_hyp = _get_random_samples_from_priors_(gp, rng)
 
             if new_hyp is not None:
                 new_hyp = 0.5 * (new_hyp + prev_hyp_gp)
                 new_hyp = gp.hyperparameters_to_dict(new_hyp)
                 if is_high_noise:
                     new_hyp[0]["noise_log_scale"] = (
-                        np.random.randn() - 2
+                        rng.standard_normal() - 2
                     )  # Retry with low noise magnitude
                 if is_low_mean and isinstance(
                     gp.mean, gpr.mean_functions.ConstantMean
@@ -399,7 +429,15 @@ def local_gp_fitting(
             second_fit=second_fit,
         )
         gp, hyp_gp, res, exit_flag = _robust_gp_fit_(
-            gp, gp.X, gp.y, gp.s2, hyp_gp, gp_train, optim_state, options
+            gp,
+            gp.X,
+            gp.y,
+            gp.s2,
+            hyp_gp,
+            gp_train,
+            optim_state,
+            options,
+            rng,
         )
         dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
 
@@ -519,10 +557,13 @@ def _robust_gp_fit_(
     gp_train,
     optim_state,
     options,
+    rng=None,
 ):
     """A private method that compute fit the Gaussian Process.
     In the case it fails to fit the GP with new proposed parameters it sample a new one from the priors.
+    The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
+    rng = get_rng(rng)
 
     noise_nudge = 0
 
@@ -539,7 +580,7 @@ def _robust_gp_fit_(
     for i_try in range(0, n_try):
         try:
             new_hyp, _, res = tmp_gp.fit(
-                X, Y, s2, hyp0=new_hyp, options=gp_train
+                X, Y, s2, hyp0=new_hyp, options=gp_train, rng=rng
             )
             break
         except np.linalg.LinAlgError:
@@ -583,10 +624,10 @@ def _robust_gp_fit_(
                 if len(new_hyp) > 1:
                     new_hyp = new_hyp[-1].copy()
                 new_hyp = _get_samples_from_slice_sampler_(
-                    tmp_gp, new_hyp, optim_state, options
+                    tmp_gp, new_hyp, optim_state, options, rng
                 )
             else:
-                new_hyp = _get_random_samples_from_priors_(gp)
+                new_hyp = _get_random_samples_from_priors_(gp, rng)
             if new_hyp is not None:
                 new_hyp = 0.5 * (new_hyp + old_hyp_gp)
             else:  # if the slice sampler fail, due to che Cholesky decomposition
@@ -636,10 +677,12 @@ def _robust_gp_fit_(
     return gp, new_hyp, res, success
 
 
-def _get_random_samples_from_priors_(gp: gpr.GP):
+def _get_random_samples_from_priors_(gp: gpr.GP, rng=None):
     """
     A private method that retrieves a new set of parameters by randomly sampling from the prior of the GP
+    The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
+    rng = get_rng(rng)
     hyp = gp.get_hyperparameters()[-1]  # copy of the hyper-params
     for key, value in gp.get_priors().items():
         if value[0] == "gaussian":
@@ -651,17 +694,21 @@ def _get_random_samples_from_priors_(gp: gpr.GP):
                 sigma_priors = np.exp(sigma_priors)
             new_sample = []
             for idx, m_p in enumerate(mean_priors):
-                new_sample.append(np.random.normal(m_p, sigma_priors[idx]))
+                new_sample.append(rng.normal(m_p, sigma_priors[idx]))
 
             hyp[key] = np.array(new_sample)
 
     return gp.hyperparameters_from_dict(hyp)
 
 
-def _get_samples_from_slice_sampler_(gp: gpr.GP, hyp_gp, optim_state, options):
+def _get_samples_from_slice_sampler_(
+    gp: gpr.GP, hyp_gp, optim_state, options, rng=None
+):
     """
     A private method that retrieves a new set of parameters using the slice sampler method.
+    The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
+    rng = get_rng(rng)
     hyp_sampler_name = options.get("gp_hyp_sampler", "slicesample")
     if hyp_sampler_name != "slicesample":
         raise ValueError("Wrong sampler")
@@ -682,6 +729,7 @@ def _get_samples_from_slice_sampler_(gp: gpr.GP, hyp_gp, optim_state, options):
                 gp.lower_bounds,
                 gp.upper_bounds,
                 options={"display": "off", "diagnostics": False},
+                rng=rng,
             )
             new_hyp = hyp_sampler.sample(1, burn=None)["samples"][0]
             sampler_failed = False

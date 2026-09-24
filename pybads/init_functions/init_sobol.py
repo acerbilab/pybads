@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.stats.qmc import Sobol
 
+from pybads.rng import get_rng
+
 
 def init_sobol(
     u0=np.ndarray,
@@ -9,6 +11,7 @@ def init_sobol(
     plb=np.ndarray,
     pub=np.ndarray,
     fun_eval_start=int,
+    rng=None,
 ):
     """
     Initialize the Sobol sequence.
@@ -31,6 +34,11 @@ def init_sobol(
         Upper bounds for the parameters.
     fun_eval_start : int
         Number of initial function evaluations.
+    rng : numpy.random.Generator, optional
+        Draws the seed of the Sobol sequence when ``u0`` is not all finite;
+        otherwise the seed derives from the digits of ``u0``. If ``None``, a
+        generator is derived from NumPy's global random state
+        (``pybads.rng.get_rng``).
 
     Returns
     -------
@@ -52,7 +60,7 @@ def init_sobol(
         seed = np.prod(str_seed)
         seed = np.mod(seed, max_seed) + 1
     else:
-        seed = np.random.randint(1, high=max_seed + 1)
+        seed = get_rng(rng).integers(1, max_seed + 1)
 
     # Sobol’ sequences are a quadrature rule and they lose their balance properties
     # if one uses a sample size that is not a power of 2, or skips the first point,

@@ -196,9 +196,22 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
   preallocates its arrays, and `X_flag` marks the filled rows. A repeated
   point at level 2 is merged into its row by precision weighting.
-- **Randomness goes through NumPy's global stream.** The `random_seed`
-  option calls `np.random.seed` in `__init__` and again at the start of
-  `optimize()`; the Sobol design derives its seed from the digits of `u0`.
+- **Randomness goes through one `numpy.random.Generator`, `bads.rng`.**
+  `BADS.__init__` creates it from `random_seed` (`pybads/rng.py: get_rng`)
+  before its first draw, the random `x0`, and passes it as `rng` to
+  everything that draws: the GP functions of `gaussian_process_train.py`,
+  which pass it on to `gp.fit` and `SliceSampler` (a gpyreg call without
+  `rng` draws from NumPy's global stream), `ESSearchHedge` and the
+  `ESSearch` classes, `init_sobol` and `poll_mads_2n`; each resolves
+  `rng=None` through `get_rng`. No draw of a run goes through the global
+  stream, which `test_seeded_run_leaves_global_state_untouched` checks;
+  `random_seed=None` derives the generator from four draws of it, so that
+  `np.random.seed` before construction fixes a run, and nothing reseeds
+  it. Nothing that is
+  deep-copied holds the generator (the `OptimizeResult`, what
+  `IterationHistory` records, the GP and its `temporary_data`), and neither
+  does `optim_state`: a copy would be a second generator in the same state.
+  The Sobol design derives its seed from the digits of `u0`.
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.

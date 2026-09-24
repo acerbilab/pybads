@@ -10,14 +10,21 @@ from gpyreg.gaussian_process import GP
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.function_logger import FunctionLogger
 from pybads.function_logger.constraints_check import contraints_check
+from pybads.rng import get_rng
 
 from .grid_functions import force_to_grid
 
 
 class ESSearch(ABC):
-    """An Abstract class describing an Evolutionary Strategy Search."""
+    """An Abstract class describing an Evolutionary Strategy Search.
 
-    def __init__(self, mu, lamb, options_dict):
+    Its random draws come from ``rng``, a ``numpy.random.Generator``; if
+    ``None``, a generator is derived from NumPy's global random state
+    (``pybads.rng.get_rng``).
+    """
+
+    def __init__(self, mu, lamb, options_dict, rng=None):
+        self.rng = get_rng(rng)
         self.mu = mu
         self.lamb = lamb
         self.vec = np.array([-1, 0])
@@ -122,7 +129,7 @@ class ESSearch(ABC):
 
         N = int(self.mu)
         u_new = u + self.vec * (
-            np.random.normal(size=(N, nvars)) @ self.sqrt_sigma
+            self.rng.normal(size=(N, nvars)) @ self.sqrt_sigma
         )
 
         # TODO add check rotate gp flag
@@ -162,7 +169,7 @@ class ESSearch(ABC):
 
             # if something went wrong with the acquisition function, random search is performed
             if z_new is None or z_new.size == 0:
-                z_candidates = np.random.rand(u_new.shape[0])
+                z_candidates = self.rng.random(u_new.shape[0])
                 self.logger.warn(
                     "bads:es_search: Something went wrong with the acquisition function, random search is performed"
                 )
@@ -202,7 +209,7 @@ class ESSearch(ABC):
 
                 u_new = (
                     us[selection_mask[0:ll]]
-                    + (np.random.normal(size=(ll, nvars)) @ self.sqrt_sigma)
+                    + (self.rng.normal(size=(ll, nvars)) @ self.sqrt_sigma)
                     * self.scale
                 )
 
@@ -210,8 +217,8 @@ class ESSearch(ABC):
 
 
 class ESSearchWM(ESSearch):
-    def __init__(self, mu, lamb, options_dict):
-        super().__init__(mu, lamb, options_dict)
+    def __init__(self, mu, lamb, options_dict, rng=None):
+        super().__init__(mu, lamb, options_dict, rng)
         self.active_flag = False
         self.frac = 0.5
 
@@ -268,8 +275,8 @@ class ESSearchWM(ESSearch):
 
 
 class ESSearchCMA(ESSearchWM):
-    def __init__(self, mu, lamb, options_dict):
-        super().__init__(mu, lamb, options_dict)
+    def __init__(self, mu, lamb, options_dict, rng=None):
+        super().__init__(mu, lamb, options_dict, rng)
         self.active_flag = True
         self.frac = 0.25
 

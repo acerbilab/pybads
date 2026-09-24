@@ -43,8 +43,8 @@ class OptimizeResult(dict):
             - Total time taken by the optimizer.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
-        - random_seed: int
-            - Random seed used by the optimizer (``None`` if not set).
+        - random_seed: int or None
+            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one); ``None`` if the option is ``None``, a ``SeedSequence`` or a ``Generator``.
         - version: str
             - Version of the optimizer.
 
