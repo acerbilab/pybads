@@ -742,7 +742,7 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 ### Phase 9: gpyreg 1.3.3 for PyBADS
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [~] in progress (population, step 4)
 **Goal**: the effect of gpyreg 1.3.3 on PyBADS, measured with the
 population comparison against the generator reference of Phase 8; the
 answers the PyVBMC maintainers asked for (Context); and, if the comparison
@@ -764,18 +764,18 @@ retry reads only bounds that PyBADS sets itself (`_gp_hyp` in
 candidate, `_robust_gp_fit_` row).
 
 **Steps**:
-1. [ ] Record the heads of the clones: `git -C dev/scripts/runs/gpyreg/<tag>
+1. [x] Record the heads of the clones: `git -C dev/scripts/runs/gpyreg/<tag>
    log -1 --format=%h` for `v1.3.1`, `v1.3.2` and `v1.3.3` (expect
    `1dbbfc5`, `29b868c`, `98ab5a4`). Change nothing in them or in
    `../gpyreg`.
-2. [ ] Suite at the head of Phase 8 on 1.3.1 and on 1.3.3, reruns off,
+2. [x] Suite at the head of Phase 8 on 1.3.1 and on 1.3.3, reruns off,
    three times each:
    `PYTHONPATH=dev/scripts/runs/gpyreg/<tag> python -u -m pytest -p no:rerunfailures -q -rfE`,
    with `python -c "import gpyreg, pybads; print(gpyreg.__file__, pybads.__file__)"`
    printed before each run. Tabulate per test the failures with their
    exception type and message; trace a failure that appears only on 1.3.3
    to its gpyreg call (a refusal is a `ValueError` that names it).
-3. [ ] 1.3.2 against 1.3.3 at default options. `fingerprint.py` under each
+3. [x] 1.3.2 against 1.3.3 at default options. `fingerprint.py` under each
    clone prints the same hash. Then the configurations where the earlier
    robust-fit counts found failed fits in every run (`sphere_D2`,
    `ellipsoid_D3`, `rosenbrock_D2`, `ellipsoid_D3_homo`,
@@ -786,7 +786,7 @@ candidate, `_robust_gp_fit_` row).
    than `wall_s` are equal. A difference contradicts the gpyreg
    maintainers' account (Context): stop and report it with the
    configuration and seed.
-4. [ ] Population: the `default` suite, seeds 0–29, at the head of Phase 8
+4. [~] Population: the `default` suite, seeds 0–29, at the head of Phase 8
    with `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3`, into
    `dev/scripts/runs/population/population_gpyreg133_<YYYYMMDD>`, logged;
    `summary` of it; `compare dev/experiments/population_generator_<YYYYMMDD> <new>`.
@@ -796,7 +796,7 @@ candidate, `_robust_gp_fit_` row).
    populations, and for each crash of the generator reference whether its
    seed crashes under 1.3.3 (the question of the `dev/TODO.md` item on
    unguarded GP updates).
-5. [ ] The two PyBADS-side issues, rerun at the released tag:
+5. [~] The two PyBADS-side issues, rerun at the released tag:
    `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gpyreg_issue_checks.py dev/scripts/runs/issues_<ts>/gpyreg133.json`,
    logged. Expected, as under 1.3.1 and 1.3.2: `fit_lik=False` raises
    `Unknown hyperprior type delta`; the robust-fit counts reach no bound
@@ -1145,3 +1145,14 @@ the populations (steps 7–10). State at this entry:
   reference from now on.
 - Fingerprint with the v1.3.1 clone: `91ca34c6b51e7f20` (two processes),
   the fingerprint of later phases in place of `fcf9451180c5172e`.
+
+### Phase 9 (in progress) — 2026-09-24
+
+- Clones: v1.3.1 `1dbbfc5`, v1.3.2 `29b868c`, v1.3.3 `98ab5a4`, all clean.
+  PyBADS at `be11a52`.
+- Suite, reruns off, three runs each: 109 passed in every run on 1.3.1 and
+  on 1.3.3 (logs `dev/scripts/runs/phase9_suite/`).
+- 1.3.2 against 1.3.3: fingerprint `57241c985a68c78b` under both (1.3.1:
+  `91ca34c6b51e7f20`); the six configurations with failed fits in every
+  run, seeds 0–9: the 60 records identical in every `final` field but
+  `wall_s`.
