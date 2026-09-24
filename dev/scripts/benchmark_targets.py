@@ -46,9 +46,11 @@ the target's noise; BADS gets ``random_seed=seed``. Two populations run with
 the same seeds therefore share each seed's start point and noise stream.
 
 A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
-``D``. The budgets of the ``default`` suite are set from the ``--smoke``
-timings, so that the suite at 30 seeds runs in about 30 minutes as one
-process with a fresh process per run (``population.py run``).
+``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
+on BADS's termination criteria, long before the budget, so that the runs
+cover the whole algorithm, from the initial design to the fine mesh and the
+stopping rules. At 30 seeds the suite runs in about an hour as one process
+with a fresh process per run (``population.py run``).
 
 Command line (from the repository root)::
 
@@ -211,7 +213,7 @@ class Config:
     name: str
     D: int
     noise: str = "none"
-    budget: int = 50
+    budget: int = 500
     unbounded: bool = False
     options: tuple = ()  # (key, value) pairs, so that the Config hashes
     tag: str = ""
@@ -479,32 +481,31 @@ def make_problem(name, D, noise="none", seed=None, unbounded=False):
 # Suites
 # --------------------------------------------------------------------------
 
-# The default suite. With a fresh process per run, starting the process and
-# importing PyBADS costs 1.5 to 2 s per run, as much as a run itself (1 to 5
-# s at these budgets, in the --smoke timings the budgets were set from), so
-# 30 seeds in about 30 minutes allow about 15 configurations. They cover
-# every target, dimension (2, 3, 6, and 10 for sphere and ellipsoid), noise
-# kind and constraint type, not every combination; the ellipsoid at D = 3
-# appears with finite bounds, infinite bounds and both noise kinds, on the
-# same shifted target. Budgets: 50 D evaluations at D <= 3, 150 at D = 6 and
-# D = 10; most runs end on the budget, so a change in speed shows in
-# true_error.
+# The default suite. Its 15 configurations cover every target, dimension (2,
+# 3, 6, and 10 for sphere and ellipsoid), noise kind and constraint type, not
+# every combination; the ellipsoid at D = 3 appears with finite bounds,
+# infinite bounds and both noise kinds, on the same shifted target. Every
+# budget is BADS's default, 500 D. A calibration at that budget (4 seeds per
+# configuration, 2026-09-24) found every run ending on BADS's own
+# termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
+# ellipsoid D10, 200 to 500 for the noisy targets. Starting a fresh process
+# and importing PyBADS adds about 2 s per run.
 _DEFAULT = [
-    Config("sphere", 2, budget=50),
-    Config("sphere", 10, budget=15),
-    Config("ellipsoid", 3, budget=50),
-    Config("ellipsoid", 6, budget=25),
-    Config("ellipsoid", 10, budget=15),
-    Config("rosenbrock", 2, budget=50),
-    Config("rosenbrock", 6, budget=25),
-    Config("ackley", 6, budget=25),
-    Config("rastrigin", 3, budget=50),
-    Config("sphere", 3, noise="homo", budget=50),
-    Config("ellipsoid", 3, noise="homo", budget=50),
-    Config("sphere", 3, noise="hetero", budget=50),
-    Config("ellipsoid", 3, noise="hetero", budget=50),
-    Config("sphere_nonbox", 3, budget=50),
-    Config("ellipsoid", 3, budget=50, unbounded=True),
+    Config("sphere", 2, budget=500),
+    Config("sphere", 10, budget=500),
+    Config("ellipsoid", 3, budget=500),
+    Config("ellipsoid", 6, budget=500),
+    Config("ellipsoid", 10, budget=500),
+    Config("rosenbrock", 2, budget=500),
+    Config("rosenbrock", 6, budget=500),
+    Config("ackley", 6, budget=500),
+    Config("rastrigin", 3, budget=500),
+    Config("sphere", 3, noise="homo", budget=500),
+    Config("ellipsoid", 3, noise="homo", budget=500),
+    Config("sphere", 3, noise="hetero", budget=500),
+    Config("ellipsoid", 3, noise="hetero", budget=500),
+    Config("sphere_nonbox", 3, budget=500),
+    Config("ellipsoid", 3, budget=500, unbounded=True),
 ]
 
 # One configuration per code path: deterministic, inferred noise, specified

@@ -48,7 +48,9 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   verifies each target's analytic minimum, bounds and noise, and `--smoke`
   runs each configuration of a suite once, in a fresh process as a
   population does, and prints its wall time with the projected time of 30
-  seeds; the budgets of `default` are set from these timings.
+  seeds. The `default` suite runs every configuration at BADS's default
+  budget, 500 D, so that each run ends on BADS's own termination criteria;
+  a population of 30 seeds takes about an hour.
 - `population.py` runs, summarizes and compares populations of seeded
   runs. `run --suite default --seeds 0-29 --out DIR` writes one JSON record
   per run (result, error against the analytic minimum, effective options,
