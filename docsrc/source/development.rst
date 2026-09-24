@@ -175,3 +175,8 @@ A few comments about testing:
 - A nice way of proceeding is 'test first': write a test first, make it fail, write the code until the test is passed.
 - Many methods are tested against test cases produced with the original :labrepos:`MATLAB implementation <bads>`.
 - The ``pytest-mock`` library is very useful for testing. It allows you to replace parts of your system under test with mock objects and make assertions about how they have been used. (Perhaps we should switch to ``unittest.mock`` in the future, which is part of the Python standard library.)
+
+Releases
+--------
+
+Each change that a user can notice is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag: the ``release.yml`` workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package is updated separately, in its feedstock.

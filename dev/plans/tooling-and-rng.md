@@ -296,7 +296,7 @@ installs the `test` extra and whose pin comment names the minimum set here.
 ### Phase 3: CI and release workflows
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [~] in progress (committed; awaiting the push smoke run)
 **Goal**: PyVBMC's CI structure: one test job defined once, gpyreg pinned,
 drift detection on schedule, a smoke run on development branches; action
 versions kept current; a release workflow.

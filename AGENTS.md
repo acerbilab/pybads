@@ -63,13 +63,25 @@ The tests live in `pybads/testing/`, mirroring the package, and default
 discovery is limited to them (`testpaths` in `pyproject.toml`); the checks
 under `dev/scripts/` run only when named by path.
 
-`merge-tests.yml` runs the suite on a PR to `main` only when it touches
-`pybads/`, `pyproject.toml` or `setup.py` (Ubuntu, Windows, macOS × Python
-3.9–3.11); `tests.yml` runs the same matrix on the 13th and 28th of each
-month. Both install gpyreg from the head of `acerbilab/gpyreg`, unpinned,
-so a gpyreg push can break PyBADS's CI with no PyBADS change. `docs.yml` rebuilds the docs on
-every push to `main` and commits them to `gh-pages`. No workflow publishes
-to PyPI.
+The test job is defined once, in `.github/workflows/test-matrix.yml`, and
+installs gpyreg at the commit pinned as `GPYREG_PIN` there: the tagged
+commit of the release that `pyproject.toml` names as the minimum (CI reads
+gpyreg's version from its tags, and an untagged commit reads lower, so pip
+would install gpyreg from PyPI over the pinned checkout). A change that
+needs a newer gpyreg moves both. `merge-tests.yml` runs the full matrix
+(Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` only when it
+touches `pybads/`, `pyproject.toml` or `setup.py`; a PR that changes
+anything else, the workflows included, runs no tests. `tests.yml` runs the
+full matrix on dispatch and on the 13th and 28th of each month, the
+scheduled run against gpyreg's `main` instead of the pin (the drift
+detector), and a smoke run (Ubuntu, Python 3.12) on each push to a `dev*`
+branch that touches the package. `docs.yml` rebuilds the docs on every push
+to `main` and commits them to `gh-pages`.
+
+A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
+it: `release.yml` builds the package with `build.yml` and uploads it to
+PyPI by trusted publishing, through the `pypi` environment, which admits
+only `v*` tags. No token is stored.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black

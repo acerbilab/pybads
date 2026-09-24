@@ -1,0 +1,29 @@
+name: publish-release
+
+# Publishing a GitHub release (from a tag vX.Y.Z) builds the package and
+# uploads it to PyPI by trusted publishing: PyPI's publisher settings for
+# pybads name this workflow file and the `pypi` environment, whose
+# deployment rule admits only tags matching v*. No token is stored.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+  upload_to_pypi:
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download built package
+        uses: actions/download-artifact@v8
+        with:
+          name: artifact
+          path: dist
+
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.14.0
