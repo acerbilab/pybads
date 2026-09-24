@@ -23,3 +23,10 @@ its entry below.
   pytest-rerunfailures among its dependencies. `pip install "pybads[test]"`
   installs what its test suite needs. (gpyreg 1.3.1 itself still installs
   pytest and pytest-rerunfailures.)
+
+### Fixed
+
+- **Repeated evaluations with user-specified noise.** With
+  `specify_target_noise=True`, a run could stop with `ValueError: setting an
+  array element with a sequence` after the optimizer evaluated a point a
+  second time. The two observations are now merged and the run continues.

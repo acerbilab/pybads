@@ -418,8 +418,9 @@ class FunctionLogger:
                     # else:
                     #    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked
 
-                    f_val = self.Y[idx]
-                    self.Y[idx] = f_val
+                    # A scalar, as on every other path (self.Y[idx] is a
+                    # row of the (N, 1) array)
+                    f_val = self.Y[idx].item()
                     self.fun_eval_time[idx] = (
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
