@@ -160,7 +160,7 @@ PyBADS raise, before the long phases below (see Context). The effect of
 ### Phase 1: line endings and formatting
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [~] in progress
 **Goal**: consistent line endings and a codebase formatted once, so later
 diffs show only their change.
 
