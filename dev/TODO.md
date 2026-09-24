@@ -11,6 +11,18 @@ order.
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
   table (only partly looked at, never compared with MATLAB) and the tests
   that check less than they appear to.
+  PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
+  `randn2` and the draws that reproduce MATLAB's random stream) come with
+  it, for the comparisons that need MATLAB's own numbers.
+- [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
+  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`), once the
+  random draws go through a generator (tooling plan, Phase 8) and after the
+  bug hunt, so that they do not pin today's defects. The population
+  comparison of `dev/scripts/population.py` checks distributions, not
+  trajectories, until then.
+- [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
+  once PyBADS times its search, poll and GP-training stages separately:
+  today its timer covers only the whole run and the target's evaluations.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench).
 - [ ] **gpyreg releases after 1.3.2.** PyBADS requires the latest gpyreg
