@@ -28,6 +28,11 @@ not user documentation: `docs/` is gitignored Sphinx output published to
 
 ## Index
 
+- [plans/tooling-and-rng.md](plans/tooling-and-rng.md) — repository
+  tooling after PyVBMC's (formatting, CI with gpyreg pinned, packaging,
+  changelog, release), seed tests, the benchmark suite and population
+  comparison, random draws through a `numpy.random.Generator`, and the
+  assessment of gpyreg 1.3.2 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that check less than they

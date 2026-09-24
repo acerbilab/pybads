@@ -1,0 +1,839 @@
+# Plan: tooling, CI, seeded runs and the benchmark harness
+
+Created: 2026-09-24
+Status: APPROVED (2026-09-24; open questions settled at their defaults)
+
+## Summary
+
+Bring PyBADS's repository tooling to the level of PyVBMC's (the
+`dev-port-review` branch of `../pyvbmc` is the reference): line endings and
+formatting, packaging and a changelog, a shared CI test workflow with gpyreg
+pinned, a release workflow, generated example scripts, seed tests, a
+benchmark suite with a population comparison, and random-number generator
+objects in place of NumPy's global stream. Then assess gpyreg 1.3.2 for
+PyBADS with that comparison. Each change that can move numerical results is
+made alone and checked against a recorded reference.
+
+## Context: gpyreg 1.3.2
+
+gpyreg 1.3.2 is prepared on the gpyreg branch `w6-leftovers` (worktree
+`../gpyreg-w6-leftovers`, not pushed when this plan was written); its
+changes are listed in that worktree's `docsrc/source/release_notes.rst`,
+section "1.3.2 (unreleased)". Two of them reach PyBADS: where the smallest
+noise variance of a GP is below `1e-6`, the predictive covariance is formed
+from a Cholesky factor, and PyBADS's GPs reach that regime at default
+options (the noise lower bound corresponds to a variance of about
+`1.35e-7`); and several invalid inputs are now refused with `ValueError`.
+PyBADS requires only `gpyreg >= 0.1.0`, so its users get 1.3.2 on release.
+The PyVBMC maintainers' release plan (`../pyvbmc/dev/TODO.md`, the item that
+releases gpyreg 1.3.2) runs PyBADS against the branch before the tag and
+asks PyBADS for: the suite's outcomes on 1.3.1 and on the branch; each
+difference with its cause (the prediction change, a refusal, or chance);
+whether anything in 1.3.2 should change before the tag; and PyBADS's
+proposals, including on two issues found in gpyreg's review, the `"delta"`
+noise prior of the known-noise path and the bound inversion of
+`_robust_gp_fit_` (Phase 9, step 4). Phase 0 answers the first two
+questions early; Phase 9 answers all of them.
+
+## Scope
+
+- **In scope**: the phases below.
+- **Out of scope**: the bug hunt and the verification against MATLAB BADS
+  (`dev/TODO.md`, deferred); the candidate defects of
+  `dev/results/2026-09-23-codebase-survey.md` other than the crash fixed in
+  Phase 5 (new candidates found on the way are recorded there, not fixed);
+  the user-facing agent skill `skills/pybads/SKILL.md` (after this plan);
+  exact step-by-step replay, numerical oracles and the profiler (later, see
+  Decisions); the conda-forge recipes (a TODO for the next release,
+  Phase 2).
+
+## Conventions for every phase
+
+- Work on the development branch (Open Question 4), from the repository
+  root, in Git Bash, with the project venv (`.venv/Scripts/python.exe` on
+  Windows, `.venv/bin/python` elsewhere), written below as `python`.
+- Commits follow conventional commits and end with the `Co-Authored-By:`
+  line; never a `Claude-Session:` trailer (`AGENTS.md`). One or more
+  commits per phase; no push without the user's go. Code is committed
+  before any run whose records name the commit (Phases 7–9).
+- One heavy process at a time: the test suite, the population runs and the
+  example scripts never run concurrently. Long runs write unbuffered logs to
+  the gitignored `dev/scripts/runs/` (`mkdir -p dev/scripts/runs` first;
+  `python -u ... > dev/scripts/runs/<name>_$(date +%s).log 2>&1`) and are
+  read from the log.
+- If a check contradicts an assumption a step rests on, stop and report the
+  mismatch to the user rather than improvise.
+- From Phase 2 on, each user-visible change gets its `CHANGELOG.md` entry in
+  the commit that makes it.
+- Until Phase 5, `--reruns=5 -x` fails about 5% of the time on
+  `test_he_noisy_sphere_opt` (its crash, below). A suite failure there with
+  `ValueError: setting an array element with a sequence` is that crash:
+  rerun the suite once before treating it as a finding.
+- After each phase, append to the Worklog at the end of this file: date,
+  commits, and the results of the phase's checks.
+- On approval, set Status to APPROVED and delete the closing review line.
+- Fingerprint check: `dev/scripts/fingerprint.py` (created in Phase 1)
+  prints one hash of the results of six seeded runs, three deterministic
+  and three with inferred noise. A phase that must not move results shows
+  the same hash before and after, on one machine (BLAS and platform
+  differences can change the value). It exercises neither
+  `specify_target_noise`, non-box constraints, infinite bounds nor a random
+  `x0`; the phases that touch those have their own checks.
+
+```python
+# dev/scripts/fingerprint.py
+"""Hash of six seeded PyBADS runs: equal before and after a change that
+must not move results. Run from the repository root."""
+import hashlib
+
+import numpy as np
+
+import pybads
+from pybads import BADS
+
+
+def f(x):
+    return float(np.sum(np.atleast_2d(x) ** 2))
+
+
+g = np.random.default_rng(0)
+
+
+def fn(x):
+    return float(np.sum(np.atleast_2d(x) ** 2) + g.standard_normal())
+
+
+h = hashlib.sha256()
+for fun, noisy in [(f, False), (fn, True)]:
+    for seed in range(3):
+        o = {"display": "off", "max_fun_evals": 80, "random_seed": seed}
+        if noisy:
+            o["uncertainty_handling"] = True
+        r = BADS(
+            fun, np.ones(3) * 4, -100 * np.ones(3), 100 * np.ones(3),
+            -8 * np.ones(3), 12 * np.ones(3), options=o,
+        ).optimize()
+        h.update(np.asarray(r["x"], dtype=float).tobytes())
+        h.update(np.float64(r["fval"]).tobytes())
+        h.update(np.int64(r["func_count"]).tobytes())
+        if r["yval_vec"] is not None:
+            h.update(np.asarray(r["yval_vec"], dtype=float).tobytes())
+print(pybads.__file__, h.hexdigest()[:16])
+```
+
+At `fd4bda9` with gpyreg 1.3.1, on Windows 11 with Python 3.12.6 and NumPy
+2.5.3, it printed `fcf9451180c5172e`, identically in two processes.
+
+## Phases
+
+### Phase 0 (optional, Open Question 1): gpyreg 1.3.2 breakage check
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: tell the PyVBMC maintainers early whether gpyreg 1.3.2 makes
+PyBADS raise, before the long phases below (see Context). The effect of
+1.3.2 on results is Phase 9.
+
+**Steps**:
+1. Record the gpyreg heads: `git -C ../gpyreg log -1 --format=%h` (expect
+   `1dbbfc5`, tag `v1.3.1`) and
+   `git -C ../gpyreg-w6-leftovers log -1 --format=%h` (the branch head at
+   run time). Change nothing in either checkout.
+2. Run the suite three times against each, reruns off:
+   `python -u -m pytest -p no:rerunfailures -q -rfE` for 1.3.1, and the
+   same with `PYTHONPATH=../gpyreg-w6-leftovers` for the branch
+   (`PYTHONPATH` takes precedence over the editable install). Before each
+   run print `python -c "import gpyreg, pybads; print(gpyreg.__file__, pybads.__file__)"`.
+   Identify gpyreg by that path, not by its version string, which reads
+   1.3.1 in both cases.
+3. Tabulate per test the failures with their exception type and message.
+   `test_he_noisy_sphere_opt` fails in about 60% of runs under 1.3.1 (the
+   crash of Phase 5): compare its rate and exception between the two.
+4. Trace a failure that appears only on the branch to its gpyreg call and
+   value (a refusal of 1.3.2 is a `ValueError` that names it).
+5. Worklog entry and report.
+
+**Verification**:
+- [ ] Report to the user, for the PyVBMC maintainers: gpyreg heads,
+      per-test outcomes on each, each difference with its cause.
+
+### Phase 1: line endings and formatting
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: consistent line endings and a codebase formatted once, so later
+diffs show only their change.
+
+**Steps**:
+1. Precondition: `git status --porcelain` is empty (this plan and the
+   `dev/README.md` index committed first); `git add --renormalize` stages
+   every modified tracked file.
+2. Create `dev/scripts/fingerprint.py` from the listing above; run it and
+   note the hash (expected `fcf9451180c5172e` in the environment above; a
+   different value elsewhere is noted, not a stop: the gate is equality
+   before and after). Record the public names:
+   `python -c "import pybads, pybads.bads; print(sorted(n for n in dir(pybads) if not n.startswith('_'))); print(sorted(n for n in dir(pybads.bads) if not n.startswith('_')))" > dev/scripts/runs/public_names_before.txt`.
+   Commit the script (`chore(dev): fingerprint script`), so that the
+   formatting of step 5 covers it.
+3. Create `.gitattributes` with PyVBMC's content (`../pyvbmc/.gitattributes`:
+   `* text=auto`, LF for `*.sh` and `*.sbatch`, CRLF for `*.bat` and
+   `*.cmd`). Then `git add .gitattributes && git add --renormalize .`.
+   Expected staged files: `.gitattributes`, the six
+   `pybads/testing/bads/*.dat` (read by no test) and `docsrc/make.bat`
+   (stored LF in the index, checked out CRLF, as PyVBMC's). Any other file:
+   stop and report. Commit (`chore: normalize line endings`).
+4. Replace `.pre-commit-config.yaml` with PyVBMC's hook versions
+   (pre-commit-hooks v4.4.0, isort 5.12.0, black 23.3.0, pycln v2.6.0) and
+   PyVBMC's coverage: the `^docs/` excludes of the two whitespace hooks,
+   isort's `docs/tutorials` exclude, and no exclude for black (PyVBMC's
+   calibration-script exclude does not apply). The current black exclude,
+   `examples/*.py`, is a regular expression that excludes the notebooks and
+   `pybads/function_examples.py` rather than the example scripts; with no
+   exclude, black formats every Python file and the notebooks' code cells
+   (Decisions). Commit (`chore: update pre-commit hooks`).
+5. `python -m pip install pre-commit`, `python -m pre_commit install` (the
+   git hook, so later commits are checked), then `python -m pre_commit run -a`
+   until it passes. Review `git diff --stat`: Python modules and tests
+   reformatted, whitespace fixes (the largest in
+   `advanced_bads_options.ini`), import order, and in the five notebooks
+   changes to code-cell `source` only (outputs untouched: check with
+   `git diff examples/*.ipynb | grep '^[-+] *"output'` printing nothing).
+   An import removed by pycln is acceptable only if unused; list it in the
+   commit message.
+6. Checks before committing: `python dev/scripts/fingerprint.py` prints the
+   hash of step 2; the public-name command of step 2 prints the content of
+   `dev/scripts/runs/public_names_before.txt`;
+   `python -m pytest --reruns=5 -x -q` passes (89 tests). Commit
+   (`style: format the codebase with the pre-commit hooks`).
+7. Create `.git-blame-ignore-revs` with a comment line and the full hash of
+   the formatting commit; commit.
+8. `AGENTS.md`, "Setup and commands": the sentence that several modules are
+   not black-formatted becomes: the whole tree passes the hooks, and
+   `git config blame.ignoreRevsFile .git-blame-ignore-revs` hides the
+   formatting commit from `git blame`. Commit.
+
+**Verification**:
+- [ ] `python -m pre_commit run -a` passes with no changes.
+- [ ] Fingerprint and public names unchanged; suite green.
+
+### Phase 2: packaging, changelog and documentation
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: dependencies that match what CI tests, pytest out of PyBADS's
+runtime dependencies, and a changelog. Before Phase 3, whose workflow
+installs the `test` extra and whose pin comment names the minimum set here.
+
+**Steps**:
+1. `pybads/bads/gaussian_process_train.py`: delete
+   `from pytest import Function` (unused). Confirm that no package module
+   imports pytest:
+   `grep -rnE "^\s*(import pytest|from pytest)" pybads --include=*.py | grep -v pybads/testing`
+   prints nothing.
+2. `pyproject.toml`: `requires-python = ">=3.10"`; `gpyreg >= 1.3.1`;
+   remove `pytest`, `pytest-mock` and `pytest-rerunfailures` from
+   `dependencies`; add a `test` extra with those three (PyVBMC's comment
+   adapted: what the test suite needs; CI installs it) and add the same
+   three to `dev`; keep the NumPy, SciPy and matplotlib floors, which equal
+   gpyreg's. Keep the tests in the wheel (Decisions).
+3. `.coveragerc`: `[run]` with `omit = pybads/testing/*` (PyVBMC's, without
+   its HTML stylesheet).
+4. `CHANGELOG.md` (new), Keep a Changelog 1.1.0, laid out as PyVBMC's:
+   title and the format line; `## [Unreleased]` with "Changes since PyBADS
+   1.0.6."; `### Upgrading from 1.0.6` ("What can stop an existing script,
+   or change what it returns. Each point has its entry below."), then
+   `### Added`, `### Changed`, `### Fixed`, `### Removed`. First entries:
+   under Upgrading, "PyBADS needs Python 3.10 or later and gpyreg 1.3.1 or
+   later."; under Changed, the same requirement with its reason (Python 3.9
+   is past its end of life; 1.3.1 is the gpyreg release CI tests), and
+   "PyBADS no longer lists pytest, pytest-mock and pytest-rerunfailures
+   among its dependencies; `pip install "pybads[test]"` installs what the
+   test suite needs (gpyreg 1.3.1 itself still installs pytest and
+   pytest-rerunfailures)." `MANIFEST.in`: `include CHANGELOG.md`.
+5. User and developer documentation: `README.md` (the Python requirement);
+   `docsrc/source/installation.rst` (the Python requirement; the test
+   instructions gain `pip install "pybads[test]"`; "PyVBMC's internal
+   tests" becomes "PyBADS's internal tests");
+   `docsrc/source/development.rst` (the 3.9 mentions; the install steps
+   name the `.venv`, `pip install -e ".[dev]"` and the test command);
+   `environment.yml` (`python>=3.10`).
+6. `AGENTS.md`: the packaging paragraph (the `test` extra; pytest no longer
+   among PyBADS's dependencies) and a changelog bullet under "Conventions",
+   adapted from PyVBMC's `AGENTS.md`: a change a user can notice is listed
+   under `Unreleased` in the commit that makes it, written for users and
+   relative to the last release, and one that can stop a script written
+   for the last release, or change what it returns, also has a line in the
+   "Upgrading from" list.
+7. `dev/TODO.md`: an item for the conda-forge recipes at the next release.
+   `conda-forge/pybads-feedstock` (`recipe/meta.yaml`): run requirements
+   `gpyreg >=1.3.1`, without pytest, pytest-mock, pytest-rerunfailures and
+   the stale cma, corner, dill, imageio and plotly; `test.requires` gains
+   pytest and pytest-rerunfailures, since its test command
+   `python -m pytest --pyargs pybads --reruns=5 -x -vv` runs the tests of
+   the installed package; `python_min` 3.10. It needs
+   `conda-forge/gpyreg-feedstock`, at gpyreg 1.0.2 when this plan was
+   written, to reach 1.3.1 first. And a note for the gpyreg maintainers:
+   gpyreg lists pytest and pytest-rerunfailures as runtime dependencies.
+8. Commit (`build: Python 3.10+, gpyreg 1.3.1+, test extra, changelog`).
+   Then check the committed state: clone the branch into the scratchpad,
+   `python -m pip wheel --no-deps -w <dir> .` there; create a fresh venv
+   (`python -m venv <scratch>/venv-wheel`), `pip install <wheel>` (it pulls
+   gpyreg 1.3.1 from PyPI, and pytest with it), then
+   `pip uninstall -y pytest pytest-rerunfailures pytest-mock`; from a
+   directory outside any source tree, `python -c "import pybads; print(pybads.__file__)"`
+   succeeds and prints a `site-packages` path. Then
+   `pip install pytest pytest-rerunfailures` and, still outside the source
+   tree, `python -m pytest --pyargs pybads --reruns=5 -x -q` collects 89
+   tests and passes. In the project venv: `pip install -e ".[dev]"`, the
+   suite passes, the fingerprint is unchanged. A failed check is fixed in a
+   follow-up commit.
+
+**Verification**:
+- [ ] The wheel imports without pytest; the `--pyargs` run passes from the
+      installed wheel.
+- [ ] Fingerprint unchanged.
+
+### Phase 3: CI and release workflows
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: PyVBMC's CI structure: one test job defined once, gpyreg pinned,
+drift detection on schedule, a smoke run on development branches; action
+versions kept current; a release workflow.
+
+**Steps**:
+1. `.github/workflows/test-matrix.yml` (new): copy
+   `../pyvbmc/.github/workflows/test-matrix.yml` and adapt it: PyBADS names
+   and paths; defaults `os` = the three runners and `python-version` =
+   `["3.10", "3.11", "3.12"]`;
+   `GPYREG_PIN: 1dbbfc5f8785d514a3d5774026810af5ed44a093` (the commit of the
+   annotated tag `v1.3.1`) with PyVBMC's comment adapted (the tagged commit,
+   so setuptools_scm reads 1.3.1, the minimum in `pyproject.toml`); gpyreg
+   checkout with `fetch-depth: 0`; `fail-fast: false`. Drop the optional
+   feature steps (torch, ArviZ, PyMC). Install PyBADS with
+   `python -m pip install -e ".[test]"`, then gpyreg with `git log --oneline -1`
+   and `python -m pip install -e .` (gpyreg has no `test` extra). Run
+   `python -m pytest --reruns=5 -x -vv`.
+2. `.github/workflows/tests.yml`: PyVBMC's, adapted: dispatch with a
+   `gpyreg-ref` input; schedule on the 13th and 28th testing gpyreg `main`;
+   push to `dev*` branches touching `pybads/**`, `pyproject.toml`,
+   `setup.py` or the two workflow files, Ubuntu with Python 3.12 only; the
+   concurrency group.
+3. `.github/workflows/merge-tests.yml`: `check_changes` keeps its logic with
+   `actions/checkout@v6`; the `tests` job becomes
+   `uses: ./.github/workflows/test-matrix.yml`.
+4. `build.yml` and `docs.yml`: action versions as PyVBMC's
+   (`actions/checkout@v6`, `actions/setup-python@v6`,
+   `actions/upload-artifact@v7`); build on Python 3.10.
+5. `.github/dependabot.yml`: PyVBMC's (github-actions, monthly).
+6. `.github/workflows/release.yml` (new), once Open Question 2 is settled:
+   on `release: types: [published]` and `workflow_dispatch`; calls
+   `./.github/workflows/build.yml` (the local file, not PyVBMC's); a
+   publish job downloads the artifact and runs
+   `pypa/gh-action-pypi-publish@v1.14.0` (PyVBMC's pin), either by trusted
+   publishing (`permissions: id-token: write`, `environment: pypi`, no
+   secret; on PyPI, the project's publisher settings name owner
+   `acerbilab`, repository `pybads`, workflow `release.yml`, environment
+   `pypi`) or with a `pypi_password` secret as PyVBMC's. A dispatch from a
+   commit without a release tag builds a `.dev` version: dispatch only from
+   the tag.
+7. Check: every workflow parses
+   (`python -c "import yaml, glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/**/*.yml', recursive=True)]"`)
+   and `diff -r .github ../pyvbmc/.github` shows only the intended
+   differences. The workflows run only on GitHub: the push smoke run is
+   their first real check (Open Question 3); the full matrix runs on the
+   pull request to `main`.
+8. Documentation: `AGENTS.md`, "Setup and commands": the CI paragraph (the
+   pin and its variable, the drift run, the `dev*` smoke run, what a PR
+   runs, how a release is made: tag, GitHub release, the workflow uploads);
+   `docsrc/source/development.rst`: how a release is made. Commit
+   (`ci: shared test matrix with gpyreg pinned, release workflow`; the
+   release workflow may be its own commit).
+
+**Verification**:
+- [ ] YAML parses; after the user's go to push, the smoke run on the branch
+      passes.
+
+### Phase 4: generated example scripts
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: `examples/scripts/*.py` generated from the notebooks, as in PyVBMC.
+
+**Steps**:
+1. `examples/scripts/Makefile`: adapt `../pyvbmc/examples/scripts/Makefile`
+   to PyBADS's script names (`pybads_example_<n>_<topic>.py`, the stem of
+   each notebook), for instance with a pattern rule from `<stem>.ipynb` to
+   `<stem>.py`; drop PyVBMC's `.pkl` path rewrite (no PyBADS notebook opens
+   a file). The generated scripts lose the hand-written two-line header,
+   as PyVBMC's have none.
+2. Tools: if `make --version` fails, stop and ask the user to install GNU
+   Make (a system tool; PyVBMC's scripts were regenerated with GNU Make
+   4.4.1). `python -m pip install nbconvert black==23.3.0 isort==5.12.0`
+   (tools of this step, at the hook versions, not declared dependencies).
+   Then `make -C examples/scripts` from Git Bash with the venv activated,
+   so that `jupyter` and `python` resolve to it. If make fails on Windows
+   paths (`VPATH`, `realpath`), stop and report.
+3. Review each script's diff: changes other than the header and formatting
+   mean the script had drifted from its notebook; list them in the commit
+   message. Expected among them: the `options["rng_seed"] = ...` lines of
+   the example 2 script, which the notebook does not have; update that
+   row of `dev/results/2026-09-23-codebase-survey.md` (the script no longer
+   has them; the notebook never had).
+4. Run each script headless, one at a time:
+   `MPLBACKEND=Agg python examples/scripts/<script>.py`; each exits 0.
+5. `AGENTS.md`: the sentence on `examples/scripts/` becomes: generated from
+   the notebooks by `examples/scripts/Makefile` (GNU Make, nbconvert, and
+   black and isort at the hook versions); regenerate, do not edit. Commit
+   (`docs: generate the example scripts from the notebooks`).
+
+**Verification**:
+- [ ] A second `make` produces no diff; the five scripts exit 0.
+
+### Phase 5: the crash with user-specified noise
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: remove the crash recorded in the survey, so that noisy benchmark
+runs can be measured; runs that did not crash stay identical.
+
+**Steps**:
+1. Before the change, record a paired reference with a scratch script: the
+   problem of `test_he_noisy_sphere_opt` (`he_noisy_sphere` in
+   `pybads/testing/bads/test_bads_optimization.py`, with its noise drawn
+   from `np.random.default_rng(seed + 1000)` instead of `np.random`; the
+   bounds of `get_test_opt_conf`, D=3), options
+   `uncertainty_handling=True`, `specify_target_noise=True` (the first is
+   required: with `uncertainty_handling=None` construction raises),
+   `max_fun_evals=200`, `display="off"`, `random_seed` 0 to 29. Save per
+   seed either the exception or `(x, fval, func_count, yval_vec)`.
+2. `pybads/function_logger/function_logger.py`, `FunctionLogger._record`,
+   the duplicate branch taken when `fsd is not None`: return the merged
+   value as a scalar (`self.Y[idx].item()`) instead of the shape-`(1,)`
+   row.
+3. Unit test in `pybads/testing/function_logger/test_function_logger.py`:
+   with `uncertainty_handling_level=2`, logging the same point twice
+   returns a scalar the second time, equal to the precision-weighted mean
+   of the two observations.
+4. Rerun the script of step 1: every seed that did not crash gives
+   identical results; every seed that crashed now finishes. A changed
+   non-crashing seed, or a seed that still raises: stop and report.
+5. `python -m pytest pybads/testing/bads/test_bads_optimization.py::test_he_noisy_sphere_opt -p no:rerunfailures -q`
+   ten times: no `ValueError`. Report assertion failures separately (the
+   test's tolerance is a different matter).
+6. Records: `CHANGELOG.md`, under Fixed: a run with
+   `specify_target_noise=True` could stop with `ValueError: setting an
+   array element with a sequence` when a point was evaluated again.
+   `dev/results/2026-09-23-codebase-survey.md`: the crash section gains the
+   fix commit; a new candidate row: with `specify_target_noise=True` and
+   `uncertainty_handling=None`, `BADS.__init__` raises although its message
+   says to leave `uncertainty_handling` empty. `dev/TODO.md`: the crash item
+   removed. `AGENTS.md`: the sentence about the crash of
+   `test_he_noisy_sphere_opt` removed. Fingerprint unchanged. Commit
+   (`fix: return a scalar for a repeated evaluation with user-specified noise`).
+
+**Verification**:
+- [ ] Paired check of step 4; ten runs of the test without `ValueError`;
+      fingerprint unchanged.
+
+### Phase 6: seed tests
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: tests that pin the seeding contract as it stands, so that the
+generator change of Phase 8 is held to it.
+
+**Steps**:
+1. New `pybads/testing/bads/test_bads_seed.py`, after
+   `../pyvbmc/pyvbmc/testing/vbmc/test_vbmc_seed.py`: the autouse fixture
+   that saves and restores `np.random.get_state()`; a module-scoped seeded
+   run (D=3, `max_fun_evals` about 60, display off) that saves and
+   restores the global state itself; targets whose noise comes from their
+   own `np.random.default_rng(<fixed seed>)`, created per run.
+2. Tests, each comparing `x`, `fval`, `func_count`, `yval_vec` and the
+   logger's `X[X_flag]` and `Y[X_flag]`:
+   - `test_seed_fixes_run`: the shared run equals a second run with the same
+     `random_seed`; another seed gives a different run.
+   - `test_seed_ignores_global_draws`: `np.random.seed(12345)` before
+     construction and `np.random.rand(7)` between construction and
+     `optimize()` leave a seeded run unchanged.
+   - `test_seed_none_follows_global_seed`: with `random_seed=None`,
+     `np.random.seed(5)` before construction fixes the run.
+   - `test_seed_fixes_noisy_run`: as the first, with
+     `uncertainty_handling=True`, and with `uncertainty_handling=True` plus
+     `specify_target_noise=True`.
+3. Reach check: delete the call to `_init_random_seed_` in
+   `_init_optimization_`; `test_seed_ignores_global_draws` must fail;
+   restore it. If the test passes, it does not reach the code: fix the
+   test.
+4. The file runs in a few seconds (`--durations=5`). Commit
+   (`test: seed tests`).
+
+**Verification**:
+- [ ] The new tests pass; the reach check fails as expected.
+
+### Phase 7: benchmark targets and population comparison
+
+**Executor**: Opus sub-agent (implementation, steps 1–5), Opus
+(orchestrator) (review and reference, steps 6–9)
+**Status**: [ ] not started
+**Goal**: the gate for every later change that moves results: a benchmark
+suite, populations of seeded runs of it, and a statistical comparison of
+two populations.
+
+**Design (settled; the sub-agent implements it)**:
+- `dev/scripts/benchmark_targets.py`, after
+  `../pyvbmc/dev/scripts/benchmark_targets.py` (`Problem`, frozen `Config`,
+  `SUITES`, `STRUCTURE_SEED`, `--list/--check/--smoke`), for optimization:
+  - `Problem`: `name`, `D`, `f_true` (noiseless, on a `(D,)` array),
+    `f_min`, `x_min`, `lb`, `ub`, `plb`, `pub`, `x0`, `noise` (`"none"`,
+    `"homo"` with a standard deviation, or `"hetero"` with a rule for the
+    standard deviation), `non_box_cons`, `options`, `tolerance` (the error
+    below which a run counts as solved); `fun(x)` adds noise drawn from the
+    problem's own generator and returns `(y, sd)` for `"hetero"`.
+  - `Config`: `name`, `D`, `noise`, `tag`, `options` (a tuple of pairs),
+    `budget` (`max_fun_evals` as a multiple of `D`); `label` as PyVBMC's;
+    `make(seed)`.
+  - Streams: `STRUCTURE_SEED` fixes shifts and rotations per `(name, D)`;
+    per run, `SeedSequence(seed).spawn(2)` gives the `x0` stream (uniform
+    in the plausible box) and the noise stream; BADS gets
+    `random_seed=seed`.
+  - Targets: sphere, ill-conditioned ellipsoid, rotated Rosenbrock, Ackley
+    and Rastrigin (shifted, with analytic minima); noisy sphere and
+    ellipsoid with `"homo"` noise (`uncertainty_handling=True`) and with
+    `"hetero"` noise (`uncertainty_handling=True`,
+    `specify_target_noise=True`); the non-box sphere of the tests; one
+    configuration with unbounded variables (infinite `lb`/`ub`, finite
+    plausible box). Dimensions 2, 3 and 6, plus 10 for sphere and
+    ellipsoid.
+  - Budgets chosen from `--smoke` timings (which include the process
+    start-up) so that the `default` suite at 30 seeds runs in about 30
+    minutes as one process. Suites `smoke` (a few configurations) and
+    `default`.
+- `dev/scripts/population.py`, after `../pyvbmc/dev/scripts/golden_trace.py`,
+  without its traces:
+  - `run --suite NAME --seeds 0-29 --out DIR [--only a,b] [--options JSON]
+    [--budget-scale S] [--workers 1]`: each run in a fresh spawned process
+    (`ProcessPoolExecutor(max_workers=workers,
+    mp_context=get_context("spawn"), max_tasks_per_child=1)`), with
+    `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` set to
+    `1` and `MPLBACKEND=Agg`; resumable (a run whose record exists is
+    skipped); an exception is an outcome, recorded with its type and
+    message; one progress line per finished run (`flush=True`).
+    `--budget-scale` multiplies every configuration's budget.
+  - One JSON record per run: `label`, `seed`, `problem`, `D`, `noise`,
+    requested and effective options; `final`: `x`, `fval`, `fsd`,
+    `true_error` (`f_true(x) - f_min`), `func_count`, `iterations`,
+    `message`, `wall_s`, `crashed`, `exception`, and `min_noise_var`: the
+    smallest of the quantity gpyreg compares with `1e-6` to choose its
+    low-noise representation (`np.min(sn2)`; the same test in 1.3.1 and on
+    the branch, `gpyreg/gaussian_process.py`), over the GPs of
+    `bads.iteration_history["gp"]` (one per poll iteration; skip `None`
+    slots); `meta`: git SHA and dirty flag, Python, NumPy, SciPy, PyBADS
+    and gpyreg versions, gpyreg's source path and git SHA (the identity of
+    gpyreg: under `PYTHONPATH` its version string misleads), the thread
+    variables, start and end times. Provenance helpers written here after
+    `../pyvbmc/dev/scripts/profile_run.py` (`git_info`, `pkg_version`,
+    `module_source`, `thread_env`); no import from PyVBMC, no psutil.
+  - `summary DIR`: per configuration, median [IQR] of `true_error` and
+    `func_count`, the fraction solved, the crash count; writes `summary.md`.
+  - `compare REF NEW [--alpha 0.05]`: per configuration and metric
+    (`true_error`, `func_count`), a two-sample KS test where both sides
+    have at least 3 runs, and a paired Wilcoxon signed-rank test on
+    `log10(true_error + 1e-12)` over the seeds present in both (REF and
+    NEW share each seed's `x0` and noise streams); Holm correction over the
+    whole family; a flag also for any configuration whose crash count rises
+    from zero; exit 1 on any flag. It prints effect sizes per
+    configuration: the median paired `log10` error ratio with a bootstrap
+    95% interval, and the difference in fraction solved.
+    `compare REF --split` compares the even and odd seeds of REF (KS only;
+    the null check).
+- Records: output goes to `dev/scripts/runs/population/<name>/`; a
+  population that serves as a reference is copied (JSON records,
+  `summary.md`) to `dev/experiments/<name>/` with a `README.md` holding the
+  command, the provenance, the null check, the positive control and the
+  smallest effect the comparison detects at 30 seeds (the KS statistic and
+  the paired shift that reach significance after Holm over the family).
+  Names: `population_baseline_<YYYYMMDD>` (Phase 7),
+  `population_generator_<YYYYMMDD>` (Phase 8),
+  `population_gpyreg132_<YYYYMMDD>` (Phase 9), dated by the day of the run.
+
+**Steps**:
+1. (Sub-agent) Implement `benchmark_targets.py`: `--check` verifies
+   `f_true(x_min) == f_min` and that `x_min` lies inside the bounds and
+   satisfies `non_box_cons`; `--smoke` runs each configuration for one
+   seed and prints its wall time.
+2. (Sub-agent) Implement `population.py` as designed.
+3. (Sub-agent) `dev/scripts/test_population.py` (run by path; default
+   discovery covers only `pybads/testing`): the record schema,
+   resumability, `compare` on synthetic records (identical populations do
+   not flag; shifted ones do, in the KS and in the paired test), Holm.
+4. (Sub-agent) `dev/README.md`, section "Scripts": usage of
+   `benchmark_targets.py`, `population.py` and `fingerprint.py`, what is
+   committed where, one process at a time.
+5. (Sub-agent) Report: files, test results, `--smoke` timings, the
+   proposed budget per configuration.
+6. (Orchestrator) Review; commit the harness
+   (`feat(dev): benchmark targets and population comparison`).
+7. (Orchestrator) At that commit with gpyreg 1.3.1:
+   `python -u dev/scripts/population.py run --suite default --seeds 0-29 --out dev/scripts/runs/population/population_baseline_<YYYYMMDD>`,
+   logged. No crashes are expected after Phase 5; a crash is a finding:
+   stop and report.
+8. (Orchestrator) `compare <baseline> --split` flags nothing; a positive
+   control, the same suite at `--budget-scale 0.5` into a scratch
+   directory, flags on `true_error` in at least one configuration. If the
+   null check flags or the control does not flag on `true_error`, stop and
+   report.
+9. (Orchestrator) Copy the baseline to
+   `dev/experiments/population_baseline_<YYYYMMDD>/` with its `README.md`;
+   `AGENTS.md` gains a "Numerical gates" section: the population
+   comparison is the gate for a change that moves results, and its "no
+   flag" means no change beyond the detectable effect recorded with the
+   reference; a gate must reach the changed code; a gpyreg change is gated
+   by PyBADS's comparison run against that gpyreg checkout, with
+   `gpyreg.__file__` printed. Commit.
+
+**Verification**:
+- [ ] Harness tests pass; null check clean; positive control flags on
+      `true_error`; reference committed with provenance.
+
+### Phase 8: random-number generator objects
+
+**Executor**: Opus sub-agent (implementation, steps 1–6), Opus
+(orchestrator) (steps 7–10)
+**Status**: [ ] not started
+**Goal**: every random draw of a run goes through one
+`numpy.random.Generator`, with PyVBMC's contract as it stands: the
+randomness bullet of `../pyvbmc/AGENTS.md`, `../pyvbmc/pyvbmc/rng.py` and
+`../pyvbmc/pyvbmc/testing/vbmc/test_vbmc_seed.py`.
+(`../pyvbmc/dev/plans/stage1-rng-generator.md` §§2–3 describe an earlier
+design that reseeded the global stream; its §8 follow-up 1 removed it.)
+
+**Contract**:
+- The `random_seed` option takes what `numpy.random.default_rng` takes (an
+  integer, a `SeedSequence`, a `Generator`) or `None`; an integral float is
+  converted with `int()`, as before. `BADS.__init__` sets
+  `self.rng = get_rng(...)` before its first draw (the random `x0`);
+  `optimize()` draws from it; nothing reseeds in `_init_optimization_`.
+- `get_rng` (new `pybads/rng.py`, after PyVBMC's; internal: not exported
+  from `pybads/__init__.py`, no API page): `None` derives the generator
+  from four `uint32` draws of the global stream, so `np.random.seed`
+  before construction fixes an unseeded run; it never reseeds the global
+  stream; a `Generator` is used as given.
+- A seeded run leaves NumPy's global stream untouched: `random_seed` no
+  longer seeds it, so a target that draws from `np.random` is not made
+  reproducible by `random_seed` (Decisions).
+- The generator is passed explicitly: an `rng=` keyword on the GP functions
+  of `gaussian_process_train.py` and on to each `gp.fit(..., rng=rng)` and
+  `SliceSampler(..., rng=rng)`; a constructor argument of `ESSearchHedge`
+  and the `ESSearch` classes; an argument of `init_sobol` and of
+  `poll_mads_2n`. A keyword that defaults to `None` resolves through
+  `get_rng`. The generator is never stored in `optim_state` nor in the
+  `OptimizeResult` (which deep-copies its values).
+- The Sobol seed keeps its MATLAB derivation from the digits of `u0`; only
+  its fallback draw moves to the generator.
+- `OptimizeResult["random_seed"]` holds the option's value when it is an
+  integer or `None`, and `None` otherwise.
+
+**Steps**:
+1. (Sub-agent) Add `pybads/rng.py`.
+2. (Sub-agent) Replace every draw: in `bads.py`, the random `x0`
+   (`BADS.__init__`), `_init_random_seed_` (becomes the creation of the
+   generator) and its call in `_init_optimization_` (removed), the two
+   fallback `np.random.randint` of `_search_step_` and `_poll_step_` (same
+   range, via `rng.integers`), and the call of `poll_mads_2n`; in
+   `pybads/poll/poll_mads_2n.py`, which imports `from numpy import random as rnd`,
+   its two `rnd.randint` and one `rnd.permutation`; in
+   `gaussian_process_train.py`, the `np.random.choice`, `np.random.randn`
+   and `np.random.normal` draws, the four `gp.fit` calls and the
+   `SliceSampler`; in `init_sobol.py`, the fallback seed; in
+   `es_search.py`, three draws; in `search_hedge.py`, two draws. Leave
+   `pybads/function_examples.py` (noisy example targets) and
+   `pybads/stats/kde1d.py` (its only mention is a docstring example).
+3. (Sub-agent)
+   `grep -rnE "np\.random|numpy\.random|from numpy import random|\brnd\." pybads --include=*.py | grep -v pybads/testing`
+   lists only `pybads/rng.py`, `pybads/function_examples.py` and the
+   docstring of `pybads/stats/kde1d.py`.
+4. (Sub-agent) Update the callers in the tests (`test_search.py`,
+   `pybads/testing/bads/poll/test_poll_mads.py`, any direct construction of
+   the changed classes). Extend `test_bads_seed.py`:
+   `test_seeded_run_leaves_global_state_untouched` (the global state equals
+   before and after a seeded run, deterministic and noisy: the gate for a
+   missed draw site in PyBADS or a gpyreg call without the generator);
+   `test_seed_none_does_not_reseed` (construction consumes exactly the four
+   draws); `test_seed_accepts_generator` (`bads.rng is rng`);
+   `test_seed_none_ignores_draws_after_construction`. Reach check: add a
+   temporary `np.random.rand()` inside `_poll_step_`;
+   `test_seeded_run_leaves_global_state_untouched` must fail; remove it.
+   The tests of Phase 6 stay green.
+5. (Sub-agent) Documentation: the `random_seed` description in
+   `basic_bads_options.ini`, the `BADS` docstring and the `random_seed`
+   entry of the `OptimizeResult` docstring; `CHANGELOG.md` (Added: seeded
+   runs through a generator, `bads.rng`; Upgrading: "Results differ from
+   1.0.6, also with a fixed seed." and "`random_seed` no longer seeds
+   NumPy's global random state."); `AGENTS.md`, the randomness bullet
+   rewritten to the contract.
+6. (Sub-agent) `python -m pytest --reruns=5 -x -vv` passes; report.
+7. (Orchestrator) Review; commit
+   (`feat: random draws through a numpy Generator`).
+8. (Orchestrator) At that commit with gpyreg 1.3.1, run the `default`
+   population into
+   `dev/scripts/runs/population/population_generator_<YYYYMMDD>`;
+   `compare dev/experiments/population_baseline_<YYYYMMDD> <new>`. Every
+   trajectory changes; the distributions should not. A flag stops the
+   phase: report it with the configuration, metric and effect size. Large
+   effect sizes without a flag are reported too.
+9. (Orchestrator) With no flag, copy the population to
+   `dev/experiments/population_generator_<YYYYMMDD>/` (its README cites the
+   comparison and its effect sizes); it is the reference from now on. Run
+   `python dev/scripts/fingerprint.py` and record the new hash in the
+   Worklog: the fingerprint of later phases.
+10. (Orchestrator) Commit the records.
+
+**Verification**:
+- [ ] No global draw in a seeded run (test, with its reach check); seed
+      tests green; population comparison without flags; changelog and docs
+      updated.
+
+### Phase 9: gpyreg 1.3.2 for PyBADS
+
+**Executor**: Opus (orchestrator)
+**Status**: [ ] not started
+**Goal**: answer the PyVBMC maintainers' questions (Context), with the
+population comparison for the effect of 1.3.2 on results.
+
+**Steps**:
+1. Record the head of `../gpyreg-w6-leftovers`; change nothing there.
+2. Suite on 1.3.1 and on the branch (`PYTHONPATH=../gpyreg-w6-leftovers`,
+   `gpyreg.__file__` printed), reruns off, three times each; tabulate as in
+   Phase 0.
+3. Population: the `default` suite, seeds 0–29, at the head of Phase 8 with
+   the branch (`PYTHONPATH` set for the run) into
+   `dev/scripts/runs/population/population_gpyreg132_<YYYYMMDD>`;
+   `compare dev/experiments/population_generator_<YYYYMMDD> <new>`. From the
+   records: the share of runs with `min_noise_var` below `1e-6` (the
+   low-noise representation), and whether the flagged configurations are
+   those runs.
+4. The two PyBADS-side issues:
+   - The known-noise path: with `fit_lik=False`,
+     `gaussian_process_train.py` sets the noise prior
+     `("delta", noise_mu)`, a prior type gpyreg does not implement.
+     Confirm with one run of the sphere at D=3 with
+     `options={"fit_lik": False}` under each gpyreg version (expected: a
+     `ValueError` "Unknown hyperprior type" from `set_priors`, which is
+     present in every gpyreg release from v1.0.2 to v1.3.1, not new in
+     1.3.0).
+   - `_robust_gp_fit_` raises the noise lower bound after each failed fit
+     (by 1, 2, 3, ... from about -7.91 at `tol_fun = 1e-3`), so the lower
+     bound passes the upper bound of 5 after the fifth consecutive failure,
+     and the inverted pair raises `ValueError` under both versions (1.3.1
+     in `fit`, through `get_recommended_bounds`; 1.3.2 in `set_bounds`).
+     Only `LinAlgError` is caught, so a sixth try is never reached, and the
+     unbound result of ten failures is unreachable. Count with a scratch
+     in-process runner (not `population.py`, whose spawned processes a
+     patch in the parent does not reach): wrap `gpyreg.GP.fit` to count
+     `LinAlgError`s and `_robust_gp_fit_` to record each call's number of
+     consecutive failures; the `default` suite, seeds 0–9, under each
+     gpyreg version. Report the distribution and the runs that end in the
+     bound inversion.
+5. Records: a result note `dev/results/<YYYY-MM-DD>-gpyreg-1.3.2.md` (the
+   suite tables, the population comparison with effect sizes and the
+   low-noise share, the two issues with their counts, the verdict), linked
+   from `dev/README.md`'s index; the population copied to
+   `dev/experiments/population_gpyreg132_<YYYYMMDD>/`;
+   `dev/results/2026-09-23-codebase-survey.md` gains both issues;
+   `dev/TODO.md`: their fixes, with the bug hunt unless step 4 shows the
+   bound inversion at default options, and, if 1.3.2 leaves the comparison
+   without flags, an item to set `gpyreg >= 1.3.2` and `GPYREG_PIN` at its
+   tag once it is tagged. Commit.
+6. Report to the user, for the PyVBMC maintainers: suite results on both,
+   each difference and its cause, the population comparison, whether
+   anything in 1.3.2 should change before the tag, and the PyBADS
+   proposals.
+
+**Verification**:
+- [ ] Result note and records committed; report delivered.
+
+## Documentation
+
+Updated in the phase that makes the change:
+- `AGENTS.md`: Phases 1 (formatting), 2 (packaging, changelog convention),
+  3 (CI, releases), 4 (example scripts), 5 (the crash sentence), 7
+  ("Numerical gates"), 8 (randomness).
+- `CHANGELOG.md`: created in Phase 2; entries in Phases 2, 5 and 8.
+- `dev/README.md`: the index (this plan; the Phase 9 note); "Scripts"
+  (Phase 7).
+- `dev/TODO.md`: Phases 2, 5, 9.
+- `dev/results/2026-09-23-codebase-survey.md`: Phases 4, 5, 9.
+- `README.md`, `docsrc/source/installation.rst`, `environment.yml`:
+  Phase 2. `docsrc/source/development.rst`: Phases 2 and 3.
+- `basic_bads_options.ini` (`random_seed`), the `BADS` and `OptimizeResult`
+  docstrings: Phase 8.
+
+New records, each holding what nothing else holds: the reference
+populations under `dev/experiments/` (Phases 7, 8, 9) and the result note
+of Phase 9. This plan holds the execution status in its Worklog.
+
+## Decisions
+
+- **One formatting commit for the whole tree, listed in
+  `.git-blame-ignore-revs`** — every later diff shows only its change, and
+  a trial on a scratch clone left seeded results bit-identical. Rejected:
+  formatting each file when it is next touched (no churn now, but a
+  whole-file rewrite inside a later review, the RNG change among them).
+- **black covers the notebooks and the example scripts, as in PyVBMC** — one
+  rule for all Python code; notebook outputs are untouched. Rejected:
+  keeping an examples exclude (the notebooks keep their layout, but the
+  current regex excludes the notebooks and `function_examples.py` by
+  accident, and a corrected one would still differ from PyVBMC).
+- **gpyreg minimum 1.3.1, equal to the CI pin** — the minimum names a
+  version CI tests; both move to 1.3.2 after Phase 9. Rejected: `>= 1.1.0`,
+  the oldest with `fit(rng=)` (lower, but untested).
+- **NumPy, SciPy and matplotlib floors unchanged** — they equal gpyreg's,
+  and PyBADS cannot need less than gpyreg. Rejected: PyVBMC's floors
+  (NumPy 2.0, SciPy 1.15; consistent across the lab's packages, but
+  nothing in PyBADS needs them).
+- **Tests stay in the wheel** — the conda-forge recipe tests the installed
+  package with `pytest --pyargs pybads`. Rejected: PyVBMC's exclusion (a
+  smaller wheel, but it breaks that recipe).
+- **The crash fix precedes the baseline** — noisy benchmark runs would
+  otherwise crash in most seeds; the fix leaves non-crashing runs identical
+  (checked in Phase 5). Rejected: leaving it to the bug hunt.
+- **A population harness without traces or exact replay** — BADS runs are
+  cheap enough for distribution comparisons over 30 seeds; exact replay
+  needs a trace format and matters once oracles exist. Rejected: PyVBMC's
+  full golden-trace machinery now.
+- **KS tests plus a paired signed-rank test, with effect sizes** —
+  PyVBMC's KS test detects only gross changes at 30 seeds; the paired test
+  uses the shared `x0` and noise streams of each seed, and the effect
+  sizes make "no flag" interpretable. Rejected: KS alone, as PyVBMC
+  (simpler, weaker).
+- **One generator per run, PyVBMC's contract** — one design across the
+  lab's packages. Rejected: separate child streams for GP fitting and
+  search (a gpyreg change in its number of draws would leave the search
+  draws in place, but the design would differ from PyVBMC's).
+- **`random_seed` no longer seeds NumPy's global stream** — a seeded run
+  touches no global state, as in PyVBMC; no example relies on the side
+  effect (examples 3 and 4 draw noise from `np.random` without
+  `random_seed`). Rejected: keeping `np.random.seed(random_seed)` for
+  compatibility (scripts whose target draws from `np.random` stay
+  reproducible, at the cost of a hidden global side effect). Listed under
+  "Upgrading" in the changelog.
+
+## Open Questions
+
+1. **Run Phase 0 now?** Default: yes, before Phase 1 (about ten minutes);
+   the gpyreg tag waits on PyBADS's answer.
+2. **Release publishing.** Default: PyPI trusted publishing (no stored
+   secret; the PyPI project's owner adds the publisher, Phase 3 step 6).
+   Alternative: PyVBMC's `pypi_password` secret.
+3. **Pushing the branch.** Default: push after Phase 3, so that the `dev*`
+   smoke run tests the new workflows; each push only with the user's go.
+4. **Branch.** Default: rename `dev-agent-docs` to `dev-next` (the
+   long-lived development branch, as in PyVBMC); pull requests to `main`
+   later.
+
+## Worklog
+
+(Appended after each phase: date, commits, check results.)
+
