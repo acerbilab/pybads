@@ -95,10 +95,13 @@ reference's number of seeds.
 
 ## Index
 
-- [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
+- [experiments/population_generator_20260924/](experiments/population_generator_20260924/README.md)
   — the reference population of the benchmark (default suite, 30 seeds,
-  gpyreg 1.3.1, global random stream), with its null check, positive
-  control and detectable effect sizes.
+  gpyreg 1.3.1, draws through a `numpy.random.Generator`), with its
+  comparison with the baseline and its null check.
+- [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
+  — the first reference (global random stream), with the positive control
+  and the detectable effect sizes that the later references cite.
 - [plans/tooling-and-rng.md](plans/tooling-and-rng.md) — repository
   tooling after PyVBMC's (formatting, CI with gpyreg pinned, packaging,
   changelog, release), seed tests, the benchmark suite and population

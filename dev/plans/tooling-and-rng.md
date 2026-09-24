@@ -66,7 +66,9 @@ when its comparison shows no flag.
 
 - Work on the development branch (Open Question 4), from the repository
   root, in Git Bash, with the project venv (`.venv/Scripts/python.exe` on
-  Windows, `.venv/bin/python` elsewhere), written below as `python`.
+  Windows, `.venv/bin/python` elsewhere), written below as `python`. The
+  agent's shell does not activate the venv: commands name the interpreter
+  by its path, and a bare `python` there is the system installation.
 - Commits follow conventional commits and end with the `Co-Authored-By:`
   line; never a `Claude-Session:` trailer (`AGENTS.md`). One or more
   commits per phase; no push without the user's go. Code is committed
@@ -640,7 +642,7 @@ The original design follows.
 
 **Executor**: Opus sub-agent (implementation, steps 1–6), Opus
 (orchestrator) (steps 7–10)
-**Status**: [~] in progress (population, step 8)
+**Status**: [x] done (2026-09-24)
 **Goal**: every random draw of a run goes through one
 `numpy.random.Generator`, with PyVBMC's contract as it stands: the
 randomness bullet of `../pyvbmc/AGENTS.md`, `../pyvbmc/pyvbmc/rng.py` and
@@ -718,22 +720,22 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
    since its release); report.
 7. [x] (Orchestrator) Review; commit
    (`feat: random draws through a numpy Generator`).
-8. [ ] (Orchestrator) At that commit with gpyreg 1.3.1, run the `default`
+8. [x] (Orchestrator) At that commit with gpyreg 1.3.1, run the `default`
    population into
    `dev/scripts/runs/population/population_generator_<YYYYMMDD>`;
    `compare dev/experiments/population_baseline_<YYYYMMDD> <new>`. Every
    trajectory changes; the distributions should not. A flag stops the
    phase: report it with the configuration, metric and effect size. Large
    effect sizes without a flag are reported too.
-9. [ ] (Orchestrator) With no flag, copy the population to
+9. [x] (Orchestrator) With no flag, copy the population to
    `dev/experiments/population_generator_<YYYYMMDD>/` (its README cites the
    comparison and its effect sizes); it is the reference from now on. Run
    `python dev/scripts/fingerprint.py` and record the new hash in the
    Worklog: the fingerprint of later phases.
-10. [ ] (Orchestrator) Commit the records.
+10. [x] (Orchestrator) Commit the records.
 
 **Verification**:
-- [ ] No global draw in a seeded run (test, with its reach check); seed
+- [x] No global draw in a seeded run (test, with its reach check); seed
       tests green; population comparison without flags; changelog and docs
       updated.
 
@@ -1117,3 +1119,29 @@ the populations (steps 7–10). State at this entry:
   not reach it; with the slice sampler or the `negquad` mean it does (new
   survey candidate). 1.3.1's `fit` stores `X` and fills the recommended
   bounds before the optimization that can raise.
+
+### Phase 8 — 2026-09-24
+
+- Implementation `551aa47` (sub-agent; reviewed), plan `c85cddb`. Suite on
+  the v1.3.1 clone: 109 passed, no reruns. `test_bads_seed.py`: 19 tests,
+  8 s; the global-state test covers a random `x0`, inferred noise, prior
+  samples and the slice sampler, and all four cases failed with a
+  temporary `np.random.rand()` in `_poll_step_`. Beyond the plan: a float
+  seed that is not a whole number, or a string, raises `TypeError` (third
+  Upgrading line of the changelog); nothing else holds the generator than
+  `bads.rng` and the stored hedge, `bads.search_es_hedge.rng`.
+- Population `population_generator_20260924` at `c85cddb` with the v1.3.1
+  clone: 540 runs, 84.5 minutes, 2 crashes (`ellipsoid_D10` seeds 13 and
+  26, a third unguarded GP call, in the recovery of `local_gp_fitting`;
+  both reproduce; TODO and survey). A first launch ran the system Python
+  (NumPy 2.5.0, SciPy 1.18.0) through a bare `python`; stopped after 12
+  runs and discarded (Conventions, `AGENTS.md`).
+- `compare` against the baseline: no flag in 54 tests. Effect sizes within
+  ±0.37 in log10; two intervals exclude zero, `ellipsoid_D3_homo` +0.26
+  [+0.06, +0.41] and `ellipsoid_D3_hetero` +0.21 [+0.005, +0.38], with
+  signed-rank p = 0.25 and 0.096 before correction (about one of 18
+  expected by chance). Null check of the new population: no flag in 36
+  tests. Copied to `dev/experiments/population_generator_20260924/`, the
+  reference from now on.
+- Fingerprint with the v1.3.1 clone: `91ca34c6b51e7f20` (two processes),
+  the fingerprint of later phases in place of `fcf9451180c5172e`.

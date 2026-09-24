@@ -16,8 +16,19 @@ order.
   - `ellipsoid_D10`, seed 7, at 951 evaluations: `_search_step_` →
     `add_and_update_gp` → `gp.update`.
 
-  Both reproduce from their seeds
-  (`PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python dev/scripts/population.py run --only ellipsoid_D3 --seeds 20 --out <dir>`).
+  Both reproduce from their seeds at `2226883`
+  (`PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 .venv/Scripts/python.exe dev/scripts/population.py run --only ellipsoid_D3 --seeds 20 --out <dir>`).
+  In the reference that replaced it,
+  `dev/experiments/population_generator_20260924/` (draws through a
+  generator), those seeds finish, and 2 other runs stop at a third
+  unguarded call: `ellipsoid_D10` seeds 13 and 26, where
+  `local_gp_fitting` catches the failure of `gp.update(hyp=hyp_gp)` and
+  its recovery, `gp.set_hyperparameters(old_hyp_gp)`, fails in turn
+  (reached from `_search_step_` and from `_poll_step_`; they reproduce the
+  same way at `c85cddb`). The recovery restores the old hyperparameters on
+  the new training set, which `local_gp_fitting` assigns to `gp.X` and
+  `gp.y` directly before the update; its MATLAB counterpart is not
+  checked.
   Both are gaps of the port: MATLAB BADS (`../bads` at `019f0b4`) guards
   both calls. `UpdateTarget` (`bads.m`) predicts through `gppred`
   (`utils/gppred.m`), which catches a failed prediction per hyperparameter

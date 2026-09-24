@@ -93,6 +93,15 @@ from gpyreg's training Cholesky factorization: `ellipsoid_D3` seed 20 at
 both calls, `gppred` and `gpupdate` catching the failure; the port does
 not (`dev/TODO.md`, where the MATLAB counterparts are named).
 
+In the reference that replaced it,
+`dev/experiments/population_generator_20260924/` (the same suite with the
+draws through a generator), 2 of 540 runs stopped with the same error at a
+third call: `ellipsoid_D10` seeds 13 (751 evaluations, from
+`_search_step_`) and 26 (341 evaluations, from `_poll_step_`), in
+`local_gp_fitting`, where the `except` that catches a failed
+`gp.update(hyp=hyp_gp)` calls `gp.set_hyperparameters(old_hyp_gp)`, which
+fails in turn.
+
 ## Candidate defects (not verified)
 
 Found by reading the code, without a check of reach or effect and without

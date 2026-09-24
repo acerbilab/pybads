@@ -1,5 +1,10 @@
 # Reference population: the default suite, 30 seeds, gpyreg 1.3.1
 
+Replaced as the reference by
+[`population_generator_20260924`](../population_generator_20260924/README.md),
+whose runs draw through a `numpy.random.Generator` and which passed the
+comparison with this population.
+
 The reference for `dev/scripts/population.py compare` until a later
 reference replaces it: 18 configurations of the `default` suite of
 `dev/scripts/benchmark_targets.py` × seeds 0-29, each run at BADS's default
