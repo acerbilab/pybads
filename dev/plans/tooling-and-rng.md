@@ -742,7 +742,7 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 ### Phase 9: gpyreg 1.3.3 for PyBADS
 
 **Executor**: Opus (orchestrator)
-**Status**: [~] in progress (population, step 4)
+**Status**: [!] step 6 waits for the user: the comparison flags five configurations (Worklog)
 **Goal**: the effect of gpyreg 1.3.3 on PyBADS, measured with the
 population comparison against the generator reference of Phase 8; the
 answers the PyVBMC maintainers asked for (Context); and, if the comparison
@@ -786,7 +786,7 @@ candidate, `_robust_gp_fit_` row).
    than `wall_s` are equal. A difference contradicts the gpyreg
    maintainers' account (Context): stop and report it with the
    configuration and seed.
-4. [~] Population: the `default` suite, seeds 0–29, at the head of Phase 8
+4. [x] Population: the `default` suite, seeds 0–29, at the head of Phase 8
    with `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3`, into
    `dev/scripts/runs/population/population_gpyreg133_<YYYYMMDD>`, logged;
    `summary` of it; `compare dev/experiments/population_generator_<YYYYMMDD> <new>`.
@@ -796,14 +796,14 @@ candidate, `_robust_gp_fit_` row).
    populations, and for each crash of the generator reference whether its
    seed crashes under 1.3.3 (the question of the `dev/TODO.md` item on
    unguarded GP updates).
-5. [~] The two PyBADS-side issues, rerun at the released tag:
+5. [x] The two PyBADS-side issues, rerun at the released tag:
    `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gpyreg_issue_checks.py dev/scripts/runs/issues_<ts>/gpyreg133.json`,
    logged. Expected, as under 1.3.1 and 1.3.2: `fit_lik=False` raises
    `Unknown hyperprior type delta`; the robust-fit counts reach no bound
    inversion. Note that the counts of Phase 7 were taken with the global
    stream: the rerun under 1.3.3 is at the head of Phase 8, so its
    trajectories differ.
-6. [ ] With no flag in step 4 and no difference in step 3, require 1.3.3:
+6. [!] With no flag in step 4 and no difference in step 3, require 1.3.3:
    `pyproject.toml` `gpyreg >= 1.3.3`; `.github/workflows/test-matrix.yml`
    `GPYREG_PIN: 98ab5a4adecf37eb188521360bd87835979f47e7` with its comment
    naming v1.3.3; `CHANGELOG.md`, the Upgrading line and the Changed entry
@@ -1156,3 +1156,26 @@ the populations (steps 7–10). State at this entry:
   `91ca34c6b51e7f20`); the six configurations with failed fits in every
   run, seeds 0–9: the 60 records identical in every `final` field but
   `wall_s`.
+- Population `population_gpyreg133_20260924` at `2059506` with the v1.3.3
+  clone: 540 runs, 72.2 minutes, no crash. `compare` against the generator
+  reference flags five configurations, all with smaller errors under
+  1.3.3: `sphere_D10` (median paired log10 error ratio -2.43, median error
+  4.8e-5 → 8.5e-8, evaluations 538 → 449, flagged also on the
+  evaluations), `timing_D5` (-2.63; 6.2e-5 → 2.3e-7), `multisensory_s1_D6`
+  (-1.06; 2.4e-6 → 2.1e-7), `rosenbrock_D6` (-0.35; solved 0.63 → 0.77)
+  and `rastrigin_D3` (every pair slightly lower within the same local
+  minima, median error 3.98 in both). Unflagged: `ackley_D6` +0.10
+  [+0.007, +0.30]. Null check of the new population: no flag in 36 tests.
+- Every changed run went through the low-noise representation: 279 runs
+  differ from the reference, each with `min_noise_var` below `1e-6`, and
+  the 261 others are identical in every result field but `wall_s`
+  (including all noisy-target runs but 4). `ellipsoid_D10` seeds 13 and
+  26, which crashed in the reference, finish under 1.3.3; both are in the
+  low-noise regime before the crash, so their trajectories differ and this
+  does not show whether 1.3.3 avoids the crash.
+- Issue checks under 1.3.3 at `2059506` (`dev/scripts/runs/issues_1790283783/`):
+  `fit_lik=False` raises `Unknown hyperprior type delta` (from
+  `_write_prior_block`); robust fit over the 18 configurations, seeds
+  0–9: 3,385 calls, failures per call {0: 2865, 1: 307, 2: 201, 3: 12}, no
+  bound inversion, every run finished.
+- Step 6 says no move with a flag: stopped for the user's decision.
