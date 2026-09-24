@@ -439,7 +439,7 @@ runs can be measured; runs that did not crash stay identical.
 ### Phase 6: seed tests
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-24)
 **Goal**: tests that pin the seeding contract as it stands, so that the
 generator change of Phase 8 is held to it.
 
@@ -470,7 +470,7 @@ generator change of Phase 8 is held to it.
    (`test: seed tests`).
 
 **Verification**:
-- [ ] The new tests pass; the reach check fails as expected.
+- [x] The new tests pass; the reach check fails as expected.
 
 ### Phase 7: benchmark targets and population comparison
 
@@ -911,3 +911,10 @@ of Phase 9. This plan holds the execution status in its Worklog.
   Fingerprint `fcf9451180c5172e`.
 - New survey candidate: `specify_target_noise=True` with
   `uncertainty_handling=None` raises, against its own message.
+
+### Phase 6 — 2026-09-24
+
+- `pybads/testing/bads/test_bads_seed.py`: 5 tests (the noisy one for
+  inferred and for specified noise), 5.5 s. Reach check: with the reseed in
+  `_init_optimization_` replaced by the stored seed,
+  `test_seed_ignores_global_draws` fails; restored.
