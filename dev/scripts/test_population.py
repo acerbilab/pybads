@@ -1,6 +1,6 @@
-"""Checks of ``population.py``: the record schema, resumability, and the
-statistics of ``compare`` on synthetic records. Run by path, from the
-repository root::
+"""Checks of ``population.py``: the record schema, the reference minima of
+the real-data targets, resumability, and the statistics of ``compare`` on
+synthetic records. Run by path, from the repository root::
 
     python -m pytest dev/scripts/test_population.py
 
@@ -123,6 +123,32 @@ def test_crash_is_an_outcome(tmp_path):
     pop = pp.load_population(tmp_path)
     assert pop["sphere_D3_hetero"]["crashed"].tolist() == [True]
     assert np.isnan(pop["sphere_D3_hetero"]["true_error"][0])
+
+
+def test_real_targets_reference_and_pins():
+    for name, D in bt.REAL_TARGETS.items():
+        prob = bt.make_problem(name, D, seed=0)
+        assert bt._close(prob.f_true(prob.x_min), prob.f_min)
+        assert np.all(prob.lb <= prob.x_min) and np.all(prob.x_min <= prob.ub)
+        assert prob.tolerance == bt.TOL_REAL and prob.pins
+        for x, expected, kind, tol in prob.pins:
+            assert abs(bt._pin_value(prob, x, kind) - expected) <= tol
+
+
+def test_real_target_record(tmp_path):
+    # the error of a real-data target is measured from its reference minimum
+    opts = {"max_fun_evals": 60}
+    row = pp.run_task("multisensory_s1_D6_homo", 0, opts, 1.0, str(tmp_path))
+    assert row["status"] == "ok"
+    path = tmp_path / "multisensory_s1_D6_homo_seed0.json"
+    rec = json.loads(path.read_text())
+    ref = bt.reference_optimum("multisensory_s1", 6)
+    assert rec["f_min"] == ref["f_min"]
+    assert rec["tolerance"] == bt.TOL_REAL
+    assert rec["effective_options"]["uncertainty_handling"] is True
+    prob = bt.find_config("multisensory_s1_D6_homo").make(seed=0)
+    x = np.array(rec["final"]["x"])
+    assert rec["final"]["true_error"] == prob.f_true(x) - ref["f_min"]
 
 
 def test_run_resumes(tmp_path, capsys):

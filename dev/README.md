@@ -43,17 +43,27 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   differences can change the value.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
-  noise, one with a non-box constraint, one with infinite bounds) and the
-  suites `smoke` and `default`. `--list` prints the suites, `--check`
-  verifies each target's analytic minimum, bounds and noise, and `--smoke`
-  runs each configuration of a suite once, in a fresh process as a
-  population does, and prints its wall time with the projected time of 30
-  seeds. The `default` suite runs every configuration at BADS's default
-  budget, 500 D, so that each run ends on BADS's own termination criteria;
-  a population of 30 seeds takes about an hour.
+  noise, one with a non-box constraint, one with infinite bounds, and two
+  maximum-likelihood fits to real data, `timing` and `multisensory_s1`)
+  and the suites `smoke` and `default`. `--list` prints the suites,
+  `--check` verifies each target's minimum, bounds and noise, and the
+  pinned likelihood values of the real-data targets, and `--smoke` runs
+  each configuration of a suite once, in a fresh process as a population
+  does, and prints its wall time with the projected time of 30 seeds. The
+  `default` suite runs every configuration at BADS's default budget,
+  500 D, so that each run ends on BADS's own termination criteria; a
+  population of 30 seeds takes about 80 minutes.
+- `data/` holds the data of the real-data targets, copied from PyVBMC,
+  and their reference minima, `reference_optima.json`, against which the
+  error of a run on those targets is measured; `data/README.md` describes
+  the files and their provenance.
+- `make_reference_optima.py` computes the reference minima (BADS restarts
+  at a long budget, the best of them polished with SciPy) and writes
+  `data/reference_optima.json`, in about 7 minutes. Rerun it when a
+  real-data likelihood or its data changes.
 - `population.py` runs, summarizes and compares populations of seeded
   runs. `run --suite default --seeds 0-29 --out DIR` writes one JSON record
-  per run (result, error against the analytic minimum, effective options,
+  per run (result, error against the target's minimum, effective options,
   provenance) and skips the runs already recorded, so it resumes after an
   interruption. `summary DIR` writes `DIR/summary.md`. `compare REF NEW`
   tests each configuration for a change in the error and in the number of
@@ -66,8 +76,8 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
   source path and commit, since the version string is that of the
   installed gpyreg.
-- `test_population.py` checks the record schema, resumability and the
-  statistics of `compare`:
+- `test_population.py` checks the record schema, the reference minima of
+  the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
 
 A population's raw output goes to `scripts/runs/population/<name>/`. A
