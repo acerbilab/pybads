@@ -47,7 +47,7 @@
      "func_count": 262,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.6300847000675276
+     "wall_s": 3.4264530000509694
     },
     {
      "seed": 1,
@@ -71,7 +71,7 @@
      "func_count": 259,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.3196654999628663
+     "wall_s": 3.3087743000360206
     },
     {
      "seed": 2,
@@ -95,7 +95,7 @@
      "func_count": 303,
      "iterations": 15,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.3752655000425875
+     "wall_s": 4.355665399925783
     },
     {
      "seed": 3,
@@ -119,7 +119,7 @@
      "func_count": 288,
      "iterations": 16,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.902327499934472
+     "wall_s": 3.8303968999534845
     },
     {
      "seed": 4,
@@ -143,7 +143,7 @@
      "func_count": 260,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.9583968999795616
+     "wall_s": 3.886899800039828
     },
     {
      "seed": 5,
@@ -167,7 +167,7 @@
      "func_count": 284,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.099624799913727
+     "wall_s": 3.9617034000111744
     },
     {
      "seed": 6,
@@ -191,7 +191,7 @@
      "func_count": 279,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.128023900091648
+     "wall_s": 3.9263915000483394
     },
     {
      "seed": 7,
@@ -215,7 +215,7 @@
      "func_count": 369,
      "iterations": 20,
      "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
-     "wall_s": 5.097703600069508
+     "wall_s": 4.904837699956261
     },
     {
      "seed": 8,
@@ -239,7 +239,7 @@
      "func_count": 254,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.4122608000179753
+     "wall_s": 3.3560502000618726
     },
     {
      "seed": 9,
@@ -263,7 +263,7 @@
      "func_count": 235,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.159610699978657
+     "wall_s": 3.0912154999095947
     },
     {
      "seed": 10,
@@ -287,7 +287,7 @@
      "func_count": 290,
      "iterations": 15,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.028225800022483
+     "wall_s": 3.9903920999495313
     },
     {
      "seed": 11,
@@ -311,7 +311,7 @@
      "func_count": 282,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.267527199932374
+     "wall_s": 4.059242499992251
     },
     {
      "seed": 12,
@@ -335,7 +335,7 @@
      "func_count": 300,
      "iterations": 16,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 4.541853400063701
+     "wall_s": 4.389053800026886
     },
     {
      "seed": 13,
@@ -359,7 +359,7 @@
      "func_count": 242,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.2480944000417367
+     "wall_s": 3.1979698000941426
     },
     {
      "seed": 14,
@@ -383,7 +383,7 @@
      "func_count": 267,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.749181899940595
+     "wall_s": 3.7397389999823645
     },
     {
      "seed": 15,
@@ -407,7 +407,7 @@
      "func_count": 278,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.838481800048612
+     "wall_s": 3.7831008000066504
     },
     {
      "seed": 16,
@@ -431,7 +431,7 @@
      "func_count": 276,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.828968200017698
+     "wall_s": 3.6509318000171334
     },
     {
      "seed": 17,
@@ -455,7 +455,7 @@
      "func_count": 274,
      "iterations": 15,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.7953682999359444
+     "wall_s": 3.7035177999641746
     },
     {
      "seed": 18,
@@ -479,7 +479,7 @@
      "func_count": 246,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.5904655000194907
+     "wall_s": 3.6128292999928817
     },
     {
      "seed": 19,
@@ -503,7 +503,7 @@
      "func_count": 279,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 3.8815790000371635
+     "wall_s": 3.8731523000169545
     }
    ],
    "polishes": [
@@ -529,7 +529,7 @@
       0.025273582775555838
      ],
      "f": 483.5133436051275,
-     "wall_s": 0.17038369993679225,
+     "wall_s": 0.174476100015454,
      "restart": 12
     },
     {
@@ -554,7 +554,7 @@
       0.025273579585272696
      ],
      "f": 483.5133436051275,
-     "wall_s": 0.18154999997932464,
+     "wall_s": 0.17792719998396933,
      "restart": 17
     },
     {
@@ -579,7 +579,7 @@
       0.02527358126873596
      ],
      "f": 483.5133436051275,
-     "wall_s": 0.18779200001154095,
+     "wall_s": 0.18712700007017702,
      "restart": 19
     }
    ],
@@ -593,7 +593,7 @@
    },
    "provenance": {
     "git": {
-     "sha": "3f693a4",
+     "sha": "469a505",
      "dirty": true
     },
     "python": "3.12.6",
@@ -604,7 +604,7 @@
     "pybads_source": {
      "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\pybads",
      "git": {
-      "sha": "3f693a4",
+      "sha": "469a505",
       "dirty": true
      }
     },
@@ -620,10 +620,10 @@
      "multisensory.npz": "caf62b205a67bbb3a53d2650c0cf98ddcd4dc1c15da72e31d3c1f97256db982f",
      "timing.npz": "9fb1c08afa2b52810dafb04d62ac0166c502ae60b0b18a2741f89efd75e5a9cc"
     },
-    "started": "2026-09-24T18:40:59+0300",
-    "finished": "2026-09-24T18:42:18+0300"
+    "started": "2026-09-24T19:00:19+0300",
+    "finished": "2026-09-24T19:01:36+0300"
    },
-   "elapsed_s": 78.54622540005948
+   "elapsed_s": 76.75691819994245
   },
   "timing": {
    "D": 5,
@@ -669,7 +669,7 @@
      "func_count": 243,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 13.40094439999666
+     "wall_s": 13.517435099929571
     },
     {
      "seed": 1,
@@ -691,7 +691,7 @@
      "func_count": 378,
      "iterations": 19,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 20.102212499943562
+     "wall_s": 21.093746899976395
     },
     {
      "seed": 2,
@@ -713,7 +713,7 @@
      "func_count": 405,
      "iterations": 21,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 19.27254889998585
+     "wall_s": 22.118353699916042
     },
     {
      "seed": 3,
@@ -735,7 +735,7 @@
      "func_count": 191,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 9.125705999904312
+     "wall_s": 10.20338790002279
     },
     {
      "seed": 4,
@@ -757,7 +757,7 @@
      "func_count": 274,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 13.241410200018436
+     "wall_s": 14.664541500038467
     },
     {
      "seed": 5,
@@ -779,7 +779,7 @@
      "func_count": 239,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 11.415103900013492
+     "wall_s": 12.75506689993199
     },
     {
      "seed": 6,
@@ -801,7 +801,7 @@
      "func_count": 222,
      "iterations": 11,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 10.890004500048235
+     "wall_s": 11.939046300016344
     },
     {
      "seed": 7,
@@ -823,7 +823,7 @@
      "func_count": 224,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 10.786606600042433
+     "wall_s": 11.829932400025427
     },
     {
      "seed": 8,
@@ -845,7 +845,7 @@
      "func_count": 177,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 7.746568000060506
+     "wall_s": 8.697905000066385
     },
     {
      "seed": 9,
@@ -867,7 +867,7 @@
      "func_count": 361,
      "iterations": 21,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 18.20751660002861
+     "wall_s": 20.28179799998179
     },
     {
      "seed": 10,
@@ -889,7 +889,7 @@
      "func_count": 243,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 11.883107700035907
+     "wall_s": 13.195731999934651
     },
     {
      "seed": 11,
@@ -911,7 +911,7 @@
      "func_count": 288,
      "iterations": 16,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 14.213947800104506
+     "wall_s": 15.978644899907522
     },
     {
      "seed": 12,
@@ -933,7 +933,7 @@
      "func_count": 284,
      "iterations": 13,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 13.451842000009492
+     "wall_s": 15.332965199952014
     },
     {
      "seed": 13,
@@ -955,7 +955,7 @@
      "func_count": 1229,
      "iterations": 58,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 67.40588510001544
+     "wall_s": 76.34839850000571
     },
     {
      "seed": 14,
@@ -977,7 +977,7 @@
      "func_count": 218,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 10.211520699900575
+     "wall_s": 10.756931400042959
     },
     {
      "seed": 15,
@@ -999,7 +999,7 @@
      "func_count": 507,
      "iterations": 25,
      "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
-     "wall_s": 26.328439199947752
+     "wall_s": 26.904600100009702
     },
     {
      "seed": 16,
@@ -1021,7 +1021,7 @@
      "func_count": 272,
      "iterations": 15,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 13.283091700053774
+     "wall_s": 13.050312699982896
     },
     {
      "seed": 17,
@@ -1043,7 +1043,7 @@
      "func_count": 225,
      "iterations": 14,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 10.474012900027446
+     "wall_s": 10.32168609998189
     },
     {
      "seed": 18,
@@ -1065,7 +1065,7 @@
      "func_count": 168,
      "iterations": 10,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 8.183389200014062
+     "wall_s": 7.948820100049488
     },
     {
      "seed": 19,
@@ -1087,7 +1087,7 @@
      "func_count": 205,
      "iterations": 12,
      "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-     "wall_s": 9.903501400025561
+     "wall_s": 9.25252790004015
     }
    ],
    "polishes": [
@@ -1112,7 +1112,7 @@
       0.010000000000395741
      ],
      "f": 3839.1732706081257,
-     "wall_s": 8.29225029994268,
+     "wall_s": 7.771158099989407,
      "restart": 0
     },
     {
@@ -1136,7 +1136,7 @@
       0.010000000000356482
      ],
      "f": 3839.173270608494,
-     "wall_s": 11.5310336999828,
+     "wall_s": 10.722167299943976,
      "restart": 10
     },
     {
@@ -1160,7 +1160,7 @@
       0.01
      ],
      "f": 3839.1732706078164,
-     "wall_s": 8.047105000005104,
+     "wall_s": 7.621546800015494,
      "restart": 19
     }
    ],
@@ -1187,8 +1187,8 @@
    },
    "provenance": {
     "git": {
-     "sha": "3f693a4",
-     "dirty": true
+     "sha": "469a505",
+     "dirty": false
     },
     "python": "3.12.6",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -1198,8 +1198,8 @@
     "pybads_source": {
      "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\pybads",
      "git": {
-      "sha": "3f693a4",
-      "dirty": true
+      "sha": "469a505",
+      "dirty": false
      }
     },
     "gpyreg": "1.3.1",
@@ -1214,10 +1214,10 @@
      "multisensory.npz": "caf62b205a67bbb3a53d2650c0cf98ddcd4dc1c15da72e31d3c1f97256db982f",
      "timing.npz": "9fb1c08afa2b52810dafb04d62ac0166c502ae60b0b18a2741f89efd75e5a9cc"
     },
-    "started": "2026-09-24T18:35:11+0300",
-    "finished": "2026-09-24T18:40:59+0300"
+    "started": "2026-09-24T18:54:06+0300",
+    "finished": "2026-09-24T19:00:19+0300"
    },
-   "elapsed_s": 348.0781811999623
+   "elapsed_s": 373.0089807000477
   }
  },
  "about": "Reference minima of the real-data targets of dev/scripts/benchmark_targets.py, written by dev/scripts/make_reference_optima.py (see its docstring and data/README.md)."
