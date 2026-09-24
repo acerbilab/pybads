@@ -103,7 +103,7 @@ reference's number of seeds.
   tooling after PyVBMC's (formatting, CI with gpyreg pinned, packaging,
   changelog, release), seed tests, the benchmark suite and population
   comparison, random draws through a `numpy.random.Generator`, and the
-  assessment of gpyreg 1.3.2 for PyBADS.
+  assessment of gpyreg 1.3.3 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that check less than they
