@@ -42,6 +42,11 @@ older NumPy accepted the conversion was not checked. The run crashes only
 when a search or poll point lands on an evaluated point, which is why the
 failure is intermittent.
 
+Fixed in `4566acb`: the duplicate branch returns the merged value as a
+scalar. On the problem of the test with its noise from a per-seed generator,
+10 of 30 seeded runs crashed before the fix; after it all 30 finish, and
+the 20 that did not crash give bit-identical results.
+
 ### Bitwise `~` on a bool
 
 `gaussian_process_train.py:275`,
@@ -70,6 +75,7 @@ described; the rest are reports of the read not yet looked at.
 | `optimize_result.py` | `success` is reported always `True`; `exit_flag`, `min_iter` and `min_fun_evals` are reported unread | not looked at |
 | `examples/scripts/pybads_example_2_nonbox_constraints.py` | set `options["rng_seed"]`, not a valid option name, in options never passed to `BADS`; the notebook never had these lines, and the script generated from it (tooling plan, Phase 4) no longer has them | resolved |
 | `search/es_search.py:239-253` | `ESSearchCMA` calls `ucov` with a signature that does not match its definition (`:294`); no option reaches the class | not looked at |
+| `bads.py`, `_init_optim_state_` (at `4566acb`, lines 809-826) | with `specify_target_noise=True`, an `uncertainty_handling` of `None` is set to `False` and then raises `ValueError`, whose message says to leave `uncertainty_handling` empty | seen |
 | `bads.py:880-893` | the `gp_mean_fun` check accepts twelve names, of which only `zero`, `const` and `negquad` are reported to work | not looked at |
 
 ## Tests that check less than they appear to

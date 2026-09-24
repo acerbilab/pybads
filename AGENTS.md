@@ -211,9 +211,7 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   (100–300 evaluations each, one of them 60-D) and dominates the runtime of
   the suite. Most are unseeded, which is why CI uses `--reruns=5`; an
   assertion passes when the error is below 1, and `test_high_dim_opt`
-  asserts nothing. `test_he_noisy_sphere_opt` crashes in about half of its
-  runs and passes only through the reruns (`dev/TODO.md`): a rerun of it is
-  that crash, not statistical noise.
+  asserts nothing.
 - `pybads/testing/bads/poll/test_poll_mads.py` names its functions
   `*_test`, so pytest collects none of them. `pybads/testing/run_tests.py`
   imports paths that no longer exist, `pybads/testing/bads/*.dat` are read

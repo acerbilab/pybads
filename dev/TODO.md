@@ -5,12 +5,6 @@ order.
 
 - [ ] **Tooling, CI, seeded runs and the benchmark harness.** In progress:
   [plan](plans/tooling-and-rng.md), whose Worklog records each phase.
-- [ ] **Crash with user-specified noise.** With `specify_target_noise=True`,
-  a run crashes when a search or poll evaluates a point already in the log,
-  because `FunctionLogger._record` then returns an array instead of a scalar;
-  `test_he_noisy_sphere_opt` fails in about half of its runs and passes in
-  CI only through `--reruns=5`. Mechanism and reproduction:
-  [survey](results/2026-09-23-codebase-survey.md), "Observed failures".
 - [ ] **Bug hunt and verification against MATLAB BADS (deferred).** A
   systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point

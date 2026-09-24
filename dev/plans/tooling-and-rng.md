@@ -393,7 +393,7 @@ versions kept current; a release workflow.
 ### Phase 5: the crash with user-specified noise
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-24)
 **Goal**: remove the crash recorded in the survey, so that noisy benchmark
 runs can be measured; runs that did not crash stay identical.
 
@@ -433,7 +433,7 @@ runs can be measured; runs that did not crash stay identical.
    (`fix: return a scalar for a repeated evaluation with user-specified noise`).
 
 **Verification**:
-- [ ] Paired check of step 4; ten runs of the test without `ValueError`;
+- [x] Paired check of step 4; ten runs of the test without `ValueError`;
       fingerprint unchanged.
 
 ### Phase 6: seed tests
@@ -898,3 +898,16 @@ of Phase 9. This plan holds the execution status in its Worklog.
   the `options["rng_seed"]` lines and writes `> 1.0`, example 4 loses three
   result lines the notebook does not have. A second `make -B` changes
   nothing; the five scripts exit 0 with `MPLBACKEND=Agg`.
+
+### Phase 5 — 2026-09-24
+
+- Fix `4566acb` (with its unit test, which fails on the old code at the
+  scalar check, and the changelog entry); records in the next commit.
+- Paired check, 30 seeds (`random_seed` = seed, target noise from
+  `default_rng(seed + 1000)`): before, 10 crashes; after, 0; the 20
+  non-crashing seeds bit-identical. `test_he_noisy_sphere_opt`, ten runs
+  with reruns off: no `ValueError`; 1 run failed its tolerance (error
+  1.16 > 1), which is the test's statistical check, not the crash.
+  Fingerprint `fcf9451180c5172e`.
+- New survey candidate: `specify_target_noise=True` with
+  `uncertainty_handling=None` raises, against its own message.

@@ -29,4 +29,4 @@ its entry below.
 - **Repeated evaluations with user-specified noise.** With
   `specify_target_noise=True`, a run could stop with `ValueError: setting an
   array element with a sequence` after the optimizer evaluated a point a
-  second time. The two observations are now merged and the run continues.
+  second time. The run now continues, with the two observations merged.
