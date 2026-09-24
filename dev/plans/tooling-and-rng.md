@@ -219,7 +219,7 @@ diffs show only their change.
 ### Phase 2: packaging, changelog and documentation
 
 **Executor**: Opus (orchestrator)
-**Status**: [~] in progress
+**Status**: [x] done (2026-09-24)
 **Goal**: dependencies that match what CI tests, pytest out of PyBADS's
 runtime dependencies, and a changelog. Before Phase 3, whose workflow
 installs the `test` extra and whose pin comment names the minimum set here.
@@ -289,9 +289,9 @@ installs the `test` extra and whose pin comment names the minimum set here.
    follow-up commit.
 
 **Verification**:
-- [ ] The wheel imports without pytest; the `--pyargs` run passes from the
+- [x] The wheel imports without pytest; the `--pyargs` run passes from the
       installed wheel.
-- [ ] Fingerprint unchanged.
+- [x] Fingerprint unchanged.
 
 ### Phase 3: CI and release workflows
 
@@ -872,3 +872,14 @@ of Phase 9. This plan holds the execution status in its Worklog.
   suite 89 passed (5 reruns); every changed `.py` file has the same syntax
   tree up to import order and string whitespace; no notebook output
   changed; pycln removed nothing (it leaves `from pytest import Function`).
+
+### Phase 2 — 2026-09-24
+
+- Commit `8eb0266`. `CHANGELOG.md` starts with the sections that have
+  entries (Upgrading, Changed); Keep a Changelog omits empty sections.
+- Wheel check on a clone of `8eb0266`: the wheel installs gpyreg 1.3.1 from
+  PyPI (with pytest); after `pip uninstall pytest pytest-rerunfailures
+  pytest-mock`, `import pybads` works from `site-packages`; with pytest
+  back, `pytest --pyargs pybads` from outside the source tree: 89 passed.
+- Project venv: `pip install -e ".[dev]"`; suite 89 passed; fingerprint
+  `fcf9451180c5172e`.
