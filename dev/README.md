@@ -76,6 +76,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
   source path and commit, since the version string is that of the
   installed gpyreg.
+- `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
+  and records where the runs end: the evidence behind the suite's budgets.
+- `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
+  counts the failed fits inside `_robust_gp_fit_` over the suite, under the
+  gpyreg that `PYTHONPATH` selects.
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.

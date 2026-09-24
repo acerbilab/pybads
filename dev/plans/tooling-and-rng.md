@@ -1039,6 +1039,7 @@ the populations (steps 7–10). State at this entry:
   two issues were run and reported before the tag (Phase 7 entries, the
   survey), so step 4 needs only a rerun of the `fit_lik=False` check and
   of the robust-fit counts at the released tag if the result note is to
-  cite them; the result note also says whether 1.3.2 changes the two
+  cite them (`dev/scripts/gpyreg_issue_checks.py`, with
+  `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.2`); the result note also says whether 1.3.2 changes the two
   crashing runs (`dev/TODO.md`). The PyVBMC maintainers have both earlier
   reports (Phase 0, the two issues); Phase 9's report is the remaining one.
