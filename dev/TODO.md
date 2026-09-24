@@ -13,6 +13,12 @@ order.
   that check less than they appear to.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench).
+- [ ] **gpyreg releases after 1.3.2.** PyBADS requires the latest gpyreg
+  release and pins it in CI (`GPYREG_PIN`). Each new release (1.3.3 is in
+  preparation as of 2026-09-24) moves the minimum and the pin, after the
+  population comparison (`dev/scripts/population.py compare`) against the
+  current reference shows that it has no effect on PyBADS, or explains the
+  one it has.
 - [ ] **conda-forge recipes, at the next release.**
   `conda-forge/pybads-feedstock` (`recipe/meta.yaml`): run requirements
   `gpyreg >=1.3.1`, without pytest, pytest-mock and pytest-rerunfailures
