@@ -640,7 +640,7 @@ The original design follows.
 
 **Executor**: Opus sub-agent (implementation, steps 1–6), Opus
 (orchestrator) (steps 7–10)
-**Status**: [ ] not started
+**Status**: [~] in progress (population, step 8)
 **Goal**: every random draw of a run goes through one
 `numpy.random.Generator`, with PyVBMC's contract as it stands: the
 randomness bullet of `../pyvbmc/AGENTS.md`, `../pyvbmc/pyvbmc/rng.py` and
@@ -675,8 +675,8 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
   integer or `None`, and `None` otherwise.
 
 **Steps**:
-1. [ ] (Sub-agent) Add `pybads/rng.py`.
-2. [ ] (Sub-agent) Replace every draw: in `bads.py`, the random `x0`
+1. [x] (Sub-agent) Add `pybads/rng.py`.
+2. [x] (Sub-agent) Replace every draw: in `bads.py`, the random `x0`
    (`BADS.__init__`), `_init_random_seed_` (becomes the creation of the
    generator) and its call in `_init_optimization_` (removed), the two
    fallback `np.random.randint` of `_search_step_` and `_poll_step_` (same
@@ -689,11 +689,11 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
    `es_search.py`, three draws; in `search_hedge.py`, two draws. Leave
    `pybads/function_examples.py` (noisy example targets) and
    `pybads/stats/kde1d.py` (its only mention is a docstring example).
-3. [ ] (Sub-agent)
+3. [x] (Sub-agent)
    `grep -rnE "np\.random|numpy\.random|from numpy import random|\brnd\." pybads --include=*.py | grep -v pybads/testing`
    lists only `pybads/rng.py`, `pybads/function_examples.py` and the
    docstring of `pybads/stats/kde1d.py`.
-4. [ ] (Sub-agent) Update the callers in the tests (`test_search.py`,
+4. [x] (Sub-agent) Update the callers in the tests (`test_search.py`,
    `pybads/testing/bads/poll/test_poll_mads.py`, any direct construction of
    the changed classes). Extend `test_bads_seed.py`:
    `test_seeded_run_leaves_global_state_untouched` (the global state equals
@@ -705,18 +705,18 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
    temporary `np.random.rand()` inside `_poll_step_`;
    `test_seeded_run_leaves_global_state_untouched` must fail; remove it.
    The tests of Phase 6 stay green.
-5. [ ] (Sub-agent) Documentation: the `random_seed` description in
+5. [x] (Sub-agent) Documentation: the `random_seed` description in
    `basic_bads_options.ini`, the `BADS` docstring and the `random_seed`
    entry of the `OptimizeResult` docstring; `CHANGELOG.md` (Added: seeded
    runs through a generator, `bads.rng`; Upgrading: "Results differ from
    1.0.6, also with a fixed seed." and "`random_seed` no longer seeds
    NumPy's global random state."); `AGENTS.md`, the randomness bullet
    rewritten to the contract.
-6. [ ] (Sub-agent)
+6. [x] (Sub-agent)
    `PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python -m pytest --reruns=5 -x -vv`
    passes (the CI pin; the editable install follows `../gpyreg`, at 1.3.3
    since its release); report.
-7. [ ] (Orchestrator) Review; commit
+7. [x] (Orchestrator) Review; commit
    (`feat: random draws through a numpy Generator`).
 8. [ ] (Orchestrator) At that commit with gpyreg 1.3.1, run the `default`
    population into
