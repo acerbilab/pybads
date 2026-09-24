@@ -1169,7 +1169,7 @@ the populations (steps 7–10). State at this entry:
 - Every changed run went through the low-noise representation: 279 runs
   differ from the reference, each with `min_noise_var` below `1e-6`, and
   the 261 others are identical in every result field but `wall_s`
-  (including all noisy-target runs but 4). `ellipsoid_D10` seeds 13 and
+  (all the noisy-target runs but 2, in `ellipsoid_D3_homo`). `ellipsoid_D10` seeds 13 and
   26, which crashed in the reference, finish under 1.3.3; both are in the
   low-noise regime before the crash, so their trajectories differ and this
   does not show whether 1.3.3 avoids the crash.
