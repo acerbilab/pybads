@@ -73,10 +73,11 @@ every push to `main` and commits them to `gh-pages`. No workflow publishes
 to PyPI.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
-79, isort with the black profile, pycln); no CI job checks it. Several
-modules predate the hooks and are not black-formatted (`bads/bads.py` among
-them), so the hook reformats the whole of such a file the first time a
-change to it is committed.
+79 on every Python file and the notebooks' code cells, isort with the black
+profile, pycln); no CI job checks it, and the whole tree passes them. The
+commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` hides it from
+`git blame`.
 
 `pyproject.toml` is authoritative; `setup.py` is a shim. It names only
 `pybads` and `pybads.examples` as packages: the subpackages and the `.ini`

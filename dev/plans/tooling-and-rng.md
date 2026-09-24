@@ -160,7 +160,7 @@ PyBADS raise, before the long phases below (see Context). The effect of
 ### Phase 1: line endings and formatting
 
 **Executor**: Opus (orchestrator)
-**Status**: [~] in progress
+**Status**: [x] done (2026-09-24)
 **Goal**: consistent line endings and a codebase formatted once, so later
 diffs show only their change.
 
@@ -213,8 +213,8 @@ diffs show only their change.
    formatting commit from `git blame`. Commit.
 
 **Verification**:
-- [ ] `python -m pre_commit run -a` passes with no changes.
-- [ ] Fingerprint and public names unchanged; suite green.
+- [x] `python -m pre_commit run -a` passes with no changes.
+- [x] Fingerprint and public names unchanged; suite green.
 
 ### Phase 2: packaging, changelog and documentation
 
@@ -861,3 +861,14 @@ of Phase 9. This plan holds the execution status in its Worklog.
   on the branch; the one difference is a prediction change in the
   low-noise representation, passed through the global random stream to a
   later test. Records: `dev/scripts/runs/phase0_1790247784/` (gitignored).
+
+### Phase 1 — 2026-09-24
+
+- Commits: `e82c1f8` fingerprint script, `82594df` line endings
+  (staged exactly `.gitattributes`, `docsrc/make.bat` and the six `.dat`
+  files), `3e99f1e` hooks, `69be885` formatting (53 files), `d882cf8`
+  `.git-blame-ignore-revs`, then `AGENTS.md`.
+- Fingerprint `fcf9451180c5172e` before and after; public names unchanged;
+  suite 89 passed (5 reruns); every changed `.py` file has the same syntax
+  tree up to import order and string whitespace; no notebook output
+  changed; pycln removed nothing (it leaves `from pytest import Function`).
