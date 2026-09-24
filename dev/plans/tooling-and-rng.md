@@ -357,7 +357,7 @@ versions kept current; a release workflow.
 ### Phase 4: generated example scripts
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-24)
 **Goal**: `examples/scripts/*.py` generated from the notebooks, as in PyVBMC.
 
 **Steps**:
@@ -388,7 +388,7 @@ versions kept current; a release workflow.
    (`docs: generate the example scripts from the notebooks`).
 
 **Verification**:
-- [ ] A second `make` produces no diff; the five scripts exit 0.
+- [x] A second `make` produces no diff; the five scripts exit 0.
 
 ### Phase 5: the crash with user-specified noise
 
@@ -883,3 +883,18 @@ of Phase 9. This plan holds the execution status in its Worklog.
   back, `pytest --pyargs pybads` from outside the source tree: 89 passed.
 - Project venv: `pip install -e ".[dev]"`; suite 89 passed; fingerprint
   `fcf9451180c5172e`.
+
+### Phase 4 — 2026-09-24
+
+- `5b066dd`: black (Phase 1) had split `x0 = ...;  # Starting point` into a
+  statement and a comment line in three notebooks and two test scripts;
+  the comments are back inline.
+- The Makefile names the notebook as an explicit prerequisite
+  (`%.py: ../%.ipynb`) instead of PyVBMC's `VPATH`, and calls
+  `python -m nbconvert`; GNU Make 4.4.1 (Chocolatey) runs it from Git Bash.
+- The regenerated scripts differ from the old copies beyond the header and
+  formatting where the copies had drifted from the notebooks: example 1
+  imports `from pybads.bads import BADS` (as the notebook), example 2 loses
+  the `options["rng_seed"]` lines and writes `> 1.0`, example 4 loses three
+  result lines the notebook does not have. A second `make -B` changes
+  nothing; the five scripts exit 0 with `MPLBACKEND=Agg`.

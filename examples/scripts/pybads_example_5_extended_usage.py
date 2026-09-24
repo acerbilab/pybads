@@ -1,6 +1,3 @@
-# PyBADS Example 5: Extended usage
-# (code only - see Jupyter notebook for a tutorial)
-
 import numpy as np
 
 from pybads import BADS
@@ -29,6 +26,7 @@ options = {
     "uncertainty_handling": False,  # Good to specify that this is a deterministic function
 }
 
+
 num_opts = 10
 optimize_results = []
 x_vec = np.zeros((num_opts, lower_bounds.shape[0]))
@@ -50,11 +48,13 @@ for opt_count in range(num_opts):
     x_vec[opt_count] = optimize_results[opt_count].x
     fval_vec[opt_count] = optimize_results[opt_count].fval
 
+
 print("Found solutions:")
 print(x_vec)
 
 print("Function values at solutions:")
 print(fval_vec)
+
 
 idx_best = np.argmin(fval_vec)
 result_best = optimize_results[idx_best]
@@ -64,5 +64,6 @@ fval = result_best["fval"]
 
 print(f"BADS minimum at x_min = {x_min.flatten()}")
 print(f"Function value at minimum fval = {fval}")
+
 
 result_best

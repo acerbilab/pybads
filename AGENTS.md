@@ -112,8 +112,10 @@ from cmd on Windows), which copies the result into `docs/`.
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
 docs build; nothing runs them, so a change that breaks one goes unnoticed.
-`examples/scripts/*.py` are code-only copies of the notebooks, and no script
-in the repository regenerates them.
+`examples/scripts/*.py` are generated from the notebooks by
+`examples/scripts/Makefile` (GNU Make, with nbconvert, and black and isort
+at the pre-commit hook versions, in the environment `python` names);
+regenerate them with `make -B -C examples/scripts`, do not edit them.
 
 ## Architecture
 

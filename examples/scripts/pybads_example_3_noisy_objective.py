@@ -1,6 +1,3 @@
-# PyBADS Example 3: Noisy objective function
-# (code only - see Jupyter notebook for a tutorial)
-
 import numpy as np
 
 from pybads import BADS
@@ -26,6 +23,7 @@ options = {
     "noise_final_samples": 100,
 }
 
+
 bads = BADS(
     noisy_sphere,
     x0,
@@ -36,6 +34,7 @@ bads = BADS(
     options=options,
 )
 optimize_result = bads.optimize()
+
 
 x_min = optimize_result["x"]
 fval = optimize_result["fval"]
@@ -48,6 +47,7 @@ print(
     f"total f-count: {optimize_result['func_count']}, time: {round(optimize_result['total_time'], 2)} s"
 )
 print(f"final evaluations (shape): {optimize_result['yval_vec'].shape}")
+
 
 print(
     f"The true, noiseless value of f(x_min) is {noisy_sphere(x_min,sigma=0)[0]:.3g}."
