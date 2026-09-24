@@ -129,7 +129,7 @@ At `fd4bda9` with gpyreg 1.3.1, on Windows 11 with Python 3.12.6 and NumPy
 ### Phase 0 (optional, Open Question 1): gpyreg 1.3.2 breakage check
 
 **Executor**: Opus (orchestrator)
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-24)
 **Goal**: tell the PyVBMC maintainers early whether gpyreg 1.3.2 makes
 PyBADS raise, before the long phases below (see Context). The effect of
 1.3.2 on results is Phase 9.
@@ -154,7 +154,7 @@ PyBADS raise, before the long phases below (see Context). The effect of
 5. Worklog entry and report.
 
 **Verification**:
-- [ ] Report to the user, for the PyVBMC maintainers: gpyreg heads,
+- [x] Report to the user, for the PyVBMC maintainers: gpyreg heads,
       per-test outcomes on each, each difference with its cause.
 
 ### Phase 1: line endings and formatting
@@ -837,3 +837,27 @@ of Phase 9. This plan holds the execution status in its Worklog.
 
 (Appended after each phase: date, commits, check results.)
 
+
+### Phase 0 — 2026-09-24
+
+- gpyreg 1.3.1: `../gpyreg` at `1dbbfc5` (tag `v1.3.1`, clean). Branch:
+  `../gpyreg-w6-leftovers` at `38e8ada` (clean). PyBADS at `82e3a81`.
+- Suite, reruns off, three runs each (`-W ignore::DeprecationWarning`):
+  1.3.1: 88 passed, `test_he_noisy_sphere_opt` failed 3 of 3, each time on
+  its tolerance (`Error [1.49897281] is not smaller than tolerance`), not
+  with the crash. Branch: 89 passed, 3 of 3. No other test differs; no
+  `ValueError` from a gpyreg refusal on the branch.
+- Cause: in the full suite, `test_small_noisy_func` calls
+  `np.random.seed(42343)`, so the tests after it draw from a fixed global
+  stream and `test_he_noisy_sphere_opt` has one outcome per gpyreg version.
+  `test_small_noisy_func` (noise standard deviation `1e-4`, a variance of
+  `1e-8`) is in the low-noise representation, and its run changes under
+  1.3.2 (seeded, as in the test: error `1.2e-6` on 1.3.1, `1.6e-8` on the
+  branch; 164 and 168 evaluations; both pass) and leaves the global stream
+  in another state. `test_he_noisy_sphere_opt` itself does not change:
+  with `np.random.seed(s)`, `s` = 0–19, its 20 runs are bit-identical on
+  both versions, including the 6 that crash (PyBADS's crash of Phase 5).
+- Verdict for the gpyreg maintainers: no refusal fires and no test breaks
+  on the branch; the one difference is a prediction change in the
+  low-noise representation, passed through the global random stream to a
+  later test. Records: `dev/scripts/runs/phase0_1790247784/` (gitignored).
