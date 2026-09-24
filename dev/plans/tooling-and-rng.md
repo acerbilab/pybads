@@ -296,7 +296,7 @@ installs the `test` extra and whose pin comment names the minimum set here.
 ### Phase 3: CI and release workflows
 
 **Executor**: Opus (orchestrator)
-**Status**: [~] in progress (committed; awaiting the push smoke run)
+**Status**: [x] done (2026-09-24)
 **Goal**: PyVBMC's CI structure: one test job defined once, gpyreg pinned,
 drift detection on schedule, a smoke run on development branches; action
 versions kept current; a release workflow.
@@ -351,7 +351,7 @@ versions kept current; a release workflow.
    release workflow may be its own commit).
 
 **Verification**:
-- [ ] YAML parses; after the user's go to push, the smoke run on the branch
+- [x] YAML parses; after the user's go to push, the smoke run on the branch
       passes.
 
 ### Phase 4: generated example scripts
@@ -476,7 +476,7 @@ generator change of Phase 8 is held to it.
 
 **Executor**: Opus sub-agent (implementation, steps 1–5), Opus
 (orchestrator) (review and reference, steps 6–9)
-**Status**: [ ] not started
+**Status**: [~] in progress (steps 1–5 delegated)
 **Goal**: the gate for every later change that moves results: a benchmark
 suite, populations of seeded runs of it, and a statistical comparison of
 two populations.
@@ -918,3 +918,13 @@ of Phase 9. This plan holds the execution status in its Worklog.
   inferred and for specified noise), 5.5 s. Reach check: with the reseed in
   `_init_optimization_` replaced by the stored seed,
   `test_seed_ignores_global_draws` fails; restored.
+
+### Phase 3 — 2026-09-24
+
+- Commits `588dc17` (test matrix, tests, merge-tests, build, docs,
+  dependabot) and `f4e00d6` (release workflow by trusted publishing through
+  the `pypi` environment, admitting `v*` tags; AGENTS.md and the developer
+  guide). `build.yml` also checks out with `fetch-depth: 0`, so that a
+  build reads its version from the tags.
+- `dev-next` pushed at `989e360` (user's go): the `tests` smoke run
+  (Ubuntu, Python 3.12, gpyreg pinned at `1dbbfc5`) passed, 95 tests.
