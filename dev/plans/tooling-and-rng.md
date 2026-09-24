@@ -476,7 +476,7 @@ generator change of Phase 8 is held to it.
 
 **Executor**: Opus sub-agent (implementation, steps 1–5), Opus
 (orchestrator) (review and reference, steps 6–9)
-**Status**: [~] in progress (steps 1–5 delegated)
+**Status**: [~] in progress (harness committed; baseline running)
 **Goal**: the gate for every later change that moves results: a benchmark
 suite, populations of seeded runs of it, and a statistical comparison of
 two populations.

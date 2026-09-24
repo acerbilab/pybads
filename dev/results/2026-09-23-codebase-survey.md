@@ -55,6 +55,32 @@ the 20 that did not crash give bit-identical results.
 names 3.16 for its removal. `~False` is `-1` and `~True` is `-2`, both
 truthy, so the condition does not depend on `gp_fixed_mean`.
 
+### Known-noise path (`fit_lik=False`)
+
+With `fit_lik=False`, `gaussian_process_train.py` (`_gp_hyp`) sets the noise
+prior `("delta", noise_mu)`, a prior type gpyreg does not implement: every
+such run stops at its first GP setup with `ValueError: Unknown hyperprior
+type delta` (checked on 2026-09-24 with gpyreg 1.3.1, from `set_priors`, and
+with the 1.3.2 branch `w6-leftovers` at `755a4b3`, from
+`_write_prior_block`). gpyreg's `set_priors` refuses an unknown prior type
+in every release from 1.0.2 on. `fit_lik` is an advanced option, `True` by
+default.
+
+### Failed fits in `_robust_gp_fit_`
+
+`_robust_gp_fit_` retries a fit that raises `LinAlgError` up to ten times,
+raising the lower bound of the noise hyperparameter by 1, 2, 3, ... from
+`log(tol_fun) - 1`, about -7.91 at the default `tol_fun`. After the fifth
+consecutive failure the lower bound passes the upper bound, 5, and the
+inverted pair raises `ValueError` (read from the code, not run: with gpyreg
+1.3.2 in `set_bounds` at the fifth failure, with 1.3.1 in the next `fit`);
+only `LinAlgError` is caught, so the run stops, and the unbound result of
+ten failures cannot be reached. At default options this was not reached: over the 15
+configurations of the benchmark suite (`dev/scripts/benchmark_targets.py`,
+suite `default`), seeds 0-9, about 1,500 calls under each gpyreg version,
+79% had no failure, and the most consecutive failures in one call was 3;
+every call recovered and every run finished.
+
 ## Candidate defects (not verified)
 
 Found by reading the code, without a check of reach or effect and without
@@ -76,6 +102,7 @@ described; the rest are reports of the read not yet looked at.
 | `examples/scripts/pybads_example_2_nonbox_constraints.py` | set `options["rng_seed"]`, not a valid option name, in options never passed to `BADS`; the notebook never had these lines, and the script generated from it (tooling plan, Phase 4) no longer has them | resolved |
 | `search/es_search.py:239-253` | `ESSearchCMA` calls `ucov` with a signature that does not match its definition (`:294`); no option reaches the class | not looked at |
 | `bads.py`, `_init_optim_state_` (at `4566acb`, lines 809-826) | with `specify_target_noise=True`, an `uncertainty_handling` of `None` is set to `False` and then raises `ValueError`, whose message says to leave `uncertainty_handling` empty | seen |
+| `gaussian_process_train.py:979-983` (at `1cfe371`) | the fraction of the budget used divides by `min(max_fun_evals, n_train_max) - eff_starting_points`, zero when `max_fun_evals` equals the initial design, and the cubic next to it mixes `x_` and `x` | seen |
 | `bads.py:880-893` | the `gp_mean_fun` check accepts twelve names, of which only `zero`, `const` and `negquad` are reported to work | not looked at |
 
 ## Tests that check less than they appear to
@@ -85,5 +112,9 @@ described; the rest are reports of the read not yet looked at.
 - `test_high_dim_opt` runs with `assert_flag=False` and asserts nothing.
 - The other optimization tests pass when the error is below 1
   (`np.any(err < [0.1, 0.1, 1, 1])`).
+- `test_sphere_opt` marks as infeasible the points with `x1 + x2 >= sqrt(2)`,
+  the reverse of the MATLAB test (`runtest.m`, infeasible where
+  `x1 + x2 < sqrt(2)`), so the unconstrained minimum 0 is feasible; it
+  expects 1 and passes because an error just below 1 meets its tolerance.
 - `pybads/testing/run_tests.py` imports `testing.*` paths that no longer
   exist, and no test reads `pybads/testing/bads/*.dat`.
