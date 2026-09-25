@@ -55,9 +55,12 @@ order.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB), and the errors
-  of `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's
-  `runtest.m` in 7 of 100 seeds (its test section).
+  table (only partly looked at, never compared with MATLAB), and the
+  findings of its section on the tests: the errors of
+  `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's `runtest.m`
+  in 7 of 100 seeds, and two candidate defects (`contraints_check` keeps
+  previously evaluated points; the seed of the initial Sobol design
+  ignores all but the integer part of `u0`).
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.

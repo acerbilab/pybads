@@ -253,8 +253,8 @@ same gpyreg.
 ## Tests and their traps
 
 - `pybads/testing/bads/test_bads_optimization.py` runs whole optimizations
-  (up to 300 evaluations each, one of them 60-D) and dominates the runtime
-  of the suite.
+  (a few hundred evaluations at most, one of them 60-D) and dominates the
+  runtime of the suite.
 - Every test whose outcome depends on random draws is seeded, the noise of
   a noisy target included, so a failure repeats on every rerun, CI's
   `--reruns=5` included. The tolerances of `test_bads_optimization.py` hold

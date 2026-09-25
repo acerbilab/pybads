@@ -13,8 +13,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   operation that later Python versions remove.
 - **Shipped tests.** The tests that ship with PyBADS
   (`pytest --pyargs pybads`) are seeded, so that they give the same result
-  on each run, and include three tests of the poll that pytest did not
-  collect. The module `pybads.testing.run_tests`, which failed on import,
+  on each run, and pytest collects the two tests of the poll that it
+  skipped, beside a third one. The module `pybads.testing.run_tests`, which failed on import,
   and six data files that no test read are no longer installed.
 
 ## [1.1.0] - 2026-09-25

@@ -48,8 +48,9 @@ def test_poll_mads_2n():
 
 
 def test_poll_mads_2n_dense():
-    """A search mesh coarser than the poll mesh gives `n_max > 1`, and a
-    basis with nonzero entries below the diagonal."""
+    """A search mesh coarser than the poll mesh gives `n_max > 1`, where the
+    basis can have more than D nonzero entries (at `n_max = 1` it is a
+    signed permutation matrix)."""
     poll_scale = np.array([[0.5133, 0.493, 3.9511]])
     search_mesh_size = 1.0
     mesh_size = 0.25

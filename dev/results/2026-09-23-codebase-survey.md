@@ -144,38 +144,46 @@ described; the rest are reports of the read not yet looked at.
 | `search/search_hedge.py:72-74` (at `894d205`) | `np.argwhere(rand_uni < np.cumsum(self.prob))[0]` raises `IndexError` when nothing matches, before the `len(self.chosen_hedge) == 0` fallback that it guards can run | fixed in `06badd3` |
 | `bads.py:39` (at `894d205`), the `BADS` class docstring | a `:math:` role holding `\mathtt` in a docstring that is not a raw string: Python 3.12 emits `SyntaxWarning: invalid escape sequence` for it when it compiles the module | fixed in `06badd3` |
 
-## Tests that check less than they appear to
+## Tests that checked less than they appeared to
 
 Each defect below is fixed in the commit its entry names. A fix to a test
 moves no result, so the test suite was the check: with gpyreg 1.3.3, 109
 tests passed at `870fa35` and 112 after the fixes (the three poll tests
-added to the collection), none on a rerun.
+added to the collection), none of them needing a rerun; on the full CI
+matrix (Ubuntu, Windows, macOS × Python 3.10–3.12), 112 passed in every
+job, without reruns.
 
 - `pybads/testing/bads/poll/test_poll_mads.py` named its functions
   `*_test`, so pytest collected none of them. Fixed in `125efac`: renamed
   `test_*`, they check the poll set beyond its shape (the second half
   negates the first, and undoing the division by `poll_scale` gives an
   integer basis of determinant `+-n_max**D`), and a third test reaches
-  `n_max > 1`, which neither of the two original cases did.
+  `n_max > 1`, which neither of the two original cases did. A run at
+  default options never does: with `search_size_locked`, the default,
+  `search_size_integer` is at most `2 * mesh_size_integer - 10` and at
+  most 0, so the search mesh is at least 32 times finer than the poll mesh
+  and `n_max` is 1, as in MATLAB BADS.
 - `test_high_dim_opt` ran with `assert_flag=False` and asserted nothing,
   and neither did `test_univariate_input_and_opt`. Fixed in `9a99bae`: both
   assert an error bound (table below).
-- The other optimization tests passed when the error was below 1:
-  `np.any(err < [0.1, 0.1, 1, 1])` compared the error with the four
-  tolerances of `runtest.m` at once. Fixed in `9a99bae`: each test has one
-  tolerance (table below).
+- The optimization tests built on `get_test_opt_conf` passed when the
+  error was below 1: `np.any(err < [0.1, 0.1, 1, 1])` compared the error
+  with the four tolerances of `runtest.m` at once. Fixed in `9a99bae`:
+  each test has one tolerance (table below).
 - `test_sphere_opt` marked as infeasible the points with
   `x1 + x2 >= sqrt(2)`, the reverse of the MATLAB test (`runtest.m`,
   infeasible where `x1 + x2 < sqrt(2)`), and started from the origin, so
   the unconstrained minimum 0 was feasible; it expected 1 and passed
   because an error just below 1 met its tolerance. Fixed in `9a99bae`: the
-  constraint and the start point `(4, 4, 4)` of `runtest.m`. Every run of
-  the sweep below ends within 2e-4 of the constrained minimum.
+  test takes the constraint and the start point `(4, 4, 4)` of
+  `runtest.m`, and every run of the sweep below ends within 2e-4 of the
+  constrained minimum.
 - Most optimization tests were unseeded, and the noisy targets drew their
   noise from NumPy's global stream (`test_small_noisy_func` after reseeding
   it). Fixed in `9a99bae`: each run sets `random_seed`, and a noisy target
-  draws its noise from a generator of its own. `4fab44d` seeds the three
-  tests of `search/test_search.py` that train the GP of an unseeded `BADS`.
+  draws its noise from a generator of its own. The three tests of
+  `search/test_search.py` that trained the GP of an unseeded `BADS` are
+  seeded in `4fab44d`.
 - `pybads/testing/run_tests.py` imported `testing.*` paths that no longer
   exist, and no test read `pybads/testing/bads/*.dat`, six files present
   since the first port (`c7c88ab`) and read in no commit. Both removed in
@@ -189,7 +197,8 @@ Environment: Windows 11, Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, gpyreg
 1.3.3 (a clone at the tag, `98ab5a4`), package code of `870fa35`. No run
 crashed. The retry loop of the initial GP fit (`init_and_train_gp`)
 logged 49 failed fits, each followed by a successful one: 47 in 32 runs of
-`test_small_noisy_func` and 2 in 2 runs of `test_univariate_input_and_opt`. Called at `s` from 0 to 4 by setting the
+`test_small_noisy_func` and 2 in 2 runs of
+`test_univariate_input_and_opt`. Called at `s` from 0 to 4 by setting the
 module's `SEED` and `NOISE_SEED`, the test functions reproduce the runs of
 the sweep bit for bit.
 
@@ -219,3 +228,33 @@ tests pass the same problem in different input shapes; the sweep ran
 `test_1D_opt_scalar`, and at `s` from 0 to 4 the other two give the same
 runs. The 60-D ellipsoid of `test_high_dim_opt` starts at 17.3, and the
 run ends on its budget of 200 evaluations.
+
+### Found while fixing the tests
+
+Two candidate defects, seen in the code (reach and effect not measured):
+
+- `test_incumbent_constraint_check` (`search/test_search.py`) evaluates
+  every row of `U` and then asserts that `contraints_check`
+  (`function_logger/constraints_check.py`) drops only the duplicate row it
+  appends. That holds because `contraints_check` removes no previously
+  evaluated point: its step "Remove previously evaluated vectors" keeps the
+  first occurrences of `np.unique` over the candidates stacked above the
+  evaluated points, and a first occurrence always falls among the
+  candidates. MATLAB's `utils/uCheck.m` removes them
+  (`setdiff(u1, u2, 'rows')`), which would leave `U_new` empty in the test.
+  `contraints_check` filters the candidates of the initial design, the
+  search and the poll, so a run can evaluate a point again; without a
+  noise estimate from the target, `FunctionLogger` records the repeat as a
+  new row, a duplicate training input of the GP. Fixing it moves results.
+- `init_sobol` (`init_functions/init_sobol.py`) derives the seed of the
+  initial Sobol design from `u0[:11].astype(np.uint64)`, which truncates
+  each coordinate and is undefined for one of -1 or below: on macOS,
+  `test_small_noisy_func` (whose `x0 = -3` maps to `u0 = -1.5`) emits
+  `RuntimeWarning: invalid value encountered in cast` in CI, so its seed
+  there can differ from that on Windows and Linux. MATLAB's
+  `init/initSobol.m` takes the seed from the characters of
+  `num2str(u0(1:min(10,end)))`, the printed values themselves. By
+  truncation, every `u0` inside `(-1, 1)^D`, that is, every start point
+  inside the plausible box, gives the port the same seed, and so the same
+  initial design for a given `D`, whatever the `random_seed` (checked for
+  `D = 3`).

@@ -4,13 +4,14 @@ more.
 Each run is seeded: the `random_seed` of BADS is `SEED`, and a noisy target
 draws its noise from a generator seeded with `NOISE_SEED`. On another
 platform, or with other versions of NumPy, SciPy or gpyreg, a seeded run
-can follow another trajectory, so each tolerance lies well above the errors
-of its test over seeds 0-99 (`SEED = s`, `NOISE_SEED = s + 1000`), which
-the section "Tests that check less than they appear to" of
-`dev/results/2026-09-23-codebase-survey.md` records. The tests read both
-constants when called: setting them and calling a test function for each
-seed checks its tolerance over the seeds again, which a change that moves
-results calls for."""
+can follow another trajectory, so each tolerance lies above the errors of
+its test over seeds 0-99 (`SEED = s`, `NOISE_SEED = s + 1000`): about ten
+times the largest of them, except for `test_he_noisy_sphere_opt`, whose
+tolerance is about twice. The section "The seed sweep behind the
+tolerances" of `dev/results/2026-09-23-codebase-survey.md` records the
+errors. The tests read both constants when called: setting them and
+calling a test function for each seed checks its tolerance over the seeds
+again, which a change that moves results calls for."""
 
 import numpy as np
 
