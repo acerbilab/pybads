@@ -42,6 +42,12 @@ PYTHONPATH=<repository>/dev/scripts/runs/gpyreg/v1.3.3 <repository>/.venv/bin/py
   configurations × seeds 0-3) were reproduced exactly. One BLAS thread per
   run, four runs at a time, a fresh process per run; 30.2 minutes, from
   18:46 to 19:16 UTC on 2026-09-25.
+- #67 (`068e57f`), merged into this branch after the run (`e668e0a`),
+  changes the final estimate under `specify_target_noise`: the records of
+  `sphere_D3_hetero` and `ellipsoid_D3_hetero` hold the `fval` and `fsd`
+  of the estimate before it. At `e668e0a`, all 18 configurations × seeds
+  0-3 give the same records in every `final` field but `wall_s`, and, for
+  those two configurations, `fval` and `fsd`; `compare` reads neither.
 - The files: one JSON record per run (`<label>_seed<seed>.json`),
   `summary.md`, `comparison.md` (the comparison with the previous
   reference) and `null_check.md`; `steps/` below. The run went to
