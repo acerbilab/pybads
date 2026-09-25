@@ -67,8 +67,10 @@ order.
   handling alone gives such runs.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
-  pytest-rerunfailures, which the tests do not need; both can go at the
-  next feedstock update.
+  pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
+  seeded, so both stay until the first release after 1.1.0, whose tests
+  are: drop them in the version-update PR that the feedstock's bot opens
+  for that release, before it is merged.
 - [ ] **Follow-ups of the GP-update guards**
   ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
   in the survey's candidate table, marked "at `676083d`" or "at

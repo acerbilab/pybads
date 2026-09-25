@@ -69,9 +69,6 @@ Changes since PyBADS 1.0.6.
 
 ### Upgrading from 1.0.6
 
-What can stop an existing script, or change what it returns. Each point has
-its entry below.
-
 - PyBADS needs Python 3.10 or later and gpyreg 1.3.3 or later.
 - Results differ from 1.0.6, also with a fixed seed.
 - `random_seed` no longer seeds NumPy's global random state.
