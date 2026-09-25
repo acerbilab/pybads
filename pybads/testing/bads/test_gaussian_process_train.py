@@ -273,3 +273,38 @@ def test_gp_noise_variances_with_target_noise(monkeypatch):
         },
     ).optimize()
     assert checked["local"] > 0 and checked["add"] > 0
+
+
+def test_gp_mean_prior_recentred_at_each_rebuild(monkeypatch):
+    """After each rebuild of the local GP, the prior of the constant mean is
+    MATLAB's empirical prior (gpdefBads.m): centred at the 90th percentile
+    of the training targets (MATLAB's prctile1), with the standard deviation
+    `(y90 - median(y)) / 5`."""
+    import pybads.bads.bads as bads_module
+
+    checked = {"local": 0}
+    original_local = bads_module.local_gp_fitting
+
+    def spy_local(gp, *args, **kwargs):
+        out = original_local(gp, *args, **kwargs)
+        y = gp.y.ravel()
+        y90 = np.percentile(y, 90, method="hazen")
+        kind, (mu, sigma) = gp.get_priors()["mean_const"]
+        assert kind == "gaussian"
+        assert np.isclose(mu.item(), y90, rtol=1e-12)
+        assert np.isclose(sigma.item(), (y90 - np.median(y)) / 5, rtol=1e-12)
+        checked["local"] += 1
+        return out
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    D = 3
+    BADS(
+        lambda x: np.sum(np.atleast_2d(x) ** 2),
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 60, "random_seed": 0},
+    ).optimize()
+    assert checked["local"] > 0

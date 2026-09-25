@@ -9,8 +9,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9
   or later.
-- Results of runs with `specify_target_noise=True` differ from 1.1.0, also
-  with a fixed seed.
+- Results differ from 1.1.0, also with a fixed seed.
 
 ### Changed
 
@@ -40,6 +39,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   54 of 90 seeded runs made such a merge, the median error over the 90
   seeds falls from 0.58 to 0.48, and the number of runs with an error of 1
   or more from 31 to 20.
+- **Prior of the GP mean.** At each rebuild of the local Gaussian process,
+  the prior over its constant mean is centred at the 90th percentile of the
+  training targets, with a width set by their spread, as in MATLAB BADS.
+  PyBADS computed that prior and never applied it, so the prior set on the
+  initial design held for the whole run. Results change at default
+  options.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below
