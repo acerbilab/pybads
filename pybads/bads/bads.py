@@ -850,11 +850,13 @@ class BADS:
         if (
             self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
-            and np.array(self.options["noise_size"] > 0)[0]
+            and np.ravel(self.options["noise_size"])[0] > 0
         ):
-            self.logger.warn(
-                "If options['specify_target_noise'] is True, options['noise_size'] is ignored. \
-                Leave options['noise_size'] empty or set it to 0 to silence this warning."
+            self.logger.warning(
+                "If options['specify_target_noise'] is True, "
+                "options['noise_size'] is ignored. Leave "
+                "options['noise_size'] empty or set it to 0 to silence this "
+                "warning."
             )
 
         # Set uncertainty handling level

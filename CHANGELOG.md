@@ -32,6 +32,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ellipsoid with condition number 1e6 and noise standard deviation
   `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
   median error rises from 0.21 to 0.54.
+- **`noise_size` with user-specified noise.** With
+  `specify_target_noise=True`, a scalar `noise_size` made the creation of
+  `BADS` fail with `IndexError`. PyBADS now warns that `noise_size` is
+  ignored, as it did for an array.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below
