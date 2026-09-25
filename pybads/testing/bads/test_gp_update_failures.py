@@ -12,6 +12,7 @@ in one test, where the Cholesky factorization fails for real."""
 
 import copy
 import inspect
+import logging
 import sys
 from collections import namedtuple
 
@@ -317,21 +318,32 @@ def test_add_without_failure_matches_assign_then_update(captured):
     assert not gp.temporary_data.get("needs_rebuild", False)
 
 
-def test_add_failure_leaves_gp_and_marks_it(captured, inject):
+def _debug_loggers(caplog, site):
+    """The loggers of the debug messages that name `site`."""
+    return [
+        record.name
+        for record in caplog.records
+        if record.levelno == logging.DEBUG and site in record.getMessage()
+    ]
+
+
+def test_add_failure_leaves_gp_and_marks_it(captured, inject, caplog):
     level, c = captured
     injector = inject(lambda call: call.site == "add_and_update_gp")
     gp = copy.deepcopy(c.add["gp"])
     entry = copy.deepcopy(gp)
     posteriors = gp.posteriors
-    out = add_and_update_gp(
-        c.bads.function_logger,
-        gp,
-        c.add["x"],
-        c.add["y"],
-        c.add["sd"],
-        c.bads.options,
-    )
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        out = add_and_update_gp(
+            c.bads.function_logger,
+            gp,
+            c.add["x"],
+            c.add["y"],
+            c.add["sd"],
+            c.bads.options,
+        )
     assert out is gp
+    assert _debug_loggers(caplog, "add_and_update_gp") == ["BADS"]
     assert [call[:2] for call in injector.failed] == [
         ("add_and_update_gp", "update")
     ]
@@ -386,15 +398,19 @@ def _local_fit(c, gp, refit_flag):
 
 
 @pytest.mark.parametrize("refit_flag", [False, True], ids=["norefit", "refit"])
-def test_local_fit_double_failure_restores_gp(captured, inject, refit_flag):
+def test_local_fit_double_failure_restores_gp(
+    captured, inject, refit_flag, caplog
+):
     level, c = captured
     injector = inject(
         lambda call: call.site == "local_gp_fitting" and call.n <= 2
     )
     gp = copy.deepcopy(c.local["gp"])
     entry = copy.deepcopy(gp)
-    out, exit_flag = _local_fit(c, gp, refit_flag)
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        out, exit_flag = _local_fit(c, gp, refit_flag)
     assert out is gp
+    assert _debug_loggers(caplog, "local_gp_fitting") == ["BADS", "BADS"]
     assert exit_flag == -2
     assert [call[:2] for call in injector.failed] == [
         ("local_gp_fitting", "update"),

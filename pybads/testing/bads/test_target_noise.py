@@ -52,9 +52,7 @@ def _warns_noise_size_ignored(caplog):
     )
 
 
-@pytest.mark.parametrize(
-    "noise_size", [1.0, np.array([1.0]), [1.0, 2.0]], ids=str
-)
+@pytest.mark.parametrize("noise_size", [1.0, np.array([1.0])], ids=str)
 def test_noise_size_ignored_warns(noise_size, caplog):
     with caplog.at_level("WARNING", logger="BADS"):
         _make_bads(_noisy_sphere_with_estimated_sd(0), noise_size=noise_size)

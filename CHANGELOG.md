@@ -51,8 +51,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   The returned `x` and the number of evaluations are unchanged.
 - **`noise_size` with user-specified noise.** With
   `specify_target_noise=True`, a scalar `noise_size` made the creation of
-  `BADS` fail with `IndexError`. PyBADS now warns that `noise_size` is
-  ignored, as it did for an array.
+  `BADS` fail with `IndexError`. It now gives the warning about
+  `noise_size` that an array gave.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below
@@ -69,7 +69,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the next step with refitted hyperparameters (in the poll, only with
   `poll_training` on). Runs without such a failure give the same results.
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
-  `BADS` logger, whose level `display` sets. The warnings of the GP fits (a
+  `BADS` logger, whose level `display` sets; `display="full"` shows the
+  debug messages. The warnings of the GP fits (a
   failed initial fit, failed hyperparameter optimizations) and the debug
   message of a stalling run went to `asyncio`'s logger, and the debug
   messages of failed GP updates to the root logger.
