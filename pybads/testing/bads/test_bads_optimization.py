@@ -8,9 +8,8 @@ can follow another trajectory, so a tolerance has to hold over seeds, not
 only at `SEED`. Each is set from the errors of its test over seeds 0-99
 (`SEED = s`, `NOISE_SEED = s + 1000`): ten times the largest error, rounded
 up to 1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if
-that is lower, except for `test_he_noisy_sphere_opt`, whose errors exceed
-the tolerance of `runtest.m`. The section "The seed sweep behind the
-tolerances" of `dev/results/2026-09-23-codebase-survey.md` records them.
+that is lower. The section "The seed sweep behind the tolerances" of
+`dev/results/2026-09-23-codebase-survey.md` records them.
 
 `dev/scripts/tolerance_sweep.py` measures the errors again, as a change
 that moves results calls for. It relies on two properties of this module:
@@ -265,7 +264,7 @@ def test_he_noisy_sphere_opt():
         UB,
         PLB,
         PUB,
-        tol_err=5.0,  # above runtest.m's 1: see the module docstring
+        tol_err=1.0,
         f_min=0.0,
         oracle_fun=sphere,
         uncertainty_handling=2,

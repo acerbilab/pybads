@@ -5,8 +5,21 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Upgrading from 1.1.0
+
+- Results of runs with `specify_target_noise=True` differ from 1.1.0, also
+  with a fixed seed.
+
 ### Fixed
 
+- **User-specified noise.** With `specify_target_noise=True`, the Gaussian
+  process treated the noise standard deviations that the target returns as
+  variances after its initial fit, so that it underrated the noise wherever
+  the standard deviation exceeds 1, and overrated it below 1. It now uses
+  their squares, as MATLAB BADS does. On the sphere with heteroskedastic
+  noise of the tests (standard deviation 2 at the minimum, 200
+  evaluations), the median error over 100 seeds falls from 0.33 to 0.14,
+  and the largest from 2.3 to 0.56.
 - **Failed GP updates.** A run no longer stops with `LinAlgError`
   ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
   update fails while adding a point, predicting the optimization target or
