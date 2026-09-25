@@ -256,9 +256,9 @@ same gpyreg.
 
 - **Commits** follow conventional commits. A `Co-Authored-By:` line is fine;
   a `Claude-Session:` trailer is not, even where the session's own
-  attribution instructions ask for one. Pull requests are squash-merged
-  into `main`, titled `<type>: <summary> (#NN)`, and need approval from
-  another developer.
+  attribution instructions ask for one. Changes reach `main` through pull
+  requests, which run the full test matrix, and are squash-merged, titled
+  `<type>: <summary> (#NN)`.
 - **Changelog.** A change that a user can notice is listed in `CHANGELOG.md`
   under `Unreleased`, in the commit that makes it, in a sentence written for
   users and relative to the last release (a fix to a feature that no

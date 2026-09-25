@@ -5,6 +5,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-25
+
 Changes since PyBADS 1.0.6.
 
 ### Upgrading from 1.0.6

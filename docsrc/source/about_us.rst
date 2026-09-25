@@ -29,4 +29,4 @@ This section will list developers who have made important contributions in the p
 Join the team
 --------------
 
-If you are interested in contributing to PyBADS please see the :doc:`instructions for developers and contributors <development>` for general development guidelines. We welcome pull requests, bug reports, feature requests, etc. For other opportunities to work with us please see the homepage for the `Machine and Human Intelligence Lab <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`_, or contact the lab's Principal Investigator at luigi.acerbi@helsinki.fi.
+If you are interested in contributing to PyBADS please see the :doc:`instructions for developers and contributors <development>` for general development guidelines. We welcome pull requests, bug reports, feature requests, etc. For other opportunities to work with us please see the homepage for the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`_, or contact the lab's Principal Investigator at luigi.acerbi@helsinki.fi.

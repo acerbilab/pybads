@@ -140,7 +140,7 @@ Please use standard Python exceptions whenever it is sensible. Here is a list of
 
 Commits follow the `conventional commits <https://www.conventionalcommits.org/en/v1.0.0/>`__ style. This makes it easier to collaborate on the project. A cheat sheet is can be found `here <https://cheatography.com/albelop/cheat-sheets/conventional-commits/>`__.
 
-Please do not submit pull requests with unfinished code or code which does not pass all tests. Work on feature branches whenever possible and sensible. All PRs must be approved by another developer before being merged to the main branch. `Read this <https://martinfowler.com/bliki/FeatureBranch.html>`__ ::
+Please do not submit pull requests with unfinished code or code which does not pass all tests. Work on feature branches whenever possible and sensible. Changes reach the main branch through pull requests, which run the full test matrix. `Read this <https://martinfowler.com/bliki/FeatureBranch.html>`__ ::
 
     git checkout -b <new-feature>
     [... do stuff and commit ...]
