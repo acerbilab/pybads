@@ -251,7 +251,9 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
   listed in `dev/scripts/runs/LOCAL.md`.
 - One heavy process at a time. Long runs log unbuffered to
   `dev/scripts/runs/<name>_<epoch>.log` and are read from the log.
-- Package code is committed before any run whose records name the commit.
+- Package code is committed before any run whose records name the commit,
+  and nothing is committed while a population runs: each record names the
+  commit checked out when its run started.
 - If a check contradicts an assumption a step rests on, stop and report
   the mismatch rather than improvise.
 
@@ -259,7 +261,7 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
 
 ### Phase 0: environment and baselines
 
-**Status**: [~] in progress (2026-09-25)
+**Status**: [x] done (2026-09-25)
 
 1. [x] Set up the venv (Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1). Install
    gpyreg editable from `../gpyreg` at `v1.3.3`, and install PyBADS
@@ -269,7 +271,7 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
    Windows hash, `57241c985a68c78b`, is not comparable.
 3. [x] Suite with reruns off: 109 passed in 28 s.
 4. [x] `dev/scripts/runs/LOCAL.md` lists the clones and their commands.
-5. [ ] Pre-change population:
+5. [x] Pre-change population:
    `population.py run --suite default --seeds 0-29 --workers 4 --out dev/scripts/runs/population/population_linux_pre_20260925`
    at `500ff1b`, whose package code is that of `09996b5`. Then run
    `summary` and the null check (`compare <it> --split`). As information
@@ -526,3 +528,14 @@ to the population's; all injected runs finished.
   `gppred.m:40-47`, `mygp.m:123`). The plan was revised; the user chose
   the current GP's prediction for Open Question 2 and a forced refit for
   the new Open Question 7.
+- 2026-09-25: Phase 0 done. Pre-change population
+  `population_linux_pre_20260925` (default suite, seeds 0-29, 4 workers,
+  24.4 minutes): all 540 runs finished, none crashed. Its records name
+  `500ff1b`, `88abbf8` and `517f058`, some "dirty": documentation
+  commits were made under dev/ while it ran.
+  `git diff 09996b5 517f058 -- pybads/ pyproject.toml setup.py` is empty,
+  so every run used the package code of `09996b5`. The Conventions now
+  forbid commits during a population. Null check (`--split`): no flag in
+  36 tests. Against the Windows reference (information only): no flag in
+  54 tests, every median log10 error ratio within [-0.28, +0.08], every
+  interval containing zero.
