@@ -34,6 +34,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   median error rises from 0.21 to 0.54.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
+- **Termination message.** A run that ends because the mesh size fell below
+  `tol_mesh` says so; the message spoke of the change in the function
+  value.
 - **Failed GP updates.** A run no longer stops with `LinAlgError`
   ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
   update fails while adding a point, predicting the optimization target or
