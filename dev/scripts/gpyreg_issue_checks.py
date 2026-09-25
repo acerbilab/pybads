@@ -7,11 +7,13 @@
    the ``default`` suite of ``benchmark_targets.py``, seeds 0-9, in-process
    (``gpyreg.GP.fit`` and ``_robust_gp_fit_`` are wrapped for counting).
 
-The survey (``dev/results/2026-09-23-codebase-survey.md``) cites its results
-of 2026-09-24, run on the suite's first 15 configurations. Usage, from the
-repository root::
+The survey (``dev/results/2026-09-23-codebase-survey.md``) cites its runs
+under gpyreg 1.3.1 and 1.3.2 (2026-09-24: the suite's first 15
+configurations, draws through NumPy's global stream) and under 1.3.3
+(2026-09-25: all 18 configurations, draws through ``bads.rng``). Usage,
+from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python -u dev/scripts/gpyreg_issue_checks.py OUT.json
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 .venv/Scripts/python.exe -u dev/scripts/gpyreg_issue_checks.py OUT.json
 """
 import json
 import sys

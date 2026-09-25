@@ -742,7 +742,7 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 ### Phase 9: gpyreg 1.3.3 for PyBADS
 
 **Executor**: Opus (orchestrator)
-**Status**: [!] step 6 waits for the user: the comparison flags five configurations (Worklog)
+**Status**: [~] in progress (step 8, the report)
 **Goal**: the effect of gpyreg 1.3.3 on PyBADS, measured with the
 population comparison against the generator reference of Phase 8; the
 answers the PyVBMC maintainers asked for (Context); and, if the comparison
@@ -803,7 +803,7 @@ candidate, `_robust_gp_fit_` row).
    inversion. Note that the counts of Phase 7 were taken with the global
    stream: the rerun under 1.3.3 is at the head of Phase 8, so its
    trajectories differ.
-6. [!] With no flag in step 4 and no difference in step 3, require 1.3.3:
+6. [x] With no flag in step 4 and no difference in step 3, require 1.3.3:
    `pyproject.toml` `gpyreg >= 1.3.3`; `.github/workflows/test-matrix.yml`
    `GPYREG_PIN: 98ab5a4adecf37eb188521360bd87835979f47e7` with its comment
    naming v1.3.3; `CHANGELOG.md`, the Upgrading line and the Changed entry
@@ -815,7 +815,7 @@ candidate, `_robust_gp_fit_` row).
    (`build: require gpyreg 1.3.3`). A push, which runs the `dev*` smoke
    test against the new pin, waits for the user's go. With a flag or a
    difference: no move; stop and report.
-7. [ ] Records: a result note `dev/results/<YYYY-MM-DD>-gpyreg-1.3.3.md` (the
+7. [x] Records: a result note `dev/results/<YYYY-MM-DD>-gpyreg-1.3.3.md` (the
    heads, the suite tables, the 1.3.2–1.3.3 check, the population
    comparison with effect sizes, the low-noise share and the crashes, the
    two issues with their counts, the verdict), linked from
@@ -838,7 +838,7 @@ candidate, `_robust_gp_fit_` row).
    `_robust_gp_fit_`).
 
 **Verification**:
-- [ ] 1.3.2 and 1.3.3 agree at default options; the population comparison
+- [x] 1.3.2 and 1.3.3 agree at default options; the population comparison
       against the generator reference is reported with its effect sizes.
 - [ ] With no flag, `gpyreg >= 1.3.3` and the pin committed, the reference
       replaced; result note and records committed; report delivered.
@@ -878,9 +878,11 @@ of Phase 9. This plan holds the execution status in its Worklog.
   current regex excludes the notebooks and `function_examples.py` by
   accident, and a corrected one would still differ from PyVBMC).
 - **gpyreg minimum 1.3.1, equal to the CI pin** — the minimum names a
-  version CI tests; both move to 1.3.3 in Phase 9 if its comparison shows
-  no flag (1.3.2 is skipped: 1.3.3 restores the GP after a failed call,
-  which 1.3.2 left inconsistent). Rejected: `>= 1.1.0`,
+  version CI tests; both moved to 1.3.3 in Phase 9 (1.3.2 is skipped:
+  1.3.3 restores the GP after a failed call, which 1.3.2 left
+  inconsistent), on the user's decision after its comparison flagged five
+  configurations, every one improved by 1.3.2's low-noise predictions.
+  Rejected: `>= 1.1.0`,
   the oldest with `fit(rng=)` (lower, but untested).
 - **NumPy, SciPy and matplotlib floors unchanged** — they equal gpyreg's,
   and PyBADS cannot need less than gpyreg. Rejected: PyVBMC's floors
@@ -1179,3 +1181,17 @@ the populations (steps 7–10). State at this entry:
   0–9: 3,385 calls, failures per call {0: 2865, 1: 307, 2: 201, 3: 12}, no
   bound inversion, every run finished.
 - Step 6 says no move with a flag: stopped for the user's decision.
+
+### Phase 9 (continued) — 2026-09-25
+
+- The user decided to move to 1.3.3 despite the flags, all improvements
+  explained by 1.3.2's low-noise predictions. `c588686`: `gpyreg >= 1.3.3`,
+  `GPYREG_PIN` at `98ab5a4`, the changelog (Upgrading line; the Changed
+  entry says that runs on deterministic targets end closer to the
+  minimum).
+- Records: result note `dev/results/2026-09-25-gpyreg-1.3.3.md`; the 1.3.3
+  population copied to `dev/experiments/population_gpyreg133_20260924/`,
+  the reference from now on; survey, TODO and `dev/README.md` updated; the
+  dev scripts' usage lines name the v1.3.3 clone. The issue checks under
+  1.3.3 took 20 minutes.
+- Fingerprint of later phases, with the v1.3.3 clone: `57241c985a68c78b`.

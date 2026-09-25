@@ -95,10 +95,18 @@ reference's number of seeds.
 
 ## Index
 
-- [experiments/population_generator_20260924/](experiments/population_generator_20260924/README.md)
+- [experiments/population_gpyreg133_20260924/](experiments/population_gpyreg133_20260924/README.md)
   — the reference population of the benchmark (default suite, 30 seeds,
-  gpyreg 1.3.1, draws through a `numpy.random.Generator`), with its
-  comparison with the baseline and its null check.
+  draws through a `numpy.random.Generator`, gpyreg 1.3.3), with its null
+  check.
+- [gpyreg 1.3.3 for PyBADS](results/2026-09-25-gpyreg-1.3.3.md) — the
+  suite, the agreement of 1.3.2 and 1.3.3, and the benchmark comparison
+  with 1.3.1 (five configurations improved by 1.3.2's low-noise
+  predictions, nothing else changed) behind the move of the minimum and
+  the CI pin to 1.3.3.
+- [experiments/population_generator_20260924/](experiments/population_generator_20260924/README.md)
+  — the previous reference (gpyreg 1.3.1), with its comparison with the
+  baseline that validated the generator.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
   and the detectable effect sizes that the later references cite.

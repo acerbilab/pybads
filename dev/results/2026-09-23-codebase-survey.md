@@ -62,6 +62,7 @@ prior `("delta", noise_mu)`, a prior type gpyreg does not implement: every
 such run stops at its first GP setup with `ValueError: Unknown hyperprior
 type delta` (checked on 2026-09-24 with gpyreg 1.3.1, from `set_priors`, and
 with the 1.3.2 branch `w6-leftovers` at `755a4b3`, from
+`_write_prior_block`; on 2026-09-25 with the release 1.3.3, from
 `_write_prior_block`). gpyreg's `set_priors` refuses an unknown prior type
 in every release from 1.0.2 on. `fit_lik` is an advanced option, `True` by
 default.
@@ -79,7 +80,10 @@ ten failures cannot be reached. At default options this was not reached: over th
 configurations of the benchmark suite (`dev/scripts/benchmark_targets.py`,
 suite `default`), seeds 0-9, about 1,500 calls under each gpyreg version,
 79% had no failure, and the most consecutive failures in one call was 3;
-every call recovered and every run finished.
+every call recovered and every run finished. With gpyreg 1.3.3 and the
+draws through `bads.rng` (`2059506`), over all 18 configurations, seeds
+0-9: 3,385 calls, 85% without failure, at most 3 consecutive failures,
+every run finished (`dev/results/2026-09-25-gpyreg-1.3.3.md`).
 
 ### Crashes on unguarded GP updates
 
@@ -100,7 +104,11 @@ third call: `ellipsoid_D10` seeds 13 (751 evaluations, from
 `_search_step_`) and 26 (341 evaluations, from `_poll_step_`), in
 `local_gp_fitting`, where the `except` that catches a failed
 `gp.update(hyp=hyp_gp)` calls `gp.set_hyperparameters(old_hyp_gp)`, which
-fails in turn.
+fails in turn. With gpyreg 1.3.3 no run of the suite crashes (540 runs,
+`dev/experiments/population_gpyreg133_20260924/`); those two runs follow
+other trajectories there, since they pass through the low-noise regime
+whose predictions gpyreg 1.3.2 changed, and the three calls remain
+unguarded.
 
 ## Candidate defects (not verified)
 

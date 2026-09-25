@@ -1,0 +1,94 @@
+{
+ "label": "multisensory_s1_D6_homo",
+ "seed": 16,
+ "problem": "multisensory_s1",
+ "D": 6,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  36.53552146986373,
+  10.029685439634822,
+  26.857917660834662,
+  13.03600534865627,
+  12.324753837168588,
+  0.1562329307760793
+ ],
+ "f_min": 483.5133436051275,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 16
+ },
+ "effective_options": {
+  "max_fun_evals": 2990,
+  "max_iter": 1200,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 14,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 16,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   7.019545112518025,
+   2.4765330680317272,
+   0.9746873218572333,
+   8.866222009968498,
+   10.163689934531329,
+   0.02566229487085301
+  ],
+  "fval": 483.9096883292574,
+  "fsd": 0.2981082251517141,
+  "true_error": 0.06616813374444064,
+  "func_count": 619,
+  "iterations": 22,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 13.399683399940841,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.8667487864452363
+ },
+ "meta": {
+  "git": {
+   "sha": "2059506",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\pybads",
+   "git": {
+    "sha": "2059506",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.1",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-24T23:59:24+0300",
+  "finished": "2026-09-24T23:59:38+0300"
+ }
+}

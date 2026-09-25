@@ -42,10 +42,12 @@ order.
   `update` or `set_hyperparameters` that raises leaves the GP as it was
   before the call (data, bounds, priors and posteriors), so a guard around
   them keeps a consistent GP without the new point, an alternative to
-  MATLAB's cleared posterior. To settle: restore those guards (and what
-  the GP left by a failed call means downstream in PyBADS), and whether
-  gpyreg 1.3.3's low-noise representation changes these runs (tooling
-  plan, Phase 9).
+  MATLAB's cleared posterior. With gpyreg 1.3.3 no run of the suite
+  crashes (`dev/experiments/population_gpyreg133_20260924/`), but the
+  crashing runs pass through the low-noise regime whose predictions
+  gpyreg 1.3.2 changed, so they follow other trajectories there and the
+  calls are no safer. To settle: restore those guards, and what the GP
+  left by a failed call means downstream in PyBADS.
 - [ ] **Bug hunt and verification against MATLAB BADS (deferred).** A
   systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
@@ -66,22 +68,22 @@ order.
   today its timer covers only the whole run and the target's evaluations.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench).
-- [ ] **gpyreg releases.** PyBADS's minimum gpyreg (`pyproject.toml`) and
-  its CI pin (`GPYREG_PIN`) name one release, 1.3.1 as of 2026-09-24. Each
-  new release moves both, after the population comparison
+- [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
+  (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
+  as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
+  Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has. 1.3.3,
-  the latest release, is assessed in the tooling plan, Phase 9.
+  shows that it has no effect on PyBADS, or explains the one it has.
 - [ ] **conda-forge recipes, at the next release.**
   `conda-forge/pybads-feedstock` (`recipe/meta.yaml`): run requirements
-  `gpyreg >=1.3.1`, without pytest, pytest-mock and pytest-rerunfailures
+  `gpyreg >=1.3.3`, without pytest, pytest-mock and pytest-rerunfailures
   and without the stale cma, corner, dill, imageio and plotly;
   `test.requires` gains pytest and pytest-rerunfailures, since its test
   command `python -m pytest --pyargs pybads --reruns=5 -x -vv` runs the
   tests of the installed package; `python_min` 3.10. It needs
   `conda-forge/gpyreg-feedstock`, at gpyreg 1.0.2 on 2026-09-24, to reach
-  gpyreg 1.3.1 first.
+  gpyreg 1.3.3 first.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
-  every release from 1.0.4 to 1.3.1), so installing PyBADS still installs
+  every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
   them.
