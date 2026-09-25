@@ -69,9 +69,12 @@ class ESSearchHedge:
         self.prob = self.prob * (1 - self.n_funs * self.gamma) + self.gamma
 
         rand_uni = self.rng.random()
-        self.chosen_hedge = np.argwhere(rand_uni < np.cumsum(self.prob))[0]
-        if len(self.chosen_hedge) == 0:
-            self.chosen_hedge = self.rng.integers(0, self.n_funs)
+        chosen = np.flatnonzero(rand_uni < np.cumsum(self.prob))
+        if chosen.size == 0:
+            # Rounding can leave the cumulative sum just below rand_uni
+            self.chosen_hedge = self.rng.integers(0, self.n_funs, size=1)
+        else:
+            self.chosen_hedge = chosen[:1]
 
         if self.gamma == 0:
             self.phat = np.ones(self.g.shape)

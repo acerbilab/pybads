@@ -301,7 +301,7 @@ def local_gp_fitting(
         prior_mean = gp_priors["mean_const"]
         prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
 
-    if prior_mean is not None and ~options["gp_fixed_mean"]:
+    if prior_mean is not None and not options["gp_fixed_mean"]:
         prior_mean = (prior_mean[0], (prior_mean[1][0], y_range ** (1 / 4)))
     elif options["gp_fixed_mean"]:
         # TODO: update hyp mean by assigning ymean

@@ -271,6 +271,5 @@ same gpyreg.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
-  comparison. `~options["gp_fixed_mean"]` in `gaussian_process_train.py`
-  and the `size > 0 & count < n_try` condition in `_search_step_` are two
-  such slips.
+  comparison. The `size > 0 & count < n_try` condition in `_search_step_`
+  is one such slip.

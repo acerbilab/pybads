@@ -5,6 +5,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
+  `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
+  longer emits a `DeprecationWarning` for `~` applied to a `bool`, an
+  operation that later Python versions remove.
+
 ## [1.1.0] - 2026-09-25
 
 Changes since PyBADS 1.0.6.

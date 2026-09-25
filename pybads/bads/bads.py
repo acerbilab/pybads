@@ -32,7 +32,7 @@ from .options import Options
 
 
 class BADS:
-    """
+    r"""
     BADS Constrained optimization using Bayesian Adaptive Direct Search.
 
     BADS attempts to solve problems of the form:
@@ -1672,7 +1672,7 @@ class BADS:
                 or np.any(~np.isfinite(index_acq))
             ):
                 self.logger.warn("bads:optimize: Acquisition function failed")
-                index_acq = self.rng.integers(0, len(u_search_set) + 1)
+                index_acq = self.rng.integers(0, len(u_search_set))
 
             # u_search at the candidate acquisition point
             u_search = u_search_set[index_acq]
@@ -2072,7 +2072,7 @@ class BADS:
                 or np.any(~np.isfinite(index_acq))
             ):
                 self.logger.warn("bads:optimize: Acquisition function failed")
-                index_acq = self.rng.integers(0, len(u_poll) + 1)
+                index_acq = self.rng.integers(0, len(u_poll))
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")
             gamma_z = (
