@@ -69,9 +69,10 @@ commit of the release that `pyproject.toml` names as the minimum (CI reads
 gpyreg's version from its tags, and an untagged commit reads lower, so pip
 would install gpyreg from PyPI over the pinned checkout). A change that
 needs a newer gpyreg moves both. `merge-tests.yml` runs the full matrix
-(Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` only when it
-touches `pybads/`, `pyproject.toml` or `setup.py`; a PR that changes
-anything else, the workflows included, runs no tests. `tests.yml` runs the
+(Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` or to a
+`dev*` branch, only when its changes against that base touch `pybads/`,
+`pyproject.toml` or `setup.py`; a PR that changes anything else, the
+workflows included, runs no tests. `tests.yml` runs the
 full matrix on dispatch and on the 13th and 28th of each month, the
 scheduled run against gpyreg's `main` instead of the pin (the drift
 detector), and a smoke run (Ubuntu, Python 3.12) on each push to a `dev*`
