@@ -1,5 +1,5 @@
-from pathlib import Path
 from os import system
+from pathlib import Path
 
 if __name__ == "__main__":
     # Launch Jupyter Notebook examples with python -m pyvbmc

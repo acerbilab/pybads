@@ -6,7 +6,6 @@ from pybads.variable_transformer import VariableTransformer
 
 
 def force_to_grid(x, search_mesh_size, tol=None):
-
     if tol is None:
         tol = search_mesh_size
 

@@ -56,6 +56,7 @@ def test_init_bounds_check():
             plausible_upper_bounds=np.ones((1, D)) * -20,
         )
 
+
 def test_init_():
     parameter_transformer = VariableTransformer(
         D=D,
@@ -63,6 +64,7 @@ def test_init_():
         upper_bounds=np.ones((1, D)) * 2,
     )
     assert np.all(parameter_transformer.apply_log_t == 0)
+
 
 def test_direct_transform__within_positive():
     parameter_transformer = VariableTransformer(
@@ -74,7 +76,8 @@ def test_direct_transform__within_positive():
     Y = parameter_transformer(X)
     Y2 = np.ones((10, D)) * 0.3
     assert np.all(np.isclose(Y, Y2, atol=1e-04))
-    
+
+
 def test_direct_transform__on_boundaries():
     parameter_transformer = VariableTransformer(
         D=D,
@@ -83,13 +86,14 @@ def test_direct_transform__on_boundaries():
     )
     X = np.ones((10, D)) * 10
     Y = parameter_transformer(X)
-    Y2 = np.ones((10, D)) * 1.
+    Y2 = np.ones((10, D)) * 1.0
     assert np.all(np.isclose(Y, Y2, atol=1e-04))
-    
+
     X = np.ones((10, D)) * -10
     Y = parameter_transformer(X)
-    Y2 = np.ones((10, D)) * -1.
+    Y2 = np.ones((10, D)) * -1.0
     assert np.all(np.isclose(Y, Y2, atol=1e-04))
+
 
 def test_direct_transform_within_negative():
     parameter_transformer = VariableTransformer(
@@ -111,8 +115,9 @@ def test_inverse_within():
     )
     Y = np.ones((10, D)) * 0.3
     X = parameter_transformer.inverse_transf(Y)
-    X2 = np.ones((10, D)) * 3.
+    X2 = np.ones((10, D)) * 3.0
     assert np.all(np.isclose(X, X2))
+
 
 def test_inverse_within_negative():
     parameter_transformer = VariableTransformer(
@@ -122,9 +127,10 @@ def test_inverse_within_negative():
     )
     Y = np.ones((10, D)) * -0.4
     X = parameter_transformer.inverse_transf(Y)
-    X2 = np.ones((10, D)) * -4.
+    X2 = np.ones((10, D)) * -4.0
     assert np.all(np.isclose(X, X2))
-    
+
+
 def test_inverse_on_boundaries():
     parameter_transformer = VariableTransformer(
         D=D,
@@ -133,8 +139,9 @@ def test_inverse_on_boundaries():
     )
     Y = np.ones((10, D)) * -1
     X = parameter_transformer.inverse_transf(Y)
-    X2 = np.ones((10, D)) * -10.
+    X2 = np.ones((10, D)) * -10.0
     assert np.all(np.isclose(X, X2))
+
 
 def test_1D_transform():
     """Test 1D variable transformation"""
@@ -148,6 +155,7 @@ def test_1D_transform():
     Y2 = np.array([[0.3]])
     assert np.all(np.isclose(Y, Y2, atol=1e-04))
 
+
 def test_inverse_min_space():
     parameter_transformer = VariableTransformer(
         D=D,
@@ -157,6 +165,7 @@ def test_inverse_min_space():
     Y = np.ones((10, D)) * -500
     X = parameter_transformer.inverse_transf(Y)
     assert np.all(X == np.ones((1, D)) * -10)
+
 
 def test_inverse_max_space():
     parameter_transformer = VariableTransformer(
@@ -179,7 +188,7 @@ def test_transform_inverse():
     U = parameter_transformer(X)
     X2 = parameter_transformer.inverse_transf(U)
     assert np.all(np.isclose(X, X2, rtol=1e-12, atol=1e-14))
-    
+
     U = np.ones((10, D)) * 0.2
     X = parameter_transformer.inverse_transf(U)
     U2 = parameter_transformer(X)

@@ -1,9 +1,6 @@
-# PyBADS Example 1: Basic usage
-# (code only - see Jupyter notebook for the tutorial)
-
 import numpy as np
 
-from pybads import BADS
+from pybads.bads import BADS
 
 
 def rosenbrocks_fcn(x):
@@ -25,8 +22,17 @@ plausible_upper_bounds = np.array([5, 5])
 x0 = np.array([0, 0])
 # Starting point
 
-bads = BADS(target, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds)
+
+bads = BADS(
+    target,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    plausible_lower_bounds,
+    plausible_upper_bounds,
+)
 optimize_result = bads.optimize()
+
 
 x_min = optimize_result["x"]
 fval = optimize_result["fval"]

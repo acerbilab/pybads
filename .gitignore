@@ -156,3 +156,6 @@ docs/
 
 # Saved bads opti dumps
 dumps/
+
+# raw output of the developer tooling under dev/scripts/
+dev/scripts/runs/

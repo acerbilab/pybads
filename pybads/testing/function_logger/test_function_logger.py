@@ -111,13 +111,16 @@ def test_call_record_stats():
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
     for i in range(10):
         f_logger(x * i)
-    assert np.isclose(f_logger.total_fun_eval_time, np.nansum(f_logger.fun_eval_time))
+    assert np.isclose(
+        f_logger.total_fun_eval_time, np.nansum(f_logger.fun_eval_time)
+    )
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)
     assert np.sum(f_logger.X_flag) == 10
     assert f_logger.Xn == 9
     assert f_logger.cache_count == 0
+
 
 def test_add_record_stats():
     x = np.array([3, 4, 5])
@@ -177,13 +180,34 @@ def test_record_duplicate_fsd():
     assert f_logger.S[1] == 3
 
 
+def test_record_duplicate_with_user_noise_returns_scalar():
+    # With the noise given by the target (level 2), a repeated point is merged
+    # into its row by precision weighting; the merged value comes back as a
+    # scalar, as on every other path.
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    fval, idx = f_logger._record(x, x, 12.0, 1.0, 1)
+    tau_1, tau_2 = 1 / 2.0**2, 1 / 1.0**2
+    assert idx == 0
+    assert f_logger.Xn == 0
+    assert np.ndim(fval) == 0
+    assert np.isclose(
+        fval, (tau_1 * 9.0 + tau_2 * 12.0) / (tau_1 + tau_2), rtol=1e-12
+    )
+    assert np.isclose(f_logger.Y[0, 0], fval, rtol=1e-12)
+    assert np.isclose(f_logger.S[0, 0], 1 / np.sqrt(tau_1 + tau_2))
+
+
 def test_finalize():
     x = np.array([3, 4, 5])
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
     for i in range(10):
         f_logger(x * i)
     f_logger.finalize()
-    assert np.isclose(f_logger.total_fun_eval_time, np.sum(f_logger.fun_eval_time))
+    assert np.isclose(
+        f_logger.total_fun_eval_time, np.sum(f_logger.fun_eval_time)
+    )
     assert np.all(f_logger.X_orig[9] == x * 9)
     assert f_logger.Y_orig[9] == non_noisy_function(x * 9)
     assert f_logger.Y_max == non_noisy_function(x * 9)

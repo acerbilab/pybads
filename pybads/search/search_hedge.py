@@ -2,6 +2,8 @@ import numpy as np
 from gpyreg.gaussian_process import GP
 from scipy.special import erfc
 
+from pybads.rng import get_rng
+
 from .es_search import ESSearchELL, ESSearchWM
 
 
@@ -19,6 +21,10 @@ class ESSearchHedge:
         Options for the hedge search
     non_box_cons: callable function
         A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+    rng : numpy.random.Generator, optional
+        Generator of the random draws of the hedge and of the searches it
+        runs. If ``None``, a generator is derived from NumPy's global random
+        state (``pybads.rng.get_rng``).
 
     ----------
     References
@@ -32,8 +38,9 @@ class ESSearchHedge:
         search_fcns=[("ES-wcm", 1), ("ES-ell", 1)],
         options_dict=None,
         non_box_cons=None,
+        rng=None,
     ):
-
+        self.rng = get_rng(rng)
         self.search_fcns = search_fcns
         self.n_funs = len(search_fcns)
         self.g = np.zeros(self.n_funs)
@@ -61,10 +68,10 @@ class ESSearchHedge:
         )
         self.prob = self.prob * (1 - self.n_funs * self.gamma) + self.gamma
 
-        rand_uni = np.random.rand()
+        rand_uni = self.rng.random()
         self.chosen_hedge = np.argwhere(rand_uni < np.cumsum(self.prob))[0]
         if len(self.chosen_hedge) == 0:
-            self.chosen_hedge = np.random.randint(0, self.n_funs)
+            self.chosen_hedge = self.rng.integers(0, self.n_funs)
 
         if self.gamma == 0:
             self.phat = np.ones(self.g.shape)
@@ -74,7 +81,9 @@ class ESSearchHedge:
 
         self.chosen_search_fun = self.search_fcns[self.chosen_hedge.item()]
         if self.chosen_search_fun[0] == "ES-wcm":
-            search = ESSearchWM(self.mu, self.lamb, self.options_dict)
+            search = ESSearchWM(
+                self.mu, self.lamb, self.options_dict, self.rng
+            )
             us, z = search(
                 u,
                 lb,
@@ -87,7 +96,9 @@ class ESSearchHedge:
             )
             return us, z
         elif self.chosen_search_fun[0] == "ES-ell":
-            search = ESSearchELL(self.mu, self.lamb, self.options_dict)
+            search = ESSearchELL(
+                self.mu, self.lamb, self.options_dict, self.rng
+            )
             us, z = search(
                 u,
                 lb,
@@ -110,7 +121,6 @@ class ESSearchHedge:
         """
 
         for i_hedge in range(self.n_funs):
-
             u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()
 
             if i_hedge == self.chosen_hedge:

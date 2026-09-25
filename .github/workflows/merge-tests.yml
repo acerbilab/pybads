@@ -1,3 +1,4 @@
+# From github.com/dfm/tinygp
 name: merge-tests
 
 on:
@@ -12,7 +13,7 @@ jobs:
       run_job: ${{ steps.check_files.outputs.run_job }}
     steps:
       - name: Checkout PyBADS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           path: pybads
@@ -42,41 +43,9 @@ jobs:
           if [ "$changes" = false ]; then
             echo "No changes to source directory found, skipping tests."
           fi
+
   tests:
     needs: check_changes
     if: needs.check_changes.outputs.run_job == 'true'
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11"]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout PyBADS
-        uses: actions/checkout@v4
-        with:
-          path: pybads
-
-      - name: Checkout GPyReg
-        uses: actions/checkout@v4
-        with:
-          repository: acerbilab/gpyreg
-          path: gpyreg
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install PyBADS
-        run: |
-          cd ./pybads
-          python -m pip install -e .
-      - name: Install GPyReg
-        run: |
-          cd ./gpyreg
-          python -m pip install -e .
-      - name: Run tests
-        run: |
-          cd ./pybads
-          python -m pytest --reruns=5 -x -vv
+    # Full matrix against the pinned gpyreg; see test-matrix.yml.
+    uses: ./.github/workflows/test-matrix.yml

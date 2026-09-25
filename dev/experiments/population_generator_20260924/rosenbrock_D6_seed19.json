@@ -1,0 +1,93 @@
+{
+ "label": "rosenbrock_D6",
+ "seed": 19,
+ "problem": "rosenbrock",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  4.857346755959076,
+  -4.45008236579461,
+  2.8200716857217003,
+  -3.033029273148199,
+  4.446624314290601,
+  4.356385436205109
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 19
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 19,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.178360136767594,
+   0.9538421976752431,
+   0.7644915046011391,
+   1.9992781110910585,
+   2.1674631381071663,
+   -2.1791915987099486
+  ],
+  "fval": 0.017288271615524604,
+  "fsd": 0.0,
+  "true_error": 0.017288271615524604,
+  "func_count": 585,
+  "iterations": 18,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 10.825053400010802,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "c85cddb",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\pybads",
+   "git": {
+    "sha": "c85cddb",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.1",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.1\\gpyreg",
+   "git": {
+    "sha": "1dbbfc5",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-24T21:39:56+0300",
+  "finished": "2026-09-24T21:40:07+0300"
+ }
+}

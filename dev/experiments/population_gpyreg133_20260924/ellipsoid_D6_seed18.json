@@ -1,0 +1,93 @@
+{
+ "label": "ellipsoid_D6",
+ "seed": 18,
+ "problem": "ellipsoid",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -3.094090385629298,
+  1.8631978268303957,
+  -4.145868326911989,
+  -0.5057399578276769,
+  3.5139406126476214,
+  -0.6829038374271725
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 18
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 18,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -1.6191758844545667,
+   0.36296316115413063,
+   0.19217192783129278,
+   -0.49105451537970524,
+   2.1428735829657697,
+   -2.4356771867260107
+  ],
+  "fval": 0.00014024679272643813,
+  "fsd": 0.0,
+  "true_error": 0.00014024679272643813,
+  "func_count": 397,
+  "iterations": 18,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 7.2738586000632495,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.0000000000000004e-06
+ },
+ "meta": {
+  "git": {
+   "sha": "2059506",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\pybads",
+   "git": {
+    "sha": "2059506",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.1",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-24T23:01:18+0300",
+  "finished": "2026-09-24T23:01:26+0300"
+ }
+}

@@ -78,7 +78,7 @@ class FunctionLogger:
         x : np.ndarray
             The point at which the function will be evaluated. The shape of x
             should be (1, D) or (D,).
-            
+
         record_duplicate_data : bool, optional (default True)
             Flag to indicate whether the data is added to training data.
 
@@ -265,7 +265,10 @@ class FunctionLogger:
 
         # Check returned function SD
         if self.noise_flag and (
-            not np.isscalar(fsd) or not np.isfinite(fsd) or not np.isreal(fsd) or fsd <= 0.0
+            not np.isscalar(fsd)
+            or not np.isfinite(fsd)
+            or not np.isreal(fsd)
+            or fsd <= 0.0
         ):
             error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)
@@ -415,8 +418,9 @@ class FunctionLogger:
                     # else:
                     #    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked
 
-                    f_val = self.Y[idx]
-                    self.Y[idx] = f_val
+                    # A scalar, as on every other path (self.Y[idx] is a
+                    # row of the (N, 1) array)
+                    f_val = self.Y[idx].item()
                     self.fun_eval_time[idx] = (
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
