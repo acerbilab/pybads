@@ -1,9 +1,10 @@
-# `ellipsoid_D3_hetero` on Linux: the regression after `020d6a8` and three candidate causes
+# `ellipsoid_D3_hetero` on Linux: the regression after `020d6a8` and its candidate causes
 
 Seeds 0-89 of the configuration `ellipsoid_D3_hetero` of the `default`
 suite of `dev/scripts/benchmark_targets.py`, at the commit before `020d6a8`
 and after it, and under the candidates of `dev/TODO.md` (item
-"`ellipsoid_D3_hetero` after `020d6a8`"). The Windows counterpart is
+"`ellipsoid_D3_hetero` after `020d6a8`"), with two more found on the way.
+The Windows counterpart is
 [`population_ellipsoid_hetero_20260925`](../population_ellipsoid_hetero_20260925/README.md).
 The target is a 3-D ellipsoid `sum(a_i (x_i - c_i)**2)` with `a` = (1, 1e3,
 1e6), with noise of standard deviation `1 + sqrt(f)` that the target
@@ -19,10 +20,13 @@ returns (`specify_target_noise=True`).
 | `row_fix/` | 0-89 | the package code of `032dfcb`: a repeated point merged into the row of the function log that matches it in every coordinate |
 | `row_fix_observation/` | 0-89 | `032dfcb` with `row_fix_observation.patch`: in addition, the log returns the observation of a repeated point, as MATLAB's `funlogger` does, instead of the merged value |
 | `row_fix_mean_prior/` | 0-89 | the package code of `8afbe16`: the row fix and the mean prior |
+| `length_bound/` | 0-89 | `1c8c71d` with `length_bound.patch`: the GP log length scales bounded by the log of the maximum length scale, as in `gpdefBads.m`, where the port used the maximum itself |
+| `row_fix_mean_prior_length_bound/` | 0-89 | the package code of `97b2c66`: the three fixes |
+| `row_fix_mean_prior_no_repeats/` | 0-89 | `8afbe16` with `no_repeats.patch` (below) |
 
-The records of the four candidate directories name local commits of the
-same package code (`meta.git`); the patches give the two that are not
-commits of the repository. Each command was
+The records of the candidate directories name local commits of the same
+package code (`meta.git`); the patches give those that are not commits of
+the repository. Each command was
 
 ```console
 cd <clean worktree at the commit>
@@ -33,8 +37,12 @@ PYTHONPATH=<repository>/dev/scripts/runs/gpyreg/v1.3.3 <repository>/.venv/bin/py
 - Linux (a cloud container), Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1;
   one BLAS thread per run, four runs at a time, a fresh process per run;
   about 6 minutes a directory, on 2026-09-25.
-- The seeds 0-29 of `row_fix/` and `row_fix_mean_prior/` equal, run by
-  run, those of the gate populations of `032dfcb` and `8afbe16`.
+- The seeds 0-29 of `row_fix/`, `row_fix_mean_prior/` and
+  `row_fix_mean_prior_length_bound/` equal, run by run, those of the gate
+  populations of `032dfcb`, `8afbe16` and `97b2c66`
+  ([`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md)
+  and its `steps/`). The two length-bound directories ran after the
+  container restarted; the reference README says how it was checked.
 
 ## Outcome
 
@@ -49,6 +57,8 @@ test on the paired log10 errors:
 | row fix (`032dfcb`) | 0.48 | 0.10–0.95 | 2.32 | 11.0 | 20 | 0.26 | 376 | 33 / 39 | 0.012 | 0.00032 |
 | row fix + observation | 0.52 | 0.20–0.99 | 2.32 | 11.0 | 22 | 0.18 | 363 | 30 / 38 | 0.18 | 2.1e-06 |
 | row fix + mean prior (`8afbe16`) | 0.46 | 0.16–0.85 | 2.62 | 8.1 | 20 | 0.19 | 352 | 52 / 0 | 0.17 | 7.9e-06 |
+| length bound | 0.38 | 0.14–0.68 | 0.99 | 6.7 | 9 | 0.19 | 388 | 57 / 0 | 0.0047 | 0.00038 |
+| all three (`97b2c66`) | 0.25 | 0.15–0.60 | 0.96 | 2.7 | 8 | 0.16 | 366 | 58 / 0 | 0.0021 | 0.00082 |
 
 "Solved" is an error below 0.1, the configuration's tolerance.
 
@@ -73,8 +83,21 @@ test on the paired log10 errors:
   moves only after a failed fit, and none of the 2,530 fits of the 90 runs
   at `1c8c71d` fails (the same wrapper, with one of `gpyreg.GP.fit`).
 
-No candidate, alone or with another, brings the runs back to those before
-`020d6a8` (every p against `before` at or below 3.2e-4).
+- **The bound of the GP length scales** (found by the Windows session,
+  PR #67): the port bounded each log length scale by the maximum length
+  scale, 80 on this box, instead of its log, 4.38, so the GP could make
+  the flat axis nearly constant. The log bound alone lowers the median to
+  0.38 (p = 0.0047) and the 90th percentile from 2.91 to 0.99, and brings
+  the flat coordinate's median contribution from 0.24 back to 0.059, its
+  level before `020d6a8` (0.065); the runs at or above 1 fall from 31 to 9.
+  On top of the other two commits it gives 0.25 (p = 0.039 against
+  `8afbe16`).
+
+The three commits together lower the median error from 0.58 to 0.25 and
+remove the excess along the flat axis. The runs remain worse than before
+`020d6a8` (p = 0.00082, median paired log10 error ratio +0.21, where
+`1c8c71d` has +0.54), now in the two steep coordinates (median
+contributions 0.049 and 0.050, against 0.018 and 0.034 before).
 
 ## Beyond the candidates: no repeated points
 
@@ -103,24 +126,13 @@ against `1c8c71d`, the error is smaller in 57 of the 90 pairs
 log10 error ratio of +0.14, where `1c8c71d` has +0.54. With the row fix
 and the mean prior, dropping the repeats removes about three quarters of
 the regression on this measure, and what remains is still significant.
-The change is not a commit of the repository: it reaches every run that
-repeats a point, and its gate is that of the TODO item.
+It was not run with the length bound. The change is not a commit of the
+repository: it reaches every run that repeats a point, and its gate is
+that of the TODO item.
 
-## Gates of the two commits
+## Gates
 
-- **`032dfcb`** (the row fix): the default suite × seeds 0-29 at that
-  commit, compared with
-  [`population_linux_targetnoise_20260925`](../population_linux_targetnoise_20260925/README.md)
-  (`gate_032dfcb_comparison.md`; its records of `sphere_D3_hetero` are in
-  `gate_032dfcb_sphere_D3_hetero/`, and those of `ellipsoid_D3_hetero`
-  equal seeds 0-29 of `row_fix/`), flags nothing in 54 tests. The
-  16 configurations without target noise are identical run by run, since
-  the changed branch runs only when the target returns a noise standard
-  deviation. `ellipsoid_D3_hetero` changes in 18 runs, and
-  `sphere_D3_hetero` in 25, with no change of its median error (0.10) and
-  a smaller largest error (0.52 to 0.34).
-- **`8afbe16`** (with the mean prior): its population is the Linux
-  reference
-  [`population_linux_meanprior_20260925`](../population_linux_meanprior_20260925/README.md),
-  whose comparison with the previous one flags five configurations, all
-  better.
+The gates of `032dfcb`, `8afbe16` and `97b2c66` over the default suite
+are in
+[`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md),
+the population at `97b2c66`, and its `steps/`.

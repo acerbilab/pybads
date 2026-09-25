@@ -1,8 +1,8 @@
 # Reference population on Windows after the noise-variance fix: the default suite, 30 seeds, gpyreg 1.3.3
 
-It predates `032dfcb` and `8afbe16`, which change the runs of every
-configuration (by how much, on Linux:
-[`population_linux_meanprior_20260925`](../population_linux_meanprior_20260925/README.md)),
+It predates `032dfcb`, `8afbe16` and `97b2c66`, which change the runs of
+every configuration (by how much, on Linux:
+[`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md)),
 so it no longer stands for the current code; `dev/TODO.md` lists the
 replacement.
 

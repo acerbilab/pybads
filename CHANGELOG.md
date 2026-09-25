@@ -54,7 +54,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   instead of its logarithm, as in MATLAB BADS, so that a length scale
   could grow far beyond the size of the search space and the GP could
   treat as flat a direction along which the target varies slowly. Results
-  change at default options.
+  change at default options. On the 3-D ellipsoid with target noise above,
+  run over 90 seeds on Linux, the median error falls from 0.46 (with the
+  two fixes above) to 0.25, and the number of runs with an error of 1 or
+  more from 20 to 8.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below

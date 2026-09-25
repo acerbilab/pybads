@@ -55,39 +55,37 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
-- [ ] **A Windows reference after `8afbe16`.** `8afbe16` re-centres the GP
-  mean prior at each rebuild, which changes the runs of every
-  configuration, and `032dfcb` changes those with target noise, so
+- [ ] **A Windows reference after `97b2c66`.** `8afbe16` (the GP mean prior)
+  and `97b2c66` (the bound of the GP length scales) change the runs of
+  every configuration, and `032dfcb` those with target noise, so
   `experiments/population_targetnoise_20260925/` no longer stands for the
   current code on Windows. The replacement is the default suite at 30
   seeds on Windows, with its null check, as for the Linux reference
-  (`experiments/population_linux_meanprior_20260925/`).
+  (`experiments/population_linux_gpfixes_20260925/`).
 - [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
-  standard deviations, as MATLAB does, makes the runs of this benchmark
-  configuration worse: over 90 seeds the median error rises from 0.21 to
+  standard deviations, as MATLAB does, made the runs of this benchmark
+  configuration worse: over 90 seeds the median error rose from 0.21 to
   0.54 on Windows and from 0.18 to 0.58 on Linux, mostly along the flat
   axis of the ellipsoid
   ([Windows](experiments/population_ellipsoid_hetero_20260925/README.md),
   [Linux](experiments/population_ellipsoid_hetero_linux_20260925/README.md)),
-  while the spheres with target noise improve. The fix stays; what is open
-  is which other difference from MATLAB the correct noise exposes. The
-  three candidates first listed here, tested on Linux, do not account for
-  it: re-centring the GP mean prior at each rebuild (`8afbe16`) lowers the
-  median to 0.45, not significantly; returning the observation of a
-  repeated point, as MATLAB's `funlogger` does, makes the runs worse; and
-  the lower bound of the noise hyperparameter never moves, since no fit
-  fails. On the way, a repeated point was found merged into another
-  point's row of the function log (fixed in `032dfcb`: median 0.48; with
-  both commits, 0.46). Still open:
+  while the spheres with target noise improved. The fix stays. Three
+  differences from MATLAB, fixed on Linux, bring the median to 0.25 and
+  the flat axis back to its error before `020d6a8`: the bound of the GP log
+  length scales (`97b2c66`, the largest effect), a repeated point merged
+  into another point's row of the function log (`032dfcb`), and the GP
+  mean prior, re-centred at each rebuild (`8afbe16`). Returning the
+  observation of a repeated point, as MATLAB's `funlogger` does, makes the
+  runs worse, and the lower bound of the noise hyperparameter never moves,
+  since no fit fails. The runs remain worse than before `020d6a8` (p =
+  0.0008), now along the two steep axes. Still open:
   - the evaluated points that `contraints_check` keeps (the item above):
-    dropping them, as MATLAB does, lowers the median to 0.33 on top of
-    both commits, the largest effect found, still short of the 0.18 before
-    `020d6a8`;
+    dropping them, as MATLAB does, lowered the median from 0.46 to 0.33 on
+    top of `8afbe16`, not yet measured with the length bound;
   - a run of MATLAB BADS on this problem, which would show whether correct
     noise handling alone gives such runs;
   - the bounds of the GP mean, which the port fixes by the initial design
-    and MATLAB leaves infinite (a row of the survey's candidate table,
-    found beside the candidates).
+    and MATLAB leaves infinite (a row of the survey's candidate table).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all

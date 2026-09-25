@@ -1,8 +1,9 @@
 # Reference population on Linux after the noise-variance fix: the default suite, 30 seeds, gpyreg 1.3.3
 
 Replaced as the reference on Linux by
-[`population_linux_meanprior_20260925`](../population_linux_meanprior_20260925/README.md),
-at `8afbe16`, whose GP mean prior changes the runs of every configuration.
+[`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md),
+at `97b2c66`, whose fixes to the GP change the runs of every
+configuration.
 
 The reference on Linux for `dev/scripts/population.py compare` at
 `1c8c71d` (the one on Windows is

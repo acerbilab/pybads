@@ -114,13 +114,14 @@ reference's number of seeds.
   `020d6a8`), with its null check and its comparison with the previous
   reference, which flags nothing: the two configurations with target noise
   change, and the other 16 are identical run by run.
-- [experiments/population_linux_meanprior_20260925/](experiments/population_linux_meanprior_20260925/README.md)
+- [experiments/population_linux_gpfixes_20260925/](experiments/population_linux_gpfixes_20260925/README.md)
   — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at `8afbe16`: the GP mean prior re-centred at each
-  rebuild, and a repeated point merged into its own row), with its null
-  check and its comparison with the previous Linux reference, which flags
-  five configurations, all better: the deterministic ellipsoids and
-  `rosenbrock_D6` end closer to their minima.
+  seeds, gpyreg 1.3.3, at `97b2c66`: a repeated point merged into its own
+  row, the GP mean prior re-centred at each rebuild, and the GP log length
+  scales bounded by the log of the maximum), with its null check, the
+  gates of each step, and its comparison with the previous Linux
+  reference, which flags five configurations, all better: the
+  deterministic ellipsoids and `rosenbrock_D6` end closer to their minima.
 - [experiments/population_linux_targetnoise_20260925/](experiments/population_linux_targetnoise_20260925/README.md)
   — the previous reference on Linux (at `1c8c71d`, with the noise-variance
   fix of `020d6a8`), with its null check and its comparison with the one
@@ -132,8 +133,10 @@ reference's number of seeds.
   paired seeds.
 - [experiments/population_ellipsoid_hetero_linux_20260925/](experiments/population_ellipsoid_hetero_linux_20260925/README.md)
   — the same regression on Linux over seeds 0-89 (median error 0.18 to
-  0.58), and the three candidate causes of `TODO.md` with the defect found
-  beside them (`032dfcb`, `8afbe16`): none brings the runs back.
+  0.58), and the candidate causes: the three of `TODO.md`, the defect found
+  beside them (`032dfcb`), the bound of the GP length scales (`97b2c66`),
+  which brings the flat axis back, and the removal of evaluated points;
+  with the three commits the median is 0.25.
 - [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
   — the previous reference on Linux (default suite, 30 seeds, gpyreg
   1.3.3, the guards of `plans/gp-update-guards.md`, before `020d6a8`),
