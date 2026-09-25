@@ -81,6 +81,13 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
   counts the failed fits inside `_robust_gp_fit_` over the suite, under the
   gpyreg that `PYTHONPATH` selects.
+- `gp_update_failures.py` runs a suite as `population.py` does, counts the
+  failures of the three guarded GP updates (`add_and_update_gp`,
+  `local_gp_fitting`, `_get_target_from_gp_`) and how each guard ended, and
+  writes one JSON file. `--check DIR` compares the runs' results with a
+  population's records. `--inject P` makes a fraction of the guarded
+  computations fail, the same way each time a computation is repeated, as
+  a stress test.
 - `tolerance_sweep.py` runs the seeded optimization tests of
   `pybads/testing/bads/test_bads_optimization.py` over a range of seeds,
   through the test functions with their tolerances disabled, and records
@@ -101,10 +108,15 @@ reference's number of seeds.
 
 ## Index
 
+- [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
+  — the reference population on Linux (default suite, 30 seeds, gpyreg
+  1.3.3, the guards of `plans/gp-update-guards.md`), identical run by run
+  to the same code before the guards, with its null check and an
+  information-only comparison with the Windows reference.
 - [experiments/population_gpyreg133_20260924/](experiments/population_gpyreg133_20260924/README.md)
-  — the reference population of the benchmark (default suite, 30 seeds,
-  draws through a `numpy.random.Generator`, gpyreg 1.3.3), with its null
-  check.
+  — the reference population of the benchmark on Windows (default suite,
+  30 seeds, draws through a `numpy.random.Generator`, gpyreg 1.3.3), with
+  its null check.
 - [gpyreg 1.3.3 for PyBADS](results/2026-09-25-gpyreg-1.3.3.md) — the
   suite, the agreement of 1.3.2 and 1.3.3 at default options, and the
   benchmark comparison with 1.3.1 (five configurations flagged, each
@@ -116,6 +128,11 @@ reference's number of seeds.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
   and the detectable effect sizes that the later references cite.
+- [plans/gp-update-guards.md](plans/gp-update-guards.md) — guards on the
+  three GP calls that stopped benchmark runs with `LinAlgError`, after
+  MATLAB BADS: a consistent GP handed on, a rebuild (and, after a failed
+  rebuild, a refit) at the next step, no change to runs without a failure;
+  the failure counts and the stress run with injected failures.
 - [plans/tooling-and-rng.md](plans/tooling-and-rng.md) — repository
   tooling after PyVBMC's (formatting, CI with gpyreg pinned, packaging,
   changelog, release), seed tests, the benchmark suite and population

@@ -1577,11 +1577,17 @@ class BADS:
         refit_flag, do_gp_calibration = self._is_gp_refit_time_(
             self.options["normalpha_level"]
         )
+        # A failed rebuild of the local GP asks for a refit at the next one.
+        if not refit_flag and gp.temporary_data.get("needs_refit", False):
+            refit_flag = True
+            self._record_gp_refit_()
+            do_gp_calibration = False
 
         if (
             refit_flag
             or self.optim_state["search_count"] == 0
             or self.reset_gp
+            or gp.temporary_data.get("needs_rebuild", False)
         ):
             # Local GP approximation on current incumbent
             gp, gp_exit_flag = local_gp_fitting(
@@ -1722,11 +1728,18 @@ class BADS:
                     False,
                     rng=self.rng,
                 )
-                f_mu_search, f_sd_search = new_gp.predict(
-                    np.atleast_2d(u_search)
-                )
-                f_mu_search = f_mu_search.item()
-                f_sd_search = np.sqrt(f_sd_search).item()
+                if new_gp.temporary_data.get("needs_rebuild", False):
+                    # The rebuild failed and `new_gp` is the GP of its
+                    # entry, not built around the point: no estimate there,
+                    # as in MATLAB BADS, so the search counts as failed.
+                    f_mu_search = np.nan
+                    f_sd_search = np.nan
+                else:
+                    f_mu_search, f_sd_search = new_gp.predict(
+                        np.atleast_2d(u_search)
+                    )
+                    f_mu_search = f_mu_search.item()
+                    f_sd_search = np.sqrt(f_sd_search).item()
             else:
                 f_mu_search = y_search
                 f_sd_search = 0
@@ -2028,9 +2041,22 @@ class BADS:
                 and self.optim_state["iter"] > 0
             ):
                 refit_flag = False
+            elif not refit_flag and gp.temporary_data.get(
+                "needs_refit", False
+            ):
+                # A failed rebuild of the local GP asks for a refit at the
+                # next one.
+                refit_flag = True
+                self._record_gp_refit_()
+                do_gp_calibration = False
 
             # Local GP approximation around polled points
-            if refit_flag or poll_count == 0 or self.reset_gp:
+            if (
+                refit_flag
+                or poll_count == 0
+                or self.reset_gp
+                or gp.temporary_data.get("needs_rebuild", False)
+            ):
                 gp, gp_exit_flag = local_gp_fitting(
                     gp,
                     self.u,
@@ -2044,6 +2070,10 @@ class BADS:
                 if refit_flag:
                     self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
+                if gp.temporary_data.get("needs_rebuild", False):
+                    # The rebuild failed and the GP is the previous one: it
+                    # is unreliable, as MATLAB's GP with no posterior is.
+                    do_gp_calibration = True
 
             # Update Target from GP prediction
             f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
@@ -2092,27 +2122,10 @@ class BADS:
                 do_gp_calibration = True
 
             # Consider whether to stop polling
-            if not self.options["complete_poll"]:
-                # Stop polling if last poll was good
-                if certain_good_poll:
-                    if do_gp_calibration:
-                        break  # GP is unreliable, just stop polling
-                    elif p_less > 1 - self.options["tol_poi"]:
-                        break  # Use GP prediction whether to stop polling
-                else:
-                    # No good polling so far -- if GP is reliable, stop polling
-                    # If probability of improvement at any location is to low
-                    if (
-                        not do_gp_calibration
-                        and (
-                            self.options["consecutive_skipping"]
-                            or self.last_skipped < self.optim_state["iter"] - 1
-                        )
-                        and poll_count >= self.options["min_failed_poll_steps"]
-                        and p_less > (1 - self.options["tol_poi"])
-                    ):
-                        self.last_skipped = self.optim_state["iter"]
-                        break
+            if not self.options["complete_poll"] and self._is_poll_stop_(
+                certain_good_poll, do_gp_calibration, p_less, poll_count
+            ):
+                break
 
             # Evaluate function and store the value
             u_new = u_poll[index_acq]
@@ -2128,6 +2141,7 @@ class BADS:
 
             if self.optim_state["uncertainty_handling_level"] > 0:
                 # Update posterior with the new polled point
+                n_train = gp.X.shape[0]
                 gp = add_and_update_gp(
                     self.function_logger,
                     gp,
@@ -2136,9 +2150,16 @@ class BADS:
                     y_sd_poll,
                     self.options,
                 )  # u_new is already added from the function logger
-                f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
-                f_sd_poll = np.sqrt(f_sd_poll).item()
-                f_poll = f_poll.item()
+                if gp.X.shape[0] > n_train:
+                    f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
+                    f_sd_poll = np.sqrt(f_sd_poll).item()
+                    f_poll = f_poll.item()
+                else:
+                    # The update failed and the GP lacks the point: no
+                    # estimate there, as in MATLAB BADS, so the point counts
+                    # as no improvement.
+                    f_poll = np.nan
+                    f_sd_poll = np.nan
             else:
                 f_poll = y_poll
                 f_sd_poll = 0
@@ -2400,21 +2421,56 @@ class BADS:
         )
 
         if refit_flag:
-            self.optim_state["lastfitgp"] = self.function_logger.func_count
-
-            # Reset GP statistics GP
-            self.gp_stats = IterationHistory(
-                [
-                    "iter_gp",
-                    "fval",
-                    "ymu",
-                    "ys",
-                    "gp",
-                ]
-            )
+            self._record_gp_refit_()
             do_gp_calibration = False
 
         return refit_flag, do_gp_calibration
+
+    def _is_poll_stop_(
+        self, certain_good_poll, do_gp_calibration, p_less, poll_count
+    ):
+        """A private method that decides whether to stop polling before the
+        next poll vector, from whether a poll was good so far, whether the
+        GP is unreliable (``do_gp_calibration``) and the probability
+        ``p_less`` that no poll vector improves. A stop without a good poll
+        is recorded in ``self.last_skipped``."""
+        # Stop polling if last poll was good
+        if certain_good_poll:
+            if do_gp_calibration:
+                return True  # GP is unreliable, just stop polling
+            # Use GP prediction whether to stop polling
+            return p_less > 1 - self.options["tol_poi"]
+        # No good polling so far -- if GP is reliable, stop polling
+        # If probability of improvement at any location is to low
+        if (
+            not do_gp_calibration
+            and (
+                self.options["consecutive_skipping"]
+                or self.last_skipped < self.optim_state["iter"] - 1
+            )
+            and poll_count >= self.options["min_failed_poll_steps"]
+            and p_less > (1 - self.options["tol_poi"])
+        ):
+            self.last_skipped = self.optim_state["iter"]
+            return True
+        return False
+
+    def _record_gp_refit_(self):
+        """A private method that records a refit of the GP hyperparameters:
+        the evaluation count at the refit, and a reset of the GP
+        statistics."""
+        self.optim_state["lastfitgp"] = self.function_logger.func_count
+
+        # Reset the GP statistics
+        self.gp_stats = IterationHistory(
+            [
+                "iter_gp",
+                "fval",
+                "ymu",
+                "ys",
+                "gp",
+            ]
+        )
 
     def _get_target_from_gp_(self, u, gp: GP, hyp_best):
         """A private method that retrieve the prediction of the gp at the input ``u``.
@@ -2442,8 +2498,17 @@ class BADS:
             or self.options["uncertain_incumbent"]
         ):
             tmp_gp = copy.deepcopy(gp)
-            tmp_gp.set_hyperparameters(hyp_best)
-            f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
+            try:
+                tmp_gp.set_hyperparameters(hyp_best)
+                f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
+            except np.linalg.LinAlgError:
+                # The posterior under `hyp_best` cannot be computed: predict
+                # from the GP as it stands, whose posterior matches its data
+                # (MATLAB's UpdateTarget reuses the current posterior).
+                self.logger.debug(
+                    "bads:optimize: GP posterior under the best hyperparameters failed; target predicted from the current GP"
+                )
+                f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
 
             f_target_s = np.sqrt(np.max(fs2, axis=0))
             if (
@@ -2451,7 +2516,10 @@ class BADS:
                 | ~np.isreal(f_target_s)
                 | ~np.isfinite(f_target_s)
             ):
-                f_target_mu = self.optim_state["fval"]
+                # An array, as the prediction is: the callers call `.item()`.
+                f_target_mu = np.atleast_2d(
+                    np.asarray(self.optim_state["fval"], dtype=float)
+                )
                 f_target_s = self.optim_state["fsd"]
 
             # f_target: Set optimization target slightly below the current incumbent

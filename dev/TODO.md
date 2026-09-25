@@ -3,64 +3,71 @@
 Updated 2026-09-25. The list describes scope, not priority or execution
 order.
 
-- [ ] **Investigate the crashes on unguarded GP updates.** In progress in
-  a separate session since 2026-09-25. In the first benchmark reference, `dev/experiments/population_baseline_20260924/`
-  (default suite at 500 D, gpyreg 1.3.1, draws through NumPy's global
-  stream), 2 of 540 runs stopped with `LinAlgError:
-  Singular matrix for L Cholesky decomposition`, raised by gpyreg's
-  training Cholesky factorization on a GP update that PyBADS does not
-  guard (`_robust_gp_fit_` retries only its own fits):
-  - `ellipsoid_D3`, seed 20, at 150 evaluations: `_poll_step_` →
-    `_get_target_from_gp_` → `gp.set_hyperparameters`;
-  - `ellipsoid_D10`, seed 7, at 951 evaluations: `_search_step_` →
-    `add_and_update_gp` → `gp.update`.
+- [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
+  to the GP (`gpupdate(..., 'add', ...)`, `private/gpupdate.m`) by a rank-1
+  update of the posterior (`utils/update_posterior.m`), falls back to the
+  full recomputation when that fails, and skips the rank-1 update under
+  `SpecifyTargetNoise`. The port's `add_and_update_gp` recomputes every
+  posterior in full. gpyreg's `update` has a rank-1 path of its own (one
+  new point, no new hyperparameters, posteriors that hold their factors),
+  which PyBADS does not take, and which accepts a noise variance for the
+  new point. The guards of
+  [plans/gp-update-guards.md](plans/gp-update-guards.md) keep the full
+  recomputation (its Open Question 5) so that runs without a failure do
+  not move. Taking the rank-1 path would move results at default options,
+  so it needs the population comparison. To settle: whether gpyreg's path
+  follows MATLAB's, whether PyBADS should skip it with target noise as
+  MATLAB does, and what it saves in time.
+- [ ] **Previously evaluated points evaluated again.** `contraints_check`
+  (`pybads/function_logger/constraints_check.py`, "Remove previously
+  evaluated vectors") keeps the first occurrences of `np.unique` over the
+  candidates stacked above the evaluated points. Those always fall among
+  the candidates, so a candidate that repeats an evaluated point is kept.
+  MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
+  target noise SD, `FunctionLogger` records the repeat as a new row, and
+  it becomes a duplicate training input of the GP. At low noise that makes
+  the training covariance nearly singular, a plausible cause of the
+  `LinAlgError` crashes behind `plans/gp-update-guards.md`. On Linux at
+  `8fc1dff` (gpyreg 1.3.3), one exact repeat was evaluated in
+  `ellipsoid_D10` seed 7, one of the crashing seeds, and one in
+  `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20. To settle:
+  - look for duplicate rows in `gp.X` just before the failing call of the
+    crashing runs (`ellipsoid_D3` seed 20, `ellipsoid_D10` seeds 7, 13 and
+    26, Windows, gpyreg 1.3.1);
+  - count the repeats over the default suite;
+  - fix the removal, as MATLAB does it. That moves results, so it is gated
+    by the population comparison against
+    `experiments/population_linux_20260925/` (or the Windows reference),
+    and the seeded tests are re-checked over their seeds.
 
-  Both reproduce from their seeds at `2226883`
-  (`PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python dev/scripts/population.py run --only ellipsoid_D3 --seeds 20 --out <dir>`).
-  In `dev/experiments/population_generator_20260924/` (the same suite with
-  the draws through a generator, gpyreg 1.3.1), those seeds finish, and 2
-  other runs stop at a third unguarded call: `ellipsoid_D10` seeds 13 and
-  26, where `local_gp_fitting` catches the failure of
-  `gp.update(hyp=hyp_gp)` and its recovery,
-  `gp.set_hyperparameters(old_hyp_gp)`, fails in turn (reached from
-  `_search_step_` and from `_poll_step_`; both reproduce from their seeds
-  with the package code of `c85cddb`). The recovery restores the old
-  hyperparameters on the new training set, which `local_gp_fitting`
-  assigns to `gp.X` and `gp.y` directly before the update; its MATLAB
-  counterpart is not checked.
-  The first two are gaps of the port: MATLAB BADS (`../bads` at `019f0b4`)
-  guards both calls. `UpdateTarget` (`bads.m`) predicts through `gppred`
-  (`utils/gppred.m`), which catches a failed prediction per hyperparameter
-  sample, and then falls back to the incumbent's `fval` and `fsd` when the
-  prediction is not finite; the port kept that fallback but not the
-  `try`, and gpyreg raises where MATLAB's prediction returned NaN.
-  `gpupdate(..., 'add', ...)` (`private/gpupdate.m`) tries a rank-1
-  posterior update, then a full recomputation, each in a `try`, and on
-  failure clears the posterior with `exitflag = -2`; the port calls
-  `gp.update(compute_posterior=True)` bare. From gpyreg 1.3.3, a `fit`,
-  `update` or `set_hyperparameters` that raises restores the GP's state as
-  it was when the call started (data, bounds, priors and posteriors). For
-  `_get_target_from_gp_`, which changes no data, a guard therefore keeps a
-  consistent GP. `add_and_update_gp` and `local_gp_fitting` assign the new
-  data to `gp.X` and `gp.y` before they call `gp.update`, so a failed
-  update leaves the new data beside the old posteriors; passing the data
-  through `gp.update` (its `X_new` and `y_new` arguments) would let a
-  failure restore the GP without them. With gpyreg 1.3.3 no run of the
-  suite crashes (`dev/experiments/population_gpyreg133_20260924/`, the
-  current reference), but the crashing runs pass through the low-noise
-  regime whose predictions gpyreg 1.3.2 changed, so they follow other
-  trajectories there, and this does not show whether the calls still fail.
-  To settle: restore those guards, the data passed through `gp.update`,
-  and what the GP left by a failed call means downstream in PyBADS.
+  The survey's subsection "Found while fixing the tests" also records the
+  defect.
+- [ ] **Follow-ups of the GP-update guards**
+  ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
+  in the survey's candidate table, marked "at `676083d`" or "at
+  `a83bd51`":
+  - the target's posterior, recomputed under the best iteration's
+    hyperparameters, where MATLAB reuses the current posterior. That gives
+    other targets at default options, and it is why that call can fail;
+  - `S`, a standard deviation, stored in `gp.s2`, a variance, at every
+    rebuild and add (`specify_target_noise` only);
+  - the refit forced after a failed rebuild, which ignores
+    `min_refit_time`, where MATLAB refits through `gppredcheck`. It sends
+    such runs into `_robust_gp_fit_`, whose fifth consecutive failed fit
+    raises `ValueError`, a combination no test or stress run covers;
+  - after a failed rebuild, the search still ranks its candidates by the
+    previous GP, where MATLAB takes the first candidate;
+  - `init_and_train_gp` retries a failing initial fit without bound;
+  - `_re_evaluate_history_` rebuilds the GPs stored in `IterationHistory`
+    in place;
+  - under `stobads`, a NaN estimate counts as uncertain, not as a failure.
+
+  No failure of the guarded calls occurs in the default suite under gpyreg
+  1.3.3 (484,773 calls on Linux), so only the tests
+  (`test_gp_update_failures.py`) and the stress run of
+  `dev/scripts/gp_update_failures.py --inject` reach these paths.
 - [ ] **Follow-ups of the seeded tests** (the survey's section on the
   tests).
-  - A deterministic test of the fallback of the initial GP fit in
-    `init_and_train_gp` (its `except np.linalg.LinAlgError`), for instance
-    with `gp.fit` monkeypatched to raise once. `test_small_noisy_func` went
-    through it under its former global seed; at `SEED = 0` no test does,
-    while 32 of the 100 seeds of the sweep do, and a seed chosen to reach
-    it would not reach it on every platform. The item on unguarded GP
-    updates changes that code: write the test with it or after it.
   - The tolerance of `test_he_noisy_sphere_opt`, 5, about twice its largest
     error: settle it once MATLAB's own rate above the tolerance of
     `runtest.m` is known (bug hunt), by tightening it, keeping it, or giving
@@ -79,14 +86,10 @@ order.
   table (only partly looked at, never compared with MATLAB), and the
   findings of its section on the tests: the errors of
   `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's `runtest.m`
-  in 7 of 100 seeds, and three candidate defects (`contraints_check` keeps
-  previously evaluated points, whose duplicates may reach the failed
-  Cholesky factorizations of the item on unguarded GP updates; the seed of
-  the initial Sobol design ignores all but the integer part of `u0`, and
-  whether MATLAB's `uint64` product saturates needs MATLAB itself; the
-  warnings of `gaussian_process_train.py` go to the `asyncio` logger). They
-  move into the candidate table once the item on unguarded GP updates,
-  which edits that table, has landed.
+  in 7 of 100 seeds, and the seed of the initial Sobol design, which
+  ignores all but the integer part of `u0` (whether MATLAB's `uint64`
+  product saturates needs MATLAB itself). The previously evaluated points
+  that `contraints_check` keeps have an item of their own above.
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.

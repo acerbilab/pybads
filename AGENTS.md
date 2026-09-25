@@ -69,9 +69,10 @@ commit of the release that `pyproject.toml` names as the minimum (CI reads
 gpyreg's version from its tags, and an untagged commit reads lower, so pip
 would install gpyreg from PyPI over the pinned checkout). A change that
 needs a newer gpyreg moves both. `merge-tests.yml` runs the full matrix
-(Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` only when it
-touches `pybads/`, `pyproject.toml` or `setup.py`; a PR that changes
-anything else, the workflows included, runs no tests. `tests.yml` runs the
+(Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` or to a
+`dev*` branch, only when its changes against that base touch `pybads/`,
+`pyproject.toml` or `setup.py`; a PR that changes anything else, the
+workflows included, runs no tests. `tests.yml` runs the
 full matrix on dispatch and on the 13th and 28th of each month, the
 scheduled run against gpyreg's `main` instead of the pin (the drift
 detector), and a smoke run (Ubuntu, Python 3.12) on each push to a `dev*`
@@ -228,18 +229,36 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.
+- **A GP update can fail, and the GP handed on must stay consistent.**
+  gpyreg (from 1.3.3) puts a GP whose `fit`, `update` or
+  `set_hyperparameters` raises back as it was when the call started. So new
+  data go through `gp.update(X_new=..., y_new=...)`. If `gp.X` or `gp.y` is
+  assigned before an update that fails, the new data sit beside the old
+  posteriors, and `predict` then raises, or silently predicts wrong values
+  when the sizes are equal. `local_gp_fitting`, which replaces the training
+  set, snapshots the GP and restores it when the rebuild and its retry
+  with the previous hyperparameters both fail. A GP that could not take a
+  point carries `temporary_data["needs_rebuild"]`; a restored one also
+  carries `["needs_refit"]`. The markers are set in
+  `gaussian_process_train.py` and read by the search and the poll in
+  `bads.py`, which rebuild at their next step, and refit (the poll only
+  with `poll_training` on).
+  `local_gp_fitting` removes both once it leaves a posterior on its new
+  training set. `test_gp_update_failures.py` injects the failures.
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
 
 ## Numerical gates
 
 A change that can move results is gated by the population comparison of
-`dev/scripts/population.py` against the current reference under
-`dev/experiments/` (its `README.md` holds the command, the provenance, the
-null check, the positive control and what "no flag" can detect at its number
-of seeds). A gate is evidence only if it reaches the changed code: the
-benchmark exercises the default options, so a change behind a non-default
-option needs a configuration that sets it. Every evidence run selects gpyreg
+`dev/scripts/population.py` against the current reference of the platform
+under `dev/experiments/` (its `README.md` holds the command, the
+provenance, the null check, the positive control and what "no flag" can
+detect at its number of seeds). There is one reference for Windows and one
+for Linux, since pairing by seed holds only on one platform and set of
+versions; `dev/README.md` names both. A gate is evidence only if it reaches
+the changed code: the benchmark exercises the default options, so a change
+behind a non-default option needs a configuration that sets it. Every evidence run selects gpyreg
 explicitly, with `PYTHONPATH` naming a clone at the release tag
 (`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
 `../gpyreg`, which other work moves. Evidence runs call the venv's Python by

@@ -1,7 +1,6 @@
 import logging
 import math
 import traceback
-from asyncio.log import logger
 from copy import deepcopy
 
 import gpyreg as gpr
@@ -16,6 +15,8 @@ from pybads.stats import get_hpd
 from pybads.utils import IterationHistory
 
 from .options import Options
+
+logger = logging.getLogger("BADS")
 
 
 def init_and_train_gp(
@@ -246,8 +247,22 @@ def local_gp_fitting(
     ``numpy.random.Generator``, which is passed on to ``gp.fit``; if ``None``,
     a generator is derived from NumPy's global random state
     (``pybads.rng.get_rng``).
+
+    If the posterior on the new training set cannot be computed
+    (``LinAlgError``), it is computed with the previous hyperparameters, and
+    the exit flag is -2. If that fails too, the GP is restored as it was on
+    entry, the exit flag is -2, and ``gp.temporary_data["needs_rebuild"]``
+    and ``["needs_refit"]`` are set, so that the next search or poll step
+    rebuilds the local GP with a refit. A call that leaves a posterior on
+    the new training set removes both markers.
     """
     rng = get_rng(rng)
+
+    # The GP on entry, for the restore after a failed rebuild: a shallow
+    # copy of its attributes, as gpyreg's own restore takes, and of
+    # `temporary_data`, which is modified in place.
+    entry_state = vars(gp).copy()
+    entry_temporary_data = dict(gp.temporary_data)
 
     # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
     gp.X, gp.y, s2 = get_grid_search_neighbors(
@@ -510,10 +525,27 @@ def local_gp_fitting(
             "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
         )
         gp.set_priors(old_priors)
-        gp.set_hyperparameters(old_hyp_gp)
-        # gp.set_hyperparameters(iteration_history.get('gp_hyp_full')[-1])
         exit_flag = -2
+        try:
+            gp.set_hyperparameters(old_hyp_gp)
+        except np.linalg.LinAlgError:
+            # Without a refit, `hyp_gp` is `old_hyp_gp`, and this repeats
+            # the computation that failed. Back to the GP of the entry, in
+            # place, marked for a rebuild with a refit (MATLAB's gpupdate
+            # clears the posterior, which has the next step rebuild it).
+            logging.debug(
+                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
+            )
+            vars(gp).clear()
+            vars(gp).update(entry_state)
+            gp.temporary_data.clear()
+            gp.temporary_data.update(entry_temporary_data)
+            gp.temporary_data["needs_rebuild"] = True
+            gp.temporary_data["needs_refit"] = True
+            return gp, exit_flag
 
+    gp.temporary_data.pop("needs_rebuild", None)
+    gp.temporary_data.pop("needs_refit", None)
     return gp, exit_flag
 
 
@@ -1193,6 +1225,12 @@ def add_and_update_gp(
     """
     Quick posterior reupdate of Gaussian process.
 
+    The posteriors are recomputed in full with the hyperparameters the GP
+    holds. If that fails with ``LinAlgError``, the GP is left as it was,
+    without the new point (gpyreg restores a GP whose update raises), and
+    ``gp.temporary_data["needs_rebuild"]`` is set, so that the next search
+    or poll step rebuilds the local GP, the point included.
+
     Parameters
     ==========
     gp : GP
@@ -1204,12 +1242,25 @@ def add_and_update_gp(
     gp : GP
         The updated Gaussian process.
     """
-    gp.X = np.concatenate((gp.X, np.atleast_2d(x_new)))
-    gp.y = np.concatenate((gp.y, np.atleast_2d(y_new)))
+    s2_new = None
     if options["specify_target_noise"] and sd_new is not None:
-        gp.s2 = np.concatenate((gp.s2, np.atleast_2d(sd_new)))
+        s2_new = np.atleast_2d(sd_new)
 
-    gp.update(compute_posterior=True)
+    # The data go through `update`, so that a failure leaves the GP without
+    # them; the hyperparameters, given, keep the full recomputation.
+    try:
+        gp.update(
+            X_new=np.atleast_2d(x_new),
+            y_new=np.atleast_2d(y_new),
+            s2_new=s2_new,
+            hyp=gp.get_hyperparameters(as_array=True),
+            compute_posterior=True,
+        )
+    except np.linalg.LinAlgError:
+        logging.debug(
+            "bads:add_and_update_gp: posterior GP update failed; the point is left out until the next rebuild"
+        )
+        gp.temporary_data["needs_rebuild"] = True
 
     # Missing port: intmean part
     # TODO how is handled the user defined noise
