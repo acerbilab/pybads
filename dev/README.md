@@ -114,16 +114,26 @@ reference's number of seeds.
   `020d6a8`), with its null check and its comparison with the previous
   reference, which flags nothing: the two configurations with target noise
   change, and the other 16 are identical run by run.
-- [experiments/population_linux_targetnoise_20260925/](experiments/population_linux_targetnoise_20260925/README.md)
+- [experiments/population_linux_meanprior_20260925/](experiments/population_linux_meanprior_20260925/README.md)
   — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at `1c8c71d`, with the noise-variance fix of
-  `020d6a8`), with its null check and its comparison with the previous
-  Linux reference, which flags nothing: the two configurations with target
-  noise change, and the other 16 are identical run by run.
+  seeds, gpyreg 1.3.3, at `8afbe16`: the GP mean prior re-centred at each
+  rebuild, and a repeated point merged into its own row), with its null
+  check and its comparison with the previous Linux reference, which flags
+  five configurations, all better: the deterministic ellipsoids and
+  `rosenbrock_D6` end closer to their minima.
+- [experiments/population_linux_targetnoise_20260925/](experiments/population_linux_targetnoise_20260925/README.md)
+  — the previous reference on Linux (at `1c8c71d`, with the noise-variance
+  fix of `020d6a8`), with its null check and its comparison with the one
+  before, which flags nothing: the two configurations with target noise
+  change, and the other 16 are identical run by run.
 - [experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)
   — `ellipsoid_D3_hetero` over seeds 30-89 before and after `020d6a8`: with
   the reference seeds, the median error rises from 0.21 to 0.54 over 90
   paired seeds.
+- [experiments/population_ellipsoid_hetero_linux_20260925/](experiments/population_ellipsoid_hetero_linux_20260925/README.md)
+  — the same regression on Linux over seeds 0-89 (median error 0.18 to
+  0.58), and the three candidate causes of `TODO.md` with the defect found
+  beside them (`032dfcb`, `8afbe16`): none brings the runs back.
 - [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
   — the previous reference on Linux (default suite, 30 seeds, gpyreg
   1.3.3, the guards of `plans/gp-update-guards.md`, before `020d6a8`),

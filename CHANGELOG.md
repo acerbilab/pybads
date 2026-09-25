@@ -35,16 +35,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `specify_target_noise=True`, a point evaluated again was merged with the
   first earlier evaluation that shared any one of its coordinates, usually
   that of another point, whose value and noise it then changed. It is now
-  merged with its own earlier evaluation. On the 3-D ellipsoid above, where
-  54 of 90 seeded runs made such a merge, the median error over the 90
-  seeds falls from 0.58 to 0.48, and the number of runs with an error of 1
-  or more from 31 to 20.
+  merged with its own earlier evaluation. On the 3-D ellipsoid above, run
+  over 90 seeds on Linux, where 54 runs made such a merge, the median error
+  falls from 0.58 to 0.48, and the number of runs with an error of 1 or
+  more from 31 to 20.
 - **Prior of the GP mean.** At each rebuild of the local Gaussian process,
   the prior over its constant mean is centred at the 90th percentile of the
   training targets, with a width set by their spread, as in MATLAB BADS.
   PyBADS computed that prior and never applied it, so the prior set on the
   initial design held for the whole run. Results change at default
-  options.
+  options, most on ill-conditioned targets: on 3-, 6- and 10-D ellipsoids
+  with condition number 1e6, the median error of 30 seeded runs falls by a
+  factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
+  Rosenbrock function the runs that reach the global minimum end 17 times
+  closer to it.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below

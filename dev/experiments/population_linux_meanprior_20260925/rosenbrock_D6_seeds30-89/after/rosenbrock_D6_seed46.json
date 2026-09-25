@@ -1,0 +1,93 @@
+{
+ "label": "rosenbrock_D6",
+ "seed": 46,
+ "problem": "rosenbrock",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -1.2803779555226202,
+  3.775634859515966,
+  0.30231880138451395,
+  0.15837558970713506,
+  0.36817578938856155,
+  2.674838088957099
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 46
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 46,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.0839952258444328,
+   1.120613369780017,
+   0.6155774085851817,
+   1.9560905311368515,
+   2.1686184537080067,
+   -2.125946969524364
+  ],
+  "fval": 1.7080805090186056e-06,
+  "fsd": 0.0,
+  "true_error": 1.7080805090186056e-06,
+  "func_count": 492,
+  "iterations": 14,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 13.727615349000189,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "8afbe16",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev23+g1c8c71d2b",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/wip-meanprior/pybads",
+   "git": {
+    "sha": "8afbe16",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T17:14:49+0000",
+  "finished": "2026-09-25T17:15:03+0000"
+ }
+}

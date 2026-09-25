@@ -1,0 +1,80 @@
+diff --git a/pybads/bads/bads.py b/pybads/bads/bads.py
+index 7130e2b..a4dcfa2 100644
+--- a/pybads/bads/bads.py
++++ b/pybads/bads/bads.py
+@@ -1759,6 +1759,7 @@ class BADS:
+ 
+         else:
+             # Search set is empty
++            u_search = None
+             y_search = self.yval
+             f_mu_search = self.fval
+             f_sd_search = 0
+diff --git a/pybads/function_logger/constraints_check.py b/pybads/function_logger/constraints_check.py
+index c2badc6..454f01d 100644
+--- a/pybads/function_logger/constraints_check.py
++++ b/pybads/function_logger/constraints_check.py
+@@ -37,10 +37,16 @@ def contraints_check(
+         X_max_idx = function_logger.X_max_idx
+         u2 = np.round(function_logger.X[: X_max_idx + 1] / tol)
+         tmp_u = np.vstack((u1, u2))
+-        _, idx_sort = np.unique(tmp_u, axis=0, return_index=True)
++        _, idx_sort, inverse = np.unique(
++            tmp_u, axis=0, return_index=True, return_inverse=True
++        )
++        inverse = inverse.ravel()
+         # u1_idx = np.sort(idx_sort[idx_sort < len(u1)])
+         u1_idx = idx_sort[idx_sort < len(u1)]
+-        U_new = U_new[u1_idx]
++        # Drop the candidates on an evaluated point, as the setdiff of
++        # MATLAB's uCheck.m does
++        evaluated = np.isin(inverse[u1_idx], inverse[len(u1) :])
++        U_new = U_new[u1_idx[~evaluated]]
+ 
+     if non_box_cons is not None:
+         if function_logger is None:
+diff --git a/pybads/search/es_search.py b/pybads/search/es_search.py
+index 653abfa..8bfc73f 100644
+--- a/pybads/search/es_search.py
++++ b/pybads/search/es_search.py
+@@ -155,7 +155,10 @@ class ESSearch(ABC):
+                 non_box_cons,
+             )
+ 
+-            if self.search_acq_fcn[0] == "acq_LCB":
++            if u_new.shape[0] == 0:
++                # Every candidate was evaluated before or infeasible
++                z_new = np.empty(0)
++            elif self.search_acq_fcn[0] == "acq_LCB":
+                 z_new, fmu, fs = acq_fcn_lcb(
+                     u_new, func_logger.func_count, gp, self.search_acq_fcn[1]
+                 )
+@@ -168,7 +171,7 @@ class ESSearch(ABC):
+             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
+ 
+             # if something went wrong with the acquisition function, random search is performed
+-            if z_new is None or z_new.size == 0:
++            if u_new.shape[0] > 0 and (z_new is None or z_new.size == 0):
+                 z_candidates = self.rng.random(u_new.shape[0])
+                 self.logger.warn(
+                     "bads:es_search: Something went wrong with the acquisition function, random search is performed"
+@@ -193,6 +196,10 @@ class ESSearch(ABC):
+             z = z_candidates[z_idx[0:N]]
+             us = us_candidates[z_idx[0:N]]  # zlist in Matlab is not used
+ 
++            if us.shape[0] == 0:
++                # No candidate left to reproduce, as in MATLAB's searchES
++                break
++
+             if i < self.n_search_iter - 1:
+                 frac = n_new / ntest
+                 # Update scale parameter
+@@ -213,6 +220,8 @@ class ESSearch(ABC):
+                     * self.scale
+                 )
+ 
++        if us.shape[0] == 0:
++            return np.empty((0, nvars)), np.empty(0)
+         return us[0], z[0]
+ 
+ 

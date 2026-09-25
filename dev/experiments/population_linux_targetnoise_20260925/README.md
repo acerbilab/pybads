@@ -1,7 +1,11 @@
 # Reference population on Linux after the noise-variance fix: the default suite, 30 seeds, gpyreg 1.3.3
 
-The reference on Linux for `dev/scripts/population.py compare` until a
-later reference replaces it (the one on Windows is
+Replaced as the reference on Linux by
+[`population_linux_meanprior_20260925`](../population_linux_meanprior_20260925/README.md),
+at `8afbe16`, whose GP mean prior changes the runs of every configuration.
+
+The reference on Linux for `dev/scripts/population.py compare` at
+`1c8c71d` (the one on Windows is
 [`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md)):
 18 configurations of the `default` suite of
 `dev/scripts/benchmark_targets.py` × seeds 0-29, each run at BADS's default

@@ -30,7 +30,20 @@ order.
   `LinAlgError` crashes behind `plans/gp-update-guards.md`. On Linux at
   `8fc1dff` (gpyreg 1.3.3), one exact repeat was evaluated in
   `ellipsoid_D10` seed 7, one of the crashing seeds, and one in
-  `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20. To settle:
+  `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20. With a target
+  noise SD, repeats are common: 227 in seeds 0-89 of `ellipsoid_D3_hetero`
+  at `1c8c71d` (Linux), in 58 of the 90 runs, each merged into a row of
+  the log (until `032dfcb`, 188 of them into another point's row), and
+  the noise-variance fix of `020d6a8` tripled them (seeds 0-19: 17 at
+  `685da15`, 53 at `1c8c71d`). Dropping them, as MATLAB does, needs two
+  more changes that MATLAB has: the ES search must return an empty set
+  when no candidate is left, and the search step must accept one (survey,
+  candidate table); without them runs stop with `IndexError` or
+  `UnboundLocalError`. With the three changes on `8afbe16`, the median
+  error of `ellipsoid_D3_hetero` over 90 seeds falls from 0.46 to 0.33
+  (`no_repeats.patch` in
+  [experiments/population_ellipsoid_hetero_linux_20260925/](experiments/population_ellipsoid_hetero_linux_20260925/README.md)).
+  To settle:
   - look for duplicate rows in `gp.X` just before the failing call of the
     crashing runs (`ellipsoid_D3` seed 20, `ellipsoid_D10` seeds 7, 13 and
     26, Windows, gpyreg 1.3.1);
@@ -42,23 +55,39 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
+- [ ] **A Windows reference after `8afbe16`.** `8afbe16` re-centres the GP
+  mean prior at each rebuild, which changes the runs of every
+  configuration, and `032dfcb` changes those with target noise, so
+  `experiments/population_targetnoise_20260925/` no longer stands for the
+  current code on Windows. The replacement is the default suite at 30
+  seeds on Windows, with its null check, as for the Linux reference
+  (`experiments/population_linux_meanprior_20260925/`).
 - [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
   standard deviations, as MATLAB does, makes the runs of this benchmark
   configuration worse: over 90 seeds the median error rises from 0.21 to
-  0.54, mostly along the flat axis of the ellipsoid
-  ([experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)),
+  0.54 on Windows and from 0.18 to 0.58 on Linux, mostly along the flat
+  axis of the ellipsoid
+  ([Windows](experiments/population_ellipsoid_hetero_20260925/README.md),
+  [Linux](experiments/population_ellipsoid_hetero_linux_20260925/README.md)),
   while the spheres with target noise improve. The fix stays; what is open
   is which other difference from MATLAB the correct noise exposes. The
-  candidates, each a row of the survey's candidate table:
-  - the GP mean prior, which MATLAB re-centres at every rebuild
-    (`gpdefBads.m`) and the port never updates;
-  - the merged value with the raw standard deviation that a repeated point
-    adds to the GP;
-  - the lower bound of the noise hyperparameter, which the port raises
-    after a failed fit and MATLAB does not.
-
-  A run of MATLAB BADS on this problem would show whether correct noise
-  handling alone gives such runs.
+  three candidates first listed here, tested on Linux, do not account for
+  it: re-centring the GP mean prior at each rebuild (`8afbe16`) lowers the
+  median to 0.45, not significantly; returning the observation of a
+  repeated point, as MATLAB's `funlogger` does, makes the runs worse; and
+  the lower bound of the noise hyperparameter never moves, since no fit
+  fails. On the way, a repeated point was found merged into another
+  point's row of the function log (fixed in `032dfcb`: median 0.48; with
+  both commits, 0.46). Still open:
+  - the evaluated points that `contraints_check` keeps (the item above):
+    dropping them, as MATLAB does, lowers the median to 0.33 on top of
+    both commits, the largest effect found, still short of the 0.18 before
+    `020d6a8`;
+  - a run of MATLAB BADS on this problem, which would show whether correct
+    noise handling alone gives such runs;
+  - the bounds of the GP mean, which the port fixes by the initial design
+    and MATLAB leaves infinite (a row of the survey's candidate table,
+    found beside the candidates).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
