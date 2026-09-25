@@ -95,7 +95,9 @@ class BADS:
         target at ``x`` and an estimate of the SD of the noise at ``x``
         (see the examples).
         If ``options['uncertainty_handling']`` is not specified, BADS will
-        determine at runtime if the objective function is noisy.
+        determine at runtime if the objective function is noisy, or turn
+        uncertainty handling on with ``options['specify_target_noise']``
+        = ``True``.
         To obtain reproducible results of the optimization, set
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
@@ -1459,8 +1461,8 @@ class BADS:
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
-        # Without a poll there are no final samples: the result reports the
-        # incumbent's observation
+        # A run that ends within its first iteration takes no final samples:
+        # the result reports the incumbent's observation
         self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
         self.optim_state["ysd_vec"] = None
         if (

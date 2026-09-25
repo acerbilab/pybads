@@ -25,10 +25,16 @@ class OptimizeResult(dict):
             - Value of objective function at solution.
         - fsd: float
             - Standard deviation of objective function at solution (0 if noiseless).
-        - yval_vec: np.ndarray
-            - Final sampled observations at the solution.
-        - ysd_vec: np.ndarray
-            - Standard deviations of the final sampled observations (``"yval_vec"``).
+        - yval_vec: np.ndarray or None
+            - Final sampled observations at the solution; the incumbent's
+              observation alone if the run ends within its first iteration.
+              None for a run without uncertainty handling or with
+              ``noise_final_samples = 0``.
+        - ysd_vec: np.ndarray or None
+            - Standard deviations of the final sampled observations
+              (``"yval_vec"``) that the target returns with
+              ``specify_target_noise``; None otherwise, and when no final
+              sample was taken.
         - mesh_size: float
             - Final mesh size.
         - func_count: int
