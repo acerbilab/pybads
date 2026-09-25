@@ -7,8 +7,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Upgrading from 1.1.0
 
+- PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9
+  or later.
 - Results of runs with `specify_target_noise=True` differ from 1.1.0, also
   with a fixed seed.
+
+### Changed
+
+- **Requirements.** PyBADS needs NumPy 2.0 or later (1.1.0 accepted 1.22.1),
+  SciPy 1.13 or later and matplotlib 3.9 or later, releases that work with
+  NumPy 2. `pip install "pybads[test]"` no longer installs
+  pytest-rerunfailures, which the tests do not need.
 
 ### Fixed
 
