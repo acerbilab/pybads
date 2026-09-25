@@ -18,10 +18,13 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 import json  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 import numpy as np  # noqa: E402
 
-sys.path.insert(0, "dev/scripts")
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 import benchmark_targets as bt  # noqa: E402
 import gpyreg  # noqa: E402
 
