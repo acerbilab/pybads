@@ -3,10 +3,10 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^docs/
+        exclude: ^docs/|\.patch$
       - id: end-of-file-fixer
         exclude_types: [json, binary]
-        exclude: ^docs/
+        exclude: ^docs/|\.patch$
   - repo: https://github.com/PyCQA/isort
     rev: "5.12.0"
     hooks:
