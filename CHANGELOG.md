@@ -12,7 +12,7 @@ Changes since PyBADS 1.0.6.
 What can stop an existing script, or change what it returns. Each point has
 its entry below.
 
-- PyBADS needs Python 3.10 or later and gpyreg 1.3.1 or later.
+- PyBADS needs Python 3.10 or later and gpyreg 1.3.3 or later.
 - Results differ from 1.0.6, also with a fixed seed.
 - `random_seed` no longer seeds NumPy's global random state.
 - `random_seed` refuses a float that is not a whole number, and a string,
@@ -46,11 +46,13 @@ its entry below.
 ### Changed
 
 - **Requirements.** PyBADS needs Python 3.10 or later (Python 3.9 has
-  reached its end of life) and gpyreg 1.3.1 or later, the gpyreg release its
-  tests run against.
+  reached its end of life) and gpyreg 1.3.3 or later, the gpyreg release its
+  tests run against. From gpyreg 1.3.2 on, the predictions of a GP with very
+  small noise are more accurate; on deterministic targets, where BADS's GP
+  reaches that regime near the optimum, runs end closer to the minimum.
 - **Test dependencies.** PyBADS no longer lists pytest, pytest-mock and
   pytest-rerunfailures among its dependencies. `pip install "pybads[test]"`
-  installs what its test suite needs. (gpyreg 1.3.1 itself still installs
+  installs what its test suite needs. (gpyreg 1.3.3 itself still installs
   pytest and pytest-rerunfailures.)
 
 ### Fixed
