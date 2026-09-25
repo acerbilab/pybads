@@ -42,12 +42,6 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
-- [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of
-  `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two configurations with
-  target noise, so `experiments/population_linux_20260925/` no longer
-  stands for the current code in those two. The replacement is the default
-  suite at 30 seeds on Linux, with its null check, as for the Windows
-  reference.
 - [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
   standard deviations, as MATLAB does, makes the runs of this benchmark
   configuration worse: over 90 seeds the median error rises from 0.21 to

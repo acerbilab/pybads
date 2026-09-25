@@ -114,17 +114,22 @@ reference's number of seeds.
   `020d6a8`), with its null check and its comparison with the previous
   reference, which flags nothing: the two configurations with target noise
   change, and the other 16 are identical run by run.
+- [experiments/population_linux_targetnoise_20260925/](experiments/population_linux_targetnoise_20260925/README.md)
+  — the reference population of the benchmark on Linux (default suite, 30
+  seeds, gpyreg 1.3.3, at `1c8c71d`, with the noise-variance fix of
+  `020d6a8`), with its null check and its comparison with the previous
+  Linux reference, which flags nothing: the two configurations with target
+  noise change, and the other 16 are identical run by run.
 - [experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)
   — `ellipsoid_D3_hetero` over seeds 30-89 before and after `020d6a8`: with
   the reference seeds, the median error rises from 0.21 to 0.54 over 90
   paired seeds.
 - [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
-  — the reference population on Linux (default suite, 30 seeds, gpyreg
-  1.3.3, the guards of `plans/gp-update-guards.md`), identical run by run
-  to the same code before the guards, with its null check and an
-  information-only comparison with the previous Windows reference
-  (`population_gpyreg133_20260924`). Its two
-  configurations with target noise predate `020d6a8`.
+  — the previous reference on Linux (default suite, 30 seeds, gpyreg
+  1.3.3, the guards of `plans/gp-update-guards.md`, before `020d6a8`),
+  identical run by run to the same code before the guards, with its null
+  check and an information-only comparison with the previous Windows
+  reference (`population_gpyreg133_20260924`).
 - [experiments/population_gpyreg133_20260924/](experiments/population_gpyreg133_20260924/README.md)
   — the previous reference on Windows (gpyreg 1.3.3, before `020d6a8`),
   with its null check.

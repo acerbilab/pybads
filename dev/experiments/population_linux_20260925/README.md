@@ -1,17 +1,13 @@
 # Reference population on Linux: the default suite, 30 seeds, gpyreg 1.3.3
 
+Replaced as the reference on Linux by
+[`population_linux_targetnoise_20260925`](../population_linux_targetnoise_20260925/README.md).
 Its runs of `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two
-configurations with target noise, predate `020d6a8`, which changes them
-(by how much, on Windows:
-[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md)).
-A comparison of later code with this reference therefore differs in those
-two configurations, whatever the change; `dev/TODO.md` lists the
-replacement.
+configurations with target noise, predate `020d6a8`, which changes them;
+the runs of the other 16 configurations equal the replacement's.
 
-The reference for `dev/scripts/population.py compare` on Linux, beside the
-Windows reference
-[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md),
-until a later one replaces it. It covers the 18 configurations of the
+The reference for `dev/scripts/population.py compare` on Linux until
+`020d6a8`. It covers the 18 configurations of the
 `default` suite of `dev/scripts/benchmark_targets.py` × seeds 0-29. Each
 run uses BADS's default budget (500 D) and ends on BADS's own termination
 criteria, every random draw goes through the run's
