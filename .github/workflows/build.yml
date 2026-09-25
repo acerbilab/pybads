@@ -15,7 +15,7 @@ jobs:
         with:
           # full history, so setuptools_scm reads the version from the tags
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         name: Install Python
         with:
           python-version: "3.10"
