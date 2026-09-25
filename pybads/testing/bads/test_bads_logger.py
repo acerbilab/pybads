@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 import pybads
 from pybads import BADS
@@ -16,10 +17,14 @@ def _sphere(x):
     return float(np.sum(np.atleast_2d(x) ** 2))
 
 
+# With the root logger at DEBUG, the poll leaves NumPy's warnings on, and its
+# probability of improvement divides by a zero predicted SD.
+@pytest.mark.filterwarnings("ignore:divide by zero:RuntimeWarning")
 def test_messages_on_bads_logger(caplog):
     """Every message that PyBADS's modules log during this seeded run comes
     from the `BADS` logger, including the debug message of a stalling run,
-    which the run reaches."""
+    which the run reaches. The root logger is at DEBUG, so that a message on
+    another logger would be captured too."""
     bads = BADS(
         _sphere,
         np.ones(D) * 4,
