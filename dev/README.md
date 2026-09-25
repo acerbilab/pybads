@@ -75,7 +75,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the recorded start points differ. To run against another gpyreg
   checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
   source path and commit, since the version string is that of the
-  installed gpyreg.
+  installed gpyreg. PyBADS comes from the checkout that holds the script,
+  which it puts first on `sys.path`: to run a commit, run the
+  `dev/scripts/population.py` of a worktree at it, from the repository
+  root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
