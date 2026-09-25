@@ -65,7 +65,9 @@ def test_search():
     plb = np.array([[-5, -5, -5]])  # Plausible lower bounds
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
@@ -111,7 +113,9 @@ def test_search_hedge():
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
 
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
@@ -154,7 +158,9 @@ def test_grid_search_neighbors():
     pub = np.array([[5, 5]])  # Plausible upper bounds
     D = 2
 
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
