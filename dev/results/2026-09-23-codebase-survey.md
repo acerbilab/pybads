@@ -168,8 +168,8 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py:1405` | assigns `self.best_u`, a name used nowhere else (the incumbent is `u_best`) | seen |
 | `bads.py:500-507` | the half-bounds check tests all variables at once, rejecting any mix of bounded and unbounded variables, while the docstring allows per-variable infinite bounds | seen |
 | `bads.py:2183` | appends the bound method `self.u_best.copy` instead of a copy | seen |
-| `gaussian_process_train.py:1164` (at `676083d`, `add_and_update_gp`, line 1246) | the posterior update appends `sd_new` to `gp.s2`, where the initial fit stores `S**2` (`:1086`, at `676083d` line 1163) | seen |
-| `gaussian_process_train.py`, `get_grid_search_neighbors` and `local_gp_fitting` (at `676083d`, lines 1134 and 272) | the rebuild of the local GP stores `function_logger.S`, standard deviations, in `gp.s2`, a variance: the slip of the row above, at every rebuild. Only `specify_target_noise` reads `s2`; with an explicit `uncertainty_handling=True` at level 1, `S` is never filled and `gp.s2` holds NaN, which the noise function ignores | seen |
+| `gaussian_process_train.py:1164` (at `676083d`, `add_and_update_gp`, line 1246) | the posterior update appends `sd_new` to `gp.s2`, where the initial fit stores `S**2` (`:1086`, at `676083d` line 1163) | fixed in `020d6a8` |
+| `gaussian_process_train.py`, `get_grid_search_neighbors` and `local_gp_fitting` (at `676083d`, lines 1134 and 272) | the rebuild of the local GP stores `function_logger.S`, standard deviations, in `gp.s2`, a variance: the slip of the row above, at every rebuild. Only `specify_target_noise` reads `s2`; with an explicit `uncertainty_handling=True` at level 1, `S` is never filled and `gp.s2` holds NaN, which the noise function ignores. MATLAB squares the standard deviations in `likGaussHe`; the effect is in the section "The seed sweep behind the tolerances" | fixed in `020d6a8` |
 | `bads.py`, `_get_target_from_gp_` (at `676083d`, line 2479) | recomputes the posterior of a copy of the GP under the best iteration's hyperparameters (`set_hyperparameters(hyp_best)`) to predict the target; MATLAB's `UpdateTarget` (`bads.m:1296-1302`) sets `gptemp.hyp = hyp` but keeps `gptemp.post`, which `gppred` passes on and `mygp` reuses (`mygp.m:123`), so MATLAB predicts from the current posterior with `hyp` in the mean and covariance functions, without refactorizing. The port's recomputation is why the call can fail, and it gives other targets at default options (`uncertain_incumbent`) | seen (MATLAB side read) |
 | `bads.py`, `_get_target_from_gp_`, and MATLAB `UpdateTarget` | when the target prediction is not finite, both replace it by the incumbent's `fval` and `fsd` but compute the target from the failed variance, so the target is NaN, and the poll then treats the GP as unreliable. In MATLAB this follows a failed rebuild; in the port, a non-finite prediction from a consistent GP | seen (MATLAB side read) |
 | `gaussian_process_train.py`, `local_gp_fitting` (at `676083d`, lines 520-529) | after a failed posterior update, retries with the previous hyperparameters on the new training set, which MATLAB's `gpupdate` does not do (it clears the posterior); without a refit the retry repeats the failed computation. Kept so that runs where it succeeds do not move. With a refit, `temporary_data["poll_scale"]`, `["len_scale"]` and `["effective_radius"]` come from the refit's hyperparameters while the retry puts back the previous ones, so the poll basis and the ES-ell search use a geometry the GP does not hold (before the guards too) | seen (MATLAB side read) |
@@ -261,18 +261,16 @@ On another platform a seeded run can follow another trajectory, as another
 seed would, so a tolerance has to hold beyond the seed the test runs at.
 Each tolerance is ten times the largest error of the sweep, rounded up to
 1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if that is
-lower (`test_noisy_sphere_opt`), with one exception: the errors of
-`test_he_noisy_sphere_opt` exceed the tolerance of `runtest.m`, 1, in 7 of
-the 100 seeds, the largest being 2.3, and its tolerance is 5. Whether
-MATLAB BADS exceeds 1 as often on this problem, at the same 200
-evaluations, is not checked.
+lower (`test_noisy_sphere_opt` and `test_he_noisy_sphere_opt`). The row of
+`test_he_noisy_sphere_opt` comes from a second sweep of that test, after
+the fix of its noise variances (below).
 
 | Test | Evaluations | Median error | Largest error | Tolerance | Before the fix | `runtest.m` |
 |---|---|---|---|---|---|---|
 | `test_ellipsoid_opt` | 67–93 | 8.7e-6 | 9.8e-5 | 1e-3 | 1 | 0.1 |
 | `test_sphere_opt` | 65–100 | 2.0e-5 | 1.9e-4 | 2e-3 | 1 | 0.1 |
 | `test_noisy_sphere_opt` | 100 | 5.7e-3 | 0.10 | 1 | 1 | 1 |
-| `test_he_noisy_sphere_opt` | 192–200 | 0.33 | 2.3 | 5 | 1 | 1 |
+| `test_he_noisy_sphere_opt` | 185–200 | 0.14 | 0.56 | 1 | 1 | 1 |
 | `test_small_noisy_func` | 149–223 | 5.9e-6 | 2.5e-4 | 1e-2 | 0.1 | |
 | `test_1D_opt_*` (three tests) | 30 | 5.8e-9 | 2.1e-7 | 5e-6 | 0.1 | |
 | `test_univariate_input_and_opt` | 87–141 | 3.3e-5 | 1.4e-3 | 2e-2 | none | |
@@ -292,6 +290,29 @@ of `init_sobol`, below). Emulated on x86 by clipping `u0` at 0 before
 value into 0, its errors over the same seeds reach 6.5e-4 (median 1.1e-5,
 145–207 evaluations), and its tolerance, 1e-2, follows the rule over the
 largest error of both designs.
+
+The target of `test_he_noisy_sphere_opt` returns the standard deviation of
+its noise (`specify_target_noise`), 2 at the minimum. Before `020d6a8`, the
+rebuild of the local GP and each added point stored these standard
+deviations in `gp.s2`, which gpyreg reads as variances (the initial fit
+squared them). MATLAB BADS keeps them in `gpstruct.s` and squares them in
+`likGaussHe` (`sn2 = exp(2*hyp) + s.^2`). Before the fix, the errors over
+seeds 0–99 exceeded the tolerance of `runtest.m`, 1, in 7 seeds, with a
+median of 0.33 and a largest error of 2.3, and the test had a tolerance of
+5; run again at `10d74a7`, the sweep reproduces the first one run by run.
+With the squares (`020d6a8`, the environment above), no error reaches 1:
+the median is 0.14, the largest 0.56, and the error is smaller in 70 of
+the 100 paired seeds (Wilcoxon signed-rank test, p = 4e-8). MATLAB's own
+errors on this problem were not measured.
+
+In the benchmark, `020d6a8` changes only the two configurations with
+target noise, whose standard deviation is 1 at the minimum, and the
+comparison with the previous Windows reference flags neither
+([`population_targetnoise_20260925`](../experiments/population_targetnoise_20260925/README.md)).
+Over 30 seeds, the median error of `sphere_D3_hetero` falls from 0.20 to
+0.10 (signed-rank p = 0.008 before the Holm correction), and that of
+`ellipsoid_D3_hetero` rises from 0.26 to 0.37 (p = 0.10), with a largest
+error of 4.1 where it was 1.3.
 
 ### Found while fixing the tests
 
@@ -328,9 +349,12 @@ candidate table:
   `u0 = -1.5`) emits `RuntimeWarning: invalid value encountered in cast`,
   and its design differs (sweep above). The product is taken in NumPy's
   default integer, 64-bit from NumPy 2 but 32-bit with NumPy 1.x on
-  Windows, which `pyproject.toml` allows (`numpy >= 1.22.1`) and no CI job
-  installs: there it wraps differently and gives another design (read, not
-  run). MATLAB's `init/initSobol.m` takes the seed from
+  Windows (checked with NumPy 1.23.5). For a start point inside the
+  plausible box, the 32-bit product overflows from `D = 4` and is 0 from
+  `D = 5`, which gives the seed 1; the 64-bit product is 0 from `D = 8`.
+  The two give different designs for `D` from 4 to 7, and the same at the
+  dimensions of the tests (1, 3 and 60). PyBADS requires NumPy 2
+  from `c044fea`. MATLAB's `init/initSobol.m` takes the seed from
   `prod(uint64(num2str(u0(1:min(10,end)))))`, the character codes of the
   printed values of the first 10 coordinates. If MATLAB's `prod` keeps the
   `uint64` class of its argument and saturates, as its integer arithmetic
@@ -344,3 +368,15 @@ candidate table:
   sampler) were therefore printed whatever `display` said: the sweep above,
   run with `display="off"`, printed the 49 failed initial fits. Fixed in
   `8fc1dff` (#64): the module logs to the `BADS` logger.
+
+### Reruns and the minimum versions
+
+CI runs each test once from `c044fea`. Under `--reruns=5`, the six
+full-matrix runs before it (54 jobs, on 2026-09-25) had rerun no test.
+
+From `c044fea`, `pyproject.toml` requires NumPy 2.0.0, SciPy 1.13.0 and
+matplotlib 3.9.0 or later; no CI job installs these minimums. The suite at
+`10d74a7` (157 tests, installed from the package, gpyreg 1.3.3) passed on
+Windows at these minimums with Python 3.12, and with Python 3.11, NumPy
+1.23.5, SciPy 1.9.3 and matplotlib 3.6.3. The previous minimums (NumPy
+1.22.1, SciPy 1.7.3 and matplotlib 3.5.1) were not run.

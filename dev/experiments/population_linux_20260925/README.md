@@ -1,5 +1,12 @@
 # Reference population on Linux: the default suite, 30 seeds, gpyreg 1.3.3
 
+Its runs of `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two
+configurations with target noise, predate `020d6a8`, which changes them
+(on Windows, see
+[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md)),
+so a comparison of later code with this reference differs there;
+`dev/TODO.md` lists its replacement.
+
 The reference for `dev/scripts/population.py compare` on Linux, beside the
 Windows reference
 [`population_gpyreg133_20260924`](../population_gpyreg133_20260924/README.md),

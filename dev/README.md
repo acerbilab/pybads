@@ -108,15 +108,21 @@ reference's number of seeds.
 
 ## Index
 
+- [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
+  — the reference population of the benchmark on Windows (default suite,
+  30 seeds, gpyreg 1.3.3, the target's noise variances of `020d6a8`), with
+  its null check and its comparison with the previous reference: the two
+  configurations with target noise change, the other 16 are identical run
+  by run.
 - [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
   — the reference population on Linux (default suite, 30 seeds, gpyreg
   1.3.3, the guards of `plans/gp-update-guards.md`), identical run by run
   to the same code before the guards, with its null check and an
-  information-only comparison with the Windows reference.
+  information-only comparison with the Windows reference. Its two
+  configurations with target noise predate `020d6a8`.
 - [experiments/population_gpyreg133_20260924/](experiments/population_gpyreg133_20260924/README.md)
-  — the reference population of the benchmark on Windows (default suite,
-  30 seeds, draws through a `numpy.random.Generator`, gpyreg 1.3.3), with
-  its null check.
+  — the previous reference on Windows (gpyreg 1.3.3, before `020d6a8`),
+  with its null check.
 - [gpyreg 1.3.3 for PyBADS](results/2026-09-25-gpyreg-1.3.3.md) — the
   suite, the agreement of 1.3.2 and 1.3.3 at default options, and the
   benchmark comparison with 1.3.1 (five configurations flagged, each
@@ -142,5 +148,6 @@ reference's number of seeds.
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that checked less than
   they appeared to, with their fixes, the seed sweep behind the tolerances
-  of the optimization tests and three candidate defects found on the way.
+  of the optimization tests, three candidate defects found on the way, and
+  the checks behind running each test once in CI and requiring NumPy 2.
   The starting point of the deferred bug hunt in `TODO.md`.
