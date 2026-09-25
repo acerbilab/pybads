@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 import sys
-from asyncio.log import logger
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -2283,7 +2282,7 @@ class BADS:
                     self.f_q_historic_improvement < self.options["tol_fun"]
                 ):  # or np.all(u_base.flatten() == self.u.flatten()):
                     self.mesh_size_integer -= 1
-                    logger.debug(
+                    self.logger.debug(
                         "bads: The optimization is stalling, further decrease of the mesh size"
                     )
 

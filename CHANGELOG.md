@@ -51,9 +51,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   cannot estimate counts as no improvement. A failed rebuild is retried at
   the next step with refitted hyperparameters (in the poll, only with
   `poll_training` on). Runs without such a failure give the same results.
-- **GP warnings on the BADS logger.** The warnings of the GP fits (a
-  failed initial fit, failed hyperparameter optimizations) come from the
-  `BADS` logger, like PyBADS's other messages, instead of `asyncio`'s.
+- **Messages on the BADS logger.** PyBADS logs every message of a run to the
+  `BADS` logger, whose level `display` sets. The warnings of the GP fits (a
+  failed initial fit, failed hyperparameter optimizations) and the debug
+  message of a stalling run went to `asyncio`'s logger, and the debug
+  messages of failed GP updates to the root logger.
 - **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
   `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an
