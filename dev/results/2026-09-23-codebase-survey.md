@@ -147,7 +147,7 @@ also succeeds when three other rows are removed instead: one from the
 cluster of inputs closer than 1e-8 around each duplicate, the duplicates
 kept (20 of 20 draws), or three at random among the rows that are not
 duplicates (16 of 20 draws). The factorization fails by a margin that
-almost any three rows decide, and duplicates were in the training sets of
+most sets of three rows decide, and duplicates were in the training sets of
 the 122 updates before it, which succeeded. The other three calls hold no
 duplicate. All four fail under the same kind of hyperparameters:
 - the log output scale within 1.3e-5 of its upper bound,
@@ -230,14 +230,14 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py`, `_search_step_` (at `a83bd51`) | after a failed rebuild, the search ranks its candidates by the LCB of the previous GP; MATLAB's `acqLCB` sums over the finite prediction samples, zero when none is, so MATLAB evaluates the first candidate. The poll treats such a GP as unreliable, as MATLAB does | seen (MATLAB side read) |
 | `gaussian_process_train.py`, `init_and_train_gp` (at `a83bd51`, lines 161-209) | retries a failing initial fit without bound (from the fifth attempt, from random samples of the priors), so a fit that keeps failing loops forever; initialization only | seen |
 | `gaussian_process_train.py`, `_robust_gp_fit_`, and the forced refit (at `a83bd51`) | the refit forced after a failed rebuild sends a run that has met a failure into `_robust_gp_fit_`, whose fifth consecutive failed fit raises `ValueError` (section "Failed fits"); the stress run injects no failure into fits, so this is untested | not looked at |
-| `function_logger/constraints_check.py`, `contraints_check` | removes no previously evaluated point (its `np.unique` keeps the first occurrences, which fall among the candidates), where MATLAB's `uCheck.m` removes them with `setdiff`; a repeat becomes a duplicate GP training input. Duplicates explain none of the four crashes of the section "Crashes on unguarded GP updates": one failing call holds three duplicate pairs, but removing almost any three of its rows lets it succeed, and the other three hold none. One exact repeat was evaluated in `ellipsoid_D10` seed 7 on Linux at `8fc1dff` (section "Found while fixing the tests"; `dev/TODO.md`, "Previously evaluated points evaluated again") | seen (MATLAB side read) |
+| `function_logger/constraints_check.py`, `contraints_check` | removes no previously evaluated point (its `np.unique` keeps the first occurrences, which fall among the candidates), where MATLAB's `uCheck.m` removes them with `setdiff`; a repeat becomes a duplicate GP training input. Duplicates explain none of the four crashes of the section "Crashes on unguarded GP updates": one failing call holds three duplicate pairs, but removing most sets of three of its rows (36 of 40 draws) lets it succeed, and the other three hold none. One exact repeat was evaluated in `ellipsoid_D10` seed 7 on Linux at `8fc1dff` (section "Found while fixing the tests"; `dev/TODO.md`, "Previously evaluated points evaluated again") | seen (MATLAB side read) |
 | `init_functions/init_sobol.py`, `init_sobol` | the seed of the initial Sobol design comes from the integer parts of `u0`, so every start point inside the plausible box gives the same design for a given `D`, and the cast is undefined at -1 and below (section "Found while fixing the tests") | seen (MATLAB side read; the saturation of MATLAB's `uint64` product not checked) |
 | `gaussian_process_train.py:4` (at `a83bd51`) | imported its `logger` from `asyncio.log`, so the GP fit warnings went to the `asyncio` logger (section "Found while fixing the tests") | fixed at `8fc1dff` (the `BADS` logger) |
 | `bads.py:722-770` | a non-empty `fun_values` option is reported to crash | not looked at |
 | `optimize_result.py` | `success` is reported always `True`; `exit_flag`, `min_iter` and `min_fun_evals` are reported unread | not looked at |
 | `examples/scripts/pybads_example_2_nonbox_constraints.py` | set `options["rng_seed"]`, not a valid option name, in options never passed to `BADS`; the notebook never had these lines, and the script generated from it (tooling plan, Phase 4) no longer has them | resolved |
 | `search/es_search.py:239-253` | `ESSearchCMA` calls `ucov` with a signature that does not match its definition (`:294`); no option reaches the class | not looked at |
-| `bads.py`, `_init_optim_state_` (at `4566acb`, lines 809-826) | with `specify_target_noise=True`, an `uncertainty_handling` of `None` is set to `False` and then raises `ValueError`, whose message says to leave `uncertainty_handling` empty; MATLAB's `private/setupoptions.m` sets it to `true`, so that `SpecifyTargetNoise` alone turns uncertainty handling on | fixed in `843cd76` |
+| `bads.py`, `_init_optim_state_` (at `4566acb`, lines 809-826) | with `specify_target_noise=True`, an `uncertainty_handling` of `None` is set to `False` and then raises `ValueError`, whose message says to leave `uncertainty_handling` empty; MATLAB's `private/setupoptions.m` sets it to `true`, so that `SpecifyTargetNoise` alone turns uncertainty handling on | fixed in `843cd76` (below the table) |
 | `gaussian_process_train.py:979-983` (at `1cfe371`) | the fraction of the budget used divides by `min(max_fun_evals, n_train_max) - eff_starting_points`, zero when `max_fun_evals` equals the initial design, and the cubic next to it mixes `x_` and `x` | seen |
 | `bads.py:880-893` | the `gp_mean_fun` check accepts twelve names, of which only `zero`, `const` and `negquad` are reported to work | not looked at |
 | `gaussian_process_train.py`, `local_gp_fitting` (at `06badd3`, lines 296-346) | computes an empirical prior for the constant GP mean (`prior_mean`: centre at a percentile of `gp.y`, width `y_range ** (1/4)`) and never writes it into the priors it sets; MATLAB (`gpdef/gpdefBads.m`, "Update empirical prior for GP mean") updates the mean prior at each training, with variance `yrange.^2/4`, and with `gpFixedMean` also sets the mean hyperparameter to `ymean` under a delta prior, which the port leaves as a `TODO`. Applying the prior would change runs at default options | seen (MATLAB side read) |
@@ -252,36 +252,42 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py:5` (at `1a21844`) | imports `logger` from `asyncio.log` and logs to it at line 2284, the slip fixed in `gaussian_process_train.py` at `8fc1dff`; `gaussian_process_train.py` logs four debug messages of failed GP updates with `logging.debug`, to the root logger | fixed in `6f28fc7` |
 | `bads.py`, `_save_gp_stats_` calls (at `1a21844`, lines 1694-1696 and 2138-2140) and `_re_evaluate_history_` | the GP calibration statistics store the latent standard deviation, where MATLAB stores that of the observation, likelihood noise included; `_re_evaluate_history_` selects the neighbours of each stored GP with that GP's `len_scale` and `effective_radius`, where MATLAB uses the current GP's (`bads.m:1378-1388`) (reported by the review of #65) | not looked at |
 | `bads.py`, the final estimate without target noise (at `4c4a213`) | `fsd` is `np.std(yval_vec) / sqrt(n)`, with NumPy's default normalization by `n`; MATLAB's `std` in `FinalEstimate` normalizes by `n - 1`, so the port's `fsd` is smaller by `sqrt((n - 1)/n)`: 0.95 at the default 10 samples, 0.71 with one sample, to which `yval` is added | seen (MATLAB side read) |
-| `optimize_result.py:122` and `bads.py`, the final estimate (at `4c4a213`) | with noise and `noise_final_samples > 0`, `OptimizeResult` reads `optim_state["yval_vec"]`, which only the final re-evaluation sets, and that runs only after a poll: a noisy run that ends before its first poll raises `KeyError: 'yval_vec'`. MATLAB sets `yval_vec = yval` before the branch (`bads.m:1136`). Reproduced with the noisy sphere of `dev/scripts/fingerprint.py`, its noise from a `default_rng(0)` of the run's own, `uncertainty_handling=True`, `random_seed=0` and `max_fun_evals=45`; at 35 and 40 the run stops earlier, in `_get_gp_training_options`, with `ValueError: cannot convert float NaN to integer` from the division by zero of the row at `1cfe371` | fixed in `843cd76` |
+| `optimize_result.py:122` and `bads.py`, the final estimate (at `4c4a213`) | with noise and `noise_final_samples > 0`, `OptimizeResult` reads `optim_state["yval_vec"]`, which only the final re-evaluation sets, and that runs only from the second iteration on (`poll_iteration > 0`): a noisy run that ends within its first iteration, for instance with `max_iter=1`, raises `KeyError: 'yval_vec'`. MATLAB sets `yval_vec = yval` before the branch (`bads.m:1136`). Reproduced with the noisy sphere of `dev/scripts/fingerprint.py`, its noise drawn from a fresh `default_rng(0)`, `uncertainty_handling=True`, `random_seed=0` and `max_fun_evals=45`; at 35 and 40 the run stops earlier, in `_get_gp_training_options`, with `ValueError: cannot convert float NaN to integer` from the division by zero of the row at `1cfe371` | fixed in `843cd76` (below the table) |
 | `gaussian_process_train.py`, `_gp_hyp` (at `4bde5e9`, lines 931-939) | the upper bound of the log length scales is `cov_range = min(100, 10 * (ub - lb) / scale)` itself, where MATLAB's `gpdefBads.m:90` takes `log(covrange(i))`: on the targets of the benchmark with its shifted box (`SHIFTED_BOUNDS` of `dev/scripts/benchmark_targets.py`), where `cov_range` is 80, the port lets a log length scale reach 80 and MATLAB stops at 4.38. At the failing calls of the four crashes of the section "Crashes on unguarded GP updates", the log length scales reach 19.3 in 3-D and 27.5 to 59.7 in 10-D, with the output scale at its upper bound, a plausible cause of their degenerate GPs (not checked). Fixing it moves results at default options | seen (MATLAB side read) |
 | `bads.py`, `_poll_step_` (at `4bde5e9`, line 2115) | calls `np.seterr(divide="ignore")` when the root logger is above DEBUG and never restores it, so a run changes NumPy's error handling for the rest of the process; with the root logger at DEBUG, the division by the predicted SD below it warns `divide by zero` | seen |
 | `gaussian_process_train.py`, `local_gp_fitting` (at `be84ff6`, lines 371-390) | the check for a high-noise GP reads `noise_size` whatever the noise mode, so `noise_size` is not ignored under `specify_target_noise`, as the warning of `_init_optim_state_` says it is; `noise_size=0`, which the warning proposes to silence it, gives `log(0) = -inf` and makes every refit a high-noise one. MATLAB's `private/gpupdate.m:379-381` reads `NoiseSize` the same way (reported by the review of #67, which saw such runs end at another `x`) | seen (MATLAB side read) |
-| `gaussian_process_train.py:374` and `bads.py:1095-1098` (at `be84ff6`) | a list `noise_size` raises `TypeError` at the first refit (`len(options["noise_size"] == 1)`, where MATLAB has `numel(options.NoiseSize) == 1`), and an array of two elements, MATLAB's base value and prior SD, raises `ValueError` at `.item()`; the warning check at the creation of `BADS` accepts both (reported by the review of #67) | seen |
+| `gaussian_process_train.py:374` and `bads.py:1095-1098` (at `be84ff6`) | a list `noise_size` raises `TypeError` at the first refit (`len(options["noise_size"] == 1)`, where MATLAB has `numel(options.NoiseSize) == 1`), and an array of two elements, MATLAB's base value and prior SD, raises `ValueError` at `.item()`; the warning check at the creation of `BADS` accepts both (reported by the review of #67) | seen (MATLAB side read) |
 | `bads.py`, the final estimate (at `be84ff6`, lines 1526-1529) | records the final `fval` and `fsd` in the iteration history at `poll_iteration`, the last iteration, while they describe the iterate `min_q_beta_idx`; MATLAB writes `iterList.fval(index)` (`bads.m:1158-1159`) (reported by the review of #67) | seen (MATLAB side read) |
+| `bads.py`, `optimize` (at `4745346`) | the iteration count, `optim_state["iter"]`, which `OptimizeResult` reports as `iterations`, starts at 0 where MATLAB's `iter` starts at 1 (`bads.m:482`, `private/bads_output.m:21`), so a run reports one iteration less than MATLAB's would: with `max_iter=1` a run polls once and reports 0 (reported by the second review of #67) | seen (MATLAB side read) |
+| `bads.py`, `optimize` (at `4745346`, lines 1208-1212 and 1554) | `output_fcn` is called only at the start, as `output_fcn(x, "init")`, where MATLAB calls `outputfun(x, optimState, state)` at `'init'`, `'iter'` and `'done'` (`bads.m:427`, 1038, 1165); one that returns `True` at the start stops the run with `UnboundLocalError` for `msg`, which only the loop assigns (reported by the second review of #67) | seen (MATLAB side read; reproduced) |
+| `bads.py`, `_init_mesh_` (at `4745346`, lines 990-993) | with `max_fun_evals=1`, returns after evaluating `x0`, discarding its local `is_finished = True` and before setting `optim_state["eff_starting_points"]`, so the run stops in `_get_gp_training_options` with `KeyError: 'eff_starting_points'` (reported by the second review of #67) | seen (reproduced) |
 
-Three of the rows marked "at `1a21844`" are fixed in pull request #67:
-the `noise_size` check in `6dad7e4`, the loggers in `6f28fc7` and the final
+Three of the rows marked "at `1a21844`" are fixed in pull request #67,
+whose commits cited here are reachable from `refs/pull/67/head`: the
+`noise_size` check in `6dad7e4`, the loggers in `6f28fc7` and the final
 estimate in `4c4a213`. The fingerprint of `dev/scripts/fingerprint.py` is
 `57241c985a68c78b` at `f11d2ee` and at `be84ff6`, whose package code is
 that of `4c4a213` (Windows, gpyreg 1.3.3 at `98ab5a4`); none of its six
-runs has target noise. `4c4a213` combines the final samples as
-MATLAB's `FinalEstimate` does (`bads.m:1443-1476`). At `4c4a213`,
-`sphere_D3_hetero` and `ellipsoid_D3_hetero` over seeds 0-29 give, in all
-60 runs, the `x`, evaluations, iterations and error of the Windows
-reference `population_targetnoise_20260925` (at `c044fea`, whose package
-code differs, in what these runs reach, only in a termination message). Their `fval` moves by at most
-4.4e-16: the benchmark's noise standard deviation, `1 + sqrt(f - f_min)`,
-is the same for every sample at a point, so the weighted mean is the plain
-mean up to rounding. Their `fsd`, which is that standard deviation divided
-by `sqrt(10)`, differs from the reference's by factors from 0.78 to 2.19
-(medians 1.09 and 0.97). So from `4c4a213` on, the `fval` and `fsd` of
-these two configurations differ from the reference's records, while the
-error and the evaluations, which `population.py compare` tests, do not.
+runs has target noise. `4c4a213` combines the final samples as MATLAB's
+`FinalEstimate` does (`bads.m:1443-1476`). At `4c4a213`, `sphere_D3_hetero`
+and `ellipsoid_D3_hetero` over seeds 0-29 give, in all 60 runs, the `x`,
+evaluations, iterations and error of the Windows reference
+`population_targetnoise_20260925` (at `c044fea`; the changes of the package
+between the two that these runs reach are the final estimate, the loggers
+of `6f28fc7`, which change no value, and a termination message). Their
+`fval` moves by at most 4.4e-16: the benchmark's noise standard deviation,
+`1 + sqrt(f - f_min)`, is the same for every sample at a point, so the
+weighted mean is the plain mean up to rounding. Their `fsd`, which is that
+standard deviation divided by `sqrt(10)`, differs from the reference's by
+factors from 0.78 to 2.19 (medians 1.09 and 0.97). So from `4c4a213` on,
+the `fval` and `fsd` of these two configurations differ from the
+reference's records, while the error and the evaluations, which
+`population.py compare` tests, do not.
 
 Two more rows are fixed in `843cd76`, with the same fingerprint: with
 `specify_target_noise=True`, an empty `uncertainty_handling` turns
 uncertainty handling on, as in MATLAB's `setupoptions.m`; and a noisy run
-that ends before its first poll returns the incumbent's observation as
+that ends within its first iteration returns the incumbent's observation as
 `yval_vec`, with `ysd_vec` set to `None`, as `bads.m:1136-1137` sets them.
 
 ## Tests that checked less than they appeared to
