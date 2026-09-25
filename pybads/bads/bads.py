@@ -1686,7 +1686,9 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimize: Acquisition function failed")
+                self.logger.warning(
+                    "bads:optimize: Acquisition function failed"
+                )
                 index_acq = self.rng.integers(0, len(u_search_set))
 
             # u_search at the candidate acquisition point
@@ -1721,7 +1723,9 @@ class BADS:
                 )
 
                 if np.any(~np.isfinite(gp.y)):
-                    self.logger.warn("bads:opt: GP prediction is non-finite")
+                    self.logger.warning(
+                        "bads:opt: GP prediction is non-finite"
+                    )
 
             # If the function is non-deterministic we update the posterior of the GP with the new point
             if self.optim_state["uncertainty_handling_level"] > 0:
@@ -2110,7 +2114,9 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimize: Acquisition function failed")
+                self.logger.warning(
+                    "bads:optimize: Acquisition function failed"
+                )
                 index_acq = self.rng.integers(0, len(u_poll))
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")
@@ -2672,7 +2678,7 @@ class BADS:
             if self.mesh_overflows == np.ceil(
                 self.options["mesh_overflow_warning"]
             ):
-                self.logger.warn(
+                self.logger.warning(
                     "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."
                 )
 

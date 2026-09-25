@@ -70,10 +70,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `poll_training` on). Runs without such a failure give the same results.
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
   `BADS` logger, whose level `display` sets; `display="full"` shows the
-  debug messages. The warnings of the GP fits (a
-  failed initial fit, failed hyperparameter optimizations) and the debug
-  message of a stalling run went to `asyncio`'s logger, and the debug
-  messages of failed GP updates to the root logger.
+  debug messages. The warnings of the GP fits (a failed initial fit, failed
+  hyperparameter optimizations) and the debug message of a stalling run went
+  to `asyncio`'s logger, and the debug messages of failed GP updates to the
+  root logger. PyBADS's warnings no longer come with the
+  `DeprecationWarning` of `Logger.warn`.
 - **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
   `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an

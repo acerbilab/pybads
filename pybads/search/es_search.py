@@ -170,7 +170,7 @@ class ESSearch(ABC):
             # if something went wrong with the acquisition function, random search is performed
             if z_new is None or z_new.size == 0:
                 z_candidates = self.rng.random(u_new.shape[0])
-                self.logger.warn(
+                self.logger.warning(
                     "bads:es_search: Something went wrong with the acquisition function, random search is performed"
                 )
 
