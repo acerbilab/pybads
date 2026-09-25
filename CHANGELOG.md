@@ -14,21 +14,26 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Requirements.** PyBADS needs NumPy 2.0 or later (1.1.0 accepted 1.22.1),
-  SciPy 1.13 or later and matplotlib 3.9 or later, releases that work with
-  NumPy 2. `pip install "pybads[test]"` no longer installs
-  pytest-rerunfailures, which the tests do not need.
+- **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
+  and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
+  matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
+  which the tests do not need (gpyreg 1.3.3 still installs it).
 
 ### Fixed
 
 - **User-specified noise.** With `specify_target_noise=True`, the Gaussian
   process treated the noise standard deviations that the target returns as
   variances after its initial fit, so that it underrated the noise wherever
-  the standard deviation exceeds 1, and overrated it below 1. It now uses
-  their squares, as MATLAB BADS does. On the sphere with heteroskedastic
-  noise of the tests (standard deviation 2 at the minimum, 200
-  evaluations), the median error over 100 seeds falls from 0.33 to 0.14,
-  and the largest from 2.3 to 0.56.
+  the standard deviation exceeded 1, and overrated it below 1. It now uses
+  their squares, as MATLAB BADS does. Results change in both directions. On
+  the 3-D sphere of PyBADS's tests, whose noise standard deviation is
+  `2 + sqrt(f)`, the median error of 100 seeded runs of 200 evaluations
+  falls from 0.33 to 0.14, and the largest from 2.3 to 0.56. On a 3-D
+  ellipsoid with condition number 1e6 and noise standard deviation
+  `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
+  median error rises from 0.21 to 0.54.
+- **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
+  `AttributeError` under NumPy 2.
 - **Failed GP updates.** A run no longer stops with `LinAlgError`
   ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
   update fails while adding a point, predicting the optimization target or

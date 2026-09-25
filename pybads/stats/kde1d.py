@@ -40,8 +40,8 @@ def _fixed_point(t: float, N: int, irange_squared: np.ndarray, a2: np.ndarray):
     Note that the factor of 2.0 in the definition of f is correct. See longer
     discussion here: https://github.com/tommyod/KDEpy/issues/95
     """
-    irange_squared = np.asfarray(irange_squared, dtype=np.float64)
-    a2 = np.asfarray(a2, dtype=np.float64)
+    irange_squared = np.asarray(irange_squared, dtype=np.float64)
+    a2 = np.asarray(a2, dtype=np.float64)
     ell = 7
     f = (
         2.0
@@ -57,7 +57,7 @@ def _fixed_point(t: float, N: int, irange_squared: np.ndarray, a2: np.ndarray):
         return -1
 
     for s in reversed(range(2, ell)):
-        odd_numbers_prod = np.product(
+        odd_numbers_prod = np.prod(
             np.arange(1, 2 * s + 1, 2, dtype=np.float64)
         )
         K0 = odd_numbers_prod / np.sqrt(2.0 * np.pi)
