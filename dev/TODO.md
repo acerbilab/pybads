@@ -52,8 +52,7 @@ order.
   trajectories there, and this does not show whether the calls still fail.
   To settle: restore those guards, the data passed through `gp.update`,
   and what the GP left by a failed call means downstream in PyBADS.
-- [ ] **Bug hunt and verification against MATLAB BADS (deferred).** A
-  systematic check of the port against the MATLAB reference (`acerbilab/bads`),
+- [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
   table (only partly looked at, never compared with MATLAB) and the tests
@@ -64,29 +63,34 @@ order.
 - [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
   (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`), after the
   bug hunt, so that they do not pin today's defects; the random draws go
-  through one generator per run (`bads.rng`), which replay needs. The population
-  comparison of `dev/scripts/population.py` checks distributions, not
-  trajectories, until then.
+  through one generator per run (`bads.rng`), which replay needs. The
+  population comparison of `dev/scripts/population.py` checks
+  distributions, not trajectories, until then.
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench).
+- [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
+  `skills/pybads/SKILL.md` that points a coding agent to the parts of the
+  documentation relevant to its task, linked from the README.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
   shows that it has no effect on PyBADS, or explains the one it has.
-- [ ] **conda-forge recipes, at the next release.**
-  `conda-forge/pybads-feedstock` (`recipe/meta.yaml`): run requirements
+- [ ] **conda-forge recipes for PyBADS 1.1.0** (on PyPI since 2026-09-25;
+  conda users stay on 1.0.6 until then). `conda-forge/pybads-feedstock`
+  (`recipe/meta.yaml`, at 1.0.6): version 1.1.0; run requirements
   `gpyreg >=1.3.3`, without pytest, pytest-mock and pytest-rerunfailures
   and without the stale cma, corner, dill, imageio and plotly;
   `test.requires` gains pytest and pytest-rerunfailures, since its test
   command `python -m pytest --pyargs pybads --reruns=5 -x -vv` runs the
   tests of the installed package; `python_min` 3.10. It needs
-  `conda-forge/gpyreg-feedstock`, at gpyreg 1.0.2 on 2026-09-24, to reach
-  gpyreg 1.3.3 first.
+  `conda-forge/gpyreg-feedstock` to reach gpyreg 1.3.3 first: on
+  2026-09-25 it is at 1.0.2, with the version bot's pull requests up to
+  v1.3.1 (#11) open and unmerged.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
