@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 import sys
-from asyncio.log import logger
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,7 +95,9 @@ class BADS:
         target at ``x`` and an estimate of the SD of the noise at ``x``
         (see the examples).
         If ``options['uncertainty_handling']`` is not specified, BADS will
-        determine at runtime if the objective function is noisy.
+        determine at runtime if the objective function is noisy, or turn
+        uncertainty handling on with ``options['specify_target_noise']``
+        = ``True``.
         To obtain reproducible results of the optimization, set
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
@@ -836,7 +837,7 @@ class BADS:
             self.options["specify_target_noise"]
             and self.options["uncertainty_handling"] is None
         ):
-            self.options["uncertainty_handling"] = False
+            self.options["uncertainty_handling"] = True
 
         if (
             self.options["specify_target_noise"]
@@ -844,17 +845,21 @@ class BADS:
             and self.options["uncertainty_handling"] == False
         ):
             raise ValueError(
-                "If options['specify_target_noise'] is True, options['uncertainty_handling'] should be True as well. \
-                                Leave options['uncertainty_handling'] empty or set it to True to avoid this error."
+                "If options['specify_target_noise'] is True, "
+                "options['uncertainty_handling'] should be True as well. "
+                "Leave options['uncertainty_handling'] empty or set it to "
+                "True to avoid this error."
             )
         if (
             self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
-            and np.array(self.options["noise_size"] > 0)[0]
+            and np.ravel(self.options["noise_size"])[0] > 0
         ):
-            self.logger.warn(
-                "If options['specify_target_noise'] is True, options['noise_size'] is ignored. \
-                Leave options['noise_size'] empty or set it to 0 to silence this warning."
+            self.logger.warning(
+                "If options['specify_target_noise'] is True, "
+                "options['noise_size'] is ignored. Leave "
+                "options['noise_size'] empty or set it to 0 to silence this "
+                "warning."
             )
 
         # Set uncertainty handling level
@@ -1456,6 +1461,10 @@ class BADS:
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
+        # A run that ends within its first iteration takes no final samples:
+        # the result reports the incumbent's observation
+        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
+        self.optim_state["ysd_vec"] = None
         if (
             self.optim_state["uncertainty_handling_level"] > 0
             and poll_iteration > 0
@@ -1497,23 +1506,31 @@ class BADS:
                     yval_vec[i_sample] = y
                     ysd_vec[i_sample] = y_sd
 
-                if yval_vec.size == 1:
+                # With one sample and no noise estimate from the target, YVAL
+                # is used as well (biased, but better than no uncertainty)
+                if (
+                    yval_vec.size == 1
+                    and not self.options["specify_target_noise"]
+                ):
                     yval_vec = np.vstack((yval_vec, self.yval))
-                    if self.options["specify_target_noise"]:
-                        ysd_vec = np.vstack(
-                            (
-                                ysd_vec,
-                                self.function_logger.S[
-                                    self.function_logger.Xn
-                                ],
-                            )
-                        )
 
                 self.optim_state["yval_vec"] = np.copy(yval_vec)
                 self.optim_state["ysd_vec"] = np.copy(ysd_vec)
 
-                self.fval = np.mean(yval_vec).item()
-                self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
+                if self.options["specify_target_noise"]:
+                    # Weight the samples by the precisions the target returns
+                    precision = 1 / ysd_vec**2
+                    tot_precision = np.sum(precision)
+                    self.fval = (
+                        np.sum(yval_vec * precision) / tot_precision
+                    ).item()
+                    self.fsd = (1 / np.sqrt(tot_precision)).item()
+                else:
+                    # Mean of the samples and its standard error
+                    self.fval = np.mean(yval_vec).item()
+                    self.fsd = (
+                        np.std(yval_vec) / np.sqrt(yval_vec.size)
+                    ).item()
                 self.iteration_history.record(
                     "fval", self.fval, poll_iteration
                 )
@@ -1677,7 +1694,9 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimize: Acquisition function failed")
+                self.logger.warning(
+                    "bads:optimize: Acquisition function failed"
+                )
                 index_acq = self.rng.integers(0, len(u_search_set))
 
             # u_search at the candidate acquisition point
@@ -1712,7 +1731,9 @@ class BADS:
                 )
 
                 if np.any(~np.isfinite(gp.y)):
-                    self.logger.warn("bads:opt: GP prediction is non-finite")
+                    self.logger.warning(
+                        "bads:opt: GP prediction is non-finite"
+                    )
 
             # If the function is non-deterministic we update the posterior of the GP with the new point
             if self.optim_state["uncertainty_handling_level"] > 0:
@@ -2101,7 +2122,9 @@ class BADS:
                 or index_acq.size < 1
                 or np.any(~np.isfinite(index_acq))
             ):
-                self.logger.warn("bads:optimize: Acquisition function failed")
+                self.logger.warning(
+                    "bads:optimize: Acquisition function failed"
+                )
                 index_acq = self.rng.integers(0, len(u_poll))
             if logging.getLogger().level > logging.DEBUG:
                 np.seterr(divide="ignore")
@@ -2281,7 +2304,7 @@ class BADS:
                     self.f_q_historic_improvement < self.options["tol_fun"]
                 ):  # or np.all(u_base.flatten() == self.u.flatten()):
                     self.mesh_size_integer -= 1
-                    logger.debug(
+                    self.logger.debug(
                         "bads: The optimization is stalling, further decrease of the mesh size"
                     )
 
@@ -2663,7 +2686,7 @@ class BADS:
             if self.mesh_overflows == np.ceil(
                 self.options["mesh_overflow_warning"]
             ):
-                self.logger.warn(
+                self.logger.warning(
                     "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."
                 )
 

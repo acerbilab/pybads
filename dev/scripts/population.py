@@ -135,9 +135,10 @@ def module_source(name):
     """Where the imported package ``name`` loads from, and its commit.
 
     ``git`` is the commit and dirty state of the repository that tracks the
-    package directory, so a checkout or a worktree placed on ``PYTHONPATH``
-    is identified; an installed copy under site-packages reports ``git`` as
-    None.
+    package directory, so the checkout it loads from is identified: for
+    pybads the checkout of this script, which ``sys.path`` puts first, and
+    for gpyreg a clone placed on ``PYTHONPATH`` or the editable checkout;
+    an installed copy under site-packages reports ``git`` as None.
     """
     try:
         path = Path(importlib.import_module(name).__file__).resolve().parent

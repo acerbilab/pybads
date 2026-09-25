@@ -149,7 +149,7 @@ two stages:
    improvement drops below `tol_poi`. The mesh
    (`poll_mesh_multiplier ** mesh_size_integer`) grows after a successful
    poll and shrinks after a failed one. `max_iter` and the reported
-   `iterations` count polls.
+   `iterations` count polls, from 0 where MATLAB's count starts at 1.
 
 The GP (`bads/gaussian_process_train.py` → `gpyreg.GP`) is local:
 `local_gp_fitting` rebuilds its training set from the nearest neighbours of
@@ -258,17 +258,26 @@ detect at its number of seeds). There is one reference for Windows and one
 for Linux, since pairing by seed holds only on one platform and set of
 versions; `dev/README.md` names both. A gate is evidence only if it reaches
 the changed code: the benchmark exercises the default options, so a change
-behind a non-default option needs a configuration that sets it. Every evidence run selects gpyreg
-explicitly, with `PYTHONPATH` naming a clone at the release tag
-(`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
-`../gpyreg`, which other work moves. Evidence runs call the venv's Python by
-its path (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python`
-elsewhere). An agent's shell does not activate the venv, so a bare `python`
-can be another installation. If that installation has NumPy and SciPy, the
-scripts under `dev/scripts/` run there without error, on its versions. A
-gpyreg release is a change to PyBADS's numerics; its gate is the comparison
-run with that release's clone, beside the test suite, with `gpyreg.__file__`
-printed. A change that must move nothing shows the same hash of
+behind a non-default option needs a configuration that sets it. Every
+evidence run selects gpyreg explicitly, with `PYTHONPATH` naming a clone at
+the release tag (`dev/scripts/runs/LOCAL.md` lists them): the editable
+install follows `../gpyreg`, which other work moves. PyBADS is selected in
+two ways. `benchmark_targets.py`, and every script that imports it
+(`population.py`, `gp_update_failures.py` and the others that run the
+benchmark), puts the checkout that holds it first on `sys.path`: a commit
+is measured by the scripts of a worktree at that commit, run from the main
+checkout's root, and a worktree put on `PYTHONPATH` changes nothing (the
+records of `population.py` name the package that ran,
+`meta.pybads_source`). `fingerprint.py` and `tolerance_sweep.py` import
+PyBADS from `PYTHONPATH`, or else from the editable install, the main
+checkout. Evidence runs call the venv's Python by its path
+(`.venv/Scripts/python.exe` on Windows, `.venv/bin/python` elsewhere). An
+agent's shell does not activate the venv, so a bare `python` can be another
+installation. If that installation has NumPy and SciPy, the scripts under
+`dev/scripts/` run there without error, on its versions. A gpyreg release
+is a change to PyBADS's numerics; its gate is the comparison run with that
+release's clone, beside the test suite, with `gpyreg.__file__` printed. A
+change that must move nothing shows the same hash of
 `dev/scripts/fingerprint.py` before and after, on one machine and with the
 same gpyreg.
 

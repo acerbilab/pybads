@@ -21,11 +21,12 @@ target returns under `specify_target_noise`, which changes the runs of
 ## Command and provenance
 
 ```console
-PYTHONPATH="<worktree>;dev/scripts/runs/gpyreg/v1.3.3" .venv/Scripts/python.exe -u dev/scripts/population.py run --suite default --seeds 0-29 --out dev/scripts/runs/population/population_targetnoise_20260925
+PYTHONPATH="<worktree>;dev/scripts/runs/gpyreg/v1.3.3" .venv/Scripts/python.exe -u <worktree>/dev/scripts/population.py run --suite default --seeds 0-29 --out dev/scripts/runs/population/population_targetnoise_20260925
 ```
 
-- PyBADS at `c044fea`, run from a clean detached worktree at that commit,
-  first on `PYTHONPATH` (the records' `meta.pybads_source` names its path;
+- PyBADS at `c044fea`, run by the `population.py` of a clean detached
+  worktree at that commit, which imports the package of its own checkout
+  (the records' `meta.pybads_source` names its path;
   their `pybads` version string, `1.1.1.dev23+g10d74a7ab`, is the metadata
   of the venv's editable install). gpyreg 1.3.3 from a clone checked out at
   the tag `v1.3.3` (`98ab5a4`), selected with `PYTHONPATH`.
@@ -78,3 +79,15 @@ KS statistic of at least 0.50, and, for the paired signed-rank test, a
 shift of about 0.87 of the standard deviation of the paired log10 error
 ratios at 80% power. Between two versions on this platform, a run that a
 change does not reach is identical in both populations.
+
+## The records and later code
+
+From `1a21844` on, a run that ends on `tol_mesh` reports another
+termination message, which 198 of these 540 records carry. From `4c4a213`
+on, the final estimate under target noise weights the final samples by the
+precisions that the target returns: the `fsd` of `sphere_D3_hetero` and
+`ellipsoid_D3_hetero` differs from these records, and their `fval` by at
+most 4.4e-16. Their `x`, evaluations, iterations and errors do not, in all
+60 runs, and `compare` tests only the error and the evaluations
+([survey](../../results/2026-09-23-codebase-survey.md), below its
+candidate table).

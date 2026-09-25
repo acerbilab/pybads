@@ -524,7 +524,7 @@ def local_gp_fitting(
         gp.update(hyp=hyp_gp)
     except np.linalg.LinAlgError:
         # Posterior GP update failed (due to Cholesky decomposition)
-        logging.debug(
+        logger.debug(
             "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
         )
         gp.set_priors(old_priors)
@@ -536,7 +536,7 @@ def local_gp_fitting(
             # the computation that failed. Back to the GP of the entry, in
             # place, marked for a rebuild with a refit (MATLAB's gpupdate
             # clears the posterior, which has the next step rebuild it).
-            logging.debug(
+            logger.debug(
                 "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
             )
             vars(gp).clear()
@@ -620,7 +620,7 @@ def _robust_gp_fit_(
             break
         except np.linalg.LinAlgError:
             # handle
-            logging.debug(
+            logger.debug(
                 "bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
             )
             success_flag[i_try] = False
@@ -1263,7 +1263,7 @@ def add_and_update_gp(
             compute_posterior=True,
         )
     except np.linalg.LinAlgError:
-        logging.debug(
+        logger.debug(
             "bads:add_and_update_gp: posterior GP update failed; the point is left out until the next rebuild"
         )
         gp.temporary_data["needs_rebuild"] = True

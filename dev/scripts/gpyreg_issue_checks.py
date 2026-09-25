@@ -18,10 +18,13 @@ from the repository root::
 import json
 import sys
 import traceback
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "dev/scripts")
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 import benchmark_targets as bt  # noqa: E402
 import gpyreg  # noqa: E402
 
