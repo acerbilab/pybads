@@ -76,10 +76,12 @@ change does not reach is identical in both populations.
 
 ## The records and later code
 
-From `4c4a213` on, the final estimate under target noise weights the final
-samples by the precisions that the target returns, so the `fval` and `fsd`
-of `sphere_D3_hetero` and `ellipsoid_D3_hetero` in these records differ
-from what the code returns. Their `x`, evaluations, iterations and errors
-do not, in all 60 runs, and `compare` tests only the error and the
-evaluations ([survey](../../results/2026-09-23-codebase-survey.md), below
-its candidate table).
+From `1a21844` on, a run that ends on `tol_mesh` reports another
+termination message, which 198 of these 540 records carry. From `4c4a213`
+on, the final estimate under target noise weights the final samples by the
+precisions that the target returns: the `fsd` of `sphere_D3_hetero` and
+`ellipsoid_D3_hetero` differs from these records, and their `fval` by at
+most 4.4e-16. Their `x`, evaluations, iterations and errors do not, in all
+60 runs, and `compare` tests only the error and the evaluations
+([survey](../../results/2026-09-23-codebase-survey.md), below its
+candidate table).

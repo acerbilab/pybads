@@ -25,11 +25,13 @@ order.
   the candidates, so a candidate that repeats an evaluated point is kept.
   MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
   target noise SD, `FunctionLogger` records the repeat as a new row, and
-  it becomes a duplicate training input of the GP. It explains none of
-  the four `LinAlgError` crashes behind `plans/gp-update-guards.md` (the
-  survey's section "Crashes on unguarded GP updates"): one failing call
-  held three exact duplicate pairs, but removing almost any three of its
-  rows lets it succeed, and the other three held none. On Linux at `8fc1dff`
+  it becomes a duplicate training input of the GP. At low noise a
+  duplicate can make the training covariance singular, but duplicates
+  explain none of the four `LinAlgError` crashes behind
+  `plans/gp-update-guards.md` (the survey's section "Crashes on unguarded
+  GP updates"): one failing call held three exact duplicate pairs, but
+  removing most sets of three of its rows lets it succeed, and the other
+  three held none. On Linux at `8fc1dff`
   (gpyreg 1.3.3), one exact repeat was evaluated in `ellipsoid_D10` seed
   7, and one in `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20.
   To settle:
@@ -51,19 +53,23 @@ order.
   so that many distinct inputs coincide numerically, and the output scale,
   at its upper bound (MATLAB's too), sets an output variance 2e22 to 2e24
   times the noise variance on them. To settle:
-  - whether MATLAB's bound would have kept those GPs factorizable, from
-    the inputs, targets and hyperparameters saved at each failing call
-    (machine-local, `dev/scripts/runs/LOCAL.md`), refitted under it. A
-    rerun with the bound changed follows another trajectory and cannot
-    show it. A rerun of the crashes needs Windows with the environment of
-    their records (NumPy 2.5.3, SciPy 1.18.1, one BLAS thread), their
-    commits `2226883` and `c85cddb` (reachable from `refs/pull/59/head`)
-    and a clone of gpyreg at v1.3.1, since no run of the suite fails
-    under gpyreg 1.3.3;
+  - whether MATLAB's bound would have kept those GPs factorizable: the
+    GP of each failing call refitted under it. The inputs, targets and
+    hyperparameters saved at those calls (machine-local,
+    `dev/scripts/runs/LOCAL.md`) lack the priors and bounds that
+    `_gp_hyp` sets; a capture that keeps a deep copy of the GP before
+    each call of `gpyreg.GP.update` (a wrapper loaded through a
+    `sitecustomize.py` first on `PYTHONPATH`) has them all. A rerun with
+    the bound changed follows another trajectory and cannot show it. A
+    rerun of the crashes needs Windows with the environment of their
+    records (Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, one BLAS thread),
+    their commits `2226883` and `c85cddb` (reachable from
+    `refs/pull/59/head`) and a clone of gpyreg at v1.3.1, since no run of
+    the suite fails under gpyreg 1.3.3;
   - how often the fits of the default suite end with a log length scale
     above `log(cov_range)`;
-  - the fix, which moves results at default options on most of the suite:
-    gated by the population comparison against the current reference of
+  - the fix, which can move results at default options wherever a fit
+    reaches `log(cov_range)`: gated by the population comparison against the current reference of
     the platform, with the seeded tests re-checked over their seeds.
 - [ ] **Small defects of the noise options and the final estimate**, rows
   of the survey's candidate table:
@@ -76,9 +82,14 @@ order.
   - the high-noise check of `local_gp_fitting` reads `noise_size` under
     `specify_target_noise`, where the warning says that it is ignored, and
     `noise_size=0` makes every refit a high-noise one; MATLAB does the
-    same, so this one needs a decision more than a fix.
+    same, so this one needs a decision more than a fix;
+  - the reported `iterations` is one below MATLAB's count;
+  - `output_fcn` is called only at the start, with two arguments where
+    MATLAB passes three, and one that stops the run there raises
+    `UnboundLocalError`;
+  - `max_fun_evals=1` raises `KeyError: 'eff_starting_points'`.
 
-  Each is user-visible and gets a changelog entry; the fingerprint of
+  A fix that a user can notice gets a changelog entry; the fingerprint of
   `dev/scripts/fingerprint.py` shows whether a fix moves results at
   default options.
 - [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of

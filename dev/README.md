@@ -75,10 +75,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the recorded start points differ. To run against another gpyreg
   checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
   source path and commit, since the version string is that of the
-  installed gpyreg. PyBADS comes from the checkout that holds the script,
-  which it puts first on `sys.path`: to run a commit, run the
-  `dev/scripts/population.py` of a worktree at it, from the repository
-  root.
+  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets
+  and seeds, come from the checkout that holds the script, which it puts
+  first on `sys.path`: to run a commit, run the
+  `dev/scripts/population.py` of a worktree at it, from the main
+  checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
@@ -158,7 +159,7 @@ reference's number of seeds.
   they appeared to, with their fixes, the seed sweep behind the tolerances
   of the optimization tests, three candidate defects found on the way, the
   checks behind running each test once in CI and requiring NumPy 2, the
-  fixes of three small defects of `bads.py` with their gates, and the
-  reruns of the four crashing benchmark runs, which duplicate training
-  inputs do not explain. The starting point of the deferred bug hunt in
-  `TODO.md`.
+  fixes of five small defects of `bads.py` with their gates, and the
+  reruns of the four crashing benchmark runs, whose failing calls share
+  degenerate GP hyperparameters. The starting point of the deferred bug
+  hunt in `TODO.md`.

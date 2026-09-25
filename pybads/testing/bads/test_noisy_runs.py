@@ -131,15 +131,14 @@ def test_final_estimate_from_one_sample():
     [(_noisy_sphere, False), (_noisy_sphere_with_estimated_sd, True)],
     ids=["inferred_noise", "specified_noise"],
 )
-def test_noisy_run_without_poll_reports_incumbent(make_fun, target_noise):
-    """A noisy run that ends before its first poll takes no final samples:
-    `yval_vec` holds the incumbent's observation and `ysd_vec` is None.
-    `max_iter=1` ends the run within its first iteration, before the poll
-    count moves."""
+def test_noisy_run_in_one_iteration_reports_incumbent(make_fun, target_noise):
+    """A noisy run that ends within its first iteration takes no final
+    samples: `yval_vec` holds the incumbent's observation and `ysd_vec` is
+    None. `max_iter=1` ends the run within its first iteration, before the
+    iteration count moves."""
     bads = _make_bads(
         make_fun(0), specify_target_noise=target_noise, max_iter=1
     )
     result = bads.optimize()
-    assert result["iterations"] == 0
     assert np.array_equal(result["yval_vec"], [bads.yval])
     assert result["ysd_vec"] is None

@@ -20,12 +20,11 @@ PYTHONPATH="<worktree at 10d74a7>;dev/scripts/runs/gpyreg/v1.3.3" .venv/Scripts/
 PYTHONPATH="<worktree at c044fea>;dev/scripts/runs/gpyreg/v1.3.3" .venv/Scripts/python.exe -u <worktree at c044fea>/dev/scripts/population.py run --suite default --only ellipsoid_D3_hetero --seeds 30-89 --out dev/scripts/runs/population/ellhet_after_20260925
 ```
 
-- PyBADS at `10d74a7` and at `c044fea`, each run by the `population.py`
-  of a clean detached worktree at that commit, which imports the package
-  of its own checkout (the raw records' `meta.pybads_source` names the
-  worktree). The package code of the
-  two differs only by `020d6a8`. gpyreg 1.3.3 from a clone checked out at
-  the tag `v1.3.3` (`98ab5a4`).
+- PyBADS at `10d74a7` and at `c044fea`, each run by the `population.py` of
+  a clean detached worktree at that commit, which imports the package of
+  its own checkout (the raw records' `meta.pybads_source` names the
+  worktree). The package code of the two differs only by `020d6a8`. gpyreg
+  1.3.3 from a clone checked out at the tag `v1.3.3` (`98ab5a4`).
 - Windows 11, Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1; one BLAS thread per
   run, one run at a time, a fresh process per run; from 16:33 to 16:55 on
   2026-09-25.
