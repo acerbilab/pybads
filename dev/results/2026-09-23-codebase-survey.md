@@ -147,11 +147,11 @@ described; the rest are reports of the read not yet looked at.
 ## Tests that checked less than they appeared to
 
 Each defect below is fixed in pull request #63, in the commit its entry
-names. A fix to a test moves no result, so the test suite was the check: with gpyreg 1.3.3, 109
-tests passed at `870fa35` and 112 after the fixes (the three poll tests
-added to the collection), none of them needing a rerun; on the full CI
-matrix (Ubuntu, Windows, macOS × Python 3.10–3.12), 112 passed in every
-job, without reruns.
+names. A fix to a test moves no result, so the test suite was the check:
+with gpyreg 1.3.3, 109 tests passed at `870fa35` and 112 after the fixes
+(the three poll tests added to the collection), none of them needing a
+rerun; on the full CI matrix (Ubuntu, Windows, macOS × Python 3.10–3.12),
+112 passed in every job, without reruns.
 
 - `pybads/testing/bads/poll/test_poll_mads.py` named its functions
   `*_test`, so pytest collected none of them. Fixed in `125efac`: renamed
@@ -209,10 +209,11 @@ On another platform a seeded run can follow another trajectory, as another
 seed would, so a tolerance has to hold beyond the seed the test runs at.
 Each tolerance is ten times the largest error of the sweep, rounded up to
 1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if that is
-lower (`test_noisy_sphere_opt`), with one exception: the errors of `test_he_noisy_sphere_opt`
-exceed the tolerance of `runtest.m`, 1, in 7 of the 100 seeds, the largest
-being 2.3, and its tolerance is 5. Whether MATLAB BADS exceeds 1 as often
-on this problem, at the same 200 evaluations, is not checked.
+lower (`test_noisy_sphere_opt`), with one exception: the errors of
+`test_he_noisy_sphere_opt` exceed the tolerance of `runtest.m`, 1, in 7 of
+the 100 seeds, the largest being 2.3, and its tolerance is 5. Whether
+MATLAB BADS exceeds 1 as often on this problem, at the same 200
+evaluations, is not checked.
 
 | Test | Evaluations | Median error | Largest error | Tolerance | Before the fix | `runtest.m` |
 |---|---|---|---|---|---|---|
@@ -242,7 +243,7 @@ largest error of both designs.
 
 ### Found while fixing the tests
 
-Two candidate defects, seen in the code (reach and effect not measured):
+Three candidate defects, seen in the code (reach and effect not measured):
 
 - `test_incumbent_constraint_check` (`search/test_search.py`) evaluates
   every row of `U` and then asserts that `contraints_check`
@@ -262,17 +263,28 @@ Two candidate defects, seen in the code (reach and effect not measured):
   not checked. Fixing it moves results.
 - `init_sobol` (`init_functions/init_sobol.py`) derives the seed of the
   initial Sobol design from `u0[:11].astype(np.uint64)`, the integer parts
-  of the first 11 coordinates, and not from `random_seed`. Every `u0`
+  of the first 11 coordinates, and not from `random_seed`: the seed is the
+  product of the character codes of those integers, printed. Every `u0`
   inside `(-1, 1)^D`, that is, every start point inside the plausible box,
   gives the same seed, and so the same initial design for a given `D`
   (checked for `D = 3`). The cast is undefined for a coordinate of -1 or
   below: on x86, `-1.5` gives `2**64 - 1`, while on the arm64 runners of
   the macOS CI jobs `test_small_noisy_func` (whose `x0 = -3` maps to
   `u0 = -1.5`) emits `RuntimeWarning: invalid value encountered in cast`,
-  and its design differs (sweep above). MATLAB's `init/initSobol.m` takes
-  the seed from `prod(uint64(num2str(u0(1:min(10,end)))))`, the character
-  codes of the printed values of the first 10 coordinates. If MATLAB's
-  `prod` keeps the `uint64` class of its argument and saturates, as its
-  integer arithmetic does by default, that seed is also the same for most
-  start points, and the port differs in mechanism more than in effect; this
-  is not checked in MATLAB.
+  and its design differs (sweep above). The product is taken in NumPy's
+  default integer, 64-bit from NumPy 2 but 32-bit with NumPy 1.x on
+  Windows, which `pyproject.toml` allows (`numpy >= 1.22.1`) and no CI job
+  installs: there it wraps differently and gives another design (read, not
+  run). MATLAB's `init/initSobol.m` takes the seed from
+  `prod(uint64(num2str(u0(1:min(10,end)))))`, the character codes of the
+  printed values of the first 10 coordinates. If MATLAB's `prod` keeps the
+  `uint64` class of its argument and saturates, as its integer arithmetic
+  does by default, that seed is also the same for most start points, and
+  the port differs in mechanism more than in effect; this is not checked in
+  MATLAB.
+- `gaussian_process_train.py` imports its `logger` from `asyncio.log`
+  (line 4), the logger named `asyncio`, not the `BADS` logger whose level
+  the `display` option sets. Its warnings (a failed initial fit in
+  `init_and_train_gp`, a failed hyperparameter optimization, a failed slice
+  sampler) are therefore printed whatever `display` says: the sweep above,
+  run with `display="off"`, printed the 49 failed initial fits.

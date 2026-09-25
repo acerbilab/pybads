@@ -125,5 +125,5 @@ reference's number of seeds.
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that checked less than
   they appeared to, with their fixes, the seed sweep behind the tolerances
-  of the optimization tests and two candidate defects found on the way.
+  of the optimization tests and three candidate defects found on the way.
   The starting point of the deferred bug hunt in `TODO.md`.
