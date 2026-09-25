@@ -40,8 +40,8 @@ order.
     `experiments/population_linux_20260925/` (or the Windows reference),
     and the seeded tests are re-checked over their seeds.
 
-  The other session's survey subsection "Found while fixing the tests"
-  records the defect (branch `dev-tests`).
+  The survey's subsection "Found while fixing the tests" also records the
+  defect.
 - [ ] **Follow-ups of the GP-update guards**
   ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
   in the survey's candidate table, marked "at `676083d`" or "at
@@ -66,11 +66,30 @@ order.
   1.3.3 (484,773 calls on Linux), so only the tests
   (`test_gp_update_failures.py`) and the stress run of
   `dev/scripts/gp_update_failures.py --inject` reach these paths.
+- [ ] **Follow-ups of the seeded tests** (the survey's section on the
+  tests).
+  - The tolerance of `test_he_noisy_sphere_opt`, 5, about twice its largest
+    error: settle it once MATLAB's own rate above the tolerance of
+    `runtest.m` is known (bug hunt), by tightening it, keeping it, or giving
+    the test a budget above the 200 evaluations of `runtest.m`.
+  - CI's `--reruns=5` (`.github/workflows/test-matrix.yml`, and the command
+    that `AGENTS.md` cites) repeats a failure identically, since every test
+    whose outcome depends on random draws is seeded: keep it or drop it.
+  - NumPy 1.x, which `pyproject.toml` allows (`numpy >= 1.22.1`), runs in
+    no CI job; on Windows it gives every run another initial design
+    (`init_sobol`, in the survey), and the tolerances were not checked
+    there. Either a CI job with the oldest NumPy allowed, or a higher
+    minimum.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB) and the tests
-  that check less than they appear to.
+  table (only partly looked at, never compared with MATLAB), and the
+  findings of its section on the tests: the errors of
+  `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's `runtest.m`
+  in 7 of 100 seeds, and the seed of the initial Sobol design, which
+  ignores all but the integer part of `u0` (whether MATLAB's `uint64`
+  product saturates needs MATLAB itself). The previously evaluated points
+  that `contraints_check` keeps have an item of their own above.
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.

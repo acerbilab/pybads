@@ -24,6 +24,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an
   operation that later Python versions remove.
+- **Shipped tests.** The tests that ship with PyBADS
+  (`pytest --pyargs pybads`) give the same result on each run on a given
+  machine: every test whose outcome depends on random draws is seeded. Each
+  optimization test checks a tolerance of its own, tighter than before for
+  most. Two tests of the poll, which pytest did not collect, are renamed so
+  that it does, and a third is added. The module `pybads.testing.run_tests`,
+  which failed on import, and six data files that no test read are no
+  longer installed.
 
 ## [1.1.0] - 2026-09-25
 

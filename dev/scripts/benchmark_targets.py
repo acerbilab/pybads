@@ -19,10 +19,8 @@ the central half of the plausible box, with ``z = x - c``:
                    BADS's ``private/runtest.m``: points with
                    ``x_1 + x_2 < sqrt(2)`` are infeasible, so the minimum is
                    1, at ``(sqrt(2)/2, sqrt(2)/2, 0, ...)``; with the
-                   bounds of ``get_test_opt_conf`` in the PyBADS
-                   tests (whose ``test_sphere_opt`` marks the other side of
-                   the line infeasible, which leaves the minimum 0 at the
-                   origin)
+                   bounds of ``get_test_opt_conf`` in the PyBADS tests, the
+                   problem of their ``test_sphere_opt``
 
 Every synthetic minimum is 0 except that of ``sphere_nonbox``. The shifted
 targets share the hard bounds ``[-20, 20]`` and the plausible box

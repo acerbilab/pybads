@@ -24,6 +24,9 @@ def test_incumbent_constraint_check():
         y, y_sd, idx_y = f(U[i])
 
     U = np.vstack((U, U[-1]))  # add duplicate
+    # Every row of U is already evaluated, and contraints_check removes none
+    # of them, only the duplicate: MATLAB's uCheck would remove them all (a
+    # candidate defect, in dev/results/2026-09-23-codebase-survey.md).
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
     assert U_new.size != U.size
     assert U_new.shape[0] == U.shape[0] - 1
@@ -65,7 +68,9 @@ def test_search():
     plb = np.array([[-5, -5, -5]])  # Plausible lower bounds
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
@@ -111,7 +116,9 @@ def test_search_hedge():
     pub = np.array([[5, 5, 5]])  # Plausible upper bounds
     D = 3
 
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
 
@@ -154,7 +161,9 @@ def test_grid_search_neighbors():
     pub = np.array([[5, 5]])  # Plausible upper bounds
     D = 2
 
-    bads = BADS(rosenbrocks_fcn, x0, lb, ub, plb, pub)
+    bads = BADS(
+        rosenbrocks_fcn, x0, lb, ub, plb, pub, options={"random_seed": 0}
+    )
     bads.options["fun_eval_start"] = 10
     gp, Ns_gp, sn2hpd, hyp_dict = bads._init_optimization_()
     gp.X = np.array([[0, 0], [-0.1055, 0.4570], [-0.3555, -0.7930]])
