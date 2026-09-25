@@ -52,29 +52,12 @@ order.
   trajectories there, and this does not show whether the calls still fail.
   To settle: restore those guards, the data passed through `gp.update`,
   and what the GP left by a failed call means downstream in PyBADS.
-- [ ] **Make the tests check what they appear to.** The survey's section
-  "Tests that check less than they appear to" lists the defects:
-  `pybads/testing/bads/poll/test_poll_mads.py` names its functions
-  `*_test`, so pytest collects none of them (they pass when called
-  directly); `test_sphere_opt` has its non-box constraint reversed with
-  respect to MATLAB's `runtest.m` and passes only through its loose
-  tolerance; `test_high_dim_opt` asserts nothing; the other optimization
-  tests pass whenever the error is below 1, and most are unseeded
-  (`random_seed` makes them deterministic); `pybads/testing/run_tests.py`
-  imports paths that no longer exist, and no test reads
-  `pybads/testing/bads/*.dat`. A fix to a test moves no result, so the
-  suite is its check, not the population comparison; `AGENTS.md`, "Tests
-  and their traps", and the survey's section record each fix. Work on a
-  branch off `dev-next` (`dev-tests`, whose pushes get the CI smoke run),
-  merged into `dev-next` by a pull request, and keep off the files of the
-  item on unguarded GP updates, worked on in parallel:
-  `bads/gaussian_process_train.py`, the GP call sites in `bads/bads.py`
-  and the survey's candidate table.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB) and the tests
-  that check less than they appear to.
+  table (only partly looked at, never compared with MATLAB), and the errors
+  of `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's
+  `runtest.m` in 7 of 100 seeds (its test section).
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.

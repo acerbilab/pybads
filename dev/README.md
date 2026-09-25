@@ -117,5 +117,7 @@ reference's number of seeds.
   assessment of gpyreg 1.3.3 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
-  read of the code (not verified), and the tests that check less than they
-  appear to. The starting point of the deferred bug hunt in `TODO.md`.
+  read of the code (not verified), and the tests that checked less than
+  they appeared to, with their fixes and the seed sweep behind the
+  tolerances of the optimization tests. The starting point of the deferred
+  bug hunt in `TODO.md`.

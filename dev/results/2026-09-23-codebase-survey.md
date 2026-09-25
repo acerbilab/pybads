@@ -146,14 +146,76 @@ described; the rest are reports of the read not yet looked at.
 
 ## Tests that check less than they appear to
 
-- `pybads/testing/bads/poll/test_poll_mads.py` names its functions `*_test`,
-  so pytest collects none of them.
-- `test_high_dim_opt` runs with `assert_flag=False` and asserts nothing.
-- The other optimization tests pass when the error is below 1
-  (`np.any(err < [0.1, 0.1, 1, 1])`).
-- `test_sphere_opt` marks as infeasible the points with `x1 + x2 >= sqrt(2)`,
-  the reverse of the MATLAB test (`runtest.m`, infeasible where
-  `x1 + x2 < sqrt(2)`), so the unconstrained minimum 0 is feasible; it
-  expects 1 and passes because an error just below 1 meets its tolerance.
-- `pybads/testing/run_tests.py` imports `testing.*` paths that no longer
-  exist, and no test reads `pybads/testing/bads/*.dat`.
+Each defect below is fixed in the commit its entry names. A fix to a test
+moves no result, so the test suite was the check: with gpyreg 1.3.3, 109
+tests passed at `870fa35` and 112 after the fixes (the three poll tests
+added to the collection), none on a rerun.
+
+- `pybads/testing/bads/poll/test_poll_mads.py` named its functions
+  `*_test`, so pytest collected none of them. Fixed in `125efac`: renamed
+  `test_*`, they check the poll set beyond its shape (the second half
+  negates the first, and undoing the division by `poll_scale` gives an
+  integer basis of determinant `+-n_max**D`), and a third test reaches
+  `n_max > 1`, which neither of the two original cases did.
+- `test_high_dim_opt` ran with `assert_flag=False` and asserted nothing,
+  and neither did `test_univariate_input_and_opt`. Fixed in `9a99bae`: both
+  assert an error bound (table below).
+- The other optimization tests passed when the error was below 1:
+  `np.any(err < [0.1, 0.1, 1, 1])` compared the error with the four
+  tolerances of `runtest.m` at once. Fixed in `9a99bae`: each test has one
+  tolerance (table below).
+- `test_sphere_opt` marked as infeasible the points with
+  `x1 + x2 >= sqrt(2)`, the reverse of the MATLAB test (`runtest.m`,
+  infeasible where `x1 + x2 < sqrt(2)`), and started from the origin, so
+  the unconstrained minimum 0 was feasible; it expected 1 and passed
+  because an error just below 1 met its tolerance. Fixed in `9a99bae`: the
+  constraint and the start point `(4, 4, 4)` of `runtest.m`. Every run of
+  the sweep below ends within 2e-4 of the constrained minimum.
+- Most optimization tests were unseeded, and the noisy targets drew their
+  noise from NumPy's global stream (`test_small_noisy_func` after reseeding
+  it). Fixed in `9a99bae`: each run sets `random_seed`, and a noisy target
+  draws its noise from a generator of its own. `4fab44d` seeds the three
+  tests of `search/test_search.py` that train the GP of an unseeded `BADS`.
+- `pybads/testing/run_tests.py` imported `testing.*` paths that no longer
+  exist, and no test read `pybads/testing/bads/*.dat`, six files present
+  since the first port (`c7c88ab`) and read in no commit. Both removed in
+  `5d5c111`.
+
+### The seed sweep behind the tolerances
+
+Each test of `test_bads_optimization.py` ran with `random_seed = s` and its
+noise seed `s + 1000` for `s` from 0 to 99; the tests run at `s = 0`.
+Environment: Windows 11, Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, gpyreg
+1.3.3 (a clone at the tag, `98ab5a4`), package code of `870fa35`. No run
+crashed. The retry loop of the initial GP fit (`init_and_train_gp`)
+logged 49 failed fits, each followed by a successful one: 47 in 32 runs of
+`test_small_noisy_func` and 2 in 2 runs of `test_univariate_input_and_opt`. Called at `s` from 0 to 4 by setting the
+module's `SEED` and `NOISE_SEED`, the test functions reproduce the runs of
+the sweep bit for bit.
+
+On another platform a seeded run can follow another trajectory, as another
+seed would, so a tolerance has to hold beyond the seed the test runs at.
+Each tolerance is about ten times the largest error of the sweep, rounded
+up to 1, 2 or 5 times a power of ten, and no looser than that of
+`runtest.m`, with one exception: the errors of `test_he_noisy_sphere_opt`
+exceed the tolerance of `runtest.m`, 1, in 7 of the 100 seeds, the largest
+being 2.3, and its tolerance is 5. Whether MATLAB BADS exceeds 1 as often
+on this problem, at the same 200 evaluations, is not checked.
+
+| Test | Evaluations | Median error | Largest error | Tolerance | Before | `runtest.m` |
+|---|---|---|---|---|---|---|
+| `test_ellipsoid_opt` | 67–93 | 8.7e-6 | 9.8e-5 | 1e-3 | 1 | 0.1 |
+| `test_sphere_opt` | 65–100 | 2.0e-5 | 1.9e-4 | 2e-3 | 1 | 0.1 |
+| `test_noisy_sphere_opt` | 100 | 5.7e-3 | 0.10 | 1 | 1 | 1 |
+| `test_he_noisy_sphere_opt` | 192–200 | 0.33 | 2.3 | 5 | 1 | 1 |
+| `test_small_noisy_func` | 149–223 | 5.9e-6 | 2.5e-4 | 5e-3 | 0.1 | |
+| `test_1D_opt_*` (three tests) | 30 | 5.8e-9 | 2.1e-7 | 5e-6 | 0.1 | |
+| `test_univariate_input_and_opt` | 87–141 | 3.3e-5 | 1.4e-3 | 2e-2 | none | |
+| `test_high_dim_opt` | 200 | 2.9e-2 | 5.5e-2 | 1 | none | |
+
+The error is `|fval - f_min|` on a target without noise, and the noiseless
+value at the returned point minus the minimum on a noisy one. The three 1D
+tests pass the same problem in different input shapes; the sweep ran
+`test_1D_opt_scalar`, and at `s` from 0 to 4 the other two give the same
+runs. The 60-D ellipsoid of `test_high_dim_opt` starts at 17.3, and the
+run ends on its budget of 200 evaluations.

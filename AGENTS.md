@@ -253,15 +253,17 @@ same gpyreg.
 ## Tests and their traps
 
 - `pybads/testing/bads/test_bads_optimization.py` runs whole optimizations
-  (100–300 evaluations each, one of them 60-D) and dominates the runtime of
-  the suite. Most are unseeded, which is why CI uses `--reruns=5`; an
-  assertion passes when the error is below 1, and `test_high_dim_opt`
-  asserts nothing.
-- `pybads/testing/bads/poll/test_poll_mads.py` names its functions
-  `*_test`, so pytest collects none of them. `pybads/testing/run_tests.py`
-  imports paths that no longer exist, `pybads/testing/bads/*.dat` are read
-  by no test, and `pybads/testing/bads/scripts/` holds manual scripts that
-  pytest does not collect.
+  (up to 300 evaluations each, one of them 60-D) and dominates the runtime
+  of the suite.
+- Every test whose outcome depends on random draws is seeded, the noise of
+  a noisy target included, so a failure repeats on every rerun, CI's
+  `--reruns=5` included. The tolerances of `test_bads_optimization.py` hold
+  over a sweep of seeds, not only at the seed each test runs at: when a
+  change that moves results fails one, check its tolerance over the seeds
+  again, as the module's docstring describes, before reseeding the test or
+  loosening the tolerance.
+- `pybads/testing/bads/scripts/` holds manual scripts that pytest does not
+  collect.
 
 ## Conventions
 
