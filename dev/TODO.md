@@ -36,12 +36,41 @@ order.
     26, Windows, gpyreg 1.3.1);
   - count the repeats over the default suite;
   - fix the removal, as MATLAB does it. That moves results, so it is gated
-    by the population comparison against
-    `experiments/population_linux_20260925/` (or the Windows reference),
-    and the seeded tests are re-checked over their seeds.
+    by the population comparison against the current reference of the
+    platform (`README.md`), and the seeded tests are re-checked over their
+    seeds.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
+- [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of
+  `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two configurations with
+  target noise, so `experiments/population_linux_20260925/` no longer
+  stands for the current code in those two. The replacement is the default
+  suite at 30 seeds on Linux, with its null check, as for the Windows
+  reference.
+- [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
+  standard deviations, as MATLAB does, makes the runs of this benchmark
+  configuration worse: over 90 seeds the median error rises from 0.21 to
+  0.54, mostly along the flat axis of the ellipsoid
+  ([experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)),
+  while the spheres with target noise improve. The fix stays; what is open
+  is which other difference from MATLAB the correct noise exposes. The
+  candidates, each a row of the survey's candidate table:
+  - the GP mean prior, which MATLAB re-centres at every rebuild
+    (`gpdefBads.m`) and the port never updates;
+  - the merged value with the raw standard deviation that a repeated point
+    adds to the GP;
+  - the lower bound of the noise hyperparameter, which the port raises
+    after a failed fit and MATLAB does not.
+
+  A run of MATLAB BADS on this problem would show whether correct noise
+  handling alone gives such runs.
+- [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
+  (`recipe/meta.yaml`) passes `--reruns=5` and requires
+  pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
+  seeded, so both stay until the first release after 1.1.0, whose tests
+  are: drop them in the version-update PR that the feedstock's bot opens
+  for that release, before it is merged.
 - [ ] **Follow-ups of the GP-update guards**
   ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
   in the survey's candidate table, marked "at `676083d`" or "at
@@ -49,8 +78,6 @@ order.
   - the target's posterior, recomputed under the best iteration's
     hyperparameters, where MATLAB reuses the current posterior. That gives
     other targets at default options, and it is why that call can fail;
-  - `S`, a standard deviation, stored in `gp.s2`, a variance, at every
-    rebuild and add (`specify_target_noise` only);
   - the refit forced after a failed rebuild, which ignores
     `min_refit_time`, where MATLAB refits through `gppredcheck`. It sends
     such runs into `_robust_gp_fit_`, whose fifth consecutive failed fit
@@ -66,27 +93,11 @@ order.
   1.3.3 (484,773 calls on Linux), so only the tests
   (`test_gp_update_failures.py`) and the stress run of
   `dev/scripts/gp_update_failures.py --inject` reach these paths.
-- [ ] **Follow-ups of the seeded tests** (the survey's section on the
-  tests).
-  - The tolerance of `test_he_noisy_sphere_opt`, 5, about twice its largest
-    error: settle it once MATLAB's own rate above the tolerance of
-    `runtest.m` is known (bug hunt), by tightening it, keeping it, or giving
-    the test a budget above the 200 evaluations of `runtest.m`.
-  - CI's `--reruns=5` (`.github/workflows/test-matrix.yml`, and the command
-    that `AGENTS.md` cites) repeats a failure identically, since every test
-    whose outcome depends on random draws is seeded: keep it or drop it.
-  - NumPy 1.x, which `pyproject.toml` allows (`numpy >= 1.22.1`), runs in
-    no CI job; on Windows it gives every run another initial design
-    (`init_sobol`, in the survey), and the tolerances were not checked
-    there. Either a CI job with the oldest NumPy allowed, or a higher
-    minimum.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB), and the
-  findings of its section on the tests: the errors of
-  `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's `runtest.m`
-  in 7 of 100 seeds, and the seed of the initial Sobol design, which
+  table (only partly looked at, never compared with MATLAB), and a finding
+  of its section on the tests: the seed of the initial Sobol design, which
   ignores all but the integer part of `u0` (whether MATLAB's `uint64`
   product saturates needs MATLAB itself). The previously evaluated points
   that `contraints_check` keeps have an item of their own above.

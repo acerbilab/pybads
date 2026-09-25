@@ -1,0 +1,93 @@
+{
+ "label": "multisensory_s1_D6",
+ "seed": 26,
+ "problem": "multisensory_s1",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  15.20722800302142,
+  5.660615088385837,
+  27.0820194528837,
+  4.254098607387941,
+  42.937997741405184,
+  0.07438464416056449
+ ],
+ "f_min": 483.5133436051275,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 26
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 26,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   7.066796325287943,
+   2.2113490538379112,
+   1.0123137953247974,
+   8.384908734109636,
+   10.138696008860899,
+   0.0252668679601322
+  ],
+  "fval": 483.51334372187483,
+  "fsd": 0.0,
+  "true_error": 1.167473442365008e-07,
+  "func_count": 251,
+  "iterations": 13,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 3.566409300081432,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "c044fea",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.1.1.dev23+g10d74a7ab",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\AppData\\Local\\Temp\\claude\\C--Users-luigi-Documents-GitHub-pybads\\363497a3-6d3d-4651-b4f2-b0759b92a8fd\\scratchpad\\wt\\pybads",
+   "git": {
+    "sha": "c044fea",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T16:23:44+0300",
+  "finished": "2026-09-25T16:23:49+0300"
+ }
+}

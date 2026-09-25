@@ -55,7 +55,7 @@ package metadata, so the suite needs the editable install, not only the
 source on `sys.path`.
 
 ```console
-python -m pytest --reruns=5 -x -vv                      # what CI runs
+python -m pytest -x -vv                                 # what CI runs
 python -m pytest pybads/testing/bads/test_bads_optimization.py::test_sphere_opt
 ```
 
@@ -278,8 +278,10 @@ same gpyreg.
   (a few hundred evaluations at most, one of them 60-D) and dominates the
   runtime of the suite.
 - Every test whose outcome depends on random draws is seeded, including
-  the noise of a noisy target, so a failing test fails again on each rerun:
-  CI's `--reruns=5` does not hide it. The tolerances of
+  the noise of a noisy target, so a failing test fails again on each rerun,
+  and CI runs each test once. A test that fails and then passes when rerun
+  depends on something unseeded, in the test or in the package, which is a
+  bug to fix. The tolerances of
   `test_bads_optimization.py` hold over a sweep of seeds, not only at the
   seed each test runs at: when a change that moves results fails one,
   measure the errors over the seeds again with

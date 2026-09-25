@@ -1343,7 +1343,7 @@ class BADS:
             if self.optim_state["mesh_size"] < self.optim_state["tol_mesh"]:
                 is_finished = True
                 # exit_flag = 1
-                msg = "Optimization terminated: change in the function value less than options['tol_mesh']"
+                msg = "Optimization terminated: mesh size less than options['tol_mesh']."
 
             # Historic improvement
             if poll_iteration > self.options["tol_stall_iters"] - 1:

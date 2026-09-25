@@ -1,5 +1,10 @@
 # Reference population: the default suite, 30 seeds, gpyreg 1.3.3
 
+Replaced as the reference on Windows by
+[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md),
+after `020d6a8` changed the runs of the two configurations with target
+noise.
+
 The reference on Windows for `dev/scripts/population.py compare` until a
 later reference replaces it (the one on Linux is
 [`population_linux_20260925`](../population_linux_20260925/README.md)): 18 configurations of the `default` suite of

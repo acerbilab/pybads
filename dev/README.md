@@ -108,22 +108,33 @@ reference's number of seeds.
 
 ## Index
 
+- [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
+  — the reference population of the benchmark on Windows (default suite,
+  30 seeds, gpyreg 1.3.3, at `c044fea`, with the noise-variance fix of
+  `020d6a8`), with its null check and its comparison with the previous
+  reference, which flags nothing: the two configurations with target noise
+  change, and the other 16 are identical run by run.
+- [experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)
+  — `ellipsoid_D3_hetero` over seeds 30-89 before and after `020d6a8`: with
+  the reference seeds, the median error rises from 0.21 to 0.54 over 90
+  paired seeds.
 - [experiments/population_linux_20260925/](experiments/population_linux_20260925/README.md)
   — the reference population on Linux (default suite, 30 seeds, gpyreg
   1.3.3, the guards of `plans/gp-update-guards.md`), identical run by run
   to the same code before the guards, with its null check and an
-  information-only comparison with the Windows reference.
+  information-only comparison with the previous Windows reference
+  (`population_gpyreg133_20260924`). Its two
+  configurations with target noise predate `020d6a8`.
 - [experiments/population_gpyreg133_20260924/](experiments/population_gpyreg133_20260924/README.md)
-  — the reference population of the benchmark on Windows (default suite,
-  30 seeds, draws through a `numpy.random.Generator`, gpyreg 1.3.3), with
-  its null check.
+  — the previous reference on Windows (gpyreg 1.3.3, before `020d6a8`),
+  with its null check.
 - [gpyreg 1.3.3 for PyBADS](results/2026-09-25-gpyreg-1.3.3.md) — the
   suite, the agreement of 1.3.2 and 1.3.3 at default options, and the
   benchmark comparison with 1.3.1 (five configurations flagged, each
   improved by 1.3.2's low-noise predictions; no run outside the low-noise
   regime changed) behind the move of the minimum and the CI pin to 1.3.3.
 - [experiments/population_generator_20260924/](experiments/population_generator_20260924/README.md)
-  — the previous reference (gpyreg 1.3.1), with its comparison with the
+  — an earlier reference (gpyreg 1.3.1), with its comparison with the
   baseline that validated the generator.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
@@ -142,5 +153,6 @@ reference's number of seeds.
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that checked less than
   they appeared to, with their fixes, the seed sweep behind the tolerances
-  of the optimization tests and three candidate defects found on the way.
+  of the optimization tests, three candidate defects found on the way, and
+  the checks behind running each test once in CI and requiring NumPy 2.
   The starting point of the deferred bug hunt in `TODO.md`.

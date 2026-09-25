@@ -1132,7 +1132,8 @@ def get_grid_search_neighbors(
     # Take points closest to reference points
     res_S = None
     if function_logger.noise_flag:
-        res_S = function_logger.S[sort_idx[0:ntrain]]
+        # `S` holds standard deviations; the GP takes variances.
+        res_S = function_logger.S[sort_idx[0:ntrain]] ** 2
     return (U[sort_idx[0:ntrain]], Y[sort_idx[0:ntrain]], res_S)
 
 
@@ -1244,7 +1245,8 @@ def add_and_update_gp(
     """
     s2_new = None
     if options["specify_target_noise"] and sd_new is not None:
-        s2_new = np.atleast_2d(sd_new)
+        # `sd_new` is a standard deviation; the GP takes variances.
+        s2_new = np.atleast_2d(sd_new) ** 2
 
     # The data go through `update`, so that a failure leaves the GP without
     # them; the hyperparameters, given, keep the full recomputation.

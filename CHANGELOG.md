@@ -5,8 +5,38 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Upgrading from 1.1.0
+
+- PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9
+  or later.
+- Results of runs with `specify_target_noise=True` differ from 1.1.0, also
+  with a fixed seed.
+
+### Changed
+
+- **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
+  and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
+  matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
+  which the tests do not need (gpyreg 1.3.3 still installs it).
+
 ### Fixed
 
+- **User-specified noise.** With `specify_target_noise=True`, the Gaussian
+  process treated the noise standard deviations that the target returns as
+  variances after its initial fit, so that it underrated the noise wherever
+  the standard deviation exceeded 1, and overrated it below 1. It now uses
+  their squares, as MATLAB BADS does. Results change in both directions. On
+  the 3-D sphere of PyBADS's tests, whose noise standard deviation is
+  `2 + sqrt(f)`, the median error of 100 seeded runs of 200 evaluations
+  falls from 0.33 to 0.14, and the largest from 2.3 to 0.56. On a 3-D
+  ellipsoid with condition number 1e6 and noise standard deviation
+  `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
+  median error rises from 0.21 to 0.54.
+- **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
+  `AttributeError` under NumPy 2.
+- **Termination message.** A run that ends because the mesh size fell below
+  `tol_mesh` says so; the message spoke of the change in the function
+  value.
 - **Failed GP updates.** A run no longer stops with `LinAlgError`
   ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
   update fails while adding a point, predicting the optimization target or
@@ -38,9 +68,6 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Changes since PyBADS 1.0.6.
 
 ### Upgrading from 1.0.6
-
-What can stop an existing script, or change what it returns. Each point has
-its entry below.
 
 - PyBADS needs Python 3.10 or later and gpyreg 1.3.3 or later.
 - Results differ from 1.0.6, also with a fixed seed.

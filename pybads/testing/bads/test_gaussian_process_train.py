@@ -101,7 +101,7 @@ def test_get_fevals_data_noise():
         bads.function_logger.X_flag[sample_idx] = True
         bads.function_logger.X[sample_idx] = Xs[sample_idx]
         bads.function_logger.Y[sample_idx] = ys[sample_idx]
-        bads.function_logger.S[sample_idx] = 1
+        bads.function_logger.S[sample_idx] = 0.5 + sample_idx
         bads.function_logger.fun_eval_time[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
@@ -111,7 +111,8 @@ def test_get_fevals_data_noise():
 
     assert np.all(X_train == Xs)
     assert np.all(y_train.flatten() == ys.flatten())
-    assert np.all(s2_train == 1)
+    # The noise standard deviations, squared into variances.
+    assert np.all(s2_train.flatten() == (0.5 + np.arange(sample_count)) ** 2)
     assert np.all(t_train == 1e-5)
 
 
@@ -215,3 +216,60 @@ def test_get_gp_training_options_opts_N():
         bads.function_logger,
     )
     assert res1["opts_N"] == 1
+
+
+def test_gp_noise_variances_with_target_noise(monkeypatch):
+    """With `specify_target_noise`, the GP holds the squares of the noise
+    standard deviations that the target returns, after each rebuild of the
+    local GP and each added point of a run."""
+    import pybads.bads.bads as bads_module
+
+    rng = np.random.default_rng(1000)
+
+    def fun(x):
+        y = np.sum(np.atleast_2d(x) ** 2)
+        sd = 2 + np.sqrt(y)
+        return y + sd * rng.standard_normal(), sd
+
+    checked = {"local": 0, "add": 0}
+    original_local = bads_module.local_gp_fitting
+    original_add = bads_module.add_and_update_gp
+
+    def spy_local(gp, current_point, function_logger, *args, **kwargs):
+        out = original_local(
+            gp, current_point, function_logger, *args, **kwargs
+        )
+        X = function_logger.X[function_logger.X_flag]
+        S = function_logger.S[function_logger.X_flag]
+        rows = [np.flatnonzero(np.all(X == x, axis=1))[0] for x in gp.X]
+        assert np.array_equal(gp.s2, S[rows] ** 2)
+        checked["local"] += 1
+        return out
+
+    def spy_add(function_logger, gp, x_new, y_new, sd_new=None, options=None):
+        n_train = gp.X.shape[0]
+        out = original_add(function_logger, gp, x_new, y_new, sd_new, options)
+        assert gp.X.shape[0] == n_train + 1
+        assert np.array_equal(gp.s2[-1:], np.atleast_2d(sd_new) ** 2)
+        checked["add"] += 1
+        return out
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    monkeypatch.setattr(bads_module, "add_and_update_gp", spy_add)
+    D = 3
+    BADS(
+        fun,
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={
+            "display": "off",
+            "max_fun_evals": 60,
+            "random_seed": 0,
+            "uncertainty_handling": True,
+            "specify_target_noise": True,
+        },
+    ).optimize()
+    assert checked["local"] > 0 and checked["add"] > 0

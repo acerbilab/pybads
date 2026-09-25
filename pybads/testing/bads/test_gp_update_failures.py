@@ -292,11 +292,12 @@ def test_add_without_failure_matches_assign_then_update(captured):
     )
     assert out is gp
 
-    # The code this replaces.
+    # The code this replaces, except that the target's noise SD is squared
+    # into a variance.
     reference.X = np.concatenate((reference.X, np.atleast_2d(x)))
     reference.y = np.concatenate((reference.y, np.atleast_2d(y)))
     if c.bads.options["specify_target_noise"] and sd is not None:
-        reference.s2 = np.concatenate((reference.s2, np.atleast_2d(sd)))
+        reference.s2 = np.concatenate((reference.s2, np.atleast_2d(sd) ** 2))
     reference.update(compute_posterior=True)
 
     assert np.array_equal(gp.X, reference.X)
@@ -312,7 +313,7 @@ def test_add_without_failure_matches_assign_then_update(captured):
         # function does not read these at level 1.
         assert _same(gp.s2, np.vstack((s2_before, [[0.0]])))
     else:
-        assert _same(gp.s2, np.vstack((s2_before, np.atleast_2d(sd))))
+        assert _same(gp.s2, np.vstack((s2_before, np.atleast_2d(sd) ** 2)))
     assert not gp.temporary_data.get("needs_rebuild", False)
 
 

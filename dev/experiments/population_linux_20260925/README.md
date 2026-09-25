@@ -1,8 +1,16 @@
 # Reference population on Linux: the default suite, 30 seeds, gpyreg 1.3.3
 
+Its runs of `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two
+configurations with target noise, predate `020d6a8`, which changes them
+(by how much, on Windows:
+[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md)).
+A comparison of later code with this reference therefore differs in those
+two configurations, whatever the change; `dev/TODO.md` lists the
+replacement.
+
 The reference for `dev/scripts/population.py compare` on Linux, beside the
 Windows reference
-[`population_gpyreg133_20260924`](../population_gpyreg133_20260924/README.md),
+[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md),
 until a later one replaces it. It covers the 18 configurations of the
 `default` suite of `dev/scripts/benchmark_targets.py` × seeds 0-29. Each
 run uses BADS's default budget (500 D) and ends on BADS's own termination
@@ -60,7 +68,8 @@ reference, with no failed call (`--check`, 0 mismatches).
 
 - **Null check** (`compare REF --split`, even against odd seeds, KS tests
   alone; `null_check.md`): no flag in 36 tests.
-- **Against the Windows reference** (`comparison.md`, information only):
+- **Against the previous Windows reference**, `population_gpyreg133_20260924`
+  (`comparison.md`, information only):
   no flag in 54 tests. Every median paired log10 error ratio lies within
   [-0.28, +0.08], and every bootstrap interval contains zero. The two
   populations differ in platform and in the versions of Python, NumPy and

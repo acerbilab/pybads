@@ -1,0 +1,93 @@
+{
+ "label": "rosenbrock_D6",
+ "seed": 12,
+ "problem": "rosenbrock",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  2.197178251604523,
+  0.02243396756909899,
+  -1.1454266817310321,
+  1.2323963955788617,
+  -0.44135175372141955,
+  4.258857263060094
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 12
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 12,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.083765371494337,
+   1.1210543311653964,
+   0.6151982719256921,
+   1.9560228769523746,
+   2.168681291145731,
+   -2.1257750473023407
+  ],
+  "fval": 6.7923940853353285e-06,
+  "fsd": 0.0,
+  "true_error": 6.7923940853353285e-06,
+  "func_count": 498,
+  "iterations": 14,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 9.390530099975877,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "c044fea",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.1.1.dev23+g10d74a7ab",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\AppData\\Local\\Temp\\claude\\C--Users-luigi-Documents-GitHub-pybads\\363497a3-6d3d-4651-b4f2-b0759b92a8fd\\scratchpad\\wt\\pybads",
+   "git": {
+    "sha": "c044fea",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T15:42:05+0300",
+  "finished": "2026-09-25T15:42:15+0300"
+ }
+}

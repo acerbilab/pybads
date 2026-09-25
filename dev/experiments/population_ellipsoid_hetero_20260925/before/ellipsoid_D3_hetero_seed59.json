@@ -1,0 +1,89 @@
+{
+ "label": "ellipsoid_D3_hetero",
+ "seed": 59,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "hetero",
+ "unbounded": false,
+ "x0": [
+  -1.0352904805719576,
+  -3.607827418038002,
+  -0.6704982963515924
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 59
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 59,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.6852487457927054,
+   1.204380260844573,
+   -2.0482780260851996
+  ],
+  "fval": -0.03295222286364008,
+  "fsd": 0.2042239838934936,
+  "true_error": 0.12633033978121994,
+  "func_count": 472,
+  "iterations": 30,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 12.54305870004464,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.8106191889571632
+ },
+ "meta": {
+  "git": {
+   "sha": "10d74a7",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\AppData\\Local\\Temp\\claude\\C--Users-luigi-Documents-GitHub-pybads\\363497a3-6d3d-4651-b4f2-b0759b92a8fd\\scratchpad\\wt_before\\pybads",
+   "git": {
+    "sha": "10d74a7",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T16:38:19+0300",
+  "finished": "2026-09-25T16:38:32+0300"
+ }
+}
