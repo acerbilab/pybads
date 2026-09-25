@@ -16,7 +16,7 @@ We expect these options to be routinely changed by many users.
 
 Advanced Options
 =====================
-These options are reserved to advanced users / developers of BADS. 
+These options are reserved to advanced users / developers of BADS.
 We strongly advise against changing these options, unless you know what you are doing, since unexpected/untested behavior might follow.
 
 .. include:: ./../../../../pybads/bads/option_configs/advanced_bads_options.ini

@@ -1,6 +1,3 @@
-# PyBADS Example 4: Noisy objective with user-provided noise estimates
-# (code only - see Jupyter notebook for a tutorial)
-
 import numpy as np
 
 from pybads import BADS
@@ -27,15 +24,18 @@ options = {
     "noise_final_samples": 100,
 }
 
+
 bads = BADS(
-    noisy_sphere_estimated_noise, x0, lower_bounds, upper_bounds, plausible_lower_bounds, plausible_upper_bounds, 
-    options=options
+    noisy_sphere_estimated_noise,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    plausible_lower_bounds,
+    plausible_upper_bounds,
+    options=options,
 )
 optimize_result = bads.optimize()
 
-x_min = optimize_result["x"]
-fval = optimize_result["fval"]
-fsd = optimize_result["fsd"]
 
 x_min = optimize_result["x"]
 fval = optimize_result["fval"]
@@ -49,6 +49,7 @@ print(
 )
 print(f"final evaluations (shape): {optimize_result['yval_vec'].shape}")
 print(f"final evaluations SD (shape): {optimize_result['ysd_vec'].shape}")
+
 
 print(
     f"The true, noiseless value of f(x_min) is {noisy_sphere_estimated_noise(x_min,scale=0)[0][0]:.3g}."

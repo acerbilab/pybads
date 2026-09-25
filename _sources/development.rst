@@ -2,7 +2,7 @@
 Instructions for developers and contributors
 ********************************************
 
-PyBADS is the port of the MATLAB BADS algorithm to Python 3.x (development has targeted version 3.9 and up).
+PyBADS is the port of the MATLAB BADS algorithm to Python 3.x (it requires Python 3.10 or later).
 
 The reference code is the :labrepos:`MATLAB toolbox <bads>`.
 
@@ -13,9 +13,14 @@ Installation instructions for developers
 
 Release versions of PyBADS are available via ``pip`` and ``conda-forge``, but developers will need to work with the latest source code. They should follow these steps to install:
 
-1. (Optional, but recommended for development): Create a new environment in Conda and activate it. Requires Python 3.9 or newer::
+1. (Optional, but recommended for development): Create a virtual environment in the PyBADS checkout and activate it, or a new environment in Conda. Requires Python 3.10 or newer::
 
-     conda create --name pybads-env python=3.9
+     python -m venv .venv
+     source .venv/bin/activate  # .venv\Scripts\activate on Windows
+
+   or::
+
+     conda create --name pybads-env python=3.10
      conda activate pybads-env
 
 2. Clone the PyBADS and GPyReg GitHub repos locally::
@@ -35,7 +40,7 @@ Release versions of PyBADS are available via ``pip`` and ``conda-forge``, but de
 
      conda install jupyter
 
-We are using the dependencies listed in ``pyproject.toml``. Please list all used dependencies there. Dependencies are separated into basic dependencies, and optional development dependencies included under ``dev``.
+We are using the dependencies listed in ``pyproject.toml``. Please list all used dependencies there. Dependencies are separated into basic dependencies, the dependencies of the test suite under ``test``, and the development dependencies under ``dev``, which include those of ``test``.
 
 The necessary packages can be installed with `conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_ or `pip <https://pypi.org/project/pip/>`_.
 
@@ -135,7 +140,7 @@ Please use standard Python exceptions whenever it is sensible. Here is a list of
 
 Commits follow the `conventional commits <https://www.conventionalcommits.org/en/v1.0.0/>`__ style. This makes it easier to collaborate on the project. A cheat sheet is can be found `here <https://cheatography.com/albelop/cheat-sheets/conventional-commits/>`__.
 
-Please do not submit pull requests with unfinished code or code which does not pass all tests. Work on feature branches whenever possible and sensible. All PRs must be approved by another developer before being merged to the main branch. `Read this <https://martinfowler.com/bliki/FeatureBranch.html>`__ ::
+Please do not submit pull requests with unfinished code or code which does not pass all tests. Work on feature branches whenever possible and sensible. Changes reach the main branch through pull requests, which run the full test matrix. `Read this <https://martinfowler.com/bliki/FeatureBranch.html>`__ ::
 
     git checkout -b <new-feature>
     [... do stuff and commit ...]
@@ -170,3 +175,8 @@ A few comments about testing:
 - A nice way of proceeding is 'test first': write a test first, make it fail, write the code until the test is passed.
 - Many methods are tested against test cases produced with the original :labrepos:`MATLAB implementation <bads>`.
 - The ``pytest-mock`` library is very useful for testing. It allows you to replace parts of your system under test with mock objects and make assertions about how they have been used. (Perhaps we should switch to ``unittest.mock`` in the future, which is part of the Python standard library.)
+
+Releases
+--------
+
+Each change that a user can notice is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag: the ``release.yml`` workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package is updated separately, in its feedstock.

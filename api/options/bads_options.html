@@ -16,32 +16,36 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/options/bads_options';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/api/options/bads_options.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -50,34 +54,30 @@
     <link rel="prev" title="OptimizeResult" href="../classes/optimize_result.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -85,7 +85,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -93,15 +92,59 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
     </header>
   
 
@@ -110,7 +153,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -140,15 +184,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -202,9 +242,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -351,7 +396,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -365,25 +410,24 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
 </div></div>
@@ -405,7 +449,7 @@ document.write(`
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-options">Basic options</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced Options</a></li>
 </ul>
@@ -433,8 +477,8 @@ document.write(`
 <h2>Basic options<a class="headerlink" href="#basic-options" title="Link to this heading">#</a></h2>
 <p>We expect these options to be routinely changed by many users.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">BasicOptions</span><span class="p">]</span>
-<span class="c1"># Level of display (&quot;iter&quot;, &quot;notify&quot;, &quot;final&quot;, or &quot;off&quot;)</span>
-<span class="n">display</span> <span class="o">=</span> <span class="s2">&quot;iter&quot;</span>
+<span class="c1"># Level of display ("iter", "notify", "final", or "off")</span>
+<span class="n">display</span> <span class="o">=</span> <span class="s2">"iter"</span>
 <span class="c1"># Max number of iterations</span>
 <span class="n">max_iter</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="n">D</span>
 <span class="c1"># Max number of target fcn evals</span>
@@ -453,7 +497,7 @@ document.write(`
 <span class="n">specify_target_noise</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Samples to estimate FVAL at the end (for noisy objectives)</span>
 <span class="n">noise_final_samples</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="c1"># Random seed used by the optimizer. If None, no seed is set.</span>
+<span class="c1"># Seed of the run's random generator bads.rng (integer, SeedSequence or Generator), read when BADS is created. If None, it derives from NumPy's global random state, fixed by np.random.seed before creating BADS.</span>
 <span class="n">random_seed</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 </div>
@@ -463,7 +507,7 @@ document.write(`
 <p>These options are reserved to advanced users / developers of BADS.
 We strongly advise against changing these options, unless you know what you are doing, since unexpected/untested behavior might follow.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">AdvancedOptions</span><span class="p">]</span>
-<span class="c1"># Show optimization plots (&quot;profile&quot;, &quot;scatter&quot;, or &quot;False&quot;)</span>
+<span class="c1"># Show optimization plots ("profile", "scatter", or "False")</span>
 <span class="n">plot</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Tolerance and termination conditions</span>
@@ -474,11 +518,11 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="c1"># Max iterations with no significant change (doubled under uncertainty)</span>
 <span class="n">tol_stall_iters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
 <span class="c1"># Min variabitility for a fcn to be considered noisy</span>
-<span class="n">tol_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">spacing</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tol_fun&quot;</span><span class="p">)</span>
+<span class="n">tol_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">spacing</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tol_fun"</span><span class="p">)</span>
 
 <span class="c1">#Initialization</span>
 <span class="c1"># Initialization function</span>
-<span class="n">init_fun</span> <span class="o">=</span> <span class="s2">&quot;init_sobol&quot;</span>
+<span class="n">init_fun</span> <span class="o">=</span> <span class="s2">"init_sobol"</span>
 <span class="c1"># Number of restarts attempts</span>
 <span class="n">restarts</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Size of cache for storing fcn evaluations</span>
@@ -492,235 +536,235 @@ We strongly advise against changing these options, unless you know what you are 
 
 <span class="c1"># Poll Options</span>
 <span class="c1"># Poll function</span>
-<span class="n">poll_method</span>                              <span class="o">=</span> <span class="s1">&#39;poll_mads_2n&#39;</span>        
+<span class="n">poll_method</span>                              <span class="o">=</span> <span class="s1">'poll_mads_2n'</span>
 
 <span class="n">n_basis</span>                                  <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">D</span>
 <span class="c1"># Mesh multiplicative factor between iterations</span>
-<span class="n">poll_mesh_multiplier</span>                      <span class="o">=</span> <span class="mf">2.0</span>                   
+<span class="n">poll_mesh_multiplier</span>                      <span class="o">=</span> <span class="mf">2.0</span>
 <span class="c1"># Force poll vectors to be on mesh</span>
-<span class="n">force_poll_mesh</span>                           <span class="o">=</span> <span class="kc">False</span>                 
+<span class="n">force_poll_mesh</span>                           <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Maximum poll integer</span>
-<span class="n">max_poll_grid_number</span>                       <span class="o">=</span> <span class="mi">0</span>                     
-<span class="c1"># Use alternative incumbent offset&#39;</span>
-<span class="n">alternative_incumbent</span>                    <span class="o">=</span> <span class="kc">False</span>                 
-<span class="c1"># Adaptive multiplier to incumbent uncertainty&#39;</span>
-<span class="n">adaptive_incumbent_shift</span>                  <span class="o">=</span> <span class="kc">False</span>                 
-<span class="c1"># GP-based geometric scaling factor of poll vectors&#39;</span>
-<span class="n">gp_rescale_poll</span>                           <span class="o">=</span> <span class="mf">1.0</span>                   
-<span class="c1"># Threshold probability of improvement (PoI); set to 0 to always complete polling&#39;</span>
-<span class="n">tol_poi</span>                                  <span class="o">=</span> <span class="mf">1e-6</span><span class="o">/</span><span class="n">D</span>                
-<span class="c1"># Skip polling if PoI below threshold, even with no success&#39;</span>
-<span class="n">skip_poll</span>                                <span class="o">=</span> <span class="kc">True</span>                  
-<span class="c1"># Allow consecutive incomplete polls&#39;</span>
-<span class="n">consecutive_skipping</span>                     <span class="o">=</span> <span class="kc">True</span>                  
-<span class="c1"># Skip polling after successful search&#39;</span>
-<span class="n">skip_poll_after_search</span>                     <span class="o">=</span> <span class="kc">True</span>                  
-<span class="c1"># Number of failed fcn evaluations before skipping is allowed&#39;</span>
-<span class="n">min_failed_poll_steps</span>                      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>                
-<span class="c1"># Accelerate mesh after this number of stalled iterations&#39;</span>
-<span class="n">accelerate_mesh_steps</span>                     <span class="o">=</span> <span class="mi">3</span>                  
+<span class="n">max_poll_grid_number</span>                       <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Use alternative incumbent offset'</span>
+<span class="n">alternative_incumbent</span>                    <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Adaptive multiplier to incumbent uncertainty'</span>
+<span class="n">adaptive_incumbent_shift</span>                  <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># GP-based geometric scaling factor of poll vectors'</span>
+<span class="n">gp_rescale_poll</span>                           <span class="o">=</span> <span class="mf">1.0</span>
+<span class="c1"># Threshold probability of improvement (PoI); set to 0 to always complete polling'</span>
+<span class="n">tol_poi</span>                                  <span class="o">=</span> <span class="mf">1e-6</span><span class="o">/</span><span class="n">D</span>
+<span class="c1"># Skip polling if PoI below threshold, even with no success'</span>
+<span class="n">skip_poll</span>                                <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Allow consecutive incomplete polls'</span>
+<span class="n">consecutive_skipping</span>                     <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Skip polling after successful search'</span>
+<span class="n">skip_poll_after_search</span>                     <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Number of failed fcn evaluations before skipping is allowed'</span>
+<span class="n">min_failed_poll_steps</span>                      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+<span class="c1"># Accelerate mesh after this number of stalled iterations'</span>
+<span class="n">accelerate_mesh_steps</span>                     <span class="o">=</span> <span class="mi">3</span>
 <span class="c1"># Move incumbent even after insufficient improvement</span>
-<span class="n">sloppy_improvement</span>                       <span class="o">=</span> <span class="kc">True</span>                  
+<span class="n">sloppy_improvement</span>                       <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Move incumbent even for the uncertain unsuccess when Sto-BADS is configured</span>
-<span class="n">opp_stobads</span>                             <span class="o">=</span> <span class="kc">True</span>                  
+<span class="n">opp_stobads</span>                             <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Power value of the Sto-BADS incumbent decision rule:  \gamma *  \epsilon * frame_size**(power_value)</span>
-<span class="n">stobads_frame_size_scaling_power</span>        <span class="o">=</span> <span class="mi">2</span>                     
-<span class="c1"># Threshold # mesh overflows for warning&#39;;</span>
-<span class="n">mesh_overflow_warning</span>                    <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span>               
+<span class="n">stobads_frame_size_scaling_power</span>        <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># Threshold # mesh overflows for warning';</span>
+<span class="n">mesh_overflow_warning</span>                    <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span>
 <span class="c1"># Initial mesh size (power value)</span>
-<span class="n">init_mesh_size_integer</span>                  <span class="o">=</span> <span class="mi">0</span>                     
+<span class="n">init_mesh_size_integer</span>                  <span class="o">=</span> <span class="mi">0</span>
 
 <span class="c1"># StoBADS option, if True switch to stochastic optimization and uncertain incumbent</span>
 <span class="n">stobads</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Improvement parameters</span>
-<span class="c1"># Minimum significant improvement at unit mesh size&#39;</span>
-<span class="n">tol_improvement</span>          <span class="o">=</span> <span class="mi">1</span>                    
-<span class="c1"># Exponent of forcing function&#39;</span>
-<span class="n">forcing_exponent</span>         <span class="o">=</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span>                  
-<span class="c1"># Multiplier to incumbent uncertainty for acquisition functions&#39;</span>
-<span class="n">incumbent_sigma_multiplier</span> <span class="o">=</span> <span class="mf">0.1</span>                 
-<span class="c1"># Quantile when computing improvement (&lt;0.5 for conservative improvement)&#39;</span>
-<span class="n">improvement_quantile</span>     <span class="o">=</span> <span class="mf">0.5</span>                  
-<span class="c1"># Top quantile when choosing final iteration&#39;</span>
-<span class="n">final_quantile</span>           <span class="o">=</span> <span class="mf">1e-3</span>                 
+<span class="c1"># Minimum significant improvement at unit mesh size'</span>
+<span class="n">tol_improvement</span>          <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Exponent of forcing function'</span>
+<span class="n">forcing_exponent</span>         <span class="o">=</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span>
+<span class="c1"># Multiplier to incumbent uncertainty for acquisition functions'</span>
+<span class="n">incumbent_sigma_multiplier</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="c1"># Quantile when computing improvement (&lt;0.5 for conservative improvement)'</span>
+<span class="n">improvement_quantile</span>     <span class="o">=</span> <span class="mf">0.5</span>
+<span class="c1"># Top quantile when choosing final iteration'</span>
+<span class="n">final_quantile</span>           <span class="o">=</span> <span class="mf">1e-3</span>
 
 <span class="c1"># Search properties</span>
-<span class="c1"># Number of candidate search points&#39;</span>
-<span class="n">n_search</span>                 <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">12</span>                
-<span class="c1"># Number of optimization iterations for search&#39;</span>
-<span class="n">n_search_iter</span>             <span class="o">=</span> <span class="mi">2</span>                    
-<span class="c1"># Multiplier in ES&#39;</span>
-<span class="n">es_beta</span>                  <span class="o">=</span> <span class="mi">1</span>                    
-<span class="c1"># Starting scale value in ES&#39;</span>
-<span class="n">es_start</span>                 <span class="o">=</span> <span class="mf">0.25</span>                 
-<span class="c1"># Fraction of candidate search points with (slower) improved estimate&#39;</span>
-<span class="n">search_improve_frac</span>       <span class="o">=</span> <span class="mi">0</span>                    
-<span class="c1"># Search radius expansion factor for successful search&#39;</span>
-<span class="n">search_scale_success</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>           
-<span class="c1"># Search radius expansion factor for incremental search&#39;</span>
-<span class="n">search_scale_incremental</span>  <span class="o">=</span> <span class="mi">2</span>                    
-<span class="c1"># Search radius contraction factor for failed search&#39;</span>
-<span class="n">search_scale_failure</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>         
+<span class="c1"># Number of candidate search points'</span>
+<span class="n">n_search</span>                 <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">12</span>
+<span class="c1"># Number of optimization iterations for search'</span>
+<span class="n">n_search_iter</span>             <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># Multiplier in ES'</span>
+<span class="n">es_beta</span>                  <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Starting scale value in ES'</span>
+<span class="n">es_start</span>                 <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1"># Fraction of candidate search points with (slower) improved estimate'</span>
+<span class="n">search_improve_frac</span>       <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Search radius expansion factor for successful search'</span>
+<span class="n">search_scale_success</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># Search radius expansion factor for incremental search'</span>
+<span class="n">search_scale_incremental</span>  <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># Search radius contraction factor for failed search'</span>
+<span class="n">search_scale_failure</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">search_factor_min</span>         <span class="o">=</span> <span class="mf">0.5</span>
-<span class="c1"># Search function(s) (list of tuples with function name and sumrule flag)&#39;</span>
-<span class="n">search_method</span>            <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;ES-wcm&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ES-ell&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>  
-<span class="c1"># Iteration scale factor between poll and search&#39;</span>
-<span class="n">search_grid_number</span>        <span class="o">=</span> <span class="mi">10</span>                   
-<span class="c1"># Multiplier integer scale factor between poll and search&#39;</span>
-<span class="n">search_grid_multiplier</span>    <span class="o">=</span> <span class="mi">2</span>                    
-<span class="c1"># Relative search scale factor locked to poll scale factor&#39;</span>
-<span class="n">search_size_locked</span>       <span class="o">=</span> <span class="kc">True</span>                  
-<span class="c1"># Number of searches per iteration&#39;</span>
-<span class="n">search_n_try</span>              <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span> 
-<span class="c1"># Search-triggered mesh expansion after this number of successful search rounds&#39;</span>
-<span class="n">search_mesh_expand</span>        <span class="o">=</span> <span class="mi">0</span>                    
-<span class="c1"># Mesh size increment after search-triggered mesh expansion&#39;</span>
-<span class="n">search_mesh_increment</span>     <span class="o">=</span> <span class="mi">1</span>                    
-<span class="c1"># Further optimize acquisition function&#39;</span>
-<span class="n">search_optimize</span>          <span class="o">=</span> <span class="kc">False</span>                
+<span class="c1"># Search function(s) (list of tuples with function name and sumrule flag)'</span>
+<span class="n">search_method</span>            <span class="o">=</span> <span class="p">[(</span><span class="s1">'ES-wcm'</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ES-ell'</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+<span class="c1"># Iteration scale factor between poll and search'</span>
+<span class="n">search_grid_number</span>        <span class="o">=</span> <span class="mi">10</span>
+<span class="c1"># Multiplier integer scale factor between poll and search'</span>
+<span class="n">search_grid_multiplier</span>    <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># Relative search scale factor locked to poll scale factor'</span>
+<span class="n">search_size_locked</span>       <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Number of searches per iteration'</span>
+<span class="n">search_n_try</span>              <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+<span class="c1"># Search-triggered mesh expansion after this number of successful search rounds'</span>
+<span class="n">search_mesh_expand</span>        <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Mesh size increment after search-triggered mesh expansion'</span>
+<span class="n">search_mesh_increment</span>     <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Further optimize acquisition function'</span>
+<span class="n">search_optimize</span>          <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Noise parameters</span>
-<span class="c1"># Treat incumbent as if uncertain regardless of uncertainty handling&#39;</span>
-<span class="n">uncertain_incumbent</span>      <span class="o">=</span> <span class="kc">True</span>                  
-<span class="c1"># Contribution to log noise magnitude from log mesh size (0 for noisy functions)&#39;</span>
-<span class="n">mesh_noise_multiplier</span>      <span class="o">=</span> <span class="mf">0.5</span>                  
+<span class="c1"># Treat incumbent as if uncertain regardless of uncertainty handling'</span>
+<span class="n">uncertain_incumbent</span>      <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Contribution to log noise magnitude from log mesh size (0 for noisy functions)'</span>
+<span class="n">mesh_noise_multiplier</span>      <span class="o">=</span> <span class="mf">0.5</span>
 
 <span class="c1"># Gaussian process properties</span>
 <span class="c1"># Number of training data (minimum 200 under uncertainty)</span>
-<span class="n">n_train_max</span>                <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">D</span>           
+<span class="n">n_train_max</span>                <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">D</span>
 <span class="c1"># Minimum number of training data (doubled under uncertainty)</span>
-<span class="n">n_train_min</span>                <span class="o">=</span> <span class="mi">50</span>                  
+<span class="n">n_train_min</span>                <span class="o">=</span> <span class="mi">50</span>
 <span class="c1"># Max number of training data removed if too far from current point</span>
-<span class="n">buffer_ntrain</span>             <span class="o">=</span> <span class="mi">100</span>                 
+<span class="n">buffer_ntrain</span>             <span class="o">=</span> <span class="mi">100</span>
 <span class="c1"># Hyperparameters samples (0 = optimize)</span>
-<span class="n">gp_samples</span>                 <span class="o">=</span> <span class="mi">0</span>                     
+<span class="n">gp_samples</span>                 <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># MCMC sampler for GP hyperparameters</span>
-<span class="n">gp_hyp_sampler</span> <span class="o">=</span> <span class="s2">&quot;slicesample&quot;</span>                    
+<span class="n">gp_hyp_sampler</span> <span class="o">=</span> <span class="s2">"slicesample"</span>
 <span class="c1"># High Posterior Density region (fraction of training inputs)</span>
-<span class="n">hpd_frac</span> <span class="o">=</span> <span class="mf">0.8</span>                                  
+<span class="n">hpd_frac</span> <span class="o">=</span> <span class="mf">0.8</span>
 <span class="c1"># Switch to covariance sampling below this threshold of stability index</span>
-<span class="n">cov_sample_thresh</span> <span class="o">=</span> <span class="mi">10</span>                            
+<span class="n">cov_sample_thresh</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="c1"># Multiplier to widths from previous posterior for GP sampling (Inf = do not use previous widths)</span>
-<span class="n">gp_sample_widths</span> <span class="o">=</span> <span class="mi">0</span>                              
+<span class="n">gp_sample_widths</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Use weighted hyperparameter posterior covariance</span>
-<span class="n">weighted_hyp_cov</span><span class="o">=</span><span class="kc">True</span>                             
+<span class="n">weighted_hyp_cov</span><span class="o">=</span><span class="kc">True</span>
 <span class="c1"># Minimum weight for weighted hyperparameter posterior covariance</span>
-<span class="n">tol_cov_weight</span> <span class="o">=</span> <span class="mi">0</span>                                
+<span class="n">tol_cov_weight</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Weight of previous trials (per trial) for running avg of GP hyperparameter covariance</span>
-<span class="n">hyp_run_weight</span> <span class="o">=</span> <span class="mi">1</span>                                
+<span class="n">hyp_run_weight</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Minimum fcn evals before refitting the GP</span>
-<span class="n">min_refit_time</span>            <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">D</span>                   
+<span class="n">min_refit_time</span>            <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">D</span>
 <span class="c1"># Train GP also during poll stage</span>
-<span class="n">poll_training</span>            <span class="o">=</span> <span class="kc">True</span>                  
+<span class="n">poll_training</span>            <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Always try a second GP fit</span>
-<span class="n">double_refit</span>             <span class="o">=</span> <span class="kc">False</span>  
-<span class="c1"># GP mean function               </span>
-<span class="n">gp_mean_fun</span>              <span class="o">=</span> <span class="s1">&#39;const&#39;</span>
+<span class="n">double_refit</span>             <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># GP mean function</span>
+<span class="n">gp_mean_fun</span>              <span class="o">=</span> <span class="s1">'const'</span>
 <span class="n">gp_cov_fun</span>               <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Percentile of empirical GP mean</span>
-<span class="n">gp_mean_percentile</span>        <span class="o">=</span> <span class="mi">90</span>                    
+<span class="n">gp_mean_percentile</span>        <span class="o">=</span> <span class="mi">90</span>
 <span class="c1"># Empirical range of hyperprior over the mean</span>
-<span class="n">gp_mean_range_fun</span>          <span class="o">=</span> <span class="k">lambda</span> <span class="n">ym</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">ym</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">/</span><span class="mi">5</span><span class="o">*</span><span class="mi">2</span>   
-<span class="c1"># GP definition fcn&#39;</span>
-<span class="n">gp_def_fcn</span>                <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;gp_def_bads&#39;</span><span class="p">,</span><span class="s1">&#39;rq&#39;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>  
-<span class="c1"># GP training set selection method&#39;</span>
-<span class="n">gp_method</span>                <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>             
+<span class="n">gp_mean_range_fun</span>          <span class="o">=</span> <span class="k">lambda</span> <span class="n">ym</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">ym</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">/</span><span class="mi">5</span><span class="o">*</span><span class="mi">2</span>
+<span class="c1"># GP definition fcn'</span>
+<span class="n">gp_def_fcn</span>                <span class="o">=</span> <span class="p">(</span><span class="s1">'gp_def_bads'</span><span class="p">,</span><span class="s1">'rq'</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="c1"># GP training set selection method'</span>
+<span class="n">gp_method</span>                <span class="o">=</span> <span class="s1">'nearest'</span>
 <span class="c1"># Cluster additional points during training</span>
-<span class="n">gp_cluster</span>               <span class="o">=</span> <span class="kc">False</span>                 
+<span class="n">gp_cluster</span>               <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Rotate GP basis</span>
-<span class="n">rotate_gp</span>                <span class="o">=</span> <span class="kc">False</span>                 
+<span class="n">rotate_gp</span>                <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Radius of training set</span>
-<span class="n">gp_radius</span>                <span class="o">=</span> <span class="mi">3</span>                     
-<span class="n">use_effective_radius</span>      <span class="o">=</span> <span class="kc">True</span>                
-<span class="c1"># GP hyper-prior over covariance&#39;</span>
-<span class="n">gp_cov_prior</span>              <span class="o">=</span> <span class="s1">&#39;iso&#39;</span>                  
+<span class="n">gp_radius</span>                <span class="o">=</span> <span class="mi">3</span>
+<span class="n">use_effective_radius</span>      <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># GP hyper-prior over covariance'</span>
+<span class="n">gp_cov_prior</span>              <span class="o">=</span> <span class="s1">'iso'</span>
 <span class="n">gp_fixed_mean</span>             <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Fit the likelihood term</span>
-<span class="n">fit_lik</span>                  <span class="o">=</span> <span class="kc">True</span>                  
+<span class="n">fit_lik</span>                  <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Acquisition fcn for poll stage</span>
-<span class="n">poll_acq_fcn</span>              <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acq_LCB&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>         
+<span class="n">poll_acq_fcn</span>              <span class="o">=</span> <span class="p">(</span><span class="s1">'acq_LCB'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="c1"># Acquisition fcn for search stage</span>
-<span class="n">search_acq_fcn</span>            <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acq_LCB&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>         
+<span class="n">search_acq_fcn</span>            <span class="o">=</span> <span class="p">(</span><span class="s1">'acq_LCB'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="c1"># Hedge acquisition function</span>
-<span class="n">acq_hedge</span>                <span class="o">=</span> <span class="kc">False</span>                  
+<span class="n">acq_hedge</span>                <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Attempts at performing the Cholesky decomposition</span>
-<span class="n">chol_attempts</span>            <span class="o">=</span> <span class="mi">0</span>                    
+<span class="n">chol_attempts</span>            <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Increase nudge to noise in case of Cholesky failure</span>
-<span class="n">noise_nudge</span>             <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>                
+<span class="n">noise_nudge</span>             <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
 <span class="c1"># Start removing training points after this number of failures</span>
-<span class="n">remove_points_after_tries</span>  <span class="o">=</span> <span class="mi">1</span>                    
+<span class="n">remove_points_after_tries</span>  <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># SVGD iterations for GP training</span>
-<span class="n">gp_svd_iters</span>              <span class="o">=</span> <span class="mi">200</span>                  
+<span class="n">gp_svd_iters</span>              <span class="o">=</span> <span class="mi">200</span>
 <span class="c1"># Issue warning if GP hyperparameters fit fails</span>
-<span class="n">gp_warnings</span>             <span class="o">=</span> <span class="kc">False</span>          
+<span class="n">gp_warnings</span>             <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Alpha level for normality test of gp predictions</span>
-<span class="n">normalpha_level</span>          <span class="o">=</span> <span class="mf">1e-6</span>                 
+<span class="n">normalpha_level</span>          <span class="o">=</span> <span class="mf">1e-6</span>
 <span class="c1"># Number of target fcn evals per iteration</span>
-<span class="n">fun_evals_per_iter</span> <span class="o">=</span> <span class="mi">1</span>                      
+<span class="n">fun_evals_per_iter</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Thinning for GP hyperparameter sampling</span>
-<span class="n">gp_sample_thin</span> <span class="o">=</span> <span class="mi">5</span>                            
+<span class="n">gp_sample_thin</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="c1"># Force stable GP hyperparameter sampling (reduce samples or start optimizing)</span>
-<span class="n">stable_gp_sampling</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">D</span>             
+<span class="n">stable_gp_sampling</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">D</span>
 <span class="c1"># Initial design points for GP hyperparameter training</span>
-<span class="n">gp_train_n_init</span> <span class="o">=</span> <span class="mi">128</span>                         
+<span class="n">gp_train_n_init</span> <span class="o">=</span> <span class="mi">128</span>
 <span class="c1"># Final design points for GP hyperparameter training</span>
-<span class="n">gp_train_n_init_final</span> <span class="o">=</span> <span class="mi">8</span>                      
+<span class="n">gp_train_n_init_final</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1"># Initial design method for GP hyperparameter training</span>
-<span class="n">gp_train_init_method</span> <span class="o">=</span> <span class="s2">&quot;rand&quot;</span>                  
+<span class="n">gp_train_init_method</span> <span class="o">=</span> <span class="s2">"rand"</span>
 <span class="c1"># Tolerance for optimization of GP hyperparameters</span>
-<span class="n">gp_tol_opt</span> <span class="o">=</span> <span class="mf">1e-5</span>                             
+<span class="n">gp_tol_opt</span> <span class="o">=</span> <span class="mf">1e-5</span>
 <span class="c1"># Tolerance for optimization of GP hyperparameters preliminary to MCMC</span>
-<span class="n">gp_tol_optmcmc</span> <span class="o">=</span> <span class="mf">1e-2</span>                         
+<span class="n">gp_tol_optmcmc</span> <span class="o">=</span> <span class="mf">1e-2</span>
 <span class="c1"># Max GP hyperparameter samples (decreases with training points)</span>
-<span class="n">nsgp_max</span> <span class="o">=</span> <span class="mi">0</span>                                 
+<span class="n">nsgp_max</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Max GP hyperparameter samples during warmup</span>
-<span class="n">nsgp_maxwarmup</span> <span class="o">=</span> <span class="mi">8</span>                           
+<span class="n">nsgp_maxwarmup</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1"># Max GP hyperparameter samples during main algorithm</span>
-<span class="n">nsgp_maxmain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>                        
+<span class="n">nsgp_maxmain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="c1"># Number of GP samples when GP is stable (0 = optimize)</span>
-<span class="n">stable_gp_samples</span> <span class="o">=</span> <span class="mi">0</span>                         
+<span class="n">stable_gp_samples</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Tolerance for optimization of GP hyperparameters during active sampling</span>
-<span class="n">gp_tol_optactive</span> <span class="o">=</span> <span class="mf">1e-4</span>                       
+<span class="n">gp_tol_optactive</span> <span class="o">=</span> <span class="mf">1e-4</span>
 <span class="c1"># Tolerance for optimization of GP hyperparameters preliminary to MCMC during active sampling</span>
-<span class="n">gp_tol_optmcmcactive</span> <span class="o">=</span> <span class="mf">1e-2</span>                   
+<span class="n">gp_tol_optmcmcactive</span> <span class="o">=</span> <span class="mf">1e-2</span>
 <span class="c1"># Threshold True GP variance used by regulatized acquisition fcns</span>
-<span class="n">tol_gp_var</span> <span class="o">=</span> <span class="mf">1e-4</span>                             
+<span class="n">tol_gp_var</span> <span class="o">=</span> <span class="mf">1e-4</span>
 <span class="c1"># Threshold True GP variance used to stabilize sampling</span>
-<span class="n">tol_gp_varmcmc</span> <span class="o">=</span> <span class="mf">1e-4</span>                        
+<span class="n">tol_gp_varmcmc</span> <span class="o">=</span> <span class="mf">1e-4</span>
 <span class="c1"># Perform GP training after each active sample</span>
-<span class="n">active_sample_gp_update</span> <span class="o">=</span> <span class="kc">False</span>                
+<span class="n">active_sample_gp_update</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Extra variational components sampled from GP profile</span>
-<span class="n">sample_extra_vp_means</span> <span class="o">=</span> <span class="mi">0</span>                      
+<span class="n">sample_extra_vp_means</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Try integrating GP mean function</span>
-<span class="n">integrate_gp_mean</span> <span class="o">=</span> <span class="kc">False</span>                     
+<span class="n">integrate_gp_mean</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Tolerance True ELBO uncertainty for stopping (if variational posterior is stable)</span>
-<span class="n">tol_sd</span> <span class="o">=</span> <span class="mf">0.1</span>                                 
+<span class="n">tol_sd</span> <span class="o">=</span> <span class="mf">0.1</span>
 <span class="c1"># Stopping threshold True change of variational posterior per training point</span>
-<span class="n">tol_skl</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>                  
+<span class="n">tol_skl</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
 <span class="c1"># Number of stable fcn evals for stopping warmup</span>
-<span class="n">tol_stable_warmup</span> <span class="o">=</span> <span class="mi">15</span>                        
+<span class="n">tol_stable_warmup</span> <span class="o">=</span> <span class="mi">15</span>
 <span class="c1"># MCMC sampler for variational posteriors</span>
-<span class="n">variational_sampler</span> <span class="o">=</span> <span class="s2">&quot;malasample&quot;</span>           
+<span class="n">variational_sampler</span> <span class="o">=</span> <span class="s2">"malasample"</span>
 <span class="c1"># Use Gaussian approximation for symmetrized KL-divergence b\w iters</span>
-<span class="n">kl_gauss</span> <span class="o">=</span> <span class="kc">True</span>                              
+<span class="n">kl_gauss</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Variational components during warmup</span>
-<span class="n">k_warmup</span> <span class="o">=</span> <span class="mi">2</span>                                 
+<span class="n">k_warmup</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="c1"># Force stable GP hyperparameter sampling after reaching this number of components</span>
-<span class="n">stable_gp_vpk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>                        
+<span class="n">stable_gp_vpk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="c1"># GP warping function type</span>
-<span class="n">warp_func</span> <span class="o">=</span> <span class="mi">0</span>                                
+<span class="n">warp_func</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Slice sampler option for prior hyper-parameter sampling method</span>
-<span class="n">use_slice_sampler</span> <span class="o">=</span> <span class="kc">False</span>                   
+<span class="n">use_slice_sampler</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Adaptive basis (unsupported)</span>
 <span class="n">hessian_update</span>           <span class="o">=</span> <span class="kc">False</span>                 <span class="c1"># Update Hessian as you go</span>
-<span class="n">hessian_method</span>           <span class="o">=</span> <span class="s1">&#39;bfgs&#39;</span>               <span class="c1"># Hessian update method</span>
+<span class="n">hessian_method</span>           <span class="o">=</span> <span class="s1">'bfgs'</span>               <span class="c1"># Hessian update method</span>
 <span class="n">hessian_alternate</span>        <span class="o">=</span> <span class="kc">False</span>                 <span class="c1"># Alternate Hessian iterations</span>
 
 <span class="c1"># Hedge heuristic parameters (currently used during the search stage)</span>
 <span class="n">hedge_gamma</span>              <span class="o">=</span> <span class="mf">0.125</span>
-<span class="n">hedge_beta</span>               <span class="o">=</span> <span class="mf">1e-3</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tol_fun&#39;</span><span class="p">)</span>
+<span class="n">hedge_beta</span>               <span class="o">=</span> <span class="mf">1e-3</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tol_fun'</span><span class="p">)</span>
 <span class="n">hedge_decay</span>              <span class="o">=</span> <span class="mf">0.1</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">D</span><span class="p">))</span>
 
 <span class="c1"># Max number of consecutive repeated measurements for noisy inputs</span>
@@ -767,7 +811,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="c1"># Upper bound True GP input lengths based True plausible box (0 = ignore)</span>
 <span class="n">upper_gp_length_factor</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Initial samples (plausible is uniform in the plausible box)</span>
-<span class="n">init_design</span> <span class="o">=</span> <span class="s2">&quot;plausible&quot;</span>
+<span class="n">init_design</span> <span class="o">=</span> <span class="s2">"plausible"</span>
 <span class="c1"># Stricter upper bound True GP negative quadratic mean function</span>
 <span class="n">gp_quadratic_mean_bound</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># bandwidth parameter for GP smoothing (in units of plausible box)</span>
@@ -856,15 +900,17 @@ We strongly advise against changing these options, unless you know what you are 
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> Contents
   </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-options">Basic options</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced Options</a></li>
 </ul>
@@ -915,8 +961,8 @@ By Author name not set
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>

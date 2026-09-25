@@ -17,12 +17,33 @@ BADS requires no specific tuning and runs off-the-shelf similarly to other Pytho
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
 
+What's new in PyBADS 1.1
+------------------------
+
+- **Reproducible runs.** Every random draw of a run comes from one NumPy
+  random generator, created from the ``random_seed`` option, so a seeded run
+  gives the same result every time on the same machine and leaves NumPy's
+  global random state untouched.
+- **More precise results with gpyreg 1.3.3.** PyBADS requires gpyreg 1.3.3,
+  whose Gaussian process predictions are more accurate when the noise is very
+  small; on several benchmark problems with deterministic targets, runs end
+  closer to the minimum.
+- **A fix for user-specified noise.** A run with
+  ``specify_target_noise=True`` no longer stops with a ``ValueError`` when a
+  point is evaluated a second time.
+- **Requirements.** PyBADS needs Python 3.10 or newer; the test dependencies
+  are an optional extra, ``pybads[test]``.
+
+The :mainbranch:`changelog <CHANGELOG.md>` lists what changed since PyBADS
+1.0.6, including why results differ from earlier versions and what to check in
+an existing script.
+
 How does it work?
 -----------------
 
-PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**). 
+PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**).
 
-- In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise. 
+- In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
 - In the **search** stage, a `Gaussian process <https://distill.pub/2019/visual-exploration-gaussian-processes/>`__ (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
 .. image:: _static/bads-cartoon.png
@@ -71,9 +92,9 @@ Contributing
 References
 ###############
 
-1. Singh, S. G. & Acerbi, L. (2024). PyBADS: Fast and robust black-box optimization in Python. Journal of Open Source Software, 9(94), 5694. (`paper on JOSS <https://doi.org/10.21105/joss.05694>`__).
+1. Singh, G. S. & Acerbi, L. (2024). PyBADS: Fast and robust black-box optimization in Python. *Journal of Open Source Software*, 9(94), 5694. (`paper on JOSS <https://doi.org/10.21105/joss.05694>`__).
 
-2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 31*: 8222-8232. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
+2. Acerbi, L. & Ma, W. J. (2017). Practical Bayesian Optimization for Model Fitting with Bayesian Adaptive Direct Search. In *Advances in Neural Information Processing Systems 30*: 1834-1844. (`paper + supplement on arXiv <https://arxiv.org/abs/1705.04405>`__, `NeurIPS Proceedings <https://papers.nips.cc/paper/2017/hash/df0aab058ce179e4f7ab135ed4e641a9-Abstract.html>`__)
 
 Please cite both references if you use PyBADS in your work (the 2017 paper introduced the framework, and the latest one is its Python library). You can cite PyBADS in your work with something along the lines of
 
@@ -84,7 +105,7 @@ BibTeX
 ::
 
   @article{singh2024pybads,
-    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython}, 
+    title={{PyBADS}: {F}ast and robust black-box optimization in {P}ython},
     author={Gurjeet Sangra Singh and Luigi Acerbi},
     publisher = {The Open Journal},
     journal = {Journal of Open Source Software},
@@ -115,7 +136,10 @@ You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
 
 Acknowledgments:
 ################
-Work on the PyBADS package was supported by the Research Council of Finland Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+
+PyBADS is developed by `members <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people>`_ (past and current) of the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/>`_ at the University of Helsinki and `ELLIS Institute Finland <https://www.ellisinstitute.fi/>`_. Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+
+Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's `Claude Opus 5.5 <https://www.anthropic.com/claude-opus-5-5>`_.
 
 .. toctree::
    :maxdepth: 1

@@ -15,66 +15,66 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pybads/function_logger/function_logger';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_modules/pybads/function_logger/function_logger.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../search.html"
       method="get">
@@ -82,7 +82,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -90,15 +89,55 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
     </header>
   
 
@@ -109,7 +148,8 @@
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -139,15 +179,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
@@ -201,9 +237,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -285,7 +326,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -299,24 +340,23 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 
 </div></div>
       
@@ -352,7 +392,7 @@ document.write(`
 <div class="viewcode-block" id="FunctionLogger">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FunctionLogger</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class that evaluates a function and caches its values.</span>
 
 <span class="sd">    Parameters</span>
@@ -374,7 +414,7 @@ document.write(`
 <span class="sd">    variable_transformer : VariableTransformer, optional</span>
 <span class="sd">        A VariableTransformer is required for linear and non-linear transformation of the input space.</span>
 <span class="sd">        By default None.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -410,7 +450,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">X_max_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># Last filled entry in the cache memory.</span>
         <span class="c1"># Use 1D array since this is a boolean mask.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">cache_size</span><span class="p">,),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-Inf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-Inf"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_fun_eval_time</span> <span class="o">=</span> <span class="mf">0.0</span>
 
@@ -419,7 +459,7 @@ document.write(`
 <div class="viewcode-block" id="FunctionLogger.__call__">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">record_duplicate_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Evaluates the function ``self.fun`` at x and caches values.</span>
 
 <span class="sd">        Parameters</span>
@@ -427,7 +467,7 @@ document.write(`
 <span class="sd">        x : np.ndarray</span>
 <span class="sd">            The point at which the function will be evaluated. The shape of x</span>
 <span class="sd">            should be (1, D) or (D,).</span>
-<span class="sd">            </span>
+
 <span class="sd">        record_duplicate_data : bool, optional (default True)</span>
 <span class="sd">            Flag to indicate whether the data is added to training data.</span>
 
@@ -447,7 +487,7 @@ document.write(`
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if the (estimated) SD (second function output)</span>
 <span class="sd">            is not a finite, positive real-valued scalar.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -465,18 +505,18 @@ document.write(`
 
         <span class="n">wrong_format_target_function</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">timer</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="s2">&quot;funtime&quot;</span><span class="p">)</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
             <span class="n">fun_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="n">x_orig</span><span class="p">)</span>
-            <span class="n">timer</span><span class="o">.</span><span class="n">stop_timer</span><span class="p">(</span><span class="s2">&quot;funtime&quot;</span><span class="p">)</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">stop_timer</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">fval_orig</span><span class="p">,</span> <span class="n">fsd</span> <span class="o">=</span> <span class="n">fun_res</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">wrong_format_target_function</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="s2">&quot;The `specify_target_noise` option has been set to `True`.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                        <span class="o">+</span> <span class="s2">&quot;The target function should return two outputs: the function value and the target noise.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                        <span class="o">+</span> <span class="s2">&quot;Please adjust the target function to return two outputs.&quot;</span>
+                        <span class="s2">"The `specify_target_noise` option has been set to `True`.</span><span class="se">\n</span><span class="s2">"</span>
+                        <span class="o">+</span> <span class="s2">"The target function should return two outputs: the function value and the target noise.</span><span class="se">\n</span><span class="s2">"</span>
+                        <span class="o">+</span> <span class="s2">"Please adjust the target function to return two outputs."</span>
                     <span class="p">)</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -495,9 +535,9 @@ document.write(`
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">err</span><span class="o">.</span><span class="n">args</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> FunctionLogger:FuncError &quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot;Error in executing the logged function &quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot;with input: &quot;</span>
+                    <span class="s2">"</span><span class="se">\n</span><span class="s2"> FunctionLogger:FuncError "</span>
+                    <span class="o">+</span> <span class="s2">"Error in executing the logged function "</span>
+                    <span class="o">+</span> <span class="s2">"with input: "</span>
                     <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x_orig</span><span class="p">),</span>
                 <span class="p">)</span>
             <span class="k">raise</span>
@@ -512,22 +552,22 @@ document.write(`
             <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
             <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
         <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;FunctionLogger:InvalidFuncValue:</span>
+            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
 <span class="s2">            The returned function value must be a finite real-valued scalar</span>
-<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)&quot;&quot;&quot;</span>
+<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
 
         <span class="c1"># Check returned function SD</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fsd</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
         <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;FunctionLogger:InvalidNoiseValue</span>
+            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
 <span class="s2">                The returned estimated SD (second function output)</span>
-<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">"""</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
 
         <span class="c1"># record timer stats</span>
-        <span class="n">funtime</span> <span class="o">=</span> <span class="n">timer</span><span class="o">.</span><span class="n">get_duration</span><span class="p">(</span><span class="s2">&quot;funtime&quot;</span><span class="p">)</span>
+        <span class="n">funtime</span> <span class="o">=</span> <span class="n">timer</span><span class="o">.</span><span class="n">get_duration</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
 
         <span class="n">fval</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record</span><span class="p">(</span>
             <span class="n">x_orig</span><span class="p">,</span>
@@ -551,7 +591,7 @@ document.write(`
         <span class="n">fsd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fun_eval_time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a previously evaluated function to the function cache.</span>
 
 <span class="sd">        Parameters</span>
@@ -584,7 +624,7 @@ document.write(`
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if the (estimated) SD (second function output)</span>
 <span class="sd">            is not a finite, positive real-valued scalar.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -610,18 +650,21 @@ document.write(`
             <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
             <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
         <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;FunctionLogger:InvalidFuncValue:</span>
+            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
 <span class="s2">            The returned function value must be a finite real-valued scalar</span>
-<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)&quot;&quot;&quot;</span>
+<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
 
         <span class="c1"># Check returned function SD</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fsd</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">fsd</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
         <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;FunctionLogger:InvalidNoiseValue</span>
+            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
 <span class="s2">                The returned estimated SD (second function output)</span>
-<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">"""</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_count</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -632,9 +675,9 @@ document.write(`
 <div class="viewcode-block" id="FunctionLogger.finalize">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger.finalize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Remove unused caching entries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 
@@ -655,7 +698,7 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_expand_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resize_amount</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A private function to extend the rows of the object attribute arrays.</span>
 
 <span class="sd">        Parameters</span>
@@ -663,7 +706,7 @@ document.write(`
 <span class="sd">        resize_amount : int, optional</span>
 <span class="sd">            The number of additional rows, by default expand current table</span>
 <span class="sd">            by 50%.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">resize_amount</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">resize_amount</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)))</span>
@@ -702,7 +745,7 @@ document.write(`
         <span class="n">fun_eval_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">record_duplicate_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A private method to save function values to class attributes.</span>
 
 <span class="sd">        Parameters</span>
@@ -732,7 +775,7 @@ document.write(`
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if there is more than one match for a duplicate entry.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">record_duplicate_data</span><span class="p">:</span>
@@ -759,7 +802,7 @@ document.write(`
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
                     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="s2">&quot;More than one match for duplicate entry.&quot;</span>
+                            <span class="s2">"More than one match for duplicate entry."</span>
                         <span class="p">)</span>
                     <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                     <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -774,8 +817,9 @@ document.write(`
                     <span class="c1"># else:</span>
                     <span class="c1">#    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked</span>
 
-                    <span class="n">f_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_val</span>
+                    <span class="c1"># A scalar, as on every other path (self.Y[idx] is a</span>
+                    <span class="c1"># row of the (N, 1) array)</span>
+                    <span class="n">f_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">N</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">fun_eval_time</span>
                     <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -868,8 +912,8 @@ By Author name not set
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>
