@@ -4,14 +4,18 @@ more.
 Each run is seeded: the `random_seed` of BADS is `SEED`, and a noisy target
 draws its noise from a generator seeded with `NOISE_SEED`. On another
 platform, or with other versions of NumPy, SciPy or gpyreg, a seeded run
-can follow another trajectory, so each tolerance lies above the errors of
-its test over seeds 0-99 (`SEED = s`, `NOISE_SEED = s + 1000`): about ten
-times the largest of them, except for `test_he_noisy_sphere_opt`, whose
-tolerance is about twice. The section "The seed sweep behind the
-tolerances" of `dev/results/2026-09-23-codebase-survey.md` records the
-errors. The tests read both constants when called: setting them and
-calling a test function for each seed checks its tolerance over the seeds
-again, which a change that moves results calls for."""
+can follow another trajectory, so a tolerance has to hold over seeds, not
+only at `SEED`. Each is set from the errors of its test over seeds 0-99
+(`SEED = s`, `NOISE_SEED = s + 1000`): ten times the largest error, rounded
+up to 1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if
+that is lower, except for `test_he_noisy_sphere_opt`, whose errors exceed
+the tolerance of `runtest.m`. The section "The seed sweep behind the
+tolerances" of `dev/results/2026-09-23-codebase-survey.md` records them.
+
+`dev/scripts/tolerance_sweep.py` measures the errors again, as a change
+that moves results calls for. It relies on two properties of this module:
+the tests read `SEED` and `NOISE_SEED` when called, and each passes its
+tolerance to `run_bads` as `tol_err`, which the script disables."""
 
 import numpy as np
 
@@ -99,21 +103,23 @@ def test_ellipsoid_opt():
 
 
 def test_univariate_input_and_opt():
+    """Scalar start point and plausible bounds, no hard bounds, and noise that
+    BADS detects by itself, at the default budget of 500 evaluations."""
     rng = np.random.default_rng(NOISE_SEED)
     rfn = lambda x: x**2 + 3.2 + rng.normal(scale=0.1)
-    plb = -5
-    pub = 5
-    x0 = 3
-    opt = BADS(
+    optimize_result, _ = run_bads(
         rfn,
-        x0,
-        plausible_lower_bounds=plb,
-        plausible_upper_bounds=pub,
-        options={"random_seed": SEED},
+        3,
+        None,
+        None,
+        -5,
+        5,
+        tol_err=2e-2,
+        f_min=3.2,
+        oracle_fun=lambda x: x**2 + 3.2,
+        max_fun_evals=500,
     )
-    x = opt.optimize()["x"]
-    assert x.size == 1
-    assert x.item() ** 2 < 2e-2
+    assert optimize_result["x"].size == 1
 
 
 def test_1D_opt_ndarray():
@@ -174,7 +180,7 @@ def test_sphere_opt():
         x = np.atleast_2d(x)
         return x[:, 0] + x[:, 1] < np.sqrt(2)
 
-    run_bads(
+    optimize_result, _ = run_bads(
         sphere,
         x0,
         LB,
@@ -185,6 +191,7 @@ def test_sphere_opt():
         f_min=1.0,
         non_box_cons=non_box_cons,
     )
+    assert not np.any(non_box_cons(optimize_result["x"]))
 
 
 def test_noisy_sphere_opt():
@@ -227,7 +234,7 @@ def test_small_noisy_func():
         UB,
         PLB,
         PUB,
-        tol_err=5e-3,
+        tol_err=1e-2,
         f_min=0.0,
         oracle_fun=sphere,
         uncertainty_handling=1,
@@ -258,7 +265,7 @@ def test_he_noisy_sphere_opt():
         UB,
         PLB,
         PUB,
-        tol_err=5.0,  # runtest.m's 1 is exceeded by 7 of the 100 seeds
+        tol_err=5.0,  # above runtest.m's 1: see the module docstring
         f_min=0.0,
         oracle_fun=sphere,
         uncertainty_handling=2,

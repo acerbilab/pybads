@@ -24,6 +24,9 @@ def test_incumbent_constraint_check():
         y, y_sd, idx_y = f(U[i])
 
     U = np.vstack((U, U[-1]))  # add duplicate
+    # Every row of U is already evaluated, and contraints_check removes none
+    # of them, only the duplicate: MATLAB's uCheck would remove them all (a
+    # candidate defect, in dev/results/2026-09-23-codebase-survey.md).
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
     assert U_new.size != U.size
     assert U_new.shape[0] == U.shape[0] - 1
