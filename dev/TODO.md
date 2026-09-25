@@ -18,6 +18,54 @@ order.
   so it needs the population comparison. To settle: whether gpyreg's path
   follows MATLAB's, whether PyBADS should skip it with target noise as
   MATLAB does, and what it saves in time.
+- [ ] **Previously evaluated points evaluated again.** `contraints_check`
+  (`pybads/function_logger/constraints_check.py`, "Remove previously
+  evaluated vectors") keeps the first occurrences of `np.unique` over the
+  candidates stacked above the evaluated points. Those always fall among
+  the candidates, so a candidate that repeats an evaluated point is kept.
+  MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
+  target noise SD, `FunctionLogger` records the repeat as a new row, and
+  it becomes a duplicate training input of the GP. At low noise that makes
+  the training covariance nearly singular, a plausible cause of the
+  `LinAlgError` crashes behind `plans/gp-update-guards.md`. On Linux at
+  `8fc1dff` (gpyreg 1.3.3), one exact repeat was evaluated in
+  `ellipsoid_D10` seed 7, one of the crashing seeds, and one in
+  `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20. To settle:
+  - look for duplicate rows in `gp.X` just before the failing call of the
+    crashing runs (`ellipsoid_D3` seed 20, `ellipsoid_D10` seeds 7, 13 and
+    26, Windows, gpyreg 1.3.1);
+  - count the repeats over the default suite;
+  - fix the removal, as MATLAB does it. That moves results, so it is gated
+    by the population comparison against
+    `experiments/population_linux_20260925/` (or the Windows reference),
+    and the seeded tests are re-checked over their seeds.
+
+  The other session's survey subsection "Found while fixing the tests"
+  records the defect (branch `dev-tests`).
+- [ ] **Follow-ups of the GP-update guards**
+  ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
+  in the survey's candidate table, marked "at `676083d`" or "at
+  `a83bd51`":
+  - the target's posterior, recomputed under the best iteration's
+    hyperparameters, where MATLAB reuses the current posterior. That gives
+    other targets at default options, and it is why that call can fail;
+  - `S`, a standard deviation, stored in `gp.s2`, a variance, at every
+    rebuild and add (`specify_target_noise` only);
+  - the refit forced after a failed rebuild, which ignores
+    `min_refit_time`, where MATLAB refits through `gppredcheck`. It sends
+    such runs into `_robust_gp_fit_`, whose fifth consecutive failed fit
+    raises `ValueError`, a combination no test or stress run covers;
+  - after a failed rebuild, the search still ranks its candidates by the
+    previous GP, where MATLAB takes the first candidate;
+  - `init_and_train_gp` retries a failing initial fit without bound;
+  - `_re_evaluate_history_` rebuilds the GPs stored in `IterationHistory`
+    in place;
+  - under `stobads`, a NaN estimate counts as uncertain, not as a failure.
+
+  No failure of the guarded calls occurs in the default suite under gpyreg
+  1.3.3 (484,773 calls on Linux), so only the tests
+  (`test_gp_update_failures.py`) and the stress run of
+  `dev/scripts/gp_update_failures.py --inject` reach these paths.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
