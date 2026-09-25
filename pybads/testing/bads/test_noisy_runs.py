@@ -1,5 +1,6 @@
-"""Options and results specific to a target that returns the standard
-deviation of its noise (`specify_target_noise`)."""
+"""Options and final results of runs on noisy targets, most of them on a
+target that returns the standard deviation of its noise
+(`specify_target_noise`)."""
 
 import numpy as np
 import pytest
@@ -7,6 +8,16 @@ import pytest
 from pybads import BADS
 
 D = 3
+
+
+def _noisy_sphere(noise_seed):
+    """Sphere with Gaussian noise from its own generator."""
+    rng = np.random.default_rng(noise_seed)
+
+    def fun(x):
+        return float(np.sum(np.atleast_2d(x) ** 2)) + rng.standard_normal()
+
+    return fun
 
 
 def _noisy_sphere_with_estimated_sd(noise_seed):
@@ -42,6 +53,23 @@ def _make_bads(fun, **options):
         12 * np.ones(D),
         options=opts,
     )
+
+
+def test_target_noise_turns_on_uncertainty_handling():
+    """`specify_target_noise=True` with `uncertainty_handling` left empty
+    turns uncertainty handling on, as in MATLAB BADS."""
+    bads = _make_bads(
+        _noisy_sphere_with_estimated_sd(0), uncertainty_handling=None
+    )
+    assert bads.options["uncertainty_handling"] is True
+    assert bads.optim_state["uncertainty_handling_level"] == 2
+
+
+def test_target_noise_refuses_uncertainty_handling_off():
+    with pytest.raises(ValueError, match="uncertainty_handling"):
+        _make_bads(
+            _noisy_sphere_with_estimated_sd(0), uncertainty_handling=False
+        )
 
 
 def _warns_noise_size_ignored(caplog):
@@ -96,3 +124,22 @@ def test_final_estimate_from_one_sample():
     assert y.shape == sd.shape == (1,)
     assert result["fval"] == pytest.approx(y[0], rel=1e-12)
     assert result["fsd"] == pytest.approx(sd[0], rel=1e-12)
+
+
+@pytest.mark.parametrize(
+    "make_fun, target_noise",
+    [(_noisy_sphere, False), (_noisy_sphere_with_estimated_sd, True)],
+    ids=["inferred_noise", "specified_noise"],
+)
+def test_noisy_run_without_poll_reports_incumbent(make_fun, target_noise):
+    """A noisy run that ends before its first poll takes no final samples:
+    `yval_vec` holds the incumbent's observation and `ysd_vec` is None.
+    `max_iter=1` ends the run within its first iteration, before the poll
+    count moves."""
+    bads = _make_bads(
+        make_fun(0), specify_target_noise=target_noise, max_iter=1
+    )
+    result = bads.optimize()
+    assert result["iterations"] == 0
+    assert np.array_equal(result["yval_vec"], [bads.yval])
+    assert result["ysd_vec"] is None

@@ -49,6 +49,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   sample and its standard deviation; before, the incumbent's earlier
   observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
   The returned `x` and the number of evaluations are unchanged.
+- **`specify_target_noise` alone.** With `specify_target_noise=True` and
+  `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
+  as MATLAB BADS does and as the error message asked; it raised
+  `ValueError` unless `uncertainty_handling=True` was set as well.
+- **Noisy runs that end before their first poll.** A run with uncertainty
+  handling that ends before its first poll, for instance with
+  `max_iter=1`, returns its result, with the incumbent's observation in
+  `yval_vec` and `ysd_vec` set to `None`, instead of raising
+  `KeyError: 'yval_vec'`.
 - **`noise_size` with user-specified noise.** With
   `specify_target_noise=True`, a scalar `noise_size` made the creation of
   `BADS` fail with `IndexError`. It now gives the warning about

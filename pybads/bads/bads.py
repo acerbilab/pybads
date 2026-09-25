@@ -835,7 +835,7 @@ class BADS:
             self.options["specify_target_noise"]
             and self.options["uncertainty_handling"] is None
         ):
-            self.options["uncertainty_handling"] = False
+            self.options["uncertainty_handling"] = True
 
         if (
             self.options["specify_target_noise"]
@@ -843,8 +843,10 @@ class BADS:
             and self.options["uncertainty_handling"] == False
         ):
             raise ValueError(
-                "If options['specify_target_noise'] is True, options['uncertainty_handling'] should be True as well. \
-                                Leave options['uncertainty_handling'] empty or set it to True to avoid this error."
+                "If options['specify_target_noise'] is True, "
+                "options['uncertainty_handling'] should be True as well. "
+                "Leave options['uncertainty_handling'] empty or set it to "
+                "True to avoid this error."
             )
         if (
             self.options["specify_target_noise"]
@@ -1457,6 +1459,10 @@ class BADS:
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
+        # Without a poll there are no final samples: the result reports the
+        # incumbent's observation
+        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
+        self.optim_state["ysd_vec"] = None
         if (
             self.optim_state["uncertainty_handling_level"] > 0
             and poll_iteration > 0
