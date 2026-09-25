@@ -308,3 +308,56 @@ def test_gp_mean_prior_recentred_at_each_rebuild(monkeypatch):
         options={"display": "off", "max_fun_evals": 60, "random_seed": 0},
     ).optimize()
     assert checked["local"] > 0
+
+
+def test_gp_log_lengthscale_bounds(monkeypatch):
+    """The bounds of the GP log length scales are the logs of `tol_mesh`
+    and of the maximum length scale, `min(100, 10 * (ub - lb) / scale)` in
+    normalized units, as in MATLAB's gpdefBads.m."""
+    import pybads.bads.bads as bads_module
+
+    checked = {"local": 0}
+    original_local = bads_module.local_gp_fitting
+
+    def spy_local(
+        gp,
+        current_point,
+        function_logger,
+        options,
+        optim_state,
+        *args,
+        **kwargs,
+    ):
+        out = original_local(
+            gp,
+            current_point,
+            function_logger,
+            options,
+            optim_state,
+            *args,
+            **kwargs,
+        )
+        cov_range = np.minimum(
+            100,
+            10
+            * (optim_state["ub"] - optim_state["lb"])
+            / optim_state["scale"],
+        ).ravel()
+        lower, upper = gp.get_bounds()["covariance_log_lengthscale"]
+        assert np.allclose(lower, np.log(optim_state["tol_mesh"]))
+        assert np.allclose(upper, np.log(cov_range))
+        checked["local"] += 1
+        return out
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    D = 3
+    BADS(
+        lambda x: np.sum(np.atleast_2d(x) ** 2),
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 60, "random_seed": 0},
+    ).optimize()
+    assert checked["local"] > 0

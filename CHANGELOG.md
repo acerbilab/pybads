@@ -49,6 +49,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
   Rosenbrock function the runs that reach the global minimum end 17 times
   closer to it.
+- **Length scales of the GP.** The upper bound of each log length scale of
+  the Gaussian process was the largest length scale itself, up to 100,
+  instead of its logarithm, as in MATLAB BADS, so that a length scale
+  could grow far beyond the size of the search space and the GP could
+  treat as flat a direction along which the target varies slowly. Results
+  change at default options.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below

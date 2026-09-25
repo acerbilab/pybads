@@ -935,10 +935,11 @@ def _gp_hyp(
     cov_range = (np.minimum(100, 10 * cov_range)).flatten()
     # Bads prior on covariance length scale(s)
     priors["covariance_log_lengthscale"] = ("gaussian", (-1, 2.0))
-    # BADS bounds on covariance length scale
+    # BADS bounds on covariance length scale: the logs of tol_mesh and of
+    # the maximum length scale (gpdefBads.m)
     bounds["covariance_log_lengthscale"] = (
         np.array([np.log(tol_mesh)] * D),
-        cov_range,
+        np.log(cov_range),
     )  # lower bound and upper bound
 
     # Bads bounds on signal variance (output scale)
