@@ -81,7 +81,14 @@ to `main` and commits them to `gh-pages`.
 A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
 it: `release.yml` builds the package with `build.yml` and uploads it to
 PyPI by trusted publishing, through the `pypi` environment, which admits
-only `v*` tags. No token is stored.
+only `v*` tags. No token is stored. conda-forge follows by itself: after
+the upload, the version bot of `conda-forge/pybads-feedstock` opens an
+update PR, takes its dependencies from the PyPI metadata and merges it
+once its CI passes (the `bot` settings in the feedstock's
+`conda-forge.yml`; `conda-forge/gpyreg-feedstock` has the same). That PR
+fails when a dependency is missing from conda-forge, for instance a new
+gpyreg minimum that the gpyreg feedstock has not published yet; then a
+feedstock maintainer takes over.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black

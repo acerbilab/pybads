@@ -80,17 +80,6 @@ order.
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
   shows that it has no effect on PyBADS, or explains the one it has.
-- [ ] **conda-forge recipes for PyBADS 1.1.0** (on PyPI since 2026-09-25;
-  conda users stay on 1.0.6 until then). `conda-forge/pybads-feedstock`
-  (`recipe/meta.yaml`, at 1.0.6): version 1.1.0; run requirements
-  `gpyreg >=1.3.3`, without pytest, pytest-mock and pytest-rerunfailures
-  and without the stale cma, corner, dill, imageio and plotly;
-  `test.requires` gains pytest and pytest-rerunfailures, since its test
-  command `python -m pytest --pyargs pybads --reruns=5 -x -vv` runs the
-  tests of the installed package; `python_min` 3.10. It needs
-  `conda-forge/gpyreg-feedstock` to reach gpyreg 1.3.3 first: on
-  2026-09-25 it is at 1.0.2, with the version bot's pull requests up to
-  v1.3.1 (#11) open and unmerged.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs

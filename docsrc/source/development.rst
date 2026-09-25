@@ -179,4 +179,4 @@ A few comments about testing:
 Releases
 --------
 
-Each change that a user can notice is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag: the ``release.yml`` workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package is updated separately, in its feedstock.
+Each change that a user can notice is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag: the ``release.yml`` workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package follows: the version bot of the `pybads feedstock <https://github.com/conda-forge/pybads-feedstock>`__ opens an update pull request after the upload and merges it once its build and tests pass. A feedstock maintainer steps in only when that pull request fails, for example when PyBADS requires a gpyreg release that conda-forge does not have yet.
