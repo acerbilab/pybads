@@ -11,6 +11,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or later.
 - Results of runs with `specify_target_noise=True` differ from 1.1.0, also
   with a fixed seed.
+- With `specify_target_noise=True`, the returned `fval` and `fsd` weight
+  the final samples by the precisions that the target returns, and with
+  `noise_final_samples=1`, `yval_vec` and `ysd_vec` hold one value.
 
 ### Changed
 
@@ -32,6 +35,33 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ellipsoid with condition number 1e6 and noise standard deviation
   `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
   median error rises from 0.21 to 0.54.
+- **Final estimate with user-specified noise.** With
+  `specify_target_noise=True`, the returned `fval` and `fsd` weight the
+  final samples at the returned point (`yval_vec`) by their precisions, the
+  inverse squares of the standard deviations that the target returns with
+  them (`ysd_vec`), as MATLAB BADS does: `fval` is their precision-weighted
+  mean, and `fsd = 1/sqrt(sum(1/ysd_vec**2))`. They were the plain mean of
+  the samples and its standard error estimated from their spread, whatever
+  standard deviations the target returned. When the target returns the same
+  standard deviation for every sample, `fval` is their mean as before, and
+  `fsd` is that standard deviation divided by the square root of the number
+  of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
+  sample and its standard deviation; before, the incumbent's earlier
+  observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
+  The returned `x` and the number of evaluations are unchanged.
+- **`specify_target_noise` alone.** With `specify_target_noise=True` and
+  `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
+  as MATLAB BADS does and as the error message asked; it raised
+  `ValueError` unless `uncertainty_handling=True` was set as well.
+- **Noisy runs that end before their first poll.** A run with uncertainty
+  handling that ends before its first poll, for instance with
+  `max_iter=1`, returns its result, with the incumbent's observation in
+  `yval_vec` and `ysd_vec` set to `None`, instead of raising
+  `KeyError: 'yval_vec'`.
+- **`noise_size` with user-specified noise.** With
+  `specify_target_noise=True`, a scalar `noise_size` made the creation of
+  `BADS` fail with `IndexError`. It now gives the warning about
+  `noise_size` that an array gave.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below
@@ -47,9 +77,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   cannot estimate counts as no improvement. A failed rebuild is retried at
   the next step with refitted hyperparameters (in the poll, only with
   `poll_training` on). Runs without such a failure give the same results.
-- **GP warnings on the BADS logger.** The warnings of the GP fits (a
-  failed initial fit, failed hyperparameter optimizations) come from the
-  `BADS` logger, like PyBADS's other messages, instead of `asyncio`'s.
+- **Messages on the BADS logger.** PyBADS logs every message of a run to the
+  `BADS` logger, whose level `display` sets; `display="full"` shows the
+  debug messages. The warnings of the GP fits (a failed initial fit, failed
+  hyperparameter optimizations) and the debug message of a stalling run went
+  to `asyncio`'s logger, and the debug messages of failed GP updates to the
+  root logger. PyBADS's warnings no longer come with the
+  `DeprecationWarning` of `Logger.warn`.
 - **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
   `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an

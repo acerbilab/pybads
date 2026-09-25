@@ -261,7 +261,13 @@ the changed code: the benchmark exercises the default options, so a change
 behind a non-default option needs a configuration that sets it. Every evidence run selects gpyreg
 explicitly, with `PYTHONPATH` naming a clone at the release tag
 (`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
-`../gpyreg`, which other work moves. Evidence runs call the venv's Python by
+`../gpyreg`, which other work moves. PyBADS is selected by the script
+instead: `benchmark_targets.py`, and every script that imports it
+(`population.py`, `gp_update_failures.py` and others), puts the checkout
+that holds it first on `sys.path`, so a commit is measured by the scripts
+of a worktree at that commit, and a worktree put on `PYTHONPATH` changes
+nothing; each record's `meta.pybads_source` names the package that ran.
+Evidence runs call the venv's Python by
 its path (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python`
 elsewhere). An agent's shell does not activate the venv, so a bare `python`
 can be another installation. If that installation has NumPy and SciPy, the
