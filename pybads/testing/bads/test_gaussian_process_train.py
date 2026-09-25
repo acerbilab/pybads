@@ -101,7 +101,7 @@ def test_get_fevals_data_noise():
         bads.function_logger.X_flag[sample_idx] = True
         bads.function_logger.X[sample_idx] = Xs[sample_idx]
         bads.function_logger.Y[sample_idx] = ys[sample_idx]
-        bads.function_logger.S[sample_idx] = 1
+        bads.function_logger.S[sample_idx] = 0.5 + sample_idx
         bads.function_logger.fun_eval_time[sample_idx] = 1e-5
 
     # Then make sure we get that data back.
@@ -111,7 +111,8 @@ def test_get_fevals_data_noise():
 
     assert np.all(X_train == Xs)
     assert np.all(y_train.flatten() == ys.flatten())
-    assert np.all(s2_train == 1)
+    # The noise standard deviations, squared into variances.
+    assert np.all(s2_train.flatten() == (0.5 + np.arange(sample_count)) ** 2)
     assert np.all(t_train == 1e-5)
 
 
