@@ -1,9 +1,23 @@
-import gpyreg as gpr
+"""Whole optimizations: the problems of MATLAB BADS's `runtest.m`, and a few
+more.
+
+Each run is seeded: the `random_seed` of BADS is `SEED`, and a noisy target
+draws its noise from a generator seeded with `NOISE_SEED`. On another
+platform, or with other versions of NumPy, SciPy or gpyreg, a seeded run
+can follow another trajectory, so each tolerance lies well above the errors
+of its test over seeds 0-99 (`SEED = s`, `NOISE_SEED = s + 1000`), which
+the section "Tests that check less than they appear to" of
+`dev/results/2026-09-23-codebase-survey.md` records. The tests read both
+constants when called: setting them and calling a test function for each
+seed checks its tolerance over the seeds again, which a change that moves
+results calls for."""
+
 import numpy as np
-import pytest
-from scipy.stats import norm
 
 from pybads.bads import BADS
+
+SEED = 0
+NOISE_SEED = 1000
 
 
 def get_test_opt_conf(D=3):
@@ -12,8 +26,7 @@ def get_test_opt_conf(D=3):
     UB = 100 * np.ones(D)  # Upper bound
     PLB = -8 * np.ones(D)  # Plausible lower bound
     PUB = 12 * np.ones(D)  # Plausible upper bound
-    tol_errs = np.array([0.1, 0.1, 1, 1.0])
-    return D, x0, LB, UB, PLB, PUB, tol_errs
+    return D, x0, LB, UB, PLB, PUB
 
 
 def run_bads(
@@ -23,16 +36,16 @@ def run_bads(
     UB,
     PLB,
     PUB,
-    tol_errs,
+    tol_err,
     f_min,
     oracle_fun=None,
     non_box_cons=None,
     uncertainty_handling=False,
-    assert_flag=False,
     max_fun_evals=None,
 ):
     options = {}
     options["display"] = "full"  # debug_flag = True
+    options["random_seed"] = SEED
 
     if uncertainty_handling > 0:
         options["uncertainty_handling"] = True
@@ -60,35 +73,46 @@ def run_bads(
     fval = optimize_result["fval"]
 
     if oracle_fun is None:
-        # print(f"Final value: {fval:.3f} (true value: {f_min}), with {optimize_result['func_count']} fun evals.")
-        err = np.abs(fval - f_min)
+        err = np.abs(fval - f_min).item()
     else:
         fval_true = oracle_fun(x)
-        # print(f"Final value (not-noisy): {fval_true:.3f} (true value: {f_min}) with {optimize_result['func_count']} fun evals.")
-        err = np.abs(fval_true - f_min)
-    if assert_flag:
-        assert np.any(
-            err < tol_errs
-        ), f"Error {err} is not smaller than tolerance {tol_errs} when optimizing {fun.__name__}."
+        err = np.abs(fval_true - f_min).item()
+    assert (
+        err < tol_err
+    ), f"Error {err} is not smaller than tolerance {tol_err} when optimizing {fun.__name__}."
 
     return optimize_result, err
 
 
+def ellipsoid(x):
+    return np.sum((np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2)
+
+
+def sphere(x):
+    return np.sum(np.atleast_2d(x) ** 2, axis=1)
+
+
 def test_ellipsoid_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
-    fun = lambda x: np.sum(
-        (np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2
-    )
-    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+    D, x0, LB, UB, PLB, PUB = get_test_opt_conf()
+    run_bads(ellipsoid, x0, LB, UB, PLB, PUB, tol_err=1e-3, f_min=0.0)
 
 
 def test_univariate_input_and_opt():
-    rfn = lambda x: x**2 + 3.2 + np.random.normal(scale=0.1)
+    rng = np.random.default_rng(NOISE_SEED)
+    rfn = lambda x: x**2 + 3.2 + rng.normal(scale=0.1)
     plb = -5
     pub = 5
     x0 = 3
-    opt = BADS(rfn, x0, plausible_lower_bounds=plb, plausible_upper_bounds=pub)
-    opt.optimize()
+    opt = BADS(
+        rfn,
+        x0,
+        plausible_lower_bounds=plb,
+        plausible_upper_bounds=pub,
+        options={"random_seed": SEED},
+    )
+    x = opt.optimize()["x"]
+    assert x.size == 1
+    assert x.item() ** 2 < 2e-2
 
 
 def test_1D_opt_ndarray():
@@ -99,8 +123,7 @@ def test_1D_opt_ndarray():
     UB = np.array([[10.0]])
     PLB = np.array([[-5.0]])
     PUB = np.array([[5.0]])
-    tol_errs = np.array([0.1])
-    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_err=5e-6, f_min=0.0)
 
 
 def test_1D_opt_1darray():
@@ -111,8 +134,7 @@ def test_1D_opt_1darray():
     UB = np.array([10.0])
     PLB = np.array([-5.0])
     PUB = np.array([5.0])
-    tol_errs = np.array([0.1])
-    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_err=5e-6, f_min=0.0)
 
 
 def test_1D_opt_scalar():
@@ -123,61 +145,51 @@ def test_1D_opt_scalar():
     UB = 10.0
     PLB = -5.0
     PUB = 5.0
-    tol_errs = np.array([0.1])
-    run_bads(fun, x0, LB, UB, PLB, PUB, tol_errs, f_min=0.0, assert_flag=True)
+    run_bads(fun, x0, LB, UB, PLB, PUB, tol_err=5e-6, f_min=0.0)
 
 
 def test_high_dim_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf(D=60)
-    fun = lambda x: np.sum(
-        (np.atleast_2d(x) / np.arange(1, len(x) + 1) ** 2) ** 2
-    )
+    D, x0, LB, UB, PLB, PUB = get_test_opt_conf(D=60)
     run_bads(
-        fun,
+        ellipsoid,
         x0,
         LB,
         UB,
         PLB,
         PUB,
-        tol_errs,
+        tol_err=1.0,
         f_min=0.0,
-        assert_flag=False,
         max_fun_evals=200,
     )
 
 
 def test_sphere_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
-    x0 = np.zeros((1, D))
-    fun = lambda x: np.sum(np.atleast_2d(x) ** 2, axis=1)
-    non_box_cons = lambda x: np.atleast_2d(x)[:, 0] + np.atleast_2d(x)[
-        :, 1
-    ] >= np.sqrt(
-        2
-    )  # Non-bound constraints
-    print(non_box_cons(x0))
+    """Sphere under the constraint `x1 + x2 >= sqrt(2)`, whose minimum, 1, lies
+    on the boundary of the feasible region at `(sqrt(2)/2, sqrt(2)/2, 0)`."""
+    D, x0, LB, UB, PLB, PUB = get_test_opt_conf()
+
+    def non_box_cons(x):
+        """True where a point violates the constraint."""
+        x = np.atleast_2d(x)
+        return x[:, 0] + x[:, 1] < np.sqrt(2)
+
     run_bads(
-        fun,
+        sphere,
         x0,
         LB,
         UB,
         PLB,
         PUB,
-        tol_errs,
+        tol_err=2e-3,
         f_min=1.0,
         non_box_cons=non_box_cons,
-        assert_flag=True,
     )
 
 
 def test_noisy_sphere_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
-    fun = (
-        lambda x: np.sum(np.atleast_2d(x) ** 2, axis=1) + np.random.randn()
-    )  # Noisy objective function
-    oracle_fun = lambda x: np.sum(
-        np.atleast_2d(x) ** 2, axis=1
-    )  # True objective function
+    D, x0, LB, UB, PLB, PUB = get_test_opt_conf()
+    rng = np.random.default_rng(NOISE_SEED)
+    fun = lambda x: sphere(x) + rng.standard_normal()  # Noisy objective
     run_bads(
         fun,
         x0,
@@ -185,21 +197,20 @@ def test_noisy_sphere_opt():
         UB,
         PLB,
         PUB,
-        tol_errs,
+        tol_err=1.0,
         f_min=0.0,
-        oracle_fun=oracle_fun,
-        assert_flag=True,
+        oracle_fun=sphere,
     )
 
 
 def test_small_noisy_func():
-    np.random.seed(42343)
+    rng = np.random.default_rng(NOISE_SEED)
 
     def noisy_sphere(x, sigma=1.0):
         """Simple quadratic function with added noise."""
         x_2d = np.atleast_2d(x)
         f = np.sum(x_2d**2, axis=1)
-        noise = 1e-4 * sigma * np.random.normal(size=x_2d.shape[0])
+        noise = 1e-4 * sigma * rng.normal(size=x_2d.shape[0])
         return f + noise
 
     x0 = np.array([-3, -3, -3])
@@ -207,9 +218,7 @@ def test_small_noisy_func():
     UB = np.array([5, 5, 5])
     PLB = np.array([-2, -2, -2])
     PUB = np.array([2, 2, 2])
-    tol_errs = np.array([0.1, 0.1, 0.1])
 
-    oracle_fun = lambda x: np.sum(np.atleast_2d(x) ** 2, axis=1)
     run_bads(
         noisy_sphere,
         x0,
@@ -217,28 +226,30 @@ def test_small_noisy_func():
         UB,
         PLB,
         PUB,
-        tol_errs,
+        tol_err=5e-3,
         f_min=0.0,
-        oracle_fun=oracle_fun,
+        oracle_fun=sphere,
         uncertainty_handling=1,
-        assert_flag=True,
         max_fun_evals=300,
     )
 
 
-def he_noisy_sphere(x):
-    y = np.sum(np.atleast_2d(x) ** 2, axis=1)
-    s = 2 + 1 * np.sqrt(y)
-    y = y + s * np.random.randn()
-    return y, s
+def he_noisy_sphere(rng):
+    """Sphere with heteroskedastic noise, returning the noise's standard
+    deviation with the value."""
+
+    def fun(x):
+        y = sphere(x)
+        s = 2 + 1 * np.sqrt(y)
+        y = y + s * rng.standard_normal()
+        return y, s
+
+    return fun
 
 
 def test_he_noisy_sphere_opt():
-    D, x0, LB, UB, PLB, PUB, tol_errs = get_test_opt_conf()
-    fun = he_noisy_sphere
-    oracle_fun = lambda x: np.sum(
-        np.atleast_2d(x) ** 2, axis=1
-    )  # True objective function
+    D, x0, LB, UB, PLB, PUB = get_test_opt_conf()
+    fun = he_noisy_sphere(np.random.default_rng(NOISE_SEED))
     run_bads(
         fun,
         x0,
@@ -246,9 +257,8 @@ def test_he_noisy_sphere_opt():
         UB,
         PLB,
         PUB,
-        tol_errs,
+        tol_err=5.0,  # runtest.m's 1 is exceeded by 7 of the 100 seeds
         f_min=0.0,
-        oracle_fun=oracle_fun,
+        oracle_fun=sphere,
         uncertainty_handling=2,
-        assert_flag=True,
     )
