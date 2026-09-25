@@ -295,8 +295,8 @@ largest error of both designs.
 
 ### Found while fixing the tests
 
-Three candidate defects, seen in the code (reach and effect not measured), now
-also rows of the candidate table:
+Three candidate defects, seen in the code, which are also rows of the
+candidate table:
 
 - `test_incumbent_constraint_check` (`search/test_search.py`) evaluates
   every row of `U` and then asserts that `contraints_check`
@@ -311,9 +311,11 @@ also rows of the candidate table:
   search and the poll, so a run can evaluate a point again; without a
   noise estimate from the target, `FunctionLogger` records the repeat as a
   new row, a duplicate training input of the GP. At low noise a duplicate
-  input leaves the training covariance of the GP nearly singular; whether
-  the failed Cholesky factorizations recorded above involve duplicates is
-  not checked. Fixing it moves results.
+  input leaves the training covariance of the GP nearly singular. On Linux
+  at `8fc1dff`, one exact repeat was evaluated in `ellipsoid_D10` seed 7,
+  one of the crashing seeds recorded above; `dev/TODO.md`, "Previously
+  evaluated points evaluated again", holds the rest of the check. Fixing
+  it moves results.
 - `init_sobol` (`init_functions/init_sobol.py`) derives the seed of the
   initial Sobol design from `u0[:11].astype(np.uint64)`, the integer parts
   of the first 11 coordinates, and not from `random_seed`: the seed is the
@@ -335,9 +337,10 @@ also rows of the candidate table:
   does by default, that seed is also the same for most start points, and
   the port differs in mechanism more than in effect; this is not checked in
   MATLAB.
-- `gaussian_process_train.py` imports its `logger` from `asyncio.log`
+- `gaussian_process_train.py` imported its `logger` from `asyncio.log`
   (line 4), the logger named `asyncio`, not the `BADS` logger whose level
   the `display` option sets. Its warnings (a failed initial fit in
   `init_and_train_gp`, a failed hyperparameter optimization, a failed slice
-  sampler) are therefore printed whatever `display` says: the sweep above,
-  run with `display="off"`, printed the 49 failed initial fits.
+  sampler) were therefore printed whatever `display` said: the sweep above,
+  run with `display="off"`, printed the 49 failed initial fits. Fixed in
+  `8fc1dff` (#64): the module logs to the `BADS` logger.
