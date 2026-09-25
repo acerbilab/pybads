@@ -52,6 +52,21 @@ order.
   trajectories there, and this does not show whether the calls still fail.
   To settle: restore those guards, the data passed through `gp.update`,
   and what the GP left by a failed call means downstream in PyBADS.
+- [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
+  to the GP (`gpupdate(..., 'add', ...)`, `private/gpupdate.m`) by a rank-1
+  update of the posterior (`utils/update_posterior.m`), falls back to the
+  full recomputation when that fails, and skips the rank-1 update under
+  `SpecifyTargetNoise`. The port's `add_and_update_gp` recomputes every
+  posterior in full. gpyreg's `update` has a rank-1 path of its own (one
+  new point, no new hyperparameters, posteriors that hold their factors),
+  which PyBADS does not take, and which accepts a noise variance for the
+  new point. The guards of
+  [plans/gp-update-guards.md](plans/gp-update-guards.md) keep the full
+  recomputation (its Open Question 5) so that runs without a failure do
+  not move. Taking the rank-1 path would move results at default options,
+  so it needs the population comparison. To settle: whether gpyreg's path
+  follows MATLAB's, whether PyBADS should skip it with target noise as
+  MATLAB does, and what it saves in time.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate

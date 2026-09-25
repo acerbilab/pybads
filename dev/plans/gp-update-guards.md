@@ -146,7 +146,7 @@ returns, which is now always consistent.
   this machine; the records (changelog, `AGENTS.md`, survey, TODO, this
   plan's worklog).
 - **Out of scope** (each one recorded in the survey, not fixed here):
-  - the rank-1 update of `'add'` (Open Question 5);
+  - the rank-1 update of `'add'` (Open Question 5; a `dev/TODO.md` item);
   - `S`, a standard deviation, stored in `gp.s2`, a variance: by
     `add_and_update_gp` (the survey's existing row) and also by
     `local_gp_fitting`, through `get_grid_search_neighbors` (`:1101-1103`),
@@ -341,9 +341,9 @@ records where no failure occurred, and all injected runs finished.
    keep it. Runs where it succeeds complete today and must not move. If it
    were dropped to follow MATLAB, results would change; that belongs to
    the bug hunt, with its own gate.
-5. **Rank-1 update for `'add'`, as MATLAB does it first.** Default: out of
-   scope. It would move results at default options and needs its own
-   population comparison.
+5. **Rank-1 update for `'add'`, as MATLAB does it first.** Settled
+   (2026-09-25): out of scope, and listed in `dev/TODO.md`. It would move
+   results at default options and needs its own population comparison.
 6. **Commit the Phase 0 population as a Linux reference**
    (`dev/experiments/population_linux_20260925/`, about 2 MB, with the
    README the convention asks for)? Default: yes. Later cloud sessions can
