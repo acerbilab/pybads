@@ -1498,23 +1498,31 @@ class BADS:
                     yval_vec[i_sample] = y
                     ysd_vec[i_sample] = y_sd
 
-                if yval_vec.size == 1:
+                # With one sample and no noise estimate from the target, YVAL
+                # is used as well (biased, but better than no uncertainty)
+                if (
+                    yval_vec.size == 1
+                    and not self.options["specify_target_noise"]
+                ):
                     yval_vec = np.vstack((yval_vec, self.yval))
-                    if self.options["specify_target_noise"]:
-                        ysd_vec = np.vstack(
-                            (
-                                ysd_vec,
-                                self.function_logger.S[
-                                    self.function_logger.Xn
-                                ],
-                            )
-                        )
 
                 self.optim_state["yval_vec"] = np.copy(yval_vec)
                 self.optim_state["ysd_vec"] = np.copy(ysd_vec)
 
-                self.fval = np.mean(yval_vec).item()
-                self.fsd = (np.std(yval_vec) / np.sqrt(yval_vec.size)).item()
+                if self.options["specify_target_noise"]:
+                    # Weight the samples by the precisions the target returns
+                    precision = 1 / ysd_vec**2
+                    tot_precision = np.sum(precision)
+                    self.fval = (
+                        np.sum(yval_vec * precision) / tot_precision
+                    ).item()
+                    self.fsd = (1 / np.sqrt(tot_precision)).item()
+                else:
+                    # Mean of the samples and its standard error
+                    self.fval = np.mean(yval_vec).item()
+                    self.fsd = (
+                        np.std(yval_vec) / np.sqrt(yval_vec.size)
+                    ).item()
                 self.iteration_history.record(
                     "fval", self.fval, poll_iteration
                 )

@@ -11,6 +11,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or later.
 - Results of runs with `specify_target_noise=True` differ from 1.1.0, also
   with a fixed seed.
+- With `specify_target_noise=True`, the returned `fval` and `fsd` weight
+  the final samples by the precisions that the target returns, and with
+  `noise_final_samples=1`, `yval_vec` and `ysd_vec` hold one value.
 
 ### Changed
 
@@ -32,6 +35,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ellipsoid with condition number 1e6 and noise standard deviation
   `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
   median error rises from 0.21 to 0.54.
+- **Final estimate with user-specified noise.** With
+  `specify_target_noise=True`, the returned `fval` and `fsd` weight the
+  final samples at the returned point (`yval_vec`) by their precisions, the
+  inverse squares of the standard deviations that the target returns with
+  them (`ysd_vec`), as MATLAB BADS does: `fval` is their precision-weighted
+  mean, and `fsd = 1/sqrt(sum(1/ysd_vec**2))`. They were the plain mean of
+  the samples and its standard error estimated from their spread, whatever
+  standard deviations the target returned. When the target returns the same
+  standard deviation for every sample, `fval` is their mean as before, and
+  `fsd` is that standard deviation divided by the square root of the number
+  of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
+  sample and its standard deviation; before, the incumbent's earlier
+  observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
+  The returned `x` and the number of evaluations are unchanged.
 - **`noise_size` with user-specified noise.** With
   `specify_target_noise=True`, a scalar `noise_size` made the creation of
   `BADS` fail with `IndexError`. PyBADS now warns that `noise_size` is

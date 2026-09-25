@@ -66,3 +66,35 @@ def test_noise_size_empty_or_zero_is_silent(noise_size, caplog):
     with caplog.at_level("WARNING", logger="BADS"):
         _make_bads(_noisy_sphere_with_estimated_sd(0), noise_size=noise_size)
     assert not _warns_noise_size_ignored(caplog)
+
+
+def test_final_estimate_weights_samples_by_precision():
+    """`fval` and `fsd` combine the final samples at the returned point by
+    the precisions that the target returns, as MATLAB BADS's
+    `FinalEstimate` does."""
+    result = _make_bads(_noisy_sphere_with_estimated_sd(0)).optimize()
+    y = np.asarray(result["yval_vec"], dtype=float)
+    sd = np.asarray(result["ysd_vec"], dtype=float)
+    assert y.shape == sd.shape == (10,)
+    precision = 1 / sd**2
+    assert result["fval"] == pytest.approx(
+        np.sum(y * precision) / np.sum(precision), rel=1e-12
+    )
+    assert result["fsd"] == pytest.approx(
+        1 / np.sqrt(np.sum(precision)), rel=1e-12
+    )
+    # The weighting matters: the plain mean of these samples differs.
+    assert abs(result["fval"] - np.mean(y)) > 1e-6
+
+
+def test_final_estimate_from_one_sample():
+    """With one final sample, `fval` and `fsd` are the sample and the
+    standard deviation that the target returns with it."""
+    result = _make_bads(
+        _noisy_sphere_with_estimated_sd(0), noise_final_samples=1
+    ).optimize()
+    y = np.asarray(result["yval_vec"], dtype=float)
+    sd = np.asarray(result["ysd_vec"], dtype=float)
+    assert y.shape == sd.shape == (1,)
+    assert result["fval"] == pytest.approx(y[0], rel=1e-12)
+    assert result["fsd"] == pytest.approx(sd[0], rel=1e-12)
