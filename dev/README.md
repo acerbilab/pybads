@@ -81,6 +81,12 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
   counts the failed fits inside `_robust_gp_fit_` over the suite, under the
   gpyreg that `PYTHONPATH` selects.
+- `tolerance_sweep.py` runs the seeded optimization tests of
+  `pybads/testing/bads/test_bads_optimization.py` over a range of seeds,
+  through the test functions with their tolerances disabled, and records
+  the error of each run; `summary LOG` prints, per test, the largest and
+  the median error, the evaluations and the ratio of the tolerance to the
+  largest error. Seeds 0-99 take about 40 minutes.
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
@@ -117,5 +123,7 @@ reference's number of seeds.
   assessment of gpyreg 1.3.3 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
-  read of the code (not verified), and the tests that check less than they
-  appear to. The starting point of the deferred bug hunt in `TODO.md`.
+  read of the code (not verified), and the tests that checked less than
+  they appeared to, with their fixes, the seed sweep behind the tolerances
+  of the optimization tests and three candidate defects found on the way.
+  The starting point of the deferred bug hunt in `TODO.md`.

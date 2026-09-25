@@ -36,7 +36,8 @@ def init_sobol(
         Number of initial function evaluations.
     rng : numpy.random.Generator, optional
         Draws the seed of the Sobol sequence when ``u0`` is not all finite;
-        otherwise the seed derives from the digits of ``u0``. If ``None``, a
+        otherwise the seed derives from the integer parts of the first 11
+        coordinates of ``u0``. If ``None``, a
         generator is derived from NumPy's global random state
         (``pybads.rng.get_rng``).
 

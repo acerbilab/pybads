@@ -162,9 +162,9 @@ Tests can be run with::
 
     pytest test_filename.py
     pytest
-    pytest --reruns 5 --cov=. --cov-report html:cov_html
+    pytest --cov=. --cov-report html:cov_html
 
-The final command creates an html folder with a full report on coverage -- double-check it from time to time. Some tests are stochastic and occasionally fail: Tests can be automatically rerun by specifying e.g. ``--reruns 3``.
+The final command creates an html folder with a full report on coverage -- double-check it from time to time. A test that draws random numbers sets its seed (the ``random_seed`` option for a BADS run, a generator of its own for the noise of a target), so that a failure repeats when the test is rerun.
 
 A few comments about testing:
 

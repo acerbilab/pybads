@@ -29,8 +29,6 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 You can run PyBADS's internal tests with ::
 
   python -m pip install "pybads[test]"
-  pytest --pyargs pybads --reruns=3
-
-The `--reruns=3` argument allows re-trying a failed test up to 3 times, as many of PyBADS's tests are stochastic in nature.
+  pytest --pyargs pybads
 
 If you wish to install directly from latest source code, please see the :ref:`installation instructions for developers`.

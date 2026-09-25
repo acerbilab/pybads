@@ -221,7 +221,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   Nothing that is deep-copied holds the generator (the `OptimizeResult`,
   what `IterationHistory` records, the GP and its `temporary_data`), and
   neither does `optim_state`: a copy would be a second generator in the same
-  state. The Sobol design derives its seed from the digits of `u0`.
+  state. The Sobol design takes its seed from `u0`, not from the generator:
+  from the integer part of each of its first 11 coordinates, so every start
+  point inside the plausible box gives the same design for a given `D`,
+  whatever the seed (a candidate defect, in the survey).
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.
@@ -253,15 +256,18 @@ same gpyreg.
 ## Tests and their traps
 
 - `pybads/testing/bads/test_bads_optimization.py` runs whole optimizations
-  (100–300 evaluations each, one of them 60-D) and dominates the runtime of
-  the suite. Most are unseeded, which is why CI uses `--reruns=5`; an
-  assertion passes when the error is below 1, and `test_high_dim_opt`
-  asserts nothing.
-- `pybads/testing/bads/poll/test_poll_mads.py` names its functions
-  `*_test`, so pytest collects none of them. `pybads/testing/run_tests.py`
-  imports paths that no longer exist, `pybads/testing/bads/*.dat` are read
-  by no test, and `pybads/testing/bads/scripts/` holds manual scripts that
-  pytest does not collect.
+  (a few hundred evaluations at most, one of them 60-D) and dominates the
+  runtime of the suite.
+- Every test whose outcome depends on random draws is seeded, including
+  the noise of a noisy target, so a failing test fails again on each rerun:
+  CI's `--reruns=5` does not hide it. The tolerances of
+  `test_bads_optimization.py` hold over a sweep of seeds, not only at the
+  seed each test runs at: when a change that moves results fails one,
+  measure the errors over the seeds again with
+  `dev/scripts/tolerance_sweep.py` before reseeding the test or loosening
+  the tolerance.
+- `pybads/testing/bads/scripts/` holds manual scripts that pytest does not
+  collect.
 
 ## Conventions
 

@@ -52,29 +52,41 @@ order.
   trajectories there, and this does not show whether the calls still fail.
   To settle: restore those guards, the data passed through `gp.update`,
   and what the GP left by a failed call means downstream in PyBADS.
-- [ ] **Make the tests check what they appear to.** The survey's section
-  "Tests that check less than they appear to" lists the defects:
-  `pybads/testing/bads/poll/test_poll_mads.py` names its functions
-  `*_test`, so pytest collects none of them (they pass when called
-  directly); `test_sphere_opt` has its non-box constraint reversed with
-  respect to MATLAB's `runtest.m` and passes only through its loose
-  tolerance; `test_high_dim_opt` asserts nothing; the other optimization
-  tests pass whenever the error is below 1, and most are unseeded
-  (`random_seed` makes them deterministic); `pybads/testing/run_tests.py`
-  imports paths that no longer exist, and no test reads
-  `pybads/testing/bads/*.dat`. A fix to a test moves no result, so the
-  suite is its check, not the population comparison; `AGENTS.md`, "Tests
-  and their traps", and the survey's section record each fix. Work on a
-  branch off `dev-next` (`dev-tests`, whose pushes get the CI smoke run),
-  merged into `dev-next` by a pull request, and keep off the files of the
-  item on unguarded GP updates, worked on in parallel:
-  `bads/gaussian_process_train.py`, the GP call sites in `bads/bads.py`
-  and the survey's candidate table.
+- [ ] **Follow-ups of the seeded tests** (the survey's section on the
+  tests).
+  - A deterministic test of the fallback of the initial GP fit in
+    `init_and_train_gp` (its `except np.linalg.LinAlgError`), for instance
+    with `gp.fit` monkeypatched to raise once. `test_small_noisy_func` went
+    through it under its former global seed; at `SEED = 0` no test does,
+    while 32 of the 100 seeds of the sweep do, and a seed chosen to reach
+    it would not reach it on every platform. The item on unguarded GP
+    updates changes that code: write the test with it or after it.
+  - The tolerance of `test_he_noisy_sphere_opt`, 5, about twice its largest
+    error: settle it once MATLAB's own rate above the tolerance of
+    `runtest.m` is known (bug hunt), by tightening it, keeping it, or giving
+    the test a budget above the 200 evaluations of `runtest.m`.
+  - CI's `--reruns=5` (`.github/workflows/test-matrix.yml`, and the command
+    that `AGENTS.md` cites) repeats a failure identically, since every test
+    whose outcome depends on random draws is seeded: keep it or drop it.
+  - NumPy 1.x, which `pyproject.toml` allows (`numpy >= 1.22.1`), runs in
+    no CI job; on Windows it gives every run another initial design
+    (`init_sobol`, in the survey), and the tolerances were not checked
+    there. Either a CI job with the oldest NumPy allowed, or a higher
+    minimum.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB) and the tests
-  that check less than they appear to.
+  table (only partly looked at, never compared with MATLAB), and the
+  findings of its section on the tests: the errors of
+  `test_he_noisy_sphere_opt`, above the tolerance of MATLAB's `runtest.m`
+  in 7 of 100 seeds, and three candidate defects (`contraints_check` keeps
+  previously evaluated points, whose duplicates may reach the failed
+  Cholesky factorizations of the item on unguarded GP updates; the seed of
+  the initial Sobol design ignores all but the integer part of `u0`, and
+  whether MATLAB's `uint64` product saturates needs MATLAB itself; the
+  warnings of `gaussian_process_train.py` go to the `asyncio` logger). They
+  move into the candidate table once the item on unguarded GP updates,
+  which edits that table, has landed.
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.

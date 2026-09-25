@@ -144,16 +144,147 @@ described; the rest are reports of the read not yet looked at.
 | `search/search_hedge.py:72-74` (at `894d205`) | `np.argwhere(rand_uni < np.cumsum(self.prob))[0]` raises `IndexError` when nothing matches, before the `len(self.chosen_hedge) == 0` fallback that it guards can run | fixed in `06badd3` |
 | `bads.py:39` (at `894d205`), the `BADS` class docstring | a `:math:` role holding `\mathtt` in a docstring that is not a raw string: Python 3.12 emits `SyntaxWarning: invalid escape sequence` for it when it compiles the module | fixed in `06badd3` |
 
-## Tests that check less than they appear to
+## Tests that checked less than they appeared to
 
-- `pybads/testing/bads/poll/test_poll_mads.py` names its functions `*_test`,
-  so pytest collects none of them.
-- `test_high_dim_opt` runs with `assert_flag=False` and asserts nothing.
-- The other optimization tests pass when the error is below 1
-  (`np.any(err < [0.1, 0.1, 1, 1])`).
-- `test_sphere_opt` marks as infeasible the points with `x1 + x2 >= sqrt(2)`,
-  the reverse of the MATLAB test (`runtest.m`, infeasible where
-  `x1 + x2 < sqrt(2)`), so the unconstrained minimum 0 is feasible; it
-  expects 1 and passes because an error just below 1 meets its tolerance.
-- `pybads/testing/run_tests.py` imports `testing.*` paths that no longer
-  exist, and no test reads `pybads/testing/bads/*.dat`.
+Each defect below is fixed in pull request #63, in the commit its entry
+names. A fix to a test moves no result, so the test suite was the check:
+with gpyreg 1.3.3, 109 tests passed at `870fa35` and 112 after the fixes
+(the three poll tests added to the collection), none of them needing a
+rerun; on the full CI matrix (Ubuntu, Windows, macOS × Python 3.10–3.12),
+112 passed in every job, without reruns.
+
+- `pybads/testing/bads/poll/test_poll_mads.py` named its functions
+  `*_test`, so pytest collected none of them. Fixed in `125efac`: renamed
+  `test_*`, they check the poll set beyond its shape (the second half
+  negates the first, and undoing the division by `poll_scale` gives an
+  integer basis of determinant `+-n_max**D`), and a third test reaches
+  `n_max > 1`, which neither of the two original cases did. A run at
+  default options never does: `search_size_integer` stays at most
+  `2 * mesh_size_integer - 10` and at most 0 (`search_grid_multiplier` 2,
+  `search_grid_number` 10), so with `poll_mesh_multiplier` 2 the search
+  mesh is at least 32 times finer than the poll mesh and `n_max` is 1, as
+  in MATLAB BADS.
+- `test_high_dim_opt` ran with `assert_flag=False` and asserted nothing,
+  and neither did `test_univariate_input_and_opt`. Fixed in `9a99bae`: both
+  assert an error bound (table below).
+- The optimization tests built on `get_test_opt_conf` passed when the
+  error was below 1: `np.any(err < [0.1, 0.1, 1, 1])` compared the error
+  with the four tolerances of `runtest.m` at once. Fixed in `9a99bae`:
+  each test has one tolerance (table below).
+- `test_sphere_opt` marked as infeasible the points with
+  `x1 + x2 >= sqrt(2)`, the reverse of the MATLAB test (`runtest.m`,
+  infeasible where `x1 + x2 < sqrt(2)`), and started from the origin, so
+  the unconstrained minimum 0 was feasible; it expected 1 and passed
+  because an error just below 1 met its tolerance. Fixed in `9a99bae`: the
+  test takes the constraint and the start point `(4, 4, 4)` of
+  `runtest.m`, and every run of the sweep below ends within 2e-4 of the
+  constrained minimum.
+- Most optimization tests were unseeded, and the noisy targets drew their
+  noise from NumPy's global stream (`test_small_noisy_func` after reseeding
+  it). Fixed in `9a99bae`: each run sets `random_seed`, and a noisy target
+  draws its noise from a generator of its own. The three tests of
+  `search/test_search.py` that trained the GP of an unseeded `BADS` are
+  seeded in `4fab44d`.
+- `pybads/testing/run_tests.py` imported `testing.*` paths that no longer
+  exist, and no test read `pybads/testing/bads/*.dat`, six files present
+  since the first port (`c7c88ab`) and read in no commit. Both removed in
+  `5d5c111`.
+
+### The seed sweep behind the tolerances
+
+Each test of `test_bads_optimization.py` ran with `random_seed = s` and its
+noise seed `s + 1000` for `s` from 0 to 99, from a copy of its
+configuration; the tests run at `s = 0`. Environment: Windows 11, Python
+3.12.6, NumPy 2.5.3, SciPy 1.18.1, gpyreg 1.3.3 (a clone at the tag,
+`98ab5a4`), package code of `870fa35`. No run crashed. The retry loop of
+the initial GP fit (`init_and_train_gp`) logged 49 failed fits, and every
+run's initial fit then succeeded: 47 in 32 runs of `test_small_noisy_func`
+(up to four in one run) and 2 in 2 runs of
+`test_univariate_input_and_opt`. `dev/scripts/tolerance_sweep.py`, which
+runs the test functions themselves with their tolerances disabled,
+reproduces the error and the evaluations of every run of the sweep at `s`
+from 0 to 4.
+
+On another platform a seeded run can follow another trajectory, as another
+seed would, so a tolerance has to hold beyond the seed the test runs at.
+Each tolerance is ten times the largest error of the sweep, rounded up to
+1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if that is
+lower (`test_noisy_sphere_opt`), with one exception: the errors of
+`test_he_noisy_sphere_opt` exceed the tolerance of `runtest.m`, 1, in 7 of
+the 100 seeds, the largest being 2.3, and its tolerance is 5. Whether
+MATLAB BADS exceeds 1 as often on this problem, at the same 200
+evaluations, is not checked.
+
+| Test | Evaluations | Median error | Largest error | Tolerance | Before the fix | `runtest.m` |
+|---|---|---|---|---|---|---|
+| `test_ellipsoid_opt` | 67–93 | 8.7e-6 | 9.8e-5 | 1e-3 | 1 | 0.1 |
+| `test_sphere_opt` | 65–100 | 2.0e-5 | 1.9e-4 | 2e-3 | 1 | 0.1 |
+| `test_noisy_sphere_opt` | 100 | 5.7e-3 | 0.10 | 1 | 1 | 1 |
+| `test_he_noisy_sphere_opt` | 192–200 | 0.33 | 2.3 | 5 | 1 | 1 |
+| `test_small_noisy_func` | 149–223 | 5.9e-6 | 2.5e-4 | 1e-2 | 0.1 | |
+| `test_1D_opt_*` (three tests) | 30 | 5.8e-9 | 2.1e-7 | 5e-6 | 0.1 | |
+| `test_univariate_input_and_opt` | 87–141 | 3.3e-5 | 1.4e-3 | 2e-2 | none | |
+| `test_high_dim_opt` | 200 | 2.9e-2 | 5.5e-2 | 1 | none | |
+
+The error is `|fval - f_min|` on a target without noise, and the noiseless
+value at the returned point minus the minimum on a noisy one. The three 1D
+tests pass the same problem in different input shapes; the sweep ran
+`test_1D_opt_scalar`, and at `s` from 0 to 4 the other two give the same
+runs. The 60-D ellipsoid of `test_high_dim_opt` starts at 17.3, and the
+run ends on its budget of 200 evaluations.
+
+On the arm64 runners of the macOS CI jobs, `test_small_noisy_func` starts
+from another initial design than on x86, the same for every seed (the cast
+of `init_sobol`, below). Emulated on x86 by clipping `u0` at 0 before
+`init_sobol`, on the assumption that the arm64 conversion turns a negative
+value into 0, its errors over the same seeds reach 6.5e-4 (median 1.1e-5,
+145–207 evaluations), and its tolerance, 1e-2, follows the rule over the
+largest error of both designs.
+
+### Found while fixing the tests
+
+Three candidate defects, seen in the code (reach and effect not measured):
+
+- `test_incumbent_constraint_check` (`search/test_search.py`) evaluates
+  every row of `U` and then asserts that `contraints_check`
+  (`function_logger/constraints_check.py`) drops only the duplicate row it
+  appends. That holds because `contraints_check` removes no previously
+  evaluated point: its step "Remove previously evaluated vectors" keeps the
+  first occurrences of `np.unique` over the candidates stacked above the
+  evaluated points, and a first occurrence always falls among the
+  candidates. MATLAB's `utils/uCheck.m` removes them
+  (`setdiff(u1, u2, 'rows')`), which would leave `U_new` empty in the test.
+  `contraints_check` filters the candidates of the initial design, the
+  search and the poll, so a run can evaluate a point again; without a
+  noise estimate from the target, `FunctionLogger` records the repeat as a
+  new row, a duplicate training input of the GP. At low noise a duplicate
+  input leaves the training covariance of the GP nearly singular; whether
+  the failed Cholesky factorizations recorded above involve duplicates is
+  not checked. Fixing it moves results.
+- `init_sobol` (`init_functions/init_sobol.py`) derives the seed of the
+  initial Sobol design from `u0[:11].astype(np.uint64)`, the integer parts
+  of the first 11 coordinates, and not from `random_seed`: the seed is the
+  product of the character codes of those integers, printed. Every `u0`
+  inside `(-1, 1)^D`, that is, every start point inside the plausible box,
+  gives the same seed, and so the same initial design for a given `D`
+  (checked for `D = 3`). The cast is undefined for a coordinate of -1 or
+  below: on x86, `-1.5` gives `2**64 - 1`, while on the arm64 runners of
+  the macOS CI jobs `test_small_noisy_func` (whose `x0 = -3` maps to
+  `u0 = -1.5`) emits `RuntimeWarning: invalid value encountered in cast`,
+  and its design differs (sweep above). The product is taken in NumPy's
+  default integer, 64-bit from NumPy 2 but 32-bit with NumPy 1.x on
+  Windows, which `pyproject.toml` allows (`numpy >= 1.22.1`) and no CI job
+  installs: there it wraps differently and gives another design (read, not
+  run). MATLAB's `init/initSobol.m` takes the seed from
+  `prod(uint64(num2str(u0(1:min(10,end)))))`, the character codes of the
+  printed values of the first 10 coordinates. If MATLAB's `prod` keeps the
+  `uint64` class of its argument and saturates, as its integer arithmetic
+  does by default, that seed is also the same for most start points, and
+  the port differs in mechanism more than in effect; this is not checked in
+  MATLAB.
+- `gaussian_process_train.py` imports its `logger` from `asyncio.log`
+  (line 4), the logger named `asyncio`, not the `BADS` logger whose level
+  the `display` option sets. Its warnings (a failed initial fit in
+  `init_and_train_gp`, a failed hyperparameter optimization, a failed slice
+  sampler) are therefore printed whatever `display` says: the sweep above,
+  run with `display="off"`, printed the 49 failed initial fits.
