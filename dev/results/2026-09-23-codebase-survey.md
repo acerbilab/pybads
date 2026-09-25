@@ -116,6 +116,43 @@ Windows);
 those two runs follow other trajectories there, since they pass through
 the low-noise regime whose predictions gpyreg 1.3.2 changed.
 
+**Duplicate training inputs at the failing calls.** `contraints_check`
+lets a run evaluate a point again (candidate table), and without a target
+noise SD the repeat becomes a second, identical training input of the GP.
+Each of the four crashing runs was rerun on Windows at its population's
+commit (`2226883` or `c85cddb`), with the gpyreg 1.3.1 clone, through
+`population.py run` from a worktree at that commit, with
+`gpyreg.GP.update`, which `set_hyperparameters` calls, wrapped to observe
+each call from PyBADS. Each run crashes again, at the same evaluation and
+through the same lines of PyBADS and gpyreg. At the failing call, the
+wrapper counts the exact duplicate rows of the training inputs and repeats
+the call's computation on a copy of the GP as it was before the call,
+unchanged (it fails again in all four) and with the duplicate rows
+removed. The distances between inputs below are scaled by the length
+scales of the failing call. The wrapper and the records are kept on the
+machine that ran them (`dev/scripts/runs/LOCAL.md`).
+
+| Run | Failing call | Inputs | Exact duplicate pairs | Without the duplicates | Distinct pairs closer than 1e-8, scaled | Updates with duplicates before |
+|---|---|---|---|---|---|---|
+| `ellipsoid_D3` seed 20 (baseline) | `_get_target_from_gp_`, `set_hyperparameters(hyp_best)` | 80 | 3 | succeeds | 78 of 3,160 | 122 of 387, from the 266th |
+| `ellipsoid_D10` seed 7 (baseline) | `add_and_update_gp`, `gp.update` | 151 | 0 | (none to remove) | 11,325 of 11,325 | 593 of 2,263, from the 1,411th |
+| `ellipsoid_D10` seed 13 (generator) | `local_gp_fitting`, `gp.update(hyp=hyp_gp)`, then `set_hyperparameters(old_hyp_gp)` with the same hyperparameters | 150 | 0 | (none to remove) | 5,561 of 11,175 | 460 of 1,756, from the 1,132nd |
+| `ellipsoid_D10` seed 26 (generator) | the same, from the poll | 50 | 0 | (none to remove) | 79 of 1,225 | none of 794 |
+
+Duplicate inputs are thus the cause of one crash, and the GP took them
+without failing in hundreds of earlier updates of three of the runs. The
+three crashes in 10-D fail without any duplicate, under length scales with
+which many distinct inputs coincide numerically: their logarithms reach
+27.5, 59.7 and 34.7, and in `ellipsoid_D10` seed 7 every pair of the 151
+inputs is closer than 1e-8.
+In all four calls the log output scale lies within 1.3e-5 of its upper
+bound, `log(1e6 * tol_fun / tol_mesh)` = 20.08 (`tol_mesh` is 2^-19 in
+`optim_state`), and most log length scales lie above 4.38 (2 of 3 in 3-D,
+8 to 10 of 10 in 10-D), the upper bound that MATLAB BADS would give them,
+`log(covrange)` with `covrange` = 80 on these problems. The port's upper
+bound is `covrange` itself, 80 (candidate table), which none of the four
+reaches.
+
 **Fixed at `676083d`**
 ([`dev/plans/gp-update-guards.md`](../plans/gp-update-guards.md)). The
 three calls are guarded after MATLAB BADS, and the GP handed on always has
@@ -180,7 +217,7 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py`, `_search_step_` (at `a83bd51`) | after a failed rebuild, the search ranks its candidates by the LCB of the previous GP; MATLAB's `acqLCB` sums over the finite prediction samples, zero when none is, so MATLAB evaluates the first candidate. The poll treats such a GP as unreliable, as MATLAB does | seen (MATLAB side read) |
 | `gaussian_process_train.py`, `init_and_train_gp` (at `a83bd51`, lines 161-209) | retries a failing initial fit without bound (from the fifth attempt, from random samples of the priors), so a fit that keeps failing loops forever; initialization only | seen |
 | `gaussian_process_train.py`, `_robust_gp_fit_`, and the forced refit (at `a83bd51`) | the refit forced after a failed rebuild sends a run that has met a failure into `_robust_gp_fit_`, whose fifth consecutive failed fit raises `ValueError` (section "Failed fits"); the stress run injects no failure into fits, so this is untested | not looked at |
-| `function_logger/constraints_check.py`, `contraints_check` | removes no previously evaluated point (its `np.unique` keeps the first occurrences, which fall among the candidates), where MATLAB's `uCheck.m` removes them with `setdiff`; a repeat becomes a duplicate GP training input, a plausible cause of the failed Cholesky factorizations. One exact repeat was evaluated in `ellipsoid_D10` seed 7 on Linux at `8fc1dff` (section "Found while fixing the tests"; `dev/TODO.md`, "Previously evaluated points evaluated again") | seen (MATLAB side read) |
+| `function_logger/constraints_check.py`, `contraints_check` | removes no previously evaluated point (its `np.unique` keeps the first occurrences, which fall among the candidates), where MATLAB's `uCheck.m` removes them with `setdiff`; a repeat becomes a duplicate GP training input: three duplicate pairs make the failing factorization of one of the four crashes of the section "Crashes on unguarded GP updates" (`ellipsoid_D3` seed 20), and the other three fail without any. One exact repeat was evaluated in `ellipsoid_D10` seed 7 on Linux at `8fc1dff` (section "Found while fixing the tests"; `dev/TODO.md`, "Previously evaluated points evaluated again") | seen (MATLAB side read) |
 | `init_functions/init_sobol.py`, `init_sobol` | the seed of the initial Sobol design comes from the integer parts of `u0`, so every start point inside the plausible box gives the same design for a given `D`, and the cast is undefined at -1 and below (section "Found while fixing the tests") | seen (MATLAB side read; the saturation of MATLAB's `uint64` product not checked) |
 | `gaussian_process_train.py:4` (at `a83bd51`) | imported its `logger` from `asyncio.log`, so the GP fit warnings went to the `asyncio` logger (section "Found while fixing the tests") | fixed at `8fc1dff` (the `BADS` logger) |
 | `bads.py:722-770` | a non-empty `fun_values` option is reported to crash | not looked at |
@@ -203,6 +240,8 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py`, `_save_gp_stats_` calls (at `1a21844`, lines 1694-1696 and 2138-2140) and `_re_evaluate_history_` | the GP calibration statistics store the latent standard deviation, where MATLAB stores that of the observation, likelihood noise included; `_re_evaluate_history_` selects the neighbours of each stored GP with that GP's `len_scale` and `effective_radius`, where MATLAB uses the current GP's (`bads.m:1378-1388`) (reported by the review of #65) | not looked at |
 | `bads.py`, the final estimate without target noise (at `4c4a213`) | `fsd` is `np.std(yval_vec) / sqrt(n)`, with NumPy's default normalization by `n`; MATLAB's `std` in `FinalEstimate` normalizes by `n - 1`, so the port's `fsd` is smaller by `sqrt((n - 1)/n)`: 0.95 at the default 10 samples, 0.71 with one sample, to which `yval` is added | seen (MATLAB side read) |
 | `optimize_result.py:122` and `bads.py`, the final estimate (at `4c4a213`) | with noise and `noise_final_samples > 0`, `OptimizeResult` reads `optim_state["yval_vec"]`, which only the final re-evaluation sets, and that runs only after a poll: a noisy run that ends before its first poll raises `KeyError: 'yval_vec'`. MATLAB sets `yval_vec = yval` before the branch (`bads.m:1136`). Seen on the sphere of `dev/scripts/fingerprint.py` with `uncertainty_handling=True`, `random_seed=0` and `max_fun_evals=45`; at 35 and 40 the run stops earlier, with `ValueError: cannot convert float NaN to integer` from the division by zero of the row at `1cfe371` | run |
+| `gaussian_process_train.py`, `_gp_hyp` (at `4bde5e9`, lines 931-939) | the upper bound of the log length scales is `cov_range = min(100, 10 * (ub - lb) / scale)` itself, where MATLAB's `gpdefBads.m:90` takes `log(covrange(i))`: on the ellipsoids of the benchmark, where `cov_range` is 80, the port lets a log length scale reach 80 and MATLAB stops at 4.38. At the failing calls of the four crashes of the section "Crashes on unguarded GP updates", the log length scales reach 19.3 in 3-D and 27.5 to 59.7 in 10-D, with the output scale at its upper bound, a plausible cause of the degenerate GPs of the three crashes in 10-D (not checked). Fixing it moves results at default options | seen (MATLAB side read) |
+| `bads.py`, `_poll_step_` (at `4bde5e9`, line 2115) | calls `np.seterr(divide="ignore")` when the root logger is above DEBUG and never restores it, so a run changes NumPy's error handling for the rest of the process; with the root logger at DEBUG, the division by the predicted SD below it warns `divide by zero` | seen |
 
 Three rows marked "at `1a21844`" are fixed on `dev-tests`: the
 `noise_size` check in `6dad7e4`, the loggers in `6f28fc7` and the final
@@ -369,8 +408,10 @@ candidate table:
   new row, a duplicate training input of the GP. At low noise a duplicate
   input leaves the training covariance of the GP nearly singular. On Linux
   at `8fc1dff`, one exact repeat was evaluated in `ellipsoid_D10` seed 7,
-  one of the crashing seeds recorded above; `dev/TODO.md`, "Previously
-  evaluated points evaluated again", holds the rest of the check. Fixing
+  one of the crashing seeds recorded above, whose crash on Windows at
+  `2226883` came on a training set without duplicates (section "Crashes on
+  unguarded GP updates"); `dev/TODO.md`, "Previously evaluated points
+  evaluated again", holds the rest of the check. Fixing
   it moves results.
 - `init_sobol` (`init_functions/init_sobol.py`) derives the seed of the
   initial Sobol design from `u0[:11].astype(np.uint64)`, the integer parts

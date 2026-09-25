@@ -153,6 +153,8 @@ reference's number of seeds.
   observed in the test suite at `273a5b7`, the candidate defects found by a
   read of the code (not verified), and the tests that checked less than
   they appeared to, with their fixes, the seed sweep behind the tolerances
-  of the optimization tests, three candidate defects found on the way, and
-  the checks behind running each test once in CI and requiring NumPy 2.
-  The starting point of the deferred bug hunt in `TODO.md`.
+  of the optimization tests, three candidate defects found on the way, the
+  checks behind running each test once in CI and requiring NumPy 2, and
+  the reruns of the four crashing benchmark runs, one of which duplicate
+  training inputs explain. The starting point of the deferred bug hunt in
+  `TODO.md`.

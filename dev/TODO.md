@@ -25,23 +25,15 @@ order.
   the candidates, so a candidate that repeats an evaluated point is kept.
   MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
   target noise SD, `FunctionLogger` records the repeat as a new row, and
-  it becomes a duplicate training input of the GP. At low noise that makes
-  the training covariance nearly singular, a plausible cause of the
-  `LinAlgError` crashes behind `plans/gp-update-guards.md`. On Linux at
-  `8fc1dff` (gpyreg 1.3.3), one exact repeat was evaluated in
-  `ellipsoid_D10` seed 7, one of the crashing seeds, and one in
-  `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20. To settle:
-  - look for duplicate rows in `gp.X` just before the failing call of the
-    crashing runs (Windows, gpyreg 1.3.1, the survey's section "Crashes on
-    unguarded GP updates"): `ellipsoid_D3` seed 20 and `ellipsoid_D10`
-    seed 7 of `population_baseline_20260924`, at its commit `2226883`, and
-    `ellipsoid_D10` seeds 13 and 26 of `population_generator_20260924`, at
-    `c85cddb`. Each reruns with `population.py run --only ... --seeds ...`
-    from a worktree at that commit, with the gpyreg 1.3.1 clone on
-    `PYTHONPATH` (`dev/scripts/runs/LOCAL.md`), and crashes again;
-    wrapping the failing call to test `gp.X` for duplicate rows settles
-    it. This is a read of those runs only, and needs this Windows machine
-    or a Windows one like it;
+  it becomes a duplicate training input of the GP. Of the four
+  `LinAlgError` crashes behind `plans/gp-update-guards.md` (Windows,
+  gpyreg 1.3.1, the survey's section "Crashes on unguarded GP updates"),
+  duplicates cause one: `ellipsoid_D3` seed 20 failed on a training set
+  with three exact duplicate pairs, and succeeds without them. The three
+  in 10-D failed without any duplicate (next item). On Linux at `8fc1dff`
+  (gpyreg 1.3.3), one exact repeat was evaluated in `ellipsoid_D10` seed
+  7, and one in `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20.
+  To settle:
   - count the repeats over the default suite;
   - fix the removal, as MATLAB does it. That moves results, so it is gated
     by the population comparison against the current reference of the
@@ -50,6 +42,19 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
+- [ ] **Upper bound of the GP length scales.** `_gp_hyp`
+  (`gaussian_process_train.py`) bounds each log length scale by
+  `cov_range = min(100, 10 * (ub - lb) / scale)`, where MATLAB's
+  `gpdefBads.m` bounds it by `log(covrange)`: 80 against 4.38 on the
+  ellipsoids of the benchmark. At the failing calls of the three
+  `LinAlgError` crashes in 10-D (the survey's section "Crashes on
+  unguarded GP updates"), 8 to 10 of the 10 log length scales exceed
+  4.38, up to 59.7, and the output scale is at its upper bound, so that
+  many distinct inputs coincide numerically. To settle: whether MATLAB's
+  bound prevents those GPs (the four reruns, with the bound changed, at
+  gpyreg 1.3.1), and the fix, which moves results at default options and
+  is gated by the population comparison against the current reference of
+  the platform, with the seeded tests re-checked over their seeds.
 - [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of
   `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two configurations with
   target noise, so `experiments/population_linux_20260925/` no longer
