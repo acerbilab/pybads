@@ -7,6 +7,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Failed GP updates.** A run no longer stops with `LinAlgError`
+  ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
+  update fails while adding a point, predicting the optimization target or
+  rebuilding the local GP. The run carries on, as in MATLAB BADS, and the GP
+  is rebuilt at the next step, with its hyperparameters refitted if a
+  rebuild failed. Runs without such a failure give the same results.
 - **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
   `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an

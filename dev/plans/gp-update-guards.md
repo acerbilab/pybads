@@ -3,7 +3,7 @@
 Created: 2026-09-25
 Status: APPROVED (2026-09-25). Revised the same day after an independent
 review; the user re-settled Open Question 2 and settled the new Open
-Question 7. Phase 0 in progress.
+Question 7. Phases 0-2 done.
 
 ## Summary
 
@@ -130,14 +130,16 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
   `new_gp`.
   - **Search** (`bads.py:1581-1585`): adds `needs_rebuild` to its rebuild
     condition and ORs `needs_refit` into `refit_flag`.
-  - **Poll** (`:2021-2033`): does the same, with `needs_refit` ORed in
-    before the `poll_training` override, which then still applies.
+  - **Poll** (`:2021-2033`): does the same. `needs_refit` does not
+    override `poll_training`: with `poll_training` off, after the first
+    iteration, the poll rebuilds without refitting.
   - **`local_gp_fitting`**: removes both whenever it leaves a posterior on
     its new training set.
 
-  Phase 2 checks that nothing besides `refit_flag` records a refit inside
-  `_is_gp_refit_time_`. If something does, the forced refit has to record
-  it too.
+  When `_is_gp_refit_time_` decides on a refit, it also records it: it
+  sets `optim_state["lastfitgp"]` to the evaluation count and resets the
+  GP statistics. That bookkeeping moves into a method of its own,
+  `_record_gp_refit_`, which a forced refit calls as well.
 - **Target** (call 1). Put `set_hyperparameters` and `predict` on the deep
   copy in one `try`. On `LinAlgError`, predict at the incumbent from `gp`
   itself: its own hyperparameters and consistent posterior, with no
@@ -286,7 +288,7 @@ seed and traceback, and the null-check verdict.
 
 ### Phase 1: failure-injection tests, failing first
 
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-25)
 
 New file `pybads/testing/bads/test_gp_update_failures.py`.
 
@@ -361,7 +363,7 @@ there already.
 
 ### Phase 2: the guards
 
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-25)
 
 1. Call 1, call 2, call 3, the markers and the noisy poll's NaN, as in
    Design. The docstrings of `add_and_update_gp` and `local_gp_fitting`
@@ -539,3 +541,27 @@ to the population's; all injected runs finished.
   36 tests. Against the Windows reference (information only): no flag in
   54 tests, every median log10 error ratio within [-0.28, +0.08], every
   interval containing zero.
+- 2026-09-25: Phase 1. `test_gp_update_failures.py` has 39 tests
+  (parametrized over levels 0-2). At the unfixed code (package code of
+  `09996b5`), 35 fail, each for the stated reason:
+  - 20 by the injected `LinAlgError`;
+  - 1 by a real Cholesky `LinAlgError` (test 2);
+  - 3 by `AttributeError` (the target's fallback);
+  - 6 by markers that are neither set nor cleared;
+  - 4 by a missing rebuild or refit (tests 6);
+  - 1 by the level-1 `s2`, which the old code does not extend.
+
+  The 4 that pass are the no-failure baselines: test 1 at levels 0 and 2,
+  and the two unmarked probes. Tests 3 and 4 (recovered failure and
+  success) also check that the markers are cleared, so they fail at the
+  old code, unlike the plan's first estimate for test 4. 11 s.
+- 2026-09-25: Phase 2.
+  - The 39 new tests pass (20 s), and the whole suite passes with reruns
+    off (148 tests, 46 s).
+  - The fingerprint with the v1.3.3 clone is `e5f46bce200bfaa7` in two
+    processes, as before.
+  - A forced refit records itself through `_record_gp_refit_`, the
+    bookkeeping moved out of `_is_gp_refit_time_`.
+  - In the poll, a forced refit gives way to `poll_training`.
+  - Under `stobads` (off by default), a NaN `f_poll` goes into
+    `_sto_success_improvement_`; this is not examined.
