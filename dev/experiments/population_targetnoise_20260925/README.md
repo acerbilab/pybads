@@ -72,3 +72,13 @@ KS statistic of at least 0.50, and, for the paired signed-rank test, a
 shift of about 0.87 of the standard deviation of the paired log10 error
 ratios at 80% power. Between two versions on this platform, a run that a
 change does not reach is identical in both populations.
+
+## The records and later code
+
+From `4c4a213` on, the final estimate under target noise weights the final
+samples by the precisions that the target returns, so the `fval` and `fsd`
+of `sphere_D3_hetero` and `ellipsoid_D3_hetero` in these records differ
+from what the code returns. Their `x`, evaluations, iterations and errors
+do not, in all 60 runs, and `compare` tests only the error and the
+evaluations ([survey](../../results/2026-09-23-codebase-survey.md), below
+its candidate table).

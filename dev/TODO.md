@@ -25,12 +25,11 @@ order.
   the candidates, so a candidate that repeats an evaluated point is kept.
   MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
   target noise SD, `FunctionLogger` records the repeat as a new row, and
-  it becomes a duplicate training input of the GP. Of the four
-  `LinAlgError` crashes behind `plans/gp-update-guards.md` (Windows,
-  gpyreg 1.3.1, the survey's section "Crashes on unguarded GP updates"),
-  duplicates cause one: `ellipsoid_D3` seed 20 failed on a training set
-  with three exact duplicate pairs, and succeeds without them. The three
-  in 10-D failed without any duplicate (next item). On Linux at `8fc1dff`
+  it becomes a duplicate training input of the GP. It explains none of
+  the four `LinAlgError` crashes behind `plans/gp-update-guards.md` (the
+  survey's section "Crashes on unguarded GP updates"): one failing call
+  held three exact duplicate pairs, but removing almost any three of its
+  rows lets it succeed, and the other three held none. On Linux at `8fc1dff`
   (gpyreg 1.3.3), one exact repeat was evaluated in `ellipsoid_D10` seed
   7, and one in `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20.
   To settle:
@@ -46,15 +45,48 @@ order.
   (`gaussian_process_train.py`) bounds each log length scale by
   `cov_range = min(100, 10 * (ub - lb) / scale)`, where MATLAB's
   `gpdefBads.m` bounds it by `log(covrange)`: 80 against 4.38 on the
-  ellipsoids of the benchmark. At the failing calls of the three
-  `LinAlgError` crashes in 10-D (the survey's section "Crashes on
-  unguarded GP updates"), 8 to 10 of the 10 log length scales exceed
-  4.38, up to 59.7, and the output scale is at its upper bound, so that
-  many distinct inputs coincide numerically. To settle: whether MATLAB's
-  bound prevents those GPs (the four reruns, with the bound changed, at
-  gpyreg 1.3.1), and the fix, which moves results at default options and
-  is gated by the population comparison against the current reference of
-  the platform, with the seeded tests re-checked over their seeds.
+  targets of the benchmark with its shifted box. At the failing calls of
+  the four `LinAlgError` crashes of the survey's section "Crashes on
+  unguarded GP updates", most log length scales exceed 4.38, up to 59.7,
+  so that many distinct inputs coincide numerically, and the output scale,
+  at its upper bound (MATLAB's too), sets an output variance 2e22 to 2e24
+  times the noise variance on them. To settle:
+  - whether MATLAB's bound would have kept those GPs factorizable, from
+    the inputs, targets and hyperparameters saved at each failing call
+    (machine-local, `dev/scripts/runs/LOCAL.md`), refitted under it. A
+    rerun with the bound changed follows another trajectory and cannot
+    show it. A rerun of the crashes needs Windows with the environment of
+    their records (NumPy 2.5.3, SciPy 1.18.1, one BLAS thread), their
+    commits `2226883` and `c85cddb` (reachable from `refs/pull/59/head`)
+    and a clone of gpyreg at v1.3.1, since no run of the suite fails
+    under gpyreg 1.3.3;
+  - how often the fits of the default suite end with a log length scale
+    above `log(cov_range)`;
+  - the fix, which moves results at default options on most of the suite:
+    gated by the population comparison against the current reference of
+    the platform, with the seeded tests re-checked over their seeds.
+- [ ] **Small defects of the noise options and the final estimate**, rows
+  of the survey's candidate table:
+  - `specify_target_noise=True` with `uncertainty_handling=None`, the
+    default, raises `ValueError`, where MATLAB's `setupoptions.m` turns
+    uncertainty handling on;
+  - a noisy run that ends before its first poll raises
+    `KeyError: 'yval_vec'` in `OptimizeResult`; MATLAB sets
+    `yval_vec = yval` before the branch (`bads.m:1136`);
+  - without target noise, the final `fsd` divides by `n`, where MATLAB's
+    `std` divides by `n - 1`;
+  - the final `fval` and `fsd` are recorded in the iteration history at
+    the last iteration, not at the iterate they describe;
+  - a list `noise_size`, or an array of two elements (MATLAB's base value
+    and prior SD), raises in `optimize()`;
+  - the high-noise check of `local_gp_fitting` reads `noise_size` under
+    `specify_target_noise`, where the warning says that it is ignored, and
+    `noise_size=0` makes every refit a high-noise one; MATLAB does the
+    same, so this one needs a decision more than a fix.
+
+  Each is user-visible and gets a changelog entry; the fingerprint of
+  `dev/scripts/fingerprint.py` shows whether a fix moves results at
+  default options.
 - [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of
   `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two configurations with
   target noise, so `experiments/population_linux_20260925/` no longer
