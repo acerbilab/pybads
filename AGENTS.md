@@ -79,7 +79,11 @@ branch that touches the package. `docs.yml` rebuilds the docs on every push
 to `main` and commits them to `gh-pages`.
 
 A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
-it: `release.yml` builds the package with `build.yml` and uploads it to
+it. Before the pull request that carries it to `main`, the changelog's
+`Unreleased` section becomes `[X.Y.Z] - <date>` under a new, empty
+`Unreleased`, and the GitHub release takes that section as its notes. The
+example scripts are worth a headless run first, since nothing else runs
+them. `release.yml` builds the package with `build.yml` and uploads it to
 PyPI by trusted publishing, through the `pypi` environment, which admits
 only `v*` tags. No token is stored. conda-forge follows by itself: after
 the upload, the version bot of `conda-forge/pybads-feedstock` opens an
@@ -265,7 +269,10 @@ same gpyreg.
   a `Claude-Session:` trailer is not, even where the session's own
   attribution instructions ask for one. Changes reach `main` through pull
   requests, which run the full test matrix, and are squash-merged, titled
-  `<type>: <summary> (#NN)`.
+  `<type>: <summary> (#NN)`. Work collects on the long-lived branch
+  `dev-next`; after its pull request is squash-merged, `dev-next` is reset
+  onto `main`, keeping only the commits made after the merged head, and
+  force-pushed, or the next pull request lists the merged commits again.
 - **Changelog.** A change that a user can notice is listed in `CHANGELOG.md`
   under `Unreleased`, in the commit that makes it, in a sentence written for
   users and relative to the last release (a fix to a feature that no
