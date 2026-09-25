@@ -1,0 +1,93 @@
+{
+ "label": "ackley_D6",
+ "seed": 0,
+ "problem": "ackley",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  4.429375528828794,
+  -1.8366284761450191,
+  2.2234258864982532,
+  -3.7439691456730673,
+  -0.7702363748502989,
+  1.4803809758728281
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 0
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 0,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   0.23793133694514523,
+   -1.9276757821336155,
+   1.29360693118576,
+   -0.602946549774348,
+   -1.0195623512358054,
+   1.7752155774916467
+  ],
+  "fval": 0.0003195122038891446,
+  "fsd": 0.0,
+  "true_error": 0.0003195122038891446,
+  "func_count": 394,
+  "iterations": 18,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 6.8948060890002125,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "676083d",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev9+g09996b5d3",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "676083d",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T07:01:10+0000",
+  "finished": "2026-09-25T07:01:18+0000"
+ }
+}

@@ -3,7 +3,8 @@
 Created: 2026-09-25
 Status: APPROVED (2026-09-25). Revised the same day after an independent
 review; the user re-settled Open Question 2 and settled the new Open
-Question 7. Phases 0-2 done.
+Question 7. Phases 0-4 done; a final review by fresh-context agents
+follows.
 
 ## Summary
 
@@ -389,7 +390,7 @@ reach level 2, which test 1 covers.
 
 ### Phase 3: reach and evidence
 
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-25)
 
 1. **`dev/scripts/gp_update_failures.py`**, after `gpyreg_issue_checks.py`.
    - It builds each run as `population.py` does (targets, options,
@@ -434,7 +435,7 @@ to the population's; all injected runs finished.
 
 ### Phase 4: records
 
-**Status**: [ ] not started
+**Status**: [x] done (2026-09-25)
 
 1. `AGENTS.md`, "What spans files":
    - the invariant: never assign `gp.X` or `gp.y` before an update that
@@ -565,3 +566,43 @@ to the population's; all injected runs finished.
   - In the poll, a forced refit gives way to `poll_training`.
   - Under `stobads` (off by default), a NaN `f_poll` goes into
     `_sto_success_improvement_`; this is not examined.
+- 2026-09-25: Phase 3.
+  - **`gp_update_failures.py`** committed at `cdfa8c3`. A trial on four
+    runs reproduced the population with `--check` and reached every guard
+    outcome with `--inject 0.05`.
+  - **Post-change population** `population_linux_post_20260925` at
+    `676083d`: 540 runs, 24.6 minutes, one commit in every record.
+    - Every record equals its pre-change record in every `final` field
+      except `wall_s`.
+    - `compare pre post`: no flag in 54 tests. Null check: no flag in 36.
+  - **Failure count** (default suite, seeds 0-29, `--check` against the
+    post population): 484,773 guarded calls (`add_and_update_gp` 107,477,
+    `local_gp_fitting` 213,263, `_get_target_from_gp_` 164,033), and none
+    failed. Every run's `x`, `fval` and `func_count` equal the population's
+    (0 mismatches), 24.5 minutes. Under gpyreg 1.3.3 on this machine the
+    benchmark therefore does not reach the failure paths. It shows only
+    that the no-failure paths are unchanged; the tests and the stress run
+    below carry the evidence for the failure paths.
+  - **Stress** (`--inject 0.02`, seeds 0-9, 180 runs, 8.3 minutes):
+    - 4,503 injected failures; every run finished.
+    - Guard outcomes, summed: `add_dropped` 684, `local_recovered` 62,
+      `local_restored` 1,342, `target_current_gp` 1,073,
+      `target_nonfinite` 0.
+    - The longest streak of consecutive restores is 3.
+    - The median log10 error per configuration lies within 0.7 of the
+      post population's, on the same seeds, and in both directions. The
+      fraction solved is within 0.2 (0.6 against 0.8 for `rosenbrock_D6`).
+- 2026-09-25: Phase 4.
+  - **`AGENTS.md`**: the invariant and the markers ("What spans files"),
+    and one reference per platform ("Numerical gates").
+  - **Survey**: the crash section records the fix, the counts and the
+    stress run. The `s2` row has current line numbers, and seven new rows
+    cover the target's refactorization against MATLAB's reuse of the
+    posterior, `S` in `gp.s2` at rebuilds, the NaN target, the recovery,
+    the dropped point and rank-1, `_re_evaluate_history_`, and the NaN
+    `f_poll` under `stobads`.
+  - **`dev/TODO.md`**: the item is closed.
+  - **Linux reference**: `dev/experiments/population_linux_20260925/`,
+    the post population with its README (null check; the comparison with
+    the Windows reference, no flag in 54 tests, information only).
+  - **`dev/README.md`**: the index.

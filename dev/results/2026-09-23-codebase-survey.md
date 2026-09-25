@@ -112,8 +112,30 @@ third call: `ellipsoid_D10` seeds 13 (751 evaluations, from
 fails in turn. With gpyreg 1.3.3 no run of the suite crashes (540 runs,
 `dev/experiments/population_gpyreg133_20260924/`, the current reference);
 those two runs follow other trajectories there, since they pass through
-the low-noise regime whose predictions gpyreg 1.3.2 changed, and the three
-calls remain unguarded.
+the low-noise regime whose predictions gpyreg 1.3.2 changed.
+
+**Fixed at `676083d`**
+([`dev/plans/gp-update-guards.md`](../plans/gp-update-guards.md)). The
+three calls are guarded after MATLAB BADS, and the GP handed on always has
+posteriors that match its data:
+- `add_and_update_gp` passes the point through `gp.update`, and a failure
+  leaves the GP without it, marked for a rebuild at the next step;
+- when the recovery in `local_gp_fitting` also fails, the GP of the entry
+  is restored and marked for a rebuild with a refit;
+- `_get_target_from_gp_` predicts from the current GP when the posterior
+  under the best iteration's hyperparameters cannot be computed. Its
+  fallback to the incumbent had never run, and raised `AttributeError`.
+
+Runs without a failure are unchanged. On Linux (Python 3.11.15, NumPy
+2.4.6, SciPy 1.17.1, gpyreg 1.3.3), the fingerprint is the same before and
+after, and the default suite × seeds 0-29 gives identical records at
+`500ff1b` and `676083d`. Its 484,773 guarded calls include no failure
+(`dev/scripts/gp_update_failures.py`), so the benchmark does not reach the
+new failure paths under gpyreg 1.3.3. Evidence for those paths:
+- `test_gp_update_failures.py`, including a real Cholesky failure;
+- a stress run with 2% of the guarded computations failing (seeds 0-9,
+  4,503 failures): every run finished, with median errors near those of
+  the reference.
 
 ## Candidate defects (not verified)
 
@@ -130,7 +152,14 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py:1405` | assigns `self.best_u`, a name used nowhere else (the incumbent is `u_best`) | seen |
 | `bads.py:500-507` | the half-bounds check tests all variables at once, rejecting any mix of bounded and unbounded variables, while the docstring allows per-variable infinite bounds | seen |
 | `bads.py:2183` | appends the bound method `self.u_best.copy` instead of a copy | seen |
-| `gaussian_process_train.py:1164` | the posterior update appends `sd_new` to `gp.s2`, where the initial fit stores `S**2` (`:1086`) | not looked at |
+| `gaussian_process_train.py:1164` (at `676083d`, `add_and_update_gp`, line 1246) | the posterior update appends `sd_new` to `gp.s2`, where the initial fit stores `S**2` (`:1086`, at `676083d` line 1163) | seen |
+| `gaussian_process_train.py`, `get_grid_search_neighbors` and `local_gp_fitting` (at `676083d`, lines 1134 and 272) | the rebuild of the local GP stores `function_logger.S`, standard deviations, in `gp.s2`, a variance: the slip of the row above, at every rebuild. Only `specify_target_noise` reads `s2`; with an explicit `uncertainty_handling=True` at level 1, `S` is never filled and `gp.s2` holds NaN, which the noise function ignores | seen |
+| `bads.py`, `_get_target_from_gp_` (at `676083d`, line 2479) | recomputes the posterior of a copy of the GP under the best iteration's hyperparameters (`set_hyperparameters(hyp_best)`) to predict the target; MATLAB's `UpdateTarget` (`bads.m:1296-1302`) sets `gptemp.hyp = hyp` but keeps `gptemp.post`, which `gppred` passes on and `mygp` reuses (`mygp.m:123`), so MATLAB predicts from the current posterior with `hyp` in the mean and covariance functions, without refactorizing. The port's recomputation is why the call can fail, and it gives other targets at default options (`uncertain_incumbent`) | seen (MATLAB side read) |
+| `bads.py`, `_get_target_from_gp_`, and MATLAB `UpdateTarget` | when the target prediction is not finite, both replace it by the incumbent's `fval` and `fsd` but compute the target from the failed variance, so the target is NaN, and the poll then treats the GP as unreliable. In MATLAB this follows a failed rebuild; in the port, a non-finite prediction from a consistent GP | seen (MATLAB side read) |
+| `gaussian_process_train.py`, `local_gp_fitting` (at `676083d`, lines 520-529) | after a failed posterior update, retries with the previous hyperparameters on the new training set, which MATLAB's `gpupdate` does not do (it clears the posterior); without a refit the retry repeats the failed computation. Kept so that runs where it succeeds do not move | seen (MATLAB side read) |
+| `gaussian_process_train.py`, `add_and_update_gp` (at `676083d`) | on a failed update the port leaves the point out of the GP until the next rebuild; MATLAB's `'add'` keeps it beside an empty posterior. It also recomputes every posterior in full, where MATLAB first tries a rank-1 update (skipped under `SpecifyTargetNoise`); `dev/TODO.md` | by design (`dev/plans/gp-update-guards.md`) |
+| `bads.py`, `_re_evaluate_history_` (at `676083d`, line 2618) | rebuilds the GPs stored in `IterationHistory` in place, so the recorded GPs change after the fact; after a failed rebuild it records the restored GP's `fval` and `fsd`, where MATLAB would record NaN | seen |
+| `bads.py`, `_poll_step_` with `stobads` | after a failed add in a noisy poll, `f_poll` is NaN and goes into `_sto_success_improvement_`; `stobads` is off by default and this was not examined | not looked at |
 | `bads.py:722-770` | a non-empty `fun_values` option is reported to crash | not looked at |
 | `optimize_result.py` | `success` is reported always `True`; `exit_flag`, `min_iter` and `min_fun_evals` are reported unread | not looked at |
 | `examples/scripts/pybads_example_2_nonbox_constraints.py` | set `options["rng_seed"]`, not a valid option name, in options never passed to `BADS`; the notebook never had these lines, and the script generated from it (tooling plan, Phase 4) no longer has them | resolved |

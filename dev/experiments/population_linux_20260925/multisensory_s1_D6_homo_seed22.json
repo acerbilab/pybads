@@ -1,0 +1,94 @@
+{
+ "label": "multisensory_s1_D6_homo",
+ "seed": 22,
+ "problem": "multisensory_s1",
+ "D": 6,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  2.391230781326184,
+  1.352367171331385,
+  17.565269895446264,
+  7.047458323796437,
+  25.98244542233572,
+  0.1347500517986694
+ ],
+ "f_min": 483.5133436051275,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 22
+ },
+ "effective_options": {
+  "max_fun_evals": 2990,
+  "max_iter": 1200,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 14,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 22,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   6.839778552925856,
+   2.0734746727264666,
+   1.064845457653534,
+   8.110581000146787,
+   9.93503289965979,
+   0.03287455820567187
+  ],
+  "fval": 483.75132881074614,
+  "fsd": 0.24887671773459966,
+  "true_error": 0.2152373545021078,
+  "func_count": 593,
+  "iterations": 23,
+  "message": "Optimization terminated: change in the function value less than options['tol_mesh']",
+  "wall_s": 20.63459124400015,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.4835038580503967
+ },
+ "meta": {
+  "git": {
+   "sha": "676083d",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev9+g09996b5d3",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "676083d",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T07:15:37+0000",
+  "finished": "2026-09-25T07:15:58+0000"
+ }
+}

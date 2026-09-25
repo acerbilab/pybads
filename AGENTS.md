@@ -225,16 +225,33 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.
+- **A GP update can fail, and the GP handed on must stay consistent.**
+  gpyreg (from 1.3.3) puts a GP whose `fit`, `update` or
+  `set_hyperparameters` raises back as it was when the call started. So new
+  data go through `gp.update(X_new=..., y_new=...)`. If `gp.X` or `gp.y` is
+  assigned before an update that fails, the new data sit beside the old
+  posteriors, and `predict` then raises, or silently predicts wrong values
+  when the sizes are equal. `local_gp_fitting`, which replaces the training
+  set, snapshots the GP and restores it when the rebuild fails. A GP that
+  could not take a point carries `temporary_data["needs_rebuild"]`; one
+  whose rebuild failed also carries `["needs_refit"]`. The markers are set
+  in `gaussian_process_train.py` and read by the search and the poll in
+  `bads.py`, which rebuild, or refit, at their next step.
+  `local_gp_fitting` removes both once it leaves a posterior on its new
+  training set. `test_gp_update_failures.py` injects the failures.
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
 
 ## Numerical gates
 
 A change that can move results is gated by the population comparison of
-`dev/scripts/population.py` against the current reference under
-`dev/experiments/` (its `README.md` holds the command, the provenance, the
-null check, the positive control and what "no flag" can detect at its number
-of seeds). A gate is evidence only if it reaches the changed code: the
+`dev/scripts/population.py` against the current reference of the platform
+under `dev/experiments/` (its `README.md` holds the command, the
+provenance, the null check, the positive control and what "no flag" can
+detect at its number of seeds). There is one reference for Windows and one
+for Linux, since pairing by seed holds only on one platform and set of
+versions; `dev/README.md` names both. A gate is evidence only if it reaches
+the changed code: the
 benchmark exercises the default options, so a change behind a non-default
 option needs a configuration that sets it. Every evidence run selects gpyreg
 explicitly, with `PYTHONPATH` naming a clone at the release tag
