@@ -399,13 +399,13 @@ class FunctionLogger:
             # check if the noise is heteroskedastic
             if fsd is not None:
                 # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
-                duplicate_flag = self.X == x
-                if np.any(duplicate_flag.all(axis=1)):
-                    if np.sum(duplicate_flag.all(axis=1)) > 1:
+                duplicate_flag = np.all(self.X == x, axis=1)
+                if np.any(duplicate_flag):
+                    if np.sum(duplicate_flag) > 1:
                         raise ValueError(
                             "More than one match for duplicate entry."
                         )
-                    idx = np.argwhere(duplicate_flag)[0, 0]
+                    idx = np.flatnonzero(duplicate_flag)[0]
                     N = self.n_evals[idx]
 
                     # if fsd is not None: # We already in the case of the heteroskedastic noise
