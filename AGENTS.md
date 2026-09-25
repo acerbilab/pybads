@@ -221,7 +221,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   Nothing that is deep-copied holds the generator (the `OptimizeResult`,
   what `IterationHistory` records, the GP and its `temporary_data`), and
   neither does `optim_state`: a copy would be a second generator in the same
-  state. The Sobol design derives its seed from the digits of `u0`.
+  state. The Sobol design takes its seed from `u0`, not from the generator:
+  from the integer part of each of its first 11 coordinates, so every start
+  point inside the plausible box gives the same design for a given `D`,
+  whatever the seed (a candidate defect, in the survey).
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.
@@ -255,13 +258,14 @@ same gpyreg.
 - `pybads/testing/bads/test_bads_optimization.py` runs whole optimizations
   (a few hundred evaluations at most, one of them 60-D) and dominates the
   runtime of the suite.
-- Every test whose outcome depends on random draws is seeded, the noise of
-  a noisy target included, so a failure repeats on every rerun, CI's
-  `--reruns=5` included. The tolerances of `test_bads_optimization.py` hold
-  over a sweep of seeds, not only at the seed each test runs at: when a
-  change that moves results fails one, check its tolerance over the seeds
-  again, as the module's docstring describes, before reseeding the test or
-  loosening the tolerance.
+- Every test whose outcome depends on random draws is seeded, including
+  the noise of a noisy target, so a failing test fails again on each rerun:
+  CI's `--reruns=5` does not hide it. The tolerances of
+  `test_bads_optimization.py` hold over a sweep of seeds, not only at the
+  seed each test runs at: when a change that moves results fails one,
+  measure the errors over the seeds again with
+  `dev/scripts/tolerance_sweep.py` before reseeding the test or loosening
+  the tolerance.
 - `pybads/testing/bads/scripts/` holds manual scripts that pytest does not
   collect.
 

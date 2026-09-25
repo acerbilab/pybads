@@ -12,10 +12,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   longer emits a `DeprecationWarning` for `~` applied to a `bool`, an
   operation that later Python versions remove.
 - **Shipped tests.** The tests that ship with PyBADS
-  (`pytest --pyargs pybads`) are seeded, so that they give the same result
-  on each run, and pytest collects the two tests of the poll that it
-  skipped, beside a third one. The module `pybads.testing.run_tests`, which failed on import,
-  and six data files that no test read are no longer installed.
+  (`pytest --pyargs pybads`) give the same result on each run on a given
+  machine: every test whose outcome depends on random draws is seeded. Each
+  optimization test checks a tolerance of its own, tighter than before for
+  most. Two tests of the poll, which pytest did not collect, are renamed so
+  that it does, and a third is added. The module `pybads.testing.run_tests`,
+  which failed on import, and six data files that no test read are no
+  longer installed.
 
 ## [1.1.0] - 2026-09-25
 
