@@ -199,6 +199,29 @@ def test_record_duplicate_with_user_noise_returns_scalar():
     assert np.isclose(f_logger.S[0, 0], 1 / np.sqrt(tau_1 + tau_2))
 
 
+def test_record_duplicate_with_user_noise_merges_into_its_own_row():
+    # A repeated point is merged into the row that matches it in every
+    # coordinate, not into an earlier row that shares one coordinate.
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x_other = np.array([3.0, 0.0, 0.0])
+    x = np.array([3.0, 4.0, 5.0])
+    f_logger._record(x_other, x_other, 1.0, 1.0, 1)
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    fval, idx = f_logger._record(x, x, 12.0, 1.0, 1)
+    tau_1, tau_2 = 1 / 2.0**2, 1 / 1.0**2
+    assert idx == 1
+    assert f_logger.Xn == 1
+    assert f_logger.Y[0, 0] == 1.0
+    assert f_logger.S[0, 0] == 1.0
+    assert f_logger.n_evals[0] == 1
+    assert np.isclose(
+        f_logger.Y[1, 0], (tau_1 * 9.0 + tau_2 * 12.0) / (tau_1 + tau_2)
+    )
+    assert np.isclose(f_logger.S[1, 0], 1 / np.sqrt(tau_1 + tau_2))
+    assert f_logger.n_evals[1] == 2
+    assert np.isclose(fval, f_logger.Y[1, 0])
+
+
 def test_finalize():
     x = np.array([3, 4, 5])
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)

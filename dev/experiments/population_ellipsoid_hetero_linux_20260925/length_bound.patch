@@ -1,0 +1,13 @@
+diff --git a/pybads/bads/gaussian_process_train.py b/pybads/bads/gaussian_process_train.py
+index d26a9d3..a7ba402 100644
+--- a/pybads/bads/gaussian_process_train.py
++++ b/pybads/bads/gaussian_process_train.py
+@@ -935,7 +935,7 @@ def _gp_hyp(
+     # BADS bounds on covariance length scale
+     bounds["covariance_log_lengthscale"] = (
+         np.array([np.log(tol_mesh)] * D),
+-        cov_range,
++        np.log(cov_range),
+     )  # lower bound and upper bound
+ 
+     # Bads bounds on signal variance (output scale)

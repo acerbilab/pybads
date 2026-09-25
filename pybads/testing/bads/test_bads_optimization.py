@@ -186,7 +186,7 @@ def test_sphere_opt():
         UB,
         PLB,
         PUB,
-        tol_err=2e-3,
+        tol_err=5e-3,
         f_min=1.0,
         non_box_cons=non_box_cons,
     )

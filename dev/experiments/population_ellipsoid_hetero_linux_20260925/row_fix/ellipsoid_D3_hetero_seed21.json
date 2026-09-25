@@ -1,0 +1,89 @@
+{
+ "label": "ellipsoid_D3_hetero",
+ "seed": 21,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "hetero",
+ "unbounded": false,
+ "x0": [
+  -4.399911237919061,
+  -3.655772338761346,
+  -3.3997037131520145
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 21
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 21,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.696247100830078,
+   1.2035179138183594,
+   -2.047748565673828
+  ],
+  "fval": -0.5274102127275258,
+  "fsd": 0.5645807887578669,
+  "true_error": 0.26640418514708614,
+  "func_count": 488,
+  "iterations": 28,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 30.476539167999817,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.2841284670829713
+ },
+ "meta": {
+  "git": {
+   "sha": "77bd051",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev23+g1c8c71d2b",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/row-fix/pybads",
+   "git": {
+    "sha": "77bd051",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T15:53:38+0000",
+  "finished": "2026-09-25T15:54:09+0000"
+ }
+}

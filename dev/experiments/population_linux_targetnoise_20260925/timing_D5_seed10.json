@@ -1,0 +1,91 @@
+{
+ "label": "timing_D5",
+ "seed": 10,
+ "problem": "timing",
+ "D": 5,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  0.24776352045618855,
+  0.11851099276842754,
+  0.8641092468849441,
+  0.2186418827366144,
+  0.021547389094988656
+ ],
+ "f_min": 3839.1732706078164,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 2500,
+  "random_seed": 10
+ },
+ "effective_options": {
+  "max_fun_evals": 2500,
+  "max_iter": 1000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 6,
+  "n_train_min": 50,
+  "n_train_max": 100,
+  "random_seed": 10,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   0.09028934689704328,
+   0.03090074305655434,
+   0.7014730320930539,
+   0.137344905763166,
+   0.010000000000582078
+  ],
+  "fval": 3839.1732745497748,
+  "fsd": 0.0,
+  "true_error": 3.941958311770577e-06,
+  "func_count": 400,
+  "iterations": 15,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 32.08551502599994,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.35335283236613e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "1c8c71d",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev23+g1c8c71d2b",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "1c8c71d",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T15:14:18+0000",
+  "finished": "2026-09-25T15:14:51+0000"
+ }
+}

@@ -9,8 +9,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9
   or later.
-- Results of runs with `specify_target_noise=True` differ from 1.1.0, also
-  with a fixed seed.
+- Results differ from 1.1.0, also with a fixed seed.
 - With `specify_target_noise=True`, the returned `fval` and `fsd` weight
   the final samples by the precisions that the target returns, and with
   `noise_final_samples=1`, `yval_vec` and `ysd_vec` hold one value.
@@ -35,6 +34,33 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ellipsoid with condition number 1e6 and noise standard deviation
   `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
   median error rises from 0.21 to 0.54.
+- **Repeated points with user-specified noise.** With
+  `specify_target_noise=True`, a point evaluated again was merged with the
+  first earlier evaluation that shared any one of its coordinates, usually
+  that of another point, whose value and noise it then changed. It is now
+  merged with its own earlier evaluation. On the 3-D ellipsoid above, run
+  over 90 seeds on Linux, where 54 runs made such a merge, the median error
+  falls from 0.58 to 0.48, and the number of runs with an error of 1 or
+  more from 31 to 20.
+- **Prior of the GP mean.** At each rebuild of the local Gaussian process,
+  the prior over its constant mean is centred at the 90th percentile of the
+  training targets, with a width set by their spread, as in MATLAB BADS.
+  PyBADS computed that prior and never applied it, so the prior set on the
+  initial design held for the whole run. Results change at default
+  options, most on ill-conditioned targets: on 3-, 6- and 10-D ellipsoids
+  with condition number 1e6, the median error of 30 seeded runs falls by a
+  factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
+  Rosenbrock function the runs that reach the global minimum end 17 times
+  closer to it.
+- **Length scales of the GP.** The upper bound of each log length scale of
+  the Gaussian process was the largest length scale itself, up to 100,
+  instead of its logarithm, as in MATLAB BADS, so that a length scale
+  could grow far beyond the size of the search space and the GP could
+  treat as flat a direction along which the target varies slowly. Results
+  change at default options. On the 3-D ellipsoid with target noise above,
+  run over 90 seeds on Linux, the median error falls from 0.46 (with the
+  two fixes above) to 0.25, and the number of runs with an error of 1 or
+  more from 20 to 8.
 - **Final estimate with user-specified noise.** With
   `specify_target_noise=True`, the returned `fval` and `fsd` weight the
   final samples at the returned point (`yval_vec`) by their precisions, the

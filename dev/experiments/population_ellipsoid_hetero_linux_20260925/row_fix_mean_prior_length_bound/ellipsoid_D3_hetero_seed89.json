@@ -1,0 +1,89 @@
+{
+ "label": "ellipsoid_D3_hetero",
+ "seed": 89,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "hetero",
+ "unbounded": false,
+ "x0": [
+  0.5796551255011497,
+  -0.9397073607524096,
+  -0.5888543373222159
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 89
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 89,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.6393920893315226,
+   1.2081784673500806,
+   -2.048462829552591
+  ],
+  "fval": -0.10534531680868744,
+  "fsd": 0.4733427639759159,
+  "true_error": 0.22447369268117648,
+  "func_count": 376,
+  "iterations": 21,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 15.096042484000009,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.7420812128566527
+ },
+ "meta": {
+  "git": {
+   "sha": "2b8180c",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v42-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev23+g1c8c71d2b",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/lenbound-8afbe16/pybads",
+   "git": {
+    "sha": "2b8180c",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-25T18:44:38+0000",
+  "finished": "2026-09-25T18:44:53+0000"
+ }
+}

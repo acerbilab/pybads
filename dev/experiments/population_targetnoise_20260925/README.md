@@ -1,8 +1,14 @@
 # Reference population on Windows after the noise-variance fix: the default suite, 30 seeds, gpyreg 1.3.3
 
-The reference on Windows for `dev/scripts/population.py compare` until a
-later reference replaces it (the one on Linux is
-[`population_linux_20260925`](../population_linux_20260925/README.md)): 18
+It predates `032dfcb`, `8afbe16` and `97b2c66`, which change the runs of
+every configuration (by how much, on Linux:
+[`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md)),
+so it no longer stands for the current code; `dev/TODO.md` lists the
+replacement.
+
+The reference on Windows for `dev/scripts/population.py compare` at
+`c044fea` (the one on Linux, at `1c8c71d`, is
+[`population_linux_targetnoise_20260925`](../population_linux_targetnoise_20260925/README.md)): 18
 configurations of the `default` suite of `dev/scripts/benchmark_targets.py`
 × seeds 0-29, each run at BADS's default budget (500 D) and ending on
 BADS's own termination criteria, every random draw through the run's

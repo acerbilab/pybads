@@ -307,20 +307,23 @@ def local_gp_fitting(
 
     # TODO: warped likelihood (unsupported)
 
-    # Update GP Mean
-    y_mean = np.percentile(gp.y, options["gp_mean_percentile"])
-    y_range = options["gp_mean_range_fun"](y_mean, gp.y)
-
-    prior_mean = None
+    # Update GP Mean: an empirical prior, re-centred at each rebuild as in
+    # MATLAB's gpdefBads.m, at a high percentile of the training targets
+    # (MATLAB's prctile1 is NumPy's "hazen"), with the standard deviation
+    # y_range / 2 (MATLAB's variance yrange.^2/4). A zero range, which
+    # MATLAB leaves to fail, keeps the previous width.
     if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+        y_mean = np.percentile(
+            gp.y, options["gp_mean_percentile"], method="hazen"
+        )
+        y_range = options["gp_mean_range_fun"](y_mean, gp.y)
         prior_mean = gp_priors["mean_const"]
-        prior_mean = (prior_mean[0], (y_mean, prior_mean[1][1]))
-
-    if prior_mean is not None and not options["gp_fixed_mean"]:
-        prior_mean = (prior_mean[0], (prior_mean[1][0], y_range ** (1 / 4)))
-    elif options["gp_fixed_mean"]:
-        # TODO: update hyp mean by assigning ymean
-        pass
+        mean_sd = prior_mean[1][1]
+        if not options["gp_fixed_mean"] and y_range > 0:
+            mean_sd = y_range / 2
+        gp_priors["mean_const"] = (prior_mean[0], (y_mean, mean_sd))
+        # TODO: with gp_fixed_mean, MATLAB also sets the mean
+        # hyperparameter to y_mean, under a delta prior.
 
     # Update GP Covariance length scale
     if options["gp_cov_prior"] == "iso":
@@ -932,10 +935,11 @@ def _gp_hyp(
     cov_range = (np.minimum(100, 10 * cov_range)).flatten()
     # Bads prior on covariance length scale(s)
     priors["covariance_log_lengthscale"] = ("gaussian", (-1, 2.0))
-    # BADS bounds on covariance length scale
+    # BADS bounds on covariance length scale: the logs of tol_mesh and of
+    # the maximum length scale (gpdefBads.m)
     bounds["covariance_log_lengthscale"] = (
         np.array([np.log(tol_mesh)] * D),
-        cov_range,
+        np.log(cov_range),
     )  # lower bound and upper bound
 
     # Bads bounds on signal variance (output scale)

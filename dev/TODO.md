@@ -34,6 +34,18 @@ order.
   three held none. On Linux at `8fc1dff`
   (gpyreg 1.3.3), one exact repeat was evaluated in `ellipsoid_D10` seed
   7, and one in `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20.
+  With a target noise SD, repeats are common: 227 in seeds 0-89 of
+  `ellipsoid_D3_hetero` at `1c8c71d` (Linux), in 58 of the 90 runs, each
+  merged into a row of the log (until `032dfcb`, 188 of them into another
+  point's row), and the noise-variance fix of `020d6a8` tripled them
+  (seeds 0-19: 17 at `685da15`, 53 at `1c8c71d`). Dropping them, as MATLAB
+  does, needs two more changes that MATLAB has: the ES search must return
+  an empty set when no candidate is left, and the search step must accept
+  one (survey, candidate table); without them runs stop with `IndexError`
+  or `UnboundLocalError`. With the three changes on `8afbe16`, the median
+  error of `ellipsoid_D3_hetero` over 90 seeds falls from 0.46 to 0.33
+  (`no_repeats.patch` in
+  [experiments/population_ellipsoid_hetero_linux_20260925/](experiments/population_ellipsoid_hetero_linux_20260925/README.md)).
   To settle:
   - count the repeats over the default suite;
   - fix the removal, as MATLAB does it. That moves results, so it is gated
@@ -43,16 +55,23 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
-- [ ] **Upper bound of the GP length scales.** `_gp_hyp`
-  (`gaussian_process_train.py`) bounds each log length scale by
-  `cov_range = min(100, 10 * (ub - lb) / scale)`, where MATLAB's
-  `gpdefBads.m` bounds it by `log(covrange)`: 80 against 4.38 on the
-  targets of the benchmark with its shifted box. At the failing calls of
-  the four `LinAlgError` crashes of the survey's section "Crashes on
-  unguarded GP updates", most log length scales exceed 4.38, up to 59.7,
-  so that many distinct inputs coincide numerically, and the output scale,
-  at its upper bound (MATLAB's too), sets an output variance 2e22 to 2e24
-  times the noise variance on them. To settle:
+- [ ] **A Windows reference after `97b2c66`.** `8afbe16` (the GP mean prior)
+  and `97b2c66` (the bound of the GP length scales) change the runs of
+  every configuration, and `032dfcb` those with target noise, so
+  `experiments/population_targetnoise_20260925/` no longer stands for the
+  current code on Windows. The replacement is the default suite at 30
+  seeds on Windows, with its null check, as for the Linux reference
+  (`experiments/population_linux_gpfixes_20260925/`).
+- [ ] **The old `LinAlgError` crashes and the bound of the GP length
+  scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
+  10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
+  `log(covrange)`: 80 against 4.38 on the targets of the benchmark with its
+  shifted box; `97b2c66` takes MATLAB's bound. At the failing calls of the
+  four `LinAlgError` crashes of the survey's section "Crashes on unguarded
+  GP updates", most log length scales exceed 4.38, up to 59.7, so that many
+  distinct inputs coincide numerically, and the output scale, at its upper
+  bound (MATLAB's too), sets an output variance 2e22 to 2e24 times the
+  noise variance on them. Open:
   - whether MATLAB's bound would have kept those GPs factorizable: the
     GP of each failing call refitted under it. The inputs, targets and
     hyperparameters saved at those calls (machine-local,
@@ -65,12 +84,7 @@ order.
     records (Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, one BLAS thread),
     their commits `2226883` and `c85cddb` (reachable from
     `refs/pull/59/head`) and a clone of gpyreg at v1.3.1, since no run of
-    the suite fails under gpyreg 1.3.3;
-  - how often the fits of the default suite end with a log length scale
-    above `log(cov_range)`;
-  - the fix, which can move results at default options wherever a fit
-    reaches `log(cov_range)`: gated by the population comparison against the current reference of
-    the platform, with the seeded tests re-checked over their seeds.
+    the suite fails under gpyreg 1.3.3.
 - [ ] **Small defects of the noise options and the final estimate**, rows
   of the survey's candidate table:
   - without target noise, the final `fsd` divides by `n`, where MATLAB's
@@ -92,29 +106,30 @@ order.
   A fix that a user can notice gets a changelog entry; the fingerprint of
   `dev/scripts/fingerprint.py` shows whether a fix moves results at
   default options.
-- [ ] **A Linux reference after `020d6a8`.** `020d6a8` changes the runs of
-  `sphere_D3_hetero` and `ellipsoid_D3_hetero`, the two configurations with
-  target noise, so `experiments/population_linux_20260925/` no longer
-  stands for the current code in those two. The replacement is the default
-  suite at 30 seeds on Linux, with its null check, as for the Windows
-  reference.
 - [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
-  standard deviations, as MATLAB does, makes the runs of this benchmark
-  configuration worse: over 90 seeds the median error rises from 0.21 to
-  0.54, mostly along the flat axis of the ellipsoid
-  ([experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)),
-  while the spheres with target noise improve. The fix stays; what is open
-  is which other difference from MATLAB the correct noise exposes. The
-  candidates, each a row of the survey's candidate table:
-  - the GP mean prior, which MATLAB re-centres at every rebuild
-    (`gpdefBads.m`) and the port never updates;
-  - the merged value with the raw standard deviation that a repeated point
-    adds to the GP;
-  - the lower bound of the noise hyperparameter, which the port raises
-    after a failed fit and MATLAB does not.
-
-  A run of MATLAB BADS on this problem would show whether correct noise
-  handling alone gives such runs.
+  standard deviations, as MATLAB does, made the runs of this benchmark
+  configuration worse: over 90 seeds the median error rose from 0.21 to
+  0.54 on Windows and from 0.18 to 0.58 on Linux, mostly along the flat
+  axis of the ellipsoid
+  ([Windows](experiments/population_ellipsoid_hetero_20260925/README.md),
+  [Linux](experiments/population_ellipsoid_hetero_linux_20260925/README.md)),
+  while the spheres with target noise improved. The fix stays. Three
+  differences from MATLAB, fixed on Linux, bring the median to 0.25 and
+  the flat axis back to its error before `020d6a8`: the bound of the GP log
+  length scales (`97b2c66`, the largest effect), a repeated point merged
+  into another point's row of the function log (`032dfcb`), and the GP
+  mean prior, re-centred at each rebuild (`8afbe16`). Returning the
+  observation of a repeated point, as MATLAB's `funlogger` does, makes the
+  runs worse, and the lower bound of the noise hyperparameter never moves,
+  since no fit fails. The runs remain worse than before `020d6a8` (p =
+  0.0008), now along the two steep axes. Still open:
+  - the evaluated points that `contraints_check` keeps (the item above):
+    dropping them, as MATLAB does, lowered the median from 0.46 to 0.33 on
+    top of `8afbe16`, not yet measured with the length bound;
+  - a run of MATLAB BADS on this problem, which would show whether correct
+    noise handling alone gives such runs;
+  - the bounds of the GP mean, which the port fixes by the initial design
+    and MATLAB leaves infinite (a row of the survey's candidate table).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
