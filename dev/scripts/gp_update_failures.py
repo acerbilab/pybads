@@ -20,8 +20,13 @@ calls them. For each run, one entry of the output JSON holds:
   refit), ``target_current_gp`` (the target predicted from the current GP)
   and ``target_nonfinite`` (a non-finite target prediction, which falls
   back to the incumbent);
-- ``max_restore_streak``: the most consecutive restores of the local GP
-  without a successful rebuild in between;
+- ``restores_by_caller``: the restores of ``local_gp_fitting`` by the
+  function that called it: ``_search_step_`` (its GP, and in a noisy run
+  the copy it rebuilds around the search point), ``_poll_step_``, and
+  ``_re_evaluate_history_`` (the GPs of ``IterationHistory``);
+- ``max_restore_streak``: the most consecutive restores by
+  ``_search_step_`` and ``_poll_step_`` without a successful rebuild by
+  them in between;
 - ``stale_evals``: the evaluations made while the GP of the search or the
   poll carried ``needs_rebuild``;
 - ``final``: ``x``, ``fval``, ``func_count``, and the exception of a run
@@ -70,13 +75,20 @@ SITES = ("add_and_update_gp", "local_gp_fitting", "_get_target_from_gp_")
 STEPS = ("_search_step_", "_poll_step_")
 
 
+def _pybads_callers(frame):
+    """Names of the innermost PyBADS function on the stack, by module, and
+    of the PyBADS function that called it (``None`` where there is none)."""
+    names = []
+    while frame is not None and len(names) < 2:
+        if frame.f_globals.get("__name__", "").startswith("pybads."):
+            names.append(frame.f_code.co_name)
+        frame = frame.f_back
+    return (names + [None, None])[:2]
+
+
 def _innermost_pybads(frame):
     """Name of the innermost PyBADS function on the stack, by module."""
-    while frame is not None:
-        if frame.f_globals.get("__name__", "").startswith("pybads."):
-            return frame.f_code.co_name
-        frame = frame.f_back
-    return None
+    return _pybads_callers(frame)[0]
 
 
 def _digest(*arrays):
@@ -99,6 +111,7 @@ class Probe:
         self.failures = Counter()
         self.injected = 0
         self.outcomes = Counter()
+        self.restores_by_caller = Counter()
         self.depth = 0
         self.streak = 0
         self.max_streak = 0
@@ -135,7 +148,8 @@ class Probe:
 
     # Outcomes ----------------------------------------------------------
 
-    def _ended(self, site, method, failed):
+    def _ended(self, site, method, failed, caller):
+        step = caller in STEPS
         if site == "add_and_update_gp" and failed:
             self.outcomes["add_dropped"] += 1
         elif site == "_get_target_from_gp_" and failed:
@@ -143,17 +157,20 @@ class Probe:
         elif site == "local_gp_fitting" and method == "update":
             if failed:
                 self.local_pending = True
-            else:
+            elif step:
                 self.streak = 0
         elif site == "local_gp_fitting" and self.local_pending:
             self.local_pending = False
             if failed:
                 self.outcomes["local_restored"] += 1
-                self.streak += 1
-                self.max_streak = max(self.max_streak, self.streak)
+                self.restores_by_caller[caller] += 1
+                if step:
+                    self.streak += 1
+                    self.max_streak = max(self.max_streak, self.streak)
             else:
                 self.outcomes["local_recovered"] += 1
-                self.streak = 0
+                if step:
+                    self.streak = 0
 
     # Wrappers ----------------------------------------------------------
 
@@ -166,7 +183,7 @@ class Probe:
                 return original(gp, *a, **k)
             bound = signature.bind(gp, *a, **k)
             bound.apply_defaults()
-            site = _innermost_pybads(sys._getframe(1))
+            site, caller = _pybads_callers(sys._getframe(1))
             if site not in SITES or not bound.arguments["compute_posterior"]:
                 self.depth += 1
                 try:
@@ -183,11 +200,11 @@ class Probe:
             except np.linalg.LinAlgError:
                 self.failures[f"{site}.{method}"] += 1
                 self.injected += injected
-                self._ended(site, method, True)
+                self._ended(site, method, True, caller)
                 raise
             finally:
                 self.depth -= 1
-            self._ended(site, method, False)
+            self._ended(site, method, False, caller)
             return out
 
         setattr(cls, method, wrapper)
@@ -234,6 +251,7 @@ class Probe:
             "failures": dict(self.failures),
             "injected": self.injected,
             "outcomes": dict(self.outcomes),
+            "restores_by_caller": dict(self.restores_by_caller),
             "max_restore_streak": self.max_streak,
             "stale_evals": stale,
         }

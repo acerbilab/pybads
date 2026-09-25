@@ -1728,11 +1728,18 @@ class BADS:
                     False,
                     rng=self.rng,
                 )
-                f_mu_search, f_sd_search = new_gp.predict(
-                    np.atleast_2d(u_search)
-                )
-                f_mu_search = f_mu_search.item()
-                f_sd_search = np.sqrt(f_sd_search).item()
+                if new_gp.temporary_data.get("needs_rebuild", False):
+                    # The rebuild failed and `new_gp` is the GP of its
+                    # entry, not built around the point: no estimate there,
+                    # as in MATLAB BADS, so the search counts as failed.
+                    f_mu_search = np.nan
+                    f_sd_search = np.nan
+                else:
+                    f_mu_search, f_sd_search = new_gp.predict(
+                        np.atleast_2d(u_search)
+                    )
+                    f_mu_search = f_mu_search.item()
+                    f_sd_search = np.sqrt(f_sd_search).item()
             else:
                 f_mu_search = y_search
                 f_sd_search = 0
@@ -2063,6 +2070,10 @@ class BADS:
                 if refit_flag:
                     self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
+                if gp.temporary_data.get("needs_rebuild", False):
+                    # The rebuild failed and the GP is the previous one: it
+                    # is unreliable, as MATLAB's GP with no posterior is.
+                    do_gp_calibration = True
 
             # Update Target from GP prediction
             f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
@@ -2111,27 +2122,10 @@ class BADS:
                 do_gp_calibration = True
 
             # Consider whether to stop polling
-            if not self.options["complete_poll"]:
-                # Stop polling if last poll was good
-                if certain_good_poll:
-                    if do_gp_calibration:
-                        break  # GP is unreliable, just stop polling
-                    elif p_less > 1 - self.options["tol_poi"]:
-                        break  # Use GP prediction whether to stop polling
-                else:
-                    # No good polling so far -- if GP is reliable, stop polling
-                    # If probability of improvement at any location is to low
-                    if (
-                        not do_gp_calibration
-                        and (
-                            self.options["consecutive_skipping"]
-                            or self.last_skipped < self.optim_state["iter"] - 1
-                        )
-                        and poll_count >= self.options["min_failed_poll_steps"]
-                        and p_less > (1 - self.options["tol_poi"])
-                    ):
-                        self.last_skipped = self.optim_state["iter"]
-                        break
+            if not self.options["complete_poll"] and self._is_poll_stop_(
+                certain_good_poll, do_gp_calibration, p_less, poll_count
+            ):
+                break
 
             # Evaluate function and store the value
             u_new = u_poll[index_acq]
@@ -2432,13 +2426,42 @@ class BADS:
 
         return refit_flag, do_gp_calibration
 
+    def _is_poll_stop_(
+        self, certain_good_poll, do_gp_calibration, p_less, poll_count
+    ):
+        """A private method that decides whether to stop polling before the
+        next poll vector, from whether a poll was good so far, whether the
+        GP is unreliable (``do_gp_calibration``) and the probability
+        ``p_less`` that no poll vector improves. A stop without a good poll
+        is recorded in ``self.last_skipped``."""
+        # Stop polling if last poll was good
+        if certain_good_poll:
+            if do_gp_calibration:
+                return True  # GP is unreliable, just stop polling
+            # Use GP prediction whether to stop polling
+            return p_less > 1 - self.options["tol_poi"]
+        # No good polling so far -- if GP is reliable, stop polling
+        # If probability of improvement at any location is to low
+        if (
+            not do_gp_calibration
+            and (
+                self.options["consecutive_skipping"]
+                or self.last_skipped < self.optim_state["iter"] - 1
+            )
+            and poll_count >= self.options["min_failed_poll_steps"]
+            and p_less > (1 - self.options["tol_poi"])
+        ):
+            self.last_skipped = self.optim_state["iter"]
+            return True
+        return False
+
     def _record_gp_refit_(self):
         """A private method that records a refit of the GP hyperparameters:
         the evaluation count at the refit, and a reset of the GP
         statistics."""
         self.optim_state["lastfitgp"] = self.function_logger.func_count
 
-        # Reset GP statistics GP
+        # Reset the GP statistics
         self.gp_stats = IterationHistory(
             [
                 "iter_gp",
