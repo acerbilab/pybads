@@ -32,8 +32,8 @@ PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.1 python -u dev/scripts/population.py ru
 
 538 runs finished; 2 crashed with `LinAlgError: Singular matrix for L
 Cholesky decomposition` on a GP update that PyBADS does not guard
-(`ellipsoid_D3` seed 20, `ellipsoid_D10` seed 7; `dev/TODO.md`,
-`dev/results/2026-09-23-codebase-survey.md`). A crash is an outcome of the
+(`ellipsoid_D3` seed 20, `ellipsoid_D10` seed 7;
+`dev/results/2026-09-23-codebase-survey.md`; guarded from `676083d`). A crash is an outcome of the
 comparison: a configuration is flagged when its crash count rises from
 zero, so in these two configurations, which already hold one crash, a
 further crash does not flag by itself. The fraction solved ranges from 0.03 (Rastrigin, whose runs

@@ -29,7 +29,9 @@ PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 .venv/bin/python -u dev/scripts/popula
   24.6 minutes on 2026-09-25.
 - The files are one JSON record per run (`<label>_seed<seed>.json`),
   `summary.md`, `comparison.md` (the comparison with the Windows
-  reference) and `null_check.md`.
+  reference) and `null_check.md`. The records' `pybads` field reads
+  `1.1.1.dev9+g09996b5d3`, the metadata of the editable install; their
+  `meta.git` names the commit.
 
 ## Outcome
 
@@ -38,15 +40,21 @@ whose runs end in local minima) to 1.00.
 
 ## The same runs before the guards
 
-The same command at `500ff1b`, whose package code is that of `09996b5`
-(before the guards), gave `population_linux_pre_20260925`, not kept here.
+The same command, started at `500ff1b`, gave
+`population_linux_pre_20260925`, kept on the machine that ran it
+(`dev/scripts/runs/LOCAL.md`). Its records also name `88abbf8` and
+`517f058`, documentation-only commits made during the run, and 7 of them
+are dirty. The package code of each equals that of `09996b5`, before the
+guards.
 Every one of its 540 records equals this population's in every `final`
 field except `wall_s`. `dev/scripts/gp_update_failures.py`, run with the
 same seeds, found no failed call among the 484,773 guarded GP updates of
 these runs, and reproduced every run's `x`, `fval` and `func_count`. The
 guards change nothing in a run without a failure, so the two populations
 are one population, and this reference also stands for the code before the
-guards on this platform.
+guards on this platform. At `a83bd51`, after the fixes of the change's
+final review, the failure count again reproduces every run of this
+reference, with no failed call (`--check`, 0 mismatches).
 
 ## Checks
 

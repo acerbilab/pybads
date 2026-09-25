@@ -1,16 +1,17 @@
 # Plan: guards on the GP updates that can raise
 
 Created: 2026-09-25
-Status: APPROVED (2026-09-25). Revised the same day after an independent
-review; the user re-settled Open Question 2 and settled the new Open
-Question 7. Phases 0-4 done; a final review by fresh-context agents
-follows.
+Status: DONE (2026-09-25). Revised the same day after an independent
+review of the plan; the user re-settled Open Question 2 and settled the
+new Open Question 7. After Phases 0-4, a final review by three
+fresh-context agents led to the fixes of `a83bd51` (Worklog).
 
 ## Summary
 
 Three GP calls inside a run are not guarded against gpyreg's `LinAlgError`
 ("Singular matrix for L Cholesky decomposition"). Each one stopped a run
-of a benchmark population (`dev/TODO.md`, first item; the survey,
+of a benchmark population (the first item of `dev/TODO.md`, until this
+plan closed it; the survey,
 "Crashes on unguarded GP updates"). This plan guards them after MATLAB
 BADS (`acerbilab/bads` at `74919c0`, v1.1.3). It keeps one invariant: the
 GP handed back to the loop always has posteriors that match its training
@@ -72,7 +73,7 @@ Read from `bads.m`, `private/gpupdate.m`, `utils/gppred.m` and
   failed is therefore rebuilt at the next step, and at each step after
   that until a rebuild succeeds. In the meantime, its NaN predictions go
   into the GP statistics (`savegpstats`) that the refit check reads
-  (`gppredcheck`, `bads.m:1229`).
+  (`gppredcheck`, `bads.m:1230`).
 - **`gppred`.** It predicts for each hyperparameter sample inside a `try`,
   and a failed sample stays NaN. With an empty `post`, it recomputes from
   the data. With a `post`, it passes that posterior on, and `mygp` reuses
@@ -181,8 +182,22 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
   poll_best_improvement` is false; `stobads` is off by default). The poll
   detects the failure by the GP's number of training points not having
   grown, not by the marker, which a failed rebuild earlier in the same
-  step may already have set. The noisy search branch needs no change: it
-  rebuilds `new_gp` from the function logger, point included.
+  step may already have set.
+- **Noisy search after a failed rebuild** (added after the final review,
+  `a83bd51`). The noisy search rebuilds `new_gp` from the function logger,
+  point included. If that rebuild fails, `new_gp` is the restored GP of
+  its entry, marked, and not built around the point. Its estimate there is
+  then NaN, as in MATLAB, where `gppred` on the GP without a posterior
+  fails, and the search counts as failed. Before this fix, the search
+  could move the incumbent on an estimate that ignored the observation.
+- **Unreliable GP in the poll** (added after the final review,
+  `a83bd51`). When the poll's rebuild fails and leaves the previous GP,
+  the stopping rule treats the GP as unreliable (`do_gp_calibration`), as
+  MATLAB's NaN predictions set `unrelgp_flag`. The rule itself moves
+  unchanged into `_is_poll_stop_`, where a test can observe it. The search
+  still ranks its candidates by the LCB of the previous GP. MATLAB instead
+  takes the first candidate, since `acqLCB` sums to zero over no finite
+  sample; this difference is in the survey.
 - **Local fit** (call 3).
   - **Snapshot.** At entry, take `snap = vars(gp).copy()` and
     `td = dict(gp.temporary_data)`, as gpyreg's own restore does. A
@@ -221,7 +236,7 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
   conditions; the noisy poll's NaN after a failed add; the fallback's
   type; tests that inject failures, one of them a real Cholesky failure;
   a count of how often each site fails over the benchmark suite; the
-  fingerprint and population gates on this machine; the records
+  fingerprint and population gates on one machine; the records
   (changelog, `AGENTS.md`, survey, TODO, this plan's worklog).
 - **Out of scope** (each one recorded in the survey, not fixed here):
   - the rank-1 update of `'add'` (Open Question 5; a `dev/TODO.md` item);
@@ -270,7 +285,8 @@ leaves a consistent GP, and markers on the GP stand in for MATLAB's empty
    gpyreg editable from `../gpyreg` at `v1.3.3`, and install PyBADS
    editable with `[dev]`. Clone `dev/scripts/runs/gpyreg/v1.3.3`.
 2. [x] Fingerprint at `09996b5` with the v1.3.3 clone: `e5f46bce200bfaa7`,
-   the same in two processes. This is this machine's Linux hash; the
+   the same in two processes. This is the Linux hash (Python 3.11.15,
+   NumPy 2.4.6, SciPy 1.17.1); the
    Windows hash, `57241c985a68c78b`, is not comparable.
 3. [x] Suite with reruns off: 109 passed in 28 s.
 4. [x] `dev/scripts/runs/LOCAL.md` lists the clones and their commands.
@@ -422,8 +438,8 @@ reach level 2, which test 1 covers.
      before the change.
    - **Verdict**: `compare pre post` gives it.
 3. **The failure count** over the default suite, seeds 0-29, without
-   injection: how often each site fails under gpyreg 1.3.3 on this
-   machine, and so how much of the change the population reaches.
+   injection: how often each site fails under gpyreg 1.3.3 on Linux, and
+   so how much of the change the population reaches.
 4. **Stress**: `--inject 0.02` over the default suite, seeds 0-9. Every
    run finishes. Report the streaks, the evaluations spent stale, and the
    median log10 error beside the post-change population's, as a
@@ -503,7 +519,14 @@ to the population's; all injected runs finished.
    predictions also never trip the reliability check that sends MATLAB to
    a refit, so the GP could stay stale for up to a refit period. A failed
    add only marks for a rebuild, as in MATLAB. Only runs with failures are
-   affected.
+   affected. As the final review pointed out, this refit is the port's own
+   and not MATLAB's behaviour. It comes at the very next rebuild, whatever
+   `min_refit_time`. MATLAB keeps a failed rebuild's new data and
+   hyperparameters with an empty posterior. It refits only when
+   `gppredcheck` finds its NaN predictions unreliable and `MinRefitTime`
+   has passed (`bads.m:1242-1244`). The forced refit makes up for the
+   restore, which discards the new data and hyperparameters. The survey
+   records the difference.
 
 ## Worklog
 
@@ -533,7 +556,7 @@ to the population's; all injected runs finished.
   the new Open Question 7.
 - 2026-09-25: Phase 0 done. Pre-change population
   `population_linux_pre_20260925` (default suite, seeds 0-29, 4 workers,
-  24.4 minutes): all 540 runs finished, none crashed. Its records name
+  24.6 minutes): all 540 runs finished, none crashed. Its records name
   `500ff1b`, `88abbf8` and `517f058`, some "dirty": documentation
   commits were made under dev/ while it ran.
   `git diff 09996b5 517f058 -- pybads/ pyproject.toml setup.py` is empty,
@@ -548,14 +571,17 @@ to the population's; all injected runs finished.
   - 20 by the injected `LinAlgError`;
   - 1 by a real Cholesky `LinAlgError` (test 2);
   - 3 by `AttributeError` (the target's fallback);
-  - 6 by markers that are neither set nor cleared;
+  - 6 by markers left set (pre-set by the test, not cleared by the old
+    code);
   - 4 by a missing rebuild or refit (tests 6);
   - 1 by the level-1 `s2`, which the old code does not extend.
 
   The 4 that pass are the no-failure baselines: test 1 at levels 0 and 2,
-  and the two unmarked probes. Tests 3 and 4 (recovered failure and
-  success) also check that the markers are cleared, so they fail at the
-  old code, unlike the plan's first estimate for test 4. 11 s.
+  and the two unmarked probes. Test 4 (recovered failure) and the success
+  case of `local_gp_fitting` also check that the markers are cleared, so
+  they fail at the old code, unlike the plan's first estimate for test 4.
+  11 s. The log is of the file before formatting; the final file's
+  positive control is in the last entry.
 - 2026-09-25: Phase 2.
   - The 39 new tests pass (20 s), and the whole suite passes with reruns
     off (148 tests, 46 s).
@@ -568,8 +594,9 @@ to the population's; all injected runs finished.
     `_sto_success_improvement_`; this is not examined.
 - 2026-09-25: Phase 3.
   - **`gp_update_failures.py`** committed at `cdfa8c3`. A trial on four
-    runs reproduced the population with `--check` and reached every guard
-    outcome with `--inject 0.05`.
+    runs reproduced the population with `--check`. With `--inject 0.05`
+    it reached every guard outcome but `target_nonfinite`, the fallback to
+    the incumbent, which only test 5 covers.
   - **Post-change population** `population_linux_post_20260925` at
     `676083d`: 540 runs, 24.6 minutes, one commit in every record.
     - Every record equals its pre-change record in every `final` field
@@ -579,7 +606,7 @@ to the population's; all injected runs finished.
     post population): 484,773 guarded calls (`add_and_update_gp` 107,477,
     `local_gp_fitting` 213,263, `_get_target_from_gp_` 164,033), and none
     failed. Every run's `x`, `fval` and `func_count` equal the population's
-    (0 mismatches), 24.5 minutes. Under gpyreg 1.3.3 on this machine the
+    (0 mismatches), 24.5 minutes. Under gpyreg 1.3.3 on Linux the
     benchmark therefore does not reach the failure paths. It shows only
     that the no-failure paths are unchanged; the tests and the stress run
     below carry the evidence for the failure paths.
@@ -588,7 +615,10 @@ to the population's; all injected runs finished.
     - Guard outcomes, summed: `add_dropped` 684, `local_recovered` 62,
       `local_restored` 1,342, `target_current_gp` 1,073,
       `target_nonfinite` 0.
-    - The longest streak of consecutive restores is 3.
+    - The longest streak of consecutive restores is 3. The final review
+      showed that this streak also counted the restores of the GPs that
+      `_re_evaluate_history_` rebuilds. The re-run at `a83bd51` counts
+      the search and the poll alone (last entry).
     - The median log10 error per configuration lies within 0.7 of the
       post population's, on the same seeds, and in both directions. The
       fraction solved is within 0.2 (0.6 against 0.8 for `rosenbrock_D6`).
@@ -606,3 +636,58 @@ to the population's; all injected runs finished.
     the post population with its README (null check; the comparison with
     the Windows reference, no flag in 54 tests, information only).
   - **`dev/README.md`**: the index.
+- 2026-09-25: final review by three fresh-context Opus agents: code and
+  tests; evidence and records; design and MATLAB fidelity.
+  - **Should-fix, found by two of them independently.** After a failed add
+    and a failed rebuild of `new_gp`, the noisy search judged the search
+    point on an estimate from a GP without it, and could move the
+    incumbent there. Fixed at `a83bd51` (Design, "Noisy search after a
+    failed rebuild").
+  - **Design.** The poll now treats a GP whose rebuild failed as
+    unreliable, as MATLAB does. MATLAB's own refit rule and its
+    first-candidate search are recorded as differences (Open Question 7,
+    survey).
+  - **Tests.** A mutation check by the code reviewer showed three stated
+    behaviours untested: the forced refit's bookkeeping, its giving way to
+    `poll_training`, and the noisy poll's detection of a failed add. The
+    noisy-poll test asserted less than its docstring said, and the
+    whole-run tests did not check which path they reached.
+  - **Counting script.** Its restore streak counted the restores of stored
+    GPs too.
+  - **Records.** A dangling pointer to the closed TODO item, provenance
+    simplified, a machine-relative phrase in a tracked record, and wording.
+
+  All fixed, at `a83bd51` (code, tests, script, changelog) and in the
+  records commit after it.
+  - **Tests.** Now 44 tests: 153 in the suite, 52 s, reruns off. The
+    fingerprint is `e5f46bce200bfaa7`, in two processes.
+  - **Mutations.** Each fix, removed from the code in turn, fails its own
+    test: the unreliable GP in the poll, the refit bookkeeping (search and
+    poll), `poll_training`, the noisy poll's detection by size, and the
+    noisy search's NaN.
+  - **Positive controls.**
+    - The final test file on the package code of `09996b5`: 39 failed, 5
+      passed (the four no-failure baselines, and the noisy poll's
+      estimate after a successful add, which the old code also gets
+      right).
+    - With `bads.py` of `676083d`: 3 failed. They are the noisy search,
+      and the two cases of the unreliable-GP test, which fail there only
+      because `_is_poll_stop_` does not exist yet.
+  - **Failure count at `a83bd51`**, `--check` against
+    `dev/experiments/population_linux_20260925/`: 540 runs, 24.9 minutes,
+    484,773 guarded calls, none failed, 0 mismatches. The fixes change no
+    run of the suite.
+  - **Stress at `a83bd51`** (`--inject 0.02`, seeds 0-9, 8.5 minutes):
+    - 180 runs, all finished;
+    - 4,577 failed calls of 166,657 (2.7%; 2% of the distinct
+      computations);
+    - `add_dropped` 705, `local_recovered` 61, `target_current_gp` 1,095;
+    - `local_restored` 1,358: by the search 633, by the poll 415, by
+      `_re_evaluate_history_` 310;
+    - the longest streak of restores by the search and the poll is 2;
+    - 865 evaluations were made with a marked GP, in 168 runs, at most 18
+      in one run. That count includes a run's final samples when it ends
+      marked;
+    - against the reference on the same seeds, the median log10 error per
+      configuration differs by -0.62 to +0.40, and the fraction solved by
+      -0.2 to +0.1.

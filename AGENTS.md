@@ -232,11 +232,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   assigned before an update that fails, the new data sit beside the old
   posteriors, and `predict` then raises, or silently predicts wrong values
   when the sizes are equal. `local_gp_fitting`, which replaces the training
-  set, snapshots the GP and restores it when the rebuild fails. A GP that
-  could not take a point carries `temporary_data["needs_rebuild"]`; one
-  whose rebuild failed also carries `["needs_refit"]`. The markers are set
-  in `gaussian_process_train.py` and read by the search and the poll in
-  `bads.py`, which rebuild, or refit, at their next step.
+  set, snapshots the GP and restores it when the rebuild and its retry
+  with the previous hyperparameters both fail. A GP that could not take a
+  point carries `temporary_data["needs_rebuild"]`; a restored one also
+  carries `["needs_refit"]`. The markers are set in
+  `gaussian_process_train.py` and read by the search and the poll in
+  `bads.py`, which rebuild at their next step, and refit (the poll only
+  with `poll_training` on).
   `local_gp_fitting` removes both once it leaves a posterior on its new
   training set. `test_gp_update_failures.py` injects the failures.
 - **`IterationHistory`** deep-copies what it records, including the GP,
@@ -251,9 +253,8 @@ provenance, the null check, the positive control and what "no flag" can
 detect at its number of seeds). There is one reference for Windows and one
 for Linux, since pairing by seed holds only on one platform and set of
 versions; `dev/README.md` names both. A gate is evidence only if it reaches
-the changed code: the
-benchmark exercises the default options, so a change behind a non-default
-option needs a configuration that sets it. Every evidence run selects gpyreg
+the changed code: the benchmark exercises the default options, so a change
+behind a non-default option needs a configuration that sets it. Every evidence run selects gpyreg
 explicitly, with `PYTHONPATH` naming a clone at the release tag
 (`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
 `../gpyreg`, which other work moves. Evidence runs call the venv's Python by
