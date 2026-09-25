@@ -101,24 +101,6 @@ order.
   1.3.3 (484,773 calls on Linux), so only the tests
   (`test_gp_update_failures.py`) and the stress run of
   `dev/scripts/gp_update_failures.py --inject` reach these paths.
-- [ ] **Three small defects of `bads.py`**, rows of the survey's candidate
-  table marked "at `1a21844`":
-  - `specify_target_noise=True` with a scalar `noise_size` raises
-    `IndexError` when `BADS` is created (`np.array(noise_size > 0)[0]`),
-    where the check is meant to warn that `noise_size` is ignored;
-  - `bads.py` logs to the `asyncio` logger (`from asyncio.log import
-    logger`), as `gaussian_process_train.py` did until `8fc1dff`;
-  - with `specify_target_noise`, the final estimate takes the mean and the
-    standard error of the final samples, where MATLAB's `FinalEstimate`
-    weights them by the precisions the target returns; with one sample it
-    adds the `S` of the last logged row.
-
-  The first two move no result: the fingerprint of
-  `dev/scripts/fingerprint.py` stays the same. The third changes the
-  returned `fval` and `fsd` of runs with target noise, and not their `x`
-  or evaluations, which a population of `sphere_D3_hetero` and
-  `ellipsoid_D3_hetero` before and after the change shows. All three are
-  user-visible, so each gets a changelog entry.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
