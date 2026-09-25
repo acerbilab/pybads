@@ -1,7 +1,6 @@
 import logging
 import math
 import traceback
-from asyncio.log import logger
 from copy import deepcopy
 
 import gpyreg as gpr
@@ -16,6 +15,8 @@ from pybads.stats import get_hpd
 from pybads.utils import IterationHistory
 
 from .options import Options
+
+logger = logging.getLogger("BADS")
 
 
 def init_and_train_gp(

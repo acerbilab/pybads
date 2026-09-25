@@ -858,3 +858,30 @@ def test_run_carries_on_after_failures(inject, level, should_fail, reached):
     assert reached(injector.failed)
     assert np.isfinite(result["fval"])
     assert np.all(np.isfinite(result["x"]))
+
+
+# --- the initial fit ---------------------------------------------------------
+
+
+def test_initial_fit_recovers_from_failure(monkeypatch, caplog):
+    """`init_and_train_gp` retries a fit that raises `LinAlgError` from other
+    starting hyperparameters, with a warning on the BADS logger."""
+    original_fit = gpr.GP.fit
+    failures = []
+
+    def fit(gp, *args, **kwargs):
+        frames = _pybads_frames(sys._getframe(1))
+        if frames and frames[0] == "init_and_train_gp" and not failures:
+            failures.append(True)
+            raise np.linalg.LinAlgError("injected failure")
+        return original_fit(gp, *args, **kwargs)
+
+    monkeypatch.setattr(gpr.GP, "fit", fit)
+    with caplog.at_level("WARNING", logger="BADS"):
+        result = _make_bads(_sphere).optimize()
+    assert failures
+    assert any(
+        record.name == "BADS" and "initial fit" in record.getMessage()
+        for record in caplog.records
+    )
+    assert np.isfinite(result["fval"])
