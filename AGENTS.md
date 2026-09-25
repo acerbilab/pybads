@@ -280,7 +280,8 @@ same gpyreg.
 - Every test whose outcome depends on random draws is seeded, including
   the noise of a noisy target, so a failing test fails again on each rerun,
   and CI runs each test once. A test that fails and then passes when rerun
-  has an unseeded dependency, which is a bug in the test. The tolerances of
+  depends on something unseeded, in the test or in the package, which is a
+  bug to fix. The tolerances of
   `test_bads_optimization.py` hold over a sweep of seeds, not only at the
   seed each test runs at: when a change that moves results fails one,
   measure the errors over the seeds again with

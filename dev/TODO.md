@@ -48,6 +48,27 @@ order.
   stands for the current code in those two. The replacement is the default
   suite at 30 seeds on Linux, with its null check, as for the Windows
   reference.
+- [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
+  standard deviations, as MATLAB does, makes the runs of this benchmark
+  configuration worse: over 90 seeds the median error rises from 0.21 to
+  0.54, mostly along the flat axis of the ellipsoid
+  ([experiments/population_ellipsoid_hetero_20260925/](experiments/population_ellipsoid_hetero_20260925/README.md)),
+  while the spheres with target noise improve. The fix stays; what is open
+  is which other difference from MATLAB the correct noise exposes. The
+  candidates, each a row of the survey's candidate table:
+  - the GP mean prior, which MATLAB re-centres at every rebuild
+    (`gpdefBads.m`) and the port never updates;
+  - the merged value with the raw standard deviation that a repeated point
+    adds to the GP;
+  - the lower bound of the noise hyperparameter, which the port raises
+    after a failed fit and MATLAB does not.
+
+  A run of MATLAB BADS on this problem would show whether correct noise
+  handling alone gives such runs.
+- [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
+  (`recipe/meta.yaml`) passes `--reruns=5` and requires
+  pytest-rerunfailures, which the tests do not need; both can go at the
+  next feedstock update.
 - [ ] **Follow-ups of the GP-update guards**
   ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
   in the survey's candidate table, marked "at `676083d`" or "at

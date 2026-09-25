@@ -1,4 +1,4 @@
-# Reference population on Windows: the default suite, 30 seeds, gpyreg 1.3.3
+# Reference population on Windows after the noise-variance fix: the default suite, 30 seeds, gpyreg 1.3.3
 
 The reference on Windows for `dev/scripts/population.py compare` until a
 later reference replaces it (the one on Linux is
@@ -15,7 +15,7 @@ target returns under `specify_target_noise`, which changes the runs of
 ## Command and provenance
 
 ```console
-PYTHONPATH=<worktree>;dev/scripts/runs/gpyreg/v1.3.3 .venv/Scripts/python.exe -u dev/scripts/population.py run --suite default --seeds 0-29 --out dev/scripts/runs/population/population_targetnoise_20260925
+PYTHONPATH="<worktree>;dev/scripts/runs/gpyreg/v1.3.3" .venv/Scripts/python.exe -u dev/scripts/population.py run --suite default --seeds 0-29 --out dev/scripts/runs/population/population_targetnoise_20260925
 ```
 
 - PyBADS at `c044fea`, run from a clean detached worktree at that commit,
@@ -50,8 +50,12 @@ run:
 | `ellipsoid_D3_hetero` | 0.26 → 0.37 | 1.31 → 4.13 | 0.20 → 0.17 | 329 → 380 | 0.10 (1) |
 
 The same two configurations at `10d74a7`, the commit before the fix, equal
-the previous reference in every run (`final` fields except `wall_s`), so
-the differences come from `020d6a8`.
+the previous reference in every run (`final` fields except `wall_s`;
+`hetero_base_20260925`, kept on the machine that ran it,
+`dev/scripts/runs/LOCAL.md`), so the differences come from `020d6a8`. Over
+90 seeds, the worsening of `ellipsoid_D3_hetero` is significant
+([`population_ellipsoid_hetero_20260925`](../population_ellipsoid_hetero_20260925/README.md)):
+the median error rises from 0.21 to 0.54.
 
 ## Checks
 

@@ -25,8 +25,7 @@ package-dir = {"pybads.examples" = "examples"}
 "pybads.examples" = ["*.ipynb"]
 
 [project.optional-dependencies]
-# What the test suite needs (`pytest --pyargs pybads`); CI
-# installs this extra.
+# What the test suite needs (`pytest --pyargs pybads`); CI installs it.
 test = [
     "pytest >= 6.2.5",
     "pytest-mock >= 3.6.1",

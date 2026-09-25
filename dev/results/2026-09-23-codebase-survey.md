@@ -111,7 +111,7 @@ third call: `ellipsoid_D10` seeds 13 (751 evaluations, from
 `local_gp_fitting`, where the `except` that catches a failed
 `gp.update(hyp=hyp_gp)` calls `gp.set_hyperparameters(old_hyp_gp)`, which
 fails in turn. With gpyreg 1.3.3 no run of the suite crashes (540 runs,
-`dev/experiments/population_gpyreg133_20260924/`, the current reference on
+`dev/experiments/population_gpyreg133_20260924/`, then the reference on
 Windows);
 those two runs follow other trajectories there, since they pass through
 the low-noise regime whose predictions gpyreg 1.3.2 changed.
@@ -195,6 +195,12 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py`, `_search_step_` and `_poll_step_` (at `894d205`, lines 1662-1669 and 2062-2069) | the fallback when the acquisition fails draws `index_acq` from `rng.integers(0, len(...) + 1)`, which can return one past the last index (the range of the `np.random.randint` it replaced); the branch is not reached, since `np.argmin(z)` is never `None`, empty or non-finite | fixed in `06badd3` |
 | `search/search_hedge.py:72-74` (at `894d205`) | `np.argwhere(rand_uni < np.cumsum(self.prob))[0]` raises `IndexError` when nothing matches, before the `len(self.chosen_hedge) == 0` fallback that it guards can run | fixed in `06badd3` |
 | `bads.py:39` (at `894d205`), the `BADS` class docstring | a `:math:` role holding `\mathtt` in a docstring that is not a raw string: Python 3.12 emits `SyntaxWarning: invalid escape sequence` for it when it compiles the module | fixed in `06badd3` |
+| `bads.py`, the final estimate (at `1a21844`, lines 1491-1520) | with `specify_target_noise`, `fval` is the mean of the `noise_final_samples` samples and `fsd` their standard error, whatever standard deviations the target returns; MATLAB's `FinalEstimate` (`bads.m:1470-1476`) weights the samples by their precisions and takes `fsd = 1/sqrt(sum(1./ysd.^2))`. With one sample, the port adds `yval` and the `S` of the last logged row, where MATLAB adds nothing under `SpecifyTargetNoise`. The returned `x` does not depend on it | seen (MATLAB side read) |
+| `function_logger/function_logger.py`, `__call__` (at `1a21844`, line 193) | at level 2, a repeated point is merged into its row by precision weighting, and the call returns the merged value with the new observation's own standard deviation; `add_and_update_gp` then adds that pair beside the point's earlier row, so until the next rebuild the GP weighs the new observation by `(b/(a+b))**2` instead of `b/(a+b)` (`a`, `b` the two precisions). MATLAB's `funlogger` returns the observation itself and does not merge (reported by the review of #65) | seen |
+| `gaussian_process_train.py`, `_robust_gp_fit_` (at `1a21844`, line 680) | after each failed fit, raises the lower bound of the noise hyperparameter by the cumulative nudge, `noise_nudge[0]` per failure, and ignores `noise_nudge[1]`; MATLAB's `gpHyperOptimize.m` raises the starting point by the cumulative `nudge(1)` and the bound by `nudge(2)`, 0 by default (`NoiseNudge = [1 0]`), so its bound does not move | seen (MATLAB side read) |
+| `bads.py:853` (at `1a21844`) | `np.array(self.options["noise_size"] > 0)[0]` raises `IndexError` for a scalar `noise_size`, so `specify_target_noise=True` with a `noise_size` stops when `BADS` is created; the check is meant to warn that `noise_size` is ignored | seen |
+| `bads.py:5` (at `1a21844`) | imports `logger` from `asyncio.log` and logs to it at line 2284, the slip fixed in `gaussian_process_train.py` at `8fc1dff` | seen |
+| `bads.py`, `_save_gp_stats_` calls (at `1a21844`, lines 1694-1696 and 2138-2140) and `_re_evaluate_history_` | the GP calibration statistics store the latent standard deviation, where MATLAB stores that of the observation, likelihood noise included; `_re_evaluate_history_` selects the neighbours of each stored GP with that GP's `len_scale` and `effective_radius`, where MATLAB uses the current GP's (`bads.m:1378-1388`) (reported by the review of #65) | not looked at |
 
 ## Tests that checked less than they appeared to
 
@@ -262,10 +268,12 @@ seed would, so a tolerance has to hold beyond the seed the test runs at.
 Each tolerance is ten times the largest error of the sweep, rounded up to
 1, 2 or 5 times a power of ten, or the tolerance of `runtest.m` if that is
 lower (`test_noisy_sphere_opt` and `test_he_noisy_sphere_opt`). The row of
-`test_he_noisy_sphere_opt` comes from a second sweep of that test, after
-the fix of its noise variances (below).
+`test_he_noisy_sphere_opt` comes from a second sweep of that test at
+`020d6a8`, which squares the target's noise standard deviations into the
+GP's noise variances (below). `020d6a8` reaches only targets that return a
+noise standard deviation, so the other rows stand.
 
-| Test | Evaluations | Median error | Largest error | Tolerance | Before the fix | `runtest.m` |
+| Test | Evaluations | Median error | Largest error | Tolerance | Before `9a99bae` | `runtest.m` |
 |---|---|---|---|---|---|---|
 | `test_ellipsoid_opt` | 67–93 | 8.7e-6 | 9.8e-5 | 1e-3 | 1 | 0.1 |
 | `test_sphere_opt` | 65–100 | 2.0e-5 | 1.9e-4 | 2e-3 | 1 | 0.1 |
@@ -292,27 +300,34 @@ value into 0, its errors over the same seeds reach 6.5e-4 (median 1.1e-5,
 largest error of both designs.
 
 The target of `test_he_noisy_sphere_opt` returns the standard deviation of
-its noise (`specify_target_noise`), 2 at the minimum. Before `020d6a8`, the
-rebuild of the local GP and each added point stored these standard
-deviations in `gp.s2`, which gpyreg reads as variances (the initial fit
-squared them). MATLAB BADS keeps them in `gpstruct.s` and squares them in
-`likGaussHe` (`sn2 = exp(2*hyp) + s.^2`). Before the fix, the errors over
-seeds 0–99 exceeded the tolerance of `runtest.m`, 1, in 7 seeds, with a
-median of 0.33 and a largest error of 2.3, and the test had a tolerance of
-5; run again at `10d74a7`, the sweep reproduces the first one run by run.
-With the squares (`020d6a8`, the environment above), no error reaches 1:
-the median is 0.14, the largest 0.56, and the error is smaller in 70 of
-the 100 paired seeds (Wilcoxon signed-rank test, p = 4e-8). MATLAB's own
-errors on this problem were not measured.
+its noise (`specify_target_noise`), 2 at the minimum. Before `020d6a8`,
+each rebuild of the local GP and each addition of a point stored these
+standard deviations in `gp.s2`, which gpyreg reads as variances; only the
+initial fit squared them. MATLAB BADS keeps them in `gpstruct.s` and
+squares them in `likGaussHe` (`sn2 = exp(2*hyp) + s.^2`). Before the fix,
+the test had a tolerance of 5, and its errors over seeds 0–99 exceeded the
+tolerance of `runtest.m`, 1, in 7 seeds, with a median of 0.33 and a
+largest error of 2.3. Rerun at `10d74a7`, the sweep reproduced the one at
+`870fa35` run by run. With the code of `020d6a8`, in the same environment,
+no error reaches 1: the median is 0.14 and the largest 0.56, and the error
+is smaller in 70 of the 100 paired seeds (Wilcoxon signed-rank test,
+p = 4e-8). The tolerance, 1, is 1.8 times the largest error, a narrower
+margin than the other tests have. The logs of both sweeps are kept on the
+machine that ran them (`dev/scripts/runs/LOCAL.md`).
 
 In the benchmark, `020d6a8` changes only the two configurations with
-target noise, whose standard deviation is 1 at the minimum, and the
-comparison with the previous Windows reference flags neither
-([`population_targetnoise_20260925`](../experiments/population_targetnoise_20260925/README.md)).
-Over 30 seeds, the median error of `sphere_D3_hetero` falls from 0.20 to
-0.10 (signed-rank p = 0.008 before the Holm correction), and that of
-`ellipsoid_D3_hetero` rises from 0.26 to 0.37 (p = 0.10), with a largest
-error of 4.1 where it was 1.3.
+target noise, whose noise standard deviation is `1 + sqrt(f - f_min)`, and
+the comparison of
+[`population_targetnoise_20260925`](../experiments/population_targetnoise_20260925/README.md)
+with `population_gpyreg133_20260924`, 30 seeds each, flags neither. The
+median error of `sphere_D3_hetero` falls from 0.20 to 0.10 (signed-rank
+p = 0.008 before the Holm correction). That of `ellipsoid_D3_hetero`, a
+3-D ellipsoid with condition number 1e6, rises from 0.26 to 0.37
+(p = 0.10), and over 90 seeds
+([`population_ellipsoid_hetero_20260925`](../experiments/population_ellipsoid_hetero_20260925/README.md))
+from 0.21 to 0.54 (p = 8.5e-6), with 28 runs at or above 1 where there
+were 4, and a largest error of 2,478. Most of the increase lies along the
+flat axis of the ellipsoid. `dev/TODO.md` holds the diagnosis.
 
 ### Found while fixing the tests
 
@@ -351,9 +366,9 @@ candidate table:
   default integer, 64-bit from NumPy 2 but 32-bit with NumPy 1.x on
   Windows (checked with NumPy 1.23.5). For a start point inside the
   plausible box, the 32-bit product overflows from `D = 4` and is 0 from
-  `D = 5`, which gives the seed 1; the 64-bit product is 0 from `D = 8`.
-  The two give different designs for `D` from 4 to 7, and the same at the
-  dimensions of the tests (1, 3 and 60). PyBADS requires NumPy 2
+  `D = 5`; the 64-bit product is 0 from `D = 8`. A product of 0 gives the
+  seed 1. The two give different designs for `D` from 4 to 7, and the same
+  at the dimensions of the tests (1, 2, 3 and 60). PyBADS requires NumPy 2
   from `c044fea`. MATLAB's `init/initSobol.m` takes the seed from
   `prod(uint64(num2str(u0(1:min(10,end)))))`, the character codes of the
   printed values of the first 10 coordinates. If MATLAB's `prod` keeps the
@@ -375,8 +390,14 @@ CI runs each test once from `c044fea`. Under `--reruns=5`, the six
 full-matrix runs before it (54 jobs, on 2026-09-25) had rerun no test.
 
 From `c044fea`, `pyproject.toml` requires NumPy 2.0.0, SciPy 1.13.0 and
-matplotlib 3.9.0 or later; no CI job installs these minimums. The suite at
-`10d74a7` (157 tests, installed from the package, gpyreg 1.3.3) passed on
-Windows at these minimums with Python 3.12, and with Python 3.11, NumPy
-1.23.5, SciPy 1.9.3 and matplotlib 3.6.3. The previous minimums (NumPy
-1.22.1, SciPy 1.7.3 and matplotlib 3.5.1) were not run.
+matplotlib 3.9.0 or later, as PyVBMC has required NumPy 2 since 1.0.4.
+NumPy 1.x ran in no CI job, and on Windows its 32-bit default integer gives
+`init_sobol` other designs at `D` from 4 to 7 (above). SciPy 1.13 is the
+first release that works with NumPy 2. No CI job installs these minimums. Installed from the package, with
+gpyreg 1.3.3, the suite passed on Windows in two environments: at `23adc75`
+(159 tests) with Python 3.12 and these minimums, and at `10d74a7` (157
+tests) with Python 3.11, NumPy 1.23.5, SciPy 1.9.3 and matplotlib 3.6.3.
+The previous minimums (NumPy 1.22.1, SciPy 1.7.3 and matplotlib 3.5.1)
+were not run. Under NumPy 2, `pybads.stats.kde1d` raised `AttributeError`
+(`np.asfarray` and `np.product`, removed in NumPy 2.0) until `7f00fef`; no
+test called it.
