@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout PyBADS
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: pybads
           # full history so setuptools_scm reads PyBADS's version from its
@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout GPyReg
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: acerbilab/gpyreg
           ref: ${{ inputs.gpyreg-ref || env.GPYREG_PIN }}
