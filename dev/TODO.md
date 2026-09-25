@@ -67,12 +67,6 @@ order.
     the platform, with the seeded tests re-checked over their seeds.
 - [ ] **Small defects of the noise options and the final estimate**, rows
   of the survey's candidate table:
-  - `specify_target_noise=True` with `uncertainty_handling=None`, the
-    default, raises `ValueError`, where MATLAB's `setupoptions.m` turns
-    uncertainty handling on;
-  - a noisy run that ends before its first poll raises
-    `KeyError: 'yval_vec'` in `OptimizeResult`; MATLAB sets
-    `yval_vec = yval` before the branch (`bads.m:1136`);
   - without target noise, the final `fsd` divides by `n`, where MATLAB's
     `std` divides by `n - 1`;
   - the final `fval` and `fsd` are recorded in the iteration history at
