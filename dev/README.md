@@ -81,6 +81,13 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`) and
   counts the failed fits inside `_robust_gp_fit_` over the suite, under the
   gpyreg that `PYTHONPATH` selects.
+- `gp_update_failures.py` runs a suite as `population.py` does, counts the
+  failures of the three guarded GP updates (`add_and_update_gp`,
+  `local_gp_fitting`, `_get_target_from_gp_`) and how each guard ended, and
+  writes one JSON file. `--check DIR` compares the runs' results with a
+  population's records. `--inject P` makes a fraction of the guarded
+  computations fail, the same way each time a computation is repeated, as
+  a stress test.
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
