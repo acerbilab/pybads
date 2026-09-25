@@ -3,8 +3,8 @@
 Updated 2026-09-25. The list describes scope, not priority or execution
 order.
 
-- [ ] **Investigate the crashes on unguarded GP updates.** In the first
-  benchmark reference, `dev/experiments/population_baseline_20260924/`
+- [ ] **Investigate the crashes on unguarded GP updates.** In progress in
+  a separate session since 2026-09-25. In the first benchmark reference, `dev/experiments/population_baseline_20260924/`
   (default suite at 500 D, gpyreg 1.3.1, draws through NumPy's global
   stream), 2 of 540 runs stopped with `LinAlgError:
   Singular matrix for L Cholesky decomposition`, raised by gpyreg's
@@ -52,6 +52,24 @@ order.
   trajectories there, and this does not show whether the calls still fail.
   To settle: restore those guards, the data passed through `gp.update`,
   and what the GP left by a failed call means downstream in PyBADS.
+- [ ] **Make the tests check what they appear to.** The survey's section
+  "Tests that check less than they appear to" lists the defects:
+  `pybads/testing/bads/poll/test_poll_mads.py` names its functions
+  `*_test`, so pytest collects none of them (they pass when called
+  directly); `test_sphere_opt` has its non-box constraint reversed with
+  respect to MATLAB's `runtest.m` and passes only through its loose
+  tolerance; `test_high_dim_opt` asserts nothing; the other optimization
+  tests pass whenever the error is below 1, and most are unseeded
+  (`random_seed` makes them deterministic); `pybads/testing/run_tests.py`
+  imports paths that no longer exist, and no test reads
+  `pybads/testing/bads/*.dat`. A fix to a test moves no result, so the
+  suite is its check, not the population comparison; `AGENTS.md`, "Tests
+  and their traps", and the survey's section record each fix. Work on a
+  branch off `dev-next` (`dev-tests`, whose pushes get the CI smoke run),
+  merged into `dev-next` by a pull request, and keep off the files of the
+  item on unguarded GP updates, worked on in parallel:
+  `bads/gaussian_process_train.py`, the GP call sites in `bads/bads.py`
+  and the survey's candidate table.
 - [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
