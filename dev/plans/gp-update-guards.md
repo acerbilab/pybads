@@ -1,7 +1,8 @@
 # Plan: guards on the GP updates that can raise
 
 Created: 2026-09-25
-Status: DRAFT, awaiting the user's review of the Open Questions
+Status: APPROVED (2026-09-25), Open Questions settled at their defaults;
+an independent review of the plan is pending before Phase 1
 
 ## Summary
 
@@ -316,7 +317,7 @@ records where no failure occurred, and all injected runs finished.
 5. The `dev/README.md` index; the Linux reference if Open Question 6
    stands; the Worklog; Status.
 
-## Open questions (the default stands unless the user says otherwise)
+## Open questions (settled 2026-09-25: each at its default)
 
 1. **Failed add: drop the point, or keep it as MATLAB does?** Default:
    drop it. gpyreg's restore keeps the GP consistent, and the marker has
@@ -354,4 +355,5 @@ records where no failure occurred, and all injected runs finished.
 
 - 2026-09-25: plan drafted; MATLAB BADS read at `74919c0`; gpyreg 1.3.3's
   `update`, `set_hyperparameters` and `predict` read at `98ab5a4`. Phase 0
-  steps 1-3 done (above).
+  steps 1-3 done (above). The user settled Open Question 5 (out of
+  scope, a TODO item) and the others at their defaults.

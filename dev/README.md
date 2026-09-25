@@ -113,7 +113,7 @@ reference's number of seeds.
 - [plans/gp-update-guards.md](plans/gp-update-guards.md) — guards on the
   three GP calls that stopped benchmark runs with `LinAlgError`, after
   MATLAB BADS: a consistent GP handed on, a rebuild at the next step, no
-  change to runs without a failure (draft).
+  change to runs without a failure (in progress).
 - [plans/tooling-and-rng.md](plans/tooling-and-rng.md) — repository
   tooling after PyVBMC's (formatting, CI with gpyreg pinned, packaging,
   changelog, release), seed tests, the benchmark suite and population
