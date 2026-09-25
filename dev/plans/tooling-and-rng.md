@@ -1,7 +1,7 @@
 # Plan: tooling, CI, seeded runs and the benchmark harness
 
 Created: 2026-09-24
-Status: APPROVED (2026-09-24; open questions settled at their defaults)
+Status: DONE (2026-09-25); approved 2026-09-24, open questions settled at their defaults
 
 ## Summary
 
@@ -11,7 +11,7 @@ formatting, packaging and a changelog, a shared CI test workflow with gpyreg
 pinned, a release workflow, generated example scripts, seed tests, a
 benchmark suite with a population comparison, and random-number generator
 objects in place of NumPy's global stream. Then assess gpyreg 1.3.3 for
-PyBADS with that comparison and, if it moves no result, require it. Each
+PyBADS with that comparison and require it. Each
 change that can move numerical results is made alone and checked against a
 recorded reference.
 
@@ -33,7 +33,7 @@ difference with its cause (the prediction change, a refusal, or chance);
 whether anything in 1.3.2 should change before the tag; and PyBADS's
 proposals, including on two issues found in gpyreg's review, the `"delta"`
 noise prior of the known-noise path and the bound inversion of
-`_robust_gp_fit_` (Phase 9, step 4). Phase 0 answers the first two
+`_robust_gp_fit_` (Phase 9, step 5). Phase 0 answers the first two
 questions early; Phase 9 answers all of them.
 
 Amended on 2026-09-24: gpyreg 1.3.2 was released during Phase 7 and gpyreg
@@ -48,7 +48,8 @@ hyperparameters in `update` before it changes anything. Every `fit` and
 `update` that completes gives the same result as in 1.3.2, bit for bit, by
 the gpyreg maintainers' account. Phase 9 therefore assesses 1.3.3, the
 release PyBADS would require, and moves PyBADS's minimum and CI pin to it
-when its comparison shows no flag.
+when its comparison shows no flag, or, as it turned out, on the user's
+decision when the flags are explained.
 
 ## Scope
 
@@ -87,7 +88,9 @@ when its comparison shows no flag.
   recreates them in `dev/scripts/runs/LOCAL.md`). The venv's editable
   install follows `../gpyreg`, which other sessions move: a population run
   on 2026-09-24 was split by its move from 1.3.1 to 1.3.2. The fingerprint
-  hash `fcf9451180c5172e` holds with the v1.3.1 clone.
+  hash was `fcf9451180c5172e` with the v1.3.1 clone before Phase 8,
+  `91ca34c6b51e7f20` with it after Phase 8, and is `57241c985a68c78b` with
+  the v1.3.3 clone from Phase 9 on.
 - From Phase 2 on, each user-visible change gets its `CHANGELOG.md` entry in
   the commit that makes it.
 - Until Phase 5, `--reruns=5 -x` fails about 5% of the time on
@@ -653,7 +656,8 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 **Contract**:
 - The `random_seed` option takes what `numpy.random.default_rng` takes (an
   integer, a `SeedSequence`, a `Generator`) or `None`; an integral float is
-  converted with `int()`, as before. `BADS.__init__` sets
+  converted with `int()`, as before (as implemented, another float or a
+  string raises `TypeError`). `BADS.__init__` sets
   `self.rng = get_rng(...)` before its first draw (the random `x0`);
   `optimize()` draws from it; nothing reseeds in `_init_optimization_`.
 - `get_rng` (new `pybads/rng.py`, after PyVBMC's; internal: not exported
@@ -742,11 +746,12 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
 ### Phase 9: gpyreg 1.3.3 for PyBADS
 
 **Executor**: Opus (orchestrator)
-**Status**: [~] in progress (step 8, the report)
+**Status**: [x] done (2026-09-25)
 **Goal**: the effect of gpyreg 1.3.3 on PyBADS, measured with the
 population comparison against the generator reference of Phase 8; the
-answers the PyVBMC maintainers asked for (Context); and, if the comparison
-shows no flag, PyBADS's minimum and CI pin moved to 1.3.3.
+answers the PyVBMC maintainers asked for (Context); and PyBADS's minimum
+and CI pin moved to 1.3.3, when the comparison shows no flag or the user
+accepts the flags it explains.
 
 Amended on 2026-09-24, twice. gpyreg 1.3.2 was released during Phase 7
 (tag `v1.3.2`, `29b868c`, the merge of the branch `w6-leftovers`, whose
@@ -776,10 +781,11 @@ candidate, `_robust_gp_fit_` row).
    exception type and message; trace a failure that appears only on 1.3.3
    to its gpyreg call (a refusal is a `ValueError` that names it).
 3. [x] 1.3.2 against 1.3.3 at default options. `fingerprint.py` under each
-   clone prints the same hash. Then the configurations where the earlier
-   robust-fit counts found failed fits in every run (`sphere_D2`,
-   `ellipsoid_D3`, `rosenbrock_D2`, `ellipsoid_D3_homo`,
-   `sphere_nonbox_D3`, `ellipsoid_D3_unbounded`), seeds 0–9:
+   clone prints the same hash. Then six of the seven configurations where
+   the 1.3.1 robust-fit counts of Phase 7 found failed fits in every run
+   (`sphere_D2`, `ellipsoid_D3`, `rosenbrock_D2`, `ellipsoid_D3_homo`,
+   `sphere_nonbox_D3`, `ellipsoid_D3_unbounded`; not `ellipsoid_D6`),
+   seeds 0–9:
    `population.py run --suite default --only <those> --seeds 0-9` under
    each clone into scratch directories under
    `dev/scripts/runs/population/`; per record, the `final` fields other
@@ -814,7 +820,9 @@ candidate, `_robust_gp_fit_` row).
    run used). The suite passed on 1.3.3 in step 2. Commit
    (`build: require gpyreg 1.3.3`). A push, which runs the `dev*` smoke
    test against the new pin, waits for the user's go. With a flag or a
-   difference: no move; stop and report.
+   difference: no move; stop and report. Done on the user's decision
+   (2026-09-25) after step 4 flagged five configurations, every one
+   improved by 1.3.2's low-noise predictions (Worklog).
 7. [x] Records: a result note `dev/results/<YYYY-MM-DD>-gpyreg-1.3.3.md` (the
    heads, the suite tables, the 1.3.2–1.3.3 check, the population
    comparison with effect sizes, the low-noise share and the crashes, the
@@ -831,7 +839,7 @@ candidate, `_robust_gp_fit_` row).
    the crashing runs; the gpyreg-releases item names 1.3.3 as the required
    release. `dev/README.md`, the reference population's index entry.
    Commit.
-8. [ ] Report to the user, for the PyVBMC maintainers: suite results on
+8. [x] Report to the user, for the PyVBMC maintainers: suite results on
    1.3.1 and 1.3.3, each difference and its cause, the 1.3.2–1.3.3 check,
    the population comparison, and the PyBADS-side proposals (the two
    issues, and passing the data explicitly in the retry of
@@ -840,8 +848,9 @@ candidate, `_robust_gp_fit_` row).
 **Verification**:
 - [x] 1.3.2 and 1.3.3 agree at default options; the population comparison
       against the generator reference is reported with its effect sizes.
-- [ ] With no flag, `gpyreg >= 1.3.3` and the pin committed, the reference
-      replaced; result note and records committed; report delivered.
+- [x] `gpyreg >= 1.3.3` and the pin committed (the user's decision, the
+      flags explained), the reference replaced; result note and records
+      committed; report delivered.
 
 ## Documentation
 
@@ -877,7 +886,7 @@ of Phase 9. This plan holds the execution status in its Worklog.
   keeping an examples exclude (the notebooks keep their layout, but the
   current regex excludes the notebooks and `function_examples.py` by
   accident, and a corrected one would still differ from PyVBMC).
-- **gpyreg minimum 1.3.1, equal to the CI pin** — the minimum names a
+- **gpyreg minimum equal to the CI pin (1.3.1, then 1.3.3)** — the minimum names a
   version CI tests; both moved to 1.3.3 in Phase 9 (1.3.2 is skipped:
   1.3.3 restores the GP after a failed call, which 1.3.2 left
   inconsistent), on the user's decision after its comparison flagged five
@@ -1124,12 +1133,13 @@ the populations (steps 7–10). State at this entry:
 
 ### Phase 8 — 2026-09-24
 
-- Implementation `551aa47` (sub-agent; reviewed), plan `c85cddb`. Suite on
+- Implementation `551aa47` (sub-agent; reviewed), plan `c85cddb`, records
+  `be11a52`. Suite on
   the v1.3.1 clone: 109 passed, no reruns. `test_bads_seed.py`: 19 tests,
   8 s; the global-state test covers a random `x0`, inferred noise, prior
   samples and the slice sampler, and all four cases failed with a
   temporary `np.random.rand()` in `_poll_step_`. Beyond the plan: a float
-  seed that is not a whole number, or a string, raises `TypeError` (third
+  seed that is not a whole number, or a string, raises `TypeError` (an
   Upgrading line of the changelog); nothing else holds the generator than
   `bads.rng` and the stored hedge, `bads.search_es_hedge.rng`.
 - Population `population_generator_20260924` at `c85cddb` with the v1.3.1
@@ -1155,8 +1165,8 @@ the populations (steps 7–10). State at this entry:
 - Suite, reruns off, three runs each: 109 passed in every run on 1.3.1 and
   on 1.3.3 (logs `dev/scripts/runs/phase9_suite/`).
 - 1.3.2 against 1.3.3: fingerprint `57241c985a68c78b` under both (1.3.1:
-  `91ca34c6b51e7f20`); the six configurations with failed fits in every
-  run, seeds 0–9: the 60 records identical in every `final` field but
+  `91ca34c6b51e7f20`); six of the seven configurations with failed fits in
+  every run of the 1.3.1 counts, seeds 0–9: the 60 records identical in every `final` field but
   `wall_s`.
 - Population `population_gpyreg133_20260924` at `2059506` with the v1.3.3
   clone: 540 runs, 72.2 minutes, no crash. `compare` against the generator
@@ -1170,8 +1180,8 @@ the populations (steps 7–10). State at this entry:
   [+0.007, +0.30]. Null check of the new population: no flag in 36 tests.
 - Every changed run went through the low-noise representation: 279 runs
   differ from the reference, each with `min_noise_var` below `1e-6`, and
-  the 261 others are identical in every result field but `wall_s`
-  (all the noisy-target runs but 2, in `ellipsoid_D3_homo`). `ellipsoid_D10` seeds 13 and
+  the 261 others are identical in every result field but `wall_s`. Of the
+  150 noisy-target runs, 2 changed (`ellipsoid_D3_homo`). `ellipsoid_D10` seeds 13 and
   26, which crashed in the reference, finish under 1.3.3; both are in the
   low-noise regime before the crash, so their trajectories differ and this
   does not show whether 1.3.3 avoids the crash.
@@ -1195,3 +1205,20 @@ the populations (steps 7–10). State at this entry:
   dev scripts' usage lines name the v1.3.3 clone. The issue checks under
   1.3.3 took 20 minutes.
 - Fingerprint of later phases, with the v1.3.3 clone: `57241c985a68c78b`.
+
+### Phase 9 (done) — 2026-09-25
+
+- Report to the user for the PyVBMC maintainers: nothing in gpyreg to
+  change for PyBADS; the one gpyreg-side item is packaging (pytest among
+  its runtime dependencies, `dev/TODO.md`).
+- `/doublecheck` by three fresh-context reviewers (code and tests, records
+  against the data, docs and CI): no correctness finding in the code or
+  the build; the records' numbers all recomputed and matching. Fixed: the
+  TODO's claim that gpyreg 1.3.3's restore leaves a consistent GP (false
+  where PyBADS assigns `gp.X` before `gp.update`), the description of the
+  six configurations of the 1.3.2–1.3.3 check, overclaims in the verdict,
+  the changelog and `dev/README.md`, a missing Upgrading line (the seed is
+  read when `BADS` is created), stale references to the reference
+  population, and the plan text above. Survey: three new candidate rows.
+- The venv's gpyreg reinstalled editable from `../gpyreg` at `v1.3.3`
+  (metadata 1.3.3); the suite passes against it.

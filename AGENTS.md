@@ -206,12 +206,11 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   `rng=None` through `get_rng`. No draw of a run goes through the global
   stream, which `test_seeded_run_leaves_global_state_untouched` checks;
   `random_seed=None` derives the generator from four draws of it, so that
-  `np.random.seed` before construction fixes a run, and nothing reseeds
-  it. Nothing that is
-  deep-copied holds the generator (the `OptimizeResult`, what
-  `IterationHistory` records, the GP and its `temporary_data`), and neither
-  does `optim_state`: a copy would be a second generator in the same state.
-  The Sobol design derives its seed from the digits of `u0`.
+  `np.random.seed` before construction fixes a run, and nothing reseeds it.
+  Nothing that is deep-copied holds the generator (the `OptimizeResult`,
+  what `IterationHistory` records, the GP and its `temporary_data`), and
+  neither does `optim_state`: a copy would be a second generator in the same
+  state. The Sobol design derives its seed from the digits of `u0`.
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.
@@ -223,22 +222,22 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 A change that can move results is gated by the population comparison of
 `dev/scripts/population.py` against the current reference under
 `dev/experiments/` (its `README.md` holds the command, the provenance, the
-null check, the positive control and what "no flag" can detect at its
-number of seeds). A gate is evidence only if it reaches the changed code:
-the benchmark exercises the default options, so a change behind a
-non-default option needs a configuration that sets it. Every evidence run
-selects gpyreg explicitly, with `PYTHONPATH` naming a clone at the release
-tag (`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
-`../gpyreg`, which other work moves. Evidence runs call the venv's Python
-by its path (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python`
-elsewhere). An agent's shell does not activate the venv, so a bare
-`python` can be another installation. The scripts under `dev/scripts/`
-run there without error, but with different NumPy and SciPy versions. A
-gpyreg release is a change to
-PyBADS's numerics; its gate is the comparison run with that release's
-clone, beside the test suite, with `gpyreg.__file__` printed. A change
-that must move nothing shows the same hash of `dev/scripts/fingerprint.py`
-before and after, on one machine and with the same gpyreg.
+null check, the positive control and what "no flag" can detect at its number
+of seeds). A gate is evidence only if it reaches the changed code: the
+benchmark exercises the default options, so a change behind a non-default
+option needs a configuration that sets it. Every evidence run selects gpyreg
+explicitly, with `PYTHONPATH` naming a clone at the release tag
+(`dev/scripts/runs/LOCAL.md` lists them): the editable install follows
+`../gpyreg`, which other work moves. Evidence runs call the venv's Python by
+its path (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python`
+elsewhere). An agent's shell does not activate the venv, so a bare `python`
+can be another installation. If that installation has NumPy and SciPy, the
+scripts under `dev/scripts/` run there without error, on its versions. A
+gpyreg release is a change to PyBADS's numerics; its gate is the comparison
+run with that release's clone, beside the test suite, with `gpyreg.__file__`
+printed. A change that must move nothing shows the same hash of
+`dev/scripts/fingerprint.py` before and after, on one machine and with the
+same gpyreg.
 
 ## Tests and their traps
 

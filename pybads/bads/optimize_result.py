@@ -44,7 +44,7 @@ class OptimizeResult(dict):
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
         - random_seed: int or None
-            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one); ``None`` if the option is ``None``, a ``SeedSequence`` or a ``Generator``.
+            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
         - version: str
             - Version of the optimizer.
 

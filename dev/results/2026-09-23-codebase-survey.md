@@ -87,8 +87,10 @@ every run finished (`dev/results/2026-09-25-gpyreg-1.3.3.md`).
 
 ### Crashes on unguarded GP updates
 
-In the benchmark reference `dev/experiments/population_baseline_20260924/`
-(18 configurations × 30 seeds at 500 D, gpyreg 1.3.1), 2 of 540 runs
+In the first benchmark reference,
+`dev/experiments/population_baseline_20260924/` (18 configurations × 30
+seeds at 500 D, gpyreg 1.3.1, draws through NumPy's global stream), 2 of
+540 runs
 stopped with `LinAlgError: Singular matrix for L Cholesky decomposition`
 from gpyreg's training Cholesky factorization: `ellipsoid_D3` seed 20 at
 150 evaluations (`_poll_step_` → `_get_target_from_gp_` →
@@ -97,18 +99,17 @@ from gpyreg's training Cholesky factorization: `ellipsoid_D3` seed 20 at
 both calls, `gppred` and `gpupdate` catching the failure; the port does
 not (`dev/TODO.md`, where the MATLAB counterparts are named).
 
-In the reference that replaced it,
-`dev/experiments/population_generator_20260924/` (the same suite with the
-draws through a generator), 2 of 540 runs stopped with the same error at a
+In `dev/experiments/population_generator_20260924/` (the same suite with
+the draws through a generator, gpyreg 1.3.1), 2 of 540 runs stopped with the same error at a
 third call: `ellipsoid_D10` seeds 13 (751 evaluations, from
 `_search_step_`) and 26 (341 evaluations, from `_poll_step_`), in
 `local_gp_fitting`, where the `except` that catches a failed
 `gp.update(hyp=hyp_gp)` calls `gp.set_hyperparameters(old_hyp_gp)`, which
 fails in turn. With gpyreg 1.3.3 no run of the suite crashes (540 runs,
-`dev/experiments/population_gpyreg133_20260924/`); those two runs follow
-other trajectories there, since they pass through the low-noise regime
-whose predictions gpyreg 1.3.2 changed, and the three calls remain
-unguarded.
+`dev/experiments/population_gpyreg133_20260924/`, the current reference);
+those two runs follow other trajectories there, since they pass through
+the low-noise regime whose predictions gpyreg 1.3.2 changed, and the three
+calls remain unguarded.
 
 ## Candidate defects (not verified)
 
@@ -134,6 +135,9 @@ described; the rest are reports of the read not yet looked at.
 | `gaussian_process_train.py:979-983` (at `1cfe371`) | the fraction of the budget used divides by `min(max_fun_evals, n_train_max) - eff_starting_points`, zero when `max_fun_evals` equals the initial design, and the cubic next to it mixes `x_` and `x` | seen |
 | `bads.py:880-893` | the `gp_mean_fun` check accepts twelve names, of which only `zero`, `const` and `negquad` are reported to work | not looked at |
 | `gaussian_process_train.py`, `_robust_gp_fit_` (at `2f3d949`, lines 581-617) | after `tmp_gp.fit(X, Y, s2, ...)` raises, the retry reads `tmp_gp`: the bounds it nudges come from `tmp_gp.get_bounds()`, and with `use_slice_sampler=True` it samples hyperparameters on the data `tmp_gp` holds. What a failed fit leaves there depends on gpyreg: up to 1.3.2 the data of the failed fit and the bounds it filled in, from 1.3.3 the GP as it was before the call. At default options every bound the retry reads is set by `_gp_hyp`, so the retry does not depend on it; with the slice sampler, or the `negquad` mean (whose unset bounds are NaN until a fit fills them), it does. Passing the retry's `X`, `Y` and `s2` explicitly would remove the dependence | seen |
+| `bads.py`, `_search_step_` and `_poll_step_` (at `894d205`, lines 1662-1669 and 2062-2069) | the fallback when the acquisition fails draws `index_acq` from `rng.integers(0, len(...) + 1)`, which can return one past the last index (the range of the `np.random.randint` it replaced); the branch is not reached, since `np.argmin(z)` is never `None`, empty or non-finite | seen |
+| `search/search_hedge.py:72-74` (at `894d205`) | `np.argwhere(rand_uni < np.cumsum(self.prob))[0]` raises `IndexError` when nothing matches, before the `len(self.chosen_hedge) == 0` fallback that it guards can run | seen |
+| `bads.py:39` (at `894d205`), the `BADS` class docstring | a `:math:` role holding `\mathtt` in a docstring that is not a raw string: Python 3.12 emits `SyntaxWarning: invalid escape sequence` for it when it compiles the module | seen |
 
 ## Tests that check less than they appear to
 

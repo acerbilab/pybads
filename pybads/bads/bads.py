@@ -104,17 +104,19 @@ class BADS:
     ----------
     rng : numpy.random.Generator
         The generator of every random draw of the run, including the random
-        ``x0``. It is created from ``options['random_seed']``, which takes
-        what ``numpy.random.default_rng`` takes (an integer, a
-        ``SeedSequence`` or a ``Generator``, used as given); a float that is
-        a whole number is converted to an integer. If the option is
+        ``x0``. It is created with the ``BADS`` object from
+        ``options['random_seed']``, which takes what
+        ``numpy.random.default_rng`` takes, such as an integer or a
+        ``SeedSequence``, or a ``Generator``, which is used as given; a float
+        that is a whole number is converted to an integer. A change of the
+        option after the object is created has no effect. If the option is
         ``None`` (default), the generator is derived from NumPy's global
         random state, so that ``np.random.seed`` before creating the ``BADS``
         object fixes the run; deriving it advances that state by four draws.
-        Once the ``BADS`` object exists, the run neither draws from nor
-        seeds NumPy's global random state; a target that draws from it is
-        not fixed by ``random_seed``. Draws from ``rng`` before
-        ``optimize()`` change the run.
+        Apart from those draws, the run neither draws from nor seeds NumPy's
+        global random state; a target that draws from it is not fixed by
+        ``random_seed``. Draws from ``rng`` before ``optimize()`` change the
+        run.
 
     Raises
     ------
@@ -124,6 +126,10 @@ class BADS:
     ValueError
         When various checks for the bounds (``lower_bounds``, ``upper_bounds``,
         ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
+    TypeError
+        When ``options['random_seed']`` is a float that is not a whole
+        number, a string, or another value that ``numpy.random.default_rng``
+        does not take.
 
 
     References

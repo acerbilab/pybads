@@ -7,7 +7,7 @@ Its run of 2026-09-24 (4 seeds, the suite's first 15 configurations) found
 every run ending on BADS's own termination, which set the suite's budgets
 (``benchmark_targets.py``). Usage, from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 .venv/Scripts/python.exe -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
 """
 import os
 

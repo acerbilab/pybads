@@ -13,7 +13,7 @@ configurations, draws through NumPy's global stream) and under 1.3.3
 (2026-09-25: all 18 configurations, draws through ``bads.rng``). Usage,
 from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 .venv/Scripts/python.exe -u dev/scripts/gpyreg_issue_checks.py OUT.json
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gpyreg_issue_checks.py OUT.json
 """
 import json
 import sys

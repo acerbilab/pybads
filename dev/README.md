@@ -100,10 +100,10 @@ reference's number of seeds.
   draws through a `numpy.random.Generator`, gpyreg 1.3.3), with its null
   check.
 - [gpyreg 1.3.3 for PyBADS](results/2026-09-25-gpyreg-1.3.3.md) — the
-  suite, the agreement of 1.3.2 and 1.3.3, and the benchmark comparison
-  with 1.3.1 (five configurations improved by 1.3.2's low-noise
-  predictions, nothing else changed) behind the move of the minimum and
-  the CI pin to 1.3.3.
+  suite, the agreement of 1.3.2 and 1.3.3 at default options, and the
+  benchmark comparison with 1.3.1 (five configurations flagged, each
+  improved by 1.3.2's low-noise predictions; no run outside the low-noise
+  regime changed) behind the move of the minimum and the CI pin to 1.3.3.
 - [experiments/population_generator_20260924/](experiments/population_generator_20260924/README.md)
   — the previous reference (gpyreg 1.3.1), with its comparison with the
   baseline that validated the generator.

@@ -54,8 +54,12 @@ every configuration, and its 95% interval contains zero in all but two:
 `ellipsoid_D3_homo`, +0.26 [+0.06, +0.41] (median error 0.055 → 0.100,
 solved 0.63 → 0.50), and `ellipsoid_D3_hetero`, +0.21 [+0.005, +0.38]
 (0.199 → 0.255, solved 0.23 → 0.20). Their signed-rank tests give p = 0.25
-and 0.096 before correction, and with 18 intervals about one is expected
-to exclude zero by chance. The largest changes of the fraction solved are
+and 0.096 before correction; for `ellipsoid_D3_homo` the bootstrap
+interval of the median excludes zero while the signed-rank test of all the
+pairs does not come near significance. With 18 intervals about one is
+expected to exclude zero by chance (two or more with probability about
+0.23 if they were independent); that both are the noisy variants of the
+same target is a pattern this population cannot separate from chance. The largest changes of the fraction solved are
 +0.17 (`timing_D5`, `sphere_D3_hetero`) and -0.13 (`ellipsoid_D3_homo`).
 The crash count rises in `ellipsoid_D10` (1 → 2) and falls in
 `ellipsoid_D3` (1 → 0).
