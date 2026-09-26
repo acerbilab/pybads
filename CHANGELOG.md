@@ -316,6 +316,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   accepted; 1.1.0 refused any such mix with `bads:HalfBounds`, because its
   check looked at all the variables at once. A variable bounded on one side
   only is still refused.
+- **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
+  `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
+  bound in every dimension, as the docstring says and MATLAB BADS does;
+  1.1.0 refused it when D > 1.
 
 ## [1.1.0] - 2026-09-25
 

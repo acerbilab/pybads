@@ -69,7 +69,8 @@ class BADS:
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
         Specifies a set of ``plausible_lower_bounds`` (``plb``) and
         ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``.
-        Both ``plb`` and ``pub`` need to be finite. ``plb`` and ``pub`` represent a
+        Both ``plb`` and ``pub`` need to be finite, and are replicated in
+        each dimension if scalars. ``plb`` and ``pub`` represent a
         `plausible` range, which should denote a region where the global minimum
         is expected to be found. As a rule of thumb, set ``plausible_lower_bounds``
         and ``plausible_upper_bounds`` such that there is > 90% probability that
@@ -382,11 +383,23 @@ class BADS:
         lower_bounds = np.atleast_2d(lower_bounds)
         plausible_upper_bounds = np.atleast_2d(plausible_upper_bounds)
         plausible_lower_bounds = np.atleast_2d(plausible_lower_bounds)
+        # replicate scalar bounds in each dimension, as MATLAB BADS does
+        # (boundscheck.m)
+        (
+            upper_bounds,
+            lower_bounds,
+            plausible_upper_bounds,
+            plausible_lower_bounds,
+        ) = (
+            np.full((1, D), bound) if bound.size == 1 else bound
+            for bound in (
+                upper_bounds,
+                lower_bounds,
+                plausible_upper_bounds,
+                plausible_lower_bounds,
+            )
+        )
         # check that all bounds are row vectors with D elements
-        upper_bounds = np.atleast_2d(upper_bounds)
-        lower_bounds = np.atleast_2d(lower_bounds)
-        plausible_upper_bounds = np.atleast_2d(plausible_upper_bounds)
-        plausible_lower_bounds = np.atleast_2d(plausible_lower_bounds)
         if (
             lower_bounds.shape != (1, D)
             or upper_bounds.shape != (1, D)
