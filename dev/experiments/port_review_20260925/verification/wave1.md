@@ -162,14 +162,16 @@ their pass ahead, or proposed here.
   (W1-33) (B6 verifier). No finding contradicts an entry outright (both
   verifiers).
 
-## Proposed rulings (orchestrator, 2026-09-26, for the PI's triage)
+## Rulings (PI, 2026-09-26)
 
-Drafts, not rulings, except where marked "(PI)": the PI's decisions of
-2026-09-26 so far. Each draft follows its verifier's recommendation unless
-it says why not; the PI accepts, amends or rejects each, and the section
-then becomes "Rulings (PI, <date>)". As in wave 0, a fix is one commit per row on
-`dev-port-review`, with a test that fails at `95da7f1` and passes at the
-commit, and a changelog line in every commit a user can notice.
+The orchestrator proposed a disposition for every row, following its
+verifier's recommendation unless it says why not. The PI ruled on the rows
+marked "(PI)" (W1-25 measured behind a switch in gpyreg that is off by
+default; W1-27 kept; W1-17 a defect; W1-8 left to the orchestrator; W1-6,
+W1-28 and W1-34 as proposed) and accepted every other proposal as written.
+As in wave 0, a fix is one commit per row on `dev-port-review`, with a test
+that fails at `95da7f1` and passes at the commit, and a changelog line in
+every commit a user can notice. The fix pass is not started.
 
 **Fix, moving nothing** (each under the fingerprint):
 
@@ -246,8 +248,7 @@ one only if its comparison flags something. In this order:
    back to the PI, to keep and put on the sheet.
 5. W1-1 alone: swap the two assignments (the default suite's
    `ellipsoid_D3_unbounded` reaches it) and correct `AGENTS.md`.
-6. W1-17 (proposed after the PI's question "seems like a bug?"; revised
-   from "keep"): use the fitted length scale at D = 1 too. MATLAB's
+6. W1-17 (PI: a defect, fixed; revised from "keep"): use the fitted length scale at D = 1 too. MATLAB's
    `ncovlen > 1` (`gpupdate.m:285-292`) is meant to tell per-dimension
    length scales from an isotropic one, and at D = 1 it takes the one length
    scale of the ARD kernel for an isotropic kernel's; the port copied the

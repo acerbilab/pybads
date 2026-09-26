@@ -170,6 +170,12 @@ order.
   today its timer covers only the whole run and the target's evaluations.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench).
+- [ ] **`gp_cov_prior="ard"`.** MATLAB's per-dimension empirical prior of
+  the GP length scales (`gpdef/gpdefBads.m:254-274`) is not ported; by the
+  ruling on row W1-28 of the port review
+  (`experiments/port_review_20260925/verification/wave1.md`), PyBADS
+  refuses the value with a message instead. A port needs its own population
+  comparison with the option set.
 - [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
   `skills/pybads/SKILL.md` that points a coding agent to the parts of the
   documentation relevant to its task, linked from the README.

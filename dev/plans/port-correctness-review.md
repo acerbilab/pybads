@@ -456,7 +456,13 @@ request.
   the wave was clean (only `__pycache__`, removed). The import check of step
   1 must run outside the repository's root, whose `pybads/` comes first on
   `sys.path`; the reviewers' scripts ran from their scratch directories.
-- [ ] Wave 1 triaged (PI) and its fix pass, with W0-7 and W0-8.
+- [x] 2026-09-26: wave 1 triaged (PI; the rulings in
+  `verification/wave1.md`). The orchestrator's proposals accepted, with the
+  PI's amendments: W1-25 is measured behind a switch in gpyreg that is off
+  by default, W1-27 (the GP fit at initialization) is kept, and W1-8 and
+  W1-17, which MATLAB shares, are fixed; W1-6, W1-28 and W1-34 as proposed.
+  The fix pass is not started.
+- [ ] Wave 1's fix pass, with W0-7 and W0-8, in the order of the rulings.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and
