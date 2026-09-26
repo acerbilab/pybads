@@ -675,8 +675,12 @@ design that reseeded the global stream; its §8 follow-up 1 removed it.)
   `poll_mads_2n`. A keyword that defaults to `None` resolves through
   `get_rng`. The generator is never stored in `optim_state` nor in the
   `OptimizeResult` (which deep-copies its values).
-- The Sobol seed keeps its MATLAB derivation from the digits of `u0`; only
-  its fallback draw moves to the generator.
+- The Sobol seed comes from `u0`, not from the generator; only its fallback
+  draw moves to the generator. Its derivation is not MATLAB's: MATLAB skips
+  a number of points of the unscrambled Sobol sequence, computed from the
+  digits of `u0`, where PyBADS seeds SciPy's scrambling from the integer
+  parts of the first 11 coordinates of `u0` (the port review's ledger,
+  `experiments/port_review_20260925/verification/wave0.md`, W0-19).
 - `OptimizeResult["random_seed"]` holds the option's value when it is an
   integer or `None`, and `None` otherwise.
 

@@ -98,6 +98,11 @@ class BADS:
         determine at runtime if the objective function is noisy, or turn
         uncertainty handling on with ``options['specify_target_noise']``
         = ``True``.
+
+    gamma_uncertain_interval : float, optional, keyword-only
+        With ``options['stobads']``, the multiplier of the half-width of the
+        uncertainty interval of the Sto-BADS success rule. By default
+        ``None``, which is 1.96.
         To obtain reproducible results of the optimization, set
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
@@ -160,8 +165,9 @@ class BADS:
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
         non_box_cons: callable = None,
-        gamma_uncertain_interval=None,
         options: dict = None,
+        *,
+        gamma_uncertain_interval: float = None,
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
@@ -252,11 +258,15 @@ class BADS:
 
         # starting point
         if not np.all(np.isfinite(self.x0)):
-            self.x0 = self.rng.uniform(
-                low=self.plausible_lower_bounds,
-                high=self.plausible_upper_bounds,
+            # Uniform in the transformed plausible box, as in MATLAB BADS
+            # (setupvars.m): log-uniform for a log-transformed variable
+            var_transf = self._variable_transformer_()
+            u0 = self.rng.uniform(
+                low=var_transf.plb,
+                high=var_transf.pub,
                 size=(1, self.D),
             )
+            self.x0 = var_transf.inverse_transf(u0)
             self.logger.log(
                 25,
                 "Initial starting point is invalid or not provided."
@@ -275,11 +285,12 @@ class BADS:
 
         self.optim_state = self._init_optim_state_()
 
-        # create and init the function logger
+        # create and init the function logger; it holds the noise SDs only
+        # when the target returns them, as MATLAB's funlogger does
         self.function_logger = FunctionLogger(
             fun=fun,
             D=self.D,
-            noise_flag=self.optim_state.get("uncertainty_handling_level") > 0,
+            noise_flag=self.optim_state.get("uncertainty_handling_level") > 1,
             uncertainty_handling_level=self.optim_state.get(
                 "uncertainty_handling_level"
             ),
@@ -620,24 +631,7 @@ class BADS:
             )
 
         # Compute transformation of variables
-        if self.options["nonlinear_scaling"]:
-            logflag = np.full((1, self.D), np.nan)
-            periodic_vars = self.options["periodic_vars"]
-            if periodic_vars is not None and len(periodic_vars) != 0:
-                logflag[
-                    :, periodic_vars
-                ] = 0  # Never transform periodic variables
-        else:
-            logflag = np.zeros((1, self.D))
-
-        self.var_transf = VariableTransformer(
-            self.D,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.plausible_lower_bounds,
-            self.plausible_upper_bounds,
-            logflag,
-        )
+        self.var_transf = self._variable_transformer_()
         # optim_state["variables_trans"] = var_transf
 
         # Update the bounds with the new transformed bounds
@@ -913,7 +907,8 @@ class BADS:
         optim_state["iterlist"]["fhyp"] = []
 
         # Initialize Gaussian process settings
-        # Squared exponential kernel with separate length scales
+        # Rational-quadratic kernel with separate length scales (MATLAB's
+        # default, 'rq')
         optim_state["gp_cov_fun"] = 1
 
         if optim_state.get("uncertainty_handling_level") == 0:
@@ -958,6 +953,28 @@ class BADS:
 
         return optim_state
 
+    def _variable_transformer_(self):
+        """The transformation of the variables, from the bounds in the
+        original space and the ``nonlinear_scaling`` option."""
+        if self.options["nonlinear_scaling"]:
+            logflag = np.full((1, self.D), np.nan)
+            periodic_vars = self.options["periodic_vars"]
+            if periodic_vars is not None and len(periodic_vars) != 0:
+                logflag[
+                    :, periodic_vars
+                ] = 0  # Never transform periodic variables
+        else:
+            logflag = np.zeros((1, self.D))
+
+        return VariableTransformer(
+            self.D,
+            self.lower_bounds,
+            self.upper_bounds,
+            self.plausible_lower_bounds,
+            self.plausible_upper_bounds,
+            logflag,
+        )
+
     def _init_rng_(self):
         """
         Create ``self.rng`` from the ``random_seed`` option, and store in
@@ -994,8 +1011,9 @@ class BADS:
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
 
-        if self.optim_state["uncertainty_handling_level"] < 1:
-            # test if the function is noisy
+        if self.options["uncertainty_handling"] is None:
+            # Test whether the function is noisy, only when the option is
+            # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
             yval_bis, _, _ = self.function_logger(
                 self.u, record_duplicate_data=False
@@ -1651,8 +1669,8 @@ class BADS:
 
         Returns
         ----------
-        u_search : np.ndarray
-            Candidate search point.
+        u_search : np.ndarray or None
+            Candidate search point; None when the search set is empty.
         search_dist : np.ndarray
             Distance of the search point from thecurrent point.
         f_mu_search : float
@@ -1851,6 +1869,7 @@ class BADS:
 
         else:
             # Search set is empty
+            u_search = None
             y_search = self.yval
             f_mu_search = self.fval
             f_sd_search = 0
@@ -1894,7 +1913,6 @@ class BADS:
                 self.fsd,
                 f_sd_search,
                 self.mesh_size,
-                self.gamma_uncertain_interval,
             )
             if self.options["opp_stobads"]:
                 is_search_improved = sto_success > -1
@@ -1902,6 +1920,10 @@ class BADS:
             else:
                 is_search_improved = sto_success == 1
                 is_search_success = is_search_improved
+
+        # An empty search set is a failed search, as in MATLAB BADS
+        if u_search is None:
+            is_search_improved = is_search_success = False
 
         # A search improvement implies an update of the incumbent
         if is_search_improved:
@@ -1989,7 +2011,6 @@ class BADS:
         s_base,
         s_new,
         frame_size,
-        gamma_uncertain_interval=None,
     ):
         """
             A private method that evaluates if the improvement in the candidate incumbent using the uncertain interval method proposed in Sto-MADS [1].
@@ -1998,7 +2019,8 @@ class BADS:
             int : Return a flag integer value
                 1   : sucessuful improvement
                 0   : uncertain unsuccessful incumbent
-                -1  : certain unsuccessful incumbent
+                -1  : certain unsuccessful incumbent, or no estimate (a NaN
+                      mean or SD)
 
         References
         ----------
@@ -2006,10 +2028,14 @@ class BADS:
         """
         epsilon = np.sqrt(s_base**2 + s_new**2)
         mu = f_base - f_new
+        # No estimate (a GP that could not take the point): a failure, as on
+        # the path without Sto-BADS
+        if not (np.isfinite(mu) and np.isfinite(epsilon)):
+            return -1
         if self.gamma_uncertain_interval is None:
             gamma = 1.96  # gamma = norminv(0.975)
         else:
-            gamma = gamma_uncertain_interval  # gamma = norminv(0.975)
+            gamma = self.gamma_uncertain_interval
 
         ub_uncertain_interval = (
             gamma
@@ -2053,7 +2079,13 @@ class BADS:
         gp_poll_hyp_best = self.best_gp_hyp.copy()
         poll_count = 0
         certain_good_poll = False
-        sto_success = 0
+        # Sto-BADS: the best outcome over the poll's points (1 if some point
+        # succeeds, 0 if none does and some is uncertain, -1 if every point
+        # fails for certain, as in Sto-MADS), and the successful point of the
+        # largest improvement
+        sto_poll = -1
+        sto_best = None
+        sto_best_improvement = -np.inf
         B = None
         u_poll = None
         u_new = []
@@ -2289,9 +2321,15 @@ class BADS:
                     self.fsd,
                     f_sd_poll,
                     self.mesh_size,
-                    self.gamma_uncertain_interval,
                 )
-                certain_good_poll = sto_success == 1
+                sto_poll = max(sto_poll, sto_success)
+                if (
+                    sto_success == 1
+                    and poll_improvement > sto_best_improvement
+                ):
+                    sto_best = (u_new.copy(), y_poll, f_poll, f_sd_poll)
+                    sto_best_improvement = poll_improvement
+                certain_good_poll = sto_poll == 1
 
             # Increase poll counter
             poll_count += 1
@@ -2311,14 +2349,12 @@ class BADS:
             else:
                 is_poll_moved = False
         else:
-            # StoBads
-            if self.options["opp_stobads"] and sto_success > -1:
-                self._update_incumbent_(
-                    u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
-                )
+            # StoBads: a success moves to the successful point, and with
+            # opp_stobads an uncertain poll moves to the best polled point
+            if sto_poll == 1:
+                self._update_incumbent_(*sto_best)
                 is_poll_moved = True
-            elif certain_good_poll:
-                # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
+            elif self.options["opp_stobads"] and sto_poll == 0:
                 self._update_incumbent_(
                     u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
                 )
@@ -2337,7 +2373,7 @@ class BADS:
                 self.options["max_poll_grid_number"],
             )
 
-            self.optim_state["u_success"].append(self.u_best.copy)
+            self.optim_state["u_success"].append(self.u_best.copy())
             self.optim_state["y_success"].append(self.yval)
             self.optim_state["f_success"].append(self.fval)
         else:

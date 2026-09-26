@@ -167,6 +167,11 @@ reference's number of seeds.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
   and the detectable effect sizes that the later references cite.
+- [plans/port-correctness-review.md](plans/port-correctness-review.md) —
+  the independent correctness review of the port against MATLAB BADS
+  v1.1.3, after PyVBMC's: slices, waves, the reviewer brief, the gates and
+  the worklog; its records (the known-differences sheet, the counterpart
+  map, the reviewers' reports) under `experiments/port_review_20260925/`.
 - [plans/gp-update-guards.md](plans/gp-update-guards.md) — guards on the
   three GP calls that stopped benchmark runs with `LinAlgError`, after
   MATLAB BADS: a consistent GP handed on, a rebuild (and, after a failed

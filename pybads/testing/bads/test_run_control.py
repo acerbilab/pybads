@@ -126,8 +126,8 @@ def test_iterations_count_from_one(max_iter):
 
 @pytest.mark.parametrize(
     "uncertainty_handling, func_count",
-    [(None, 2), (True, 1)],
-    ids=["noise_test", "declared_noisy"],
+    [(None, 2), (True, 1), (False, 1)],
+    ids=["noise_test", "declared_noisy", "declared_deterministic"],
 )
 def test_one_function_evaluation(uncertainty_handling, func_count):
     """`max_fun_evals=1` evaluates the starting point (on the search grid),
@@ -146,3 +146,81 @@ def test_one_function_evaluation(uncertainty_handling, func_count):
         "Optimization terminated: reached maximum number of function "
         "evaluations after initialization."
     )
+
+
+def _box():
+    return (
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+    )
+
+
+def test_options_in_matlab_argument_order():
+    """`BADS(fun, x0, lb, ub, plb, pub, non_box_cons, options)`, MATLAB
+    BADS's order, passes the options."""
+    options = {"display": "off", "max_fun_evals": 7, "random_seed": 3}
+    bads = BADS(_sphere, *_box(), None, options)
+    assert bads.options["max_fun_evals"] == 7
+    assert bads.gamma_uncertain_interval is None
+
+
+def test_gamma_uncertain_interval_is_keyword_only():
+    options = {"display": "off", "random_seed": 3}
+    with pytest.raises(TypeError):
+        BADS(_sphere, *_box(), None, options, 2.0)
+    bads = BADS(
+        _sphere, *_box(), options=options, gamma_uncertain_interval=2.0
+    )
+    assert bads.gamma_uncertain_interval == 2.0
+
+
+def test_successful_points_are_recorded_as_arrays():
+    """`optim_state["u_success"]` holds the points of the successful searches
+    and polls, as arrays. Without searches, every success is a poll's."""
+    bads = _make_bads(search_n_try=0)
+    bads.optimize()
+    successes = bads.optim_state["u_success"]
+    assert len(successes) > 0
+    for u in successes:
+        assert isinstance(u, np.ndarray) and u.size == D
+
+
+def test_declared_deterministic_target_takes_no_noise_test():
+    """With `uncertainty_handling=False`, as in MATLAB BADS, the starting
+    point is not evaluated again to test for noise, and a noisy target is
+    optimized as a deterministic one."""
+    rng = np.random.default_rng(0)
+
+    def noisy(x):
+        return _sphere(x) + rng.standard_normal()
+
+    bads = _make_bads(noisy, uncertainty_handling=False, max_fun_evals=40)
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 0
+    evaluated = bads.function_logger.X[bads.function_logger.X_flag]
+    assert bads.function_logger.func_count == len(evaluated)
+
+
+def test_random_x0_is_uniform_in_the_transformed_box():
+    """A missing `x0` is drawn uniformly in the transformed plausible box,
+    as in MATLAB BADS (`setupvars.m`): log-uniform in the original space for
+    a log-transformed variable. The draw is the run's first."""
+    lb, ub = np.array([0.5, -10.0]), np.array([200.0, 10.0])
+    plb, pub = np.array([1.0, -5.0]), np.array([100.0, 5.0])
+    bads = BADS(
+        _sphere,
+        None,
+        lb,
+        ub,
+        plb,
+        pub,
+        options={"display": "off", "random_seed": 5},
+    )
+    assert bads.var_transf.apply_log_t.tolist() == [[True, False]]
+    u = np.random.default_rng(5).uniform(-1.0, 1.0, size=(1, 2))
+    # [1, 100] maps log-linearly to [-1, 1], [-5, 5] linearly
+    expected = [10.0 ** (1.0 + u[0, 0]), 5.0 * u[0, 1]]
+    np.testing.assert_allclose(bads.x0.ravel(), expected, rtol=1e-12)

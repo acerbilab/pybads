@@ -174,7 +174,9 @@ def init_and_train_gp(
                 )
                 fitted = True
             elif training_failures == 3:
-                # Initialize the hyper-params. to zero after the second failure (like in BADS)
+                # At the third failure, retry from every hyperparameter at
+                # zero (MATLAB BADS fits no GP at initialization, so it has
+                # no such retry)
                 new_hyp = np.zeros(shape=hyp0.shape)
                 _, _, _ = gp.fit(
                     x_train,
@@ -264,7 +266,8 @@ def local_gp_fitting(
     entry_state = vars(gp).copy()
     entry_temporary_data = dict(gp.temporary_data)
 
-    # Update the GP training set by setting the NEAREST neighbors (Matlab: gpTrainingSet)
+    # Update the GP training set by setting the NEAREST neighbors (MATLAB:
+    # private/gpupdate.m, method 'nearest')
     gp.X, gp.y, s2 = get_grid_search_neighbors(
         function_logger, current_point, gp, options, optim_state
     )
@@ -277,12 +280,16 @@ def local_gp_fitting(
         # logger.warn("bads:opt:Fitness shaping not implemented yet")
         pass
 
+    # Substitute ill-defined values with the highest well-defined one, as in
+    # MATLAB's gpupdate.m (the function logger refuses them today)
     idx_finite_y = np.isfinite(gp.y)
     if np.any(~idx_finite_y):
-        y_idx_penalty = np.argmax(gp.y[idx_finite_y])
-        gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
-        if "S" in optim_state:
-            gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
+        idx_penalty = np.flatnonzero(idx_finite_y)[
+            np.argmax(gp.y[idx_finite_y])
+        ]
+        gp.y[~idx_finite_y] = gp.y.flat[idx_penalty]
+        if options.get("specify_target_noise") and gp.s2 is not None:
+            gp.s2[~idx_finite_y] = gp.s2.flat[idx_penalty]
 
     gp.temporary_data["err_y"] = ~idx_finite_y
 
@@ -356,7 +363,7 @@ def local_gp_fitting(
     if options["warp_func"] == 0:
         sd_y = np.log(np.std(gp.y))
     else:
-        # TODO warp function (Matlab  gpdefbads line-code 302)
+        # TODO warp function (MATLAB: gpdefBads.m:287-291)
         pass
 
     # Re-fit gaussian Process (optimize or sample -- only optimization supported)
@@ -952,7 +959,6 @@ def _gp_hyp(
     # # Missing port: priors and bounds for output warping hyperparameters
     # (not used)
 
-    # Missing port: we only implement the mean functions that gpyreg supports.
     if isinstance(gp.mean, gpr.mean_functions.ZeroMean):
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
@@ -982,8 +988,6 @@ def _gp_hyp(
     gp.temporary_data["poll_scale"] = np.ones(D)
     gp.temporary_data["effective_radius"] = 1.0
     # gpstruct.sf = np.exp(1) no need of this since we do not use the hedge acquisition function
-
-    # Missing port: meanfun == 14 hyperprior case
 
     # Missing port: output warping priors
 
@@ -1160,8 +1164,6 @@ def _get_fevals_data(function_logger: FunctionLogger):
     else:
         s2 = None
 
-    # Missing port: noise_shaping
-
     evals_time = function_logger.fun_eval_time[function_logger.X_flag]
 
     return x, y, s2, evals_time
@@ -1242,6 +1244,14 @@ def add_and_update_gp(
         # `sd_new` is a standard deviation; the GP takes variances.
         s2_new = np.atleast_2d(sd_new) ** 2
 
+    # An ill-defined value enters as the highest value of the training set,
+    # with its noise, as in MATLAB's gpupdate.m
+    if not np.all(np.isfinite(y_new)):
+        idx_penalty = np.argmax(gp.y)
+        y_new = gp.y.flat[idx_penalty]
+        if s2_new is not None and gp.s2 is not None:
+            s2_new = np.atleast_2d(gp.s2.flat[idx_penalty])
+
     # The data go through `update`, so that a failure leaves the GP without
     # them; the hyperparameters, given, keep the full recomputation.
     try:
@@ -1257,9 +1267,5 @@ def add_and_update_gp(
             "bads:add_and_update_gp: posterior GP update failed; the point is left out until the next rebuild"
         )
         gp.temporary_data["needs_rebuild"] = True
-
-    # Missing port: intmean part
-    # TODO how is handled the user defined noise
-    # TODO should we add a check if the values are well defined?
 
     return gp

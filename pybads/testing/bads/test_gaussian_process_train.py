@@ -9,7 +9,9 @@ from pybads.bads.gaussian_process_train import (
     _get_fevals_data,
     _get_gp_training_options,
     _meanfun_name_to_mean_function,
+    add_and_update_gp,
     init_and_train_gp,
+    local_gp_fitting,
 )
 
 
@@ -361,3 +363,59 @@ def test_gp_log_lengthscale_bounds(monkeypatch):
         options={"display": "off", "max_fun_evals": 60, "random_seed": 0},
     ).optimize()
     assert checked["local"] > 0
+
+
+def _initialized_bads(D=2):
+    bads = BADS(
+        lambda x: float(np.sum(np.atleast_2d(x) ** 2)),
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "off", "random_seed": 3},
+    )
+    gp, _, _, _ = bads._init_optimization_()
+    return bads, gp
+
+
+def test_rebuild_substitutes_ill_defined_values():
+    """An ill-defined target value in the training set of the local GP is
+    replaced by the highest well-defined one, as in MATLAB's gpupdate.m.
+    (The function logger refuses such values today.)"""
+    bads, gp = _initialized_bads()
+    logger = bads.function_logger
+    rows = np.flatnonzero(logger.X_flag)
+    logger.Y[rows[np.argmin(logger.Y[rows].ravel())]] = np.inf
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        False,
+        rng=bads.rng,
+    )
+    err = gp.temporary_data["err_y"].ravel()
+    assert err.sum() == 1
+    assert np.all(np.isfinite(gp.y))
+    assert gp.y.ravel()[err].item() == np.max(gp.y.ravel()[~err])
+
+
+def test_add_enters_ill_defined_value_as_highest():
+    """A point added with an ill-defined value enters the GP with the
+    highest value of its training set, as in MATLAB's gpupdate.m."""
+    bads, gp = _initialized_bads()
+    n, y_max = gp.y.shape[0], np.max(gp.y)
+    gp = add_and_update_gp(
+        bads.function_logger,
+        gp,
+        np.full((1, 2), 0.5),
+        np.inf,
+        None,
+        bads.options,
+    )
+    assert gp.y.shape[0] == n + 1
+    assert gp.y.ravel()[-1] == y_max
+    assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))

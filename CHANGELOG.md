@@ -20,6 +20,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `output_fcn` is called as `output_fcn(x, optim_state, state)`, with
   `state` one of `"init"`, `"iter"` and `"done"`, where 1.1.0 called
   `output_fcn(x, "init")` once.
+- `gamma_uncertain_interval` is keyword-only and follows `options`: a
+  script that passed it as the 8th positional argument of `BADS` passes it
+  by name.
+- With `uncertainty_handling=False`, a run makes no noise test: it takes one
+  evaluation fewer, and a noisy target is optimized as a deterministic one.
 
 ### Changed
 
@@ -123,6 +128,34 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   true return value stops the run. It was called once, at the start, as
   `output_fcn(x, "init")`, and a true return value raised
   `UnboundLocalError`.
+- **Arguments in MATLAB BADS's order.** `BADS(fun, x0, lb, ub, plb, pub,
+  non_box_cons, options)` passes `options`. They went to the undocumented
+  argument `gamma_uncertain_interval`, which stood before `options`, and
+  were ignored, the seed included. `gamma_uncertain_interval`, the
+  multiplier of the uncertainty interval of Sto-BADS (`stobads=True`), is
+  keyword-only and documented.
+- **Sto-BADS poll.** With `stobads=True`, a poll succeeds when one of its
+  points succeeds, as in Sto-MADS, and moves the incumbent to that point;
+  before, the outcome of the last polled point decided, so that a success
+  followed by other points was lost and the mesh contracted. With
+  `opp_stobads`, a poll without a success moves to its best point when any
+  of its points is uncertain, not only when the last one is.
+- **Search without a candidate.** A search that leaves no candidate, for
+  instance under a `non_box_cons` that does not always give the same answer
+  for a point, counts as a failed search, as in MATLAB BADS; the run
+  stopped with `UnboundLocalError` or `IndexError`.
+- **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
+  starting point is not evaluated a second time to test for noise, as in
+  MATLAB BADS; the test ran unless uncertainty handling was on, and a
+  target that it found noisy was optimized as a noisy one although the
+  option declared it deterministic. The test runs when
+  `uncertainty_handling` is left empty.
+- **Random starting point.** Without a finite `x0`, the starting point is
+  drawn uniformly in the transformed plausible box, as in MATLAB BADS:
+  log-uniformly in the original space for a variable on a log scale (all
+  its bounds positive, and `pub/plb >= 10`). It was drawn uniformly in the
+  original plausible box, which put most starting points in the upper
+  decade of such a variable.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when
@@ -139,9 +172,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the GP could not take is included when the local GP is rebuilt at the
   next step, a target that cannot be predicted under the best
   hyperparameters is predicted from the current GP, and a point the GP
-  cannot estimate counts as no improvement. A failed rebuild is retried at
-  the next step with refitted hyperparameters (in the poll, only with
-  `poll_training` on). Runs without such a failure give the same results.
+  cannot estimate counts as no improvement, with Sto-BADS
+  (`stobads=True`) too. A failed rebuild is retried at the next step with
+  refitted hyperparameters (in the poll, with `poll_training` on or in the
+  first iteration), where MATLAB BADS refits only when its check of the
+  GP's predictions calls for it. Runs without such a failure give the same
+  results.
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
   `BADS` logger, whose level `display` sets; `display="full"` shows the
   debug messages. The warnings of the GP fits (a failed initial fit, failed

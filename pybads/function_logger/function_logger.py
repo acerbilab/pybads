@@ -18,7 +18,8 @@ class FunctionLogger:
     D : int
         The number of dimensions that the function takes as input.
     noise_flag : bool
-        Whether the function fun is stochastic or not.
+        Whether the logger holds the standard deviations of the noise that
+        the function returns (``S``).
     uncertainty_handling_level : {0, 1, 2}
         The uncertainty handling level which can be one of
         (0: none; 1: unknown noise level; 2: user-provided noise).
@@ -286,7 +287,8 @@ class FunctionLogger:
         self.X_orig = self.X_orig[: self.Xn + 1]
         self.Y_orig = self.Y_orig[: self.Xn + 1]
 
-        # in the original matlab version X and Y get deleted
+        # MATLAB's funlogger 'done' trims X, Y, S and the evaluation times
+        # too, and removes U, the transformed points (PyBADS's X)
         self.X = self.X[: self.Xn + 1]
         self.Y = self.Y[: self.Xn + 1]
 

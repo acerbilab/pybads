@@ -307,12 +307,9 @@ def test_add_without_failure_matches_assign_then_update(captured):
     points = np.vstack((gp.X[:4] + 0.01, np.atleast_2d(x)))
     for mine, theirs in zip(gp.predict(points), reference.predict(points)):
         assert np.array_equal(mine, theirs)
-    if level == 0:
+    if level < 2:
+        # Without the target's noise, the GP holds no noise variances
         assert gp.s2 is None
-    elif level == 1:
-        # gpyreg gives a point without a noise variance a zero; the noise
-        # function does not read these at level 1.
-        assert _same(gp.s2, np.vstack((s2_before, [[0.0]])))
     else:
         assert _same(gp.s2, np.vstack((s2_before, np.atleast_2d(sd) ** 2)))
     assert not gp.temporary_data.get("needs_rebuild", False)
@@ -823,6 +820,69 @@ def test_noisy_search_after_failed_rebuild_counts_as_failure(
     ]
     f_new, s_new = _first_estimate_after(log, 3)
     assert np.isnan(f_new) and np.isnan(s_new)
+    point = log["failed_points"][0]
+    assert not any(np.array_equal(u, point) for u in log["moves"])
+    assert np.isfinite(result["fval"])
+
+
+def test_sto_rule_counts_no_estimate_as_failure():
+    """Sto-BADS's success rule counts a point without an estimate (a NaN mean
+    or SD, left by a GP that could not take it) as a failure, as the path
+    without Sto-BADS does."""
+    make_fun, options = LEVELS[1]
+    bads = _make_bads(make_fun(), stobads=True, **options)
+    rule = bads._sto_success_improvement_
+    assert rule(1.0, np.nan, 0.2, np.nan, 1.0) == -1
+    assert rule(np.nan, 0.0, np.nan, 0.2, 1.0) == -1
+    assert rule(1.0, 0.0, 0.1, 0.1, 1.0) == 1
+    assert rule(0.0, 1.0, 0.1, 0.1, 1.0) == -1
+    assert rule(0.0, 0.0, 0.1, 0.1, 1.0) == 0
+
+
+def test_sto_search_after_failed_rebuild_counts_as_failure(
+    inject, monkeypatch
+):
+    """With Sto-BADS and `opp_stobads` (on by default), a search point
+    without an estimate, after a failed rebuild of the search's GP, fails:
+    the incumbent does not move to it, as without Sto-BADS."""
+    state = {"armed": False, "local": 0}
+
+    def should_fail(call):
+        if call.caller != "_search_step_":
+            return False
+        if not state["armed"] and call.site == "add_and_update_gp":
+            if call.n >= 3:
+                state["armed"] = True
+                return True
+        elif state["armed"] and call.site == "local_gp_fitting":
+            if state["local"] < 2:
+                state["local"] += 1
+                return True
+        return False
+
+    injector = inject(should_fail)
+    log = _watch(monkeypatch, injector)
+    outcomes = []
+    original_rule = BADS._sto_success_improvement_
+
+    def rule(self, f_base, f_new, s_base, s_new, frame_size):
+        out = original_rule(self, f_base, f_new, s_base, s_new, frame_size)
+        outcomes.append((len(injector.failed), f_new, s_new, out))
+        return out
+
+    monkeypatch.setattr(BADS, "_sto_success_improvement_", rule)
+    make_fun, options = LEVELS[1]
+    result = _make_bads(
+        make_fun(), max_fun_evals=100, stobads=True, **options
+    ).optimize()
+    assert [call[:2] for call in injector.failed] == [
+        ("add_and_update_gp", "update"),
+        ("local_gp_fitting", "update"),
+        ("local_gp_fitting", "set_hyperparameters"),
+    ]
+    _, f_new, s_new, outcome = next(o for o in outcomes if o[0] == 3)
+    assert np.isnan(f_new) and np.isnan(s_new)
+    assert outcome == -1
     point = log["failed_points"][0]
     assert not any(np.array_equal(u, point) for u in log["moves"])
     assert np.isfinite(result["fval"])
