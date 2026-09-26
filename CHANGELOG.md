@@ -461,12 +461,16 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   scale of the next search by `search_scale_failure` but not below
   `search_factor_min`, as in MATLAB BADS. `search_factor_min` was ignored,
   and the late searches of a round of failures ran far below it (at 0.18 of
-  the full scale, against a floor of 0.5, at D = 6). Results change for D ≥
-  2.
+  the full scale, against a floor of 0.5, at D = 6). Results change for
+  D ≥ 2: in PyBADS's benchmark, the 10-D ellipsoid takes 5% more
+  evaluations, with no change in its error, and no other problem changes
+  significantly.
 - **Accelerated mesh reduction.** A failed poll shrinks the mesh a second
   time when the last `accelerate_mesh_steps` iterations improved by less
   than `tol_fun`, from iteration `accelerate_mesh_steps + 1` on, as in
-  MATLAB BADS; 1.1.0 started one iteration later. Results change.
+  MATLAB BADS; 1.1.0 started one iteration later. In PyBADS's benchmark no
+  run changes; a run that stalls from its start can end with a mesh half as
+  large.
 - **Start and plausible bounds used as given.** BADS no longer moves `x0`,
   `plausible_lower_bounds` or `plausible_upper_bounds` 0.1% of the range
   inside the hard bounds, nor widens the plausible box to a start near a
