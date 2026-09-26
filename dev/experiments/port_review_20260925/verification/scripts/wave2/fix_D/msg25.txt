@@ -1,0 +1,31 @@
+fix: the re-estimation's move takes the incumbent's location with its value (W2-25)
+
+At the end of an iteration of a noisy run, when the re-estimation finds an
+earlier iterate better by more than tol_fun, the incumbent took that
+iterate's yval, fval and fsd, and its location went to self.u and to
+self.best_u, a name nothing reads. u_best stayed at the old incumbent, and
+the next pass set self.u = self.u_best, so the next search's target was
+predicted at the old incumbent, and a poll that no successful search
+preceded ran around the old incumbent, judged by the chosen iterate's
+value; optim_state's incumbent was not updated either. MATLAB BADS does the
+same (bads.m:1111-1118 sets u and not ubest; u = ubest at bads.m:769),
+and the port matched it only because best_u is dead. By the PI's ruling
+(option (b)), this departs from MATLAB: the move now calls
+_update_incumbent_ with the iterate's u, yval, fval and fsd, which sets
+u_best and optim_state's u, yval, fval and fsd as a search or a poll does,
+and the dead best_u line goes. The target's hyperparameters still move to
+the iterate and the working GP stays, as in MATLAB. Noisy runs change.
+
+Test: test_noisy_runs.py::
+test_re_estimation_moves_the_incumbent_with_its_value, a noisy sphere
+(D = 2, noise SD 0.5, 200 evaluations, seed 0; 9 moves, 5 to another
+location, 2 of them followed by a poll that no search moved): after each
+move u_best and optim_state's u are the iterate's location, and the next
+poll, when no search moved the incumbent first, is centred there. At the
+parent, each of the three checks fails on its own.
+
+Fingerprint: dc11118754b18b47, unchanged from the parent: its noisy runs
+end at their 4th iteration and none moves before its last re-estimation,
+after which only the final choice follows.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

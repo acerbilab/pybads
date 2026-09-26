@@ -1,0 +1,22 @@
+fix: a failed search floors the search factor at search_factor_min (W2-16)
+
+After each failed search, _update_search_stats_ multiplied the search
+factor by search_scale_failure (sqrt(0.5)) with no floor, and nothing read
+the option search_factor_min. MATLAB BADS takes
+max(SearchFactorMin, searchfactor*SearchScaleFailure) (bads.m:1366). The
+factor scales the covariance of the ES search on both sides
+(searchES.m:105, es_search.py:128), so at D = 6 the late searches of a
+round of failures ran at 0.177 instead of 0.5. The failure branch now
+takes np.maximum(search_factor_min, ...), as MATLAB does; the successful
+and incremental branches and the reset at the end of a round are
+unchanged. Default runs with D >= 2 change.
+
+Test: test_search.py::test_failed_searches_floor_the_search_factor, a
+round of six failed searches at D = 6, whose factors are
+[1, 0.707, 0.5, 0.5, 0.5, 0.5] (at the parent the last three are 0.354,
+0.25 and 0.177), and a success and an incremental search from a factor
+below the floor, which scale it without one.
+
+Fingerprint: dc11118754b18b47 (91f947f78e1087c2 at the parent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
