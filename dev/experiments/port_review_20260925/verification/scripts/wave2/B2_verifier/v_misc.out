@@ -1,0 +1,17 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+C-F9 {}: polls 10, Actions shown != MATLAB's action: 0; first: []
+K8 {}: poll returned the same GP object in 10 of 10 polls
+C-F9 {'search_n_try': 0}: polls 29, Actions shown != MATLAB's action: 15; first: [(2, 'Train', ''), (4, 'Train', ''), (6, 'Train', ''), (8, 'Train', ''), (9, 'Train', '')]
+K8 {'search_n_try': 0}: poll returned the same GP object in 29 of 29 polls
+I-F9 max_iter=1: polls 1, searches 0, iterations 1, msg terations options['max_iter'].
+I-F9 max_iter=2: polls 1, searches 1, iterations 2, msg terations options['max_iter'].
+I-F9 max_iter=3: polls 2, searches 5, iterations 3, msg terations options['max_iter'].
+I-F10: design raw minimum -0.7563; incumbent (fval, fsd) entering polls 1-3: [(-0.7563, 1.0), (-0.7563, 1.0), (-0.0692, 0.1269)]
+C-F10 max_fun_evals=1 uncertainty_handling=None: iterations 0 (MATLAB: iter = 1 before the loop, bads.m:482)
+C-F10 max_fun_evals=1 uncertainty_handling=True: iterations 0 (MATLAB: iter = 1 before the loop, bads.m:482)
+level 1, nfs=1: yval_vec shape (2, 1); last incumbent yval [[ 0.3396805 ]
+ [-0.15021396]] ; returned fval 0.0947 fsd 0.2449; message: ['Estimated function value at minimum: 0.09473326850034766 ± 0.2449472279327037 (mean ± SEM from 2 samples)']
+level 1, nfs=0: yval_vec shape None; last incumbent yval [-0.15084726] ; returned fval -0.0518 fsd 0.0404; message: ['Observed function value at minimum: -0.15084725878309457 (1 sample). Estimated: -0.05176932451936711 ± 0.040381282643365095 (GP mean ± SEM).']
+level 1, nfs=3: yval_vec shape (3,); last incumbent yval [ 0.24073203 -0.51098538  0.3388927 ] ; returned fval 0.0229 fsd 0.2684; message: ['Estimated function value at minimum: 0.02287977958975133 ± 0.26843241806477314 (mean ± SEM from 3 samples)']
+level 2, nfs=1: yval_vec shape (1,); last incumbent yval [0.34511739] ; returned fval 0.3451 fsd 0.5000; message: ['Observed function value at minimum: [0.34511739] (1 sample). Estimated: 0.3451173909169157 ± 0.5 (GP mean ± SEM).']

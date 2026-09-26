@@ -1,0 +1,23 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:476: RuntimeWarning: divide by zero encountered in log
+  lower_bounds[0:D] = np.log(width) + np.log(tol)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:477: RuntimeWarning: divide by zero encountered in log
+  upper_bounds[0:D] = np.log(width * 10)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:478: RuntimeWarning: divide by zero encountered in log
+  plausible_lower_bounds[0:D] = np.log(width) + 0.5 * np.log(tol)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:479: RuntimeWarning: divide by zero encountered in log
+  plausible_upper_bounds[0:D] = np.log(width)
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:208: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+calls (candidates, after bounds/duplicates, after non_box_cons, min |x1-x2| among candidates):
+   4 4 0 0.1309
+   4 4 0 2.0
+   4 4 0 1.0
+   4 4 0 0.5
+   4 4 0 0.25
+   4 4 0 0.125
+   4 4 0 0.0312
+Optimization terminated: change in the function value less than options['tol_fun']. 2 mesh sizes [0.5 0.25 0.125 0.0625 0.015625 0.00390625]

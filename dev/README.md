@@ -127,12 +127,20 @@ reference's number of seeds.
   noise-variance fix of `020d6a8`), with its null check and its comparison
   with the one before, which flags nothing: the two configurations with
   target noise change, and the other 16 are identical run by run.
-- [experiments/population_linux_wave1_20260926/](experiments/population_linux_wave1_20260926/README.md)
+- [experiments/population_linux_wave2_20260926/](experiments/population_linux_wave2_20260926/README.md)
   — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at the package code of wave 1's fix pass of the
+  seeds, gpyreg 1.3.3, at the package code of wave 2's fix pass of the
   port review), with its null check and its comparison with the previous
   Linux reference, the net change of the pass, which flags one
-  configuration, a lower error on `ackley_D6`.
+  configuration, more evaluations on `ellipsoid_D10` with an unchanged
+  error.
+- [experiments/population_linux_wave1_20260926/](experiments/population_linux_wave1_20260926/README.md)
+  — the previous reference population of the benchmark on Linux (default
+  suite, 30 seeds, gpyreg 1.3.3, at the package code of wave 1's fix pass
+  of the port review, `fef6c14`), the baseline of wave 2's fix pass, with
+  its null check and its comparison with the previous Linux reference, the
+  net change of that pass, which flags one configuration, a lower error on
+  `ackley_D6`.
 - [experiments/population_linux_wave0_20260926/](experiments/population_linux_wave0_20260926/README.md)
   — the previous reference population of the benchmark on Linux (default
   suite, 30 seeds, gpyreg 1.3.3, at the package code of `e004c79`: wave 0

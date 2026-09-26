@@ -1,0 +1,22 @@
+fix: BADS refuses a non-empty fun_values, whose import was never ported, with a message (W2-6)
+
+MATLAB BADS imports prior evaluations given as FunValues into its
+function logger (setupvars.m:126-167). The Python import of fun_values
+(_init_optim_state_) never worked, for three defects of its own: the
+check np.isreal(X) on an array raised "The truth value of an array ... is
+ambiguous", the loop was range(len()), and it wrote to
+self.function_logger, which BADS creates after _init_optim_state_. So
+any non-empty fun_values stopped BADS() with that ValueError.
+
+A non-empty fun_values now raises a ValueError that says the option is
+not supported yet, and the broken import code goes; the empty default
+passes. The port stays open work (a TODO.md item): once done, the
+incumbent is taken over x0 and the initial design only, as MATLAB does.
+
+Test: test_fun_values_is_not_supported (test_options.py); at the parent
+the message does not match ("The truth value of an array with more than
+one element is ambiguous").
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

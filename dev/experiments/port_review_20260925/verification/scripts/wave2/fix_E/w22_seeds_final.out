@@ -1,0 +1,53 @@
+/home/user/pybads-fix-E/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior                   seed 0: x [ 1.     -1.9989  0.0999] fval 1.38e-06 evals 75 iters 8 max|err| 0.0011 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior                   seed 1: x [ 1.0008 -1.9987  0.1004] fval 4.8e-06 evals 79 iters 8 max|err| 0.0013 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior                   seed 2: x [ 0.9995 -2.0019  0.1003] fval 5.51e-06 evals 76 iters 9 max|err| 0.0019 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior                   seed 3: x [ 1.0009 -1.9981  0.0997] fval 6.27e-06 evals 85 iters 10 max|err| 0.0019 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior                   seed 4: x [ 0.9999 -1.9997  0.0999] fval 1.58e-07 evals 79 iters 8 max|err| 0.00031 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior x0=None           seed 0: x [ 0.9992 -2.      0.1004] fval 2.96e-06 evals 65 iters 7 max|err| 0.00077 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior x0=None           seed 1: x [ 1.0037 -2.0001  0.1004] fval 1.68e-05 evals 75 iters 9 max|err| 0.0037 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior x0=None           seed 2: x [ 0.9993 -1.999   0.1   ] fval 1.61e-06 evals 75 iters 8 max|err| 0.001 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior x0=None           seed 3: x [ 0.9996 -1.9979  0.0998] fval 5.07e-06 evals 75 iters 8 max|err| 0.0021 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior x0=None           seed 4: x [ 0.9989 -2.0005  0.1   ] fval 1.53e-06 evals 75 iters 9 max|err| 0.0011 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+on the finite bounds       seed 0: x [2.9802e-07 5.0000e+00 1.0029e-01] fval 2 evals 64 iters 8 max|err| 0.00029 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+on the finite bounds       seed 1: x [2.9802e-07 5.0000e+00 1.0014e-01] fval 2 evals 64 iters 8 max|err| 0.00014 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+on the finite bounds       seed 2: x [2.9802e-07 5.0000e+00 9.9882e-02] fval 2 evals 64 iters 8 max|err| 0.00012 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+on the finite bounds       seed 3: x [2.9802e-07 5.0000e+00 1.0005e-01] fval 2 evals 64 iters 8 max|err| 4.5e-05 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+on the finite bounds       seed 4: x [2.9802e-08 5.0000e+00 9.9963e-02] fval 2 evals 64 iters 8 max|err| 3.7e-05 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+beyond the plausible box   seed 0: x [  40.0001  -30.0033 1000.9772] fval 1.09e-05 evals 107 iters 9 max|err| 0.0033 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+beyond the plausible box   seed 1: x [ 40.0011 -30.0017 999.5204] fval 4.05e-06 evals 93 iters 8 max|err| 0.0017 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+beyond the plausible box   seed 2: x [ 39.9988 -29.9983 992.8763] fval 1.4e-05 evals 79 iters 7 max|err| 0.0031 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+beyond the plausible box   seed 3: x [ 40.0023 -30.     999.3864] fval 5.2e-06 evals 79 iters 7 max|err| 0.0023 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+beyond the plausible box   seed 4: x [ 39.9972 -29.9986 997.1965] fval 1.13e-05 evals 87 iters 7 max|err| 0.0028 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior, noisy            seed 0: x [ 0.9829 -2.0011  0.099 ] fval 0.0516 evals 188 iters 14 max|err| 0.017 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior, noisy            seed 1: x [ 1.0181 -1.9938  0.0981] fval 0.00526 evals 188 iters 14 max|err| 0.018 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior, noisy            seed 2: x [ 0.9979 -1.9833  0.102 ] fval -0.009 evals 190 iters 15 max|err| 0.017 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior, noisy            seed 3: x [ 1.0237 -1.9947  0.0972] fval -0.0303 evals 176 iters 14 max|err| 0.024 all evals within bounds True | Optimization terminated: change in the functi
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+interior, noisy            seed 4: x [ 1.0306 -1.9959  0.1025] fval -0.0208 evals 190 iters 15 max|err| 0.031 all evals within bounds True | Optimization terminated: change in the functi
+warnings (category, message, file, line): count
+  ('RuntimeWarning', 'overflow encountered in exp', 'variables_transformer.py', 203) 30

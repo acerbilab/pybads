@@ -1,0 +1,40 @@
+E           AssertionError:
+E           Arrays are not equal
+E
+E           Mismatched elements: 1 / 2 (50%)
+E           Mismatch at index:
+E            [0, 0]: -1.0 (ACTUAL), -1.2510738338534912 (DESIRED)
+E           Max absolute difference among violations: 0.25107383
+E           Max relative difference among violations: 0.20068666
+E            ACTUAL: array([[-1., -2.]])
+E            DESIRED: array([[-1.251074, -2.      ]])
+E           AssertionError:
+E           Arrays are not equal
+E
+E           Mismatched elements: 1 / 2 (50%)
+E           Mismatch at index:
+E            [0, 0]: 1.3025850929940457 (ACTUAL), 1.0 (DESIRED)
+E           Max absolute difference among violations: 0.30258509
+E           Max relative difference among violations: 0.30258509
+E            ACTUAL: array([[1.302585, 1.      ]])
+E            DESIRED: array([[1., 1.]])
+E           AssertionError:
+E           Arrays are not equal
+E
+E           Mismatched elements: 2 / 2 (100%)
+E           Mismatch at indices:
+E            [0, 0]: -1.0 (ACTUAL), -1.2510738338534912 (DESIRED)
+E            [0, 1]: -1.0 (ACTUAL), -1.2510738338534912 (DESIRED)
+E           Max absolute difference among violations: 0.25107383
+E           Max relative difference among violations: 0.20068666
+E            ACTUAL: array([[-1., -1.]])
+E            DESIRED: array([[-1.251074, -1.251074]])
+E       AssertionError: assert [dtype('int64...'int64'), ...] == [<class 'floa...'float'>, ...]
+E
+E         At index 0 diff: dtype('int64') != <class 'float'>
+E         Use -v to get more diff
+FAILED pybads/testing/bads/test_bads_inputs.py::test_integer_bounds_are_taken_as_floats[arrays]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_integer_bounds_are_taken_as_floats[arrays_plausible_omitted]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_integer_bounds_are_taken_as_floats[scalars_log]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_integer_bounds_are_taken_as_floats[scalars_linear]
+4 failed, 26 deselected in 1.35s

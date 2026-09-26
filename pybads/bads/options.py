@@ -26,6 +26,11 @@ class Options(MutableMapping, dict):
         This set contains all options that have set by the user,
         if there are none it is empty. These ``useroptions`` are immutable to
         changes using :py:meth:`load_options_file`.
+    unset_user_options : set
+        The names of the user options whose value is ``None``, which stands
+        for the default, as an empty value does in MATLAB BADS: they are not
+        set, and not in ``useroptions``, but their names are checked by
+        :py:meth:`validate_option_names`.
     """
 
     def __init__(
@@ -45,8 +50,18 @@ class Options(MutableMapping, dict):
         # load options from file
         self.load_options_file(default_options_path, evaluation_parameters)
 
-        # User options
+        # User options; a value of None stands for the default, as an empty
+        # value does in MATLAB BADS (setupoptions.m)
+        self.unset_user_options = set()
         if user_options is not None:
+            self.unset_user_options.update(
+                key for key, value in user_options.items() if value is None
+            )
+            user_options = {
+                key: value
+                for key, value in user_options.items()
+                if value is not None
+            }
             self.update(user_options)
             self["useroptions"].update(user_options.keys())
 
@@ -143,9 +158,55 @@ class Options(MutableMapping, dict):
                 _read_config_file(options_path)[:, 0].flatten()
             )
 
-        for key in self.keys():
+        for key in list(self.keys()) + sorted(self.unset_user_options):
             if key != "useroptions" and key not in file_option_names:
                 raise ValueError("The option {} does not exist.".format(key))
+
+    def validate_boolean_options(
+        self,
+        options_paths: list,
+        extra_names: tuple = (),
+        excluded_names: tuple = (),
+    ):
+        """
+        Check that the user's value of each boolean option is ``True`` or
+        ``False``.
+
+        The boolean options are those whose default in the ini files
+        specified by ``options_paths`` is ``True`` or ``False``, and those
+        named in ``extra_names``, except those named in ``excluded_names``.
+        NumPy booleans are booleans. Any other value is refused, a
+        MATLAB-style string such as ``"off"``, which is truthy, included.
+
+        Parameters
+        ----------
+        options_paths : list of str
+            A list of paths to the ini files that hold the default options.
+        extra_names : tuple of str, optional
+            The names of other options that take ``True`` or ``False``.
+        excluded_names : tuple of str, optional
+            The names of options whose default is ``True`` or ``False`` and
+            that take other values too.
+
+        Raises
+        ------
+        ValueError
+            Raised when the user's value of a boolean option is not a
+            boolean.
+        """
+        boolean_names = set(extra_names)
+        for options_path in options_paths:
+            for key, value, _ in _read_config_file(options_path):
+                # the default's text, without an inline comment
+                if value.split("#")[0].strip() in ("True", "False"):
+                    boolean_names.add(key)
+        boolean_names -= set(excluded_names)
+        for key in sorted(boolean_names & self["useroptions"]):
+            if not isinstance(self[key], (bool, np.bool_)):
+                raise ValueError(
+                    f"options['{key}'] needs to be True or False, not "
+                    f"{self[key]!r}."
+                )
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
@@ -209,22 +270,33 @@ def _read_config_file(options_path: str):
     list of tuples (key, value, description).
 
     Note that strings starting with # in the .ini file act as description to
-    the option in the following line.
+    the option in the following line. The comment lines are read apart from
+    the values, so that a description keeps its whole text, an ``=`` or a
+    ``:`` included.
     """
-    conf = configparser.ConfigParser(comment_prefixes="", allow_no_value=True)
+    conf = configparser.ConfigParser(delimiters=("=",))
     # do not lower() both values as well as descriptions
     conf.optionxform = str
-    conf.read(options_path)
+    read_paths = conf.read(options_path)
+
+    # The description of an option is the last comment line above it
+    descriptions = dict()
+    description = ""
+    for path in read_paths:
+        with open(path) as file:
+            for line in file:
+                line = line.strip()
+                if line.startswith("#"):
+                    description = line.strip("# ")
+                elif "=" in line:
+                    key = line.split("=", 1)[0].strip()
+                    descriptions[key] = description
+                    description = ""
 
     option_list = list()
-    description = ""
     for section in conf.sections():
         for key, value in conf.items(section):
-            if "#" in key:
-                description = key.strip("# ")
-            else:
-                option_list.append([key, value, description])
-                description = ""
+            option_list.append([key, value, descriptions[key]])
 
     if len(option_list) == 0:
         raise ValueError(

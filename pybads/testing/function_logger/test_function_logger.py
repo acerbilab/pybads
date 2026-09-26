@@ -222,6 +222,20 @@ def test_record_duplicate_with_user_noise_merges_into_its_own_row():
     assert np.isclose(fval, f_logger.Y[1, 0])
 
 
+def test_record_duplicate_adds_its_time_to_the_total():
+    # Every evaluation counts in the target's time, as in MATLAB's
+    # funlogger: a repeat merged into its row (level 2) and an evaluation
+    # that is not recorded too.
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    f_logger._record(x, x, 9.0, 2.0, 1.0)
+    f_logger._record(x, x, 12.0, 1.0, 2.0)
+    f_logger._record(x, x, 10.0, 1.0, 4.0, record_duplicate_data=False)
+    f_logger._record(x * 2, x * 2, 10.0, 1.0, 8.0, record_duplicate_data=False)
+    assert f_logger.Xn == 0
+    assert f_logger.total_fun_eval_time == 15.0
+
+
 def test_finalize():
     x = np.array([3, 4, 5])
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)

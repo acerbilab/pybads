@@ -191,6 +191,7 @@ class Problem:
     reference: Optional[dict] = None
     pins: tuple = ()
     check_n: int = 20_000
+    omit_plausible: bool = False
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
     )
@@ -220,14 +221,17 @@ class Problem:
         return y_obs, sd
 
     def bads_args(self):
-        """``(positional_args, options)`` for ``BADS(*args, options=...)``."""
+        """``(positional_args, options)`` for ``BADS(*args, options=...)``.
+        With ``omit_plausible``, BADS gets no plausible bounds and takes its
+        own default for them (the hard bounds); ``x0`` is drawn in the
+        problem's plausible box all the same."""
         args = (
             self.fun,
             self.x0.copy(),
             self.lb.copy(),
             self.ub.copy(),
-            self.plb.copy(),
-            self.pub.copy(),
+            None if self.omit_plausible else self.plb.copy(),
+            None if self.omit_plausible else self.pub.copy(),
             self.non_box_cons,
         )
         return args, dict(self.options)
@@ -257,6 +261,8 @@ class Config:
     unbounded: bool = False
     options: tuple = ()  # (key, value) pairs, so that the Config hashes
     tag: str = ""
+    plausible: str = "given"  # or "omitted": BADS gets no plausible bounds
+    start: str = "plausible"  # or "lower": x0's first coordinate at lb
 
     @property
     def label(self):
@@ -265,6 +271,10 @@ class Config:
             s += f"_{self.noise}"
         if self.unbounded:
             s += "_unbounded"
+        if self.plausible != "given":
+            s += "_nopb"
+        if self.start != "plausible":
+            s += "_x0lb"
         if self.tag:
             s += f"_{self.tag}"
         return s
@@ -285,6 +295,8 @@ class Config:
             noise=self.noise,
             seed=seed,
             unbounded=self.unbounded,
+            plausible=self.plausible,
+            start=self.start,
         )
         prob.options.update(
             display="off",
@@ -432,6 +444,33 @@ def _rastrigin(D, rng):
         + np.sum(Z**2 - 10.0 * np.cos(2.0 * np.pi * Z), axis=1),
         TOL_MULTIMODAL,
         "Rastrigin (A = 10)",
+    )
+
+
+def _logsphere(D, rng):
+    # A sphere in log10 units, on hard bounds that span six decades and a
+    # plausible box of four, all positive with pub / plb >= 10, so that BADS
+    # works on it in log coordinates; the minimum is log-uniform in the
+    # central half of the plausible box (in log10 units).
+    lb, ub = np.full(D, 1e-3), np.full(D, 1e3)
+    plb, pub = np.full(D, 1e-2), np.full(D, 1e2)
+    log_c = _shift(rng, np.log10(plb), np.log10(pub))
+
+    def f_vec(X):
+        return np.sum((np.log10(np.atleast_2d(X)) - log_c) ** 2, axis=1)
+
+    return Problem(
+        name="logsphere",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=10.0**log_c,
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        notes="sphere in log10 units, on positive bounds (a log transform)",
     )
 
 
@@ -745,6 +784,7 @@ _REGISTRY = {
     "rosenbrock": _rosenbrock,
     "ackley": _ackley,
     "rastrigin": _rastrigin,
+    "logsphere": _logsphere,
     "sphere_nonbox": _sphere_nonbox,
     "timing": _timing,
     "multisensory_s1": _multisensory_s1,
@@ -772,7 +812,14 @@ def _draw_x0(prob, rng, max_tries=10_000):
 
 
 def make_problem(
-    name, D, noise="none", seed=None, unbounded=False, reference=True
+    name,
+    D,
+    noise="none",
+    seed=None,
+    unbounded=False,
+    reference=True,
+    plausible="given",
+    start="plausible",
 ):
     """Build the ``Problem`` of one run.
 
@@ -781,7 +828,9 @@ def make_problem(
     structure depends only on ``(name, D)``. ``reference=False`` leaves a
     real-data target's stored reference minimum unread, with ``f_min`` and
     ``x_min`` NaN: ``make_reference_optima.py`` builds the target whose
-    reference it writes.
+    reference it writes. ``plausible="omitted"`` gives BADS no plausible
+    bounds, and ``start="lower"`` puts the first coordinate of ``x0`` on its
+    lower bound (the ``bounds`` suite).
     """
     if name not in _REGISTRY:
         raise ValueError(f"unknown target {name!r}; known: {TARGET_NAMES}")
@@ -801,6 +850,13 @@ def make_problem(
         prob.ub = np.full(D, np.inf)
     x0_ss, noise_ss = np.random.SeedSequence(seed).spawn(2)
     prob.x0 = _draw_x0(prob, np.random.default_rng(x0_ss))
+    if plausible not in ("given", "omitted"):
+        raise ValueError(f"unknown plausible {plausible!r}")
+    prob.omit_plausible = plausible == "omitted"
+    if start == "lower":
+        prob.x0[0] = prob.lb[0]
+    elif start != "plausible":
+        raise ValueError(f"unknown start {start!r}")
     prob.noise = noise
     if noise != "none":
         if name not in REAL_TARGETS:
@@ -870,10 +926,24 @@ _ONED = [
     Config("ellipsoid", 1, budget=500, unbounded=True),
 ]
 
+# The configurations that reach the checks of the bounds and the start point
+# in BADS's setup, which the default suite keeps clear of: plausible bounds
+# left to BADS (they default to the hard bounds), a log-scaled target with
+# and without plausible bounds and with noise, and a start on a hard bound.
+# The gate of a change to those checks (the port review's W2-4).
+_BOUNDS = [
+    Config("sphere", 3, budget=500, plausible="omitted"),
+    Config("sphere", 3, budget=500, start="lower"),
+    Config("logsphere", 3, budget=500),
+    Config("logsphere", 3, budget=500, plausible="omitted"),
+    Config("logsphere", 3, noise="homo", budget=500),
+]
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
     "oned": _ONED,
+    "bounds": _BOUNDS,
 }
 
 
@@ -929,7 +999,15 @@ def check_problem(cfg, n=None):
     msgs = []
 
     def make(seed):
-        return make_problem(cfg.name, cfg.D, cfg.noise, seed, cfg.unbounded)
+        return make_problem(
+            cfg.name,
+            cfg.D,
+            cfg.noise,
+            seed,
+            cfg.unbounded,
+            plausible=cfg.plausible,
+            start=cfg.start,
+        )
 
     prob = make(0)
     D, x_min = prob.D, prob.x_min
@@ -995,7 +1073,10 @@ def check_problem(cfg, n=None):
     if len({tuple(x) for x in x0s}) < len(x0s):
         msgs.append("different seeds gave the same x0")
     for x0 in x0s:
-        if not (np.all(prob.plb <= x0) and np.all(x0 <= prob.pub)):
+        x0_box = x0.copy()
+        if cfg.start == "lower":
+            x0_box[0] = prob.plb[0]  # on the lower bound by design
+        if not (np.all(prob.plb <= x0_box) and np.all(x0_box <= prob.pub)):
             msgs.append("x0 outside the plausible box")
         if not prob.feasible(x0)[0]:
             msgs.append("x0 violates the non-box constraint")

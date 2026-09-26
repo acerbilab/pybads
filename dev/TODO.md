@@ -188,6 +188,35 @@ order.
   (`experiments/port_review_20260925/verification/wave1.md`), PyBADS
   refuses the value with a message instead. A port needs its own population
   comparison with the option set.
+- [ ] **Prior evaluations (`fun_values`).** MATLAB BADS imports
+  evaluations made before the run into its log and its GP
+  (`private/setupvars.m:126-167`, `private/funlogger.m`) and takes its
+  first incumbent from `x0` and the initial design only
+  (`private/evalinitmesh.m:120-123`). PyBADS's `fun_values` never worked,
+  and by the ruling on row W2-6 of the port review
+  (`experiments/port_review_20260925/verification/wave2.md`) a non-empty
+  value is refused with a message. A port imports them after the function
+  logger exists, keeps them out of the choice of the first incumbent, and
+  needs a test that its GP holds them.
+- [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
+  only `x0` feasible (the thin band of row W2-37 of the port review), the
+  GP is fitted on one point: gpyreg's bounds helper replaces the targets by
+  `[0, 1]`, so the mean's prior at the initial fit is centred at 0.5
+  whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
+  while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
+  log of zero and a variance with no degrees of freedom (wave 2's
+  verifiers, `verification/wave2.md`, "Found while verifying"). Slice B6,
+  whose wave has passed: decide the priors and bounds of such a GP, in
+  PyBADS or in gpyreg, with a test on the thin band.
+- [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
+  of `examples/`, and two show outputs that the port review's wave 2
+  changed: `pybads_example_2_nonbox_constraints.ipynb` the warning
+  `bads:TooCloseBounds`, which W2-4 removed, and
+  `pybads_example_5_extended_usage.ipynb` a result with `'fsd': 0` and
+  without `status` (W2-12, W2-13). Rerun them once the review's fix passes
+  have landed, with the headless run of the examples before the release,
+  so that the outputs are not regenerated at every pass
+  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
 - [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
   `skills/pybads/SKILL.md` that points a coding agent to the parts of the
   documentation relevant to its task, linked from the README.

@@ -2,6 +2,8 @@
 target that returns the standard deviation of its noise
 (`specify_target_noise`)."""
 
+import logging
+
 import numpy as np
 import pytest
 
@@ -124,6 +126,42 @@ def test_final_estimate_from_one_sample():
     assert y.shape == sd.shape == (1,)
     assert result["fval"] == pytest.approx(y[0], rel=1e-12)
     assert result["fsd"] == pytest.approx(sd[0], rel=1e-12)
+
+
+def test_final_message_from_one_sample_prints_a_number(caplog):
+    """With one final sample and the target's noise SD, the final message
+    gives the sample as a number, as MATLAB BADS's does, not an array."""
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        result = _make_bads(
+            _noisy_sphere_with_estimated_sd(0),
+            noise_final_samples=1,
+            display="iter",
+        ).optimize()
+    (message,) = [
+        record.getMessage()
+        for record in caplog.records
+        if "Observed function value at minimum" in record.getMessage()
+    ]
+    assert message.startswith(
+        "Observed function value at minimum: "
+        f"{float(result['yval_vec'][0])} (1 sample)."
+    )
+
+
+def test_one_final_sample_without_target_noise_adds_the_incumbent():
+    """With one final sample and no noise SD from the target, `yval_vec`
+    holds the sample and the incumbent's observation, a row of two as in
+    MATLAB BADS (the shape of every other `yval_vec`), and `fval` and `fsd`
+    are their mean and its standard error."""
+    bads = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, noise_final_samples=1
+    )
+    result = bads.optimize()
+    y = result["yval_vec"]
+    assert y.shape == (2,)
+    assert y[1] == bads.yval
+    assert result["fval"] == pytest.approx(np.mean(y), rel=1e-12)
+    assert result["fsd"] == pytest.approx(np.std(y, ddof=1) / np.sqrt(2))
 
 
 @pytest.mark.parametrize(
@@ -325,3 +363,108 @@ def test_iteration_history_keeps_the_gps_as_recorded(monkeypatch):
     assert len(gps) > 3
     for gp, hyp in zip(gps, hyps):
         assert np.array_equal(gp.get_hyperparameters(as_array=True), hyp)
+
+
+class _OneSecondTimer:
+    """A timer that times every evaluation at 1 s."""
+
+    def start_timer(self, name):
+        pass
+
+    def stop_timer(self, name):
+        pass
+
+    def get_duration(self, name):
+        return 1.0
+
+
+def test_target_time_counts_every_evaluation_but_the_noise_test(monkeypatch):
+    """The target's time, which `overhead` compares with the run's, counts
+    the final samples, as MATLAB BADS's does, and leaves out the noise test
+    at the starting point, which MATLAB BADS does not time."""
+    monkeypatch.setattr(
+        "pybads.function_logger.function_logger.Timer", _OneSecondTimer
+    )
+    bads = _make_bads(
+        _noisy_sphere(0), uncertainty_handling=None, specify_target_noise=False
+    )
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["yval_vec"].shape == (10,)
+    assert bads.function_logger.total_fun_eval_time == (
+        result["func_count"] - 1
+    )
+
+
+def test_re_estimation_moves_the_incumbent_with_its_value(monkeypatch):
+    """When the re-estimation at the end of an iteration finds an earlier
+    iterate better by more than `tol_fun`, the incumbent moves to it, its
+    location with its value (MATLAB BADS moves the value and leaves `ubest`
+    at the old incumbent): `u_best` is the iterate's, and so is the centre
+    of the next poll, unless a search moves the incumbent first."""
+    moves = []
+    pending = {}
+    original_re_evaluate = BADS._re_evaluate_history_
+    original_search = BADS._search_step_
+    original_poll = BADS._poll_step_
+
+    def re_evaluate(self, gp):
+        original_re_evaluate(self, gp)
+        history = self.iteration_history
+        pending["estimates"] = (
+            self.optim_state["iter"],
+            history.get("fval").astype(float),
+            [np.ravel(u) for u in history.get("u")],
+        )
+
+    def check(self, step):
+        if "estimates" in pending:
+            iteration, fval, u = pending.pop("estimates")
+            if self.fval != fval[iteration]:
+                (index, *_) = np.flatnonzero(fval == self.fval)
+                pending["move"] = move = {
+                    "u": u[index].copy(),
+                    "fval": self.fval,
+                    "elsewhere": not np.array_equal(u[index], u[iteration]),
+                    "polled": False,
+                }
+                moves.append(move)
+                assert np.array_equal(np.ravel(self.u_best), move["u"])
+                assert np.array_equal(
+                    np.ravel(self.optim_state["u"]), move["u"]
+                )
+                assert self.optim_state["fval"] == self.fval
+        if step == "poll" and "move" in pending:
+            move = pending.pop("move")
+            if self.fval == move["fval"]:  # no search has moved it
+                move["polled"] = True
+                assert np.array_equal(np.ravel(self.u), move["u"])
+
+    def search(self, gp):
+        check(self, "search")
+        return original_search(self, gp)
+
+    def poll(self, gp):
+        check(self, "poll")
+        return original_poll(self, gp)
+
+    monkeypatch.setattr(BADS, "_re_evaluate_history_", re_evaluate)
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    noise = np.random.default_rng(100)
+    bads = BADS(
+        lambda x: float(np.sum(x**2) + 0.5 * noise.standard_normal()),
+        np.array([1.5, -1.0]),
+        np.full(2, -5.0),
+        np.full(2, 5.0),
+        np.full(2, -2.0),
+        np.full(2, 2.0),
+        options={
+            "display": "off",
+            "max_fun_evals": 200,
+            "random_seed": 0,
+            "uncertainty_handling": True,
+        },
+    )
+    bads.optimize()
+    assert any(move["elsewhere"] and move["polled"] for move in moves)

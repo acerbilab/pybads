@@ -1,0 +1,89 @@
+{
+ "label": "sphere_D3_hetero",
+ "seed": 19,
+ "problem": "sphere",
+ "D": 3,
+ "noise": "hetero",
+ "unbounded": false,
+ "x0": [
+  4.857346755959076,
+  -4.45008236579461,
+  2.8200716857217003
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 19
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 19,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -0.1633620262145996,
+   -0.1857161521911621,
+   -0.24255156517028809
+  ],
+  "fval": 1.0627428135691903,
+  "fsd": 0.5046568662057682,
+  "true_error": 0.3550552579800994,
+  "func_count": 514,
+  "iterations": 34,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 13.719562896001662,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.296643454704328
+ },
+ "meta": {
+  "git": {
+   "sha": "8510ca8",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "0.1.dev60+g95a87bc9c",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/h_8510ca8/pybads",
+   "git": {
+    "sha": "8510ca8",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T19:35:09+0000",
+  "finished": "2026-09-26T19:35:23+0000"
+ }
+}

@@ -14,11 +14,15 @@ class OptimizeResult(dict):
     Attributes:
 
         - fun: callable
-            - The objective function to be minimized.
+            - The objective function to be minimized (the object passed,
+              not a copy).
         - non_box_cons: callable
-            - Non-box constraints function (if any).
+            - Non-box constraints function (if any; the object passed, not
+              a copy).
         - x0: np.ndarray
-            - Initial starting point.
+            - Initial starting point, as given or drawn at random, before it
+              is put on the mesh: the first point evaluated is the point of
+              the mesh nearest to it.
         - x: np.ndarray
             - The solution of the optimization.
         - fval: float
@@ -41,12 +45,27 @@ class OptimizeResult(dict):
             - Number of evaluations of the objective functions.
         - iterations: int
             - Number of iterations performed by the optimizer.
+        - success: bool
+            - True when the run ended on one of its convergence criteria,
+              ``tol_mesh`` or the stall criterion (``status`` 1 or 2); False
+              when ``max_fun_evals`` or ``max_iter`` ended it, the
+              ``output_fcn`` stopped it or it ended in its initialization
+              (``status`` 0): the convention of MATLAB's exit flags and of
+              ``scipy.optimize``.
+        - status: int
+            - The exit flag of MATLAB BADS, the criterion that ended the
+              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the
+              ``output_fcn`` stopped it or it ended in its initialization; 1
+              when the mesh size fell below ``tol_mesh``; 2 when the
+              improvement over the last ``tol_stall_iters`` iterations fell
+              below ``tol_fun``.
         - message: str
             - Termination message.
         - problem_type: str
             - Type of problem (unconstrained, bound constraints, non-box constraints).
         - total_time: float
-            - Total time taken by the optimizer.
+            - Time taken by ``optimize()``, in seconds; the setup made when
+              ``BADS`` is created is not counted.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
         - random_seed: int or None
@@ -145,6 +164,7 @@ class OptimizeResult(dict):
         self["total_time"] = bads.optim_state["total_time"]
 
         self["random_seed"] = bads.optim_state["random_seed"]
+        self["status"] = bads.optim_state["exit_flag"]
 
         try:
             __version__ = version("pybads")
@@ -156,9 +176,9 @@ class OptimizeResult(dict):
 
         self["version"] = __version__
 
-        self[
-            "success"
-        ] = True  # TODO: In our case when an error occurs, the application just stops.
+        # A positive exit flag, the convention of MATLAB and scipy: False
+        # when a limit (max_fun_evals, max_iter) or output_fcn ends the run
+        self["success"] = self["status"] > 0
         self["message"] = bads.optim_state["termination_msg"]
 
     def __getattr__(self, name):
@@ -182,5 +202,10 @@ class OptimizeResult(dict):
     def __setitem__(self, key: str, val: object):
         if key not in OptimizeResult._keys:
             raise ValueError("""The key is not part of OptimizeResult._keys""")
+        elif key in ("fun", "non_box_cons"):
+            # The callables are kept by reference: a copy of a bound method
+            # or a callable object copies its instance, which may hold what
+            # cannot be copied (a lock, an open file)
+            dict.__setitem__(self, key, val)
         else:
             dict.__setitem__(self, key, copy.deepcopy(val))

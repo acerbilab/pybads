@@ -1,0 +1,23 @@
+fix: one final sample gives a yval_vec of shape (2,) at level 1 and a number in the final message at level 2 (W2-34)
+
+With one final sample and no noise SD from the target, the sample and the
+incumbent's observation `yval` were stacked by `np.vstack` into a
+`yval_vec` of shape (2, 1), where every other `yval_vec` of a result has
+shape (n,) and MATLAB BADS's is a 1x2 row (`[yval_vec, yval]`,
+bads.m:1463-1466). They are joined by `np.append`, shape (2,); the mean
+and standard error computed from them are the same.
+
+With one final sample and the target's noise SD (level 2), the final
+message printed the one-element array (`[1.3578806]`) where MATLAB prints
+the number (`yval_vec(1)`, bads.m:1175-1176). It prints the element.
+
+Tests, in test_noisy_runs.py:
+::test_one_final_sample_without_target_noise_adds_the_incumbent (at the
+parent `assert (2, 1) == (2,)`) and
+::test_final_message_from_one_sample_prints_a_number (at the parent the
+message reads "Observed function value at minimum: [1.3578806] (1
+sample). ..."); both pass at this commit.
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

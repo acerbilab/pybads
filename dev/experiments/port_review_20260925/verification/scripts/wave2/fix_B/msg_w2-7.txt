@@ -1,0 +1,21 @@
+fix: BADS refuses f_vals, an option of PyBADS's own that could not work, with a message (W2-7)
+
+f_vals, the function values at x0 and an option that MATLAB BADS does
+not have (KD-B1-4), only filled optim_state["cache"], which nothing reads,
+and set cache_active, which selects a display format of 8 fields that
+_display_function_log_ fills with 6 or 7 values: every run given f_vals
+stopped at its first display line with "Unknown format code 'f' for
+object of type 'str'", with display="off" too, since the line is
+formatted before the logger filters it. MATLAB's way to give prior
+evaluations is FunValues, PyBADS's fun_values (W2-6).
+
+_init_optim_state_ now raises a ValueError that says the option is not
+supported for any f_vals other than None, its default; the cache keeps
+its NaN values, so cache_active stays False.
+
+Test: test_f_vals_is_not_supported (test_options.py); "DID NOT RAISE" at
+the parent.
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

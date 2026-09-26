@@ -1,0 +1,30 @@
+fix: overhead counts the time of the final samples and of merged repeats in the target's time (W2-20)
+
+`overhead` divides the run's time by the target's,
+`FunctionLogger.total_fun_eval_time`, to which only an evaluation at a new
+point added: neither an evaluation with `record_duplicate_data=False`
+(the final samples of a noisy run) nor a repeat merged into its row at
+level 2 (`specify_target_noise`) did, so a noisy run's overhead was
+overstated (2.59 for 1.99 in the verifier's run). MATLAB's funlogger adds
+the time of every 'iter' and 'single' call (private/funlogger.m:130), and
+its noise test at `x0` calls the target directly, untimed
+(private/evalinitmesh.m:41).
+
+`FunctionLogger._record` now adds the time of every evaluation to the
+total, whatever becomes of its point, and `_init_mesh_` leaves the noise
+test's time out of it, as MATLAB does. Only `overhead` changes; the
+per-row times and the evaluation counts are as before.
+
+Tests: test_function_logger.py::test_record_duplicate_adds_its_time_to_the_total
+(a level-2 merge and two unrecorded evaluations; at the parent
+`assert 1.0 == 15.0`) and
+test_noisy_runs.py::test_target_time_counts_every_evaluation_but_the_noise_test,
+a 60-evaluation run on a noisy target with the noise test and 10 final
+samples, with the logger's timer replaced by one that times every call at
+1 s, so that the count is exact: the total is `func_count - 1`, all but
+the noise test (at the parent `assert 49.0 == (60 - 1)`, the final
+samples missing).
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

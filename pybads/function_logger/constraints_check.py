@@ -48,7 +48,8 @@ def contraints_check(
                 "contraints_check: function_logger not passed, non bondcons requires it."
             )
         X = function_logger.variable_transformer.inverse_transf(U_new)
-        C = non_box_cons(X)
+        # one violation per point, of shape (N,) or (N, 1)
+        C = np.ravel(non_box_cons(X))
         idx = C <= 0
         U_new = U_new[idx]
 

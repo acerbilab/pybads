@@ -1,0 +1,140 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+
+== mixed bounded/unbounded: x0=[0.5, 0.5] lb=[0, -inf] ub=[1, inf] plb=[0.1, -1] pub=[0.9, 1]
+  PY  refused: ValueError bads:HalfBounds: Each variable needs to be unbounded or
+  MAT accepted: x0 -> [0.5 0.5]  plb_orig -> [ 0.1 -1. ]  pub_orig -> [0.9 1. ]
+      log: [False False]  u0 = [0.  0.5]  u(lb) = [-1.25  -inf]  u(ub) = [1.25  inf]
+
+== half-bounded (lb=0, ub=inf): x0=[0.5] lb=[0.0] ub=[inf] plb=[0.1] pub=[2.0]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  refused: ValueError bads:HalfBounds: Each variable needs to be unbounded or
+  MAT accepted: x0 -> [0.5]  plb_orig -> [0.1]  pub_orig -> [2.]
+      log: [False]  u0 = [-0.579102]  u(lb) = [-1.105263]  u(ub) = [inf]
+
+== all unbounded (control): x0=[0.5, 0.5] lb=[-inf, -inf] ub=[inf, inf] plb=[-1, -1] pub=[1, 1]
+Detected fully unconstrained optimization.
+  PY  accepted: x0 -> [0.5 0.5]  plb_orig -> [-1. -1.]  pub_orig -> [1. 1.]
+      log: [False False]  u0 = [0.5 0.5]  u(lb) = [-inf -inf]  u(ub) = [inf inf]
+  MAT accepted: x0 -> [0.5 0.5]  plb_orig -> [-1. -1.]  pub_orig -> [1. 1.]
+      log: [False False]  u0 = [0.5 0.5]  u(lb) = [-inf -inf]  u(ub) = [inf inf]
+
+== all bounded (control): x0=[0.5, 0.5] lb=[0, 0] ub=[1, 1] plb=[0.1, 0.1] pub=[0.9, 0.9]
+  PY  accepted: x0 -> [0.5 0.5]  plb_orig -> [0.1 0.1]  pub_orig -> [0.9 0.9]
+      log: [False False]  u0 = [0. 0.]  u(lb) = [-1.25 -1.25]  u(ub) = [1.25 1.25]
+  MAT accepted: x0 -> [0.5 0.5]  plb_orig -> [0.1 0.1]  pub_orig -> [0.9 0.9]
+      log: [False False]  u0 = [0. 0.]  u(lb) = [-1.25 -1.25]  u(ub) = [1.25 1.25]
+
+== scalar bounds, D=3: x0=[0.5, 0.5, 0.5] lb=-1.0 ub=1.0 plb=None pub=None
+  PY  refused: ValueError All input vectors (lower_bounds, upper_bounds,
+  MAT accepted: x0 -> [0.5 0.5 0.5]  plb_orig -> [-1. -1. -1.]  pub_orig -> [1. 1. 1.]
+      log: [False False False]  u0 = [0.5 0.5 0.5]  u(lb) = [-1. -1. -1.]  u(ub) = [1. 1. 1.]
+
+== scalar bounds and plausible, D=3: x0=[0.0, 0.0, 0.0] lb=-5.0 ub=5.0 plb=-2.0 pub=2.0
+  PY  refused: ValueError All input vectors (lower_bounds, upper_bounds,
+  MAT accepted: x0 -> [0. 0. 0.]  plb_orig -> [-2. -2. -2.]  pub_orig -> [2. 2. 2.]
+      log: [False False False]  u0 = [0. 0. 0.]  u(lb) = [-2.5 -2.5 -2.5]  u(ub) = [2.5 2.5 2.5]
+
+== scalar bounds, D=1 (control): x0=[0.5] lb=-1.0 ub=1.0 plb=None pub=None
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  PY  accepted: x0 -> [0.5]  plb_orig -> [-0.998]  pub_orig -> [0.998]
+      log: [False]  u0 = [0.500977]  u(lb) = [-1.002004]  u(ub) = [1.002004]
+  MAT accepted: x0 -> [0.5]  plb_orig -> [-1.]  pub_orig -> [1.]
+      log: [False]  u0 = [0.5]  u(lb) = [-1.]  u(ub) = [1.]
+
+== plb omitted, [-5,5]: x0=[0.0] lb=[-5.0] ub=[5.0] plb=None pub=None
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  PY  accepted: x0 -> [0.]  plb_orig -> [-4.99]  pub_orig -> [4.99]
+      log: [False]  u0 = [0.]  u(lb) = [-1.002004]  u(ub) = [1.002004]
+  MAT accepted: x0 -> [0.]  plb_orig -> [-5.]  pub_orig -> [5.]
+      log: [False]  u0 = [0.]  u(lb) = [-1.]  u(ub) = [1.]
+
+== plb omitted, [1,10] (MATLAB log): x0=[2.0] lb=[1.0] ub=[10.0] plb=None pub=None
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  PY  accepted: x0 -> [2.]  plb_orig -> [1.009]  pub_orig -> [9.991]
+      log: [False]  u0 = [-0.779297]  u(lb) = [-1.002004]  u(ub) = [1.002004]
+  MAT accepted: x0 -> [2.]  plb_orig -> [1.]  pub_orig -> [10.]
+      log: [ True]  u0 = [-0.397461]  u(lb) = [-1.]  u(ub) = [1.]
+
+== plb omitted, [1e-3,1e3]: x0=[1.0] lb=[0.001] ub=[1000.0] plb=None pub=None
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  accepted: x0 -> [1.000999]  plb_orig -> [1.000999]  pub_orig -> [999.000001]
+      log: [ True]  u0 = [-1.]  u(lb) = [-3.000868]  u(ub) = [1.00029]
+  MAT accepted: x0 -> [1.]  plb_orig -> [0.001]  pub_orig -> [1000.]
+      log: [ True]  u0 = [0.]  u(lb) = [-1.]  u(ub) = [1.]
+
+== x0 at user plb, [1e-3,1e3], plb=1e-2: x0=[0.01] lb=[0.001] ub=[1000.0] plb=[0.01] pub=[100.0]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  accepted: x0 -> [1.000999]  plb_orig -> [1.000999]  pub_orig -> [100.]
+      log: [ True]  u0 = [-1.]  u(lb) = [-4.001084]  u(ub) = [2.000217]
+  MAT accepted: x0 -> [0.01]  plb_orig -> [0.01]  pub_orig -> [100.]
+      log: [ True]  u0 = [-1.]  u(lb) = [-1.5]  u(ub) = [1.5]
+
+== x0 = lb = -5, plb = -2: x0=[-5.0] lb=[-5.0] ub=[5.0] plb=[-2.0] pub=[2.0]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  accepted: x0 -> [-4.99]  plb_orig -> [-4.99]  pub_orig -> [2.]
+      log: [False]  u0 = [-1.]  u(lb) = [-1.002861]  u(ub) = [1.858369]
+  MAT accepted: x0 -> [-5.]  plb_orig -> [-2.]  pub_orig -> [2.]
+      log: [False]  u0 = [-2.5]  u(lb) = [-2.5]  u(ub) = [2.5]
+
+== narrow box near lb: [0,1], plb=1e-4, pub=5e-4: x0=[0.0002] lb=[0.0] ub=[1.0] plb=[0.0001] pub=[0.0005]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  refused: ValueError bads:StrictBounds: For each variable, hard and
+  MAT accepted: x0 -> [0.0002]  plb_orig -> [0.0001]  pub_orig -> [0.0005]
+      log: [False]  u0 = [-0.5]  u(lb) = [-1.5]  u(ub) = [4998.5]
+
+== asymmetric: [-1000,1], plb=0, pub=0.99: x0=[0.5] lb=[-1000.0] ub=[1.0] plb=[0.0] pub=[0.99]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  refused: ValueError bads:StrictBounds: For each variable, hard and
+  MAT accepted: x0 -> [0.5]  plb_orig -> [0.]  pub_orig -> [0.99]
+      log: [False]  u0 = [0.009766]  u(lb) = [-2021.20202]  u(ub) = [1.020202]
+
+== x0=None, plb omitted, [-5,5]: x0=None lb=[-5.0] ub=[5.0] plb=[-5.0] pub=[5.0]
+  PY  refused: AttributeError 'list' object has no attribute 'shape'
+  MAT accepted: x0 -> [0.]  plb_orig -> [-5.]  pub_orig -> [5.]
+      log: [False]  u0 = [0.]  u(lb) = [-1.]  u(ub) = [1.]
+
+== x0=0.005 outside [2,8] in [0,10]: x0=[0.005] lb=[0.0] ub=[10.0] plb=[2.0] pub=[8.0]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  accepted: x0 -> [0.01]  plb_orig -> [0.01]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.]  u(lb) = [-1.002503]  u(ub) = [1.500626]
+  MAT accepted: x0 -> [0.005]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.665039]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+
+== x0=0.02 outside [2,8] in [0,10]: x0=[0.02] lb=[0.0] ub=[10.0] plb=[2.0] pub=[8.0]
+  PY  accepted: x0 -> [0.02]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.660156]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+  MAT accepted: x0 -> [0.02]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.660156]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+
+== x0=1.0 outside [2,8] in [0,10]: x0=[1.0] lb=[0.0] ub=[10.0] plb=[2.0] pub=[8.0]
+  PY  accepted: x0 -> [1.]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.333008]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+  MAT accepted: x0 -> [1.]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [-1.333008]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+
+== x0=9.0 outside [2,8] in [0,10]: x0=[9.0] lb=[0.0] ub=[10.0] plb=[2.0] pub=[8.0]
+  PY  accepted: x0 -> [9.]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [1.333008]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+  MAT accepted: x0 -> [9.]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [1.333008]  u(lb) = [-1.666667]  u(ub) = [1.666667]
+
+== x0=9.995 outside [2,8] in [0,10]: x0=[9.995] lb=[0.0] ub=[10.0] plb=[2.0] pub=[8.0]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+  PY  accepted: x0 -> [9.99]  plb_orig -> [2.]  pub_orig -> [9.99]
+      log: [False]  u0 = [1.]  u(lb) = [-1.500626]  u(ub) = [1.002503]
+  MAT accepted: x0 -> [9.995]  plb_orig -> [2.]  pub_orig -> [8.]
+      log: [False]  u0 = [1.665039]  u(lb) = [-1.666667]  u(ub) = [1.666667]

@@ -8,8 +8,10 @@ against its own specification, in waves of fresh reviewers.
 - `known_differences.md`: the known-differences sheet, the settled and
   deliberate differences between PyBADS and MATLAB BADS that a reviewer
   does not report as new, with the claims of the repository's records that
-  did not check out. Its Python line citations are at `95da7f1`, the
-  freeze, carried from `ab4dded` by `refresh_citations.py --base ab4dded`.
+  did not check out. Its Python line citations are at `fef6c14`, the
+  revision of wave 2, carried from `ab4dded` to `95da7f1`, the freeze of
+  wave 1, by `refresh_citations.py --base ab4dded`, and from there by
+  `--base 95da7f1`; the claims keep the lines of `95da7f1`.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -18,9 +20,9 @@ against its own specification, in waves of fresh reviewers.
   its final message under a header that says what it read. Nothing in a
   report is verified; the verification of a wave goes to
   `verification/wave<N>.md`.
-- `briefs/`: the prompts of wave 1 (reviewers and verifiers), with
+- `briefs/`: the prompts of waves 1 and 2 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
-  machine (the plan's "Wave 1 pickup").
+  machine (the plan's "Wave 1 pickup" and "Wave 2 pickup").
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
   saved verbatim.
@@ -45,4 +47,20 @@ formatted by the pre-commit hooks after they ran, and the reports cite them
 at the sandbox's scratch paths. The raw outputs of the fix pass's inject
 gate are in `verification/wave1_fixpass/inject/`; its populations are
 summarized by the comparisons beside it, and only the final one is kept
-whole, as the Linux reference `population_linux_wave1_20260926`.
+whole, as the Linux reference `population_linux_wave1_20260926`, which
+wave 2's `population_linux_wave2_20260926` replaces.
+
+Those of wave 2, also in a cloud session, are under
+`verification/scripts/wave2/<slice>_<track>/` and
+`verification/scripts/wave2/<slice>_verifier/`, with the orchestrator's
+check under `verification/scripts/wave2/orchestrator/`, formatted by the
+pre-commit hooks in the same way. `reviews/B1_comparison_history.md` is the
+B1 comparison reviewer's re-dating of its report on the complete history,
+saved verbatim beside the report. The fix agents of wave 2's fix pass (A to
+F, the letters of `fixes/`) have theirs under
+`verification/scripts/wave2/fix_<agent>/`, without their copies of a
+parent's tree, and the orchestrator's scripts of the pass (the
+cherry-picks, the changelog lines, the fingerprint at every commit, the
+comparisons of populations run by run) are with its check. The pass's
+comparisons are in `verification/wave2_fixpass/`, and its last population
+is kept whole as the Linux reference `population_linux_wave2_20260926`.

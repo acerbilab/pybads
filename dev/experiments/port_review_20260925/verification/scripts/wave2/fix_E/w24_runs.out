@@ -1,0 +1,16 @@
+/home/user/pybads-fix-E/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere [-5,5]^2, plb omitted             seed 0: x [-0.00043  0.00018] fval 2.16e-07 evals 53 | Optimization terminated: change in the function value less t
+sphere [-5,5]^2, plb omitted             seed 1: x [-0.00052 -0.00039] fval 4.19e-07 evals 61 | Optimization terminated: change in the function value less t
+sphere [-5,5]^2, plb omitted             seed 2: x [-0.00146 -0.00198] fval 6.06e-06 evals 53 | Optimization terminated: change in the function value less t
+optimum at lb, x0 on lb, plb omitted     seed 0: x [-5. -5.] fval 0 evals 34 | Optimization terminated: change in the function value less t
+optimum at lb, x0 on lb, plb omitted     seed 1: x [-5. -5.] fval 0 evals 34 | Optimization terminated: change in the function value less t
+optimum at lb, x0 on lb, plb omitted     seed 2: x [-5. -5.] fval 0 evals 34 | Optimization terminated: change in the function value less t
+log 3-D, plb omitted                     seed 0: x [0.01    0.01001 0.01002] fval 1.08e-06 evals 81 | Optimization terminated: change in the function value less t
+log 3-D, plb omitted                     seed 1: x [0.01001 0.01    0.01001] fval 2.63e-07 evals 75 | Optimization terminated: change in the function value less t
+log 3-D, plb omitted                     seed 2: x [0.01003 0.01    0.01   ] fval 1.32e-06 evals 75 | Optimization terminated: change in the function value less t
+log 1-D, x0 = optimum = plb              seed 0: x [0.01] fval 0 evals 20 | Optimization terminated: change in the function value less t
+log 1-D, x0 = optimum = plb              seed 1: x [0.01] fval 0 evals 20 | Optimization terminated: change in the function value less t
+log 1-D, x0 = optimum = plb              seed 2: x [0.01] fval 0 evals 20 | Optimization terminated: change in the function value less t
+log 2-D noisy, plb omitted               seed 0: x [0.00987 0.01041] fval -0.0509 evals 176 | Optimization terminated: change in the function value less t
+log 2-D noisy, plb omitted               seed 1: x [0.00989 0.00985] fval -0.115 evals 168 | Optimization terminated: change in the function value less t
+log 2-D noisy, plb omitted               seed 2: x [0.00951 0.00984] fval -0.0516 evals 200 | Optimization terminated: reached maximum number of function

@@ -1,0 +1,13 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+seed 0: port err 0.0958 (150 evals) | variant err 0.0958 (150 evals)
+seed 1: port err 0.0184 (150 evals) | variant err 0.0293 (150 evals)
+seed 2: port err 0.0107 (150 evals) | variant err 0.0107 (150 evals)
+seed 3: port err 0.0015 (150 evals) | variant err 0.0015 (150 evals)
+seed 4: port err 0.0039 (150 evals) | variant err 0.0039 (150 evals)
+seed 5: port err 0.0051 (150 evals) | variant err 0.0052 (150 evals)
+seed 6: port err 0.0009 (150 evals) | variant err 0.0009 (150 evals)
+seed 7: port err 0.0033 (150 evals) | variant err 0.0033 (150 evals)
+seed 8: port err 0.0106 (150 evals) | variant err 0.0103 (150 evals)
+seed 9: port err 0.0122 (150 evals) | variant err 0.0122 (150 evals)
+changed runs 4 of 10 | median err port 0.0078 variant 0.0077 | variant better in 2

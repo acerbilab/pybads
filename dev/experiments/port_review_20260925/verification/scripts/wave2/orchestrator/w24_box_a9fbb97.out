@@ -1,0 +1,6 @@
+/home/user/pybads/dev/scripts/runs/worktrees/h_a9fbb97/pybads/__init__.py
+sphere_D3_nopb       given plb None pub None; taken plb -19.96 pub 19.96; x0 given 4.429 taken 4.429; log False
+sphere_D3_x0lb       given plb -5.0 pub 5.0; taken plb -19.96 pub 5; x0 given -20 taken -19.96; log False
+logsphere_D3         given plb 0.01 pub 100.0; taken plb 1.001 pub 100; x0 given 94.29 taken 94.29; log True
+logsphere_D3_nopb    given plb None pub None; taken plb 1.001 pub 999; x0 given 94.29 taken 94.29; log True
+logsphere_D3_homo    given plb 0.01 pub 100.0; taken plb 1.001 pub 100; x0 given 94.29 taken 94.29; log True

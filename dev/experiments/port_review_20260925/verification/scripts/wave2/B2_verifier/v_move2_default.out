@@ -1,0 +1,9 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+seed 0: iterations 14 func_count 176: {'moves': 9, 'to_other_location': 8, 'search_centred_at_idx': 8, 'search_target_at_old_ubest': 8, 'search_target_hyp_moved': 8, 'polled': 7, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 3, 'poll_hyp_moved': 0}
+seed 1: iterations 16 func_count 200: {'moves': 2, 'to_other_location': 2, 'search_centred_at_idx': 2, 'search_target_at_old_ubest': 2, 'search_target_hyp_moved': 2, 'polled': 2, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 0, 'poll_hyp_moved': 0}
+seed 2: iterations 15 func_count 200: {'moves': 5, 'to_other_location': 5, 'search_centred_at_idx': 5, 'search_target_at_old_ubest': 5, 'search_target_hyp_moved': 5, 'polled': 5, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 2, 'poll_hyp_moved': 0}
+seed 3: iterations 14 func_count 200: {'moves': 3, 'to_other_location': 3, 'search_centred_at_idx': 3, 'search_target_at_old_ubest': 3, 'search_target_hyp_moved': 3, 'polled': 3, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 1, 'poll_hyp_moved': 0}
+seed 4: iterations 13 func_count 176: {'moves': 2, 'to_other_location': 2, 'search_centred_at_idx': 2, 'search_target_at_old_ubest': 2, 'search_target_hyp_moved': 2, 'polled': 2, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 1, 'poll_hyp_moved': 0}
+seed 5: iterations 15 func_count 188: {'moves': 4, 'to_other_location': 3, 'search_centred_at_idx': 3, 'search_target_at_old_ubest': 3, 'search_target_hyp_moved': 3, 'polled': 3, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 2, 'poll_hyp_moved': 0}
+total {} {'moves': 25, 'to_other_location': 23, 'search_centred_at_idx': 23, 'search_target_at_old_ubest': 23, 'search_target_hyp_moved': 23, 'polled': 22, 'poll_at_idx': 0, 'poll_at_old_with_moved_fval': 9, 'poll_hyp_moved': 0}

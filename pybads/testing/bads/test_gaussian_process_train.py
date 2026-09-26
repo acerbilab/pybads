@@ -26,7 +26,7 @@ from pybads.stats import get_hpd
 def test_get_fevals_data_no_noise():
     D = 3
     f = lambda x: np.sum(x + 2, axis=1)
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * -1
     pub = np.ones((1, D)) * 1
 
@@ -71,7 +71,7 @@ def test_get_fevals_data_no_noise():
 def test_get_fevals_data_noise():
     D = 3
     f = lambda x: (np.sum(np.atleast_2d(x) + 2, axis=1), 0)
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * -5
     pub = np.ones((1, D)) * 5
     options = {"specify_target_noise": True, "uncertainty_handling": True}
@@ -175,7 +175,7 @@ def test_get_gp_training_options_samplers():
     D = 3
     lb = np.ones((1, D)) * 1
     ub = np.ones((1, D)) * 5
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * 2
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
@@ -203,7 +203,7 @@ def test_get_gp_training_options_opts_N():
     D = 3
     lb = np.ones((1, D)) * 1
     ub = np.ones((1, D)) * 5
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * 2
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
@@ -231,8 +231,9 @@ def test_get_gp_training_options_opts_N():
 @pytest.mark.parametrize("max_fun_evals", [2, 3, 4, 5])
 @pytest.mark.parametrize("D", [2, 3])
 def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
-    """With a budget no larger than the initial design, the budget counts as
-    used up: the GP fits start from `gp_train_n_init_final` points, within
+    """With a budget no larger than the initial design, the design takes what
+    the starting point and the noise test leave of it, and the budget counts
+    as used up: the GP fits start from `gp_train_n_init_final` points, within
     the range of the schedule, from `gp_train_n_init` down."""
     import pybads.bads.gaussian_process_train as gpt
 
@@ -259,7 +260,10 @@ def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
         },
     )
     result = bads.optimize()
-    assert bads.optim_state["eff_starting_points"] >= max_fun_evals
+    # The noise test repeats x0, so the points are one fewer than the
+    # evaluations
+    assert result["func_count"] == max_fun_evals
+    assert bads.optim_state["eff_starting_points"] == max_fun_evals - 1
     assert seen
     assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
     assert np.isfinite(result["fval"])

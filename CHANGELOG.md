@@ -29,6 +29,26 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"zero"`, `"negquad"` included.
 - `BADS` raises `ValueError` for a `gp_cov_prior` other than `"iso"`,
   `"ard"` included, which 1.1.0 accepted and ignored.
+- `BADS` raises `ValueError` when `non_box_cons`, given an N × D array, does
+  not return a NumPy array of shape (N,) or (N, 1).
+- With `uncertainty_handling` left empty, a target whose two evaluations at
+  the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
+  a deterministic one, without the final samples of a noisy run.
+- `BADS` raises `ValueError` for a `max_fun_evals` that is not a positive
+  integer, such as `30.5` or the string `"200*D"`.
+- The options whose default is `True` or `False`, and
+  `uncertainty_handling`, take only booleans: `BADS` raises `ValueError` for
+  `0`, `1`, `"on"`, `"off"` or any other value. A user value of `None`
+  stands for the option's default: `nonlinear_scaling=None`, for instance,
+  keeps the log transform on.
+- The result's `success` is False when a run ends on `max_fun_evals` or
+  `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
+- Without `specify_target_noise` and with `noise_final_samples=1`,
+  `yval_vec` has shape (2,), not (2, 1).
+- `x0` and the plausible bounds are used as given: a start near a hard bound
+  is no longer moved inside it, the plausible bounds are no longer moved
+  away from the hard ones, and a start near a hard bound no longer widens
+  the plausible box.
 
 ### Changed
 
@@ -50,6 +70,51 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the largest noise standard deviation its Gaussian process can represent
   (the bound of MATLAB BADS): the noise it infers then stays at that bound,
   and the target is better rescaled.
+- **Constraint function.** When it is created, `BADS` checks that
+  `non_box_cons`, given an N × D array with one point per row, returns a
+  NumPy array of shape (N,) or (N, 1), one value per point, true or positive
+  where the point violates the constraints, and otherwise raises
+  `ValueError` stating that contract, as MATLAB BADS checks its constraint
+  function. 1.1.0 failed with `AttributeError`, `IndexError` or an unrelated
+  `ValueError`, or accepted an output of the wrong shape and failed later;
+  an output of shape (N, 1), which it failed on during the run, now works.
+  The docstring states the contract, with its example written in Python. The
+  docstring also says that a feasible region thinner than the mesh can
+  resolve, such as a narrow band, can end a run early near `x0`, and how to
+  reparametrize it.
+- **Checks of `max_fun_evals` and `improvement_quantile`.** `BADS` raises
+  `ValueError` when `max_fun_evals` is not a positive integer (or infinite),
+  as MATLAB BADS does, and converts a float that is a whole number to an
+  integer; 1.1.0 stopped `optimize()` with an unrelated error for 0 or a
+  negative value, and made 31 evaluations for 30.5. An
+  `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
+- **`None` and boolean options.** A user value of `None` stands for the
+  option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
+  itself, so that `nonlinear_scaling=None` turned the log transform off and
+  a numeric option set to `None` stopped the run. The options whose default
+  is `True` or `False`, and `uncertainty_handling`, take only `True` or
+  `False` (NumPy booleans included), and `BADS` raises `ValueError` for any
+  other value; 1.1.0 read any value as true or false by Python's rules, so
+  that MATLAB's `"off"` was true.
+- **`fun_values`.** `BADS` refuses a non-empty `fun_values`, the evaluations
+  made before the run, with a message that the option is not supported yet;
+  the import was never ported, and 1.1.0 stopped with an unrelated
+  `ValueError`.
+- **`f_vals`.** `BADS` refuses an `f_vals` other than `None` with a message
+  that the option is not supported; in 1.1.0 every run given it stopped at
+  its first display line, with `display="off"` too.
+- **`success`.** The result's `success` is False when `max_fun_evals` or
+  `max_iter` ends the run, `output_fcn` stops it or it ends in its
+  initialization, and True when it ends on `tol_mesh` or on the change of
+  the function value (`status > 0`), the convention of MATLAB BADS's exit
+  flags and of scipy; it was always True.
+- **Move to an earlier iterate in noisy runs.** When the re-estimation at
+  the end of an iteration of a noisy run finds an earlier iterate better by
+  more than `tol_fun`, the incumbent moves to that iterate, its location
+  with its value, and the next search and poll run around it. In 1.1.0, as
+  in MATLAB BADS, only the value moved, so that the next poll could run
+  around the old incumbent while it was judged by the other iterate's value.
+  Noisy runs change.
 
 ### Fixed
 
@@ -108,7 +173,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
   sample and its standard deviation; before, the incumbent's earlier
   observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
-  The returned `x` and the number of evaluations are unchanged.
+  The returned `x` and the number of evaluations are unchanged. With one
+  sample, the final message gives it as a number.
 - **`specify_target_noise` alone.** With `specify_target_noise=True` and
   `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
   as MATLAB BADS does and as the error message asked; it raised
@@ -139,7 +205,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   was normalized by `n`, which made `fsd` smaller by a factor
   `sqrt((n - 1)/n)`, 0.95 at the default 10 samples. The final `fval` and
   `fsd` are recorded in `iteration_history` at the iterate they describe,
-  the returned point, instead of the last iterate.
+  the returned point, instead of the last iterate. With
+  `noise_final_samples=1`, `yval_vec` holds the sample and the incumbent's
+  observation with shape (2,), as every other `yval_vec`; it had shape (2,
+  1).
 - **Iteration count.** The returned `iterations` and the iteration column
   of the display count from 1, as in MATLAB BADS: a run that ends on
   `max_iter` reports `max_iter` iterations. They were one lower.
@@ -172,12 +241,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   target that it found noisy was optimized as a noisy one although the
   option declared it deterministic. The test runs when
   `uncertainty_handling` is left empty.
-- **Random starting point.** Without a finite `x0`, the starting point is
-  drawn uniformly in the transformed plausible box, as in MATLAB BADS:
-  log-uniformly in the original space for a variable on a log scale (all
-  its bounds positive, and `pub/plb >= 10`). It was drawn uniformly in the
-  original plausible box, which put most starting points in the upper
-  decade of such a variable.
+- **Random starting point.** Without a finite `x0` (none, or one with an
+  element of `nan`, `inf` or `-inf`), the starting point is drawn uniformly
+  in the transformed plausible box, as in MATLAB BADS: log-uniformly in the
+  original space for a variable on a log scale (all its bounds positive, and
+  `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
+  which put most starting points in the upper decade of such a variable.
+  With `non_box_cons`, a random starting point that violates the constraints
+  is drawn again, up to 1000 times, before `BADS` raises `ValueError`, where
+  1.1.0 and MATLAB BADS raise at the first; a run whose first draw satisfies
+  the constraints is unchanged. 1.1.0 refused a start with an element of
+  `inf` or `-inf` when the hard bound on that side was finite.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when
@@ -258,7 +332,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller
   budget its Gaussian-process fits no longer start from up to 968 random
-  points, above `gp_train_n_init`.
+  points, above `gp_train_n_init`. A run makes at most `max_fun_evals`
+  evaluations: the initial design keeps within the evaluations left after
+  the starting point and the noise test, and a noisy run no longer raises
+  `max_fun_evals` to make room for its final samples (1.1.0 made 6
+  evaluations with `max_fun_evals=3` at D = 2, and 34 with 25 in a noisy
+  run).
 - **Retries of a failed GP fit.** A failed fit of the Gaussian process's
   hyperparameters is retried as in MATLAB BADS. The lower bound of the
   noise rises by `noise_nudge[1]` at each failure, which is not at all at
@@ -310,6 +389,118 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   length scale of 1 instead of the fitted one when it chose its training
   points, a defect shared with MATLAB BADS. It now uses the fitted length
   scale, as at every other D. Results change on 1-D problems.
+- **Mixed and half-bounded variables.** A problem that mixes bounded
+  variables with unbounded ones (`lb[i] = -inf` and `ub[i] = inf`), as the
+  docstring allows, is accepted, and so is a variable bounded on one side
+  only (`lb[i]` finite with `ub[i] = inf`, or `lb[i] = -inf` with `ub[i]`
+  finite), as in MATLAB BADS: 1.1.0 refused both with `bads:HalfBounds`, any
+  mix because its check looked at all the variables at once. The plausible
+  bound on an infinite side needs to be given. The warning for infinite
+  bounds names the variables that have one.
+- **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
+  `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
+  bound in every dimension, as the docstring says and MATLAB BADS does;
+  1.1.0 refused it when D > 1.
+- **Starting point of several rows.** `x0` is a single point: `BADS` refuses
+  an `x0` of more than one row when it is created, as MATLAB BADS does.
+  1.1.0 accepted it, estimated missing plausible bounds from its rows, and
+  then failed in `optimize()`.
+- **Bounds of large magnitude.** `BADS` no longer refuses valid bounds of
+  large magnitude (from about 1e10, or an upper bound from about 1e9 for a
+  variable on a log scale) with "Cannot invert the transform to obtain the
+  identity at the provided boundaries": the check that the transform of the
+  variables can be inverted allows an error relative to the size of the
+  bound, which rounding alone exceeded. The defect is shared with MATLAB
+  BADS.
+- **Noise test.** When `uncertainty_handling` is left empty, the target is
+  taken as noisy when two evaluations at the starting point differ by more
+  than `tol_noise`, now `sqrt(eps) * tol_fun` (1.5e-11 at default), as in
+  MATLAB BADS. 1.1.0 used `eps * tol_fun` (2.2e-19), so that a deterministic
+  target whose value changes in its last digits from call to call, for
+  example a sum taken in varying order, was optimized as a noisy one, with
+  more evaluations and a worse result.
+- **Display levels.** `display` takes MATLAB BADS's levels, read from its
+  first three letters in any case: `"notify"` shows the opening message and
+  the warnings, `"final"` also the final message, `"iter"` (or `"all"`) also
+  the iteration lines, `"off"` (or `"none"`) only the warnings, and
+  `"full"`, PyBADS's own, the debug messages too; 1.1.0 showed everything
+  for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
+  On the `BADS` logger, the opening and the final messages are at levels 25
+  and 22, between INFO and WARNING.
+- **Descriptions of the options.** `str(options)` and `Options.descriptions`
+  show each option's whole description; 1.1.0 cut eight of them at their
+  first `=` or `:`, that of `noise_size` among them. Every option on the
+  options page has a description, without the closing quote of MATLAB's that
+  ended many, and those of `max_iter` and `tol_stall_iters` say that an
+  iteration counts once it has begun. `search_n_try` is an integer.
+- **`sloppy_improvement=False`.** A run with `sloppy_improvement=False` no
+  longer stops with `AttributeError` at its first iteration.
+- **Exit status.** The result's `status` is MATLAB BADS's exit flag: 0 when
+  the run ends on `max_fun_evals` or `max_iter`, is stopped by `output_fcn`
+  or ends in its initialization, 1 on `tol_mesh`, 2 when the change of the
+  function value falls below `tol_fun`; `result["status"]` raised
+  `KeyError`. A deterministic run's `fsd` is the float 0.0 instead of the
+  integer 0.
+- **Target and constraint in the result.** The result holds the `fun` and
+  `non_box_cons` passed to `BADS`, not copies: a bound method or callable
+  object whose instance holds a lock or an open file no longer makes
+  `optimize()` raise `TypeError` after its last evaluation.
+- **Overhead of noisy runs.** The returned `overhead` counts the time of the
+  final samples, and with `specify_target_noise=True` of repeated
+  evaluations, in the time of the target, as MATLAB BADS does; leaving them
+  out overstated the overhead of noisy runs.
+- **Actions column of the display.** The Actions column of a poll's line
+  shows what its iteration did, as in MATLAB BADS: "Train" after a refit of
+  the Gaussian process, "Skip" after a skipped poll, "Train, skip" after
+  both; it could repeat the "Train" of an earlier poll, or show "Skip" alone
+  after both.
+- **Iteration history.** Recording an iteration no longer copies again every
+  Gaussian process that `iteration_history` holds: a run of n iterations
+  made n(n+1)/2 copies (20100, about 1.7 s, for 200).
+- **Scale of the search after failed searches.** A failed search shrinks the
+  scale of the next search by `search_scale_failure` but not below
+  `search_factor_min`, as in MATLAB BADS. `search_factor_min` was ignored,
+  and the late searches of a round of failures ran far below it (at 0.18 of
+  the full scale, against a floor of 0.5, at D = 6). Results change for
+  D ≥ 2: in PyBADS's benchmark, the 10-D ellipsoid takes 5% more
+  evaluations, with no change in its error, and no other problem changes
+  significantly.
+- **Accelerated mesh reduction.** A failed poll shrinks the mesh a second
+  time when the last `accelerate_mesh_steps` iterations improved by less
+  than `tol_fun`, from iteration `accelerate_mesh_steps + 1` on, as in
+  MATLAB BADS; 1.1.0 started one iteration later. In PyBADS's benchmark no
+  run changes; a run that stalls from its start can end with a mesh half as
+  large.
+- **Start and plausible bounds used as given.** BADS no longer moves `x0`,
+  `plausible_lower_bounds` or `plausible_upper_bounds` 0.1% of the range
+  inside the hard bounds, nor widens the plausible box to a start near a
+  hard bound; MATLAB BADS does neither. A start on a hard bound is kept,
+  omitted plausible bounds are exactly the hard bounds (so that a variable
+  on `[1, 10]` is on a log scale), and plausible bounds within 0.1% of the
+  range of a hard bound, which 1.1.0 could refuse with `bads:StrictBounds`,
+  are accepted. The warnings `bads:InitialPointsTooClosePB`,
+  `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
+  `bads:StrictBoundsTooClose` are gone. Results change on problems with the
+  plausible bounds omitted or near a hard bound, or with a start near a hard
+  bound. On a 3-D sphere in log-scaled variables, bounded in [1e-3, 1e3]
+  with a plausible box of [0.01, 100], which was shrunk to [1, 100], 73% of
+  noisy runs end within the tolerance, against 33% before; without noise the
+  runs take 82 evaluations instead of 73, with errors below 1e-5 either way.
+  A start on a hard bound of a 3-D sphere takes 77 evaluations instead of
+  91.
+- **Integer bounds.** Bounds and `x0` given as integers, as integer arrays
+  or as an integer scalar such as `lower_bounds=1`, are taken as floats.
+  With integer bounds on a variable that BADS puts on a log scale, 1.1.0
+  truncated the logarithms of the bounds, so that the plausible box and the
+  hard bounds were mapped to the wrong range (the plausible box to [-0.77,
+  1.07] instead of [-1, 1] for `lb=1`, `plb=2`, `pub=500`, `ub=1000`).
+  Results change on such problems. The same holds for `VariableTransformer`
+  used directly, whose copies of the bounds are now floats.
+- **No overflow warning beside a log-scaled variable.** A variable that is
+  not on a log scale, with an infinite bound or a bound above about 700 in
+  magnitude, beside one that is, no longer gives a harmless `RuntimeWarning:
+  overflow encountered in exp` when `BADS` is created or during the run.
+  Results are unchanged.
 
 ## [1.1.0] - 2026-09-25
 

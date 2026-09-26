@@ -1,0 +1,25 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- (a) result fields
+  max_fun_evals=30: success=True message="Optimization terminated: reached maximum number of function evaluations options['max_fun_evals']."
+    'status' in r: False; fsd=0 (int); keys missing from _keys: ['status']
+    r.status -> AttributeError status
+  max_fun_evals=200: success=True message="Optimization terminated: change in the function value less than options['tol_fun']."
+    'status' in r: False; fsd=0 (int); keys missing from _keys: ['status']
+    r.status -> AttributeError status
+
+-- (b) bound-method target holding a lock
+  optimize raised TypeError: cannot pickle '_thread.lock' object after 20 evaluations; b.x = [ 0.00537109 -0.00146484]
+  callable object: result['fun'] is c: False ; plain function kept by reference: True
+
+-- (c) f_vals
+  cache_active: True
+  optimize raised ValueError: Unknown format code 'f' for object of type 'str'; evaluations 2
+
+-- (d) multi-row x0
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  optimize raised ValueError: operands could not be broadcast together with shapes (1,2) (1,4)
+
+-- (e) overhead: noisy target sleeping 2 ms per call, 60 evals
+  func_count 60, stored rows 50, calls 60; total_fun_eval_time 0.1093 s, sum of call times 0.1310 s, of the last 10 calls 0.0219 s
+  overhead reported 2.586; with every call counted 1.990

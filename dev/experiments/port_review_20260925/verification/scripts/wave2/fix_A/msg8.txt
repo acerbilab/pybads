@@ -1,0 +1,7 @@
+fix: an x0 of more than one row is refused when BADS is created, and no plausible bounds are estimated from it (W2-8)
+
+A multi-row x0 passed the checks of _bounds_check_: with the plausible bounds missing, they were estimated from the set of points, a branch that MATLAB BADS does not have, and optimize() then failed with a broadcasting error, since _init_optim_state_ flattens the gridized start into one vector of N0 * D elements. MATLAB BADS takes a single starting point and refuses anything else (private/boundscheck.m:18-27: "need to have the same size", "should be row vectors"). _bounds_check_ now raises bads:StartingSet, which names D and the number of rows, after the shape test of the bounds (so that plausible bounds of a wrong shape, from which a missing x0 takes its shape, still get that test's message). The estimation branch is removed; what remains of the block takes the hard bounds for missing plausible bounds, with MATLAB's warning, which no longer mentions a starting set. The docstring of BADS says that x0 is a single point of shape (D,) or (1, D).
+
+test_starting_set_is_refused (test_bads_inputs.py): a (2, 2) x0 is refused at construction, with and without bounds (at the parent it was accepted: "DID NOT RAISE"). Only inputs that failed so far reach the change: fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

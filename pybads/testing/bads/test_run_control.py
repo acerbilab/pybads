@@ -3,6 +3,8 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 (`"init"`), after each poll (`"iter"`) and at the end (`"done"`), and stops
 the run when it returns a true value; `iterations` counts from 1."""
 
+import threading
+
 import numpy as np
 import pytest
 
@@ -124,6 +126,90 @@ def test_iterations_count_from_one(max_iter):
     )
 
 
+# The options that end the run on each criterion, the status and the message
+_ENDS = {
+    "max_fun_evals": (
+        {"max_fun_evals": 30},
+        0,
+        "reached maximum number of function evaluations "
+        "options['max_fun_evals']",
+    ),
+    "max_iter": (
+        {"max_iter": 2, "max_fun_evals": 200},
+        0,
+        "reached maximum number of iterations options['max_iter']",
+    ),
+    "output_fcn": (
+        {"output_fcn": lambda x, optim_state, state: state == "iter"},
+        0,
+        "terminated by options['output_fcn']",
+    ),
+    "initialization": ({"max_fun_evals": 1}, 0, "after initialization"),
+    "tol_mesh": (
+        {"tol_mesh": 1e-2, "max_fun_evals": 200},
+        1,
+        "mesh size less than options['tol_mesh']",
+    ),
+    "stall": (
+        {"max_fun_evals": 200},
+        2,
+        "change in the function value less than options['tol_fun']",
+    ),
+}
+
+
+@pytest.mark.parametrize("end", list(_ENDS))
+def test_status_is_the_exit_flag(end):
+    """`status` is MATLAB BADS's exit flag: 0 when the run ends on
+    `max_fun_evals`, `max_iter`, a stop by `output_fcn` or in its
+    initialization, 1 on `tol_mesh`, 2 on the stall criterion; `success` is
+    True for the last two only, as in MATLAB and scipy. The `fsd` of a
+    deterministic run is the float 0.0."""
+    options, status, message = _ENDS[end]
+    result = _make_bads(**options).optimize()
+    assert message in result["message"]
+    assert result["status"] == status
+    assert result["success"] is (status > 0)
+    assert isinstance(result["fsd"], float) and result["fsd"] == 0.0
+
+
+def test_accelerated_mesh_reduction_counts_iterations_from_one(monkeypatch):
+    """A failed poll shrinks the mesh once more when the last
+    `accelerate_mesh_steps` iterations improved by less than `tol_fun`, from
+    MATLAB BADS's iteration `accelerate_mesh_steps + 1` on, the 0-based
+    `optim_state["iter"] == accelerate_mesh_steps`. The run starts at the
+    minimum, so that every poll fails and every such test shrinks the
+    mesh."""
+    polls = []
+    original_poll = BADS._poll_step_
+
+    def poll(self, gp):
+        iteration = self.optim_state["iter"]
+        mesh_size_integer = self.mesh_size_integer
+        out = original_poll(self, gp)
+        polls.append((iteration, mesh_size_integer - self.mesh_size_integer))
+        return out
+
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    bads = BADS(
+        _sphere,
+        np.zeros(D),
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        8 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 200, "random_seed": 3},
+    )
+    result = bads.optimize()
+    steps = bads.options["accelerate_mesh_steps"]
+    assert result["fval"] == 0
+    assert len(polls) > steps
+    assert polls == [
+        (iteration, 1 if iteration < steps else 2)
+        for iteration in range(len(polls))
+    ]
+
+
 @pytest.mark.parametrize(
     "uncertainty_handling, func_count",
     [(None, 2), (True, 1), (False, 1)],
@@ -146,6 +232,50 @@ def test_one_function_evaluation(uncertainty_handling, func_count):
         "Optimization terminated: reached maximum number of function "
         "evaluations after initialization."
     )
+
+
+def _small_budget_bads(dim, max_fun_evals, noisy=False):
+    rng = np.random.default_rng(0)
+
+    def fun(x):
+        return _sphere(x) + (rng.standard_normal() if noisy else 0.0)
+
+    return BADS(
+        fun,
+        np.ones(dim) * 0.5,
+        -5 * np.ones(dim),
+        5 * np.ones(dim),
+        -2 * np.ones(dim),
+        2 * np.ones(dim),
+        options={
+            "display": "off",
+            "max_fun_evals": max_fun_evals,
+            "random_seed": 1,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "dim, max_fun_evals", [(2, 3), (2, 4), (2, 5), (2, 6), (5, 7)]
+)
+def test_initial_design_within_budget(dim, max_fun_evals):
+    """The initial design, rounded up to a power of two (doubled when that
+    equals D), keeps its first points within the evaluations left after the
+    starting point and the noise test, so a budget below it is kept."""
+    result = _small_budget_bads(dim, max_fun_evals).optimize()
+    assert result["func_count"] <= max_fun_evals
+
+
+def test_initial_design_within_budget_of_noisy_run():
+    """In a noisy run the design, of 32 points at D = 2, keeps within the
+    budget, and the reserve for the final samples is never negative, so
+    `max_fun_evals` never grows."""
+    bads = _small_budget_bads(2, 25, noisy=True)
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["func_count"] <= 25
+    assert bads.options["noise_final_samples"] >= 0
+    assert bads.options["max_fun_evals"] <= 25
 
 
 def _box():
@@ -204,6 +334,43 @@ def test_declared_deterministic_target_takes_no_noise_test():
     assert bads.function_logger.func_count == len(evaluated)
 
 
+def _one_ulp_apart():
+    """The sphere, one unit in the last place higher on every other call,
+    as a deterministic target whose value depends on the order of a sum."""
+    n_calls = [0]
+
+    def fun(x):
+        n_calls[0] += 1
+        y = _sphere(x)
+        return float(np.nextafter(y, np.inf)) if n_calls[0] % 2 else y
+
+    return fun
+
+
+def _small_noise():
+    rng = np.random.default_rng(0)
+
+    def fun(x):
+        return _sphere(x) + 1e-6 * rng.standard_normal()
+
+    return fun
+
+
+@pytest.mark.parametrize(
+    "make_fun, level",
+    [(_one_ulp_apart, 0), (_small_noise, 1)],
+    ids=["one_ulp", "noise_sd_1e-6"],
+)
+def test_noise_test_threshold(make_fun, level):
+    """The noise test takes a target as noisy when its repeat at the
+    starting point differs by more than `tol_noise`, `sqrt(eps) * tol_fun`
+    (1.5e-11) as in MATLAB BADS (`bads.m`): a difference in the last bit is
+    not noise, a noise of SD 1e-6 is."""
+    bads = _make_bads(make_fun(), max_fun_evals=50)
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == level
+
+
 def test_random_x0_is_uniform_in_the_transformed_box():
     """A missing `x0` is drawn uniformly in the transformed plausible box,
     as in MATLAB BADS (`setupvars.m`): log-uniform in the original space for
@@ -224,3 +391,46 @@ def test_random_x0_is_uniform_in_the_transformed_box():
     # [1, 100] maps log-linearly to [-1, 1], [-5, 5] linearly
     expected = [10.0 ** (1.0 + u[0, 0]), 5.0 * u[0, 1]]
     np.testing.assert_allclose(bads.x0.ravel(), expected, rtol=1e-12)
+
+
+def test_run_without_sloppy_improvement():
+    """`sloppy_improvement=False`, which MATLAB BADS supports, requires the
+    improvement of the mesh size alone, without the floor at `tol_fun`, and
+    the run completes."""
+    result = _make_bads(sloppy_improvement=False, max_fun_evals=60).optimize()
+    assert result["func_count"] <= 60
+    assert result["iterations"] > 1
+    assert result["fval"] < _sphere(np.ones(D) * 4)
+
+
+class _Locked:
+    """A target and a constraint that hold a lock, which cannot be copied."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def target(self, x):
+        with self.lock:
+            return _sphere(x)
+
+    def __call__(self, x):
+        with self.lock:
+            return np.sum(np.atleast_2d(x) ** 2, axis=1) - 1e4
+
+
+def test_result_keeps_the_callables_by_reference():
+    """The result holds the target and the constraint that the run was
+    given, not copies: a bound method or callable object whose instance
+    holds a lock does not stop `optimize()`."""
+    locked = _Locked()
+    target = locked.target
+    bads = BADS(
+        target,
+        *_box(),
+        locked,
+        options={"display": "off", "max_fun_evals": 40, "random_seed": 3},
+    )
+    result = bads.optimize()
+    assert result["fun"] is target
+    assert result["fun"].__self__ is locked
+    assert result["non_box_cons"] is locked

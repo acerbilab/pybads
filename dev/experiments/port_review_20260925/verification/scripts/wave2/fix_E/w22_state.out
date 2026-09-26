@@ -1,0 +1,9 @@
+/home/user/pybads-fix-E/pybads/__init__.py
+Detected 3 infinite bound(s), in variables (index) [0, 1, 2].
+/home/user/pybads-fix-E/pybads/variable_transformer/variables_transformer.py:203: RuntimeWarning: overflow encountered in exp
+  np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
+log [[False False  True]] u lb [[-1.22222222        -inf -1.66666667]] u ub [[inf 1.5 inf]]
+lb_search [[-1.22167969        -inf -1.66601562]] ub_search [[inf 1.5 inf]]
+poll_scale [1.02952895 0.61068063 1.59054989] len_scale [39.67446945 23.53351008 61.29426805] effective_radius [1.11428936]
+lb_search [[-1.22222222        -inf -1.66666666]] ub_search [[inf 1.5 inf]]
+x [ 1.00001714 -1.99887204  0.09992475] fval 1.379467765794118e-06 evals 75

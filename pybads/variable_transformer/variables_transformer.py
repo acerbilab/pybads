@@ -53,26 +53,28 @@ class VariableTransformer:
         if plausible_upper_bounds is None:
             plausible_upper_bounds = np.copy(upper_bounds)
 
+        # Float copies, into which the log of a log-scaled variable's bounds
+        # is written in place, so that integer bounds are not truncated
         lb = (
-            lower_bounds.copy()
+            lower_bounds.astype(float)
             if lower_bounds is not None
             else np.ones((1, D)) * -np.inf
         )
         ub = (
-            upper_bounds.copy()
+            upper_bounds.astype(float)
             if upper_bounds is not None
             else np.ones((1, D)) * np.inf
         )
 
         plb = (
-            lower_bounds.copy()
+            lower_bounds.astype(float)
             if (plausible_lower_bounds is None)
-            else plausible_lower_bounds.copy()
+            else plausible_lower_bounds.astype(float)
         )
         pub = (
-            upper_bounds.copy()
+            upper_bounds.astype(float)
             if (plausible_upper_bounds is None)
-            else plausible_upper_bounds.copy()
+            else plausible_upper_bounds.astype(float)
         )
 
         if np.isscalar(lb):
@@ -197,12 +199,17 @@ class VariableTransformer:
             )
         else:
             g = lambda x: z(x) + zlog(x)
-            ginv = lambda y: maskindex(
-                gamma * y + mu, ~self.apply_log_t
-            ) + maskindex(
-                np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
-                self.apply_log_t,
-            )
+
+            def ginv(y):
+                # The exponential of a linear variable, masked out, overflows
+                # at a value above about 709, harmlessly
+                with np.errstate(over="ignore"):
+                    x_log = np.minimum(
+                        np.finfo(np.float64).max, np.exp(gamma * y + mu)
+                    )
+                return maskindex(
+                    gamma * y + mu, ~self.apply_log_t
+                ) + maskindex(x_log, self.apply_log_t)
 
         # check that the transform works correctly in the range
         lbtest = self.orig_lb.copy()
@@ -215,16 +222,14 @@ class VariableTransformer:
             np.logical_and((~np.isfinite(self.orig_ub)), self.apply_log_t)
         ] = 1e6
 
-        numeps = 1e-6  # accepted numerical error
+        # accepted numerical error, relative to a bound larger than 1 in
+        # magnitude (MATLAB BADS's transvars.m takes 1e-6 in absolute terms,
+        # which rounding alone exceeds at bounds of large magnitude)
+        numeps = 1e-6
         tests = np.zeros(4)
-        tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
-        tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(
-            np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps
-        )
-        tests[3] = np.all(
-            np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps
-        )
+        for i, b in enumerate([lbtest, ubtest, self.orig_plb, self.orig_pub]):
+            tol = numeps * np.maximum(1.0, np.abs(b))
+            tests[i] = np.all(np.abs(ginv(g(b)) - b) < tol)
         if not np.all(tests):
             raise ValueError(
                 "Cannot invert the transform to obtain the identity at the provided boundaries."

@@ -1,0 +1,7 @@
+fix: the transform's self-test allows an error relative to bounds of large magnitude, which it no longer refuses through rounding (W2-5)
+
+VariableTransformer checks that its inverse maps the transformed bounds back to the bounds, within numeps = 1e-6 in absolute terms, as MATLAB BADS's utils/transvars.m:30, 169-178 does. Rounding alone exceeds that at bounds of large magnitude: the round trip at ub = 9.53e10 errs by 1.53e-5, one unit in the last place, so lb = -9.53e10, ub = 9.53e10, plb = -2.06, pub = -0.74 were refused with "Cannot invert the transform to obtain the identity at the provided boundaries", and so were about 40% of log-transformed variables with ub near 1e9 (the B1 verifier's v_transform.py, on both sides alike: a shared defect). By the PI's ruling the tolerance is now relative to a bound larger than 1 in magnitude, 1e-6 * max(1, |b|), and stays absolute below. It is never smaller than before, so the test only accepts bounds it refused.
+
+test_bounds_of_large_magnitude (test_variable_transformer.py): the linear bounds above and a log-transformed variable with lb = 1e-3, ub = 2e9, plb = 1, pub = 10 are accepted, map the plausible box to [-1, 1] and invert at ub (at the parent both raised "Cannot invert the transform ..."); the file's other tests pass. Only bounds refused so far reach the change: fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

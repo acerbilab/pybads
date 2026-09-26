@@ -1,0 +1,87 @@
+{
+ "label": "logsphere_D3_nopb",
+ "seed": 6,
+ "problem": "logsphere",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  80.87190349929827,
+  19.977769744707818,
+  87.71451570788932
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 6
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 6,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   1.8511234047843157,
+   1.067972395753519,
+   0.9080079161368542
+  ],
+  "fval": 6.395718642750086e-07,
+  "fsd": 0.0,
+  "true_error": 6.395718642750086e-07,
+  "func_count": 75,
+  "iterations": 8,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 0.9531224660004227,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "a236eb7",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "0.1.dev60+g95a87bc9c",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/h_a236eb7/pybads",
+   "git": {
+    "sha": "a236eb7",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T19:20:34+0000",
+  "finished": "2026-09-26T19:20:35+0000"
+ }
+}

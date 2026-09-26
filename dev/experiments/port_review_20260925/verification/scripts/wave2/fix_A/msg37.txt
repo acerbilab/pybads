@@ -1,0 +1,7 @@
+docs: a feasible region thinner than the mesh can resolve can end the run early; reparametrize it (W2-37)
+
+With a thin feasible band as non_box_cons (|x1 - x2| <= 0.005 at D = 2, x0 = (0.5, 0.5)), no point of the initial design is feasible, the GP is trained on x0 alone, no search runs, every axis-aligned poll point is infeasible while the mesh shrinks, and the stall criterion ends the run at iteration 6 after 2 evaluations, at x0 (the B2 verifier's v_thin.py). MATLAB BADS's poll basis is axis-aligned at these meshes too, with the same criterion. The PI ruled to document it: the docstring of BADS, at non_box_cons, says that a feasible region thinner than the mesh can resolve, such as a band narrower than the poll steps, can end the run early, near x0, on the stall criterion, and suggests a reparametrization that makes the region wide, with the band's example (its midpoint and its offset scaled by the width, the latter bounded by -1 and 1 in place of the constraint).
+
+A docstring only, no test. Fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
