@@ -129,8 +129,10 @@ class BADS:
     Raises
     ------
     ValueError
-        When neither ``x0`` or (``plausible_lower_bounds`` and
-        ``plausible_upper_bounds``) are specified.
+        When ``x0`` is not specified and neither ``plausible_lower_bounds``
+        nor ``lower_bounds`` is, or neither ``plausible_upper_bounds`` nor
+        ``upper_bounds`` is: a missing plausible bound defaults to the hard
+        bound, and the random ``x0`` is drawn between the plausible bounds.
     ValueError
         When various checks for the bounds (``lower_bounds``, ``upper_bounds``,
         ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
