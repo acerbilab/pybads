@@ -1,0 +1,9 @@
+/home/user/pybads-fix-F/pybads/__init__.py
+float 1-D  plausible=True  unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: [1, 2, 3, 4]
+float 1-D  plausible=False unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: [1, 2]
+float 2-D  plausible=True  unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: [1, 2, 3, 4]
+float 2-D  plausible=False unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: [1, 2]
+int 1-D    plausible=True  unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: []
+int 1-D    plausible=False unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: []
+int 2-D    plausible=True  unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: []
+int 2-D    plausible=False unchanged after BADS(...): True, after optimize(): True, attributes sharing memory with user arrays: [], outputs of _bounds_check_ that do: []
