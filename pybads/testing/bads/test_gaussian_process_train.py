@@ -1,14 +1,18 @@
+import copy
+
 import gpyreg as gpr
 import numpy as np
 import pytest
 from scipy.stats import norm
 
 from pybads import BADS
+from pybads.bads import gaussian_process_train
 from pybads.bads.gaussian_process_train import (
     _cov_identifier_to_covariance_function,
     _get_fevals_data,
     _get_gp_training_options,
     _meanfun_name_to_mean_function,
+    _robust_gp_fit_,
     add_and_update_gp,
     init_and_train_gp,
     local_gp_fitting,
@@ -609,3 +613,105 @@ def test_rebuild_len_scale_is_mean_over_samples(monkeypatch):
     np.testing.assert_allclose(
         gp.temporary_data["len_scale"], 2 * first, rtol=1e-12
     )
+
+
+# --- _robust_gp_fit_ ------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def refit_case():
+    """The GP of the last iteration of a short deterministic run (D = 3, 69
+    training points), with the run and the training options of a refit."""
+    D = 3
+    bads = BADS(
+        lambda x: float(np.sum((np.ravel(x) - 0.3) ** 2 * [1.0, 4.0, 9.0])),
+        np.array([[1.0, -1.0, 0.5]]),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        -2 * np.ones((1, D)),
+        2 * np.ones((1, D)),
+        options={"display": "off", "max_fun_evals": 70, "random_seed": 5},
+    )
+    bads.optimize()
+    gp = bads.iteration_history["gp"][bads.optim_state["iter"]]
+    gp_train = _get_gp_training_options(
+        bads.optim_state,
+        bads.iteration_history,
+        bads.options,
+        gp.get_hyperparameters(as_array=True),
+        0,
+        bads.function_logger,
+    )
+    return bads, gp, gp_train
+
+
+def _inject_fit_failures(monkeypatch, n_fail=np.inf):
+    """Makes `GP.fit` raise `LinAlgError` at its first `n_fail` calls and
+    then return its first start, and records what each call is given."""
+    calls = []
+
+    def fit(gp, X=None, y=None, s2=None, hyp0=None, options=None, rng=None):
+        calls.append(
+            {
+                "X": X.copy(),
+                "lower_bounds": gp.lower_bounds.copy(),
+                "hyp0": np.atleast_2d(hyp0).copy(),
+            }
+        )
+        if len(calls) <= n_fail:
+            raise np.linalg.LinAlgError("injected failure")
+        return np.atleast_2d(hyp0)[:1].copy(), None, None
+
+    monkeypatch.setattr(gpr.GP, "fit", fit)
+    return calls
+
+
+def _robust_fit(case, hyp=None, **options):
+    """`_robust_gp_fit_` on a copy of the GP of `case`, from `hyp` (the GP's
+    hyperparameters by default), with `options` over the run's options."""
+    bads, gp, gp_train = case
+    gp = copy.deepcopy(gp)
+    opts = copy.deepcopy(bads.options)
+    for key, value in options.items():
+        opts[key] = value
+    if hyp is None:
+        hyp = gp.get_hyperparameters(as_array=True)
+    return _robust_gp_fit_(
+        gp,
+        gp.X,
+        gp.y,
+        gp.s2,
+        hyp,
+        gp_train,
+        copy.deepcopy(bads.optim_state),
+        opts,
+        np.random.default_rng(1),
+    )
+
+
+def test_robust_fit_slice_sampler_samples_on_retry_data(
+    monkeypatch, refit_case
+):
+    """With `use_slice_sampler`, the start of each retry is sampled on the
+    data that the retry fits, from which the second failure removes
+    points."""
+    calls = _inject_fit_failures(monkeypatch, 2)
+    sampled = []
+    original = gaussian_process_train._get_samples_from_slice_sampler_
+
+    def spy(gp, *args, **kwargs):
+        sampled.append((gp.X.copy(), gp.y.copy()))
+        return original(gp, *args, **kwargs)
+
+    monkeypatch.setattr(
+        gaussian_process_train, "_get_samples_from_slice_sampler_", spy
+    )
+    _robust_fit(refit_case, use_slice_sampler=True)
+    assert len(calls) == 3 and len(sampled) == 2
+    assert calls[2]["X"].shape[0] < calls[1]["X"].shape[0]
+    _, gp, _ = refit_case
+    for (X, y), call in zip(sampled, calls[1:]):
+        assert X.shape == call["X"].shape
+        assert np.array_equal(X, call["X"])
+        rows = [np.flatnonzero(np.all(gp.X == x, axis=1))[0] for x in X]
+        assert np.array_equal(y, gp.y[rows])

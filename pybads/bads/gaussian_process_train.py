@@ -696,6 +696,9 @@ def _robust_gp_fit_(
                 hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
             )
             if options["use_slice_sampler"]:
+                # The sampler reads the data of the GP it is given: those of
+                # the retry, which a failed fit does not leave in `tmp_gp`
+                tmp_gp.X, tmp_gp.y, tmp_gp.s2 = X, Y, s2
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 if len(new_hyp) > 1:
                     new_hyp = new_hyp[-1].copy()
