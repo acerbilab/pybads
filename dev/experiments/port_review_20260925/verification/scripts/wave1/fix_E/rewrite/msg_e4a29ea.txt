@@ -1,0 +1,24 @@
+fix: draws from the GP's priors follow the priors in log units, as MATLAB BADS (W1-16)
+
+_get_random_samples_from_priors_ exponentiated the centre and the standard
+deviation of every Gaussian prior on a log hyperparameter and drew its log
+value from N(exp(mu), exp(sigma)): the draws of a log length scale with the
+prior N(-2.97, 4.27) had the mean -1.3 and the SD 71, 91% of them outside
+the bounds (the B5 verifier's v02_prior_sampler.py), and 99.995% of those of
+the log output scale lay above its upper bound. A block without a prior
+raised TypeError. MATLAB draws each hyperparameter from its prior in the
+units of the hyperparameter, sqrt(s2)*randn + mu in log units for a log
+one, and keeps the value of a hyperparameter without a prior
+(gppriorrnd.m:66-78, priorGauss). The draws are now N(mu, sigma) in the
+units of the prior, from the same stream of draws, and a block without a
+prior keeps its value.
+
+The draws start the retries of a failed refit (_robust_gp_fit_), the
+second fit of a refit that local_gp_fitting finds in high-noise mode or
+with its mean below the targets, and the retries of the initial fit, so
+this moves default runs. Tests: test_prior_samples_follow_gaussian_priors
+(the mean and the SD of 4000 draws of each block against its prior) and
+test_prior_samples_keep_block_without_prior. Fingerprint ed8f953edbd6f141
+(395558ea21e5c213 at the parent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

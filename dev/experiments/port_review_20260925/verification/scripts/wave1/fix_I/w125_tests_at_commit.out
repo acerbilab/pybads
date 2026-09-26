@@ -1,0 +1,8 @@
+PASSED gpyreg/testing/test_gaussian_process.py::test_failed_factorization_inflates_the_noise_by_default[high]
+PASSED gpyreg/testing/test_gaussian_process.py::test_failed_factorization_inflates_the_noise_by_default[low]
+PASSED gpyreg/testing/test_gaussian_process.py::test_failed_factorization_raises_where_the_gp_raises[high]
+PASSED gpyreg/testing/test_gaussian_process.py::test_failed_factorization_raises_where_the_gp_raises[low]
+PASSED gpyreg/testing/test_gaussian_process.py::test_fit_ranks_starting_points_whose_factorization_fails_last
+PASSED gpyreg/testing/test_gaussian_process.py::test_a_fit_whose_optimization_fails_raises_where_the_gp_raises
+PASSED gpyreg/testing/test_gaussian_process.py::test_a_copy_and_a_pickle_keep_raise_on_cholesky_failure
+7 passed, 416 deselected in 1.29s

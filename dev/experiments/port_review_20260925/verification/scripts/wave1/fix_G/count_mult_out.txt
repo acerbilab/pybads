@@ -1,0 +1,7 @@
+/home/user/pybads/dev/scripts/runs/worktrees/w1fix_G/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+det   0 stats 74 with sn2_mult != 1: 44 values [   1   10  100 1000]
+det   1 stats 74 with sn2_mult != 1: 28 values [   1   10  100 1000]
+det   2 stats 74 with sn2_mult != 1: 49 values [  1  10 100]
+noisy 0 stats 37 with sn2_mult != 1: 0 values [1]
+noisy 1 stats 37 with sn2_mult != 1: 0 values [1]
+noisy 2 stats 37 with sn2_mult != 1: 0 values [1]

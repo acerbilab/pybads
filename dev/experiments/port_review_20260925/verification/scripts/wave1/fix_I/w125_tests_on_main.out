@@ -1,0 +1,9 @@
+=========================== short test summary info ============================
+FAILED test_w125_branch_tests.py::test_failed_factorization_inflates_the_noise_by_default[high]
+FAILED test_w125_branch_tests.py::test_failed_factorization_inflates_the_noise_by_default[low]
+FAILED test_w125_branch_tests.py::test_failed_factorization_raises_where_the_gp_raises[high]
+FAILED test_w125_branch_tests.py::test_failed_factorization_raises_where_the_gp_raises[low]
+FAILED test_w125_branch_tests.py::test_fit_ranks_starting_points_whose_factorization_fails_last
+FAILED test_w125_branch_tests.py::test_a_fit_whose_optimization_fails_raises_where_the_gp_raises
+FAILED test_w125_branch_tests.py::test_a_copy_and_a_pickle_keep_raise_on_cholesky_failure
+7 failed, 416 deselected in 2.25s
