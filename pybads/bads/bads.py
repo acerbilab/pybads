@@ -85,7 +85,15 @@ class BADS:
         or ``(N, 1)``, one value per point, true or positive where the point
         violates the constraints. For example,
         ``lambda x: np.sum(x**2, axis=1) > 1`` keeps the search inside the
-        unit ball.
+        unit ball. A feasible region thinner than the mesh can resolve, such
+        as a band narrower than the poll steps, can leave every point of the
+        initial design and of the polls infeasible, and the run can then end
+        early, near ``x0``, on the stall criterion (an improvement below
+        ``tol_fun`` over ``tol_stall_iters`` iterations). Reparametrize such a
+        problem so that its feasible region is wide: for the band
+        ``abs(x[0] - x[1]) <= w``, for example, optimize over
+        ``(x[0] + x[1]) / 2`` and ``(x[0] - x[1]) / w``, the latter bounded
+        by -1 and 1 in place of the constraint.
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the

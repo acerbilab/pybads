@@ -60,7 +60,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   function. 1.1.0 failed with `AttributeError`, `IndexError` or an unrelated
   `ValueError`, or accepted an output of the wrong shape and failed later;
   an output of shape (N, 1), which it failed on during the run, now works.
-  The docstring states the contract, with its example written in Python.
+  The docstring states the contract, with its example written in Python. The
+  docstring also says that a feasible region thinner than the mesh can
+  resolve, such as a narrow band, can end a run early near `x0`, and how to
+  reparametrize it.
 
 ### Fixed
 
