@@ -11,11 +11,14 @@ import numpy as np
 import pybads
 
 print(pybads.__file__, gpyreg.__file__)
-for c in bt.suite_configs("default") + bt.suite_configs("oned"):
+suites = sys.argv[1:] or ["default", "oned"]
+for c in [c for su in suites for c in bt.suite_configs(su)]:
     hits = set()
     for seed in range(30):
         p = c.make(seed=seed)
         fun, x0, lb, ub, plb, pub = p.bads_args()[0][:6]
+        plb = lb if plb is None else plb
+        pub = ub if pub is None else pub
         lb, ub, plb, pub, x0 = (
             np.atleast_2d(np.asarray(v, float)) for v in (lb, ub, plb, pub, x0)
         )
