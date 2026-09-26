@@ -191,7 +191,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   log-uniformly in the original space for a variable on a log scale (all
   its bounds positive, and `pub/plb >= 10`). It was drawn uniformly in the
   original plausible box, which put most starting points in the upper
-  decade of such a variable.
+  decade of such a variable. With `non_box_cons`, a random starting point
+  that violates the constraints is drawn again, up to 1000 times, before
+  `BADS` raises `ValueError`, where 1.1.0 and MATLAB BADS raise at the
+  first; a run whose first draw satisfies the constraints is unchanged.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when

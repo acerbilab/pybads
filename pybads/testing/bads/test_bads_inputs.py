@@ -139,3 +139,53 @@ def test_non_box_cons_output_of_shape_n_or_n_by_1():
     assert np.sum(flat["x"] ** 2) <= 1
     np.testing.assert_array_equal(column["x"], flat["x"])
     assert column["func_count"] == flat["func_count"]
+
+
+def _outside_disc(x):
+    return np.sum(np.atleast_2d(x) ** 2, axis=1) > 1
+
+
+@pytest.mark.parametrize(
+    "seed, first_draw_feasible",
+    [(1, True), (8, False)],
+    ids=["first_draw_feasible", "first_draw_infeasible"],
+)
+def test_random_x0_is_drawn_again_until_feasible(seed, first_draw_feasible):
+    """A missing `x0` that violates `non_box_cons` is drawn again from the
+    run's generator, in the transformed plausible box (here the identity
+    map of [-1, 1]^2). A feasible first draw is kept, and no draw is added."""
+    rng = np.random.default_rng(seed)
+    draws = 0
+    while True:
+        u = rng.uniform(-1.0, 1.0, size=(1, 2))
+        draws += 1
+        if not _outside_disc(u):
+            break
+    assert (draws == 1) == first_draw_feasible
+    bads = BADS(
+        _shifted_sphere,
+        None,
+        -2 * np.ones(2),
+        2 * np.ones(2),
+        -np.ones(2),
+        np.ones(2),
+        non_box_cons=_outside_disc,
+        options={**OPTIONS, "random_seed": seed},
+    )
+    np.testing.assert_allclose(bads.x0, u, rtol=1e-12)
+    assert bads.rng.random() == rng.random()
+
+
+def test_random_x0_that_stays_infeasible_is_refused():
+    """After 1000 draws that all violate `non_box_cons`, `BADS` raises."""
+    with pytest.raises(ValueError, match="does not satisfy non-bound"):
+        BADS(
+            _shifted_sphere,
+            None,
+            -2 * np.ones(2),
+            2 * np.ones(2),
+            -np.ones(2),
+            np.ones(2),
+            non_box_cons=lambda x: np.ones(len(x)),
+            options=OPTIONS,
+        )

@@ -56,7 +56,8 @@ class BADS:
         elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``, the
         starting point ``x0`` is uniformly randomly drawn inside the plausible
         box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
-        below).
+        below). With ``non_box_cons``, a point that violates the constraints
+        is drawn again, up to 1000 draws in all.
     lower_bounds, upper_bounds : np.ndarray, optional
         ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set
         of strict lower and upper bounds for the coordinate vector, ``x``, so
@@ -276,14 +277,21 @@ class BADS:
         # starting point
         if not np.all(np.isfinite(self.x0)):
             # Uniform in the transformed plausible box, as in MATLAB BADS
-            # (setupvars.m): log-uniform for a log-transformed variable
+            # (setupvars.m): log-uniform for a log-transformed variable. A
+            # start that violates non_box_cons is drawn again, up to 1000
+            # draws in all (MATLAB BADS refuses it, evalinitmesh.m)
             var_transf = self._variable_transformer_()
-            u0 = self.rng.uniform(
-                low=var_transf.plb,
-                high=var_transf.pub,
-                size=(1, self.D),
-            )
-            self.x0 = var_transf.inverse_transf(u0)
+            for _ in range(1000):
+                u0 = self.rng.uniform(
+                    low=var_transf.plb,
+                    high=var_transf.pub,
+                    size=(1, self.D),
+                )
+                self.x0 = var_transf.inverse_transf(u0)
+                if non_box_cons is None or not np.any(
+                    non_box_cons(self.x0) > 0
+                ):
+                    break
             self.logger.log(
                 25,
                 "Initial starting point is invalid or not provided."
