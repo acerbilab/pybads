@@ -365,16 +365,20 @@ def test_gp_log_lengthscale_bounds(monkeypatch):
     assert checked["local"] > 0
 
 
-def _initialized_bads(D=2):
-    bads = BADS(
+def _make_bads(D=2, **options):
+    return BADS(
         lambda x: float(np.sum(np.atleast_2d(x) ** 2)),
         np.ones(D) * 4,
         -100 * np.ones(D),
         100 * np.ones(D),
         -8 * np.ones(D),
         12 * np.ones(D),
-        options={"display": "off", "random_seed": 3},
+        options={"display": "off", "random_seed": 3, **options},
     )
+
+
+def _initialized_bads(D=2, **options):
+    bads = _make_bads(D, **options)
     gp, _, _, _ = bads._init_optimization_()
     return bads, gp
 
@@ -419,3 +423,28 @@ def test_add_enters_ill_defined_value_as_highest():
     assert gp.y.shape[0] == n + 1
     assert gp.y.ravel()[-1] == y_max
     assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))
+
+
+@pytest.mark.parametrize(
+    "name, mean",
+    [
+        ("zero", gpr.mean_functions.ZeroMean),
+        ("const", gpr.mean_functions.ConstantMean),
+    ],
+)
+def test_gp_mean_fun_accepted(name, mean):
+    """`gp_mean_fun` accepts the constant mean, MATLAB's, and the zero
+    mean, and the GP is built with it."""
+    _, gp = _initialized_bads(gp_mean_fun=name)
+    assert isinstance(gp.mean, mean)
+
+
+@pytest.mark.parametrize("name", ["negquad", "se"])
+def test_gp_mean_fun_refused(name):
+    """Every other mean function is refused when `BADS` is created: the
+    negative quadratic has the wrong shape for a minimizer, and the others
+    cannot be built."""
+    with pytest.raises(
+        ValueError, match=r"options\['gp_mean_fun'\] should be 'const'"
+    ):
+        _make_bads(gp_mean_fun=name)

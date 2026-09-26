@@ -928,26 +928,15 @@ class BADS:
             optim_state["gp_noisefun"][1] = 1
 
         optim_state["gp_mean_fun"] = self.options.get("gp_mean_fun")
-        valid_gp_mean_funs = [
-            "zero",
-            "const",
-            "negquad",
-            "se",
-            "negquadse",
-            "negquadfixiso",
-            "negquadfix",
-            "negquadsefix",
-            "negquadonly",
-            "negquadfixonly",
-            "negquadlinonly",
-            "negquadmix",
-        ]
+        # The constant mean is MATLAB's (gpdefBads.m); the negative
+        # quadratic, PyVBMC's mean for log densities, has the wrong shape
+        # for a minimizer and no priors in _gp_hyp
+        valid_gp_mean_funs = ["zero", "const"]
 
         if not optim_state["gp_mean_fun"] in valid_gp_mean_funs:
             raise ValueError(
-                """bads:UnknownGPmean:Unknown/unsupported GP mean
-            function. Supported mean functions are zero, const,
-            egquad, and se"""
+                "options['gp_mean_fun'] should be 'const' (a constant mean) "
+                "or 'zero'; other GP mean functions are not supported."
             )
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 

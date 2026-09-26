@@ -25,6 +25,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   by name.
 - With `uncertainty_handling=False`, a run makes no noise test: it takes one
   evaluation fewer, and a noisy target is optimized as a deterministic one.
+- `BADS` raises `ValueError` for a `gp_mean_fun` other than `"const"` or
+  `"zero"`, `"negquad"` included.
 
 ### Changed
 
@@ -32,6 +34,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
   matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
   which the tests do not need (gpyreg 1.3.3 still installs it).
+- **GP mean function.** `gp_mean_fun` accepts `"const"`, the default, and
+  `"zero"`, and `BADS` refuses any other name when it is created. 1.1.0
+  accepted ten more: nine stopped the run when the Gaussian process was
+  built, and `"negquad"`, a concave mean made for log densities, has the
+  wrong shape for a minimizer and could stop the run at a failed fit.
 
 ### Fixed
 
