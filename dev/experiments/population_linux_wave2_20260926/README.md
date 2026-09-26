@@ -14,8 +14,11 @@ reference's (`fef6c14`) with wave 2's fix pass up to W2-2
 W2-45 (`dc7383a`) casts integer-typed bounds to float, and every
 configuration passes float arrays
 ([`reach_int.out`](../port_review_20260925/verification/scripts/wave2/orchestrator/reach_int.out)),
-and the rest change docstrings and option descriptions; the fingerprint of
-`dev/scripts/fingerprint.py` is `dc11118754b18b47` at all of them. It
+W2-46 (`885fc33`) silences a warning without changing a value, W2-47
+(`a07be4e`) makes `VariableTransformer`'s copies of the bounds float, which
+`BADS` already passes since W2-45, and the rest change docstrings and
+option descriptions; the fingerprint of `dev/scripts/fingerprint.py` is
+`dc11118754b18b47` at all of them. It
 replaces
 [`population_linux_wave1_20260926`](../population_linux_wave1_20260926/README.md)
 (`fef6c14`'s runs).

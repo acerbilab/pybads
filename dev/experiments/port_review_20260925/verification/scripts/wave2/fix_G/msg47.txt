@@ -1,0 +1,34 @@
+fix: VariableTransformer takes float copies of the bounds, so that integer bounds given to it directly are not truncated (W2-47)
+
+VariableTransformer copied the bounds with .copy(), which keeps their
+dtype, and then writes the log of a log-scaled variable's bounds into
+those copies in place, so integer arrays given to it directly were
+truncated: with lb = [1, -10], ub = [1000, 10], plb = [2, -5] and
+pub = [500, 5] as integer arrays, the plausible box of the log-scaled
+variable mapped to [-0.769, 1.072] instead of [-1, 1] and its hard
+bounds to [-1, 1.303] instead of [-1.251, 1.251], and orig_lb and its
+siblings stayed integer arrays. W2-45 fixed this for BADS only, by
+casting in _bounds_check_; VariableTransformer is a documented class
+(docsrc/source/api/classes/parameter_transformer.rst). MATLAB BADS has
+no such case: its numeric literals are doubles.
+
+Its copies of the four bounds are now taken with .astype(float), which
+copies as .copy() did. The plausible bounds that default to the hard
+ones are copied through the same cast. A float64 input gives the same
+values and shapes as before; a float32 one now becomes float64. The
+cast is .astype rather than np.array(..., dtype=float), so that a NumPy
+scalar stays a scalar, which the broadcast that follows expects, and the
+types of input that .copy() accepted are those accepted now.
+
+Test: test_variable_transformer.py::
+test_integer_bounds_are_taken_as_floats: integer arrays for a log-scaled
+variable beside a linear one, with the plausible bounds given and
+omitted, give the same log flags, transformed and original bounds, and
+transform and inverse of two points, as the same values as floats, and
+float bounds. Both cases fail at the parent on the transformed bounds
+of the log-scaled variable and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

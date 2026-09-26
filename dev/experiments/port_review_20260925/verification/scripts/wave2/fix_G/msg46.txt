@@ -1,0 +1,36 @@
+fix: no overflow warning from the masked exponential of a linear variable beside a log-scaled one (W2-46)
+
+For a mix of log-scaled and linear variables, the inverse of
+VariableTransformer's transform takes the exponential of every variable,
+clamps it at the largest float and masks out the linear ones, as MATLAB
+BADS's transvars.m does (lines 157-158). The exponential of a linear
+variable at a value above about 709 overflows: NumPy warns, where MATLAB
+gives Inf silently, and the masked value is discarded. The self-test of
+the transform at construction meets it for a linear variable with an
+infinite bound (tested at +-1/sqrt(eps)) or a bound above about 709 in
+magnitude, so that BADS(...) printed "RuntimeWarning: overflow
+encountered in exp" once; so does the inverse of each point of a run
+whose linear variable is above 709. Since W2-1 and W2-2 accept mixed and
+half-bounded problems, such problems meet the warning at construction.
+
+The mixed branch's inverse now takes the exponential under
+np.errstate(over="ignore"), and nothing else changes: the lambda becomes
+a nested function, which computes the same values. The branch with every
+variable log-scaled does not meet it (its self-test takes an infinite
+upper bound at 1e6, and a lower bound is positive), and keeps NumPy's
+warning for a real overflow, beyond the largest float in the original
+space.
+
+Test: test_variable_transformer.py::
+test_log_beside_linear_gives_no_overflow_warning: a log-scaled variable
+on [1, 1000] beside a linear one with an infinite upper bound, and one on
+[-1e3, 1e3], are built, and a point at 800 on the linear variable is
+transformed and inverted, with warnings turned into errors; the
+transformed bounds and the round trip are those of the transform. Both
+cases fail at the parent on the RuntimeWarning (and pass there with the
+warnings ignored) and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

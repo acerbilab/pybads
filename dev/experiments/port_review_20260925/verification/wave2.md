@@ -345,15 +345,16 @@ the triage's head, `353ad51`; each is made by a fix agent, a fresh Opus
 agent with a git worktree of its own and the brief
 `../briefs/wave2_fix_common.md`, one commit per row with its regression
 test; the orchestrator reviews each diff, cherry-picks it and adds the
-changelog lines. Six agents: A, B1's bounds, start and transform (W2-1,
+changelog lines. Seven agents: A, B1's bounds, start and transform (W2-1,
 W2-3, W2-8, W2-9, W2-10, W2-37, W2-11, W2-5); B, the options and the
 display levels (W2-17, W2-18, W2-19, W2-15, W2-6, W2-7, W2-22, W2-23 with
 W2-24 and W2-42); C, the run's control, its result and its display (W2-28,
 W2-27, W2-12, W2-13, W2-14, W2-20, W2-34, W2-31, W2-38, W2-39); D, the rows
 that move results (W2-16, W2-29, W2-25); E, after A, the effective bounds,
 the start of `±inf` and the half-bounded variables (W2-4, the B1
-verifier's N4, W2-2); F, last, W2-45, which agent A found and the PI
-ruled after the table ("Found while fixing"). Their reports are in
+verifier's N4, W2-2); F, W2-45, which agent A found and the PI ruled
+after the table; G, after the pass's gates, W2-46 and W2-47, which agents
+E and F found and the PI approved then ("Found while fixing"). Their reports are in
 `../fixes/`, their scripts in `scripts/wave2/fix_<agent>/`; the hashes they
 cite are those of their branches. `dev-next` gained the doublecheck of
 wave 1 (`4c38da8`, documentation only) during the pass, merged into the
@@ -405,6 +406,8 @@ worktree at its commit; the comparisons are in `wave2_fixpass/`.
 | minor records | `6644498` | `dc11118754b18b47` | the docstrings and two descriptions |
 | descriptions | `b3a6a0c` | `dc11118754b18b47` | three descriptions and `AGENTS.md` |
 | *head* | `8510ca8` | `dc11118754b18b47` | the default suite against W2-25: every run identical (every field but the wall time), so W2-4, N4 and W2-2 reach no run of it; this population is the new Linux reference, `population_linux_wave2_20260926` |
+| W2-46 | `885fc33` | `dc11118754b18b47` | fingerprint unchanged; the overflow of a masked exponential is silenced, no value changes (the reference stands for it) |
+| W2-47 | `a07be4e` | `dc11118754b18b47` | fingerprint unchanged; `BADS` gives `VariableTransformer` float bounds since W2-45, so no run of `BADS` reaches it |
 
 - **Changelog.** Every row that a user can notice has a line under
   `Unreleased`, written by the orchestrator when cherry-picking, from the
@@ -455,8 +458,8 @@ worktree at its commit; the comparisons are in `wave2_fixpass/`.
   [`population_linux_wave2_20260926`](../../population_linux_wave2_20260926/README.md),
   whose runs are those of `8510ca8`; its null check flags nothing in 36
   tests.
-- **The suite** passes at the head of the pass's package code (`dc7383a`,
-  in the tree of `fa8b4cf`), 376 tests, with the fingerprint
+- **The suite** passes at the head of the pass's package code (`a07be4e`,
+  W2-47), 380 tests, with the fingerprint
   `dc11118754b18b47`; the pre-commit hooks pass on the whole tree. CI's
   smoke run failed at `a2b8d38` on the four GP-training tests that W2-8's
   refusal of a two-row `x0` broke, fixed in `a1e8a93`, and passed at every
@@ -467,36 +470,42 @@ their rows (the letter names the agent) and not fixed in this pass unless
 said; each is left to the PI or to the wave of the slice that owns its
 code.
 
-- **W2-45. Integer-typed bounds give a wrong log transform** (A,
-  reproduced by its script, `scripts/wave2/fix_A/intbounds.py`, and the orchestrator's,
-  `scripts/wave2/orchestrator/int_bounds.py`). `VariableTransformer` copies the bounds and
-  writes the log of a log-scaled variable's bounds into the copies in
-  place, so integer bounds are truncated: `lb=1, ub=1000, plb=2, pub=500`
-  as integers map the plausible box to `[-0.769, 1.072]` in `u` space and
-  the hard bounds to `[-1, 1.303]`, where floats give `[-1, 1]` and
-  `[-1.251, 1.251]`. W2-3's broadcast keeps a scalar's dtype, so an integer
-  scalar bound, refused at D > 1 before the pass, reaches it too. No
+- **W2-45. Integer-typed bounds give a wrong log transform** (A, reproduced
+  by its script, `scripts/wave2/fix_A/intbounds.py`, and the orchestrator's,
+  `scripts/wave2/orchestrator/int_bounds.py`). `VariableTransformer` copies
+  the bounds and writes the log of a log-scaled variable's bounds into the
+  copies in place, so integer bounds are truncated: `lb=1, ub=1000, plb=2,
+  pub=500` as integers map the plausible box to `[-0.769, 1.072]` in `u`
+  space and the hard bounds to `[-1, 1.303]`, where floats give `[-1, 1]`
+  and `[-1.251, 1.251]`. W2-3's broadcast keeps a scalar's dtype, so an
+  integer scalar bound, refused at D > 1 before the pass, reaches it too. No
   configuration of the benchmark passes a bound or `x0` that is not float
-  (`scripts/wave2/orchestrator/reach_int.out`). Ruling (PI, 2026-09-26): fix, as
-  proposed, by casting the bounds and `x0` to float in `_bounds_check_`,
-  under the fingerprint. Fixed by agent F in `dc7383a`, after the test that
-  the inputs are real valued, which a cast before it would defeat; nothing
-  in the setup writes into the user's arrays, before or after
-  (`scripts/wave2/fix_F/writethrough.py`). Outside the row (F): `VariableTransformer`,
-  a documented class, still truncates integer arrays given to it directly;
-  float32 inputs now become float64; a complex input with zero imaginary
-  parts, which passes the real-valued test, now becomes float with NumPy's
-  `ComplexWarning`, where it stayed complex (MATLAB's `isreal` refuses an
-  array stored as complex).
-- **A spurious overflow warning at construction** (E).
+  (`scripts/wave2/orchestrator/reach_int.out`). Ruling (PI, 2026-09-26):
+  fix, as proposed, by casting the bounds and `x0` to float in
+  `_bounds_check_`, under the fingerprint. Fixed by agent F in `dc7383a`,
+  after the test that the inputs are real valued, which a cast before it
+  would defeat; nothing in the setup writes into the user's arrays, before
+  or after (`scripts/wave2/fix_F/writethrough.py`). Outside the row (F):
+  `VariableTransformer`, a documented class, still truncated integer arrays
+  given to it directly, fixed as W2-47 by agent G in `a07be4e` (float copies
+  with `.astype`, which keeps a NumPy scalar a scalar); float32 inputs now
+  become float64; a complex input with zero imaginary parts, which passes
+  the real-valued test, now becomes float with NumPy's `ComplexWarning`,
+  where it stayed complex (MATLAB's `isreal` refuses an array stored as
+  complex).
+- **W2-46. A spurious overflow warning at construction** (E).
   `VariableTransformer`'s self-test evaluates `exp` for every column in the
   mixed log/linear branch (`variables_transformer.py`, about line 203), so a
-  log-scaled variable beside a linear one with an infinite bound, or a
-  bound above about 700 in magnitude, gives a harmless `RuntimeWarning:
-  overflow encountered in exp` when `BADS` is created; the value is masked
-  out. W2-1 and W2-2 accept problems that reach it. Proposed:
-  `np.errstate(over="ignore")` around the test, under the fingerprint.
-  Slice B1.
+  log-scaled variable beside a linear one with an infinite bound, or a bound
+  above about 700 in magnitude, gives a harmless `RuntimeWarning: overflow
+  encountered in exp` when `BADS` is created; the value is masked out. W2-1
+  and W2-2 accept problems that reach it. Approved by the PI after the gates
+  and fixed by agent G in `885fc33`, with `np.errstate(over="ignore")`
+  around the exponential of the mixed branch's inverse, which also silences
+  the same warning during a run; the all-log branch does not warn. The scope
+  also silences a real overflow of a log-scaled column, beyond about 8e307
+  in the original space, as MATLAB's `min(realmax, exp(...))` does
+  (`transvars.m:157-158`).
 - **Stale notebook outputs** (C, E). `examples/pybads_example_2_nonbox_constraints.ipynb`
   shows the `bads:TooCloseBounds` warning that W2-4 removes, and
   `examples/pybads_example_5_extended_usage.ipynb` a result with `'fsd': 0`
@@ -541,6 +550,14 @@ code.
   `fsd` keep the incumbent's older values, which `_get_target_from_gp_`
   reads only when the GP's prediction is not finite, as in MATLAB
   (`bads.m:1290`).
+- **`VariableTransformer` used directly** (G): a scalar `apply_log_t`
+  raises `AttributeError`, since its branch reads `self.apply_log_t` before
+  assigning it; a 1-D bound raises `IndexError`, where the docstring does
+  not say that (1, D) arrays are required; a NumPy scalar hard bound with
+  the plausible bounds omitted fails, since `np.copy` of it is a 0-d array
+  that the broadcast skips; the `else` branches of its four bounds cannot
+  run; and its docstring's "more than one order of magnitude" is the code's
+  `pub/plb >= 10`, one order included. `BADS` meets none of these.
 - Resolved in the pass: `search_factor_min`'s missing description (D; by
   W2-23), `mesh_overflow_warning`'s doubling (B; with the minor records,
   `6644498`), and the descriptions of `fun_eval_start`, `fun_values` and
