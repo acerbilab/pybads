@@ -1000,8 +1000,9 @@ class BADS:
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
 
-        if self.optim_state["uncertainty_handling_level"] < 1:
-            # test if the function is noisy
+        if self.options["uncertainty_handling"] is None:
+            # Test whether the function is noisy, only when the option is
+            # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
             yval_bis, _, _ = self.function_logger(
                 self.u, record_duplicate_data=False

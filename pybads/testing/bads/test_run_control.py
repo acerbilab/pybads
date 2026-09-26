@@ -126,8 +126,8 @@ def test_iterations_count_from_one(max_iter):
 
 @pytest.mark.parametrize(
     "uncertainty_handling, func_count",
-    [(None, 2), (True, 1)],
-    ids=["noise_test", "declared_noisy"],
+    [(None, 2), (True, 1), (False, 1)],
+    ids=["noise_test", "declared_noisy", "declared_deterministic"],
 )
 def test_one_function_evaluation(uncertainty_handling, func_count):
     """`max_fun_evals=1` evaluates the starting point (on the search grid),
@@ -186,3 +186,19 @@ def test_successful_points_are_recorded_as_arrays():
     assert len(successes) > 0
     for u in successes:
         assert isinstance(u, np.ndarray) and u.size == D
+
+
+def test_declared_deterministic_target_takes_no_noise_test():
+    """With `uncertainty_handling=False`, as in MATLAB BADS, the starting
+    point is not evaluated again to test for noise, and a noisy target is
+    optimized as a deterministic one."""
+    rng = np.random.default_rng(0)
+
+    def noisy(x):
+        return _sphere(x) + rng.standard_normal()
+
+    bads = _make_bads(noisy, uncertainty_handling=False, max_fun_evals=40)
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 0
+    evaluated = bads.function_logger.X[bads.function_logger.X_flag]
+    assert bads.function_logger.func_count == len(evaluated)

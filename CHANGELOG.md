@@ -23,6 +23,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `gamma_uncertain_interval` is keyword-only and follows `options`: a
   script that passed it as the 8th positional argument of `BADS` passes it
   by name.
+- With `uncertainty_handling=False`, a run makes no noise test: it takes one
+  evaluation fewer, and a noisy target is optimized as a deterministic one.
 
 ### Changed
 
@@ -142,6 +144,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   instance under a `non_box_cons` that does not always give the same answer
   for a point, counts as a failed search, as in MATLAB BADS; the run
   stopped with `UnboundLocalError` or `IndexError`.
+- **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
+  starting point is not evaluated a second time to test for noise, as in
+  MATLAB BADS; the test ran unless uncertainty handling was on, and a
+  target that it found noisy was optimized as a noisy one although the
+  option declared it deterministic. The test runs when
+  `uncertainty_handling` is left empty.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when
