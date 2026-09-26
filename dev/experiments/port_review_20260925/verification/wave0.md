@@ -126,3 +126,13 @@ error of `ellipsoid_D3_homo` rises from 0.053 to 0.099 (signed-rank p =
 falls from 0.73 to 0.50. Under investigation (PI, 2026-09-26): which part
 of the change moves it, and whether the error at an equal number of
 evaluations moves.
+
+The investigation (`w01_investigation/README.md`, records and analysis
+there): on `ellipsoid_D3_homo` over seeds 0-89, W0-1 does not change the
+error significantly (median 0.076 before, 0.080 after, signed-rank p =
+0.22), neither with the stall criterion off (p = 0.21); the rise over
+seeds 0-29 is not in seeds 30-89. It takes 18% fewer evaluations (14% with
+the stall criterion off), most of them from the removal of the drift
+alone (a variant with the swap kept on a copy of the stored GP). Ruling
+(PI, 2026-09-26): W0-1 stays as committed, in a pull request of its own,
+`7c73704` (`d6e3f61` rebased onto `dev-next`).
