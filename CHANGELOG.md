@@ -246,6 +246,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a feasible region (`non_box_cons`) so thin that the initial design leaves
   the GP a single point. The prior of the GP mean then takes the width 1,
   and a rebuild keeps the previous centre of the prior of the output scale.
+- **Small budgets.** A run whose `max_fun_evals` is no larger than its
+  initial design (for instance 5 at D = 2 or 3) no longer stops with
+  `ValueError: cannot convert float NaN to integer`, and with a smaller
+  budget its Gaussian-process fits no longer start from up to 968 random
+  points, above `gp_train_n_init`.
 
 ## [1.1.0] - 2026-09-25
 

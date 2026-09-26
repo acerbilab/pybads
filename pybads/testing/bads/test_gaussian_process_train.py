@@ -220,6 +220,43 @@ def test_get_gp_training_options_opts_N():
     assert res1["opts_N"] == 1
 
 
+@pytest.mark.parametrize("max_fun_evals", [2, 3, 4, 5])
+@pytest.mark.parametrize("D", [2, 3])
+def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
+    """With a budget no larger than the initial design, the budget counts as
+    used up: the GP fits start from `gp_train_n_init_final` points, within
+    the range of the schedule, from `gp_train_n_init` down."""
+    import pybads.bads.gaussian_process_train as gpt
+
+    seen = []
+    original = gpt._get_gp_training_options
+
+    def spy(*args, **kwargs):
+        gp_train = original(*args, **kwargs)
+        seen.append(gp_train["init_N"])
+        return gp_train
+
+    monkeypatch.setattr(gpt, "_get_gp_training_options", spy)
+    bads = BADS(
+        lambda x: float(np.sum(np.ravel(x) ** 2)),
+        0.5 * np.ones(D),
+        -5 * np.ones(D),
+        5 * np.ones(D),
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        options={
+            "display": "off",
+            "max_fun_evals": max_fun_evals,
+            "random_seed": 0,
+        },
+    )
+    result = bads.optimize()
+    assert bads.optim_state["eff_starting_points"] >= max_fun_evals
+    assert seen
+    assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
+    assert np.isfinite(result["fval"])
+
+
 def test_gp_noise_variances_with_target_noise(monkeypatch):
     """With `specify_target_noise`, the GP holds the squares of the noise
     standard deviations that the target returns, after each rebuild of the

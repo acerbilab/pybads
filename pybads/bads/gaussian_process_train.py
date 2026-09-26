@@ -1078,11 +1078,18 @@ def _get_gp_training_options(
     c = 3 * a
     d = options["gp_train_n_init"]
     eff_starting_points = optim_state["eff_starting_points"]
-    x = (n_eff - eff_starting_points) / (
+    # The fraction of the budget used after the initial design, in [0, 1],
+    # where the cubic falls from gp_train_n_init to gp_train_n_init_final;
+    # a budget no larger than the initial design is used up
+    n_budget = (
         min(options["max_fun_evals"], options["n_train_max"])
         - eff_starting_points
     )
-    f = lambda x_: a * x_**3 + b * x**2 + c * x + d
+    if n_budget > 0:
+        x = min(max((n_eff - eff_starting_points) / n_budget, 0.0), 1.0)
+    else:
+        x = 1.0
+    f = lambda x_: a * x_**3 + b * x_**2 + c * x_ + d
     init_N = max(round(f(x)), options["gp_train_n_init_final"])
     if (
         iteration >= 0
