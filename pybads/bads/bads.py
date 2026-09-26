@@ -1800,10 +1800,11 @@ class BADS:
                     y_search, f_mu[index_acq].item(), fs[index_acq].item()
                 )
 
-            # Add search point to training setMeshSize
+            # Add search point to training set, except at the last search
+            # of a round, as MATLAB BADS does
             if (
-                u_search.size
-                > 0 & self.search_es_hedge.count
+                u_search.size > 0
+                and self.optim_state["search_count"]
                 < self.options["search_n_try"]
             ):
                 # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)

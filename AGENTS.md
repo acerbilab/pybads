@@ -327,5 +327,6 @@ same gpyreg.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
-  comparison. The `size > 0 & count < n_try` condition in `_search_step_`
-  is one such slip.
+  comparison. The condition for adding the search point to the GP in
+  `_search_step_` was once such a slip: `size > 0 & count < n_try`, which
+  is always true.
