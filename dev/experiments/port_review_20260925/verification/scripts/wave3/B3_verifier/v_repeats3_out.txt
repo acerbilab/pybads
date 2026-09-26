@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere D=1 interior seed=0         cc=PyBADS fval=1.45519e-09 evals=30 repeats: search 1/16, poll 0/10, init 0/3
+sphere D=1 interior seed=1         cc=PyBADS fval=9.83709e-07 evals=30 repeats: search 2/16, poll 0/10, init 0/3
+sphere D=1 interior seed=2         cc=PyBADS fval=1.15108e-08 evals=30 repeats: search 1/16, poll 0/10, init 0/3
+sphere D=1 interior seed=3         cc=PyBADS fval=5.23869e-08 evals=30 repeats: search 2/16, poll 0/10, init 0/3

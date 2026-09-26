@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+bound optimum D=1 seed=0: ES calls 16, generations emptied 0/32, ES calls returning empty 0
+bound optimum D=1 seed=1: ES calls 16, generations emptied 0/32, ES calls returning empty 0
+bound optimum D=1 seed=2: ES calls 16, generations emptied 0/32, ES calls returning empty 0
+bound optimum D=1 seed=3: ES calls 16, generations emptied 0/32, ES calls returning empty 0
+bound optimum D=2 seed=0: ES calls 29, generations emptied 0/58, ES calls returning empty 0
+bound optimum D=2 seed=1: ES calls 29, generations emptied 0/58, ES calls returning empty 0
+bound optimum D=2 seed=2: ES calls 29, generations emptied 0/58, ES calls returning empty 0
+bound optimum D=2 seed=3: ES calls 29, generations emptied 0/58, ES calls returning empty 0

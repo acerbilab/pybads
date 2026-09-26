@@ -1,0 +1,14 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen D=3 seed=1 fval=8.84e-06 nfev=115: poll steps=60 with a zero SD=16; stop calls after a good poll=1, of which u_poll_best not in the GP=1
+     in GP=False observed y=4.155 predicted mu=86.41 target=51.79
+   accelerated-reduction checks (iter, entries in history): [(3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8)] all entries == iter: True
+rosen D=3 seed=2 fval=1.59e-06 nfev=111: poll steps=60 with a zero SD=21; stop calls after a good poll=1, of which u_poll_best not in the GP=1
+     in GP=False observed y=4.155 predicted mu=74.12 target=40.06
+   accelerated-reduction checks (iter, entries in history): [(3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8)] all entries == iter: True
+ellipsoid D=4 seed=2 fval=4.02e-06 nfev=132: poll steps=72 with a zero SD=38; stop calls after a good poll=5, of which u_poll_best not in the GP=5
+     in GP=False observed y=26.35 predicted mu=11.44 target=9.147
+     in GP=False observed y=26.35 predicted mu=11.44 target=9.147
+     in GP=False observed y=26.35 predicted mu=11.44 target=9.147
+     in GP=False observed y=26.35 predicted mu=11.44 target=9.147
+   accelerated-reduction checks (iter, entries in history): [(3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8)] all entries == iter: True

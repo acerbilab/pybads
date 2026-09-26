@@ -1,0 +1,7 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+hetero ellipsoid D=3 L2 seed=1     cc=PyBADS fval=-0.164345 evals=200 repeats: search 0/89, poll 0/68, init 0/33
+hetero ellipsoid D=3 L2 seed=2     cc=PyBADS fval=0.342334 evals=200 repeats: search 0/80, poll 13/77, init 0/33
+hetero ellipsoid D=3 L2 seed=3     cc=PyBADS fval=-0.0325762 evals=200 repeats: search 0/80, poll 6/77, init 0/33
+noisy sphere D=3 L1 seed=0         cc=PyBADS fval=-0.236774 evals=200 repeats: search 0/96, poll 6/61, init 0/33
+noisy sphere D=3 L1 seed=1         cc=PyBADS fval=-0.153696 evals=200 repeats: search 0/85, poll 0/72, init 0/33

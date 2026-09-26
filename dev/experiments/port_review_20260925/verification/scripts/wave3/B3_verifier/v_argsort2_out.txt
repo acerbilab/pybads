@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere: line 190 differing calls 31; by generation [0, 1]; best point differs in 0; selected set differs in 7; selected order (coords) differs in 31; ties between distinct points in 31; calls with inf z among selected: 0
+   line 246 differing calls 0; selected set of best training points differs in 0
+rosenbrock: line 190 differing calls 26; by generation [0, 1]; best point differs in 0; selected set differs in 4; selected order (coords) differs in 26; ties between distinct points in 26; calls with inf z among selected: 0
+   line 246 differing calls 4; selected set of best training points differs in 0

@@ -1,0 +1,15 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- level 0, defaults: run finished, fval=1.583e-06, evals=75, searches=29
+  search #2: u_search=None, returned f_sd=0 (int), dist=0, search_factor 1.4142->1.0000 (count 2), hedge g unchanged=True, incumbent fsd=0
+  search #3: u_search=None, returned f_sd=0 (int), dist=0, search_factor 1.0000->0.7071 (count 3), hedge g unchanged=True, incumbent fsd=0
+  search #4: u_search=point, returned f_sd=0.0 (float), dist=array([[0.49513532]]), search_factor 0.7071->1.0000 (count 4), hedge g unchanged=False, incumbent fsd=0
+  improvement computed at the empty searches: [(2, 0.0), (3, 0.0)]
+  status at the empty searches: ['failure', 'failure']
+options['improvement_quantile'] is greater than 0.5. This might produce unpredictable behavior. Set options['improvement_quantile'] < 0.5 for conservative improvement.
+--- level 1, improvement_quantile=0.75: run finished, fval=0.4278, evals=80, searches=27
+  search #2: u_search=None, returned f_sd=0 (int), dist=0, search_factor 1.4142->1.0000 (count 2), hedge g unchanged=True, incumbent fsd=0.357
+  search #3: u_search=None, returned f_sd=0 (int), dist=0, search_factor 1.0000->0.7071 (count 3), hedge g unchanged=True, incumbent fsd=0.357
+  search #4: u_search=point, returned f_sd=0.3268210978010723 (float), dist=array([[0.01356167]]), search_factor 0.7071->1.0000 (count 4), hedge g unchanged=False, incumbent fsd=0.327
+  improvement computed at the empty searches: [(2, 0.2411), (3, 0.2411)]
+  status at the empty searches: ['failure', 'failure']

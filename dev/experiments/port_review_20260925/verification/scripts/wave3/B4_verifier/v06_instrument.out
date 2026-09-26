@@ -1,0 +1,15 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen D=4 lvl=0 seed=1 fval=2.542e-06 nfev=176 t=5s
+   {'A_rel': 0, 'A_flip': 0, 'A_flip_sortonly': 0, 'A_flip_Donly': 0, 'A_nleft_gt': 0, 'A_topmissed': 0, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 10, 'C_sets_logged': 0, 'C_evals': 80, 'C_evals_logged': 0, 'D_checks': 0, 'D_setdiff': 0, 'D_preddiff': 0, 'E_calls': 166, 'E_stale': 0, 'F_polls': 10, 'F_multi': 0, 'G_zero': 0}
+rosen D=4 lvl=0 seed=2 fval=3.625e-06 nfev=199 t=4s
+   {'A_rel': 0, 'A_flip': 0, 'A_flip_sortonly': 0, 'A_flip_Donly': 0, 'A_nleft_gt': 0, 'A_topmissed': 0, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 11, 'C_sets_logged': 0, 'C_evals': 88, 'C_evals_logged': 0, 'D_checks': 0, 'D_setdiff': 0, 'D_preddiff': 0, 'E_calls': 189, 'E_stale': 0, 'F_polls': 11, 'F_multi': 0, 'G_zero': 0}
+ellipsoid D=6 lvl=0 seed=1 fval=1.71e-07 nfev=200 t=4s
+   {'A_rel': 10, 'A_flip': np.int64(0), 'A_flip_sortonly': np.int64(0), 'A_flip_Donly': np.int64(0), 'A_nleft_gt': 3, 'A_topmissed': 2, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 10, 'C_sets_logged': 0, 'C_evals': 118, 'C_evals_logged': 0, 'D_checks': 8, 'D_setdiff': 0, 'D_preddiff': 0, 'E_calls': 190, 'E_stale': 0, 'F_polls': 10, 'F_multi': 0, 'G_zero': 0}
+rosen D=4 lvl=1 seed=1 fval=3.969 nfev=200 t=4s
+   {'A_rel': 0, 'A_flip': 0, 'A_flip_sortonly': 0, 'A_flip_Donly': 0, 'A_nleft_gt': 0, 'A_topmissed': 0, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 9, 'C_sets_logged': 0, 'C_evals': 72, 'C_evals_logged': 0, 'D_checks': 0, 'D_setdiff': 0, 'D_preddiff': 0, 'E_calls': 157, 'E_stale': 6, 'F_polls': 9, 'F_multi': 0, 'G_zero': 0}
+rosen D=4 lvl=1 seed=2 fval=-0.05539 nfev=200 t=4s
+   {'A_rel': 4, 'A_flip': np.int64(0), 'A_flip_sortonly': np.int64(0), 'A_flip_Donly': np.int64(0), 'A_nleft_gt': 0, 'A_topmissed': 0, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 9, 'C_sets_logged': 0, 'C_evals': 70, 'C_evals_logged': 0, 'D_checks': 4, 'D_setdiff': 0, 'D_preddiff': 0, 'E_calls': 158, 'E_stale': 20, 'F_polls': 9, 'F_multi': 0, 'G_zero': 0}
+ellipsoid D=6 lvl=1 seed=1 fval=0.1472 nfev=200 t=4s
+   {'A_rel': 7, 'A_flip': np.int64(0), 'A_flip_sortonly': np.int64(0), 'A_flip_Donly': np.int64(0), 'A_nleft_gt': 3, 'A_topmissed': 2, 'B_hypdiff': 0, 'B_flip_hyb': 0, 'B_flip_cur': 0, 'B_ex': [], 'C_sets': 7, 'C_sets_logged': 0, 'C_evals': 80, 'C_evals_logged': 0, 'D_checks': 12, 'D_setdiff': 0, 'D_preddiff': 5, 'E_calls': 158, 'E_stale': 12, 'F_polls': 7, 'F_multi': 0, 'G_zero': 0}
+np.geterr() after the runs: {'divide': 'ignore', 'over': 'warn', 'under': 'ignore', 'invalid': 'warn'}

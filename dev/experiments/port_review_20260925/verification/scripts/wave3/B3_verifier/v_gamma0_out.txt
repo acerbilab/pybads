@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+  update_hedge #1: chosen=0 prob=[0.999955, 4.5e-05] len(u_search)=3
+searches started: 1 | exception: ValueError The dimension of input data 2 doesn't match GP's input dimension 3.
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 2696, in predict
+    x_star, y_star, s2_star = self._convert_shapes(x_star, y_star, s2_star)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 3851, in _convert_shapes
+    raise ValueError(
+ValueError: The dimension of input data 2 doesn't match GP's input dimension 3.

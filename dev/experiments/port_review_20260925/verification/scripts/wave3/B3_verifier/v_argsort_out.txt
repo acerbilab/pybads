@@ -1,0 +1,8 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere                       seed 0: argsort calls (line: calls, permutation differs) {190: (58, 35), 246: (12, 0)}; runs identical with a stable sort: False (fval 4.987e-07 vs 2.368e-06)
+sphere                       seed 1: argsort calls (line: calls, permutation differs) {190: (58, 31), 246: (15, 0)}; runs identical with a stable sort: False (fval 4.764e-07 vs 4.16e-06)
+quantized sphere (step 0.5)  seed 0: argsort calls (line: calls, permutation differs) {190: (50, 0), 246: (9, 9)}; runs identical with a stable sort: False (fval 0 vs 0)
+quantized sphere (step 0.5)  seed 1: argsort calls (line: calls, permutation differs) {190: (50, 0), 246: (12, 10)}; runs identical with a stable sort: False (fval 0 vs 0)
+rosenbrock                   seed 0: argsort calls (line: calls, permutation differs) {190: (80, 18), 246: (17, 5)}; runs identical with a stable sort: True (fval 1.152e-05 vs 1.152e-05)
+rosenbrock                   seed 1: argsort calls (line: calls, permutation differs) {190: (88, 26), 246: (21, 4)}; runs identical with a stable sort: False (fval 1.085e-05 vs 4.868e-05)

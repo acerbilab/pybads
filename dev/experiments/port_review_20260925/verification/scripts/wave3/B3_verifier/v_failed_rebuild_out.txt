@@ -1,0 +1,7 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+failed rebuild at search 5 -> exit flag -2 markers {'needs_rebuild': True, 'needs_refit': True}
+GP handed to the ES is the restored one (marked): True | its predictions are finite: True
+port evaluates the LCB minimizer of the restored GP: offset from u (grid units) [-142.0, 38.0, 93.0] LCB 0.0087
+MATLAB (z = 0 for all) would evaluate the lexicographically first candidate: offset [-1891.0, 1696.0, 291.0] LCB under the restored GP 1.5514
+run finished: fval 3.2557877601702145e-06 evals 77

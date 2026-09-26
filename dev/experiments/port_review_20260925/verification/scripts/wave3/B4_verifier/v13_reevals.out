@@ -1,0 +1,7 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen D=3 lvl=0 seed=1 fval=8.836e-06: evals poll=60 search=49; re-evaluations poll=1 [[-0.4727, 0.4805, 0.3936]] search=0
+rosen D=3 lvl=0 seed=2 fval=1.591e-06: evals poll=60 search=45; re-evaluations poll=1 [[-0.4727, 0.4805, 0.3936]] search=0
+rosen D=2 lvl=1 seed=0 fval=0.2624: evals poll=45 search=112; re-evaluations poll=0 [] search=0
+rosen D=2 lvl=1 seed=1 fval=0.2075: evals poll=56 search=101; re-evaluations poll=0 [] search=0
+rosen D=4 lvl=1 seed=0 fval=6.773: evals poll=62 search=95; re-evaluations poll=0 [] search=0
