@@ -396,12 +396,12 @@ worktree at its commit; the comparisons are in `wave2_fixpass/`.
 | W2-39 | `763e21f` | `91f947f78e1087c2` | the documentation page |
 | *batch 1* | `f6f7f74` | `91f947f78e1087c2` | the baseline: the default suite at the batch's head against `population_linux_wave1_20260926` reproduces every run exactly (every field of the 540 records but the wall time; no flag in 54 tests) |
 | W2-16 | `3272bdd` | `dc11118754b18b47` | the default suite against batch 1: `ellipsoid_D10` flagged on the number of evaluations, more (median 643 → 676; KS 0.57, p Holm 0.005), its error unchanged by the tests (median 4.8e-7 → 7.3e-7; paired log10 ratio +0.09 [-0.08, +0.22]; solved 1.00 → 1.00); no other flag in 54 tests (`wave2_fixpass/w2-16_vs_baseline.md`) |
-| W2-29 | `c9a2cde` | `dc11118754b18b47` | the default suite against W2-16: every run identical (every field of the 540 records but the wall time; no flag in 54 tests), since no run of the benchmark has a failed poll at iteration 4 without an improvement of `tol_fun` since the first iterate (`wave2_fixpass/w2-29_vs_w2-16.md`). Where it binds, in the B2 verifier's two cases (a 2-D sphere started at its minimum, a 2-D Rosenbrock from `[-1, 1]`; seeds 0-29, `orchestrator/w229_reach.py`), all 60 runs change, only in the mesh at the end, halved, with the same value, evaluations and iterations |
+| W2-29 | `c9a2cde` | `dc11118754b18b47` | the default suite against W2-16: every run identical (every field of the 540 records but the wall time; no flag in 54 tests), since no run of the benchmark has a failed poll at iteration 4 without an improvement of `tol_fun` since the first iterate (`wave2_fixpass/w2-29_vs_w2-16.md`). Where it binds, in the B2 verifier's two cases (a 2-D sphere started at its minimum, a 2-D Rosenbrock from `[-1, 1]`; seeds 0-29, `scripts/wave2/orchestrator/w229_reach.py`), all 60 runs change, only in the mesh at the end, halved, with the same value, evaluations and iterations |
 | W2-25 | `a9fbb97` | `dc11118754b18b47` | the default suite against W2-29: no flag in 54 tests, so the row stays as ruled. 143 runs change, all of the five noisy configurations (25 to 30 of each 30), and none of the deterministic ones. The median paired log10 error ratios are -0.06 to +0.00, every interval containing 0; the fraction solved falls on `ellipsoid_D3_homo` (0.80 → 0.67), `ellipsoid_D3_hetero` (0.20 → 0.13) and `sphere_D3_hetero` (0.43 → 0.37) and holds on the other two, a coarse measure at 30 seeds that moved as much between the batches of wave 1 (`wave2_fixpass/w2-25_vs_w2-29.md`) |
 | W2-4 | `a31a9be` | `dc11118754b18b47` | fingerprint unchanged; with N4, the bounds suite (below) |
-| N4 | `a236eb7` | `dc11118754b18b47` | the `bounds` suite (`a8feb9a`; 5 configurations × seeds 0-29) at `a236eb7` against W2-25 at `a9fbb97`: 4 configurations flagged in 15 tests (`wave2_fixpass/w2-4_bounds_vs_w2-25.md`; the records beside it). Before W2-4 the plausible box of the log-scaled sphere, `[0.01, 100]` in `[1e-3, 1e3]`, was moved to `[1.001, 100]`, and `[1.001, 999]` when omitted; the start on the lower bound of the sphere moved inside, and the box widened to it (`orchestrator/w24_box.py`). With the box as given: the noisy log-scaled sphere, a lower error (0.14 → 0.047; ratio -0.41 [-0.57, -0.13]; solved 0.33 → 0.73); the deterministic one, a higher error far below its tolerance of 1e-3 (1.8e-7 → 8.6e-7, the largest 5.3e-6; ratio +0.63 [+0.30, +0.92]) and more evaluations (73 → 82), the cost of the four decades that the user gave where two were searched; with the box omitted, evaluations 83 → 81; the start on a bound, fewer evaluations (91 → 77), the error unflagged; the linear sphere without plausible bounds, no flag. The deterministic configurations are solved in every run, before and after |
+| N4 | `a236eb7` | `dc11118754b18b47` | the `bounds` suite (`a8feb9a`; 5 configurations × seeds 0-29) at `a236eb7` against W2-25 at `a9fbb97`: 4 configurations flagged in 15 tests (`wave2_fixpass/w2-4_bounds_vs_w2-25.md`; the records beside it). Before W2-4 the plausible box of the log-scaled sphere, `[0.01, 100]` in `[1e-3, 1e3]`, was moved to `[1.001, 100]`, and `[1.001, 999]` when omitted; the start on the lower bound of the sphere moved inside, and the box widened to it (`scripts/wave2/orchestrator/w24_box.py`). With the box as given: the noisy log-scaled sphere, a lower error (0.14 → 0.047; ratio -0.41 [-0.57, -0.13]; solved 0.33 → 0.73); the deterministic one, a higher error far below its tolerance of 1e-3 (1.8e-7 → 8.6e-7, the largest 5.3e-6; ratio +0.63 [+0.30, +0.92]) and more evaluations (73 → 82), the cost of the four decades that the user gave where two were searched; with the box omitted, evaluations 83 → 81; the start on a bound, fewer evaluations (91 → 77), the error unflagged; the linear sphere without plausible bounds, no flag. The deterministic configurations are solved in every run, before and after |
 | W2-2 | `8510ca8` | `dc11118754b18b47` | fingerprint unchanged; agent E's check of 25 runs on half-bounded problems (not a gate) |
-| W2-45 | `dc7383a` | `dc11118754b18b47` | fingerprint unchanged; no configuration of the benchmark passes a bound that is not float (`orchestrator/reach_int.out`) |
+| W2-45 | `dc7383a` | `dc11118754b18b47` | fingerprint unchanged; no configuration of the benchmark passes a bound that is not float (`scripts/wave2/orchestrator/reach_int.out`) |
 | minor records | `6644498` | `dc11118754b18b47` | the docstrings and two descriptions |
 | descriptions | `b3a6a0c` | `dc11118754b18b47` | three descriptions and `AGENTS.md` |
 | *head* | `8510ca8` | `dc11118754b18b47` | the default suite against W2-25: every run identical (every field but the wall time), so W2-4, N4 and W2-2 reach no run of it; this population is the new Linux reference, `population_linux_wave2_20260926` |
@@ -468,8 +468,8 @@ said; each is left to the PI or to the wave of the slice that owns its
 code.
 
 - **W2-45. Integer-typed bounds give a wrong log transform** (A,
-  reproduced by its script, `fix_A/intbounds.py`, and the orchestrator's,
-  `orchestrator/int_bounds.py`). `VariableTransformer` copies the bounds and
+  reproduced by its script, `scripts/wave2/fix_A/intbounds.py`, and the orchestrator's,
+  `scripts/wave2/orchestrator/int_bounds.py`). `VariableTransformer` copies the bounds and
   writes the log of a log-scaled variable's bounds into the copies in
   place, so integer bounds are truncated: `lb=1, ub=1000, plb=2, pub=500`
   as integers map the plausible box to `[-0.769, 1.072]` in `u` space and
@@ -477,12 +477,12 @@ code.
   `[-1.251, 1.251]`. W2-3's broadcast keeps a scalar's dtype, so an integer
   scalar bound, refused at D > 1 before the pass, reaches it too. No
   configuration of the benchmark passes a bound or `x0` that is not float
-  (`orchestrator/reach_int.out`). Ruling (PI, 2026-09-26): fix, as
+  (`scripts/wave2/orchestrator/reach_int.out`). Ruling (PI, 2026-09-26): fix, as
   proposed, by casting the bounds and `x0` to float in `_bounds_check_`,
   under the fingerprint. Fixed by agent F in `dc7383a`, after the test that
   the inputs are real valued, which a cast before it would defeat; nothing
   in the setup writes into the user's arrays, before or after
-  (`fix_F/writethrough.py`). Outside the row (F): `VariableTransformer`,
+  (`scripts/wave2/fix_F/writethrough.py`). Outside the row (F): `VariableTransformer`,
   a documented class, still truncates integer arrays given to it directly;
   float32 inputs now become float64; a complex input with zero imaginary
   parts, which passes the real-valued test, now becomes float with NumPy's

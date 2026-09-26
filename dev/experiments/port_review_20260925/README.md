@@ -47,7 +47,8 @@ formatted by the pre-commit hooks after they ran, and the reports cite them
 at the sandbox's scratch paths. The raw outputs of the fix pass's inject
 gate are in `verification/wave1_fixpass/inject/`; its populations are
 summarized by the comparisons beside it, and only the final one is kept
-whole, as the Linux reference `population_linux_wave1_20260926`.
+whole, as the Linux reference `population_linux_wave1_20260926`, which
+wave 2's `population_linux_wave2_20260926` replaces.
 
 Those of wave 2, also in a cloud session, are under
 `verification/scripts/wave2/<slice>_<track>/` and
