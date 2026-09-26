@@ -348,7 +348,19 @@ The gates are those of `AGENTS.md`, "Numerical gates":
   wave was clean. Three of M's findings (the final `fsd`, the history slot
   of the final estimate, the iteration count) are fixed in `7b50a3a` (#71), made
   before the reports from the survey's rows. Nothing is verified yet.
-- [ ] Wave 0 verified and triaged.
+- [x] 2026-09-26: wave 0 verified (PI: go). Two fresh read-only Opus
+  verifiers, one for S and one for M and the claims C1 to C8, each checking
+  at `95da7f1` and `ab4dded`; their reports under `verification/`
+  (`wave0_S_verifier.md`, `wave0_M_verifier.md`), the ledger
+  `verification/wave0.md`, rows W0-1 to W0-21. Every finding holds as
+  reported but for corrections of detail (the NaN state of S-F2 is shorter
+  than reported; S-F6 and S-F7 have MATLAB counterparts; M-F5 is not a
+  defect of MATLAB at `74919c0`). Three rows were fixed by #71 before the
+  wave; two are design questions of Sto-BADS; the rest await the PI's
+  triage. The verifiers found two of the differences kept from the
+  reviewers (`search_factor_min`; a budget below the initial design),
+  left to their slices' waves.
+- [ ] Wave 0 triaged, and its fixes.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and
