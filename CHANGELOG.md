@@ -240,6 +240,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Initial fit of the GP.** A run whose initial Gaussian-process fit
   keeps failing stops after 10 tries with a `RuntimeError` that says so;
   1.1.0 retried without end.
+- **Targets without spread.** A run no longer stops with `ValueError` from
+  gpyreg when the targets of a Gaussian-process fit are all equal: a target
+  flat on the initial design (a penalty plateau over the plausible box), or
+  a feasible region (`non_box_cons`) so thin that the initial design leaves
+  the GP a single point. The prior of the GP mean then takes the width 1,
+  and a rebuild keeps the previous centre of the prior of the output scale.
 
 ## [1.1.0] - 2026-09-25
 

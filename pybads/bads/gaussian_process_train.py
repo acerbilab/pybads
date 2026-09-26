@@ -374,9 +374,15 @@ def local_gp_fitting(
 
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
-    # Empirical prior on covariance signal variance ((output scale)
+    # Empirical prior on covariance signal variance ((output scale). Targets
+    # with no spread (log 0) keep the previous centre, as the mean's prior
+    # keeps its previous width above
     if options["warp_func"] == 0:
-        sd_y = np.log(np.std(gp.y))
+        y_std = np.std(gp.y)
+        if y_std > 0:
+            sd_y = np.log(y_std)
+        else:
+            sd_y = gp_priors["covariance_log_outputscale"][1][0]
     else:
         # TODO warp function (MATLAB: gpdefBads.m:287-291)
         pass
@@ -977,8 +983,11 @@ def _gp_hyp(
     if isinstance(gp.mean, gpr.mean_functions.ZeroMean):
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
-        # Lower maximum constant mean
-        sd = np.std(hpd_y) if len(hpd_y) > 1 else 1.0
+        # Lower maximum constant mean. A single target, or targets with no
+        # spread, take the SD 1 (gpyreg refuses a zero SD)
+        sd = np.std(hpd_y) if len(hpd_y) > 1 else 0.0
+        if not sd > 0:
+            sd = 1.0
         priors["mean_const"] = ("gaussian", (mean_x0, sd))
         bounds["mean_const"] = (mean_bounds_info["LB"], mean_bounds_info["UB"])
 

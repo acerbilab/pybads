@@ -464,3 +464,77 @@ def test_fit_lik_false_refused():
     created, with MATLAB's message."""
     with pytest.raises(ValueError, match="Fixed noise not supported"):
         _make_bads(fit_lik=False)
+
+
+def test_plateau_initial_design_runs():
+    """A target equal on the whole initial design (a plateau outside a small
+    ball) runs: the prior of the GP mean takes the SD 1 where the targets
+    have no spread."""
+    D = 3
+
+    def fun(x):
+        r2 = np.sum((np.asarray(x) - 1.9) ** 2)
+        return float(r2) if r2 < 0.05 else 1e3
+
+    bads = BADS(
+        fun,
+        np.zeros(D),
+        -5 * np.ones(D),
+        5 * np.ones(D),
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 100, "random_seed": 0},
+    )
+    result = bads.optimize()
+    n_init = bads.optim_state["eff_starting_points"]
+    assert np.all(bads.function_logger.Y[:n_init] == 1e3)
+    assert np.isfinite(result["fval"])
+
+
+@pytest.mark.parametrize("refit_flag", [False, True])
+def test_rebuild_with_equal_targets_keeps_output_scale_prior(refit_flag):
+    """A rebuild of the local GP on targets with no spread keeps the centre
+    of the previous prior of the output scale, where MATLAB's gpdefBads.m
+    takes log(0)."""
+    bads, gp = _initialized_bads()
+    previous = gp.get_priors()["covariance_log_outputscale"]
+    logger = bads.function_logger
+    logger.Y[logger.X_flag] = 7.0
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        refit_flag,
+        rng=bads.rng,
+    )
+    assert np.all(gp.y == 7.0)
+    kind, (mu, sigma) = gp.get_priors()["covariance_log_outputscale"]
+    assert kind == "gaussian"
+    assert mu.item() == previous[1][0].item()
+    assert sigma.item() == 2.0
+    assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))
+
+
+def test_thin_feasible_region_runs():
+    """A feasible region too thin for the initial design (`non_box_cons`
+    |x1 - x2| <= 0.005) leaves the local GP one training point, whose
+    targets have no spread: the rebuild keeps the previous prior of the
+    output scale, and the run goes on."""
+    D = 3
+    bads = BADS(
+        lambda x: float(np.sum((np.ravel(x) - 1.0) ** 2)),
+        np.zeros(D),
+        -5 * np.ones(D),
+        5 * np.ones(D),
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        non_box_cons=lambda x: np.abs(x[:, 0] - x[:, 1]) > 0.005,
+        options={"display": "off", "max_fun_evals": 100, "random_seed": 0},
+    )
+    result = bads.optimize()
+    assert bads.optim_state["eff_starting_points"] == 1
+    assert abs(result["x"][0] - result["x"][1]) <= 0.005
+    assert result["fval"] < 1e-3
