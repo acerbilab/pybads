@@ -5,7 +5,8 @@ are saved, with the placeholders of `wave2_common.md` replaced and
 `{SLICE}` set. The verifier did not write either report. Made from
 `wave1_verifier.md`; what changed: the revision, `fef6c14`; the sections
 "Checks you may run" and "Rules" of `wave2_common.md` quoted in the prompt
-(`{CHECKS_AND_RULES}`) instead of named; and the items kept from the
+(`{CHECKS_AND_RULES}`) instead of named, their rule on `dev/` extended to
+the two reports and the reviewers' scripts; and the items kept from the
 reviewers (`{KEPT_ITEMS}`), which the plan's "Wave 2 pickup", step 4,
 names: the open rows of the survey's candidate table in the slice, the
 differences the preparatory agent saw in passing, and what waves 0 and 1
