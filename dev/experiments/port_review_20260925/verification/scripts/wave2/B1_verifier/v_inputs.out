@@ -1,0 +1,37 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- K2 fun_values
+  fun_values={'X': array([[1., 1.]]), 'Y': array([[2.]])}: ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all(
+  fun_values={'X': [[1.0, 1.0]], 'Y': [[2.0]]}: ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all(
+  np.isreal(X) = [[ True  True]] -> 'not np.isreal(X)' on a (1,2) array raises; range(len()) raises TypeError: len() takes exactly one argument (0 given)
+
+-- multi-row x0
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  x0 (2,2) with bounds: accepted <pybads.bads.bads.BADS object at 0x7f1411beb210>
+    D = 2  u0 shape (2, 2)  self.u shape (4,)
+plausible_lower_bounds and/or plausible_upper_bounds not specified. Estimatingplausible bounds from starting set X0...
+Detected fully unconstrained optimization.
+  x0 (3,2) without bounds (plb estimated): accepted <pybads.bads.bads.BADS object at 0x7f1411b5a710>
+    plb_orig [[-0.1 -0.7]] pub_orig [[0.4 0.8]]
+
+-- x0=None
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+  x0=None, lb/ub only (MATLAB: error): accepted <pybads.bads.bads.BADS object at 0x7f1411beb210>
+    plb_orig [[-4.99 -4.99]]  x0 [[ 1.36687764 -2.2975286 ]]
+  x0=None, list plb/pub: AttributeError: 'list' object has no attribute 'shape'
+  x0=None, 1-D array plb/pub: accepted
+
+-- non_box_cons output checks (MATLAB: N x 1 required)
+  returns (N,): accepted
+  returns (N,1): accepted
+  returns scalar: AttributeError: 'float' object has no attribute 'shape'
+  returns bool: AttributeError: 'bool' object has no attribute 'shape'
+  returns (N,2): ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all(
+  returns (1,N): accepted
+
+-- random x0 against non_box_cons: sum(x^2) > 1 on [-1,1]^2
+Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).
+Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).
+Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).
+Initial starting point X0 does not satisfy non-bound constraints (non_box_cons).
+  refused for 4 of 20 seeds: [8, 10, 12, 13]; expected share 1 - pi/4 = 0.215

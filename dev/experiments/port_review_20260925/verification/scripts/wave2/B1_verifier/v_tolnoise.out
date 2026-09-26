@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+PyBADS eps*tol_fun         shuffled sum  |repeat diff| 2.22e-15 threshold 2.22e-19 -> level 1, evals 100, fval-1 1.70e-02, |x| 7.19e-03, fsd 2.44e-16
+PyBADS eps*tol_fun         jitter 1e-12  |repeat diff| 2.54e-12 threshold 2.22e-19 -> level 1, evals 100, fval-1 2.26e-04, |x| 1.50e-02, fsd 4.01e-13
+MATLAB sqrt(eps)*tol_fun   shuffled sum  |repeat diff| 2.22e-15 threshold 1.49e-11 -> level 0, evals 55, fval-1 1.69e-02, |x| 8.04e-04, fsd 0.00e+00
+MATLAB sqrt(eps)*tol_fun   jitter 1e-12  |repeat diff| 2.54e-12 threshold 1.49e-11 -> level 0, evals 55, fval-1 1.86e-09, |x| 4.32e-05, fsd 0.00e+00

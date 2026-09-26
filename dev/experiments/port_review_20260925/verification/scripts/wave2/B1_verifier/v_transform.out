@@ -1,0 +1,15 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+case                      N   PY refused  MAT refused  disagree
+log, ub ~ 1e8             200        0           0         0
+log, ub ~ 1e9             200       83          83         0
+lin, |lb|=ub ~ 1e10       200        0           0         0
+lin, |lb|=ub ~ 1e11       200        0           0         0
+lin, |lb|=ub ~ 1e6 (ctrl)  200        0           0         0
+
+lb=-9.53e10, ub=9.53e10, plb=-2.06, pub=-0.74: PY ok = False  MAT ok = False
+  |ginv(g(lb)) - lb| = 0, relative 0, spacing(lb) = 1.53e-05
+/home/user/pybads-review/pybads/variable_transformer/variables_transformer.py:203: RuntimeWarning: overflow encountered in exp
+  np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
+
+mixed lin/log/unbounded, 2000 points: inverse identical: True  direct identical: True  log flags: [False  True False] [False  True False]

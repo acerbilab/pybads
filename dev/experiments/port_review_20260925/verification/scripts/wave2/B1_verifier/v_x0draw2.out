@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+untouched: log flags [ True False  True] / [ True False  True]; evaluated start: u identical 200/200, x identical 200/200, max rel diff 0
+   variable 1 of the evaluated start: PY range [2.044, 493.3], MAT range [2.044, 493.3]
+plb moved by F1: log flags [ True False  True] / [ True False  True]; evaluated start: u identical 200/200, x identical 0/200, max rel diff 97
+   variable 1 of the evaluated start: PY range [1.019, 98.88], MAT range [0.01037, 97.78]

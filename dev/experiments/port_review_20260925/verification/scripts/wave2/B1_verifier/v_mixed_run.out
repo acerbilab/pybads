@@ -1,0 +1,4 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+as is: ValueError: bads:HalfBounds: Each variable needs to be unbounded or
+per-variable test: ran; x [0.3    1.9995] fval 2.59e-08 evals 59 message 'Optimization terminated: change in the function va'; optim_state plb/pub [-1. -1.] [1. 1.], lb/ub u [-1.25  -inf] [1.25  inf]
