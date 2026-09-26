@@ -1,0 +1,42 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_comparison/matlab_ref.py:22: RuntimeWarning: invalid value encountered in subtract
+  xc = x - x.mean()
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_comparison/matlab_ref.py:68: RuntimeWarning: invalid value encountered in matmul
+  W = (weights @ x) ** 2 / (xc @ xc)
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:132: RuntimeWarning: invalid value encountered in reduce
+  ret = umr_sum(arr, axis, dtype, out, keepdims, where=where)
+rosen3 seed=0 as_is       fval=7.252e-06 fevals=129 iters=10 rebuilds={'search': 57, 'poll': 45, 'other': 0} extra(not in MATLAB)={'search': 14, 'poll': 33}
+   refit-time calls=123; verdict differs: unreliable py-vs-MATLAB(same SD)=7, refit py-vs-MATLAB(same SD)=11; MATLAB latent-vs-predictive SD: unrel=10, refit=0; py-vs-MATLAB(predictive SD): unrel=17 refit=11
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:4596: RuntimeWarning: invalid value encountered in scalar subtract
+  diff_b_a = b - a
+   ys_pred/fs_latent: median=1.11 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 12, 2: 12, 3: 12, 4: 12, 5: 12}
+rosen3 seed=0 clear_reset fval=2.016e-05 fevals=133 iters=10 rebuilds={'search': 45, 'poll': 16, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+rosen3 seed=1 as_is       fval=5.668e-06 fevals=156 iters=14 rebuilds={'search': 63, 'poll': 65, 'other': 0} extra(not in MATLAB)={'search': 22, 'poll': 45}
+   refit-time calls=151; verdict differs: unreliable py-vs-MATLAB(same SD)=8, refit py-vs-MATLAB(same SD)=14; MATLAB latent-vs-predictive SD: unrel=10, refit=0; py-vs-MATLAB(predictive SD): unrel=18 refit=14
+   ys_pred/fs_latent: median=1.02 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 14, 2: 14, 3: 14, 4: 14, 5: 14}
+rosen3 seed=1 clear_reset fval=2.884e-05 fevals=157 iters=14 rebuilds={'search': 42, 'poll': 22, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+rosen3 seed=2 as_is       fval=9.344e-07 fevals=149 iters=14 rebuilds={'search': 58, 'poll': 68, 'other': 0} extra(not in MATLAB)={'search': 13, 'poll': 54}
+   refit-time calls=143; verdict differs: unreliable py-vs-MATLAB(same SD)=11, refit py-vs-MATLAB(same SD)=13; MATLAB latent-vs-predictive SD: unrel=9, refit=0; py-vs-MATLAB(predictive SD): unrel=20 refit=13
+   ys_pred/fs_latent: median=3.15 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 14, 2: 14, 3: 14, 4: 14, 5: 14}
+rosen3 seed=2 clear_reset fval=2.135e-04 fevals=129 iters=12 rebuilds={'search': 34, 'poll': 16, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+ellip4 seed=0 as_is       fval=2.188e-06 fevals=145 iters=11 rebuilds={'search': 48, 'poll': 73, 'other': 0} extra(not in MATLAB)={'search': 17, 'poll': 58}
+   refit-time calls=136; verdict differs: unreliable py-vs-MATLAB(same SD)=7, refit py-vs-MATLAB(same SD)=12; MATLAB latent-vs-predictive SD: unrel=12, refit=0; py-vs-MATLAB(predictive SD): unrel=19 refit=12
+   ys_pred/fs_latent: median=5.52 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 13, 2: 13, 3: 13, 4: 13, 5: 13}
+ellip4 seed=0 clear_reset fval=4.931e-07 fevals=145 iters=11 rebuilds={'search': 34, 'poll': 15, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+ellip4 seed=1 as_is       fval=1.067e-08 fevals=158 iters=12 rebuilds={'search': 58, 'poll': 81, 'other': 0} extra(not in MATLAB)={'search': 24, 'poll': 65}
+   refit-time calls=149; verdict differs: unreliable py-vs-MATLAB(same SD)=10, refit py-vs-MATLAB(same SD)=13; MATLAB latent-vs-predictive SD: unrel=8, refit=0; py-vs-MATLAB(predictive SD): unrel=18 refit=13
+   ys_pred/fs_latent: median=6.76 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 14, 2: 14, 3: 14, 4: 14, 5: 14}
+ellip4 seed=1 clear_reset fval=4.475e-09 fevals=158 iters=12 rebuilds={'search': 32, 'poll': 17, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+ellip4 seed=2 as_is       fval=6.421e-07 fevals=145 iters=11 rebuilds={'search': 47, 'poll': 67, 'other': 0} extra(not in MATLAB)={'search': 13, 'poll': 52}
+   refit-time calls=136; verdict differs: unreliable py-vs-MATLAB(same SD)=8, refit py-vs-MATLAB(same SD)=12; MATLAB latent-vs-predictive SD: unrel=10, refit=0; py-vs-MATLAB(predictive SD): unrel=18 refit=12
+   ys_pred/fs_latent: median=5.78 q90=nan max=inf; n-stats histogram (n: calls) {0: 1, 1: 13, 2: 13, 3: 13, 4: 13, 5: 12}
+ellip4 seed=2 clear_reset fval=1.604e-06 fevals=145 iters=11 rebuilds={'search': 31, 'poll': 16, 'other': 0} extra(not in MATLAB)={'search': 0, 'poll': 0}
+noisy-sphere3 seed=0 as_is       fval=-3.802e-02 fevals=200 rebuilds={'search': 61, 'poll': 50, 'other': 170} extra={'search': 25, 'poll': 31}
+   refit-time calls=157; unreliable py-vs-MATLAB(same SD)=11, refit py-vs-MATLAB(same SD)=14; MATLAB latent-vs-predictive SD: unrel=14, refit=0
+   ys_pred/fs_latent: median=8.56 q90=11.7 max=12.3
+noisy-sphere3 seed=0 clear_reset fval=-3.802e-02 fevals=200 rebuilds={'search': 36, 'poll': 19, 'other': 170} extra={'search': 0, 'poll': 0}
+noisy-sphere3 seed=1 as_is       fval=-1.679e-01 fevals=200 rebuilds={'search': 70, 'poll': 62, 'other': 174} extra={'search': 31, 'poll': 46}
+   refit-time calls=158; unreliable py-vs-MATLAB(same SD)=9, refit py-vs-MATLAB(same SD)=14; MATLAB latent-vs-predictive SD: unrel=20, refit=0
+   ys_pred/fs_latent: median=8.57 q90=11.7 max=12.3
+noisy-sphere3 seed=1 clear_reset fval=-1.679e-01 fevals=200 rebuilds={'search': 39, 'poll': 16, 'other': 174} extra={'search': 0, 'poll': 0}
