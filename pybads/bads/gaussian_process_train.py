@@ -578,6 +578,10 @@ def local_gp_fitting(
                     # "Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future."
                     alpha[i] = np.exp(dic_hyp_gp[i]["covariance_log_shape"])[0]
 
+                # As in MATLAB's gpupdate.m: the distance, in length scales,
+                # at which the kernel (1 + r^2 / (2 alpha))^-alpha falls to
+                # e^-1, over sqrt(2) so that the squared exponential gives 1
+                # (the convention of its constants for the Matern kernels)
                 gp.temporary_data["effective_radius"] = np.sqrt(
                     alpha * (np.exp(1 / alpha) - 1)
                 )
