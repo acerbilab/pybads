@@ -357,3 +357,13 @@ that must move nothing: `bfbc6d6737e99d88`.
   there is no refit; it now reads the `needs_refit` marker on the GP
   returned (`4ca8e41`), which gives the old counts at a commit that always
   retries.
+
+**The gpyreg side** (2026-09-26): W1-25's opt-in switch,
+`raise_on_cholesky_failure`, off by default, is acerbilab/gpyreg#56, and
+W1-24's log mass in log space is acerbilab/gpyreg#57, both with default
+results bit-identical to gpyreg's `main` (their reports:
+`fixes/I_gpyreg_W1-25_W1-24.md`). PI: merge them once their CI is green;
+no gpyreg release for now. PyBADS keeps gpyreg 1.3.3 as its minimum and
+its CI pin, since it neither turns the switch on nor, after W1-23, reaches
+W1-24's route at default options; a release waits for the ruling on
+turning the switch on in PyBADS.
