@@ -21,11 +21,17 @@ against its own specification, in waves of fresh reviewers.
 - `briefs/`: the prompts of wave 1 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
   machine (the plan's "Wave 1 pickup").
+- `verification/wave<N>.md`: the ledger of a wave, and
+  `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
+  saved verbatim.
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
 - `refresh_citations.py`: carries the `pybads/...:<line>` citations of a
   document from the commit at which they were checked to the working tree,
   and reports the cited lines that changed (adapted from PyVBMC's review).
 
-The reviewers' check scripts and outputs are kept on the machine that ran
-them (`dev/scripts/runs/LOCAL.md`).
+The check scripts and outputs of wave 0 are kept on the machine that ran
+them (`dev/scripts/runs/LOCAL.md`). Those of wave 1, which ran in a cloud
+session, are under `verification/scripts/wave1/<slice>_<track>/` and
+`verification/scripts/wave1/<slice>_verifier/`, formatted by the pre-commit
+hooks after they ran; the reports cite them at the sandbox's scratch paths.

@@ -441,7 +441,22 @@ request.
   with or without the stall criterion, and 14 to 18% fewer evaluations,
   most of them from the removal of the drift; the rise over seeds 0-29 was
   not in seeds 30-89. PI: W0-1 stays, in a pull request of its own.
-- [ ] Wave 1 (cloud session): run, verified, reported for triage.
+- [x] 2026-09-26: wave 1 run and verified, cloud session (from "Wave 1
+  pickup", on `dev-port-review-w1`). Four fresh Opus reviewers, B5 and B6 on
+  both tracks, reading `95da7f1` in `../pybads-review` (B5 internal 14
+  findings, B5 comparison 12, B6 internal 10, B6 comparison 7), then one
+  fresh Opus verifier per slice, which also verified the survey's open rows
+  of its slice that neither report covered (B5-R1 to B5-R3, B6-R1). The
+  reports and the verifications are saved verbatim with `extract_report.py`,
+  the scripts of all six agents under `verification/scripts/wave1/`,
+  formatted by the pre-commit hooks. The ledger `verification/wave1.md`,
+  rows W1-1 to W1-34, closes the 13 open survey rows of B5 and B6. The
+  reviewers found both differences seen in passing that belong to these
+  slices, (d) and (f); W0-7 and W0-8 recur, not as findings. The sweep after
+  the wave was clean (only `__pycache__`, removed). The import check of step
+  1 must run outside the repository's root, whose `pybads/` comes first on
+  `sys.path`; the reviewers' scripts ran from their scratch directories.
+- [ ] Wave 1 triaged (PI) and its fix pass, with W0-7 and W0-8.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and
