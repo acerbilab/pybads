@@ -20,6 +20,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `output_fcn` is called as `output_fcn(x, optim_state, state)`, with
   `state` one of `"init"`, `"iter"` and `"done"`, where 1.1.0 called
   `output_fcn(x, "init")` once.
+- `gamma_uncertain_interval` is keyword-only and follows `options`: a
+  script that passed it as the 8th positional argument of `BADS` passes it
+  by name.
 
 ### Changed
 
@@ -123,6 +126,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   true return value stops the run. It was called once, at the start, as
   `output_fcn(x, "init")`, and a true return value raised
   `UnboundLocalError`.
+- **Arguments in MATLAB BADS's order.** `BADS(fun, x0, lb, ub, plb, pub,
+  non_box_cons, options)` passes `options`. They went to the undocumented
+  argument `gamma_uncertain_interval`, which stood before `options`, and
+  were ignored, the seed included. `gamma_uncertain_interval`, the
+  multiplier of the uncertainty interval of Sto-BADS (`stobads=True`), is
+  keyword-only and documented.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when

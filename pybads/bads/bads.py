@@ -98,6 +98,11 @@ class BADS:
         determine at runtime if the objective function is noisy, or turn
         uncertainty handling on with ``options['specify_target_noise']``
         = ``True``.
+
+    gamma_uncertain_interval : float, optional, keyword-only
+        With ``options['stobads']``, the multiplier of the half-width of the
+        uncertainty interval of the Sto-BADS success rule. By default
+        ``None``, which is 1.96.
         To obtain reproducible results of the optimization, set
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
@@ -160,8 +165,9 @@ class BADS:
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
         non_box_cons: callable = None,
-        gamma_uncertain_interval=None,
         options: dict = None,
+        *,
+        gamma_uncertain_interval: float = None,
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
@@ -1894,7 +1900,6 @@ class BADS:
                 self.fsd,
                 f_sd_search,
                 self.mesh_size,
-                self.gamma_uncertain_interval,
             )
             if self.options["opp_stobads"]:
                 is_search_improved = sto_success > -1
@@ -1989,7 +1994,6 @@ class BADS:
         s_base,
         s_new,
         frame_size,
-        gamma_uncertain_interval=None,
     ):
         """
             A private method that evaluates if the improvement in the candidate incumbent using the uncertain interval method proposed in Sto-MADS [1].
@@ -2009,7 +2013,7 @@ class BADS:
         if self.gamma_uncertain_interval is None:
             gamma = 1.96  # gamma = norminv(0.975)
         else:
-            gamma = gamma_uncertain_interval  # gamma = norminv(0.975)
+            gamma = self.gamma_uncertain_interval
 
         ub_uncertain_interval = (
             gamma
@@ -2289,7 +2293,6 @@ class BADS:
                     self.fsd,
                     f_sd_poll,
                     self.mesh_size,
-                    self.gamma_uncertain_interval,
                 )
                 certain_good_poll = sto_success == 1
 

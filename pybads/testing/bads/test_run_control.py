@@ -146,3 +146,32 @@ def test_one_function_evaluation(uncertainty_handling, func_count):
         "Optimization terminated: reached maximum number of function "
         "evaluations after initialization."
     )
+
+
+def _box():
+    return (
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+    )
+
+
+def test_options_in_matlab_argument_order():
+    """`BADS(fun, x0, lb, ub, plb, pub, non_box_cons, options)`, MATLAB
+    BADS's order, passes the options."""
+    options = {"display": "off", "max_fun_evals": 7, "random_seed": 3}
+    bads = BADS(_sphere, *_box(), None, options)
+    assert bads.options["max_fun_evals"] == 7
+    assert bads.gamma_uncertain_interval is None
+
+
+def test_gamma_uncertain_interval_is_keyword_only():
+    options = {"display": "off", "random_seed": 3}
+    with pytest.raises(TypeError):
+        BADS(_sphere, *_box(), None, options, 2.0)
+    bads = BADS(
+        _sphere, *_box(), options=options, gamma_uncertain_interval=2.0
+    )
+    assert bads.gamma_uncertain_interval == 2.0
