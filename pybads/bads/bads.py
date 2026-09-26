@@ -2463,11 +2463,12 @@ class BADS:
             # certain unsucessfull poll
             #        self.mesh_size_integer -= 1
             # else:
-            # Check stalling
+            # Check stalling (MATLAB's iter > AccelerateMeshSteps, with its
+            # iter counted from 1)
             iter = self.optim_state["iter"]
             if (
                 self.options["accelerate_mesh"]
-                and iter > self.options["accelerate_mesh_steps"]
+                and iter >= self.options["accelerate_mesh_steps"]
             ):
                 f_base = self.iteration_history.get("fval")[
                     iter - self.options["accelerate_mesh_steps"]

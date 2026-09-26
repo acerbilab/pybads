@@ -173,6 +173,43 @@ def test_status_is_the_exit_flag(end):
     assert isinstance(result["fsd"], float) and result["fsd"] == 0.0
 
 
+def test_accelerated_mesh_reduction_counts_iterations_from_one(monkeypatch):
+    """A failed poll shrinks the mesh once more when the last
+    `accelerate_mesh_steps` iterations improved by less than `tol_fun`, from
+    MATLAB BADS's iteration `accelerate_mesh_steps + 1` on, the 0-based
+    `optim_state["iter"] == accelerate_mesh_steps`. The run starts at the
+    minimum, so that every poll fails and every such test shrinks the
+    mesh."""
+    polls = []
+    original_poll = BADS._poll_step_
+
+    def poll(self, gp):
+        iteration = self.optim_state["iter"]
+        mesh_size_integer = self.mesh_size_integer
+        out = original_poll(self, gp)
+        polls.append((iteration, mesh_size_integer - self.mesh_size_integer))
+        return out
+
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    bads = BADS(
+        _sphere,
+        np.zeros(D),
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        8 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 200, "random_seed": 3},
+    )
+    result = bads.optimize()
+    steps = bads.options["accelerate_mesh_steps"]
+    assert result["fval"] == 0
+    assert len(polls) > steps
+    assert polls == [
+        (iteration, 1 if iteration < steps else 2)
+        for iteration in range(len(polls))
+    ]
+
+
 @pytest.mark.parametrize(
     "uncertainty_handling, func_count",
     [(None, 2), (True, 1), (False, 1)],

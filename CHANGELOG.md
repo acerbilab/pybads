@@ -448,6 +448,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and the late searches of a round of failures ran far below it (at 0.18 of
   the full scale, against a floor of 0.5, at D = 6). Results change for D ≥
   2.
+- **Accelerated mesh reduction.** A failed poll shrinks the mesh a second
+  time when the last `accelerate_mesh_steps` iterations improved by less
+  than `tol_fun`, from iteration `accelerate_mesh_steps + 1` on, as in
+  MATLAB BADS; 1.1.0 started one iteration later. Results change.
 
 ## [1.1.0] - 2026-09-25
 
