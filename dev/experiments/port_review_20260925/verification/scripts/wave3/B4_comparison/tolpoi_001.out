@@ -1,0 +1,10 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+tol_poi=0.01 ellipsoid_D6 seed=0 nfev=172 poll_evals=107 stop_rel=5 py_stops=1 m_stops=1 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 ellipsoid_D6 seed=1 nfev=190 poll_evals=119 stop_rel=5 py_stops=1 m_stops=1 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 rosenbrock_D4 seed=0 nfev=200 poll_evals=75 stop_rel=7 py_stops=2 m_stops=2 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 rosenbrock_D4 seed=1 nfev=200 poll_evals=85 stop_rel=7 py_stops=2 m_stops=2 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 ackley_D3 seed=0 nfev=200 poll_evals=90 stop_rel=0 py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 ackley_D3 seed=1 nfev=200 poll_evals=90 stop_rel=0 py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 ellipsoid_D3 seed=0 nfev=71 poll_evals=36 stop_rel=2 py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=0.01 ellipsoid_D3 seed=1 nfev=81 poll_evals=42 stop_rel=2 py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []

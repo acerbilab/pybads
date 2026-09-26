@@ -1,0 +1,10 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+tol_poi=None ellipsoid_D6 seed=0 nfev=191 poll_evals=120 stop_rel=5 n>D+1=0 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None ellipsoid_D6 seed=1 nfev=191 poll_evals=120 stop_rel=5 n>D+1=0 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None rosenbrock_D4 seed=0 nfev=200 poll_evals=75 stop_rel=7 n>D+1=2 top_PI_excluded=1 (PI>tol_poi: 1) py_stops=1 m_stops=1 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None rosenbrock_D4 seed=1 nfev=200 poll_evals=79 stop_rel=7 n>D+1=2 top_PI_excluded=2 (PI>tol_poi: 2) py_stops=1 m_stops=1 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None ellipsoid_D3 seed=0 nfev=71 poll_evals=36 stop_rel=2 n>D+1=0 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None ellipsoid_D3 seed=1 nfev=81 poll_evals=42 stop_rel=2 n>D+1=0 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=0 m_stops=0 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None rosenbrock_D6 seed=0 nfev=200 poll_evals=94 stop_rel=23 n>D+1=5 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=2 m_stops=2 flip=0 flip_D_vs_D1_sorted=0 []
+tol_poi=None rosenbrock_D6 seed=1 nfev=200 poll_evals=92 stop_rel=20 n>D+1=4 top_PI_excluded=0 (PI>tol_poi: 0) py_stops=1 m_stops=1 flip=0 flip_D_vs_D1_sorted=0 []
