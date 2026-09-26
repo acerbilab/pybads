@@ -124,6 +124,51 @@ def test_iterations_count_from_one(max_iter):
     )
 
 
+# The options that end the run on each criterion, the status and the message
+_ENDS = {
+    "max_fun_evals": (
+        {"max_fun_evals": 30},
+        0,
+        "reached maximum number of function evaluations "
+        "options['max_fun_evals']",
+    ),
+    "max_iter": (
+        {"max_iter": 2, "max_fun_evals": 200},
+        0,
+        "reached maximum number of iterations options['max_iter']",
+    ),
+    "output_fcn": (
+        {"output_fcn": lambda x, optim_state, state: state == "iter"},
+        0,
+        "terminated by options['output_fcn']",
+    ),
+    "initialization": ({"max_fun_evals": 1}, 0, "after initialization"),
+    "tol_mesh": (
+        {"tol_mesh": 1e-2, "max_fun_evals": 200},
+        1,
+        "mesh size less than options['tol_mesh']",
+    ),
+    "stall": (
+        {"max_fun_evals": 200},
+        2,
+        "change in the function value less than options['tol_fun']",
+    ),
+}
+
+
+@pytest.mark.parametrize("end", list(_ENDS))
+def test_status_is_the_exit_flag(end):
+    """`status` is MATLAB BADS's exit flag: 0 when the run ends on
+    `max_fun_evals`, `max_iter`, a stop by `output_fcn` or in its
+    initialization, 1 on `tol_mesh`, 2 on the stall criterion. The `fsd` of
+    a deterministic run is the float 0.0."""
+    options, status, message = _ENDS[end]
+    result = _make_bads(**options).optimize()
+    assert message in result["message"]
+    assert result["status"] == status
+    assert isinstance(result["fsd"], float) and result["fsd"] == 0.0
+
+
 @pytest.mark.parametrize(
     "uncertainty_handling, func_count",
     [(None, 2), (True, 1), (False, 1)],

@@ -407,6 +407,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   iteration counts once it has begun. `search_n_try` is an integer.
 - **`sloppy_improvement=False`.** A run with `sloppy_improvement=False` no
   longer stops with `AttributeError` at its first iteration.
+- **Exit status.** The result's `status` is MATLAB BADS's exit flag: 0 when
+  the run ends on `max_fun_evals` or `max_iter`, is stopped by `output_fcn`
+  or ends in its initialization, 1 on `tol_mesh`, 2 when the change of the
+  function value falls below `tol_fun`; `result["status"]` raised
+  `KeyError`. A deterministic run's `fsd` is the float 0.0 instead of the
+  integer 0.
 
 ## [1.1.0] - 2026-09-25
 

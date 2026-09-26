@@ -1311,6 +1311,10 @@ class BADS:
         # Initialize gp; a run with max_fun_evals=1 ends there, without a GP
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
         is_finished = gp is None
+        # MATLAB BADS's exit flag, the result's status: 0 on max_fun_evals,
+        # max_iter or a stop by the output function, 1 on tol_mesh and 2 on
+        # the stall criterion
+        exit_flag = 0
         msg = (
             "Optimization terminated: reached maximum number of function "
             "evaluations after initialization."
@@ -1467,17 +1471,17 @@ class BADS:
                 >= self.options["max_fun_evals"]
             ):
                 is_finished = True
-                # exit_flag = 0
+                exit_flag = 0
                 msg = "Optimization terminated: reached maximum number of function evaluations options['max_fun_evals']."
 
             if poll_iteration >= self.options["max_iter"] - 1:
                 is_finished = True
-                # exit_flag = 0
+                exit_flag = 0
                 msg = "Optimization terminated: reached maximum number of iterations options['max_iter']."
 
             if self.optim_state["mesh_size"] < self.optim_state["tol_mesh"]:
                 is_finished = True
-                # exit_flag = 1
+                exit_flag = 1
                 msg = "Optimization terminated: mesh size less than options['tol_mesh']."
 
             # Historic improvement
@@ -1588,6 +1592,7 @@ class BADS:
             loop_iter += 1
 
         # End while
+        self.optim_state["exit_flag"] = exit_flag
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
@@ -1914,7 +1919,7 @@ class BADS:
                     f_sd_search = np.sqrt(f_sd_search).item()
             else:
                 f_mu_search = y_search
-                f_sd_search = 0
+                f_sd_search = 0.0
 
             # Compute distance of search point from current point
             search_dist = np.sqrt(
@@ -2359,7 +2364,7 @@ class BADS:
                     f_sd_poll = np.nan
             else:
                 f_poll = y_poll
-                f_sd_poll = 0
+                f_sd_poll = 0.0
 
             poll_improvement = self._eval_improvement_(
                 self.fval,

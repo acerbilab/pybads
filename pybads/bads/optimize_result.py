@@ -41,6 +41,13 @@ class OptimizeResult(dict):
             - Number of evaluations of the objective functions.
         - iterations: int
             - Number of iterations performed by the optimizer.
+        - status: int
+            - The exit flag of MATLAB BADS, the criterion that ended the
+              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the
+              ``output_fcn`` stopped it or it ended in its initialization; 1
+              when the mesh size fell below ``tol_mesh``; 2 when the
+              improvement over the last ``tol_stall_iters`` iterations fell
+              below ``tol_fun``.
         - message: str
             - Termination message.
         - problem_type: str
@@ -145,6 +152,7 @@ class OptimizeResult(dict):
         self["total_time"] = bads.optim_state["total_time"]
 
         self["random_seed"] = bads.optim_state["random_seed"]
+        self["status"] = bads.optim_state["exit_flag"]
 
         try:
             __version__ = version("pybads")
