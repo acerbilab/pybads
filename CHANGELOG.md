@@ -259,8 +259,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with `use_slice_sampler=True`). The retries leave out the targets above
   the 95th percentile as MATLAB BADS computes it, and stop once fewer points
   than variables remain; when all of them fail, the fit keeps the best of
-  its starting points. With `use_slice_sampler=True`, each retry samples its
-  start on the points that it fits, not on all of them.
+  its starting points. The retries, those of the initial fit and the
+  second fit start from draws of the hyperparameters' priors, which 1.1.0
+  drew in the wrong units, far outside the bounds. With
+  `use_slice_sampler=True`, each retry samples its start on the points that
+  it fits, not on all of them.
 
 ## [1.1.0] - 2026-09-25
 

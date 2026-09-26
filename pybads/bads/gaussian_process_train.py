@@ -793,18 +793,18 @@ def _robust_gp_fit_(
 def _get_random_samples_from_priors_(gp: gpr.GP, rng=None):
     """
     A private method that retrieves a new set of parameters by randomly sampling from the prior of the GP
+    A Gaussian prior is drawn in the units of its hyperparameter (log units
+    for a log hyperparameter), and a block without a prior keeps its value,
+    as in MATLAB's gppriorrnd.m.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
     rng = get_rng(rng)
     hyp = gp.get_hyperparameters()[-1]  # copy of the hyper-params
     for key, value in gp.get_priors().items():
-        if value[0] == "gaussian":
+        if value is not None and value[0] == "gaussian":
             gauss_parameter = value[1]
             mean_priors = gauss_parameter[0]
             sigma_priors = gauss_parameter[1]
-            if "log" in key:
-                mean_priors = np.exp(mean_priors)
-                sigma_priors = np.exp(sigma_priors)
             new_sample = []
             for idx, m_p in enumerate(mean_priors):
                 new_sample.append(rng.normal(m_p, sigma_priors[idx]))

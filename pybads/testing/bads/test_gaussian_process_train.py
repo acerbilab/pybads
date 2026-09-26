@@ -12,6 +12,7 @@ from pybads.bads.gaussian_process_train import (
     _cov_identifier_to_covariance_function,
     _get_fevals_data,
     _get_gp_training_options,
+    _get_random_samples_from_priors_,
     _meanfun_name_to_mean_function,
     _robust_gp_fit_,
     add_and_update_gp,
@@ -875,3 +876,44 @@ def test_robust_fit_stops_below_D_points(monkeypatch):
     assert flag == -1
     in_bounds = np.minimum(np.maximum(hyp, gp.lower_bounds), gp.upper_bounds)
     assert np.array_equal(hyp_out, in_bounds)
+
+
+# --- _get_random_samples_from_priors_ ------------------------------------
+
+
+def _prior_draws(gp, n=4000):
+    rng = np.random.default_rng(7)
+    draws = np.vstack(
+        [_get_random_samples_from_priors_(gp, rng) for _ in range(n)]
+    )
+    return gp.hyperparameters_to_dict(draws)
+
+
+def test_prior_samples_follow_gaussian_priors(refit_case):
+    """The draws of each block of hyperparameters have the mean and the
+    standard deviation of its Gaussian prior, in the units of the
+    hyperparameter (log units for a log hyperparameter), as in MATLAB's
+    gppriorrnd.m."""
+    _, gp, _ = refit_case
+    priors = gp.get_priors()
+    draws = _prior_draws(gp)
+    for key, (kind, (mu, sigma)) in priors.items():
+        assert kind == "gaussian"
+        values = np.array([draw[key] for draw in draws])
+        se = sigma / np.sqrt(values.shape[0])
+        assert np.all(np.abs(values.mean(axis=0) - mu) < 4 * se), key
+        assert np.allclose(values.std(axis=0), sigma, rtol=0.05), key
+
+
+def test_prior_samples_keep_block_without_prior(refit_case):
+    """A block of hyperparameters without a prior keeps its value, as in
+    MATLAB's gppriorrnd.m."""
+    _, gp, _ = refit_case
+    gp = copy.deepcopy(gp)
+    priors = gp.get_priors()
+    priors["covariance_log_shape"] = None
+    gp.set_priors(priors)
+    current = gp.get_hyperparameters()[-1]["covariance_log_shape"]
+    draws = _prior_draws(gp, 10)
+    for draw in draws:
+        assert np.array_equal(draw["covariance_log_shape"], current)
