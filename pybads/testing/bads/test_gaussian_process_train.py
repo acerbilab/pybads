@@ -356,6 +356,62 @@ def test_gp_mean_prior_recentred_at_each_rebuild(monkeypatch):
     assert checked["local"] > 0
 
 
+def test_gp_noise_prior_follows_mesh_at_each_rebuild(monkeypatch):
+    """In a deterministic run, after each rebuild of the local GP, the prior
+    of the GP noise is centred at `log(noise_size) + mesh_noise_multiplier *
+    log(mesh_size)`, as in MATLAB's gpdefBads.m, with the SD of the
+    definition prior, 1."""
+    import pybads.bads.bads as bads_module
+
+    mesh_sizes = []
+    original_local = bads_module.local_gp_fitting
+
+    def spy_local(
+        gp,
+        current_point,
+        function_logger,
+        options,
+        optim_state,
+        *args,
+        **kwargs,
+    ):
+        out = original_local(
+            gp,
+            current_point,
+            function_logger,
+            options,
+            optim_state,
+            *args,
+            **kwargs,
+        )
+        mesh_size = optim_state["mesh_size"]
+        centre = np.log(np.ravel(options["noise_size"])[0]) + options[
+            "mesh_noise_multiplier"
+        ] * np.log(mesh_size)
+        kind, (mu, sigma) = gp.get_priors()["noise_log_scale"]
+        assert kind == "gaussian"
+        assert np.isclose(mu.item(), centre, rtol=1e-12)
+        assert sigma.item() == 1.0
+        mesh_sizes.append(mesh_size)
+        return out
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    D = 3
+    bads = BADS(
+        lambda x: np.sum(np.atleast_2d(x) ** 2),
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 60, "random_seed": 0},
+    )
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 0
+    assert bads.options["mesh_noise_multiplier"] > 0
+    assert min(mesh_sizes) < 1
+
+
 def test_gp_log_lengthscale_bounds(monkeypatch):
     """The bounds of the GP log length scales are the logs of `tol_mesh`
     and of the maximum length scale, `min(100, 10 * (ub - lb) / scale)` in

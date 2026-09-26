@@ -264,6 +264,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   drew in the wrong units, far outside the bounds. With
   `use_slice_sampler=True`, each retry samples its start on the points that
   it fits, not on all of them.
+- **Prior of the GP noise.** In deterministic runs, the prior over the
+  noise of the Gaussian process is centred at each rebuild at
+  `log(noise_size)` plus `mesh_noise_multiplier` (0.5) times the log of the
+  mesh size, as in MATLAB BADS, so that it falls as the mesh shrinks.
+  PyBADS computed that centre and never applied it. Results change at
+  default options in deterministic runs.
 
 ## [1.1.0] - 2026-09-25
 

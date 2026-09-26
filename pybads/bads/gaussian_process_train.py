@@ -325,7 +325,8 @@ def local_gp_fitting(
     else:
         noise_size = np.ravel(options["noise_size"])[0]
 
-    # Update GP Noise
+    # Update GP Noise: the prior's centre scales with the mesh size, as in
+    # MATLAB's gpdefBads.m (a noisy run sets mesh_noise_multiplier to 0)
     old_priors = gp.get_priors()
     gp_priors = gp.get_priors()
     prior_noise = gp_priors["noise_log_scale"]
@@ -333,6 +334,7 @@ def local_gp_fitting(
         "mesh_noise_multiplier"
     ] * np.log(optim_state["mesh_size"])
     prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
+    gp_priors["noise_log_scale"] = prior_noise
 
     # TODO: warped likelihood (unsupported)
 
