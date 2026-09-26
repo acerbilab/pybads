@@ -132,6 +132,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   were ignored, the seed included. `gamma_uncertain_interval`, the
   multiplier of the uncertainty interval of Sto-BADS (`stobads=True`), is
   keyword-only and documented.
+- **Sto-BADS poll.** With `stobads=True`, a poll succeeds when one of its
+  points succeeds, as in Sto-MADS, and moves the incumbent to that point;
+  before, the outcome of the last polled point decided, so that a success
+  followed by other points was lost and the mesh contracted. With
+  `opp_stobads`, a poll without a success moves to its best point when any
+  of its points is uncertain, not only when the last one is.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when

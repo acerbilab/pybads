@@ -2062,7 +2062,13 @@ class BADS:
         gp_poll_hyp_best = self.best_gp_hyp.copy()
         poll_count = 0
         certain_good_poll = False
-        sto_success = 0
+        # Sto-BADS: the best outcome over the poll's points (1 if some point
+        # succeeds, 0 if none does and some is uncertain, -1 if every point
+        # fails for certain, as in Sto-MADS), and the successful point of the
+        # largest improvement
+        sto_poll = -1
+        sto_best = None
+        sto_best_improvement = -np.inf
         B = None
         u_poll = None
         u_new = []
@@ -2299,7 +2305,14 @@ class BADS:
                     f_sd_poll,
                     self.mesh_size,
                 )
-                certain_good_poll = sto_success == 1
+                sto_poll = max(sto_poll, sto_success)
+                if (
+                    sto_success == 1
+                    and poll_improvement > sto_best_improvement
+                ):
+                    sto_best = (u_new.copy(), y_poll, f_poll, f_sd_poll)
+                    sto_best_improvement = poll_improvement
+                certain_good_poll = sto_poll == 1
 
             # Increase poll counter
             poll_count += 1
@@ -2319,14 +2332,12 @@ class BADS:
             else:
                 is_poll_moved = False
         else:
-            # StoBads
-            if self.options["opp_stobads"] and sto_success > -1:
-                self._update_incumbent_(
-                    u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
-                )
+            # StoBads: a success moves to the successful point, and with
+            # opp_stobads an uncertain poll moves to the best polled point
+            if sto_poll == 1:
+                self._update_incumbent_(*sto_best)
                 is_poll_moved = True
-            elif certain_good_poll:
-                # Update incumbent point (self.yval, self.fval, self.fsd) and optim_state
+            elif self.options["opp_stobads"] and sto_poll == 0:
                 self._update_incumbent_(
                     u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
                 )
