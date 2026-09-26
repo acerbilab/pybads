@@ -119,7 +119,9 @@ reference's number of seeds.
   with its null check, its comparison with the previous Windows reference,
   which flags the five configurations that the same fixes flag on Linux,
   all better, and the runs in which the prior of the GP mean falls outside
-  the bounds of the mean and the log prior is NaN.
+  the bounds of the mean and the log prior is NaN. It predates the fix
+  passes of waves 0 and 1 of the port review (`fef6c14`), which move
+  results: a gate on Windows after them needs a new reference first.
 - [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
   — the previous reference on Windows (at `c044fea`, with the
   noise-variance fix of `020d6a8`), with its null check and its comparison

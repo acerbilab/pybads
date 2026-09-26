@@ -273,10 +273,11 @@ MATLAB side are collected in
 
 ## Fixes and gates
 
-Fixes wait for the PI's triage. They go on the review's branch,
-`dev-port-review`, cut from `dev-next` at the freeze, one commit per
-finding, each with a regression test that would have caught it. Changes to
-gpyreg go to gpyreg on its own branch and pull request.
+Fixes wait for the PI's triage. They go on the branch of the wave,
+`dev-port-review-w<N>`, cut from `dev-next`, one commit per finding, each
+with a regression test that would have caught it, and reach `dev-next`
+through a pull request. Changes to gpyreg go to gpyreg on its own branch
+and pull request.
 
 The gates are those of `AGENTS.md`, "Numerical gates":
 
@@ -303,7 +304,7 @@ The gates are those of `AGENTS.md`, "Numerical gates":
   between waves.
 - An agent that changes code works in its own git worktree, commits one
   finding at a time and does not push; the orchestrator reviews each diff
-  and cherry-picks it onto `dev-port-review`. Scripts under `dev/scripts/`
+  and cherry-picks it onto the wave's branch. Scripts under `dev/scripts/`
   that import the benchmark put their own checkout first on `sys.path`
   (`AGENTS.md`); the others import PyBADS from `PYTHONPATH`, so every
   command in an agent's brief names the worktree there and prints
@@ -391,6 +392,54 @@ request.
    verified, cloud session"); commit on `dev-port-review-w1`, push, and
    report to the PI. The orchestrator merges the branch into
    `dev-port-review` after the PI's triage.
+
+## Wave 2 pickup
+
+For the session that starts wave 2, slices B1 and B2 on both tracks, on
+the orchestrator's machine or in a cloud sandbox as wave 1 ran. Everything
+it needs is in this repository at `dev-next` and in the public repositories
+of MATLAB BADS and gpyreg. The one record of the review that only the
+orchestrator's machine holds is the check scripts of wave 0's agents
+(`dev/scripts/runs/LOCAL.md`); no brief hands them to an agent, and wave
+0's reports and ledger are tracked.
+
+1. **The revision under review**, the PI's decision at the kickoff: the
+   freeze `95da7f1`, or `fef6c14`, `dev-next` after the fix passes of waves
+   0 and 1, which add 425 lines to the package and remove 240, most of
+   them in `bads.py` and `gaussian_process_train.py` (B2's
+   `_re_evaluate_history_` among them, W0-1). A new revision moves the
+   review worktree, the table "Reference revisions" and the briefs; the
+   sheet's citations are carried to it with `refresh_citations.py --base
+   95da7f1`, and the entries that wave 1's rulings added are read against
+   it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w2` and the review
+   worktree at the revision of step 1.
+3. **The briefs**, `briefs/wave2_*.md`, made from wave 1's:
+   `wave1_common.md` and `wave1_verifier.md` with the revision, and a slice
+   part for B1 and one for B2 in the form of `wave1_B5.md` (the files of the
+   slice table, how a default run reaches them, the first questions).
+4. **Kept from the reviewers**, for the verifiers or to check the reports
+   against: the open rows of the survey's candidate table in B1 and B2, the
+   items of `prep_report.md`'s "Seen in passing" that belong to them, and
+   what waves 0 and 1 left to these slices (the sections "Found while
+   verifying" of `verification/wave0.md` and `verification/wave1.md`).
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 2's names: the
+   reports `reviews/B1_<track>.md` and `reviews/B2_<track>.md`, the scripts
+   under `verification/scripts/wave2/`, the verifiers' reports
+   `verification/wave2_<slice>_verifier.md`, the ledger
+   `verification/wave2.md` from W2-1, and the branch `dev-port-review-w2`,
+   pushed at the close for the PI's triage.
+6. **The gates of the fix pass.** On Linux the reference is
+   `experiments/population_linux_wave1_20260926/`, which pairs by seed only
+   in its environment (Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1), where
+   `dev/scripts/fingerprint.py` at `fef6c14` with gpyreg 1.3.3 prints
+   `91f947f78e1087c2`; a box that prints another hash computes differently
+   and needs those versions or a reference of its own. On Windows the
+   reference, `population_gpfixes_20260925` at `ab4dded`, predates waves 0
+   and 1, and a gate there first needs a new reference at `fef6c14`; the
+   fingerprint at `fef6c14` on the orchestrator's machine is
+   `3411ef0625d24b22`.
 
 ## Worklog
 
@@ -501,6 +550,14 @@ request.
   against both revisions. KD-B1-8 no longer leaves the count in
   `iterations` open. C1 and C2 still hold at `95da7f1`; their verification
   is under way.
-- [ ] Waves 1 to 4.
+- [x] 2026-09-26: wave 1 merged: #74 squash-merged into `dev-next` as
+  `fef6c14`, on W0-1 (#73, `e004c79`); gpyreg's side (acerbilab/gpyreg#56
+  and #57) merged into gpyreg's `main` (`33e3165`) without a release, both
+  bit-identical by default, with gpyreg 1.3.3 still PyBADS's minimum and
+  CI pin. On the orchestrator's machine at `fef6c14`, the suite passes (273
+  tests) and the fingerprint with the gpyreg 1.3.3 clone is
+  `3411ef0625d24b22`. The review worktree stays at `95da7f1` until wave 2's
+  kickoff ("Wave 2 pickup").
+- [ ] Waves 2 to 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.
