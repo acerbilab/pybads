@@ -420,6 +420,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   function value falls below `tol_fun`; `result["status"]` raised
   `KeyError`. A deterministic run's `fsd` is the float 0.0 instead of the
   integer 0.
+- **Target and constraint in the result.** The result holds the `fun` and
+  `non_box_cons` passed to `BADS`, not copies: a bound method or callable
+  object whose instance holds a lock or an open file no longer makes
+  `optimize()` raise `TypeError` after its last evaluation.
 
 ## [1.1.0] - 2026-09-25
 

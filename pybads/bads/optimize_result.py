@@ -14,9 +14,11 @@ class OptimizeResult(dict):
     Attributes:
 
         - fun: callable
-            - The objective function to be minimized.
+            - The objective function to be minimized (the object passed,
+              not a copy).
         - non_box_cons: callable
-            - Non-box constraints function (if any).
+            - Non-box constraints function (if any; the object passed, not
+              a copy).
         - x0: np.ndarray
             - Initial starting point.
         - x: np.ndarray
@@ -197,5 +199,10 @@ class OptimizeResult(dict):
     def __setitem__(self, key: str, val: object):
         if key not in OptimizeResult._keys:
             raise ValueError("""The key is not part of OptimizeResult._keys""")
+        elif key in ("fun", "non_box_cons"):
+            # The callables are kept by reference: a copy of a bound method
+            # or a callable object copies its instance, which may hold what
+            # cannot be copied (a lock, an open file)
+            dict.__setitem__(self, key, val)
         else:
             dict.__setitem__(self, key, copy.deepcopy(val))

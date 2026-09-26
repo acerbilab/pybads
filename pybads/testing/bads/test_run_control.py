@@ -3,6 +3,8 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 (`"init"`), after each poll (`"iter"`) and at the end (`"done"`), and stops
 the run when it returns a true value; `iterations` counts from 1."""
 
+import threading
+
 import numpy as np
 import pytest
 
@@ -362,3 +364,36 @@ def test_run_without_sloppy_improvement():
     assert result["func_count"] <= 60
     assert result["iterations"] > 1
     assert result["fval"] < _sphere(np.ones(D) * 4)
+
+
+class _Locked:
+    """A target and a constraint that hold a lock, which cannot be copied."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def target(self, x):
+        with self.lock:
+            return _sphere(x)
+
+    def __call__(self, x):
+        with self.lock:
+            return np.sum(np.atleast_2d(x) ** 2, axis=1) - 1e4
+
+
+def test_result_keeps_the_callables_by_reference():
+    """The result holds the target and the constraint that the run was
+    given, not copies: a bound method or callable object whose instance
+    holds a lock does not stop `optimize()`."""
+    locked = _Locked()
+    target = locked.target
+    bads = BADS(
+        target,
+        *_box(),
+        locked,
+        options={"display": "off", "max_fun_evals": 40, "random_seed": 3},
+    )
+    result = bads.optimize()
+    assert result["fun"] is target
+    assert result["fun"].__self__ is locked
+    assert result["non_box_cons"] is locked
