@@ -298,7 +298,13 @@ linear one underflows, so that no fit that succeeds today changes. The items of
 
 ## Fix pass
 
-Not started (PI, 2026-09-26), but for step 0. The records of wave 1 were
+Not started (PI, 2026-09-26), but for step 0. How it runs (PI,
+2026-09-26): the fixes go on `dev-port-review-w1`, and one pull request
+into `dev-next` carries wave 1's records and fixes once the pass is done;
+each fix is made by an agent in a git worktree of its own, one commit per
+row, and the orchestrator reviews each diff and cherry-picks it; the
+gpyreg side of W1-25 and W1-24 goes to `acerbilab/gpyreg` on a branch of
+its own, from this session. The records of wave 1 were
 rebased onto `dev-next` at `e004c79`, which carries wave 0 and its fix pass
 (#72) and W0-1 (#73), so the pass starts from there: `dev-port-review` is
 superseded, and W0-1 is in the base rather than gated on top of the
