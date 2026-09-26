@@ -715,3 +715,45 @@ def test_robust_fit_slice_sampler_samples_on_retry_data(
         assert np.array_equal(X, call["X"])
         rows = [np.flatnonzero(np.all(gp.X == x, axis=1))[0] for x in X]
         assert np.array_equal(y, gp.y[rows])
+
+
+def test_robust_fit_every_try_failed_returns_best_start(
+    monkeypatch, refit_case
+):
+    """When every try fails, the fit returns the best of its starts, taken
+    into the bounds and ranked by the log posterior on the data at entry,
+    with exit flag -1, as MATLAB's gpHyperOptimize.m; a start whose log
+    posterior cannot be computed ranks last. `noise_nudge=[0, 0]` leaves
+    the bounds of the noise in place over the ten tries."""
+    _, gp, _ = refit_case
+    fitted = gp.get_hyperparameters(as_array=True)
+    low_output_scale = fitted.copy()
+    low_output_scale[0, 3] -= 3.0
+    above_bound = fitted.copy()
+    above_bound[0, 0] = gp.upper_bounds[0] + 1.0
+    starts = np.vstack((low_output_scale, above_bound))
+    in_bounds = np.minimum(
+        np.maximum(starts, gp.lower_bounds), gp.upper_bounds
+    )
+    assert in_bounds[1, 0] == gp.upper_bounds[0]
+    assert gp.log_posterior(in_bounds[1]) > gp.log_posterior(in_bounds[0])
+
+    nudge = np.array([0, 0])
+    calls = _inject_fit_failures(monkeypatch)
+    out, hyp, res, flag = _robust_fit(refit_case, starts, noise_nudge=nudge)
+    assert len(calls) == 10
+    assert flag == -1 and res is None
+    assert np.array_equal(hyp, in_bounds[1:])
+    assert np.array_equal(out.get_hyperparameters(as_array=True), hyp)
+
+    original = gpr.GP.log_posterior
+
+    def log_posterior(self, hyp, compute_grad=False):
+        if np.array_equal(hyp, in_bounds[1]):
+            raise np.linalg.LinAlgError("injected failure")
+        return original(self, hyp, compute_grad)
+
+    monkeypatch.setattr(gpr.GP, "log_posterior", log_posterior)
+    _, hyp, _, flag = _robust_fit(refit_case, starts, noise_nudge=nudge)
+    assert flag == -1
+    assert np.array_equal(hyp, in_bounds[:1])

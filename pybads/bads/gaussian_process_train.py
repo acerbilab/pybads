@@ -637,6 +637,8 @@ def _robust_gp_fit_(
 ):
     """A private method that compute fit the Gaussian Process.
     In the case it fails to fit the GP with new proposed parameters it sample a new one from the priors.
+    When every try fails, it returns the best of the starts ``hyp_gp``, with
+    exit flag -1, as MATLAB's gpHyperOptimize.m.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
     rng = get_rng(rng)
@@ -736,9 +738,25 @@ def _robust_gp_fit_(
             new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
             tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
-    if np.any(success_flag):
-        # at least one run succeeded
-        gp.set_hyperparameters(new_hyp, False)
+    if np.all(~success_flag):
+        # Every try failed: the best of the starts, taken into the bounds
+        # and ranked by the log posterior on the data at entry, which `gp`
+        # holds, as MATLAB (gpHyperOptimize.m:50-62, 197-200); a start that
+        # cannot be evaluated ranks last
+        starts = np.minimum(
+            np.maximum(np.atleast_2d(hyp_gp), gp.lower_bounds),
+            gp.upper_bounds,
+        )
+        nlp = np.full(starts.shape[0], np.inf)
+        for i, start in enumerate(starts):
+            try:
+                nlp[i] = -gp.log_posterior(start)
+            except np.linalg.LinAlgError:
+                pass
+        nlp[np.isnan(nlp)] = np.inf
+        new_hyp = starts[[np.argmin(nlp)]]
+        res = None
+    gp.set_hyperparameters(new_hyp, False)
     if np.any(~success_flag):
         # at least one failed
         if options["gp_warnings"]:
