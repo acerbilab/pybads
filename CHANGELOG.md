@@ -148,7 +148,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the GP could not take is included when the local GP is rebuilt at the
   next step, a target that cannot be predicted under the best
   hyperparameters is predicted from the current GP, and a point the GP
-  cannot estimate counts as no improvement. A failed rebuild is retried at
+  cannot estimate counts as no improvement, with Sto-BADS
+  (`stobads=True`) too. A failed rebuild is retried at
   the next step with refitted hyperparameters (in the poll, only with
   `poll_training` on). Runs without such a failure give the same results.
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the

@@ -2002,7 +2002,8 @@ class BADS:
             int : Return a flag integer value
                 1   : sucessuful improvement
                 0   : uncertain unsuccessful incumbent
-                -1  : certain unsuccessful incumbent
+                -1  : certain unsuccessful incumbent, or no estimate (a NaN
+                      mean or SD)
 
         References
         ----------
@@ -2010,6 +2011,10 @@ class BADS:
         """
         epsilon = np.sqrt(s_base**2 + s_new**2)
         mu = f_base - f_new
+        # No estimate (a GP that could not take the point): a failure, as on
+        # the path without Sto-BADS
+        if not (np.isfinite(mu) and np.isfinite(epsilon)):
+            return -1
         if self.gamma_uncertain_interval is None:
             gamma = 1.96  # gamma = norminv(0.975)
         else:
