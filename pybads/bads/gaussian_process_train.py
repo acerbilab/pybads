@@ -277,12 +277,16 @@ def local_gp_fitting(
         # logger.warn("bads:opt:Fitness shaping not implemented yet")
         pass
 
+    # Substitute ill-defined values with the highest well-defined one, as in
+    # MATLAB's gpupdate.m (the function logger refuses them today)
     idx_finite_y = np.isfinite(gp.y)
     if np.any(~idx_finite_y):
-        y_idx_penalty = np.argmax(gp.y[idx_finite_y])
-        gp.y[~idx_finite_y] = gp.y[y_idx_penalty].copy()
-        if "S" in optim_state:
-            gp.s2[~idx_finite_y] = gp.s2[y_idx_penalty]
+        idx_penalty = np.flatnonzero(idx_finite_y)[
+            np.argmax(gp.y[idx_finite_y])
+        ]
+        gp.y[~idx_finite_y] = gp.y.flat[idx_penalty]
+        if options.get("specify_target_noise") and gp.s2 is not None:
+            gp.s2[~idx_finite_y] = gp.s2.flat[idx_penalty]
 
     gp.temporary_data["err_y"] = ~idx_finite_y
 
@@ -1242,6 +1246,14 @@ def add_and_update_gp(
         # `sd_new` is a standard deviation; the GP takes variances.
         s2_new = np.atleast_2d(sd_new) ** 2
 
+    # An ill-defined value enters as the highest value of the training set,
+    # with its noise, as in MATLAB's gpupdate.m
+    if not np.all(np.isfinite(y_new)):
+        idx_penalty = np.argmax(gp.y)
+        y_new = gp.y.flat[idx_penalty]
+        if s2_new is not None and gp.s2 is not None:
+            s2_new = np.atleast_2d(gp.s2.flat[idx_penalty])
+
     # The data go through `update`, so that a failure leaves the GP without
     # them; the hyperparameters, given, keep the full recomputation.
     try:
@@ -1260,6 +1272,5 @@ def add_and_update_gp(
 
     # Missing port: intmean part
     # TODO how is handled the user defined noise
-    # TODO should we add a check if the values are well defined?
 
     return gp
