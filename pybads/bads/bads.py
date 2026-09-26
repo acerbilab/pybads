@@ -60,7 +60,8 @@ class BADS:
         are given in the outer scope.
     x0 : np.ndarray, optional
         Starting point for the optimization, a single point of ``D``
-        elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``, the
+        elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``,
+        or if an element is not finite (``nan``, ``inf`` or ``-inf``), the
         starting point ``x0`` is uniformly randomly drawn inside the plausible
         box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
         below). With ``non_box_cons``, a point that violates the constraints
@@ -482,8 +483,11 @@ class BADS:
         # Check that all X0 are inside the bounds. As in MATLAB BADS
         # (boundscheck.m, setupvars.m), neither x0 nor the plausible bounds
         # are moved: a start on a hard bound or outside the plausible box
-        # stays where it is
-        if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
+        # stays where it is. A start that is not finite passes: __init__
+        # replaces it by a random point, as MATLAB BADS does (setupvars.m)
+        if np.all(np.isfinite(x0)) and (
+            np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds)
+        ):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
                 points X0 are not inside the provided hard bounds lower_bounds and upper_bounds."""

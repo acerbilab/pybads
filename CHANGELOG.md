@@ -241,15 +241,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   target that it found noisy was optimized as a noisy one although the
   option declared it deterministic. The test runs when
   `uncertainty_handling` is left empty.
-- **Random starting point.** Without a finite `x0`, the starting point is
-  drawn uniformly in the transformed plausible box, as in MATLAB BADS:
-  log-uniformly in the original space for a variable on a log scale (all
-  its bounds positive, and `pub/plb >= 10`). It was drawn uniformly in the
-  original plausible box, which put most starting points in the upper
-  decade of such a variable. With `non_box_cons`, a random starting point
-  that violates the constraints is drawn again, up to 1000 times, before
-  `BADS` raises `ValueError`, where 1.1.0 and MATLAB BADS raise at the
-  first; a run whose first draw satisfies the constraints is unchanged.
+- **Random starting point.** Without a finite `x0` (none, or one with an
+  element of `nan`, `inf` or `-inf`), the starting point is drawn uniformly
+  in the transformed plausible box, as in MATLAB BADS: log-uniformly in the
+  original space for a variable on a log scale (all its bounds positive, and
+  `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
+  which put most starting points in the upper decade of such a variable.
+  With `non_box_cons`, a random starting point that violates the constraints
+  is drawn again, up to 1000 times, before `BADS` raises `ValueError`, where
+  1.1.0 and MATLAB BADS raise at the first; a run whose first draw satisfies
+  the constraints is unchanged. 1.1.0 refused a start with an element of
+  `inf` or `-inf` when the hard bound on that side was finite.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when

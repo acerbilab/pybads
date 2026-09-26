@@ -132,6 +132,20 @@ def test_start_and_plausible_bounds_are_kept(bounds, log, u_bounds, u0):
 
 
 @pytest.mark.parametrize(
+    "x0", [[np.inf, 0.0], [0.0, -np.inf]], ids=["plus_inf", "minus_inf"]
+)
+def test_infinite_x0_is_drawn_at_random(x0):
+    """A start with an infinite element is replaced by a random point in the
+    plausible box, the one drawn for a missing `x0`, also within finite hard
+    bounds, as in MATLAB BADS (`setupvars.m`)."""
+    bounds = (-2 * np.ones(2), 2 * np.ones(2), -np.ones(2), np.ones(2))
+    bads = BADS(_sphere, np.array(x0), *bounds, options=OPTIONS)
+    missing = BADS(_sphere, None, *bounds, options=OPTIONS)
+    assert np.all(np.isfinite(bads.x0)) and np.all(np.abs(bads.x0) <= 1)
+    np.testing.assert_array_equal(bads.x0, missing.x0)
+
+
+@pytest.mark.parametrize(
     "bounds",
     [(-np.ones(2), np.ones(2)), ()],
     ids=["with_bounds", "without_bounds"],
