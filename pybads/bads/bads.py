@@ -617,19 +617,14 @@ class BADS:
         """
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
-        # Record starting points (original coordinates)
+        # Record starting points (original coordinates); f_vals, their
+        # function values, is not supported
         if self.options["f_vals"] is not None:
-            y_orig = np.array(self.options.get("f_vals")).flatten()
-            if len(y_orig) == 0:
-                y_orig = np.full([self.x0.shape[0]], np.nan)
-            if len(self.x0) != len(y_orig):
-                raise ValueError(
-                    """bads:MismatchedStartingInputs The number of
-                points in X0 and of their function values as specified in
-                self.options.['f_vals'] are not the same."""
-                )
-        else:
-            y_orig = np.full([self.x0.shape[0]], np.nan)
+            raise ValueError(
+                "options['f_vals'] is not supported: leave it None (its "
+                "default)."
+            )
+        y_orig = np.full([self.x0.shape[0]], np.nan)
 
         optim_state = dict()
         optim_state["random_seed"] = self._random_seed

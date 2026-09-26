@@ -92,6 +92,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   made before the run, with a message that the option is not supported yet;
   the import was never ported, and 1.1.0 stopped with an unrelated
   `ValueError`.
+- **`f_vals`.** `BADS` refuses an `f_vals` other than `None` with a message
+  that the option is not supported; in 1.1.0 every run given it stopped at
+  its first display line, with `display="off"` too.
 
 ### Fixed
 

@@ -133,3 +133,10 @@ def test_fun_values_is_not_supported():
     with pytest.raises(ValueError, match="fun_values'] is not supported"):
         _make_bads(fun_values=fun_values)
     assert _make_bads(fun_values={}).options["fun_values"] == {}
+
+
+def test_f_vals_is_not_supported():
+    """`f_vals`, PyBADS's own, filled a cache that nothing reads and stopped
+    the run at its first display line."""
+    with pytest.raises(ValueError, match="f_vals'] is not supported"):
+        _make_bads(f_vals=[48.0])
