@@ -266,12 +266,14 @@ def local_gp_fitting(
     (``pybads.rng.get_rng``).
 
     If the posterior on the new training set cannot be computed
-    (``LinAlgError``), it is computed with the previous hyperparameters, and
-    the exit flag is -2. If that fails too, the GP is restored as it was on
-    entry, the exit flag is -2, and ``gp.temporary_data["needs_rebuild"]``
-    and ``["needs_refit"]`` are set, so that the next search or poll step
-    rebuilds the local GP with a refit. A call that leaves a posterior on
-    the new training set removes both markers.
+    (``LinAlgError``) with the hyperparameters of a refit, it is computed
+    with the previous ones, and the exit flag is -2. If that fails too, or
+    if there was no refit (the hyperparameters that failed are the previous
+    ones), the GP is restored as it was on entry, the exit flag is -2, and
+    ``gp.temporary_data["needs_rebuild"]`` and ``["needs_refit"]`` are set,
+    so that the next search or poll step rebuilds the local GP with a
+    refit. A call that leaves a posterior on the new training set removes
+    both markers.
 
     After a refit, the geometry that the poll and the search read from
     ``gp.temporary_data`` (``"len_scale"``, ``"poll_scale"`` and
@@ -493,13 +495,20 @@ def local_gp_fitting(
         )
         gp.set_priors(old_priors)
         exit_flag = -2
-        try:
-            gp.set_hyperparameters(old_hyp_gp)
-        except np.linalg.LinAlgError:
-            # Without a refit, `hyp_gp` is `old_hyp_gp`, and this repeats
-            # the computation that failed. Back to the GP of the entry, in
-            # place, marked for a rebuild with a refit (MATLAB's gpupdate
-            # clears the posterior, which has the next step rebuild it).
+        # After a refit, retry with the previous hyperparameters. Without
+        # one, `hyp_gp` is `old_hyp_gp`, and a retry would repeat the
+        # computation that failed.
+        recovered = False
+        if refit_flag:
+            try:
+                gp.set_hyperparameters(old_hyp_gp)
+                recovered = True
+            except np.linalg.LinAlgError:
+                pass
+        if not recovered:
+            # Back to the GP of the entry, in place, marked for a rebuild
+            # with a refit (MATLAB's gpupdate clears the posterior, which
+            # has the next step rebuild it).
             logger.debug(
                 "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
             )

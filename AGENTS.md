@@ -242,8 +242,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   assigned before an update that fails, the new data sit beside the old
   posteriors, and `predict` then raises, or silently predicts wrong values
   when the sizes are equal. `local_gp_fitting`, which replaces the training
-  set, snapshots the GP and restores it when the rebuild and its retry
-  with the previous hyperparameters both fail. A GP that could not take a
+  set, snapshots the GP and restores it when the rebuild fails: at once
+  without a refit, and after a refit when its retry with the previous
+  hyperparameters fails too. A GP that could not take a
   point carries `temporary_data["needs_rebuild"]`; a restored one also
   carries `["needs_refit"]`. The markers are set in
   `gaussian_process_train.py` and read by the search and the poll in

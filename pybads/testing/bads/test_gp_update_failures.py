@@ -394,10 +394,9 @@ def _local_fit(c, gp, refit_flag):
     )
 
 
-@pytest.mark.parametrize("refit_flag", [False, True], ids=["norefit", "refit"])
-def test_local_fit_double_failure_restores_gp(
-    captured, inject, refit_flag, caplog
-):
+def test_local_fit_double_failure_restores_gp(captured, inject, caplog):
+    """After a refit, the posterior update and its retry with the old
+    hyperparameters fail: the GP is restored and marked."""
     level, c = captured
     injector = inject(
         lambda call: call.site == "local_gp_fitting" and call.n <= 2
@@ -405,13 +404,40 @@ def test_local_fit_double_failure_restores_gp(
     gp = copy.deepcopy(c.local["gp"])
     entry = copy.deepcopy(gp)
     with caplog.at_level(logging.DEBUG, logger="BADS"):
-        out, exit_flag = _local_fit(c, gp, refit_flag)
+        out, exit_flag = _local_fit(c, gp, True)
     assert out is gp
     assert _debug_loggers(caplog, "local_gp_fitting") == ["BADS", "BADS"]
     assert exit_flag == -2
     assert [call[:2] for call in injector.failed] == [
         ("local_gp_fitting", "update"),
         ("local_gp_fitting", "set_hyperparameters"),
+    ]
+    _assert_same_gp(gp, entry)
+    u = np.atleast_2d(c.local["u"])
+    for mine, theirs in zip(gp.predict(u), entry.predict(u)):
+        assert np.array_equal(mine, theirs)
+    assert gp.temporary_data["needs_rebuild"] is True
+    assert gp.temporary_data["needs_refit"] is True
+
+
+def test_local_fit_failure_without_refit_is_not_retried(
+    captured, inject, caplog
+):
+    """Without a refit, the posterior update that fails has the old
+    hyperparameters, so it is not retried: the GP is restored and marked
+    after that one update."""
+    level, c = captured
+    injector = inject(lambda call: call.site == "local_gp_fitting")
+    gp = copy.deepcopy(c.local["gp"])
+    entry = copy.deepcopy(gp)
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        out, exit_flag = _local_fit(c, gp, False)
+    assert out is gp
+    assert _debug_loggers(caplog, "local_gp_fitting") == ["BADS", "BADS"]
+    assert exit_flag == -2
+    assert injector.counts["local_gp_fitting"] == 1
+    assert [call[:2] for call in injector.failed] == [
+        ("local_gp_fitting", "update")
     ]
     _assert_same_gp(gp, entry)
     u = np.atleast_2d(c.local["u"])
@@ -752,7 +778,7 @@ def test_poll_treats_restored_gp_as_unreliable(monkeypatch, inject, fail):
 
     def should_fail(call):
         if fail and armed["on"] and call.site == "local_gp_fitting":
-            if armed["fails"] < 2:
+            if armed["fails"] < 1:
                 armed["fails"] += 1
                 return True
         return False
@@ -774,7 +800,7 @@ def test_poll_treats_restored_gp_as_unreliable(monkeypatch, inject, fail):
         on_first=lambda: armed.update(on=True),
         state=state,
     )
-    assert len(injector.failed) == (2 if fail else 0)
+    assert len(injector.failed) == (1 if fail else 0)
     # The 2nd iteration rebuilds for the marker, and the 3rd refits after a
     # failed rebuild. Only the 2nd iteration's verdict depends on the
     # failure (the 1st may find the GP unreliable on its own).
@@ -886,7 +912,7 @@ def test_noisy_search_after_failed_rebuild_counts_as_failure(
                 state["armed"] = True
                 return True
         elif state["armed"] and call.site == "local_gp_fitting":
-            if state["local"] < 2:
+            if state["local"] < 1:
                 state["local"] += 1
                 return True
         return False
@@ -898,9 +924,8 @@ def test_noisy_search_after_failed_rebuild_counts_as_failure(
     assert [call[:2] for call in injector.failed] == [
         ("add_and_update_gp", "update"),
         ("local_gp_fitting", "update"),
-        ("local_gp_fitting", "set_hyperparameters"),
     ]
-    f_new, s_new = _first_estimate_after(log, 3)
+    f_new, s_new = _first_estimate_after(log, 2)
     assert np.isnan(f_new) and np.isnan(s_new)
     point = log["failed_points"][0]
     assert not any(np.array_equal(u, point) for u in log["moves"])
@@ -937,7 +962,7 @@ def test_sto_search_after_failed_rebuild_counts_as_failure(
                 state["armed"] = True
                 return True
         elif state["armed"] and call.site == "local_gp_fitting":
-            if state["local"] < 2:
+            if state["local"] < 1:
                 state["local"] += 1
                 return True
         return False
@@ -960,9 +985,8 @@ def test_sto_search_after_failed_rebuild_counts_as_failure(
     assert [call[:2] for call in injector.failed] == [
         ("add_and_update_gp", "update"),
         ("local_gp_fitting", "update"),
-        ("local_gp_fitting", "set_hyperparameters"),
     ]
-    _, f_new, s_new, outcome = next(o for o in outcomes if o[0] == 3)
+    _, f_new, s_new, outcome = next(o for o in outcomes if o[0] == 2)
     assert np.isnan(f_new) and np.isnan(s_new)
     assert outcome == -1
     point = log["failed_points"][0]
@@ -998,7 +1022,7 @@ def _all_adds(failed):
             lambda failed: [call[:3] for call in failed]
             == [
                 ("local_gp_fitting", "update", 5),
-                ("local_gp_fitting", "set_hyperparameters", 6),
+                ("local_gp_fitting", "update", 6),
             ],
         ),
         (
