@@ -1,0 +1,67 @@
+/home/user/pybads-fix-E/pybads/__init__.py
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+  bounded_below seed 1: x [0.30003462 1.99961543] evals 51
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 3 infinite bound(s), of the variable(s) (index) [0, 1].
+bounded_below      max|err| over seeds 0-19: max 0.00069, median 0.00026; evals 51-51
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+  bounded_above seed 1: x [0.29998169 2.00024414] evals 51
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+bounded_above      max|err| over seeds 0-19: max 0.000706, median 0.000227; evals 51-51
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+  bounded_below_log seed 1: x [0.29998415 1.99974789] evals 74
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+Detected 2 infinite bound(s), of the variable(s) (index) [0, 1].
+bounded_below_log  max|err| over seeds 0-19: max 0.00462, median 0.00152; evals 66-74
