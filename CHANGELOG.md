@@ -341,6 +341,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   an `x0` of more than one row when it is created, as MATLAB BADS does.
   1.1.0 accepted it, estimated missing plausible bounds from its rows, and
   then failed in `optimize()`.
+- **Bounds of large magnitude.** `BADS` no longer refuses valid bounds of
+  large magnitude (from about 1e10, or an upper bound from about 1e9 for a
+  variable on a log scale) with "Cannot invert the transform to obtain the
+  identity at the provided boundaries": the check that the transform of the
+  variables can be inverted allows an error relative to the size of the
+  bound, which rounding alone exceeded. The defect is shared with MATLAB
+  BADS.
 
 ## [1.1.0] - 2026-09-25
 

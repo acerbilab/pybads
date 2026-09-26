@@ -215,16 +215,14 @@ class VariableTransformer:
             np.logical_and((~np.isfinite(self.orig_ub)), self.apply_log_t)
         ] = 1e6
 
-        numeps = 1e-6  # accepted numerical error
+        # accepted numerical error, relative to a bound larger than 1 in
+        # magnitude (MATLAB BADS's transvars.m takes 1e-6 in absolute terms,
+        # which rounding alone exceeds at bounds of large magnitude)
+        numeps = 1e-6
         tests = np.zeros(4)
-        tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
-        tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(
-            np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps
-        )
-        tests[3] = np.all(
-            np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps
-        )
+        for i, b in enumerate([lbtest, ubtest, self.orig_plb, self.orig_pub]):
+            tol = numeps * np.maximum(1.0, np.abs(b))
+            tests[i] = np.all(np.abs(ginv(g(b)) - b) < tol)
         if not np.all(tests):
             raise ValueError(
                 "Cannot invert the transform to obtain the identity at the provided boundaries."

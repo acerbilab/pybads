@@ -205,3 +205,27 @@ def test_transform_inverse_largeN():
     U = parameter_transformer(X)
     X2 = parameter_transformer.inverse_transf(U)
     assert np.all(np.isclose(X, X2, rtol=1e-12, atol=1e-14))
+
+
+@pytest.mark.parametrize(
+    "bounds, log_t",
+    [
+        ((-9.53e10, 9.53e10, -2.06, -0.74), False),
+        ((1e-3, 2e9, 1.0, 10.0), True),
+    ],
+    ids=["linear", "log"],
+)
+def test_bounds_of_large_magnitude(bounds, log_t):
+    """The transform's self-test allows an error relative to a bound of large
+    magnitude, so that rounding alone does not refuse the bound: the error
+    of the round trip at `ub` is one or a few units in the last place, 1.5e-5
+    and 2.4e-6 here, above an absolute 1e-6."""
+    lb, ub, plb, pub = (np.array([[bound]]) for bound in bounds)
+    parameter_transformer = VariableTransformer(
+        1, lb, ub, plb, pub, np.full((1, 1), np.nan)
+    )
+    assert parameter_transformer.apply_log_t.item() == log_t
+    np.testing.assert_allclose(parameter_transformer.plb, -1.0, atol=1e-12)
+    np.testing.assert_allclose(parameter_transformer.pub, 1.0, atol=1e-12)
+    X = parameter_transformer.inverse_transf(parameter_transformer.ub)
+    np.testing.assert_allclose(X, ub, rtol=1e-12)
