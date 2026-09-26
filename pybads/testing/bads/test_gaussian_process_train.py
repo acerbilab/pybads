@@ -26,7 +26,7 @@ from pybads.stats import get_hpd
 def test_get_fevals_data_no_noise():
     D = 3
     f = lambda x: np.sum(x + 2, axis=1)
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * -1
     pub = np.ones((1, D)) * 1
 
@@ -71,7 +71,7 @@ def test_get_fevals_data_no_noise():
 def test_get_fevals_data_noise():
     D = 3
     f = lambda x: (np.sum(np.atleast_2d(x) + 2, axis=1), 0)
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * -5
     pub = np.ones((1, D)) * 5
     options = {"specify_target_noise": True, "uncertainty_handling": True}
@@ -175,7 +175,7 @@ def test_get_gp_training_options_samplers():
     D = 3
     lb = np.ones((1, D)) * 1
     ub = np.ones((1, D)) * 5
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * 2
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
@@ -203,7 +203,7 @@ def test_get_gp_training_options_opts_N():
     D = 3
     lb = np.ones((1, D)) * 1
     ub = np.ones((1, D)) * 5
-    x0 = np.ones((2, D)) * 3
+    x0 = np.ones((1, D)) * 3
     plb = np.ones((1, D)) * 2
     pub = np.ones((1, D)) * 4
     f = lambda x: np.sum(x + 2)
