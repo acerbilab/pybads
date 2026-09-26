@@ -77,6 +77,61 @@ def test_scalar_bounds_are_replicated(plausible):
 
 
 @pytest.mark.parametrize(
+    "bounds, log, u_bounds, u0",
+    [
+        ((0.0, -5.0, 5.0), False, (-1.0, 1.0), 0.0),
+        ((-5.0, -5.0, 5.0), False, (-1.0, 1.0), -1.0),
+        ((-5.0, -5.0, 5.0, -2.0, 2.0), False, (-2.5, 2.5), -2.5),
+        ((9.995, 0.0, 10.0, 2.0, 8.0), False, (-5 / 3, 5 / 3), 1705 / 1024),
+        ((2.0, 1.0, 10.0), True, (-1.0, 1.0), -407 / 1024),
+        ((1e-2, 1e-3, 1e3, 1e-2, 1e2), True, (-1.5, 1.5), -1.0),
+        ((2e-4, 0.0, 1.0, 1e-4, 5e-4), False, (-1.5, 4998.5), -0.5),
+        (
+            (0.5, -1000.0, 1.0, 0.0, 0.99),
+            False,
+            (-1000.495 / 0.495, 0.505 / 0.495),
+            10 / 1024,
+        ),
+    ],
+    ids=[
+        "plausible_omitted",
+        "start_on_bound_plausible_omitted",
+        "start_on_bound",
+        "start_near_bound_outside_plausible",
+        "log_plausible_omitted",
+        "log_start_on_plausible_bound",
+        "plausible_near_lower_bound",
+        "plausible_near_upper_bound",
+    ],
+)
+def test_start_and_plausible_bounds_are_kept(bounds, log, u_bounds, u0):
+    """As in MATLAB BADS (`boundscheck.m`, `setupvars.m`), neither `x0` nor
+    the plausible bounds are moved: omitted plausible bounds are the hard
+    bounds, a start on a hard bound or outside the plausible box stays where
+    it is, and plausible bounds close to a hard bound are accepted. The
+    transformed hard bounds and the start on the grid are MATLAB's."""
+    x0, lb, ub, plb, pub = (bounds + (None, None))[:5]
+    bads = BADS(
+        _sphere,
+        *[
+            None if b is None else np.array([b])
+            for b in (x0, lb, ub, plb, pub)
+        ],
+        options=OPTIONS,
+    )
+    state = bads.optim_state
+    np.testing.assert_array_equal(bads.x0, [[x0]])
+    plb, pub = (lb if plb is None else plb), (ub if pub is None else pub)
+    np.testing.assert_array_equal(state["plb_orig"], [[plb]])
+    np.testing.assert_array_equal(state["pub_orig"], [[pub]])
+    assert bads.var_transf.apply_log_t.tolist() == [[log]]
+    np.testing.assert_allclose(
+        np.hstack([state["lb"], state["ub"]]), [u_bounds], rtol=1e-12
+    )
+    np.testing.assert_allclose(state["u"], [[u0]], rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize(
     "bounds",
     [(-np.ones(2), np.ones(2)), ()],
     ids=["with_bounds", "without_bounds"],

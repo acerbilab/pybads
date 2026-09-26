@@ -479,85 +479,17 @@ class BADS:
             plausible lower and upper bounds need to be distinct."""
             )
 
-        # Check that all X0 are inside the bounds
+        # Check that all X0 are inside the bounds. As in MATLAB BADS
+        # (boundscheck.m, setupvars.m), neither x0 nor the plausible bounds
+        # are moved: a start on a hard bound or outside the plausible box
+        # stays where it is
         if np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds):
             raise ValueError(
                 """bads:InitialPointsNotInsideBounds: The starting
                 points X0 are not inside the provided hard bounds lower_bounds and upper_bounds."""
             )
 
-        # # Compute "effective" bounds (slightly inside provided hard bounds)
-        bounds_range = upper_bounds - lower_bounds
-        bounds_range[np.isinf(bounds_range)] = 1e3
-        scale_factor = 1e-3
-        realmin = sys.float_info.min
-        LB_eff = lower_bounds + scale_factor * bounds_range
-        LB_eff[np.abs(lower_bounds) <= realmin] = (
-            scale_factor * bounds_range[np.abs(lower_bounds) <= realmin]
-        )
-        UB_eff = upper_bounds - scale_factor * bounds_range
-        UB_eff[np.abs(upper_bounds) <= realmin] = (
-            -scale_factor * bounds_range[np.abs(upper_bounds) <= realmin]
-        )
-        # Infinities stay the same
-        LB_eff[np.isinf(lower_bounds)] = lower_bounds[np.isinf(lower_bounds)]
-        UB_eff[np.isinf(upper_bounds)] = upper_bounds[np.isinf(upper_bounds)]
-
-        if np.any(LB_eff >= UB_eff):
-            raise ValueError(
-                """bads:StrictBoundsTooClose: Hard bounds lower_bounds and upper_bounds
-                are numerically too close. Make them more separate."""
-            )
-
-        # Fix when provided X0 are almost on the bounds -- move them inside
-        if np.any(x0 < LB_eff) or np.any(x0 > UB_eff):
-            self.logger.warning(
-                "bads:InitialPointsTooClosePB: The starting points X0 are on "
-                + "or numerically too close to the hard bounds lower_bounds and upper_bounds. "
-                + "Moving the initial points more inside..."
-            )
-            x0 = np.maximum((np.minimum(x0, UB_eff)), LB_eff)
-
-        # Test order of bounds (permissive)
-        ordidx = (
-            (lower_bounds <= plausible_lower_bounds)
-            & (plausible_lower_bounds < plausible_upper_bounds)
-            & (plausible_upper_bounds <= upper_bounds)
-        )
-        if np.any(np.invert(ordidx)):
-            raise ValueError(
-                """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering lower_bounds < plausible_lower_bounds < plausible_upper_bounds < upper_bounds."""
-            )
-
-        # Test that plausible bounds are reasonably separated from hard bounds
-        if np.any(LB_eff > plausible_lower_bounds) or np.any(
-            plausible_upper_bounds > UB_eff
-        ):
-            self.logger.warning(
-                "bads:TooCloseBounds: For each variable, hard "
-                + "and plausible bounds should not be too close. "
-                + "Moving plausible bounds."
-            )
-            plausible_lower_bounds = np.maximum(plausible_lower_bounds, LB_eff)
-            plausible_upper_bounds = np.minimum(plausible_upper_bounds, UB_eff)
-
-        # Check that all X0 are inside the plausible bounds,
-        # move bounds otherwise
-        if np.any(x0 <= LB_eff) or np.any(x0 >= UB_eff):
-            self.logger.warning(
-                "bads:InitialPointsOutsidePB. The starting points X0"
-                + " are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds)."
-                + " Expanding the plausible bounds..."
-            )
-            plausible_lower_bounds = np.minimum(
-                plausible_lower_bounds, x0.min(0)
-            )
-            plausible_upper_bounds = np.maximum(
-                plausible_upper_bounds, x0.max(0)
-            )
-
-        # Test order of bounds
+        # Test order of bounds, as in MATLAB BADS (setupvars.m)
         ordidx = (
             (lower_bounds <= plausible_lower_bounds)
             & (plausible_lower_bounds < plausible_upper_bounds)

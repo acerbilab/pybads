@@ -45,6 +45,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
 - Without `specify_target_noise` and with `noise_final_samples=1`,
   `yval_vec` has shape (2,), not (2, 1).
+- `x0` and the plausible bounds are used as given: a start near a hard bound
+  is no longer moved inside it, the plausible bounds are no longer moved
+  away from the hard ones, and a start near a hard bound no longer widens
+  the plausible box.
 
 ### Changed
 
@@ -459,6 +463,18 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   time when the last `accelerate_mesh_steps` iterations improved by less
   than `tol_fun`, from iteration `accelerate_mesh_steps + 1` on, as in
   MATLAB BADS; 1.1.0 started one iteration later. Results change.
+- **Start and plausible bounds used as given.** BADS no longer moves `x0`,
+  `plausible_lower_bounds` or `plausible_upper_bounds` 0.1% of the range
+  inside the hard bounds, nor widens the plausible box to a start near a
+  hard bound; MATLAB BADS does neither. A start on a hard bound is kept,
+  omitted plausible bounds are exactly the hard bounds (so that a variable
+  on `[1, 10]` is on a log scale), and plausible bounds within 0.1% of the
+  range of a hard bound, which 1.1.0 could refuse with `bads:StrictBounds`,
+  are accepted. The warnings `bads:InitialPointsTooClosePB`,
+  `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
+  `bads:StrictBoundsTooClose` are gone. Results change on problems with the
+  plausible bounds omitted or near a hard bound, or with a start near a hard
+  bound.
 
 ## [1.1.0] - 2026-09-25
 
