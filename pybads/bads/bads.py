@@ -258,11 +258,15 @@ class BADS:
 
         # starting point
         if not np.all(np.isfinite(self.x0)):
-            self.x0 = self.rng.uniform(
-                low=self.plausible_lower_bounds,
-                high=self.plausible_upper_bounds,
+            # Uniform in the transformed plausible box, as in MATLAB BADS
+            # (setupvars.m): log-uniform for a log-transformed variable
+            var_transf = self._variable_transformer_()
+            u0 = self.rng.uniform(
+                low=var_transf.plb,
+                high=var_transf.pub,
                 size=(1, self.D),
             )
+            self.x0 = var_transf.inverse_transf(u0)
             self.logger.log(
                 25,
                 "Initial starting point is invalid or not provided."
@@ -626,24 +630,7 @@ class BADS:
             )
 
         # Compute transformation of variables
-        if self.options["nonlinear_scaling"]:
-            logflag = np.full((1, self.D), np.nan)
-            periodic_vars = self.options["periodic_vars"]
-            if periodic_vars is not None and len(periodic_vars) != 0:
-                logflag[
-                    :, periodic_vars
-                ] = 0  # Never transform periodic variables
-        else:
-            logflag = np.zeros((1, self.D))
-
-        self.var_transf = VariableTransformer(
-            self.D,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.plausible_lower_bounds,
-            self.plausible_upper_bounds,
-            logflag,
-        )
+        self.var_transf = self._variable_transformer_()
         # optim_state["variables_trans"] = var_transf
 
         # Update the bounds with the new transformed bounds
@@ -963,6 +950,28 @@ class BADS:
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 
         return optim_state
+
+    def _variable_transformer_(self):
+        """The transformation of the variables, from the bounds in the
+        original space and the ``nonlinear_scaling`` option."""
+        if self.options["nonlinear_scaling"]:
+            logflag = np.full((1, self.D), np.nan)
+            periodic_vars = self.options["periodic_vars"]
+            if periodic_vars is not None and len(periodic_vars) != 0:
+                logflag[
+                    :, periodic_vars
+                ] = 0  # Never transform periodic variables
+        else:
+            logflag = np.zeros((1, self.D))
+
+        return VariableTransformer(
+            self.D,
+            self.lower_bounds,
+            self.upper_bounds,
+            self.plausible_lower_bounds,
+            self.plausible_upper_bounds,
+            logflag,
+        )
 
     def _init_rng_(self):
         """

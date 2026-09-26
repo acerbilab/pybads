@@ -202,3 +202,25 @@ def test_declared_deterministic_target_takes_no_noise_test():
     assert bads.optim_state["uncertainty_handling_level"] == 0
     evaluated = bads.function_logger.X[bads.function_logger.X_flag]
     assert bads.function_logger.func_count == len(evaluated)
+
+
+def test_random_x0_is_uniform_in_the_transformed_box():
+    """A missing `x0` is drawn uniformly in the transformed plausible box,
+    as in MATLAB BADS (`setupvars.m`): log-uniform in the original space for
+    a log-transformed variable. The draw is the run's first."""
+    lb, ub = np.array([0.5, -10.0]), np.array([200.0, 10.0])
+    plb, pub = np.array([1.0, -5.0]), np.array([100.0, 5.0])
+    bads = BADS(
+        _sphere,
+        None,
+        lb,
+        ub,
+        plb,
+        pub,
+        options={"display": "off", "random_seed": 5},
+    )
+    assert bads.var_transf.apply_log_t.tolist() == [[True, False]]
+    u = np.random.default_rng(5).uniform(-1.0, 1.0, size=(1, 2))
+    # [1, 100] maps log-linearly to [-1, 1], [-5, 5] linearly
+    expected = [10.0 ** (1.0 + u[0, 0]), 5.0 * u[0, 1]]
+    np.testing.assert_allclose(bads.x0.ravel(), expected, rtol=1e-12)
