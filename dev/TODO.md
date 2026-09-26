@@ -78,28 +78,6 @@ order.
     their commits `2226883` and `c85cddb` (reachable from
     `refs/pull/59/head`) and a clone of gpyreg at v1.3.1, since no run of
     the suite fails under gpyreg 1.3.3.
-- [ ] **Small defects of the noise options and the final estimate**, rows
-  of the survey's candidate table:
-  - without target noise, the final `fsd` divides by `n`, where MATLAB's
-    `std` divides by `n - 1`;
-  - the final `fval` and `fsd` are recorded in the iteration history at
-    the last iteration, not at the iterate they describe;
-  - a list `noise_size`, or an array of two elements (MATLAB's base value
-    and prior SD), raises in `optimize()`;
-  - the high-noise check of `local_gp_fitting` reads `noise_size` under
-    `specify_target_noise`, where the warning says that it is ignored, and
-    `noise_size=0` makes every refit a high-noise one; MATLAB does the
-    same, so this one needs a decision: keep MATLAB's check and reword
-    the warning, or skip the check under target noise;
-  - the reported `iterations` is one below MATLAB's count;
-  - `output_fcn` is called only at the start, with two arguments where
-    MATLAB passes three, and one that stops the run there raises
-    `UnboundLocalError`;
-  - `max_fun_evals=1` raises `KeyError: 'eff_starting_points'`.
-
-  A fix that a user can notice gets a changelog entry; the fingerprint of
-  `dev/scripts/fingerprint.py` shows whether a fix moves results at
-  default options.
 - [ ] **`ellipsoid_D3_hetero` after `020d6a8`.** Squaring the target's noise
   standard deviations, as MATLAB does, made the runs of this benchmark
   configuration worse: over 90 seeds the median error rose from 0.21 to

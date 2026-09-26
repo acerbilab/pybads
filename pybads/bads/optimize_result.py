@@ -116,7 +116,8 @@ class OptimizeResult(dict):
         else:
             self["problem_type"] = "non-box constraints"
 
-        self["iterations"] = bads.optim_state["iter"]
+        # optim_state["iter"] counts from 0, and is -1 during initialization
+        self["iterations"] = bads.optim_state["iter"] + 1
         self["func_count"] = bads.function_logger.func_count
         self["mesh_size"] = bads.mesh_size
         self["overhead"] = bads.optim_state["overhead"]

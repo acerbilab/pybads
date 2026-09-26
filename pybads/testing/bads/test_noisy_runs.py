@@ -142,3 +142,106 @@ def test_noisy_run_in_one_iteration_reports_incumbent(make_fun, target_noise):
     result = bads.optimize()
     assert np.array_equal(result["yval_vec"], [bads.yval])
     assert result["ysd_vec"] is None
+
+
+def test_noise_size_zero_with_target_noise_changes_nothing():
+    """With `specify_target_noise`, `noise_size` is ignored, as the warning
+    says: 0, which the warning proposes, gives the run of an empty
+    `noise_size`."""
+    empty = _make_bads(_noisy_sphere_with_estimated_sd(0)).optimize()
+    zero = _make_bads(
+        _noisy_sphere_with_estimated_sd(0), noise_size=0.0
+    ).optimize()
+    assert np.array_equal(zero["x"], empty["x"])
+    assert zero["fval"] == empty["fval"]
+    assert zero["func_count"] == empty["func_count"]
+
+
+@pytest.mark.parametrize("noise_size", [0.0, -1.0, [0.0, 1.0]], ids=str)
+def test_noise_size_must_be_positive(noise_size):
+    """Without target noise, `noise_size` sets the prior over the noise of
+    the GP, from its logarithm; as in MATLAB BADS, it must be positive."""
+    with pytest.raises(ValueError, match="noise_size"):
+        _make_bads(
+            _noisy_sphere(0),
+            specify_target_noise=False,
+            noise_size=noise_size,
+        )
+
+
+def test_noise_size_takes_at_most_two_values():
+    with pytest.raises(ValueError, match="noise_size"):
+        _make_bads(
+            _noisy_sphere(0),
+            specify_target_noise=False,
+            noise_size=[1.0, 1.0, 1.0],
+        )
+
+
+@pytest.mark.parametrize(
+    "noise_size, prior_sd",
+    [
+        ([2.0], 1.0),
+        (np.array([2.0]), 1.0),
+        ([2.0, 0.5], 0.5),
+        ((2.0, np.inf), 1.0),
+    ],
+    ids=["list", "array", "pair", "pair_without_sd"],
+)
+def test_noise_size_forms(noise_size, prior_sd):
+    """`noise_size` is a scalar or one value, or MATLAB's pair of the base
+    noise SD and the SD of the prior over its logarithm (1 when not
+    finite). The noise prior of the GP is centred at the log of the base,
+    as `mesh_noise_multiplier` is 0 in a noisy run."""
+    bads = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, noise_size=noise_size
+    )
+    result = bads.optimize()
+    assert result["fsd"] > 0
+    gp = bads.iteration_history.get("gp")[-1]
+    prior = gp.get_priors()["noise_log_scale"]
+    assert prior[0] == "gaussian"
+    assert prior[1][0] == pytest.approx(np.log(2.0))
+    assert prior[1][1] == pytest.approx(prior_sd)
+
+
+def test_final_estimate_without_target_noise():
+    """Without target noise, `fval` and `fsd` are the mean of the final
+    samples and its standard error, from their standard deviation
+    normalized by n - 1, as MATLAB's `std` is."""
+    result = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, max_fun_evals=100
+    ).optimize()
+    y = np.asarray(result["yval_vec"], dtype=float)
+    assert y.shape == (10,)
+    assert result["fval"] == pytest.approx(np.mean(y), rel=1e-12)
+    assert result["fsd"] == pytest.approx(
+        np.std(y, ddof=1) / np.sqrt(y.size), rel=1e-12
+    )
+
+
+def test_final_estimate_recorded_at_its_iterate():
+    """The final `fval` and `fsd` go into the iteration history at the
+    iterate they describe, the returned point. Which iterate a run returns
+    depends on its trajectory, so on the machine; of these three seeded
+    runs, at least one returns an iterate before the last, where the
+    estimate was recorded until 1.1.0."""
+    before_last = []
+    for seed in range(3):
+        bads = _make_bads(
+            _noisy_sphere(0),
+            specify_target_noise=False,
+            max_fun_evals=100,
+            random_seed=seed,
+        )
+        result = bads.optimize()
+        history = bads.iteration_history
+        fval = history.get("fval").astype(float)
+        fsd = history.get("fsd").astype(float)
+        (index,) = np.flatnonzero(fval == result["fval"])
+        assert fsd[index] == result["fsd"]
+        assert np.array_equal(
+            np.ravel(history.get("x")[index]), np.ravel(result["x"])
+        )
+        before_last.append(index < len(fval) - 1)
+    assert any(before_last)

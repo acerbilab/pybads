@@ -130,3 +130,15 @@ KS statistic of at least 0.50, and, for the paired signed-rank test, a
 shift of about 0.87 of the standard deviation of the paired log10 error
 ratios at 80% power. Between two versions on this platform, a run that a
 change does not reach is identical in both populations.
+
+## The records and later code
+
+`7b50a3a` (pull request #71) changes two fields of these records, neither
+of which `compare` reads: a run reports one iteration more (`iterations`
+counts from 1, as in MATLAB BADS), and the final `fsd` of the three
+configurations with inferred noise (`_homo`) is larger by `sqrt(10/9)`,
+1.0541 (the standard deviation of the final samples normalized by
+`n - 1`). Seven configurations (the three `_homo`, the two `_hetero`,
+`sphere_D2` and `ellipsoid_D3`) × seeds 0-3, rerun from a clean worktree
+with its package code, give these records in every other `final` field but
+`wall_s`.

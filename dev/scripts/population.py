@@ -255,7 +255,7 @@ def _final(prob, bads, res, exc, wall):
     elif bads is not None:  # crashed during optimize(): what the run reached
         try:
             out["func_count"] = int(bads.function_logger.func_count)
-            out["iterations"] = int(bads.optim_state["iter"])
+            out["iterations"] = int(bads.optim_state["iter"]) + 1
         except Exception:  # noqa: BLE001
             pass
     if bads is not None:

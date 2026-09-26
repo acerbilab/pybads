@@ -850,6 +850,33 @@ class BADS:
                 "Leave options['uncertainty_handling'] empty or set it to "
                 "True to avoid this error."
             )
+
+        # noise_size is a base noise SD, or MATLAB's pair of that base and
+        # the SD of the prior over its logarithm
+        if self.options["noise_size"] is not None and not np.isscalar(
+            self.options["noise_size"]
+        ):
+            noise_size = np.ravel(
+                np.asarray(self.options["noise_size"], dtype=float)
+            )
+            if noise_size.size not in (1, 2):
+                raise ValueError(
+                    "options['noise_size'] should be a scalar, or a pair of "
+                    "the base noise SD and the SD of the prior over its "
+                    "logarithm."
+                )
+            self.options["noise_size"] = (
+                noise_size.item() if noise_size.size == 1 else noise_size
+            )
+        if (
+            not self.options["specify_target_noise"]
+            and self.options["noise_size"] is not None
+            and np.ravel(self.options["noise_size"])[0] <= 0
+        ):
+            raise ValueError(
+                "options['noise_size'], if specified, needs to be positive "
+                "for numerical stability."
+            )
         if (
             self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
@@ -952,6 +979,12 @@ class BADS:
         A private function to initialize the mesh frame and the optimization problem.
         It evaluates the initial points, which includes the starting point and the generated point retrieved from a sobol sequence generating method.
         The init_mesh also assess if the target function is stochastic and set the parameter of BADS for handling stochastic targets.
+
+        Returns
+        ----------
+        is_finished : bool
+            True when the run ends here: with ``max_fun_evals = 1``, after
+            the evaluation of the starting point.
         """
         # Evaluate starting point and initial mesh, determine if function is noisy
         self.yval, self.fsd, _ = self.function_logger(self.u)
@@ -987,10 +1020,14 @@ class BADS:
                 "Beginning optimization of a DETERMINISTIC objective function\n"
             )
 
+        # set up strings for logging of the iteration
+        self.display_format = self._setup_logging_display_format()
+        self._log_column_headers()
+        self._display_function_log_(0, "")
+
         # Only one function evaluation
         if self.options["max_fun_evals"] == 1:
-            is_finished = True
-            return
+            return True
 
         # If dealing with a noisy function, use a large initial mesh
         if self.optim_state["uncertainty_handling_level"] > 0:
@@ -998,11 +1035,6 @@ class BADS:
                 np.maximum(20, self.options["fun_eval_start"]),
                 self.options["max_fun_evals"],
             )
-
-        # set up strings for logging of the iteration
-        self.display_format = self._setup_logging_display_format()
-        self._log_column_headers()
-        self._display_function_log_(0, "")
 
         if self.options["fun_eval_start"] > 0:
             # Evaluate initial points but not more than options['max_fun_evals']
@@ -1068,19 +1100,22 @@ class BADS:
         # but it might be different for example when considering a noisy target function OR when applying a non-box-contraint function.
         self.optim_state["eff_starting_points"] = self.function_logger.Xn + 1
 
-        return
+        return False
 
     def _init_optimization_(self):
         """
         A private function initialize the optimization problem.
         It calls the init_mesh, sets the option configurations required by BADS, and initializes the Guassian Process (GP)
+
+        A run that ends in the initialization (``max_fun_evals = 1``) trains
+        no GP: the returned ``gp`` is None.
         """
         gp = None
         self.reset_gp = False
         hyp_dict = {}
 
         # Evaluate starting point and initial mesh,
-        self._init_mesh_()
+        is_finished = self._init_mesh_()
 
         # Change options for uncertainty handling
         if self.optim_state["uncertainty_handling_level"] > 0:
@@ -1094,12 +1129,14 @@ class BADS:
             )
             self.options["min_failed_poll_steps"] = np.inf
             self.options["mesh_noise_multiplier"] = 0
-            if self.options["noise_size"] is None:
+            if (
+                self.options["noise_size"] is None
+                or self.optim_state["uncertainty_handling_level"] > 1
+            ):
+                # With specify_target_noise, noise_size is ignored (the
+                # warning of _init_optim_state_ says so): the high-noise
+                # check of the local GP takes the default base
                 self.options["noise_size"] = 1.0
-            if isinstance(
-                self.options["noise_size"], np.ndarray
-            ):  # ensure the noise_size is a scalar
-                self.options["noise_size"] = self.options["noise_size"].item()
 
             # Keep some function evaluations for the final resampling
             self.options["noise_final_samples"] = min(
@@ -1121,7 +1158,7 @@ class BADS:
                 self.fsd = self.function_logger.S[idx_min_y]
                 self.fsd = self.fsd.item()
             else:
-                self.fsd = self.options["noise_size"]
+                self.fsd = float(np.ravel(self.options["noise_size"])[0])
 
         else:
             if self.options["noise_size"] is None:
@@ -1140,6 +1177,9 @@ class BADS:
         self.optim_state["u_success"] = []
         self.optim_state["y_success"] = []
         self.optim_state["f_success"] = []
+
+        if is_finished:
+            return gp, None, None, hyp_dict
 
         # Initialize Gaussian Process (GP) structure
         gp, Ns_gp, sn2hpd, hyp_dict = init_and_train_gp(
@@ -1200,16 +1240,30 @@ class BADS:
         self.search_spree = 0
         self.restarts = self.options["restarts"]
 
-        # Initialize gp
+        # Initialize gp; a run with max_fun_evals=1 ends there, without a GP
         gp, Ns_gp, sn2hpd, hyp_dict = self._init_optimization_()
+        is_finished = gp is None
+        msg = (
+            "Optimization terminated: reached maximum number of function "
+            "evaluations after initialization."
+        )
 
         self.search_es_hedge = None  # init search hedge to None
 
-        if self.options["output_fcn"] is not None:
-            output_fcn = self.options["output_fcn"]
-            is_finished = output_fcn(
-                self.var_transf.inverse_transf(self.u), "init"
+        # The output function is called as in MATLAB BADS, at the start, at
+        # the end of each poll and at the end, with a copy of optim_state;
+        # a true return value stops the run
+        output_fcn = self.options["output_fcn"]
+        if output_fcn is not None:
+            stop = output_fcn(
+                self.var_transf.inverse_transf(self.u),
+                copy.deepcopy(self.optim_state),
+                "init",
             )
+            if stop and not is_finished:
+                is_finished = True
+                msg = "Optimization terminated by options['output_fcn']."
+        self.optim_state["termination_msg"] = msg
 
         poll_iteration += 1
         loop_iter = 0
@@ -1320,6 +1374,12 @@ class BADS:
             # check and do poll step
             if do_poll_step:
                 self._poll_step_(gp)
+                if output_fcn is not None and output_fcn(
+                    self.var_transf.inverse_transf(self.u),
+                    copy.deepcopy(self.optim_state),
+                    "iter",
+                ):
+                    is_finished = True
 
             # Finalize the iteration
 
@@ -1331,6 +1391,8 @@ class BADS:
             self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
 
             msg = ""
+            if is_finished:  # stopped by the output function
+                msg = "Optimization terminated by options['output_fcn']."
             # Check termination conditions
             if (
                 self.function_logger.func_count
@@ -1526,18 +1588,27 @@ class BADS:
                     ).item()
                     self.fsd = (1 / np.sqrt(tot_precision)).item()
                 else:
-                    # Mean of the samples and its standard error
+                    # Mean of the samples and its standard error, from
+                    # their SD normalized by n - 1 (MATLAB's std)
                     self.fval = np.mean(yval_vec).item()
                     self.fsd = (
-                        np.std(yval_vec) / np.sqrt(yval_vec.size)
+                        np.std(yval_vec, ddof=1) / np.sqrt(yval_vec.size)
                     ).item()
+                # The estimate describes the chosen iterate
                 self.iteration_history.record(
-                    "fval", self.fval, poll_iteration
+                    "fval", self.fval, min_q_beta_idx
                 )
-                self.iteration_history.record("fsd", self.fsd, poll_iteration)
+                self.iteration_history.record("fsd", self.fsd, min_q_beta_idx)
 
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
+
+        if output_fcn is not None:
+            output_fcn(
+                self.var_transf.inverse_transf(self.u),
+                copy.deepcopy(self.optim_state),
+                "done",
+            )
 
         # Compute total running time and fractional overhead
         timer.stop_timer("BADS")
@@ -1883,8 +1954,9 @@ class BADS:
 
         if len(search_string) > 0:
             self.logging_action.append("")
+            # The display counts iterations from 1, as MATLAB BADS does
             self._display_function_log_(
-                self.optim_state["iter"], search_string
+                self.optim_state["iter"] + 1, search_string
             )
 
         return u_search, search_dist, f_mu_search, f_sd_search, gp
@@ -2340,9 +2412,8 @@ class BADS:
         if self.last_skipped == self.optim_state["iter"]:
             self.logging_action.append("Skip")
 
-        self._display_function_log_(self.optim_state["iter"], poll_string)
-
-        # TODO: if self.output_function is not None -> Implement output function for saving the result in a file.
+        # The display counts iterations from 1, as MATLAB BADS does
+        self._display_function_log_(self.optim_state["iter"] + 1, poll_string)
 
         self.reset_gp = is_poll_moved
 

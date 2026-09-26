@@ -148,8 +148,12 @@ two stages:
    directions in LCB order and stops early when the GP's probability of
    improvement drops below `tol_poi`. The mesh
    (`poll_mesh_multiplier ** mesh_size_integer`) grows after a successful
-   poll and shrinks after a failed one. `max_iter` and the reported
-   `iterations` count polls, from 0 where MATLAB's count starts at 1.
+   poll and shrinks after a failed one. An iteration is a round of
+   searches that a poll ends, and a run can end within one: the reported
+   `iterations` and the displayed iteration number the current round from
+   1, as MATLAB does, `max_iter` ends the run when that number reaches it,
+   and `optim_state["iter"]`, the index into `iteration_history`, is one
+   less.
 
 The GP (`bads/gaussian_process_train.py` → `gpyreg.GP`) is local:
 `local_gp_fitting` rebuilds its training set from the nearest neighbours of

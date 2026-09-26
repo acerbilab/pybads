@@ -294,7 +294,7 @@ def local_gp_fitting(
     if options.get("specify_target_noise"):
         noise_size = options["tol_fun"]  # Additional jitter to specified noise
     else:
-        noise_size = options["noise_size"]
+        noise_size = np.ravel(options["noise_size"])[0]
 
     # Update GP Noise
     old_priors = gp.get_priors()
@@ -372,25 +372,15 @@ def local_gp_fitting(
             -1
         ]  # Matlab: Initial point #1 is old hyperparameter value (randomly picked)
         # Check for possible high-noise mode
-        if (
-            np.isscalar(options["noise_size"])
-            or len(options["noise_size"] == 1)
-            or (
-                len(options["noise_size"]) > 1
-                and ~np.isfinite(options["noise_size"][1])
-            )
-        ):
-            noise = 1
-            is_high_noise = (
-                last_dic_hyp_gp["noise_log_scale"]
-                > np.log(options["noise_size"]) + 2 * noise
-            )
+        noise_size = np.ravel(options["noise_size"])
+        if noise_size.size > 1 and np.isfinite(noise_size[1]):
+            noise = noise_size[1]
         else:
-            noise = options["noise_size"][1]
-            is_high_noise = (
-                last_dic_hyp_gp["noise_log_scale"]
-                > np.log(options["noise_size"][0]) + 2 * noise
-            )
+            noise = 1
+        is_high_noise = (
+            last_dic_hyp_gp["noise_log_scale"]
+            > np.log(noise_size[0]) + 2 * noise
+        )
 
         is_low_mean = False  # Check for mean stuck below minimum
         if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
@@ -901,7 +891,7 @@ def _gp_hyp(
             noise_mu = np.log(noise_size)
         else:
             noise_mu = np.log(noise_size[0])
-            noise_std = noise_size[1]
+            noise_std = noise_size[1] if np.isfinite(noise_size[1]) else 1
 
     else:
         noise_size = options["tol_fun"]
