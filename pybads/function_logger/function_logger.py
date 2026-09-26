@@ -287,7 +287,8 @@ class FunctionLogger:
         self.X_orig = self.X_orig[: self.Xn + 1]
         self.Y_orig = self.Y_orig[: self.Xn + 1]
 
-        # in the original matlab version X and Y get deleted
+        # MATLAB's funlogger 'done' trims X, Y, S and the evaluation times
+        # too, and removes U, the transformed points (PyBADS's X)
         self.X = self.X[: self.Xn + 1]
         self.Y = self.Y[: self.Xn + 1]
 

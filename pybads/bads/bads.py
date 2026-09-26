@@ -907,7 +907,8 @@ class BADS:
         optim_state["iterlist"]["fhyp"] = []
 
         # Initialize Gaussian process settings
-        # Squared exponential kernel with separate length scales
+        # Rational-quadratic kernel with separate length scales (MATLAB's
+        # default, 'rq')
         optim_state["gp_cov_fun"] = 1
 
         if optim_state.get("uncertainty_handling_level") == 0:
