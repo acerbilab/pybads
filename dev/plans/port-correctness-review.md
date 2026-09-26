@@ -67,7 +67,7 @@ sessions.
 
 | Code | Location | Revision |
 | --- | --- | --- |
-| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26) |
+| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26); `8aecb6a` for wave 3 (`dev-next` after wave 2's fix pass, #76; PI, 2026-09-26) |
 | gpyreg | the clone `dev/scripts/runs/gpyreg/v1.3.3` | `98ab5a4` (v1.3.3) |
 | MATLAB BADS, comparison target | `../bads`, `master` | `74919c0` (v1.1.3, 2025-12-05; equal to the remote `master` on 2026-09-25) |
 
@@ -441,6 +441,42 @@ orchestrator's machine holds is the check scripts of wave 0's agents
    fingerprint at `fef6c14` on the orchestrator's machine is
    `3411ef0625d24b22`.
 
+## Wave 3 pickup
+
+For the session that starts wave 3, slices B3 and B4 on both tracks, in a
+cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
+3's names (PI, 2026-09-26).
+
+1. **The revision under review**: `8aecb6a`, `dev-next` after wave 2's fix
+   pass (#76), which changed code of both slices (W2-16 in the search's
+   `_update_search_stats_`, W2-29 in the poll's accelerated mesh reduction)
+   and B3's `contraints_check` (W2-10); the reviewers read the fixed code.
+   The sheet's citations are carried with `refresh_citations.py --base
+   fef6c14`, and the entries of wave 2's rulings are read against it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w3`, the venv as
+   `AGENTS.md` says, and the review worktree at `8aecb6a`.
+   `dev/scripts/fingerprint.py` at `8aecb6a` with gpyreg 1.3.3 prints
+   `dc11118754b18b47` in the Linux reference's environment
+   (`population_linux_wave2_20260926`: Python 3.11.15, NumPy 2.4.6, SciPy
+   1.17.1); another hash means that the reference does not pair by seed.
+3. **The briefs**, `briefs/wave3_*.md`, made from wave 2's.
+4. **Kept from the reviewers**: the open rows of the survey's candidate
+   table in B3 and B4, the items of `prep_report.md`'s "Seen in passing"
+   that belong to them, and what waves 0 to 2 left to them under "Found
+   while verifying" and "Found while fixing".
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 3's names: the
+   reports `reviews/B3_<track>.md` and `reviews/B4_<track>.md`, the scripts
+   under `verification/scripts/wave3/`, the verifiers' reports
+   `verification/wave3_<slice>_verifier.md`, the ledger
+   `verification/wave3.md` from W3-1, and the branch `dev-port-review-w3`,
+   pushed at the close for the PI's triage.
+6. **The gates of the fix pass**: `verification/wave2.md`, "Fix pass", is
+   the procedure, against the Linux reference
+   `experiments/population_linux_wave2_20260926/`, with the whole fast
+   suite after every cherry-pick (fix agents run only their own test
+   files), and CI checked after every push that touches `pybads/`.
+
 ## Worklog
 
 - [x] 2026-09-25: design discussed and decided with the PI (decisions
@@ -641,6 +677,31 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   `experiments/population_linux_wave2_20260926/`. The rerun of two example
   notebooks whose saved outputs the pass made stale is a `TODO.md` line, for
   the release.
-- [ ] Waves 3 and 4.
+- [x] 2026-09-26: wave 3's kickoff, cloud session (from "Wave 3 pickup",
+  on `dev-port-review-w3`, cut from `dev-next` at `8aecb6a`). PI: wave 3
+  reviews `8aecb6a`, `dev-next` after wave 2's fix pass (#76); the table
+  "Reference revisions" says so. The review worktree `../pybads-review` is
+  at `8aecb6a`, `../bads` at `74919c0`, gpyreg at v1.3.3 (`98ab5a4`) in
+  `../gpyreg-v1.3.3`, the venv as `AGENTS.md` says (gpyreg's `main` in
+  `../gpyreg`, editable), on Python 3.11.15, NumPy 2.4.6 and SciPy 1.17.1,
+  where `dev/scripts/fingerprint.py` at `8aecb6a` with the v1.3.3 clone
+  prints `dc11118754b18b47`, the Linux reference's
+  (`population_linux_wave2_20260926`), so the reference pairs by seed here.
+  The clone was shallow; the complete history was fetched before any agent
+  began. The sheet is carried to `8aecb6a` (`refresh_citations.py --base
+  fef6c14`: 61 citations moved; of the 14 it leaves to a reading by hand,
+  the 2 of `bads.py` whose lines wave 2 rewrote, the random `x0` and the
+  logger, mapped by the same diff, the 2 of gpyreg left at v1.3.3 and the
+  10 of the claims C1 to C8 left at `95da7f1`; the four citations of wave
+  2's entries labelled `fef6c14` carried by hand). The script read the
+  commit `0889426` in KD-B1-5 as a line number and moved it; the hash is
+  restored, and the script now takes a bare backticked line number of at
+  most five digits (the same run on the uncarried sheet gives the sheet as
+  committed). The entries of wave 2's rulings (KD-B1-3 to KD-B1-5, KD-B1-8
+  to KD-B1-11, KD-B2-3 to KD-B2-7) read against `8aecb6a`: all hold. The
+  briefs `briefs/wave3_*.md`, with the items kept from the reviewers in
+  `wave3_kept_B3.md` (B3-K1 to B3-K13) and `wave3_kept_B4.md` (B4-K1 to
+  B4-K11).
+- [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.

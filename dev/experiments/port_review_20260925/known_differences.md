@@ -1,8 +1,8 @@
-<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the entries and edits that cite the rulings of wave 1 (verification/wave1.md) were added by the orchestrator from 2026-09-26, at the same revisions. For wave 2 the Python citations were carried to fef6c14 on 2026-09-26 (refresh_citations.py --base 95da7f1, the citations that it leaves to a reading by hand mapped by the same diff), the entries of wave 1's rulings read against it, and the path conventions and a note on the claims edited to match; the entries and edits that cite the rulings of wave 2 (verification/wave2.md) were made by the orchestrator on 2026-09-26, with the lines of `fef6c14` where they cite its code and the commits of wave 2's fix pass, on `dev-port-review-w2`, where they cite code that the pass wrote; the rest is the agent's text. -->
+<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the entries and edits that cite the rulings of wave 1 (verification/wave1.md) were added by the orchestrator from 2026-09-26, at the same revisions. For wave 2 the Python citations were carried to fef6c14 on 2026-09-26 (refresh_citations.py --base 95da7f1, the citations that it leaves to a reading by hand mapped by the same diff), the entries of wave 1's rulings read against it, and the path conventions and a note on the claims edited to match; the entries and edits that cite the rulings of wave 2 (verification/wave2.md) were made by the orchestrator on 2026-09-26, with the lines of `fef6c14` where they cite its code and the commits of wave 2's fix pass, on `dev-port-review-w2`, where they cite code that the pass wrote. For wave 3 the Python citations were carried to 8aecb6a on 2026-09-26 (refresh_citations.py --base fef6c14, the two citations that it leaves to a reading by hand mapped by the same diff, and the citations of wave 2's entries labelled with fef6c14 carried by hand), and the entries of wave 2's rulings read against it; the rest is the agent's text. -->
 
 # Known differences between PyBADS and MATLAB BADS
 
-**Path conventions.** Python paths are relative to the PyBADS repository root, at commit `fef6c14`, `dev-next` after the fix passes of waves 0 and 1, which wave 2 reviews (written at `ab4dded`; the citations were carried to `95da7f1`, the review's freeze, by `refresh_citations.py --base ab4dded`, and the entries that #71 touched were read again; then to `fef6c14` by `refresh_citations.py --base 95da7f1`, and the entries of wave 1's rulings were read again), except in the claims C1 to C8, which cite `95da7f1`. MATLAB paths are relative to the root of MATLAB BADS (`acerbilab/bads`), at commit `74919c0` (v1.1.3). gpyreg paths are relative to gpyreg at v1.3.3 (`98ab5a4`). Line ranges are inclusive. "MATLAB" means MATLAB BADS at `74919c0`, "default" means the default options of either side, and "reached at default" means that a default run executes the code.
+**Path conventions.** Python paths are relative to the PyBADS repository root, at commit `8aecb6a`, `dev-next` after the fix pass of wave 2 (#76), which wave 3 reviews (written at `ab4dded`; the citations were carried to `95da7f1`, the review's freeze, by `refresh_citations.py --base ab4dded`, and the entries that #71 touched were read again; then to `fef6c14` by `refresh_citations.py --base 95da7f1`, and the entries of wave 1's rulings were read again; then to `8aecb6a` by `refresh_citations.py --base fef6c14`, and the entries of wave 2's rulings were read again), except in the claims C1 to C8, which cite `95da7f1`. MATLAB paths are relative to the root of MATLAB BADS (`acerbilab/bads`), at commit `74919c0` (v1.1.3). gpyreg paths are relative to gpyreg at v1.3.3 (`98ab5a4`). Line ranges are inclusive. "MATLAB" means MATLAB BADS at `74919c0`, "default" means the default options of either side, and "reached at default" means that a default run executes the code.
 
 **What this sheet is.** It lists only differences that are *settled and deliberate*: the ones a record decided, or that the code marks as a deliberate departure. A reviewer who finds one of them, as described here, does not report it as new. Each entry is a claim a reviewer may challenge. If the code differs from the description, or the stated reason does not hold, that is a finding. Open findings, undecided questions, suspected defects and items marked "not yet fixed" in earlier records are left off on purpose. **If a difference is not on this sheet, that does not mean the code is correct or matches MATLAB.** Where an entry settles only part of a behaviour, it says which part stays open. The records named under "Why" are provenance. A reviewer can check an entry without them.
 
@@ -11,7 +11,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B1: setup, options, bounds, transform, result
 
 **KD-B1-1. Every random draw comes from one `numpy.random.Generator`, `bads.rng`, created from the `random_seed` option; MATLAB draws from its global stream**
-- Python: `pybads/rng.py:6-26` (`get_rng`); `pybads/bads/bads.py:221-222`, `994-1008` (`_init_rng_`), `260-268` (random `x0`), `1810`, `2262` (fallback indices); `pybads/poll/poll_mads_2n.py:25`, `30`, `34`; `pybads/search/search_hedge.py:71`, `75`; `pybads/search/es_search.py:132`, `172`, `215`; `pybads/init_functions/init_sobol.py:64`; `pybads/bads/gaussian_process_train.py:157-159`, `176-212`, `447`, `668-670`, `813`, `841-849` (rng passed to `gp.fit` and `SliceSampler`); `pybads/bads/optimize_result.py:147`; `pybads/bads/option_configs/basic_bads_options.ini:22-23`.
+- Python: `pybads/rng.py:6-26` (`get_rng`); `pybads/bads/bads.py:260-261`, `969-983` (`_init_rng_`), `308-323` (random `x0`), `1818`, `2270` (fallback indices); `pybads/poll/poll_mads_2n.py:25`, `30`, `34`; `pybads/search/search_hedge.py:71`, `75`; `pybads/search/es_search.py:132`, `172`, `215`; `pybads/init_functions/init_sobol.py:64`; `pybads/bads/gaussian_process_train.py:157-159`, `176-212`, `447`, `668-670`, `813`, `841-849` (rng passed to `gp.fit` and `SliceSampler`); `pybads/bads/optimize_result.py:166`; `pybads/bads/option_configs/basic_bads_options.ini:22-23`.
 - MATLAB: `private/setupvars.m:83`; `bads.m:589`, `857`; `search/searchES.m:117`, `168`, `201`; `search/searchHedge.m:48`, `50`; `poll/pollMADS2N.m:10`, `14`, `17`; `init/initSobol.m:14`; `private/gpupdate.m:374`, `392`; `utils/gppriorrnd.m:75`; `private/bads_output.m:25` (`output.rngstate = rng`).
 - What differs: MATLAB has no seed option. It draws with `rand`, `randn`, `randi` and `randperm` from the global stream and reports the stream state. PyBADS builds one generator when the `BADS` object is created, passes it to every draw site, and never touches NumPy's global stream. The one exception is `random_seed=None`: the generator is then seeded from four draws of the global stream. The result reports `random_seed`, not a stream state. No draw is meant to reproduce MATLAB's numbers. This entry settles where the draws come from. It does not settle what is drawn or from which distribution; those remain for each slice to compare.
 - Why: CHANGELOG `[1.1.0]`, "Added: Seeded runs through a random generator" and the Upgrading lines; `dev/plans/tooling-and-rng.md`, Phase 8 "Contract" and Decisions ("One generator per run", "`random_seed` no longer seeds NumPy's global stream"); `AGENTS.md`, "Randomness goes through one numpy.random.Generator".
@@ -19,7 +19,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1 (the draw sites belong to every slice).
 
 **KD-B1-2. Options live in two `.ini` files, with snake_case names, several of them renamed**
-- Python: `pybads/bads/option_configs/basic_bads_options.ini`, `advanced_bads_options.ini`; `pybads/bads/bads.py:201-216`.
+- Python: `pybads/bads/option_configs/basic_bads_options.ini`, `advanced_bads_options.ini`; `pybads/bads/bads.py:233-248`.
 - MATLAB: `bads.m:149-161` (basic `defopts`), `187-290` (advanced).
 - What differs: the option set is split between a basic and an advanced `.ini` file. MATLAB CamelCase names become snake_case. Renames that are not a plain case change: `Ninit`→`fun_eval_start`, `Ndata`→`n_train_max`, `MinNdata`→`n_train_min`, `BufferNdata`→`buffer_ntrain`, `MeshOverflowsWarning`→`mesh_overflow_warning`, `Nsearch`→`n_search`, `Nsearchiter`→`n_search_iter`, `Nbasis`→`n_basis`, `TolPoI`→`tol_poi`, `ESbeta`/`ESstart`→`es_beta`/`es_start`, `gpSVGDiters`→`gp_svd_iters`, `NormAlphaLevel`→`normalpha_level`, `InitFcn`→`init_fun`, `gpdefFcn`→`gp_def_fcn`, and `gp*`→`gp_*`. `PeriodicVars` and `OutputFcn` are basic in MATLAB and advanced in PyBADS. Values also change form: function handles become strings (`init_fun = "init_sobol"`, `poll_method = 'poll_mads_2n'`, `search_acq_fcn = ('acq_LCB', None)`); `'on'`/`'off'`/`'yes'`/`'no'` become Python booleans; `nvars` becomes `D`. `search_method = [('ES-wcm',1), ('ES-ell',1)]` lists the members of the search hedge, and the hedge itself is always used. MATLAB names `@searchHedge` explicitly (`bads.m:239`). Default values are not settled by this entry: B1 compares them one by one.
 - Why: the `.ini` files are the documented option interface (`docsrc/source/api/options/bads_options.rst` includes them verbatim); `AGENTS.md`, "Options are layered".
@@ -27,7 +27,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-3. User option values are used verbatim, `.ini` expressions are evaluated with `D`, and an unknown option name raises**
-- Python: `pybads/bads/options.py:31-52` (user options stored as given), `91-118` (`.ini` values `eval`'d with `D` bound through `exec`; user-set keys skipped), `120-148` (unknown names raise `ValueError`); `pybads/bads/bads.py:204-216`.
+- Python: `pybads/bads/options.py:36-67` (user options stored as given), `106-133` (`.ini` values `eval`'d with `D` bound through `exec`; user-set keys skipped), `135-163` (unknown names raise `ValueError`); `pybads/bads/bads.py:236-248`.
 - MATLAB: `private/setupoptions.m:21-50` (string values of the listed fields, the user's included, are `eval`'d, with `evalbool` as fallback); unknown fields are kept and ignored.
 - What differs: a user's string such as `"200*D"` stays a string in PyBADS, where MATLAB evaluates `'200*nvars'` (for `max_fun_evals`, which must be a positive integer, it is refused: W2-18, `b29b9b5`). A misspelt option raises in PyBADS and is ignored in MATLAB. A user value of `None` stands for the default, as MATLAB's empty field does (`setupoptions.m:5-9`): the option is not set (`Options.__init__`, `unset_user_options`; W2-19, `49ac8aa`). The options whose default is `True` or `False`, and `uncertainty_handling`, take only booleans (`Options.validate_boolean_options`, called from `BADS.__init__`): MATLAB's strings `'on'`, `'off'`, `'yes'` and `'no'`, which `setupoptions.m` evaluates with `evalbool`, are refused with `ValueError`, not converted, since user values are used verbatim.
 - Why: `AGENTS.md`, "Options are layered … the dict is used verbatim, so a user's `"200*D"` stays a string … An unknown name raises `ValueError`"; the PI's ruling on W2-19 (`verification/wave2.md`, "Rulings").
@@ -39,7 +39,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - MATLAB: `bads.m:161` (`OptimToolbox`), `188` (`Debug`), `189` (`TrueMinX`).
 - What differs:
   - *MATLAB only:* `OptimToolbox`, which chooses between `fmincon` and `minimizebnd` for the GP hyperparameters (`utils/gpHyperOptimize.m:235-283`). PyBADS has no counterpart because its optimizer is gpyreg's (KD-B6-1). `Debug` and `TrueMinX` only print or plot (`bads.m:1002-1011`, `private/gpupdate.m:61-63`, `351-353`, `private/scatterplot.m`).
-  - *PyBADS only, and read by code:* `random_seed` (KD-B1-1); `stobads`, `opp_stobads`, `stobads_frame_size_scaling_power` (KD-S-1); `gp_mean_fun` (`'const'` is MATLAB's fixed `@meanConst`, `gpdef/gpdefBads.m:167`; `'zero'` is PyBADS's own; since W1-34 (`43138f2`) every other name, `'negquad'` included, is refused when `BADS` is created); `gp_train_n_init`, `gp_train_n_init_final`, `gp_train_init_method`, `gp_tol_opt`, `hpd_frac`, `gp_quadratic_mean_bound`, `tol_sd`, `use_slice_sampler`, `gp_hyp_sampler`, `hyp_run_weight`, `fun_evals_per_iter`, `noise_shaping` (all options of the gpyreg-based GP layer or taken from PyVBMC's); `init_mesh_size_integer` (default 0, which is MATLAB's fixed `MeshSizeInteger = 0`, `private/setupvars.m:41`); `hessian_update`, `hessian_method` (read only by a no-op branch, `pybads/bads/bads.py:1902-1907`, under the `.ini` heading "Adaptive basis (unsupported)"; MATLAB v1.1.3 has no such option).
+  - *PyBADS only, and read by code:* `random_seed` (KD-B1-1); `stobads`, `opp_stobads`, `stobads_frame_size_scaling_power` (KD-S-1); `gp_mean_fun` (`'const'` is MATLAB's fixed `@meanConst`, `gpdef/gpdefBads.m:167`; `'zero'` is PyBADS's own; since W1-34 (`43138f2`) every other name, `'negquad'` included, is refused when `BADS` is created); `gp_train_n_init`, `gp_train_n_init_final`, `gp_train_init_method`, `gp_tol_opt`, `hpd_frac`, `gp_quadratic_mean_bound`, `tol_sd`, `use_slice_sampler`, `gp_hyp_sampler`, `hyp_run_weight`, `fun_evals_per_iter`, `noise_shaping` (all options of the gpyreg-based GP layer or taken from PyVBMC's); `init_mesh_size_integer` (default 0, which is MATLAB's fixed `MeshSizeInteger = 0`, `private/setupvars.m:41`); `hessian_update`, `hessian_method` (read only by a no-op branch, `pybads/bads/bads.py:1910-1915`, under the `.ini` heading "Adaptive basis (unsupported)"; MATLAB v1.1.3 has no such option).
   - *PyBADS only, and refused:* `f_vals`, which could not work (it selected a display format that the display could not fill, and its values reached nothing), is refused with `ValueError` when `BADS` is created (W2-7, `652b25c`).
   - *PyBADS only, and read by no code:* see KD-B1-5.
   - *On both sides, unported in PyBADS:* `fun_values` (MATLAB's `FunValues`, which imports earlier evaluations into the function log, `private/setupvars.m:126-167`): a non-empty value is refused with `ValueError` (W2-6, `0ba1241`); the port is a `dev/TODO.md` item.
@@ -55,7 +55,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
   - (a) *No reads on either side:* `skip_poll` (`SkipPoll`), `search_improve_frac` (`SearchImproveFrac`), `gp_cluster` (`gpCluster`). MATLAB reads none of these either.
   - (b) *PyBADS hard-codes MATLAB's default choice, so the option does nothing:* `poll_method` (always `poll_mads_2n`, KD-B4-1), `poll_acq_fcn` (always LCB, KD-B3-2), `gp_def_fcn` (always the RQ ARD kernel, KD-B6-1), `gp_method` (always nearest neighbours), `chol_attempts` (the Cholesky factorization is gpyreg's, KD-B6-1).
   - (c) *MATLAB reads the counterpart only away from its defaults:* `n_basis` (read only by `poll/private/pollBMADS2N.m`, which nothing calls), `gp_samples` and `gp_svd_iters` (KD-B5-4), `rotate_gp` (MATLAB also marks it unsupported, `gpdef/gpdefBads.m:105-108`).
-  - (d) *No MATLAB counterpart; PyVBMC or porting leftovers:* `gp_cov_fun` (overridden by `optim_state["gp_cov_fun"] = 1`, `pybads/bads/bads.py:924`), `upper_gp_length_factor` (its branch in `_gp_hyp` was overwritten by the next lines, and W1-33, `0889426`, removed it), `min_iter` and `min_fun_evals` (PyVBMC's, since `c7c88ab`; MATLAB's termination has no such options, W2-35), `diagnostics`, `hessian_alternate`, `cov_sample_thresh`, `gp_sample_widths`, `weighted_hyp_cov`, `tol_cov_weight`, `gp_sample_thin`, `stable_gp_sampling`, `gp_tol_optmcmc`, `nsgp_max`, `nsgp_maxwarmup`, `nsgp_maxmain`, `stable_gp_samples`, `gp_tol_optactive`, `gp_tol_optmcmcactive`, `tol_gp_var`, `tol_gp_varmcmc`, `active_sample_gp_update`, `sample_extra_vp_means`, `integrate_gp_mean`, `tol_skl`, `tol_stable_warmup`, `variational_sampler`, `kl_gauss`, `k_warmup`, `stable_gp_vpk`, `max_repeated_observations`, `repeated_acq_discount`, `sgd_step_size`, `rank_criterion`, `ns_search`, `gp_stochastic_step_size`, `heavy_tail_search_frac`, `mvn_search_frac`, `hpd_search_frac`, `box_search_frac`, `search_cache_frac`, `empirical_gp_prior`, `tol_gp_noise`, `gp_length_prior_mean`, `gp_length_prior_std`, `init_design`, `bandwidth`, `out_warp_thresh_base`, `out_warp_thresh_mult`, `out_warp_thresh_tol`, `temperature`, `separate_search_gp`, `noise_shaping_threshold`, `noise_shaping_factor`, `acq_hedge_iter_window`, `acqhedge_decay`, `active_search_bound`, `tol_bound_x`, `recompute_lcb_max`, `double_gp`, `warp_every_iters`, `incremental_warp_delay`, `warp_tol_reliability`, `warp_proto_scaling`, `warp_cov_reg`, `warp_proto_corr_thresh`.
+  - (d) *No MATLAB counterpart; PyVBMC or porting leftovers:* `gp_cov_fun` (overridden by `optim_state["gp_cov_fun"] = 1`, `pybads/bads/bads.py:899`), `upper_gp_length_factor` (its branch in `_gp_hyp` was overwritten by the next lines, and W1-33, `0889426`, removed it), `min_iter` and `min_fun_evals` (PyVBMC's, since `c7c88ab`; MATLAB's termination has no such options, W2-35), `diagnostics`, `hessian_alternate`, `cov_sample_thresh`, `gp_sample_widths`, `weighted_hyp_cov`, `tol_cov_weight`, `gp_sample_thin`, `stable_gp_sampling`, `gp_tol_optmcmc`, `nsgp_max`, `nsgp_maxwarmup`, `nsgp_maxmain`, `stable_gp_samples`, `gp_tol_optactive`, `gp_tol_optmcmcactive`, `tol_gp_var`, `tol_gp_varmcmc`, `active_sample_gp_update`, `sample_extra_vp_means`, `integrate_gp_mean`, `tol_skl`, `tol_stable_warmup`, `variational_sampler`, `kl_gauss`, `k_warmup`, `stable_gp_vpk`, `max_repeated_observations`, `repeated_acq_discount`, `sgd_step_size`, `rank_criterion`, `ns_search`, `gp_stochastic_step_size`, `heavy_tail_search_frac`, `mvn_search_frac`, `hpd_search_frac`, `box_search_frac`, `search_cache_frac`, `empirical_gp_prior`, `tol_gp_noise`, `gp_length_prior_mean`, `gp_length_prior_std`, `init_design`, `bandwidth`, `out_warp_thresh_base`, `out_warp_thresh_mult`, `out_warp_thresh_tol`, `temperature`, `separate_search_gp`, `noise_shaping_threshold`, `noise_shaping_factor`, `acq_hedge_iter_window`, `acqhedge_decay`, `active_search_bound`, `tol_bound_x`, `recompute_lcb_max`, `double_gp`, `warp_every_iters`, `incremental_warp_delay`, `warp_tol_reliability`, `warp_proto_scaling`, `warp_cov_reg`, `warp_proto_corr_thresh`.
   - (e) *Read only by a branch that does nothing or refuses:* `plot` (KD-B2-2), `restarts` (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3), `fitness_shaping` (KD-B5-5), `hessian_update`/`hessian_method` (KD-B1-4), `warp_func` ≠ 0 (KD-B6-4), `periodic_vars` (KD-B1-6), `init_fun` other than `"init_sobol"` (KD-B7-2).
   - This list covers only the options settled as having no effect. It is not a list of every option that no code reads.
 - Why: `AGENTS.md`, "Many options do nothing … Grep for an option's reads before relying on it"; the entries cited in (b), (c) and (e).
@@ -63,7 +63,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-6. Periodic variables are not supported**
-- Python: `pybads/bads/bads.py:627-631` (a non-`None` `periodic_vars` raises `ValueError`); `pybads/utils/period_check.py:4-6` (a stub that returns its input); `pybads/bads/gaussian_process_train.py:384` (TODO); `pybads/search/es_search.py:142` (TODO). The periodic branches of `udist`, `ucov`, `_variable_transformer_` and `_init_optim_state_` (`pybads/bads/bads.py:977-981`, `721-736`) are unreachable.
+- Python: `pybads/bads/bads.py:620-624` (a non-`None` `periodic_vars` raises `ValueError`); `pybads/utils/period_check.py:4-6` (a stub that returns its input); `pybads/bads/gaussian_process_train.py:384` (TODO); `pybads/search/es_search.py:142` (TODO). The periodic branches of `udist`, `ucov`, `_variable_transformer_` and `_init_optim_state_` (`pybads/bads/bads.py:952-956`, `714-729`) are unreachable.
 - MATLAB: `bads.m:152` (`PeriodicVars`); `private/setupvars.m:49-57`, `107-116`; `utils/periodCheck.m`; `gpdef/gpdefBads.m:58-81`, `277-284`; `utils/udist.m`; `utils/ucov.m`; `gpml_fast/covPPERard_fast.m`.
 - What differs: MATLAB wraps periodic variables into their range and uses a periodic kernel. PyBADS refuses them.
 - Why: `pybads/bads/README.md` ("Support for periodic variables"); `dev/TODO.md`, "Porting gaps"; the error message and TODO comments above.
@@ -71,7 +71,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1 (option); B7 (`period_check`).
 
 **KD-B1-7. Fixed variables are refused; MATLAB removes them and runs a smaller problem**
-- Python: `pybads/bads/bads.py:424-434`.
+- Python: `pybads/bads/bads.py:489-499`.
 - MATLAB: `private/boundscheck.m:39-40`; `bads.m:351-382`, `1480-1488` (`expandvars`); `private/fixedbads.m`.
 - What differs: a variable whose bounds are all equal makes PyBADS raise `ValueError`. MATLAB fixes it and optimizes the others.
 - Why: the code comment "Fixed variables (all bounds equal) are not supported" and the error message.
@@ -79,7 +79,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1 (the check); `fixedbads.m` and `expandvars` are in B2's MATLAB list.
 
 **KD-B1-8. The result is an `OptimizeResult` dict, not MATLAB's six outputs**
-- Python: `pybads/bads/optimize_result.py:8-162`; `pybads/bads/bads.py:1673-1676`.
+- Python: `pybads/bads/optimize_result.py:8-182`; `pybads/bads/bads.py:1681-1684`.
 - MATLAB: `bads.m:1` (`[x,fval,exitflag,output,optimState,gpstruct]`), `1185-1194`; `private/bads_output.m`.
 - What differs: PyBADS returns a scipy-style dict (`x`, `x0`, `fval`, `fsd`, `yval_vec`, `ysd_vec`, `func_count`, `iterations`, `mesh_size`, `message`, `target_type`, `problem_type`, `total_time`, `overhead`, `random_seed`, `algorithm`, `version`, `fun`, `non_box_cons`, `success`, `status`). The `BADS` object keeps the run's state. MATLAB's `exitflag` is the result's `status`: 0 when the run ends on `max_fun_evals` or `max_iter` or is stopped by `output_fcn`, 1 on `tol_mesh`, 2 on the stall criterion (`bads.m:423`, `1062-1083`; W2-12, `d964576`, where `status` was listed and never set), and `success` is `status > 0`, the convention of scipy's `OptimizeResult` too (W2-13, `877d63c`). There is no `rngstate` (see KD-B1-1) and no `maxconstraint`. `iterations` counts as MATLAB's `output.iterations` does, from 1, since #71, except that a run that ends in its initialization (`max_fun_evals=1`, or `output_fcn` stopping at `"init"`) reports 0, where MATLAB reports 1 (`bads.m:482`, `bads_output.m:21`): 0 says that no iteration ran (the PI's ruling on W2-32). `fun` and `non_box_cons` are the objects passed, not copies (W2-14, `1fb162e`), where MATLAB stores `func2str(fun)` (`bads_output.m:4`). `yval_vec` is `None` for a deterministic run and with `noise_final_samples = 0`, where MATLAB returns the incumbent's observation (`bads.m:1134`, `bads_output.m:37`), as the docstring of `OptimizeResult` documents (ledger of wave 0, W0-4).
 - Why: the class docstring ("based on `scipy.optimize.OptimizeResult`"); `docsrc/source/api/classes/optimize_result.rst`; `docsrc/source/quickstart.rst`; the PI's rulings on W2-12, W2-13 and W2-32 (`verification/wave2.md`).
@@ -87,7 +87,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-9. A start that `non_box_cons` rejects once put on the mesh is refused**
-- Python: `pybads/bads/bads.py:684-693` (`_init_mesh_`, since `1bee482`, "Check gridizied non-box-cons").
+- Python: `pybads/bads/bads.py:677-686` (`_init_mesh_`, since `1bee482`, "Check gridizied non-box-cons").
 - MATLAB: `private/evalinitmesh.m:22-26` tests the constraint at `optimState.x0`, the start in original coordinates before it is put on the mesh (`private/setupvars.m:84-87`, `101`), and evaluates the point on the mesh without testing it.
 - What differs: PyBADS tests `non_box_cons` at the start a second time, after `force_to_grid`, and raises `ValueError` if the point on the mesh violates it, where MATLAB evaluates that point. Settled only for the start; how the design's and the poll's infeasible points are handled is compared under B3, B4 and B7.
 - Why: the commit `1bee482` ("Check gridizied non-box-cons"); the B1 verifier of wave 2 (V6, "Accepted as intended"), `verification/wave2.md`, "Notes on the reports".
@@ -95,7 +95,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-10. The transform's self-test tolerates an error relative to the bounds' magnitude**
-- Python: `pybads/variable_transformer/variables_transformer.py`, the self-test of `VariableTransformer.__init__` (`fef6c14`: lines 207-231; since W2-5, `a2b8d38`, a tolerance of `1e-6 · max(1, |b|)`).
+- Python: `pybads/variable_transformer/variables_transformer.py`, the self-test of `VariableTransformer.__init__` (lines 214-236; since W2-5, `a2b8d38`, a tolerance of `1e-6 · max(1, |b|)`).
 - MATLAB: `utils/transvars.m:30`, `169-178` (an absolute tolerance, 1e-6).
 - What differs: both sides check that the inverse of the transform returns each finite bound. MATLAB's absolute tolerance refuses valid bounds of large magnitude (from about 1e10, or an upper bound from about 1e9 on a log scale), through rounding alone; PyBADS accepts them. A shared defect that PyBADS fixes (`matlab_side_defects.md`).
 - Why: the PI's ruling on W2-5 (`verification/wave2.md`, "Rulings").
@@ -103,7 +103,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-11. With `non_box_cons`, a random start that violates the constraint is drawn again**
-- Python: `pybads/bads/bads.py`, `BADS.__init__`, the draw of a start that is not finite (since W2-11, `c3d7815`; `fef6c14`: lines 260-268, one draw).
+- Python: `pybads/bads/bads.py`, `BADS.__init__`, the draw of a start that is not finite (since W2-11, `c3d7815`; lines 308-329).
 - MATLAB: `private/setupvars.m:83-85` (one draw in the plausible box), `private/evalinitmesh.m:22-26` (the error).
 - What differs: when `x0` is not given or not finite, MATLAB draws one start in the plausible box and stops with an error when it violates `non_box_cons`. PyBADS draws again, up to 1000 draws in all, and then raises `ValueError` as before; a run whose first draw is feasible draws the same start as MATLAB would from the same numbers. A shared defect that PyBADS fixes (`matlab_side_defects.md`).
 - Why: the PI's ruling on W2-11 (`verification/wave2.md`, "Rulings").
@@ -113,7 +113,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B2: main loop, termination, noisy re-evaluation, final estimate
 
 **KD-B2-1. Restarts are not implemented**
-- Python: `pybads/bads/bads.py:1275`, `1543-1547` (`if self.restarts > 0: pass`).
+- Python: `pybads/bads/bads.py:1269`, `1546-1550` (`if self.restarts > 0: pass`).
 - MATLAB: `bads.m:201`, `479`, `1121-1127` ("Multiple starts (deprecated)").
 - What differs: with `restarts > 0`, MATLAB resets the mesh and continues after termination. PyBADS stops. Both default to 0.
 - Why: the code keeps MATLAB's own label, "Multiple starts (deprecated)".
@@ -121,7 +121,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2.
 
 **KD-B2-2. Plotting is not implemented**
-- Python: `pybads/bads/bads.py:1420-1422` (`plot == "scatter"`: `pass`), `2457` (TODO: profile plot); `advanced_bads_options.ini:3`.
+- Python: `pybads/bads/bads.py:1418-1420` (`plot == "scatter"`: `pass`), `2466` (TODO: profile plot); `advanced_bads_options.ini:3`.
 - MATLAB: `bads.m:187`, `988-1015` (`'profile'`, `utils/landscapeplot.m`), `1054-1057` (`'scatter'`, `private/scatterplot.m`).
 - What differs: `plot` has no effect.
 - Why: TODO comments; `dev/plans/port-correctness-review.md` puts plotting code out of scope.
@@ -129,7 +129,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2 (out of scope as non-numerical).
 
 **KD-B2-3. Messages go through Python logging, to the `BADS` logger**
-- Python: `pybads/bads/bads.py:172-173`, `224-232`, `2836-2894`; `pybads/bads/gaussian_process_train.py:19`.
+- Python: `pybads/bads/bads.py:204-205`, `263-282`, `2849-2907`; `pybads/bads/gaussian_process_train.py:19`.
 - MATLAB: `bads.m:311-328` (`prnt` levels) and `fprintf` throughout.
 - What differs: `display` sets the level of a logger instead of choosing which `fprintf` calls run. The level follows MATLAB's mapping of the first three letters, lower case (since W2-15, `37be0d9`): `"off"` and `"none"` show the warnings only (WARNING), `"notify"` and any other value also the opening message (level 25), `"final"` also the final message (level 22), `"iter"` and `"all"` also the iteration lines (INFO), and `"full"`, which exists only in PyBADS, the debug messages too (DEBUG). This entry settles the mechanism. The content and format of the display remain open to comparison.
 - Why: CHANGELOG `[Unreleased]`, Fixed, "Messages on the BADS logger".
@@ -137,7 +137,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2.
 
 **KD-B2-4. When the re-estimate of the current iterate fails, it keeps its estimate; MATLAB records NaN**
-- Python: `pybads/bads/bads.py:2811-2815` (`_re_evaluate_history_`).
+- Python: `pybads/bads/bads.py:2824-2828` (`_re_evaluate_history_`).
 - MATLAB: `bads.m:1097-1104`; `utils/gppred.m:22-56` (a failed posterior gives NaN).
 - What differs: in a noisy run, the re-estimate of each iterate rebuilds a copy of the working GP around it. When that rebuild fails, a past iterate gets NaN, as in MATLAB, and the move and the final choice skip NaN; the current iterate keeps its recorded estimate, so that the incumbent is never NaN, where MATLAB's incumbent becomes NaN. The NaN of past iterates stays in `iteration_history` (W2-39; the `IterationHistory` documentation page says so).
 - Why: the PI's ruling on W1-35 (`verification/wave1.md`, "Fix pass"); the changelog, "Re-evaluation of the iterates in noisy runs"; `test_noisy_re_estimate_after_failed_rebuild`; W2-30 (`verification/wave2.md`).
@@ -153,7 +153,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2.
 
 **KD-B2-6. The budget counts the noise test, and the initial design keeps within it after its rounding**
-- Python: `pybads/bads/bads.py`, `_init_mesh_` (the design keeps its first points within `max_fun_evals` minus the evaluations made) and `_init_optimization_` (the reserve for the final samples floored at 0), since W2-27 (`381bf32`); `fef6c14`: lines 1073-1078, 1175-1184.
+- Python: `pybads/bads/bads.py`, `_init_mesh_` (the design keeps its first points within `max_fun_evals` minus the evaluations made) and `_init_optimization_` (the reserve for the final samples floored at 0), since W2-27 (`381bf32`); lines 1071-1078, 1165-1178.
 - MATLAB: `private/evalinitmesh.m:37-42` (the noise test), `98-104` (`Ninit = min(options.Ninit, MaxFunEvals - 1)`).
 - What differs: MATLAB caps the design at `MaxFunEvals - 1` without counting the noise test at `x0`, so a budget below the design takes one evaluation more than `MaxFunEvals`. PyBADS rounds the design up to a power of two (KD-B7-1) and then keeps its first points within the evaluations left, the noise test counted, so that a run never exceeds `max_fun_evals`, and a noisy run's reserve for its final samples is never negative. At the default budgets the cap does not bind. Not settled: whether the design is doubled when its size equals D (W0-18, slice B7).
 - Why: the PI's ruling on W2-27 (`verification/wave2.md`, "Rulings"); the counting of the noise test is a shared defect that PyBADS fixes (`matlab_side_defects.md`).
@@ -161,7 +161,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2 (the cap); B7 (the design).
 
 **KD-B2-7. A move to an earlier iterate after the re-estimate moves the incumbent's location with its value**
-- Python: `pybads/bads/bads.py`, `optimize()`, the move after `_re_evaluate_history_` (since W2-25, `a9fbb97`: `_update_incumbent_` with the iterate's `u`, `yval`, `fval` and `fsd`; `fef6c14`: lines 1531-1540).
+- Python: `pybads/bads/bads.py`, `optimize()`, the move after `_re_evaluate_history_` (since W2-25, `a9fbb97`: `_update_incumbent_` with the iterate's `u`, `yval`, `fval` and `fsd`; lines 1528-1545).
 - MATLAB: `bads.m:1111-1118` (sets `u`, `yval`, `fval`, `fsd` and the target's hyperparameters, not `ubest`), `769` (`u = ubest` at the next iteration).
 - What differs: when the re-estimate of a noisy run finds an earlier iterate better by more than `TolFun`, MATLAB moves the incumbent's value to it and leaves `ubest` at the old incumbent, so that the next search's target is predicted at the old point and a poll that no successful search precedes runs around the old point while it is judged by the other iterate's value. PyBADS moves the incumbent, its location with its value. As in MATLAB, only the target's hyperparameters move with it, and the working GP stays. A shared defect that PyBADS fixes (`matlab_side_defects.md`).
 - Why: the PI's ruling on W2-25, option (b) (`verification/wave2.md`, "Rulings"); the port's own TODO at `c7c88ab` ("TODO in Matlab is not done").
@@ -171,7 +171,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B3: search
 
 **KD-B3-1. The search hedge chooses only between ES-wcm and ES-ell; the other search methods are not ported**
-- Python: `pybads/search/search_hedge.py:86-119` (dispatch by name; anything else raises "not implemented yet"); `pybads/search/es_search.py:225-303` (`ESSearchWM` = `searchES` method 1, `ESSearchELL` = method 2), `283-290` (`ESSearchCMA`, `searchES` method 5 `'ES-cma+'`, which is unreachable); `pybads/bads/bads.py:1749-1763`.
+- Python: `pybads/search/search_hedge.py:86-119` (dispatch by name; anything else raises "not implemented yet"); `pybads/search/es_search.py:225-303` (`ESSearchWM` = `searchES` method 1, `ESSearchELL` = method 2), `283-290` (`ESSearchCMA`, `searchES` method 5 `'ES-cma+'`, which is unreachable); `pybads/bads/bads.py:1757-1771`.
 - MATLAB: `bads.m:239`; `search/searchES.m:3-12`, `39-70` (methods 1-5: `ES-wcm`, `ES-ell`, `ES-eye`, `ES-cov`, `ES-cma+`); `search/searchCMA.m`, `searchCombine.m`, `searchCrossover.m`, `searchGauss.m`, `searchGrid.m`, `searchMax.m`, `searchMaxAcq.m`, `searchNewton.m`, `searchOptim.m`, `searchWCM.m`, `search/private/*.m`.
 - What differs: only MATLAB's default search set exists in PyBADS. `ES-eye`, `ES-cov` and the other search functions are absent, and `ES-cma+` cannot be selected.
 - Why: `AGENTS.md`, "Extension points are hard-coded" (`ESSearchCMA` unreachable; a new search method needs a subclass, an `elif` and an option entry).
@@ -179,7 +179,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B3.
 
 **KD-B3-2. Only the LCB acquisition exists, called directly**
-- Python: `pybads/bads/bads.py:1793-1797` (search), `2245-2249` (poll); `pybads/search/es_search.py:158-168` (`search_acq_fcn` must be `'acq_LCB'`; TODO "handle other acqs fcns: acqNegEIMin, acqNegPIMi").
+- Python: `pybads/bads/bads.py:1801-1805` (search), `2253-2257` (poll); `pybads/search/es_search.py:158-168` (`search_acq_fcn` must be `'acq_LCB'`; TODO "handle other acqs fcns: acqNegEIMin, acqNegPIMi").
 - MATLAB: `bads.m:269-270`, `577-578`, `852`; `search/searchES.m:147`, `156-165`; `acq/acqNegEI.m`, `acqNegEQI.m`, `acqNegPI.m`, `acqNegSqEI.m`, `acqRnd.m`, `acq/private/*.m`.
 - What differs: `PollAcqFcn` and `SearchAcqFcn` can name other acquisition functions in MATLAB. In PyBADS the poll always uses LCB and the search accepts only LCB. Both default to LCB.
 - Why: `AGENTS.md`, "LCB is called directly at the search and poll call sites"; the TODO above.
@@ -187,7 +187,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B3.
 
 **KD-B3-3. The acquisition hedge (`AcqHedge`) is not implemented**
-- Python: `pybads/bads/bads.py:911-912`, `1789`, `1799`, `1954-1956`, `1985`, `2244`, `2251`; `advanced_bads_options.ini:182`.
+- Python: `pybads/bads/bads.py:886-887`, `1797`, `1807`, `1962-1964`, `1993`, `2252`, `2259`; `advanced_bads_options.ini:182`.
 - MATLAB: `bads.m:271`, `569-573`, `684-686`, `716-719`, `845-848`; `acq/acqPortfolio.m` ('acq' branch; its help line says "(unsupported)"); `acq/acqHedge.m`; `search/searchES.m:139-141` (`error('Hedge not supported here.')`).
 - What differs: `acq_hedge=True` does nothing. Both default to off. This entry does not cover the *search* hedge's reward update, which is ported (`ESSearchHedge.update_hedge` ↔ `acqPortfolio.m` 'upd', reached at default).
 - Why: code comments "not yet supported (even in Matlab)"; MATLAB's own "(unsupported)" label.
@@ -195,7 +195,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B3.
 
 **KD-B3-4. Local optimization of the acquisition function (`SearchOptimize`) is not implemented**
-- Python: `pybads/bads/bads.py:1815-1817` (TODO; `pass`).
+- Python: `pybads/bads/bads.py:1823-1825` (TODO; `pass`).
 - MATLAB: `bads.m:248`, `596-616` (`fmincon` on the acquisition function).
 - What differs: `search_optimize=True` does nothing. Both default to off.
 - Why: TODO comment "(generally it does not improve results)", which echoes MATLAB's comment at `bads.m:594-595`.
@@ -205,7 +205,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B4: poll, mesh, incumbent, target
 
 **KD-B4-1. The poll always uses LTMADS (`poll_mads_2n`); the other poll methods are not ported**
-- Python: `pybads/bads/bads.py:2129-2135`.
+- Python: `pybads/bads/bads.py:2137-2143`.
 - MATLAB: `bads.m:206`, `791-798` (`feval(options.PollMethod{:}, …)`); `poll/pollGPS2N.m`; `poll/private/pollBADS2N.m`, `pollBMADS2N.m`.
 - What differs: `poll_method` is ignored (KD-B1-5). Both default to MADS 2N.
 - Why: `AGENTS.md`, "Many options do nothing … `poll_method`".
@@ -213,7 +213,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B4.
 
 **KD-B4-2. When the posterior under the best iteration's hyperparameters cannot be computed, the target is predicted from the current GP**
-- Python: `pybads/bads/bads.py:2647-2658` (`try` around `set_hyperparameters(hyp_best)` and `predict`; on `LinAlgError`, `gp.predict` on the unchanged GP).
+- Python: `pybads/bads/bads.py:2659-2670` (`try` around `set_hyperparameters(hyp_best)` and `predict`; on `LinAlgError`, `gp.predict` on the unchanged GP).
 - MATLAB: `bads.m:1296-1312` (`UpdateTarget` sets `gptemp.hyp = hyp` and keeps `gptemp.post`, so it never refactorizes and cannot fail at this point).
 - What differs: PyBADS has a failure path that MATLAB lacks, and on that path it uses the GP's own hyperparameters and posterior. **Settled:** only this fallback. **Not settled:** the recomputation under `hyp_best` itself, where MATLAB reuses the current posterior. That recomputation is why the call can fail, and it gives different targets at default options.
 - Why: `dev/plans/gp-update-guards.md`, Design "Target (call 1)" and Open Question 2.
@@ -223,7 +223,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B5: GP training set and refit policy
 
 **KD-B5-1. Adding a point recomputes every posterior in full, and a failed add leaves the point out of the GP until the next rebuild**
-- Python: `pybads/bads/gaussian_process_train.py:1313-1370` (`add_and_update_gp`: `gp.update(X_new=…, y_new=…, s2_new=…, hyp=…)`; on `LinAlgError` gpyreg restores the GP and `temporary_data["needs_rebuild"]` is set); `pybads/bads/bads.py:1829-1849` (search), `2301-2321` (noisy poll: when the GP did not grow, the poll's estimate is NaN and the point counts as no improvement).
+- Python: `pybads/bads/gaussian_process_train.py:1313-1370` (`add_and_update_gp`: `gp.update(X_new=…, y_new=…, s2_new=…, hyp=…)`; on `LinAlgError` gpyreg restores the GP and `temporary_data["needs_rebuild"]` is set); `pybads/bads/bads.py:1837-1857` (search), `2309-2329` (noisy poll: when the GP did not grow, the poll's estimate is NaN and the point counts as no improvement).
 - MATLAB: `private/gpupdate.m:39-83` ('add': tries a rank-1 update with `utils/update_posterior.m` first, except under `SpecifyTargetNoise`; the point is appended to `x` and `y` whatever happens), `340-354` (full recomputation inside `try`; `post = []` on failure); `bads.m:633-641`, `908-924`.
 - What differs: there is no rank-1 path. On failure the point is dropped from the GP, not kept beside an empty posterior. It stays in the function logger and enters the GP at the next rebuild. The noisy poll's NaN matches MATLAB's NaN prediction.
 - Why: survey (`dev/results/2026-09-23-codebase-survey.md`), candidate row `add_and_update_gp`, status "by design"; `dev/plans/gp-update-guards.md`, Open Questions 1 and 5. `dev/TODO.md` keeps the rank-1 update as an open item for a possible change. Its absence is known, not new.
@@ -231,7 +231,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B5.
 
 **KD-B5-2. A failed rebuild restores the GP as it was on entry, marks it, and forces a refit at the next rebuild**
-- Python: `pybads/bads/gaussian_process_train.py:285-289` (snapshot), `492-524` (restore; `needs_rebuild` and `needs_refit` set; exit flag -2), `594-595` (markers cleared once a posterior is left on the new set); `pybads/bads/bads.py:1703-1714` (search), `2194-2211` (poll; with `poll_training` off after the first iteration, the forced refit gives way), `2228-2231` (the poll treats the GP as unreliable after its own rebuild fails), `2605-2620` (`_record_gp_refit_`).
+- Python: `pybads/bads/gaussian_process_train.py:285-289` (snapshot), `492-524` (restore; `needs_rebuild` and `needs_refit` set; exit flag -2), `594-595` (markers cleared once a posterior is left on the new set); `pybads/bads/bads.py:1711-1722` (search), `2202-2219` (poll; with `poll_training` off after the first iteration, the forced refit gives way), `2236-2239` (the poll treats the GP as unreliable after its own rebuild fails), `2617-2632` (`_record_gp_refit_`).
 - MATLAB: `private/gpupdate.m:340-354` (the new data and the failed rebuild's hyperparameters and `pollscale` stay, with `post = []`); `bads.m:523-536`, `826-839` (rebuild while `post` is empty), `1223-1254` (refit only when `gppredcheck` finds the NaN predictions unreliable and `MinRefitTime` has passed).
 - What differs: PyBADS throws away the new data and hyperparameters on failure and refits at the very next rebuild, whatever `min_refit_time` says. The markers in `gp.temporary_data` stand in for MATLAB's empty `post`. The retry with the previous hyperparameters on the new training set, which MATLAB lacks, is made only after a refit (without one it would repeat the computation that failed), and the GP's geometry then comes from the hyperparameters it keeps: W1-11 (`f65bc91`) and W1-10 (`9ac1a47`), by the rulings of wave 1 (PI, 2026-09-26).
 - Why: survey, candidate row "`local_gp_fitting`, and `bads.py`, the forced refit", status "by design (… Open Question 7)"; `dev/plans/gp-update-guards.md`, Design and Open Questions 3 and 7.
@@ -239,7 +239,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B5.
 
 **KD-B5-3. Only `LinAlgError` is caught at the guarded GP calls; MATLAB's `try` catches any error**
-- Python: `pybads/bads/gaussian_process_train.py:494`, `509`, `1364`; `pybads/bads/bads.py:2651`. The same policy applies at the older guards, `pybads/bads/gaussian_process_train.py:217` and `673`.
+- Python: `pybads/bads/gaussian_process_train.py:494`, `509`, `1364`; `pybads/bads/bads.py:2663`. The same policy applies at the older guards, `pybads/bads/gaussian_process_train.py:217` and `673`.
 - MATLAB: `private/gpupdate.m:52-64`, `340-354`.
 - What differs: a `ValueError` or other error from gpyreg stops a PyBADS run, where MATLAB would catch it. The decision covers the GP-update guards only. MATLAB's other `try`/`catch` sites (`bads.m:567-586` around the acquisition, `1229-1233` around `gppredcheck`; `acq/acqLCB.m:34-38`; `search/searchES.m:138-150`; `utils/gppred.m:44-54`) have no recorded decision.
 - Why: `dev/plans/gp-update-guards.md`, Design, "Scope of the catch".
@@ -255,7 +255,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B5.
 
 **KD-B5-5. Fitness shaping is not implemented**
-- Python: `pybads/bads/gaussian_process_train.py:300-303` (TODO; `pass`); `pybads/bads/bads.py:1836` (TODO); `advanced_bads_options.ini:311-312`.
+- Python: `pybads/bads/gaussian_process_train.py:300-303` (TODO; `pass`); `pybads/bads/bads.py:1844` (TODO); `advanced_bads_options.ini:311-312`.
 - MATLAB: `bads.m:279-280` (under the heading "GP warping parameters (unsupported)"); `private/gpupdate.m:43-47`, `252-256`; `utils/fitnessTransform.m`.
 - What differs: `fitness_shaping=True` does nothing. Both default to off.
 - Why: TODO comments; MATLAB's own "(unsupported)" heading.
@@ -271,7 +271,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B5.
 
 **KD-B5-7. The normality test of the GP's calibration is scipy's Shapiro-Wilk; MATLAB's `swtest` switches to Shapiro-Francia for leptokurtic samples**
-- Python: `pybads/bads/bads.py:2557-2558` (`scipy.stats.shapiro`, in `_is_gp_refit_time_`).
+- Python: `pybads/bads/bads.py:2569-2570` (`scipy.stats.shapiro`, in `_is_gp_refit_time_`).
 - MATLAB: `utils/swtest.m:130-160`, `272`, through `utils/gppredcheck.m:30`.
 - What differs: MATLAB tests with Shapiro-Francia when the kurtosis of the z-scores exceeds 3, and with Shapiro-Wilk otherwise; PyBADS always uses Shapiro-Wilk. At the level `normalpha_level = 1e-6`, the two decide differently on heavy-tailed z-scores; in default runs the verifier found 4 of 84 and 1 of 79 verdicts different at uncertainty level 0 and none of 125 at level 1, all on the near-zero standard deviations that the fix of W1-3 removes.
 - Why: the ruling on W1-6 (PI, 2026-09-26).
@@ -279,7 +279,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B5.
 
 **KD-B5-8. Under `specify_target_noise`, the high-noise check of a refit takes the base noise 1, whatever `noise_size`**
-- Python: `pybads/bads/bads.py:1166-1173` (`noise_size` set to 1.0 under `specify_target_noise`), read by `pybads/bads/gaussian_process_train.py:412-421`.
+- Python: `pybads/bads/bads.py:1156-1163` (`noise_size` set to 1.0 under `specify_target_noise`), read by `pybads/bads/gaussian_process_train.py:412-421`.
 - MATLAB: `private/setupoptions.m:100-101` (a warning that `NoiseSize` is ignored with `SpecifyTargetNoise`), `private/gpupdate.m:379-381` (the high-noise check reads `NoiseSize` all the same).
 - What differs: MATLAB's check reads a user's `NoiseSize`, although its own warning says the option is ignored; PyBADS follows the warning, so that `noise_size=0`, which the warning proposes, does not make every refit a second fit.
 - Why: the PI's ruling of 2026-09-25, in #71 (`7b50a3a`): the code comment; `CHANGELOG.md`, "`noise_size` with user-specified noise"; the survey's row fixed in `7b50a3a`.
@@ -289,7 +289,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B6: GP model and its gpyreg objects
 
 **KD-B6-1. The GP is a gpyreg `GP` with a hard-wired rational-quadratic ARD kernel, not GPML plus `gpml_fast`**
-- Python: `pybads/bads/gaussian_process_train.py:95-116` (GP construction), `888-889` (identifier 1 → `RationalQuadraticARD`), `902-1090` (`_gp_hyp`: bounds and priors in gpyreg's units, where a Gaussian prior is `(mean, SD)`), `176-212` and `668-670` (`gp.fit` with the options of `_get_gp_training_options`, `1093-1176`), `832` (the private `gp._GP__gp_obj_fun`, on the slice-sampler path); `pybads/bads/bads.py:921-940` (`optim_state["gp_cov_fun"] = 1`; `gp_noisefun` → `GaussianNoise` flags).
+- Python: `pybads/bads/gaussian_process_train.py:95-116` (GP construction), `888-889` (identifier 1 → `RationalQuadraticARD`), `902-1090` (`_gp_hyp`: bounds and priors in gpyreg's units, where a Gaussian prior is `(mean, SD)`), `176-212` and `668-670` (`gp.fit` with the options of `_get_gp_training_options`, `1093-1176`), `832` (the private `gp._GP__gp_obj_fun`, on the slice-sampler path); `pybads/bads/bads.py:896-915` (`optim_state["gp_cov_fun"] = 1`; `gp_noisefun` → `GaussianNoise` flags).
 - MATLAB: `bads.m:260` (`gpdefFcn = {@gpdefBads,'rq',[1,1]}`); `gpdef/gpdefBads.m` (a GPML struct; `priorGauss` takes `(mean, variance)`; `likGaussHe`; inference `infPrior_fast` + `infExact_fastrobust` with `CholAttempts`, `309-315`); `gpml_fast/covRQard_fast.m`; `private/gpupdate.m:359-419` (`gpfit`: one or two starting points, `optimset('TolFun',0.1,'TolX',1e-4,'MaxFunEval',150)`); `utils/gpHyperOptimize.m` (`fmincon` or `minimizebnd`); `utils/gppred.m`; `utils/mygp.m`.
 - What differs: the GP library and every object it involves (hyperparameter vector, priors, bounds, likelihood, inference, optimizer, prediction) are gpyreg's. The kernel cannot be changed (`gp_cov_fun` and `gp_def_fcn` have no effect). It equals MATLAB's default (`'rq'`, ARD). **Settled:** only the substitution and the hard-wired kernel. **Open to comparison:** every hyperparameter, bound and prior in the units each side uses; the optimizer's starting points and tolerances; the Cholesky handling; the inference; and how PyBADS calls gpyreg. That includes the GP fit at initialization (`init_and_train_gp`), where MATLAB only defines the GP (`bads.m:465-469`). Wave 1 settled three of these (PI, 2026-09-26): the starting points (KD-B5-6), the fit at initialization (KD-B6-5) and the Cholesky handling (KD-B6-6).
 - Why: `AGENTS.md` ("The GP layer is the lab's `gpyreg`"; "`gp_cov_fun` is overridden by a hard-coded rational-quadratic ARD kernel"; "gpyreg internals"); `dev/plans/port-correctness-review.md`, Decisions (gpyreg's internals out of scope; its use in scope; `covRQard_fast.m` as the reference for `RationalQuadraticARD`) and "Two facts about the GP layer".
@@ -321,7 +321,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B6 (out of scope).
 
 **KD-B6-5. PyBADS fits a GP on the initial design; MATLAB only defines it**
-- Python: `pybads/bads/bads.py:1219-1239` (`init_and_train_gp` at initialization); `pybads/bads/gaussian_process_train.py:22-249`, `948-1000` (the starting values).
+- Python: `pybads/bads/bads.py:1213-1233` (`init_and_train_gp` at initialization); `pybads/bads/gaussian_process_train.py:22-249`, `948-1000` (the starting values).
 - MATLAB: `bads.m:465-469` (`gpdefBads` defines the GP with its starting values; the first fit comes at the first rebuild), `gpdef/gpdefBads.m:164-165`.
 - What differs: PyBADS fits the hyperparameters on the initial design under the definition priors; MATLAB keeps the definition values until its first rebuild. Both refit at the first rebuild, so the initial fit reaches a run as one start of that refit and as the hyperparameters under which the first target is predicted.
 - Why: the ruling on W1-27 (PI, 2026-09-26: fitting the GP on the initial design makes sense).
@@ -355,7 +355,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B7: function logger, initial design, utilities
 
 **KD-B7-1. The initial design is a scrambled Sobol set from `scipy.stats.qmc.Sobol` with a power-of-two number of points**
-- Python: `pybads/init_functions/init_sobol.py:16-21` (docstring), `66-78` (`Sobol(D, seed=seed).random_base2(ceil(log2(fun_eval_start)))`; the comment cites Owen (2020) on keeping Sobol sets to powers of two); `pybads/bads/bads.py:1073-1088`.
+- Python: `pybads/init_functions/init_sobol.py:16-21` (docstring), `66-78` (`Sobol(D, seed=seed).random_base2(ceil(log2(fun_eval_start)))`; the comment cites Owen (2020) on keeping Sobol sets to powers of two); `pybads/bads/bads.py:1055-1070`.
 - MATLAB: `private/evalinitmesh.m:98-104` (`Ninit` points); `init/initSobol.m:16` (`i4_sobol_generate(nvars,Ninit,seed)`: the unscrambled sequence, and `seed` is a skip index into it); `init/private/i4_sobol*.m`, `i4_bit_*.m`.
 - What differs: the generator (scipy's scrambled Sobol, where the seed seeds the scrambling), and the size, `2**ceil(log2(fun_eval_start))` points instead of `Ninit` (see also claim C2). **Not settled:** how the seed is derived from `u0` (the integer parts of its first 11 coordinates, against MATLAB's character codes of `num2str` of the first 10). That derivation is an open candidate.
 - Why: the docstring and the Owen comment; `AGENTS.md`, Architecture ("a Sobol initial design of `2**ceil(log2(fun_eval_start))` points").
@@ -363,7 +363,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B7.
 
 **KD-B7-2. Only the Sobol initial design exists; LHS and uniform designs are not ported**
-- Python: `pybads/bads/bads.py:1079-1125` (any other `init_fun` raises "Initialization function not implemented yet").
+- Python: `pybads/bads/bads.py:1061-1115` (any other `init_fun` raises "Initialization function not implemented yet").
 - MATLAB: `bads.m:199`; `init/initLHS.m`, `init/initRand.m`, `init/private/lhs.m`; `init/initSobol.m:18-21` (Latin hypercube as the fallback when Sobol generation raises).
 - What differs: there is no alternative design and no LHS fallback.
 - Why: `AGENTS.md`, "the initial design is selected by `init_fun == "init_sobol"`"; the error message.
@@ -371,7 +371,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B7.
 
 **KD-B7-3. With target noise, a repeated point is merged into its own row, and the merged value is returned**
-- Python: `pybads/function_logger/function_logger.py:400-430` (precision-weighted merge into the row that matches in every coordinate; returns the merged value with the new observation's SD).
+- Python: `pybads/function_logger/function_logger.py:406-436` (precision-weighted merge into the row that matches in every coordinate; returns the merged value with the new observation's SD).
 - MATLAB: `private/funlogger.m:117-129` (each evaluation is a new row, and the call returns the observation itself).
 - What differs: at level 2, PyBADS keeps one row per point and returns the merged value. Until the next rebuild, `add_and_update_gp` then adds that value beside the point's earlier row. Returning the observation, as MATLAB does, was tested and not adopted. At levels 0 and 1, a repeat is a new row on both sides.
 - Why: survey, candidate row "`function_logger.py`, `__call__` (at `1a21844`, line 193)", status "seen; MATLAB's form tested, not adopted"; `dev/experiments/population_ellipsoid_hetero_linux_20260925/README.md` ("Returning the observation … changes 20 runs and worsens 16 of them", p = 0.0019); CHANGELOG `[1.1.0]` and `[Unreleased]` (the merge, and the row fix of `032dfcb`); `AGENTS.md`, `FunctionLogger` bullet.
@@ -385,7 +385,7 @@ No entry of its own. Entries that touch the eight commits: KD-B5-1 (the rank-1 `
 ## S: Sto-BADS
 
 **KD-S-1. Sto-BADS is PyBADS's own**
-- Python: `pybads/bads/bads.py:170`, `257` (keyword-only constructor argument `gamma_uncertain_interval`), `218-219`, `1201-1203` (switched off for deterministic targets), `1912-1946` (search), `2031-2078` (`_sto_success_improvement_`), `2343-2396` (poll); `advanced_bads_options.ini:60-63`, `69-70` (`stobads` False, `opp_stobads` True, `stobads_frame_size_scaling_power` 2).
+- Python: `pybads/bads/bads.py:202`, `305` (keyword-only constructor argument `gamma_uncertain_interval`), `257-258`, `1195-1197` (switched off for deterministic targets), `1920-1954` (search), `2039-2086` (`_sto_success_improvement_`), `2351-2404` (poll); `advanced_bads_options.ini:60-63`, `69-70` (`stobads` False, `opp_stobads` True, `stobads_frame_size_scaling_power` 2).
 - MATLAB: no counterpart.
 - What differs: when `stobads` is on, an optional success rule based on uncertainty intervals, after Sto-MADS (Audet, Dzahini, Kokkolaras and Le Digabel, 2021), replaces the improvement tests of search and poll. It is off by default.
 - Why: `dev/plans/port-correctness-review.md`, slice S ("none: Sto-BADS is PyBADS's own"); the option descriptions and the docstring's reference.
