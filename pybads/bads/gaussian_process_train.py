@@ -65,6 +65,13 @@ def init_and_train_gp(
         An estimate of the GP noise variance at high posterior density.
     hyp_dict : dict
         The updated summary statistics.
+
+    Raises
+    ======
+    RuntimeError
+        Raised when the fit fails (``LinAlgError``) 10 times, from the
+        starting hyperparameters, from draws of their priors and from
+        zeros; the last failure is chained to it.
     """
 
     rng = get_rng(rng)
@@ -159,6 +166,8 @@ def init_and_train_gp(
     if hyp0.shape[1] != np.size(gp.hyper_priors["mu"]):
         hyp0 = None
 
+    # At most n_try fits, as many as a refit tries (`_robust_gp_fit_`)
+    n_try = 10
     fitted = False
     training_failures = 0
     while not fitted:
@@ -205,11 +214,17 @@ def init_and_train_gp(
                 hyp_dict["hyp"] = hyp0
                 fitted = True
 
-        except np.linalg.LinAlgError:
+        except np.linalg.LinAlgError as err:
             training_failures += 1
             logger.warning(
                 f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
             )
+            if training_failures == n_try:
+                raise RuntimeError(
+                    f"bads:gp: The initial fit of the GP failed {n_try} "
+                    "times, from the starting hyperparameters, from draws "
+                    "of their priors and from zeros."
+                ) from err
     # end gp hyp. init
 
     # Update running average of GP hyperparameter covariance (coarse)
@@ -251,12 +266,19 @@ def local_gp_fitting(
     (``pybads.rng.get_rng``).
 
     If the posterior on the new training set cannot be computed
-    (``LinAlgError``), it is computed with the previous hyperparameters, and
-    the exit flag is -2. If that fails too, the GP is restored as it was on
-    entry, the exit flag is -2, and ``gp.temporary_data["needs_rebuild"]``
-    and ``["needs_refit"]`` are set, so that the next search or poll step
-    rebuilds the local GP with a refit. A call that leaves a posterior on
-    the new training set removes both markers.
+    (``LinAlgError``) with the hyperparameters of a refit, it is computed
+    with the previous ones, and the exit flag is -2. If that fails too, or
+    if there was no refit (the hyperparameters that failed are the previous
+    ones), the GP is restored as it was on entry, the exit flag is -2, and
+    ``gp.temporary_data["needs_rebuild"]`` and ``["needs_refit"]`` are set,
+    so that the next search or poll step rebuilds the local GP with a
+    refit. A call that leaves a posterior on the new training set removes
+    both markers.
+
+    After a refit, the geometry that the poll and the search read from
+    ``gp.temporary_data`` (``"len_scale"``, ``"poll_scale"`` and
+    ``"effective_radius"``) is that of the hyperparameters the GP holds on
+    return, the refit's or the previous ones.
     """
     rng = get_rng(rng)
 
@@ -303,7 +325,8 @@ def local_gp_fitting(
     else:
         noise_size = np.ravel(options["noise_size"])[0]
 
-    # Update GP Noise
+    # Update GP Noise: the prior's centre scales with the mesh size, as in
+    # MATLAB's gpdefBads.m (a noisy run sets mesh_noise_multiplier to 0)
     old_priors = gp.get_priors()
     gp_priors = gp.get_priors()
     prior_noise = gp_priors["noise_log_scale"]
@@ -311,6 +334,7 @@ def local_gp_fitting(
         "mesh_noise_multiplier"
     ] * np.log(optim_state["mesh_size"])
     prior_noise = (prior_noise[0], (mu_noise_prior, prior_noise[1][1]))
+    gp_priors["noise_log_scale"] = prior_noise
 
     # TODO: warped likelihood (unsupported)
 
@@ -359,9 +383,16 @@ def local_gp_fitting(
 
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
-    # Empirical prior on covariance signal variance ((output scale)
+    # Empirical prior on covariance signal variance ((output scale), at the
+    # log of the targets' SD normalized by N - 1, as MATLAB's std. A single
+    # target, or targets with no spread (log 0), keep the previous centre,
+    # as the mean's prior keeps its previous width above
     if options["warp_func"] == 0:
-        sd_y = np.log(np.std(gp.y))
+        y_std = np.std(gp.y, ddof=1) if gp.y.size > 1 else 0.0
+        if y_std > 0:
+            sd_y = np.log(y_std)
+        else:
+            sd_y = gp_priors["covariance_log_outputscale"][1][0]
     else:
         # TODO warp function (MATLAB: gpdefBads.m:287-291)
         pass
@@ -454,20 +485,62 @@ def local_gp_fitting(
             options,
             rng,
         )
-        dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
+    else:
+        hyp_gp = old_hyp_gp
 
+    # Recompute posterior
+    try:
+        gp.update(hyp=hyp_gp)
+    except np.linalg.LinAlgError:
+        # Posterior GP update failed (due to Cholesky decomposition)
+        logger.debug(
+            "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
+        )
+        gp.set_priors(old_priors)
+        exit_flag = -2
+        # After a refit, retry with the previous hyperparameters. Without
+        # one, `hyp_gp` is `old_hyp_gp`, and a retry would repeat the
+        # computation that failed.
+        recovered = False
+        if refit_flag:
+            try:
+                gp.set_hyperparameters(old_hyp_gp)
+                recovered = True
+            except np.linalg.LinAlgError:
+                pass
+        if not recovered:
+            # Back to the GP of the entry, in place, marked for a rebuild
+            # with a refit (MATLAB's gpupdate clears the posterior, which
+            # has the next step rebuild it).
+            logger.debug(
+                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
+            )
+            vars(gp).clear()
+            vars(gp).update(entry_state)
+            gp.temporary_data.clear()
+            gp.temporary_data.update(entry_temporary_data)
+            gp.temporary_data["needs_rebuild"] = True
+            gp.temporary_data["needs_refit"] = True
+            return gp, exit_flag
+
+    if refit_flag:
+        # Update after fitting, from the hyperparameters the GP holds:
+        # the refit's, or the previous ones if the posterior could not be
+        # computed with the refit's
+        dic_hyp_gp = gp.get_hyperparameters()
         hyp_n_samples = len(dic_hyp_gp)
-        # Update after fitting
-        # Gaussian process length scale
-        if len(dic_hyp_gp[0]["covariance_log_lengthscale"]) > 1:
-            len_scale = np.zeros(D)
-            for i in range(hyp_n_samples):
-                len_scale += len_scale + np.exp(
-                    dic_hyp_gp[i]["covariance_log_lengthscale"]
-                )
-            gp.temporary_data["len_scale"] = len_scale
-        else:
-            gp.temporary_data["len_scale"] = 1.0
+        # Gaussian process length scale: MATLAB's sum over the samples
+        # weighted by `hypweight` (gpupdate.m), with equal weights. MATLAB
+        # takes 1 when there is one length scale (`ncovlen > 1`), meant for
+        # an isotropic kernel, which at D = 1 also discards the one length
+        # scale of its ARD kernel; the kernel here is always ARD.
+        len_scale = np.zeros(D)
+        for i in range(hyp_n_samples):
+            len_scale += (
+                np.exp(dic_hyp_gp[i]["covariance_log_lengthscale"])
+                / hyp_n_samples
+            )
+        gp.temporary_data["len_scale"] = len_scale
 
         # GP-based geometric length scale
         ll = np.zeros((hyp_n_samples, D))
@@ -508,41 +581,15 @@ def local_gp_fitting(
                     # "Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future."
                     alpha[i] = np.exp(dic_hyp_gp[i]["covariance_log_shape"])[0]
 
+                # As in MATLAB's gpupdate.m: the distance, in length scales,
+                # at which the kernel (1 + r^2 / (2 alpha))^-alpha falls to
+                # e^-1, over sqrt(2) so that the squared exponential gives 1
+                # (the convention of its constants for the Matern kernels)
                 gp.temporary_data["effective_radius"] = np.sqrt(
                     alpha * (np.exp(1 / alpha) - 1)
                 )
-    else:
-        hyp_gp = old_hyp_gp
 
-    # Matlab defines the signal variability in the GP, but is never used.
-
-    # Recompute posterior
-    try:
-        gp.update(hyp=hyp_gp)
-    except np.linalg.LinAlgError:
-        # Posterior GP update failed (due to Cholesky decomposition)
-        logger.debug(
-            "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
-        )
-        gp.set_priors(old_priors)
-        exit_flag = -2
-        try:
-            gp.set_hyperparameters(old_hyp_gp)
-        except np.linalg.LinAlgError:
-            # Without a refit, `hyp_gp` is `old_hyp_gp`, and this repeats
-            # the computation that failed. Back to the GP of the entry, in
-            # place, marked for a rebuild with a refit (MATLAB's gpupdate
-            # clears the posterior, which has the next step rebuild it).
-            logger.debug(
-                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
-            )
-            vars(gp).clear()
-            vars(gp).update(entry_state)
-            gp.temporary_data.clear()
-            gp.temporary_data.update(entry_temporary_data)
-            gp.temporary_data["needs_rebuild"] = True
-            gp.temporary_data["needs_refit"] = True
-            return gp, exit_flag
+        # Matlab defines the signal variability in the GP, but is never used.
 
     gp.temporary_data.pop("needs_rebuild", None)
     gp.temporary_data.pop("needs_refit", None)
@@ -593,6 +640,9 @@ def _robust_gp_fit_(
 ):
     """A private method that compute fit the Gaussian Process.
     In the case it fails to fit the GP with new proposed parameters it sample a new one from the priors.
+    When every try fails, or fewer training points than dimensions remain,
+    it returns the best of the starts ``hyp_gp``, with exit flag -1, as
+    MATLAB's gpHyperOptimize.m; a fit, after retries too, has exit flag 1.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
     rng = get_rng(rng)
@@ -608,19 +658,23 @@ def _robust_gp_fit_(
         s2 = None
     new_hyp = hyp_gp.copy()
     n_try = 10
-    success_flag = np.ones((n_try)).astype(bool)
+    fitted = False
     for i_try in range(0, n_try):
+        # Require a minimum number of points to do the fit (MATLAB:
+        # gpHyperOptimize.m:71)
+        if Y.shape[0] < X.shape[1]:
+            break
         try:
             new_hyp, _, res = tmp_gp.fit(
                 X, Y, s2, hyp0=new_hyp, options=gp_train, rng=rng
             )
+            fitted = True
             break
         except np.linalg.LinAlgError:
             # handle
             logger.debug(
                 "bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
             )
-            success_flag[i_try] = False
             if i_try > options["remove_points_after_tries"] - 1:
                 idx_drop_out = np.zeros(len(Y)).astype(bool)
                 # Remove closest pair sample
@@ -638,8 +692,10 @@ def _robust_gp_fit_(
                 else:
                     idx_drop_out[idx_min[1]] = True
 
+                # MATLAB's prctile1 is NumPy's "hazen" (gpHyperOptimize.m:137)
                 idx_drop_out = np.logical_or(
-                    idx_drop_out, (Y > np.percentile(Y, 95)).flatten()
+                    idx_drop_out,
+                    (Y > np.percentile(Y, 95, method="hazen")).flatten(),
                 )
                 X = X[~idx_drop_out]
                 Y = Y[~idx_drop_out]
@@ -652,6 +708,9 @@ def _robust_gp_fit_(
                 hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
             )
             if options["use_slice_sampler"]:
+                # The sampler reads the data of the GP it is given: those of
+                # the retry, which a failed fit does not leave in `tmp_gp`
+                tmp_gp.X, tmp_gp.y, tmp_gp.s2 = X, Y, s2
                 # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
                 if len(new_hyp) > 1:
                     new_hyp = new_hyp[-1].copy()
@@ -666,18 +725,25 @@ def _robust_gp_fit_(
                 new_hyp = old_hyp_gp
 
             nudge = options["noise_nudge"]
-            if nudge is None or len(nudge) == 0:
+            if nudge is None or np.size(nudge) == 0:
                 nudge = np.array([0, 0])
-            elif len(nudge) == 1:
-                nudge = np.vstack((nudge, 0.5 * nudge[0]))
+            elif np.size(nudge) == 1:
+                # Half of it for the bound, as MATLAB completes it
+                # (gpHyperOptimize.m:7)
+                nudge = np.ravel(nudge)[0] * np.array([1, 0.5])
 
             # Try increase starting point of noise
             noise_nudge = noise_nudge + nudge[0]
 
-            # Increase gp noise hyp lower bounds
-            bounds = tmp_gp.get_bounds()
+            # Increase gp noise hyp lower bounds, by nudge[1] per failure
+            # from the bound at entry, which `gp` holds (MATLAB:
+            # gpHyperOptimize.m:163-164)
+            bounds = gp.get_bounds()
             noise_bound = bounds["noise_log_scale"]
-            noise_bound = (noise_bound[0] + noise_nudge, noise_bound[1])
+            noise_bound = (
+                noise_bound[0] + (i_try + 1) * nudge[1],
+                noise_bound[1],
+            )
             bounds["noise_log_scale"] = noise_bound
             tmp_gp.set_bounds(bounds)
 
@@ -687,24 +753,42 @@ def _robust_gp_fit_(
                 new_hyp[0]["noise_log_scale"] + noise_nudge
             )
             new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
+            # Into the bounds of the retry (MATLAB: gpHyperOptimize.m:167)
+            new_hyp = np.minimum(
+                np.maximum(new_hyp, tmp_gp.lower_bounds), tmp_gp.upper_bounds
+            )
             tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
-    if np.any(success_flag):
-        # at least one run succeeded
-        gp.set_hyperparameters(new_hyp, False)
-    if np.any(~success_flag):
-        # at least one failed
+    if not fitted:
+        # Every try failed, or too few points remained: the best of the
+        # starts, taken into the bounds and ranked by the log posterior on
+        # the data at entry, which `gp` holds, as MATLAB
+        # (gpHyperOptimize.m:50-62, 197-200); a start that cannot be
+        # evaluated ranks last
+        starts = np.minimum(
+            np.maximum(np.atleast_2d(hyp_gp), gp.lower_bounds),
+            gp.upper_bounds,
+        )
+        nlp = np.full(starts.shape[0], np.inf)
+        for i, start in enumerate(starts):
+            try:
+                nlp[i] = -gp.log_posterior(start)
+            except np.linalg.LinAlgError:
+                pass
+        nlp[np.isnan(nlp)] = np.inf
+        new_hyp = starts[[np.argmin(nlp)]]
+        res = None
+    gp.set_hyperparameters(new_hyp, False)
+    if not fitted or i_try > 0:
+        # at least one failed, or none was made
         if options["gp_warnings"]:
             logger.warning(
                 f"bads:gpHyperOptFail: Failed optimization of hyper-parameters (after {n_try} attempts). GP approximation might be unreliable."
             )
 
-    if np.all(~success_flag):
-        success = -1
-    elif np.all(success_flag):
-        success = 1
-    else:
-        success = 0
+    # MATLAB's exit flag 0, for a fit of some of its starts, has no
+    # counterpart: gpyreg fits all of them at once (gpHyperOptimize.m:202-209)
+    success = 1 if fitted else -1
 
     return gp, new_hyp, res, success
 
@@ -712,18 +796,18 @@ def _robust_gp_fit_(
 def _get_random_samples_from_priors_(gp: gpr.GP, rng=None):
     """
     A private method that retrieves a new set of parameters by randomly sampling from the prior of the GP
+    A Gaussian prior is drawn in the units of its hyperparameter (log units
+    for a log hyperparameter), and a block without a prior keeps its value,
+    as in MATLAB's gppriorrnd.m.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
     rng = get_rng(rng)
     hyp = gp.get_hyperparameters()[-1]  # copy of the hyper-params
     for key, value in gp.get_priors().items():
-        if value[0] == "gaussian":
+        if value is not None and value[0] == "gaussian":
             gauss_parameter = value[1]
             mean_priors = gauss_parameter[0]
             sigma_priors = gauss_parameter[1]
-            if "log" in key:
-                mean_priors = np.exp(mean_priors)
-                sigma_priors = np.exp(sigma_priors)
             new_sample = []
             for idx, m_p in enumerate(mean_priors):
                 new_sample.append(rng.normal(m_p, sigma_priors[idx]))
@@ -880,6 +964,14 @@ def _gp_hyp(
         cov_x0[-1] = 0.0  # shape hyp.
 
     mean_x0 = mean_bounds_info["x0"]
+    # The constant mean starts at the median of the lowest
+    # ceil(hpd_frac * N) targets, as in MATLAB's gpdefBads.m (ceil(0.8 N));
+    # its prior, below, stays centred on the high-density set, the lowest
+    # round(hpd_frac * N)
+    mean_start = mean_x0.copy()
+    if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+        n_low = math.ceil(options["hpd_frac"] * y.size)
+        mean_start[0] = np.median(np.sort(y, axis=None)[:n_low])
 
     noise_x0 = noise_bounds_info["x0"]
 
@@ -905,19 +997,13 @@ def _gp_hyp(
         noise_mu = np.log(noise_size)
 
     noise_x0[0] = noise_mu
-    hyp0 = np.concatenate([cov_x0, noise_x0, mean_x0])
+    hyp0 = np.concatenate([cov_x0, noise_x0, mean_start])
 
     # Missing port: output warping hyperparameters not implemented
 
     ## Change default bounds and set priors over hyperparameters.
 
     bounds = gp.get_bounds()
-    if options["upper_gp_length_factor"] > 0:
-        # Max GP input length scale
-        bounds["covariance_log_lengthscale"] = (
-            -np.inf,
-            np.log(options["upper_gp_length_factor"] * (pub - plb)),
-        )
     # Increase minimum noise.
     bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
@@ -962,10 +1048,14 @@ def _gp_hyp(
     if isinstance(gp.mean, gpr.mean_functions.ZeroMean):
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
-        # Lower maximum constant mean
-        sd = np.std(hpd_y) if len(hpd_y) > 1 else 1.0
+        # The constant mean is unbounded, as in MATLAB's gpdefBads.m: its
+        # prior is re-centred at each rebuild. A single target, or targets
+        # with no spread, take the SD 1 (gpyreg refuses a zero SD)
+        sd = np.std(hpd_y) if len(hpd_y) > 1 else 0.0
+        if not sd > 0:
+            sd = 1.0
         priors["mean_const"] = ("gaussian", (mean_x0, sd))
-        bounds["mean_const"] = (mean_bounds_info["LB"], mean_bounds_info["UB"])
+        bounds["mean_const"] = (-np.inf, np.inf)
 
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gp_quadratic_mean_bound"]:
@@ -1054,11 +1144,18 @@ def _get_gp_training_options(
     c = 3 * a
     d = options["gp_train_n_init"]
     eff_starting_points = optim_state["eff_starting_points"]
-    x = (n_eff - eff_starting_points) / (
+    # The fraction of the budget used after the initial design, in [0, 1],
+    # where the cubic falls from gp_train_n_init to gp_train_n_init_final;
+    # a budget no larger than the initial design is used up
+    n_budget = (
         min(options["max_fun_evals"], options["n_train_max"])
         - eff_starting_points
     )
-    f = lambda x_: a * x_**3 + b * x**2 + c * x + d
+    if n_budget > 0:
+        x = min(max((n_eff - eff_starting_points) / n_budget, 0.0), 1.0)
+    else:
+        x = 1.0
+    f = lambda x_: a * x_**3 + b * x_**2 + c * x_ + d
     init_N = max(round(f(x)), options["gp_train_n_init_final"])
     if (
         iteration >= 0
@@ -1109,7 +1206,9 @@ def get_grid_search_neighbors(
     )
     if dist.ndim > 1:
         dist = np.min(dist, axis=1)
-    sort_idx = np.argsort(dist)  # Ascending sort
+    # Ascending sort; stable, as MATLAB's sort, so that points at equal
+    # distance keep the order of the function log
+    sort_idx = np.argsort(dist, kind="stable")
 
     # Keep only points within a certain (rescale) radius from target
     radius = options["gp_radius"] * gp.temporary_data["effective_radius"]

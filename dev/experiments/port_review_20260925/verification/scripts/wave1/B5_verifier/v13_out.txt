@@ -1,0 +1,5 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D=1: fitted lengthscale [0.49208983] temporary_data len_scale 1.0 ntrain 30
+1 sample(s): python sum [2. 3.], MATLAB weighted sum [2. 3.]
+2 sample(s): python sum [ 8. 11.], MATLAB weighted sum [3. 4.]

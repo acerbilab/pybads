@@ -1,0 +1,39 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+training points: 69  noise bounds at entry: (array([-7.90775528]), array([5.]))
+--- no failure: 0 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -3.620
+   try 3: noise lb= -4.908 (MATLAB lb= -7.908), X rows=64, noise start= -2.089
+   -> returned flag=0, noise hyp=-4.908, gp.X rows=69, gp noise lb=[-7.90775528]
+--- one failure: 1 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -2.331
+   -> returned flag=0, noise hyp=-6.908, gp.X rows=69, gp noise lb=[-7.90775528]
+--- three failures: 3 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -2.331
+   try 3: noise lb= -4.908 (MATLAB lb= -7.908), X rows=64, noise start= -2.939
+   try 4: noise lb= -1.908 (MATLAB lb= -7.908), X rows=59, noise start= -1.288
+   -> returned flag=0, noise hyp=-1.908, gp.X rows=69, gp noise lb=[-7.90775528]
+--- four failures: 4 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -2.331
+   try 3: noise lb= -4.908 (MATLAB lb= -7.908), X rows=64, noise start= -2.939
+   try 4: noise lb= -1.908 (MATLAB lb= -7.908), X rows=59, noise start= -1.288
+   try 5: noise lb=  2.092 (MATLAB lb= -7.908), X rows=55, noise start= -0.176
+   -> returned flag=0, noise hyp=2.092, gp.X rows=69, gp noise lb=[-7.90775528]
+--- five failures: 5 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -2.331
+   try 3: noise lb= -4.908 (MATLAB lb= -7.908), X rows=64, noise start= -2.939
+   try 4: noise lb= -1.908 (MATLAB lb= -7.908), X rows=59, noise start= -1.288
+   try 5: noise lb=  2.092 (MATLAB lb= -7.908), X rows=55, noise start= -0.176
+   -> RAISED ValueError: Lower bound above upper bound for the hyperparameter(s) noise_log_scale.
+--- ten failures: 10 injected failures, noise_nudge=[1 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -6.908 (MATLAB lb= -7.908), X rows=69, noise start= -2.331
+   try 3: noise lb= -4.908 (MATLAB lb= -7.908), X rows=64, noise start= -2.939
+   try 4: noise lb= -1.908 (MATLAB lb= -7.908), X rows=59, noise start= -1.288
+   try 5: noise lb=  2.092 (MATLAB lb= -7.908), X rows=55, noise start= -0.176
+   -> RAISED ValueError: Lower bound above upper bound for the hyperparameter(s) noise_log_scale.

@@ -394,10 +394,9 @@ def _local_fit(c, gp, refit_flag):
     )
 
 
-@pytest.mark.parametrize("refit_flag", [False, True], ids=["norefit", "refit"])
-def test_local_fit_double_failure_restores_gp(
-    captured, inject, refit_flag, caplog
-):
+def test_local_fit_double_failure_restores_gp(captured, inject, caplog):
+    """After a refit, the posterior update and its retry with the old
+    hyperparameters fail: the GP is restored and marked."""
     level, c = captured
     injector = inject(
         lambda call: call.site == "local_gp_fitting" and call.n <= 2
@@ -405,13 +404,40 @@ def test_local_fit_double_failure_restores_gp(
     gp = copy.deepcopy(c.local["gp"])
     entry = copy.deepcopy(gp)
     with caplog.at_level(logging.DEBUG, logger="BADS"):
-        out, exit_flag = _local_fit(c, gp, refit_flag)
+        out, exit_flag = _local_fit(c, gp, True)
     assert out is gp
     assert _debug_loggers(caplog, "local_gp_fitting") == ["BADS", "BADS"]
     assert exit_flag == -2
     assert [call[:2] for call in injector.failed] == [
         ("local_gp_fitting", "update"),
         ("local_gp_fitting", "set_hyperparameters"),
+    ]
+    _assert_same_gp(gp, entry)
+    u = np.atleast_2d(c.local["u"])
+    for mine, theirs in zip(gp.predict(u), entry.predict(u)):
+        assert np.array_equal(mine, theirs)
+    assert gp.temporary_data["needs_rebuild"] is True
+    assert gp.temporary_data["needs_refit"] is True
+
+
+def test_local_fit_failure_without_refit_is_not_retried(
+    captured, inject, caplog
+):
+    """Without a refit, the posterior update that fails has the old
+    hyperparameters, so it is not retried: the GP is restored and marked
+    after that one update."""
+    level, c = captured
+    injector = inject(lambda call: call.site == "local_gp_fitting")
+    gp = copy.deepcopy(c.local["gp"])
+    entry = copy.deepcopy(gp)
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        out, exit_flag = _local_fit(c, gp, False)
+    assert out is gp
+    assert _debug_loggers(caplog, "local_gp_fitting") == ["BADS", "BADS"]
+    assert exit_flag == -2
+    assert injector.counts["local_gp_fitting"] == 1
+    assert [call[:2] for call in injector.failed] == [
+        ("local_gp_fitting", "update")
     ]
     _assert_same_gp(gp, entry)
     u = np.atleast_2d(c.local["u"])
@@ -440,6 +466,43 @@ def test_local_fit_recovered_failure_is_unchanged(captured, inject):
     )
     _assert_consistent(gp)
     assert not any(gp.temporary_data.get(m, False) for m in MARKERS)
+
+
+def test_local_fit_recovered_failure_has_geometry_of_old_hyperparameters(
+    captured, inject
+):
+    """After the recovery from a failed posterior update after a refit, the
+    geometry that the poll and the search read is that of the old
+    hyperparameters, which the GP holds, not the refit's."""
+    level, c = captured
+    inject(lambda call: call.site == "local_gp_fitting" and call.n == 1)
+    gp = copy.deepcopy(c.local["gp"])
+    _, exit_flag = _local_fit(c, gp, True)
+    assert exit_flag == -2
+    (hyp,) = gp.get_hyperparameters()
+    state, options = c.bads.optim_state, c.bads.options
+    # The rescaled length scales over their geometric mean, clipped to the
+    # search mesh and to the box (whose bounds are finite here)
+    log_scale = options["gp_rescale_poll"] * hyp["covariance_log_lengthscale"]
+    poll_scale = np.clip(
+        np.exp(log_scale - np.mean(log_scale)),
+        state["search_mesh_size"],
+        ((state["ub"] - state["lb"]) / state["scale"]).ravel(),
+    )
+    alpha = np.exp(hyp["covariance_log_shape"])
+    np.testing.assert_allclose(
+        gp.temporary_data["len_scale"],
+        np.exp(hyp["covariance_log_lengthscale"]),
+        rtol=1e-12,
+    )
+    np.testing.assert_allclose(
+        gp.temporary_data["poll_scale"], poll_scale, rtol=1e-12
+    )
+    np.testing.assert_allclose(
+        gp.temporary_data["effective_radius"],
+        np.sqrt(alpha * (np.exp(1 / alpha) - 1)),
+        rtol=1e-12,
+    )
 
 
 def test_local_fit_success_clears_markers(captured):
@@ -524,17 +587,20 @@ def _probe(
     min_iter=0,
     on_first=None,
     state=None,
+    reset_gp=False,
     **options,
 ):
     """Runs a short optimization and probes its first `step_name` step that
     is due (the search: `search_count > 0`; both: `optim_state["iter"] >=
-    min_iter`), with `reset_gp` false and no refit due. It sets ``markers``
-    on the GP: in the search, on the GP the step is given; in the poll,
-    right after the rebuild of its first iteration, when it also calls
-    ``on_first``. Returns ``state``: the `refit_flag` of each call of
-    `local_gp_fitting` during the step (``calls``), whether each refit was
-    recorded at the evaluation count (``refit_recorded``), and whether the
-    GP statistics were reset (``gp_stats_reset``)."""
+    min_iter`), with `reset_gp` set to ``reset_gp`` (true as after a move of
+    the incumbent) and no refit due. It sets ``markers`` on the GP: in the
+    search, on the GP the step is given; in the poll, right after the
+    rebuild of its first iteration, when it also calls ``on_first``.
+    Returns ``state``: the `refit_flag` of each call of `local_gp_fitting`
+    during the step (``calls``), whether each refit was recorded at the
+    evaluation count (``refit_recorded``), whether the GP statistics were
+    reset (``gp_stats_reset``), and `reset_gp` after the step
+    (``reset_gp``)."""
     state = {} if state is None else state
     state.update(probing=False, done=False, calls=[], refit_recorded=[])
     poll = step_name == "_poll_step_"
@@ -583,8 +649,11 @@ def _probe(
         if not due:
             return original_step(self, gp)
         state["probing"] = state["done"] = True
-        self.reset_gp = False
-        self._is_gp_refit_time_ = lambda alpha: (False, False)
+        self.reset_gp = reset_gp
+        self._is_gp_refit_time_ = lambda alpha, refit_allowed=True: (
+            False,
+            False,
+        )
         gp_stats = self.gp_stats
         if not poll:
             for marker in markers:
@@ -595,6 +664,7 @@ def _probe(
             del self._is_gp_refit_time_
             state["probing"] = False
             state["gp_stats_reset"] = self.gp_stats is not gp_stats
+            state["reset_gp"] = self.reset_gp
 
     monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
     monkeypatch.setattr(BADS, step_name, step)
@@ -626,6 +696,23 @@ def test_search_refits_after_failed_rebuild(monkeypatch):
     assert state["gp_stats_reset"]
 
 
+def test_search_rebuild_answers_move(monkeypatch):
+    """After a move of the incumbent, the search rebuilds the GP, and the
+    rebuild answers the move, as in MATLAB BADS it fills the posterior that
+    the move emptied: a search that does not move the incumbent leaves no
+    rebuild to the next step."""
+    state = {}
+    original = BADS._eval_improvement_
+
+    def no_improvement(self, *args):
+        return -np.inf if state["probing"] else original(self, *args)
+
+    monkeypatch.setattr(BADS, "_eval_improvement_", no_improvement)
+    _probe(monkeypatch, "_search_step_", [], state=state, reset_gp=True)
+    assert state["calls"] == [False]
+    assert state["reset_gp"] is False
+
+
 def test_poll_rebuilds_marked_gp(monkeypatch):
     # The first rebuild, and one more for the marker, which it clears.
     state = _probe(
@@ -636,6 +723,15 @@ def test_poll_rebuilds_marked_gp(monkeypatch):
 
 def test_poll_leaves_unmarked_gp(monkeypatch):
     state = _probe(monkeypatch, "_poll_step_", [], **COMPLETE_POLL)
+    assert state["calls"] == [False]
+
+
+def test_poll_rebuilds_once_after_move(monkeypatch):
+    """After a move of the incumbent, the poll rebuilds the GP once, in its
+    first iteration, not in every one."""
+    state = _probe(
+        monkeypatch, "_poll_step_", [], reset_gp=True, **COMPLETE_POLL
+    )
     assert state["calls"] == [False]
 
 
@@ -661,6 +757,48 @@ def test_poll_refit_gives_way_to_poll_training(monkeypatch):
     assert not state["gp_stats_reset"]
 
 
+def test_poll_without_poll_training_records_no_refit(monkeypatch):
+    """With `poll_training` off, a poll after the first iteration neither
+    refits the GP nor records a refit, so that the next refit of the search
+    is not delayed by one that did not happen: every refit recorded is
+    made."""
+    counts = {"recorded": 0, "made": 0}
+    original_local = bads_module.local_gp_fitting
+    original_record = BADS._record_gp_refit_
+
+    def spy_local(
+        gp,
+        current_point,
+        function_logger,
+        options,
+        optim_state,
+        iteration_history,
+        refit_flag,
+        rng=None,
+    ):
+        counts["made"] += bool(refit_flag)
+        return original_local(
+            gp,
+            current_point,
+            function_logger,
+            options,
+            optim_state,
+            iteration_history,
+            refit_flag,
+            rng=rng,
+        )
+
+    def record(self):
+        counts["recorded"] += 1
+        return original_record(self)
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    monkeypatch.setattr(BADS, "_record_gp_refit_", record)
+    _make_bads(_sphere, poll_training=False).optimize()
+    assert counts["made"] > 0
+    assert counts["recorded"] == counts["made"]
+
+
 @pytest.mark.parametrize("fail", [False, True], ids=["rebuilt", "restored"])
 def test_poll_treats_restored_gp_as_unreliable(monkeypatch, inject, fail):
     """After a failed rebuild in the poll, the GP is the previous one, and
@@ -670,7 +808,7 @@ def test_poll_treats_restored_gp_as_unreliable(monkeypatch, inject, fail):
 
     def should_fail(call):
         if fail and armed["on"] and call.site == "local_gp_fitting":
-            if armed["fails"] < 2:
+            if armed["fails"] < 1:
                 armed["fails"] += 1
                 return True
         return False
@@ -692,7 +830,7 @@ def test_poll_treats_restored_gp_as_unreliable(monkeypatch, inject, fail):
         on_first=lambda: armed.update(on=True),
         state=state,
     )
-    assert len(injector.failed) == (2 if fail else 0)
+    assert len(injector.failed) == (1 if fail else 0)
     # The 2nd iteration rebuilds for the marker, and the 3rd refits after a
     # failed rebuild. Only the 2nd iteration's verdict depends on the
     # failure (the 1st may find the GP unreliable on its own).
@@ -804,7 +942,7 @@ def test_noisy_search_after_failed_rebuild_counts_as_failure(
                 state["armed"] = True
                 return True
         elif state["armed"] and call.site == "local_gp_fitting":
-            if state["local"] < 2:
+            if state["local"] < 1:
                 state["local"] += 1
                 return True
         return False
@@ -816,9 +954,8 @@ def test_noisy_search_after_failed_rebuild_counts_as_failure(
     assert [call[:2] for call in injector.failed] == [
         ("add_and_update_gp", "update"),
         ("local_gp_fitting", "update"),
-        ("local_gp_fitting", "set_hyperparameters"),
     ]
-    f_new, s_new = _first_estimate_after(log, 3)
+    f_new, s_new = _first_estimate_after(log, 2)
     assert np.isnan(f_new) and np.isnan(s_new)
     point = log["failed_points"][0]
     assert not any(np.array_equal(u, point) for u in log["moves"])
@@ -855,7 +992,7 @@ def test_sto_search_after_failed_rebuild_counts_as_failure(
                 state["armed"] = True
                 return True
         elif state["armed"] and call.site == "local_gp_fitting":
-            if state["local"] < 2:
+            if state["local"] < 1:
                 state["local"] += 1
                 return True
         return False
@@ -878,14 +1015,108 @@ def test_sto_search_after_failed_rebuild_counts_as_failure(
     assert [call[:2] for call in injector.failed] == [
         ("add_and_update_gp", "update"),
         ("local_gp_fitting", "update"),
-        ("local_gp_fitting", "set_hyperparameters"),
     ]
-    _, f_new, s_new, outcome = next(o for o in outcomes if o[0] == 3)
+    _, f_new, s_new, outcome = next(o for o in outcomes if o[0] == 2)
     assert np.isnan(f_new) and np.isnan(s_new)
     assert outcome == -1
     point = log["failed_points"][0]
     assert not any(np.array_equal(u, point) for u in log["moves"])
     assert np.isfinite(result["fval"])
+
+
+def test_noisy_re_estimate_after_failed_rebuild(inject, monkeypatch):
+    """In each re-estimate of the iterates of a noisy run from the 3rd
+    iteration on, the rebuild around the 2nd iterate and around the current
+    one, the last, fails, leaving a GP without a posterior. As in MATLAB
+    BADS, the 2nd iterate has no estimate (NaN), which the choice of a
+    better iterate at the end of an iteration and the final choice skip;
+    the current one keeps its estimate, so that the incumbent has one. At
+    one choice, the 3rd iterate is made to improve the most, so that the
+    choice has to look past the 2nd."""
+    state = {"armed": False, "row": 0, "rows": 0, "boosted": False}
+
+    def should_fail(call):
+        if not state["armed"] or call.caller != "_re_evaluate_history_":
+            return False
+        row = state["row"]
+        state["row"] += 1
+        return row in (1, state["rows"] - 1)
+
+    injector = inject(should_fail)
+    re_estimates, choices = [], []
+    original_re_evaluate = BADS._re_evaluate_history_
+    original_eval = BADS._eval_improvement_
+    original_search = BADS._search_step_
+
+    def estimates(self):
+        history = self.iteration_history
+        return np.array([history.get("fval"), history.get("fsd")], float)
+
+    def re_evaluate(self, gp):
+        rows = self.iteration_history.get("u").shape[0]
+        before = estimates(self)
+        state.update(armed=rows >= 3, row=0, rows=rows)
+        try:
+            original_re_evaluate(self, gp)
+        finally:
+            state["armed"] = False
+        if state["row"] > 0:  # armed, and not skipped for want of new data
+            re_estimates.append((state["row"], before, estimates(self)))
+
+    def evaluate(self, f_base, f_new, s_base, s_new, q):
+        z = original_eval(self, f_base, f_new, s_base, s_new, q)
+        # The choice of a better iterate, from the whole history
+        if sys._getframe(1).f_code.co_name == "optimize" and np.ndim(f_new):
+            boost = not state["boosted"] and z.size >= 4
+            if boost:
+                # The 3rd iterate improves the most, so that the choice has
+                # to look past the 2nd, which has no estimate
+                z[2] = np.nanmax(z) + 1
+                state["boosted"] = True
+            choices.append([z.copy(), estimates(self), boost])
+        return z
+
+    def search(self, gp):
+        # The incumbent that the last choice left
+        if choices and len(choices[-1]) == 3:
+            choices[-1].append((self.fval, self.fsd))
+        return original_search(self, gp)
+
+    monkeypatch.setattr(BADS, "_re_evaluate_history_", re_evaluate)
+    monkeypatch.setattr(BADS, "_eval_improvement_", evaluate)
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    make_fun, options = LEVELS[1]
+    # Without final samples, the result holds the chosen iterate's estimate
+    bads = _make_bads(
+        make_fun(), max_fun_evals=150, noise_final_samples=0, **options
+    )
+    result = bads.optimize()
+
+    assert re_estimates
+    assert all(
+        call[:2] == ("local_gp_fitting", "update") for call in injector.failed
+    )
+    assert len(injector.failed) == 2 * len(re_estimates)
+    for calls, before, after in re_estimates:
+        assert calls == after.shape[1]  # one rebuild per iterate
+        assert np.all(np.isnan(after[:, 1]))
+        assert np.array_equal(after[:, -1], before[:, -1])
+        assert np.all(np.isfinite(np.delete(after, [1, -1], axis=1)))
+
+    # Each choice is the iterate of the largest improvement among those with
+    # an estimate, if it exceeds `tol_fun`, and else the current one
+    tol_fun = bads.options["tol_fun"]
+    checked = [c for c in choices if len(c) == 4 and np.isnan(c[0][1])]
+    assert any(boost for _, _, boost, _ in checked)
+    for z, (fval, fsd), boost, incumbent in checked:
+        best = np.nanargmax(z[1:]) + 1
+        row = best if z[best] > tol_fun else -1
+        assert row == 2 or not boost
+        assert incumbent == (fval[row], fsd[row])
+
+    # The final choice, with the 2nd iterate still without an estimate
+    assert np.isnan(bads.iteration_history.get("fval")[1])
+    assert np.isfinite(result["fval"]) and np.isfinite(result["fsd"])
 
 
 # --- whole runs ------------------------------------------------------------
@@ -916,7 +1147,7 @@ def _all_adds(failed):
             lambda failed: [call[:3] for call in failed]
             == [
                 ("local_gp_fitting", "update", 5),
-                ("local_gp_fitting", "set_hyperparameters", 6),
+                ("local_gp_fitting", "update", 6),
             ],
         ),
         (
@@ -962,3 +1193,29 @@ def test_initial_fit_recovers_from_failure(monkeypatch, caplog):
         for record in caplog.records
     )
     assert np.isfinite(result["fval"])
+
+
+def test_initial_fit_stops_after_repeated_failures(monkeypatch):
+    """A fit of `init_and_train_gp` that always raises `LinAlgError` stops
+    the run after 10 tries, with an error that says so, chained to the last
+    failure."""
+    original_fit = gpr.GP.fit
+    failures = []
+
+    def fit(gp, *args, **kwargs):
+        frames = _pybads_frames(sys._getframe(1))
+        if frames and frames[0] == "init_and_train_gp":
+            failures.append(True)
+            # Bounds an uncapped loop, which then fails here
+            assert len(failures) <= 50, "the initial fit kept retrying"
+            raise np.linalg.LinAlgError(f"injected failure {len(failures)}")
+        return original_fit(gp, *args, **kwargs)
+
+    monkeypatch.setattr(gpr.GP, "fit", fit)
+    with pytest.raises(
+        RuntimeError, match="initial fit of the GP failed 10 times"
+    ) as info:
+        _make_bads(_sphere).optimize()
+    assert len(failures) == 10
+    assert isinstance(info.value.__cause__, np.linalg.LinAlgError)
+    assert str(info.value.__cause__) == "injected failure 10"

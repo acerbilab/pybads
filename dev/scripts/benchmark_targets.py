@@ -857,9 +857,23 @@ _SMOKE = (
     "ellipsoid_D3_unbounded",
 )
 
+# The configurations at D = 1, which the default suite has none of: the gate
+# of a change that reaches only D = 1. Every target defined there
+# (rosenbrock is not), deterministic, with both noise kinds, and with
+# infinite bounds; the ellipsoid at D = 1 is a shifted sphere.
+_ONED = [
+    Config("sphere", 1, budget=500),
+    Config("ackley", 1, budget=500),
+    Config("rastrigin", 1, budget=500),
+    Config("sphere", 1, noise="homo", budget=500),
+    Config("sphere", 1, noise="hetero", budget=500),
+    Config("ellipsoid", 1, budget=500, unbounded=True),
+]
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
+    "oned": _ONED,
 }
 
 

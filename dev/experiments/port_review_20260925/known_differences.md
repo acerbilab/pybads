@@ -1,4 +1,4 @@
-<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the rest is the agent's text. -->
+<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the entries and edits that cite the rulings of wave 1 (verification/wave1.md) were added by the orchestrator from 2026-09-26, at the same revisions; the rest is the agent's text. -->
 
 # Known differences between PyBADS and MATLAB BADS
 
@@ -39,7 +39,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - MATLAB: `bads.m:161` (`OptimToolbox`), `188` (`Debug`), `189` (`TrueMinX`).
 - What differs:
   - *MATLAB only:* `OptimToolbox`, which chooses between `fmincon` and `minimizebnd` for the GP hyperparameters (`utils/gpHyperOptimize.m:235-283`). PyBADS has no counterpart because its optimizer is gpyreg's (KD-B6-1). `Debug` and `TrueMinX` only print or plot (`bads.m:1002-1011`, `private/gpupdate.m:61-63`, `351-353`, `private/scatterplot.m`).
-  - *PyBADS only, and read by code:* `random_seed` (KD-B1-1); `stobads`, `opp_stobads`, `stobads_frame_size_scaling_power` (KD-S-1); `gp_mean_fun` (`'const'` is MATLAB's fixed `@meanConst`, `gpdef/gpdefBads.m:167`; `'zero'` and `'negquad'` are PyBADS's own); `gp_train_n_init`, `gp_train_n_init_final`, `gp_train_init_method`, `gp_tol_opt`, `hpd_frac`, `upper_gp_length_factor`, `gp_quadratic_mean_bound`, `tol_sd`, `use_slice_sampler`, `gp_hyp_sampler`, `hyp_run_weight`, `fun_evals_per_iter`, `noise_shaping` (all options of the gpyreg-based GP layer or taken from PyVBMC's); `init_mesh_size_integer` (default 0, which is MATLAB's fixed `MeshSizeInteger = 0`, `private/setupvars.m:41`); `f_vals`; `hessian_update`, `hessian_method` (read only by a no-op branch, `bads.py:1859-1864`, under the `.ini` heading "Adaptive basis (unsupported)"; MATLAB v1.1.3 has no such option).
+  - *PyBADS only, and read by code:* `random_seed` (KD-B1-1); `stobads`, `opp_stobads`, `stobads_frame_size_scaling_power` (KD-S-1); `gp_mean_fun` (`'const'` is MATLAB's fixed `@meanConst`, `gpdef/gpdefBads.m:167`; `'zero'` is PyBADS's own; since W1-34 (`43138f2`) every other name, `'negquad'` included, is refused when `BADS` is created); `gp_train_n_init`, `gp_train_n_init_final`, `gp_train_init_method`, `gp_tol_opt`, `hpd_frac`, `gp_quadratic_mean_bound`, `tol_sd`, `use_slice_sampler`, `gp_hyp_sampler`, `hyp_run_weight`, `fun_evals_per_iter`, `noise_shaping` (all options of the gpyreg-based GP layer or taken from PyVBMC's); `init_mesh_size_integer` (default 0, which is MATLAB's fixed `MeshSizeInteger = 0`, `private/setupvars.m:41`); `f_vals`; `hessian_update`, `hessian_method` (read only by a no-op branch, `bads.py:1859-1864`, under the `.ini` heading "Adaptive basis (unsupported)"; MATLAB v1.1.3 has no such option).
   - *PyBADS only, and read by no code:* see KD-B1-5.
   - This entry settles only that these options exist on one side. Their effects are not settled: `gp_train_*`, `gp_tol_opt` and `hpd_frac` act at default options and are compared under B5/B6.
 - Why: `AGENTS.md`, "Many options do nothing. Some are PyVBMC or MATLAB leftovers"; KD-B1-1, KD-S-1 and KD-B6-1 for the named groups.
@@ -53,7 +53,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
   - (a) *No reads on either side:* `skip_poll` (`SkipPoll`), `search_improve_frac` (`SearchImproveFrac`), `gp_cluster` (`gpCluster`). MATLAB reads none of these either.
   - (b) *PyBADS hard-codes MATLAB's default choice, so the option does nothing:* `poll_method` (always `poll_mads_2n`, KD-B4-1), `poll_acq_fcn` (always LCB, KD-B3-2), `gp_def_fcn` (always the RQ ARD kernel, KD-B6-1), `gp_method` (always nearest neighbours), `chol_attempts` (the Cholesky factorization is gpyreg's, KD-B6-1).
   - (c) *MATLAB reads the counterpart only away from its defaults:* `n_basis` (read only by `poll/private/pollBMADS2N.m`, which nothing calls), `gp_samples` and `gp_svd_iters` (KD-B5-4), `rotate_gp` (MATLAB also marks it unsupported, `gpdef/gpdefBads.m:105-108`).
-  - (d) *No MATLAB counterpart; PyVBMC or porting leftovers:* `gp_cov_fun` (overridden by `optim_state["gp_cov_fun"] = 1`, `bads.py:917`), `diagnostics`, `hessian_alternate`, `cov_sample_thresh`, `gp_sample_widths`, `weighted_hyp_cov`, `tol_cov_weight`, `gp_sample_thin`, `stable_gp_sampling`, `gp_tol_optmcmc`, `nsgp_max`, `nsgp_maxwarmup`, `nsgp_maxmain`, `stable_gp_samples`, `gp_tol_optactive`, `gp_tol_optmcmcactive`, `tol_gp_var`, `tol_gp_varmcmc`, `active_sample_gp_update`, `sample_extra_vp_means`, `integrate_gp_mean`, `tol_skl`, `tol_stable_warmup`, `variational_sampler`, `kl_gauss`, `k_warmup`, `stable_gp_vpk`, `max_repeated_observations`, `repeated_acq_discount`, `sgd_step_size`, `rank_criterion`, `ns_search`, `gp_stochastic_step_size`, `heavy_tail_search_frac`, `mvn_search_frac`, `hpd_search_frac`, `box_search_frac`, `search_cache_frac`, `empirical_gp_prior`, `tol_gp_noise`, `gp_length_prior_mean`, `gp_length_prior_std`, `init_design`, `bandwidth`, `out_warp_thresh_base`, `out_warp_thresh_mult`, `out_warp_thresh_tol`, `temperature`, `separate_search_gp`, `noise_shaping_threshold`, `noise_shaping_factor`, `acq_hedge_iter_window`, `acqhedge_decay`, `active_search_bound`, `tol_bound_x`, `recompute_lcb_max`, `double_gp`, `warp_every_iters`, `incremental_warp_delay`, `warp_tol_reliability`, `warp_proto_scaling`, `warp_cov_reg`, `warp_proto_corr_thresh`.
+  - (d) *No MATLAB counterpart; PyVBMC or porting leftovers:* `gp_cov_fun` (overridden by `optim_state["gp_cov_fun"] = 1`, `bads.py:917`), `upper_gp_length_factor` (its branch in `_gp_hyp` was overwritten by the next lines, and W1-33, `0889426`, removed it), `diagnostics`, `hessian_alternate`, `cov_sample_thresh`, `gp_sample_widths`, `weighted_hyp_cov`, `tol_cov_weight`, `gp_sample_thin`, `stable_gp_sampling`, `gp_tol_optmcmc`, `nsgp_max`, `nsgp_maxwarmup`, `nsgp_maxmain`, `stable_gp_samples`, `gp_tol_optactive`, `gp_tol_optmcmcactive`, `tol_gp_var`, `tol_gp_varmcmc`, `active_sample_gp_update`, `sample_extra_vp_means`, `integrate_gp_mean`, `tol_skl`, `tol_stable_warmup`, `variational_sampler`, `kl_gauss`, `k_warmup`, `stable_gp_vpk`, `max_repeated_observations`, `repeated_acq_discount`, `sgd_step_size`, `rank_criterion`, `ns_search`, `gp_stochastic_step_size`, `heavy_tail_search_frac`, `mvn_search_frac`, `hpd_search_frac`, `box_search_frac`, `search_cache_frac`, `empirical_gp_prior`, `tol_gp_noise`, `gp_length_prior_mean`, `gp_length_prior_std`, `init_design`, `bandwidth`, `out_warp_thresh_base`, `out_warp_thresh_mult`, `out_warp_thresh_tol`, `temperature`, `separate_search_gp`, `noise_shaping_threshold`, `noise_shaping_factor`, `acq_hedge_iter_window`, `acqhedge_decay`, `active_search_bound`, `tol_bound_x`, `recompute_lcb_max`, `double_gp`, `warp_every_iters`, `incremental_warp_delay`, `warp_tol_reliability`, `warp_proto_scaling`, `warp_cov_reg`, `warp_proto_corr_thresh`.
   - (e) *Read only by a branch that does nothing or refuses:* `plot` (KD-B2-2), `restarts` (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3), `fitness_shaping` (KD-B5-5), `hessian_update`/`hessian_method` (KD-B1-4), `warp_func` ≠ 0 (KD-B6-4), `periodic_vars` (KD-B1-6), `init_fun` other than `"init_sobol"` (KD-B7-2).
   - This list covers only the options settled as having no effect. It is not a list of every option that no code reads.
 - Why: `AGENTS.md`, "Many options do nothing … Grep for an option's reads before relying on it"; the entries cited in (b), (c) and (e).
@@ -175,7 +175,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B5-2. A failed rebuild restores the GP as it was on entry, marks it, and forces a refit at the next rebuild**
 - Python: `pybads/bads/gaussian_process_train.py:261-265` (snapshot), `522-538` (restore; `needs_rebuild` and `needs_refit` set; exit flag -2), `540-541` (markers cleared once a posterior is left on the new set); `pybads/bads/bads.py:1668-1679` (search), `2132-2152` (poll; with `poll_training` off after the first iteration, the forced refit gives way), `2166-2169` (the poll treats the GP as unreliable after its own rebuild fails), `2552-2567` (`_record_gp_refit_`).
 - MATLAB: `private/gpupdate.m:340-354` (the new data and the failed rebuild's hyperparameters and `pollscale` stay, with `post = []`); `bads.m:523-536`, `826-839` (rebuild while `post` is empty), `1223-1254` (refit only when `gppredcheck` finds the NaN predictions unreliable and `MinRefitTime` has passed).
-- What differs: PyBADS throws away the new data and hyperparameters on failure and refits at the very next rebuild, whatever `min_refit_time` says. The markers in `gp.temporary_data` stand in for MATLAB's empty `post`. **Not settled:** the retry with the previous hyperparameters on the new training set (`gaussian_process_train.py:520-523`), which MATLAB lacks. That retry is still an open question.
+- What differs: PyBADS throws away the new data and hyperparameters on failure and refits at the very next rebuild, whatever `min_refit_time` says. The markers in `gp.temporary_data` stand in for MATLAB's empty `post`. The retry with the previous hyperparameters on the new training set, which MATLAB lacks, is made only after a refit (without one it would repeat the computation that failed), and the GP's geometry then comes from the hyperparameters it keeps: W1-11 (`f65bc91`) and W1-10 (`9ac1a47`), by the rulings of wave 1 (PI, 2026-09-26).
 - Why: survey, candidate row "`local_gp_fitting`, and `bads.py`, the forced refit", status "by design (… Open Question 7)"; `dev/plans/gp-update-guards.md`, Design and Open Questions 3 and 7.
 - Kind: deliberate change.
 - Slice: B5.
@@ -204,12 +204,36 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Kind: unported feature.
 - Slice: B5.
 
+**KD-B5-6. A refit starts from gpyreg's design of prior draws, not from MATLAB's local runs**
+- Python: `pybads/bads/gaussian_process_train.py:1047-1071` (`_get_gp_training_options`: `init_N`, from `gp_train_n_init` falling to `gp_train_n_init_final`, and `opts_N`), `439-449`, `607-609`; gpyreg `gaussian_process.py:1885-1920` (the design, and the second start replaced by a low-noise design point), `f_min_fill.py`.
+- MATLAB: `private/gpupdate.m:371-408`, `utils/gpHyperOptimize.m:47-75` (one local optimization from the previous hyperparameters and one from the second-fit point, with `optimset('TolFun',0.1,'TolX',1e-4,'MaxFunEval',150)`).
+- What differs: PyBADS evaluates `init_N` draws from the priors beside the given rows and optimizes the best one with gpyreg's L-BFGS-B (the best two on a second fit, the second replaced by gpyreg's low-noise pick). MATLAB runs its local optimizations from the previous hyperparameters and the second-fit point. On the same data (14 refits), the design reached the same optimum in 8, a better one in 3 (by up to 17887 in the negative log posterior) and a worse one in 3 (by at most 0.56), and it avoided fit failures that MATLAB's starts met. Whether the better fit gives a better optimization is not measured.
+- Why: the ruling on W1-15 (PI, 2026-09-26, `experiments/port_review_20260925/verification/wave1.md`); the defaults tuned in `8ff10f5`; the optimizer is gpyreg's (KD-B6-1). This settles the `gp_train_*` options that KD-B1-4 leaves open.
+- Kind: deliberate change.
+- Slice: B5.
+
+**KD-B5-7. The normality test of the GP's calibration is scipy's Shapiro-Wilk; MATLAB's `swtest` switches to Shapiro-Francia for leptokurtic samples**
+- Python: `pybads/bads/bads.py:2505-2506` (`scipy.stats.shapiro`, in `_is_gp_refit_time_`).
+- MATLAB: `utils/swtest.m:130-160`, `272`, through `utils/gppredcheck.m:30`.
+- What differs: MATLAB tests with Shapiro-Francia when the kurtosis of the z-scores exceeds 3, and with Shapiro-Wilk otherwise; PyBADS always uses Shapiro-Wilk. At the level `normalpha_level = 1e-6`, the two decide differently on heavy-tailed z-scores; in default runs the verifier found 4 of 84 and 1 of 79 verdicts different at uncertainty level 0 and none of 125 at level 1, all on the near-zero standard deviations that the fix of W1-3 removes.
+- Why: the ruling on W1-6 (PI, 2026-09-26).
+- Kind: substituted library.
+- Slice: B5.
+
+**KD-B5-8. Under `specify_target_noise`, the high-noise check of a refit takes the base noise 1, whatever `noise_size`**
+- Python: `pybads/bads/bads.py:1132-1139` (`noise_size` set to 1.0 under `specify_target_noise`), read by `pybads/bads/gaussian_process_train.py:374-383`.
+- MATLAB: `private/setupoptions.m:100-101` (a warning that `NoiseSize` is ignored with `SpecifyTargetNoise`), `private/gpupdate.m:379-381` (the high-noise check reads `NoiseSize` all the same).
+- What differs: MATLAB's check reads a user's `NoiseSize`, although its own warning says the option is ignored; PyBADS follows the warning, so that `noise_size=0`, which the warning proposes, does not make every refit a second fit.
+- Why: the PI's ruling of 2026-09-25, in #71 (`7b50a3a`): the code comment; `CHANGELOG.md`, "`noise_size` with user-specified noise"; the survey's row fixed in `7b50a3a`.
+- Kind: deliberate change.
+- Slice: B5.
+
 ## B6: GP model and its gpyreg objects
 
 **KD-B6-1. The GP is a gpyreg `GP` with a hard-wired rational-quadratic ARD kernel, not GPML plus `gpml_fast`**
 - Python: `pybads/bads/gaussian_process_train.py:88-109` (GP construction), `797-798` (identifier 1 → `RationalQuadraticARD`), `811-996` (`_gp_hyp`: bounds and priors in gpyreg's units, where a Gaussian prior is `(mean, SD)`), `167-201` and `607-609` (`gp.fit` with the options of `_get_gp_training_options`, `999-1075`), `741` (the private `gp._GP__gp_obj_fun`, on the slice-sampler path); `pybads/bads/bads.py:915-933` (`optim_state["gp_cov_fun"] = 1`; `gp_noisefun` → `GaussianNoise` flags).
 - MATLAB: `bads.m:260` (`gpdefFcn = {@gpdefBads,'rq',[1,1]}`); `gpdef/gpdefBads.m` (a GPML struct; `priorGauss` takes `(mean, variance)`; `likGaussHe`; inference `infPrior_fast` + `infExact_fastrobust` with `CholAttempts`, `309-315`); `gpml_fast/covRQard_fast.m`; `private/gpupdate.m:359-419` (`gpfit`: one or two starting points, `optimset('TolFun',0.1,'TolX',1e-4,'MaxFunEval',150)`); `utils/gpHyperOptimize.m` (`fmincon` or `minimizebnd`); `utils/gppred.m`; `utils/mygp.m`.
-- What differs: the GP library and every object it involves (hyperparameter vector, priors, bounds, likelihood, inference, optimizer, prediction) are gpyreg's. The kernel cannot be changed (`gp_cov_fun` and `gp_def_fcn` have no effect). It equals MATLAB's default (`'rq'`, ARD). **Settled:** only the substitution and the hard-wired kernel. **Open to comparison:** every hyperparameter, bound and prior in the units each side uses; the optimizer's starting points and tolerances; the Cholesky handling; the inference; and how PyBADS calls gpyreg. That includes the GP fit at initialization (`init_and_train_gp`), where MATLAB only defines the GP (`bads.m:465-469`).
+- What differs: the GP library and every object it involves (hyperparameter vector, priors, bounds, likelihood, inference, optimizer, prediction) are gpyreg's. The kernel cannot be changed (`gp_cov_fun` and `gp_def_fcn` have no effect). It equals MATLAB's default (`'rq'`, ARD). **Settled:** only the substitution and the hard-wired kernel. **Open to comparison:** every hyperparameter, bound and prior in the units each side uses; the optimizer's starting points and tolerances; the Cholesky handling; the inference; and how PyBADS calls gpyreg. That includes the GP fit at initialization (`init_and_train_gp`), where MATLAB only defines the GP (`bads.m:465-469`). Wave 1 settled three of these (PI, 2026-09-26): the starting points (KD-B5-6), the fit at initialization (KD-B6-5) and the Cholesky handling (KD-B6-6).
 - Why: `AGENTS.md` ("The GP layer is the lab's `gpyreg`"; "`gp_cov_fun` is overridden by a hard-coded rational-quadratic ARD kernel"; "gpyreg internals"); `dev/plans/port-correctness-review.md`, Decisions (gpyreg's internals out of scope; its use in scope; `covRQard_fast.m` as the reference for `RationalQuadraticARD`) and "Two facts about the GP layer".
 - Kind: substituted library.
 - Slice: B6 (and B5).
@@ -217,8 +241,8 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B6-2. A zero range of the training targets keeps the previous width of the GP-mean prior**
 - Python: `pybads/bads/gaussian_process_train.py:310-324` (`mean_sd = y_range / 2` only when `y_range > 0`).
 - MATLAB: `gpdef/gpdefBads.m:219-222` (variance `yrange.^2/4` whatever `yrange` is).
-- What differs: when `gp_mean_range_fun` gives 0, MATLAB sets a zero-variance prior and PyBADS keeps the previous width. Otherwise the re-centred prior follows MATLAB (the fix of `8afbe16`).
-- Why: the code comment "A zero range, which MATLAB leaves to fail, keeps the previous width", written with `8afbe16` (survey row for the GP-mean prior, status "fixed in `8afbe16`").
+- What differs: when `gp_mean_range_fun` gives 0, MATLAB sets a zero-variance prior and PyBADS keeps the previous width. Otherwise the re-centred prior follows MATLAB (the fix of `8afbe16`). Likewise, since W1-26 (`cd1831f`), targets with no spread give the mean's prior the SD 1 in `_gp_hyp`, and a rebuild keeps the previous centre of the output scale's prior where MATLAB centres it at `log(std(y)) = -Inf` (`gpdefBads.m:293-295`).
+- Why: the code comment "A zero range, which MATLAB leaves to fail, keeps the previous width", written with `8afbe16` (survey row for the GP-mean prior, status "fixed in `8afbe16`"); the ruling on W1-26 (PI, 2026-09-26).
 - Kind: deliberate change.
 - Slice: B6.
 
@@ -237,6 +261,38 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Why: `dev/plans/port-correctness-review.md`, out-of-scope list ("`warp/` (unsupported on both sides)"); the code comments.
 - Kind: removed feature.
 - Slice: B6 (out of scope).
+
+**KD-B6-5. PyBADS fits a GP on the initial design; MATLAB only defines it**
+- Python: `pybads/bads/bads.py:1185-1205` (`init_and_train_gp` at initialization); `pybads/bads/gaussian_process_train.py:22-232`, `857-901` (the starting values).
+- MATLAB: `bads.m:465-469` (`gpdefBads` defines the GP with its starting values; the first fit comes at the first rebuild), `gpdef/gpdefBads.m:164-165`.
+- What differs: PyBADS fits the hyperparameters on the initial design under the definition priors; MATLAB keeps the definition values until its first rebuild. Both refit at the first rebuild, so the initial fit reaches a run as one start of that refit and as the hyperparameters under which the first target is predicted.
+- Why: the ruling on W1-27 (PI, 2026-09-26: fitting the GP on the initial design makes sense).
+- Kind: deliberate change.
+- Slice: B6.
+
+**KD-B6-6. A failed Cholesky factorization multiplies the GP's noise; MATLAB treats it as an error**
+- Python: gpyreg `gaussian_process.py:3584-3666` (`__training_cholesky`: the noise multiplied by ten per failed attempt, up to ten attempts, the multiplier kept in the posterior as `sn2_mult`), `1321` (`predict` uses it); `chol_attempts` is unread (KD-B1-5 (b)).
+- MATLAB: `bads.m:272` (`CholAttempts = 0`); `gpml_fast/infExact_fastrobust.m:36`, `77-80` (an error at the first failure); `utils/gpHyperOptimize.m:73-176` (the fit restarts, with the noise's start nudged); `private/gpupdate.m:340-354` (`post = []`).
+- What differs: where MATLAB's fit restarts and its posterior is rebuilt, gpyreg evaluates the objective and computes the posterior at 10 to 1e9 times the fitted noise, which `get_hyperparameters` does not show. It is reached at default options on some targets (on Rosenbrock D = 2, 73 of 116 GP states handed on were inflated; none on Ackley D = 6). Measured with gpyreg's switch (acerbilab/gpyreg#56) turned on at the end of wave 1's first batch (`verification/wave1.md`, "W1-25's measurement"): more evaluations and larger errors on the deterministic ellipsoids, a smaller error on the 2-D sphere, no crash.
+- Why: the rulings on W1-25 (PI, 2026-09-26): kept for now; gpyreg's switch, off by default, that makes a failed factorization an error, stays off in PyBADS after its measurement, and the question is revisited once wave 1's fixes have all landed.
+- Kind: substituted library.
+- Slice: B6.
+
+**KD-B6-7. `gp_cov_prior="ard"`, MATLAB's per-dimension prior over the length scales, is not ported, and is refused**
+- Python: `pybads/bads/bads.py`, `_init_optim_state_` (since W1-28, `64616af`: any value other than `"iso"` raises `ValueError`); `pybads/bads/gaussian_process_train.py`, `local_gp_fitting` (the `"iso"` update of the length-scale prior).
+- MATLAB: `gpdef/gpdefBads.m:254-274` (`'iso'` and `'ard'`; an error for any other value).
+- What differs: MATLAB's `'ard'` sets an empirical prior per dimension; PyBADS refuses it when `BADS` is created, where 1.1.0 accepted it, and any other value, and kept the definition prior all run.
+- Why: the ruling on W1-28 (PI, 2026-09-26): refuse rather than port; `dev/TODO.md` keeps the port.
+- Kind: unported feature.
+- Slice: B6.
+
+**KD-B6-8. A fixed noise (`fit_lik=False`) is refused on both sides**
+- Python: `pybads/bads/bads.py`, `_init_optim_state_` (since W1-32, `238afad`: `ValueError`, "Fixed noise not supported").
+- MATLAB: `bads.m:466`, `gpdef/gpdefBads.m:139-140` (`error('Fixed noise not supported.')`).
+- What differs: nothing but the moment: PyBADS refuses it when `BADS` is created, MATLAB when it defines the GP.
+- Why: the ruling on W1-32 (PI, 2026-09-26).
+- Kind: removed feature.
+- Slice: B6.
 
 ## B7: function logger, initial design, utilities
 

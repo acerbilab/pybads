@@ -171,10 +171,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   transform for a variable whose bounds are all positive and whose
   `pub/plb >= 10`); the target and `non_box_cons` see the original space.
   After `_init_optim_state_`, `self.lower_bounds` and its siblings hold the
-  transformed bounds, and the original ones are in `optim_state["*_orig"]`.
-  `optim_state["plb"]` holds the transformed upper plausible bound and
-  `optim_state["pub"]` the lower one; `gaussian_process_train.py` reads
-  them.
+  transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
+  and `["pub"]`, which `gaussian_process_train.py` reads; the original
+  ones are in `optim_state["*_orig"]`.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
   `["len_scale"]` and `["effective_radius"]`, set in
   `gaussian_process_train.py`, drive the poll basis and the ES-ell search.
@@ -242,8 +241,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   assigned before an update that fails, the new data sit beside the old
   posteriors, and `predict` then raises, or silently predicts wrong values
   when the sizes are equal. `local_gp_fitting`, which replaces the training
-  set, snapshots the GP and restores it when the rebuild and its retry
-  with the previous hyperparameters both fail. A GP that could not take a
+  set, snapshots the GP and restores it when the rebuild fails: at once
+  without a refit, and after a refit when its retry with the previous
+  hyperparameters fails too. A GP that could not take a
   point carries `temporary_data["needs_rebuild"]`; a restored one also
   carries `["needs_refit"]`. The markers are set in
   `gaussian_process_train.py` and read by the search and the poll in
@@ -327,5 +327,6 @@ same gpyreg.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
-  comparison. The `size > 0 & count < n_try` condition in `_search_step_`
-  is one such slip.
+  comparison. The condition for adding the search point to the GP in
+  `_search_step_` was once such a slip: `size > 0 & count < n_try`, which
+  is always true.

@@ -1,0 +1,5 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3: 105 stats; predictive/latent SD ratio 10/50/90%: [1.   1.02 6.72]; latent SD <= 1e-8 in 29; median ratio in the last 50 evals 4.77
+ell3: 99 stats; predictive/latent SD ratio 10/50/90%: [1.   3.97 7.63]; latent SD <= 1e-8 in 6; median ratio in the last 50 evals 6.47
+noisy sphere3: 154 stats; predictive/latent SD ratio 10/50/90%: [ 2.52  8.29 10.96]; latent SD <= 1e-8 in 0; median ratio in the last 50 evals 10.6

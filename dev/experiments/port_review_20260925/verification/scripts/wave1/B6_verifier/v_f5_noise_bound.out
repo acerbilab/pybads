@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+true log SD of the noise: 6.21
+noise_size=500.0: x=[-0.103 -0.01 ] fval=-24.32 refits=15; prior centre 6.21, upper bound 5.0; fitted log sn [5. 5. 5. 5. 5. 5. 5. 5. 5. 5. 5. 5. 5. 5. 5.]
+noise_size=None: x=[-0.027 -0.04 ] fval=-106.8 refits=15; prior centre 0.00, upper bound 5.0; fitted log sn [-0.05 -0.21  0.14 -0.01  0.26  5.    5.    5.    5.    5.    5.    5.
+  5.    5.    5.  ]

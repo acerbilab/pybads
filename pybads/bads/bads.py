@@ -6,8 +6,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from gpyreg.gaussian_process import GP
-from scipy.special import erfc, erfcinv, gammaincinv
-from scipy.stats import shapiro
+from scipy.special import erfc, erfcinv
+from scipy.stats import chi2, shapiro
 
 from pybads.acquisition_functions import acq_fcn_lcb
 from pybads.function_logger import FunctionLogger, contraints_check
@@ -641,8 +641,8 @@ class BADS:
         optim_state["ub"] = self.upper_bounds.copy()
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
-        optim_state["pub"] = self.plausible_lower_bounds.copy()
-        optim_state["plb"] = self.plausible_upper_bounds.copy()
+        optim_state["plb"] = self.plausible_lower_bounds.copy()
+        optim_state["pub"] = self.plausible_upper_bounds.copy()
 
         optim_state["lb_orig"] = self.var_transf.orig_lb.copy()
         optim_state["ub_orig"] = self.var_transf.orig_ub.copy()
@@ -871,6 +871,18 @@ class BADS:
                 "options['noise_size'], if specified, needs to be positive "
                 "for numerical stability."
             )
+        # The GP's noise is bounded above at a log SD of 5 (_gp_hyp), as in
+        # MATLAB's gpdefBads.m
+        if (
+            not self.options["specify_target_noise"]
+            and self.options["noise_size"] is not None
+            and np.ravel(self.options["noise_size"])[0] > np.exp(5)
+        ):
+            self.logger.warning(
+                "options['noise_size'] exceeds exp(5), about 148: the GP "
+                "cannot represent a noise SD that large, and its noise will "
+                "sit at that bound. Rescale the target to reduce its noise."
+            )
         if (
             self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
@@ -928,28 +940,32 @@ class BADS:
             optim_state["gp_noisefun"][1] = 1
 
         optim_state["gp_mean_fun"] = self.options.get("gp_mean_fun")
-        valid_gp_mean_funs = [
-            "zero",
-            "const",
-            "negquad",
-            "se",
-            "negquadse",
-            "negquadfixiso",
-            "negquadfix",
-            "negquadsefix",
-            "negquadonly",
-            "negquadfixonly",
-            "negquadlinonly",
-            "negquadmix",
-        ]
+        # The constant mean is MATLAB's (gpdefBads.m); the negative
+        # quadratic, PyVBMC's mean for log densities, has the wrong shape
+        # for a minimizer and no priors in _gp_hyp
+        valid_gp_mean_funs = ["zero", "const"]
 
         if not optim_state["gp_mean_fun"] in valid_gp_mean_funs:
             raise ValueError(
-                """bads:UnknownGPmean:Unknown/unsupported GP mean
-            function. Supported mean functions are zero, const,
-            egquad, and se"""
+                "options['gp_mean_fun'] should be 'const' (a constant mean) "
+                "or 'zero'; other GP mean functions are not supported."
             )
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
+
+        # MATLAB's per-dimension empirical prior over the length scales,
+        # 'ard' (gpdefBads.m), is not ported
+        if self.options.get("gp_cov_prior") != "iso":
+            raise ValueError(
+                "options['gp_cov_prior'] should be 'iso' (an empirical prior "
+                "shared by the GP length scales); 'ard' is not supported."
+            )
+
+        # A known noise level, which MATLAB refuses too (gpdefBads.m)
+        if not self.options.get("fit_lik"):
+            raise ValueError(
+                "Fixed noise not supported: options['fit_lik'] should be "
+                "True."
+            )
 
         return optim_state
 
@@ -1505,7 +1521,9 @@ class BADS:
                     self.options["improvement_quantile"],
                 )
                 f_q_re_impr = f_q_re_impr[1:]  # Skip the first iteration
-                idx_impr = np.argmax(f_q_re_impr)
+                # An iterate without an estimate (NaN) is skipped, as by
+                # MATLAB's max
+                idx_impr = np.nanargmax(f_q_re_impr)
                 improvement = f_q_re_impr[idx_impr]
                 idx_impr = idx_impr + 1  # offset original index without skip
 
@@ -1557,7 +1575,9 @@ class BADS:
             q_beta = self.iteration_history.get(
                 "fval"
             ) + sigma_multiplier * self.iteration_history.get("fsd")
-            min_q_beta_idx = np.argmin(q_beta[1:])  # Skip first iteration
+            # Skip the first iteration; an iterate without an estimate (NaN)
+            # is skipped too, as by MATLAB's min
+            min_q_beta_idx = np.nanargmin(q_beta[1:])
             min_q_beta_idx += 1  # offset original index with no skip
             self.yval = self.iteration_history.get("yval")[min_q_beta_idx]
             self.fval = self.iteration_history.get("fval")[min_q_beta_idx]
@@ -1703,6 +1723,10 @@ class BADS:
                 refit_flag,
                 rng=self.rng,
             )
+            # The rebuild answers a move of the incumbent once, as in MATLAB
+            # BADS it fills the posterior that the move emptied (a failed
+            # rebuild is marked for the next step)
+            self.reset_gp = False
 
             if refit_flag:
                 self.gp_refitted_flag = True
@@ -1766,7 +1790,7 @@ class BADS:
         index_acq = None
         if u_search_set.size > 0:
             # Batch evaluation of acquisition function on search set
-            z, f_mu, fs = acq_fcn_lcb(
+            z, f_mu, _ = acq_fcn_lcb(
                 u_search_set, self.function_logger.func_count, gp
             )
             # Evaluate best candidate point in original coordinates
@@ -1795,15 +1819,18 @@ class BADS:
             y_search, f_sd_search, idx = self.function_logger(u_search)
 
             if z.size > 0:
-                # Save statistics of gp prediction,
+                # Save statistics of gp prediction, with the SD of the
+                # observation, the GP's noise included (MATLAB's ys)
+                _, y_s2 = gp.predict(np.atleast_2d(u_search), add_noise=True)
                 self._save_gp_stats_(
-                    y_search, f_mu[index_acq].item(), fs[index_acq].item()
+                    y_search, f_mu[index_acq].item(), np.sqrt(y_s2).item()
                 )
 
-            # Add search point to training setMeshSize
+            # Add search point to training set, except at the last search
+            # of a round, as MATLAB BADS does
             if (
-                u_search.size
-                > 0 & self.search_es_hedge.count
+                u_search.size > 0
+                and self.optim_state["search_count"]
                 < self.options["search_n_try"]
             ):
                 # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)
@@ -2153,18 +2180,21 @@ class BADS:
             if u_poll is None or u_poll.size == 0:
                 break
 
-            # Check whether it is time to refit the GP
+            # Check whether it is time to refit the GP. Without poll
+            # training, the poll refits only in the first iteration, and
+            # records no refit that it does not make (MATLAB BADS records
+            # it, and delays the next refit of the search).
+            poll_refit = (
+                self.options["poll_training"] or self.optim_state["iter"] == 0
+            )
             refit_flag, do_gp_calibration = self._is_gp_refit_time_(
-                self.options["normalpha_level"]
+                self.options["normalpha_level"], poll_refit
             )
 
             if (
-                not self.options["poll_training"]
-                and self.optim_state["iter"] > 0
-            ):
-                refit_flag = False
-            elif not refit_flag and gp.temporary_data.get(
-                "needs_refit", False
+                poll_refit
+                and not refit_flag
+                and gp.temporary_data.get("needs_refit", False)
             ):
                 # A failed rebuild of the local GP asks for a refit at the
                 # next one.
@@ -2189,6 +2219,9 @@ class BADS:
                     refit_flag,
                     rng=self.rng,
                 )
+                # The rebuild answers a move of the incumbent (see the
+                # search step)
+                self.reset_gp = False
                 if refit_flag:
                     self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
@@ -2258,9 +2291,11 @@ class BADS:
             # Remove polled vector from set.
             u_poll = np.delete(u_poll, index_acq, axis=0)
 
-            # Save statistics of gp prediction
+            # Save statistics of gp prediction, with the SD of the
+            # observation, the GP's noise included (MATLAB's ys)
+            _, y_s2 = gp.predict(np.atleast_2d(u_new), add_noise=True)
             self._save_gp_stats_(
-                y_poll, f_mu[index_acq].item(), fs[index_acq].item()
+                y_poll, f_mu[index_acq].item(), np.sqrt(y_s2).item()
             )
 
             if self.optim_state["uncertainty_handling_level"] > 0:
@@ -2466,53 +2501,36 @@ class BADS:
         self.gp_stats.record("ymu", ymu, iter)
         self.gp_stats.record("ys", ys, iter)
 
-    def _is_gp_refit_time_(self, alpha):
-        """A private method that checks the calibration of the GP prediction and if a fitting is required."""
+    def _is_gp_refit_time_(self, alpha, refit_allowed=True):
+        """A private method that checks the calibration of the GP prediction and if a fitting is required.
+        With ``refit_allowed`` false, no refit is due and none is recorded,
+        and the calibration is checked all the same."""
         if self.function_logger.func_count < 200:
             refit_period = np.maximum(10, self.D * 2)
         else:
             refit_period = self.D * 5
 
+        # Number of statistics of the GP prediction since the last refit
+        # (MATLAB's gpstats.last)
         gp_iter_idx = self.gp_stats.get("iter_gp")
+        n_stats = 0 if gp_iter_idx is None else len(gp_iter_idx)
 
         do_gp_calibration = False
         # empty stats
-        if (
-            gp_iter_idx is None
-            or len(gp_iter_idx) == 0
-            or gp_iter_idx[-1] == 0
-        ):
-            if gp_iter_idx is None:
-                gp_iter_idx = 0
+        if n_stats == 0:
             do_gp_calibration = True
-        else:
-            gp_iter_idx = gp_iter_idx[
-                -1
-            ]  # retrieve last recorded gp stat iteration
 
         # if stats data is available check z_score
         if not do_gp_calibration:
             f_vals = (
-                self.gp_stats.get("fval")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
+                self.gp_stats.get("fval")[:n_stats].flatten().astype("float")
             )
             yvals = (
-                self.gp_stats.get("ymu")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
+                self.gp_stats.get("ymu")[:n_stats].flatten().astype("float")
             )
 
             zscore = f_vals - yvals
-            gp_ys = (
-                self.gp_stats.get("ys")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
-            )
-
-            # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
-            idx_zero_gp_ys = np.where(np.isclose(0.0, gp_ys))[0]
-            gp_ys[idx_zero_gp_ys] = 1e-6
+            gp_ys = self.gp_stats.get("ys")[:n_stats].flatten().astype("float")
 
             zscore = zscore / gp_ys
 
@@ -2521,9 +2539,10 @@ class BADS:
             else:
                 n = np.size(zscore)
                 if n < 3:
-                    chi_to_inv = lambda y, v: gammaincinv(v / 2, y)
-                    plo = chi_to_inv(alpha / 2, n)
-                    phi = chi_to_inv(1 - alpha / 2, n)
+                    # Quantiles of the chi-square distribution with n
+                    # degrees of freedom (gppredcheck.m)
+                    plo = chi2.ppf(alpha / 2, n)
+                    phi = chi2.ppf(1 - alpha / 2, n)
                     total = np.sum(zscore**2)
                     if (
                         total < plo
@@ -2541,9 +2560,10 @@ class BADS:
         func_count = self.function_logger.func_count
 
         refit_flag = (
-            self.optim_state["lastfitgp"]
+            refit_allowed
+            and self.optim_state["lastfitgp"]
             < (func_count - self.options["min_refit_time"])
-            and (gp_iter_idx >= refit_period or do_gp_calibration)
+            and (n_stats >= refit_period or do_gp_calibration)
             and func_count > self.D
         )
 
@@ -2762,13 +2782,18 @@ class BADS:
         hyperparameters recorded at the end of that iteration, is rebuilt
         around the incumbent without a refit. The GPs stored in the iteration
         history are left as they were recorded.
+
+        An iterate whose rebuild fails has no estimate: its value and SD are
+        NaN, as in MATLAB BADS, except for the current iterate, the last,
+        which keeps the estimate it was recorded with.
         """
         if self.optim_state["last_re_eval"] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             u_history = self.iteration_history.get("u")
             hyp_history = self.iteration_history.get("gp_hyp_full")
+            n_iter = u_history.shape[0]
             tmp_gp = copy.deepcopy(gp)
-            for i in range(u_history.shape[0]):
+            for i in range(n_iter):
                 u = u_history[i]
                 tmp_gp.set_hyperparameters(
                     hyp_history[i], compute_posterior=False
@@ -2783,9 +2808,15 @@ class BADS:
                     False,
                     rng=self.rng,
                 )
-                fval, fsd = tmp_gp.predict(np.atleast_2d(u))
-                fval = fval.item()
-                fsd = np.sqrt(fsd).item()
+                if tmp_gp.temporary_data.get("needs_refit", False):
+                    # The rebuild failed, and the GP has no posterior
+                    if i == n_iter - 1:
+                        continue
+                    fval, fsd = np.nan, np.nan
+                else:
+                    fval, fsd = tmp_gp.predict(np.atleast_2d(u))
+                    fval = fval.item()
+                    fsd = np.sqrt(fsd).item()
 
                 self.iteration_history.record("fval", fval, i)
                 self.iteration_history.record("fsd", fsd, i)

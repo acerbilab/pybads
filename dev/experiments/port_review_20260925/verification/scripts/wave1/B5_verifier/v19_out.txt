@@ -1,0 +1,4 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+stored GPs 9; neighbour sets that differ 0; symmetric-difference sizes [0, 0, 0, 0, 0, 0, 0, 0, 0]
+len_scale of first stored GP [37.939 14.516  7.391]  current [50.    21.991 10.759]

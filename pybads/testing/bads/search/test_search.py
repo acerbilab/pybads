@@ -2,6 +2,7 @@ import gpyreg as gpr
 import numpy as np
 import pytest
 
+import pybads.bads.bads as bads_module
 from pybads import BADS
 from pybads.bads.gaussian_process_train import get_grid_search_neighbors
 from pybads.bads.option_configs import get_pybads_option_dir_path
@@ -186,3 +187,48 @@ def test_grid_search_neighbors():
         and np.isclose(result[1, 0], -0.1055, 1e-3)
         and np.isclose(result[2, 0], -0.3555, 1e-3)
     )
+
+
+def test_last_search_of_a_round_adds_no_point_to_the_gp(monkeypatch):
+    """A search adds its point to the GP, except the last search of a round,
+    before the poll rebuilds the GP, as MATLAB BADS does: the round's
+    `search_count` decides, not the hedge's count over the run."""
+    searches = []
+    original_step = BADS._search_step_
+    original_add = bads_module.add_and_update_gp
+
+    def step(self, gp):
+        func_count = self.function_logger.func_count
+        searches.append({"added": False})
+        try:
+            return original_step(self, gp)
+        finally:
+            searches[-1]["evaluated"] = (
+                self.function_logger.func_count > func_count
+            )
+            searches[-1]["count"] = self.optim_state["search_count"]
+
+    def add(*args, **kwargs):
+        if searches and "count" not in searches[-1]:
+            searches[-1]["added"] = True
+        return original_add(*args, **kwargs)
+
+    monkeypatch.setattr(BADS, "_search_step_", step)
+    monkeypatch.setattr(bads_module, "add_and_update_gp", add)
+    D = 3
+    bads = BADS(
+        rosenbrocks_fcn,
+        np.zeros((1, D)),
+        -20 * np.ones((1, D)),
+        20 * np.ones((1, D)),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        options={"random_seed": 0, "display": "off", "max_fun_evals": 100},
+    )
+    bads.optimize()
+    n_try = bads.options["search_n_try"]
+    evaluated = [s for s in searches if s["evaluated"]]
+    assert any(s["count"] == n_try for s in evaluated)
+    assert any(s["count"] < n_try for s in evaluated)
+    for s in evaluated:
+        assert s["added"] == (s["count"] < n_try)

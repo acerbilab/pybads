@@ -169,6 +169,38 @@ def test_noise_size_must_be_positive(noise_size):
         )
 
 
+def _warns_noise_size_too_large(caplog):
+    return any(
+        record.name == "BADS"
+        and "the GP cannot represent a noise SD that large"
+        in record.getMessage()
+        for record in caplog.records
+    )
+
+
+@pytest.mark.parametrize(
+    "noise_size, target_noise, warns",
+    [(500.0, False, True), (None, False, False), (500.0, True, False)],
+    ids=["large", "default", "large_ignored"],
+)
+def test_noise_size_above_gp_noise_bound_warns(
+    noise_size, target_noise, warns, caplog
+):
+    """The GP bounds its noise SD at e^5, about 148, as MATLAB BADS does: a
+    larger `noise_size` warns that the target should be rescaled, unless
+    `specify_target_noise` makes `noise_size` ignored."""
+    make_fun = (
+        _noisy_sphere_with_estimated_sd if target_noise else _noisy_sphere
+    )
+    with caplog.at_level("WARNING", logger="BADS"):
+        _make_bads(
+            make_fun(0),
+            specify_target_noise=target_noise,
+            noise_size=noise_size,
+        )
+    assert _warns_noise_size_too_large(caplog) == warns
+
+
 def test_noise_size_takes_at_most_two_values():
     with pytest.raises(ValueError, match="noise_size"):
         _make_bads(

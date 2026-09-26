@@ -1,0 +1,27 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+training points: 69  noise bounds at entry: (array([-7.90775528]), array([5.]))
+--- ten failures, nudge [0,0]: 10 injected failures, noise_nudge=[0 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -3.331
+   try 3: noise lb= -7.908 (MATLAB lb= -7.908), X rows=64, noise start= -4.939
+   try 4: noise lb= -7.908 (MATLAB lb= -7.908), X rows=59, noise start= -4.288
+   try 5: noise lb= -7.908 (MATLAB lb= -7.908), X rows=55, noise start= -4.176
+   try 6: noise lb= -7.908 (MATLAB lb= -7.908), X rows=51, noise start= -1.162
+   try 7: noise lb= -7.908 (MATLAB lb= -7.908), X rows=47, noise start= -5.606
+   try 8: noise lb= -7.908 (MATLAB lb= -7.908), X rows=43, noise start= -4.626
+   try 9: noise lb= -7.908 (MATLAB lb= -7.908), X rows=39, noise start= -2.743
+   try 10: noise lb= -7.908 (MATLAB lb= -7.908), X rows=36, noise start= -3.567
+   -> RAISED UnboundLocalError: cannot access local variable 'res' where it is not associated with a value
+--- nine failures, nudge [0,0]: 9 injected failures, noise_nudge=[0 0]
+   try 1: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -7.908
+   try 2: noise lb= -7.908 (MATLAB lb= -7.908), X rows=69, noise start= -3.331
+   try 3: noise lb= -7.908 (MATLAB lb= -7.908), X rows=64, noise start= -4.939
+   try 4: noise lb= -7.908 (MATLAB lb= -7.908), X rows=59, noise start= -4.288
+   try 5: noise lb= -7.908 (MATLAB lb= -7.908), X rows=55, noise start= -4.176
+   try 6: noise lb= -7.908 (MATLAB lb= -7.908), X rows=51, noise start= -1.162
+   try 7: noise lb= -7.908 (MATLAB lb= -7.908), X rows=47, noise start= -5.606
+   try 8: noise lb= -7.908 (MATLAB lb= -7.908), X rows=43, noise start= -4.626
+   try 9: noise lb= -7.908 (MATLAB lb= -7.908), X rows=39, noise start= -2.743
+   try 10: noise lb= -7.908 (MATLAB lb= -7.908), X rows=36, noise start= -3.567
+   -> returned flag=0, noise hyp=-7.908, gp.X rows=69, gp noise lb=[-7.90775528]

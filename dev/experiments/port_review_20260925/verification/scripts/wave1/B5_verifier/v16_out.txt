@@ -1,0 +1,8 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3: 12 refits; init_N [123, 79, 48, 28, 16, 10, 8, 8, 8, 8, 8, 8]
+   nlZ(matlab-like) - nlZ(design): [-0.56, -0.38, 0.0, 0.0, 0.0, 0.0, nan, 127.17, nan, 0.0, nan, nan]
+   design better (>0.01) in 1, equal in 5, matlab-like better in 2, matlab-like LinAlgError 2, design LinAlgError 4
+ell3: 10 refits; init_N [123, 79, 48, 28, 16, 10, 8, 8, 8, 8]
+   nlZ(matlab-like) - nlZ(design): [11.95, -0.11, 0.0, 0.0, nan, nan, nan, nan, 0.0, 17886.56]
+   design better (>0.01) in 2, equal in 3, matlab-like better in 1, matlab-like LinAlgError 4, design LinAlgError 4

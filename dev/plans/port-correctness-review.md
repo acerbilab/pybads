@@ -441,7 +441,49 @@ request.
   with or without the stall criterion, and 14 to 18% fewer evaluations,
   most of them from the removal of the drift; the rise over seeds 0-29 was
   not in seeds 30-89. PI: W0-1 stays, in a pull request of its own.
-- [ ] Wave 1 (cloud session): run, verified, reported for triage.
+- [x] 2026-09-26: wave 1 run and verified, cloud session (from "Wave 1
+  pickup", on `dev-port-review-w1`). Four fresh Opus reviewers, B5 and B6 on
+  both tracks, reading `95da7f1` in `../pybads-review` (B5 internal 14
+  findings, B5 comparison 12, B6 internal 10, B6 comparison 7), then one
+  fresh Opus verifier per slice, which also verified the survey's open rows
+  of its slice that neither report covered (B5-R1 to B5-R3, B6-R1). The
+  reports and the verifications are saved verbatim with `extract_report.py`,
+  the scripts of all six agents under `verification/scripts/wave1/`,
+  formatted by the pre-commit hooks. The ledger `verification/wave1.md`,
+  rows W1-1 to W1-34, closes the 13 open survey rows of B5 and B6. The
+  reviewers found both differences seen in passing that belong to these
+  slices, (d) and (f); W0-7 and W0-8 recur, not as findings. The sweep after
+  the wave was clean (only `__pycache__`, removed). The import check of step
+  1 must run outside the repository's root, whose `pybads/` comes first on
+  `sys.path`; the reviewers' scripts ran from their scratch directories.
+- [x] 2026-09-26: wave 1 triaged (PI; the rulings in
+  `verification/wave1.md`). The orchestrator's proposals accepted, with the
+  PI's amendments: W1-25 is measured behind a switch in gpyreg that is off
+  by default, W1-27 (the GP fit at initialization) is kept, and W1-8 and
+  W1-17, which MATLAB shares, are fixed; W1-6, W1-28 and W1-34 as proposed.
+  The fix pass is not started.
+- [x] 2026-09-26: the records of wave 1 rebased onto `dev-next` at
+  `e004c79` (wave 0 and W0-1; `dev-port-review` superseded), and step 0 of
+  wave 1's fix pass, its baseline on Linux: the reference
+  `experiments/population_linux_wave0_20260926/`, which flags W0-1's
+  evaluations as on Windows, and the fingerprint `bfbc6d6737e99d88` at
+  `ac3dfed` (`verification/wave1.md`, "Fix pass").
+- [x] 2026-09-26: wave 1's fix pass (`verification/wave1.md`, "Fix pass").
+  Every row ruled for a fix is committed on `dev-port-review-w1`, by fix
+  agents in worktrees of their own, reviewed and cherry-picked, with W0-7
+  and W0-8, and W1-35, found while fixing: W0-1's re-estimate crashed
+  every noisy run whose rebuild failed (PI: a failed iterate drops out of
+  the choices, as MATLAB, and the incumbent keeps its estimate). The rows
+  that move nothing kept the fingerprint; the three batches, W1-2 and W1-1
+  compare without a worsening flag, the two flags, lower errors, traced to
+  W1-23 and W1-4 by their steps, and W1-17 on a new 1-D suite. The net
+  change against the baseline flags only `ackley_D6`, a lower error; the
+  pass ends in the Linux reference
+  `experiments/population_linux_wave1_20260926/`. The gpyreg side is
+  merged (acerbilab/gpyreg#56, the switch, and #57, W1-24), with no
+  release for now (PI). W1-25's switch, measured, stays off in PyBADS, to
+  be revisited after all the fixes (PI; `TODO.md`). One pull request into
+  `dev-next` carries the records and the fixes.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and

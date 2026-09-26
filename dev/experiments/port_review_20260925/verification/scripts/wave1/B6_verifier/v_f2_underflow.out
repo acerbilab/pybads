@@ -1,0 +1,22 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+z= 30.0: sf-difference 4.907e-198   logsf -454.32
+z= 35.0: sf-difference 1.125e-268   logsf -616.98
+z= 37.0: sf-difference 5.726e-300   logsf -689.03
+z= 37.5: sf-difference 4.605e-308   logsf -707.67
+z= 38.0: sf-difference 0.000e+00   logsf -726.56
+z= 38.5: sf-difference 0.000e+00   logsf -745.70
+z= 39.0: sf-difference 0.000e+00   logsf -765.08
+z= 40.0: sf-difference 0.000e+00   logsf -804.61
+
+constant as computed: normalization constant of the mean 0
+   log posterior at hyp0: inf   log likelihood: -20.601617523899904
+   fit time 0.08s; hyp = [ 1.57   1.525  3.984  1.453 -3.15  15.   ]
+   log likelihood at the fit 7.221
+   optimizer result nit/nfev: 42 141
+
+constant set to 1: normalization constant of the mean 0
+   log posterior at hyp0: -2839.788919142   log likelihood: -20.601617523899904
+   fit time 0.07s; hyp = [ 1.57   1.525  3.984  1.453 -3.15  15.   ]
+   log likelihood at the fit 7.221
+   optimizer result nit/nfev: 42 141

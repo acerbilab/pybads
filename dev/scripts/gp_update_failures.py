@@ -17,7 +17,8 @@ calls them. For each run, one entry of the output JSON holds:
 - ``outcomes``: ``add_dropped`` (a point left out until the next rebuild),
   ``local_recovered`` (the previous hyperparameters on the new training
   set), ``local_restored`` (the GP of the entry, marked for a rebuild with a
-  refit), ``target_current_gp`` (the target predicted from the current GP)
+  refit: a GP that ``local_gp_fitting`` returns with ``needs_refit``),
+  ``target_current_gp`` (the target predicted from the current GP)
   and ``target_nonfinite`` (a non-finite target prediction, which falls
   back to the incumbent);
 - ``restores_by_caller``: the restores of ``local_gp_fitting`` by the
@@ -149,28 +150,31 @@ class Probe:
     # Outcomes ----------------------------------------------------------
 
     def _ended(self, site, method, failed, caller):
-        step = caller in STEPS
         if site == "add_and_update_gp" and failed:
             self.outcomes["add_dropped"] += 1
         elif site == "_get_target_from_gp_" and failed:
             self.outcomes["target_current_gp"] += 1
-        elif site == "local_gp_fitting" and method == "update":
-            if failed:
-                self.local_pending = True
-            elif step:
-                self.streak = 0
-        elif site == "local_gp_fitting" and self.local_pending:
-            self.local_pending = False
-            if failed:
-                self.outcomes["local_restored"] += 1
-                self.restores_by_caller[caller] += 1
-                if step:
-                    self.streak += 1
-                    self.max_streak = max(self.max_streak, self.streak)
-            else:
+        elif site == "local_gp_fitting" and method == "update" and failed:
+            self.local_pending = True
+
+    def _local_ended(self, gp, caller):
+        """Classifies a call of ``local_gp_fitting`` by the GP it returns:
+        a restored GP carries ``needs_refit``, which a rebuild that leaves a
+        posterior removes. A restore makes no further call after the failed
+        update when there was no refit to retry from."""
+        step = caller in STEPS
+        if gp.temporary_data.get("needs_refit", False):
+            self.outcomes["local_restored"] += 1
+            self.restores_by_caller[caller] += 1
+            if step:
+                self.streak += 1
+                self.max_streak = max(self.max_streak, self.streak)
+        else:
+            if self.local_pending:
                 self.outcomes["local_recovered"] += 1
-                if step:
-                    self.streak = 0
+            if step:
+                self.streak = 0
+        self.local_pending = False
 
     # Wrappers ----------------------------------------------------------
 
@@ -228,8 +232,11 @@ class Probe:
 
         def watched(*a, **k):
             out = original(*a, **k)
-            if sys._getframe(1).f_code.co_name in STEPS:
-                gp = out[0] if isinstance(out, tuple) else out
+            caller = sys._getframe(1).f_code.co_name
+            gp = out[0] if isinstance(out, tuple) else out
+            if name == "local_gp_fitting":
+                self._local_ended(gp, caller)
+            if caller in STEPS:
                 count = a[logger_index].func_count
                 marked = gp.temporary_data.get("needs_rebuild", False)
                 if marked and self.stale_since is None:

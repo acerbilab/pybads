@@ -25,6 +25,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   by name.
 - With `uncertainty_handling=False`, a run makes no noise test: it takes one
   evaluation fewer, and a noisy target is optimized as a deterministic one.
+- `BADS` raises `ValueError` for a `gp_mean_fun` other than `"const"` or
+  `"zero"`, `"negquad"` included.
+- `BADS` raises `ValueError` for a `gp_cov_prior` other than `"iso"`,
+  `"ard"` included, which 1.1.0 accepted and ignored.
 
 ### Changed
 
@@ -32,6 +36,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
   matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
   which the tests do not need (gpyreg 1.3.3 still installs it).
+- **GP mean function.** `gp_mean_fun` accepts `"const"`, the default, and
+  `"zero"`, and `BADS` refuses any other name when it is created. 1.1.0
+  accepted ten more: nine stopped the run when the Gaussian process was
+  built, and `"negquad"`, a concave mean made for log densities, has the
+  wrong shape for a minimizer and could stop the run at a failed fit.
+- **Prior over the GP length scales.** `gp_cov_prior` accepts only
+  `"iso"`, the default, and `BADS` refuses any other value when it is
+  created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
+  implement, and any other value, and then kept the initial prior over the
+  length scales for the whole run.
+- **Large noise.** `BADS` warns when `noise_size` exceeds e^5, about 148,
+  the largest noise standard deviation its Gaussian process can represent
+  (the bound of MATLAB BADS): the noise it infers then stays at that bound,
+  and the target is better rescaled.
 
 ### Fixed
 
@@ -63,7 +81,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with condition number 1e6, the median error of 30 seeded runs falls by a
   factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
   Rosenbrock function the runs that reach the global minimum end 17 times
-  closer to it.
+  closer to it. The mean itself is unbounded, as in MATLAB BADS: PyBADS
+  bounded it by the range of the initial design's targets, which kept it
+  from following the re-centred prior. The initial fit starts the mean at
+  the median of the lowest 80% of the initial targets, a count rounded up
+  as in MATLAB BADS, where PyBADS rounded it to the nearest.
 - **Length scales of the GP.** The upper bound of each log length scale of
   the Gaussian process was the largest length scale itself, up to 100,
   instead of its logarithm, as in MATLAB BADS, so that a length scale
@@ -186,10 +208,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   iteration's hyperparameters. As in MATLAB BADS, each iterate is now
   re-estimated with the hyperparameters recorded at its iteration, the
   working GP is kept, and `iteration_history` keeps its GPs as they were
-  recorded. Noisy runs end earlier, more often on `tol_fun`: on the noisy
-  targets of PyBADS's benchmark, 12 to 18% fewer evaluations, with no
-  significant change of the error (over 90 seeds on a 3-D ellipsoid with
-  inferred noise, a median error of 0.080 against 0.076).
+  recorded. An iterate whose Gaussian process fails on its new training
+  set has no estimate, NaN in `iteration_history`, and is left out of the
+  choice of the incumbent and of the returned point, as in MATLAB BADS;
+  when that iterate is the current one, it keeps its estimate. Noisy runs
+  end earlier, more often on `tol_fun`: on the noisy targets of PyBADS's
+  benchmark, 12 to 18% fewer evaluations, with no significant change of the
+  error (over 90 seeds on a 3-D ellipsoid with inferred noise, a median
+  error of 0.080 against 0.076).
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
   `BADS` logger, whose level `display` sets; `display="full"` shows the
   debug messages. The warnings of the GP fits (a failed initial fit, failed
@@ -209,6 +235,82 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that it does, and a third is added. The module `pybads.testing.run_tests`,
   which failed on import, and six data files that no test read are no
   longer installed.
+- **Refits without poll training.** With `poll_training=False`, a poll
+  after the first iteration skipped a refit of the Gaussian process that was
+  due but counted it as made, which delayed the next refit of the search
+  (MATLAB BADS does the same). The poll now leaves that refit to the search,
+  and its stopping rule reads the calibration of the GP as it is. Results
+  change only with `poll_training=False`.
+- **Fixed noise.** `fit_lik=False`, a fixed noise level, which MATLAB BADS
+  does not support either, is refused when `BADS` is created, with MATLAB
+  BADS's message "Fixed noise not supported"; 1.1.0 stopped the run at its
+  start with gpyreg's "Unknown hyperprior type delta".
+- **Initial fit of the GP.** A run whose initial Gaussian-process fit
+  keeps failing stops after 10 tries with a `RuntimeError` that says so;
+  1.1.0 retried without end.
+- **Targets without spread.** A run no longer stops with `ValueError` from
+  gpyreg when the targets of a Gaussian-process fit are all equal: a target
+  flat on the initial design (a penalty plateau over the plausible box), or
+  a feasible region (`non_box_cons`) so thin that the initial design leaves
+  the GP a single point. The prior of the GP mean then takes the width 1,
+  and a rebuild keeps the previous centre of the prior of the output scale.
+- **Small budgets.** A run whose `max_fun_evals` is no larger than its
+  initial design (for instance 5 at D = 2 or 3) no longer stops with
+  `ValueError: cannot convert float NaN to integer`, and with a smaller
+  budget its Gaussian-process fits no longer start from up to 968 random
+  points, above `gp_train_n_init`.
+- **Retries of a failed GP fit.** A failed fit of the Gaussian process's
+  hyperparameters is retried as in MATLAB BADS. The lower bound of the
+  noise rises by `noise_nudge[1]` at each failure, which is not at all at
+  the default `[1, 0]`; 1.1.0 raised it by 1, then by 2 more, 3 more and so
+  on, and stopped the run with `ValueError` at the fifth failure (the third
+  with `use_slice_sampler=True`). The retries leave out the targets above
+  the 95th percentile as MATLAB BADS computes it, and stop once fewer points
+  than variables remain; when all of them fail, the fit keeps the best of
+  its starting points. The retries, those of the initial fit and the
+  second fit start from draws of the hyperparameters' priors, which 1.1.0
+  drew in the wrong units, far outside the bounds. With
+  `use_slice_sampler=True`, each retry samples its start on the points that
+  it fits, not on all of them.
+- **Prior of the GP noise.** In deterministic runs, the prior over the
+  noise of the Gaussian process is centred at each rebuild at
+  `log(noise_size)` plus `mesh_noise_multiplier` (0.5) times the log of the
+  mesh size, as in MATLAB BADS, so that it falls as the mesh shrinks.
+  PyBADS computed that centre and never applied it. Results change at
+  default options in deterministic runs.
+- **Prior of the GP output scale.** At each rebuild, the prior over the
+  output scale of the Gaussian process is centred at the log of the
+  targets' standard deviation normalized by N - 1, as MATLAB's `std`,
+  where PyBADS normalized it by N.
+- **Calibration check of the GP.** The check of whether the Gaussian
+  process predicts well, which calls for its refits and ends a poll after a
+  successful poll vector when it fails, read the first prediction after a
+  refit as none, and so failed on it, and the periodic refit came one
+  evaluation after the refit period. With one or two predictions, it
+  compared the sum of their squared errors with half the chi-square
+  quantiles, and so failed on GPs that MATLAB BADS accepts. It divided the
+  errors by the standard deviation of the latent function instead of that
+  of an observation, and replaced one near zero by 1e-6, which gave
+  outliers in deterministic runs. It now counts the predictions, uses the
+  quantiles and the standard deviation of an observation, the GP's noise
+  included, as MATLAB BADS does. Results change at default options.
+- **Rebuilds of the local GP.** After the incumbent moved, PyBADS rebuilt
+  the local Gaussian process at every later search of the round and at
+  every step of the poll that followed, where MATLAB BADS rebuilds it once.
+  It now rebuilds it once, as MATLAB BADS does. Results change at default
+  options.
+- **Unbounded variables.** In a variable without bounds, the scale that
+  the ES-ell search takes from the length scales of the Gaussian process
+  was a constant, because the lower and upper plausible bounds that stand
+  in for the infinite bounds were swapped; on a problem unbounded in every
+  variable, the search was the same in every direction. It now follows the
+  length scales, as MATLAB BADS does. Results change on problems with an
+  unbounded variable.
+- **One-dimensional problems.** At D = 1, the Gaussian process used a
+  length scale of 1 instead of the fitted one when it chose its training
+  points and set the steps of the search, a defect shared with MATLAB BADS.
+  It now uses the fitted length scale, as at every other D. Results change
+  on 1-D problems.
 
 ## [1.1.0] - 2026-09-25
 

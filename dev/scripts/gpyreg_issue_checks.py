@@ -1,7 +1,10 @@
 """Two PyBADS-side GP issues, under the gpyreg that ``PYTHONPATH`` selects.
 
 1. The known-noise path: one run of ``ellipsoid_D3`` (seed 0) with
-   ``fit_lik=False``; records how it ends and where it raises.
+   ``fit_lik=False``; records how it ends and where it raises. Since row
+   W1-32 of the port review, ``BADS`` refuses ``fit_lik=False`` when it is
+   created, as MATLAB BADS does, so the check records that refusal and no
+   longer reaches gpyreg's missing ``"delta"`` prior.
 2. ``_robust_gp_fit_``: for each call, the number of ``gp.fit`` calls that
    raise ``LinAlgError`` before one succeeds, and how the call ends; over
    the ``default`` suite of ``benchmark_targets.py``, seeds 0-9, in-process
