@@ -69,3 +69,19 @@ belongs to a later slice, whose wave checks it.
 - Unstable `np.argsort` also at `es_search.py:190`, `240` and
   `get_hpd.py:34` (M verifier, not checked); slices B3 and B6.
 - Needs MATLAB: whether `prod(uint64(strseed))` in `initSobol.m` saturates.
+
+## Rulings (PI, 2026-09-26)
+
+- W0-5, W0-6, W0-9, W0-11, W0-14, W0-15, W0-16, W0-17, W0-19, W0-20 and
+  W0-21: fixed as proposed, in the fix pass of wave 0, one commit each;
+  W0-4: `yval_vec = None` goes on the sheet (KD-B1-8).
+- W0-1: fixed now, in its own commit, gated by a population comparison.
+- W0-7 and W0-8: fixed in the GP fix pass of wave 1 (slices B5 and B6 read
+  the same code), under its population comparison.
+- W0-10: fixed now. W0-12 and W0-13 are decided later, after a population
+  with `stobads=True` on the noisy configurations that compares the
+  current rule, the rule without the mesh factor (power 0) and `opp_stobads`
+  moves limited to a positive estimated improvement (`dev/TODO.md`).
+- W0-18: the records are corrected now; whether the doubling stays is
+  decided in wave 4 (slice B7, the initial design).
+- W0-2 and W0-3: fixed by #71.
