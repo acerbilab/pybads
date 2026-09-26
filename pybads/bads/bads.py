@@ -78,9 +78,14 @@ class BADS:
         the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
 
-    non_box_cons: callable, optional
+    non_box_cons : callable, optional
         A given non-box constraints function that specifies constraint
-        `violations`, e.g : ``lambda x: np.sum(x.^2,1)>1``
+        `violations`. It takes an array of shape ``(N, D)``, one point per
+        row in the original space, and returns an array of shape ``(N,)``
+        or ``(N, 1)``, one value per point, true or positive where the point
+        violates the constraints. For example,
+        ``lambda x: np.sum(x**2, axis=1) > 1`` keeps the search inside the
+        unit ball.
 
     options : dict, optional
         Additional options can be passed as a dict. Please refer to the
@@ -533,17 +538,23 @@ class BADS:
             bounded. Variables bounded only below/above are not supported."""
             )
 
-        # Check non bound constraints
+        # Check non bound constraints: one violation per row of its input,
+        # as in MATLAB BADS (setupvars.m)
         if non_box_cons is not None:
-            y = non_box_cons(
-                np.vstack([plausible_lower_bounds, plausible_upper_bounds])
+            message = (
+                "bads:NONBCON non_box_cons should be a function that takes "
+                + "an N x D array X, one point per row, and returns an array "
+                + "of N constraint violations, of shape (N,) or (N, 1), true "
+                + "or positive where a point violates the constraints."
             )
-            if y.shape[0] != 2 and y.ndim == 1:
-                raise ValueError(
-                    "bads:NONBCON "
-                    + "NONBCON should be a function that takes a matrix X as input"
-                    + " and returns a column vector of bound violations."
+            try:
+                y = non_box_cons(
+                    np.vstack([plausible_lower_bounds, plausible_upper_bounds])
                 )
+            except Exception as err:
+                raise ValueError(message) from err
+            if not isinstance(y, np.ndarray) or y.shape not in [(2,), (2, 1)]:
+                raise ValueError(message)
 
         # Gentle warning for infinite bounds
         ninfs = np.sum(np.isinf(np.concatenate([lower_bounds, upper_bounds])))

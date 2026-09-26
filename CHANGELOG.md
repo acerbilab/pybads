@@ -29,6 +29,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"zero"`, `"negquad"` included.
 - `BADS` raises `ValueError` for a `gp_cov_prior` other than `"iso"`,
   `"ard"` included, which 1.1.0 accepted and ignored.
+- `BADS` raises `ValueError` when `non_box_cons`, given an N × D array, does
+  not return a NumPy array of shape (N,) or (N, 1).
 
 ### Changed
 
@@ -50,6 +52,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the largest noise standard deviation its Gaussian process can represent
   (the bound of MATLAB BADS): the noise it infers then stays at that bound,
   and the target is better rescaled.
+- **Constraint function.** When it is created, `BADS` checks that
+  `non_box_cons`, given an N × D array with one point per row, returns a
+  NumPy array of shape (N,) or (N, 1), one value per point, true or positive
+  where the point violates the constraints, and otherwise raises
+  `ValueError` stating that contract, as MATLAB BADS checks its constraint
+  function. 1.1.0 failed with `AttributeError`, `IndexError` or an unrelated
+  `ValueError`, or accepted an output of the wrong shape and failed later;
+  an output of shape (N, 1), which it failed on during the run, now works.
+  The docstring states the contract, with its example written in Python.
 
 ### Fixed
 

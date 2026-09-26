@@ -87,3 +87,55 @@ def test_starting_set_is_refused(bounds):
     x0 = np.array([[0.1, 0.2], [0.3, -0.4]])
     with pytest.raises(ValueError, match="bads:StartingSet"):
         BADS(_sphere, x0, *bounds, options=OPTIONS)
+
+
+def _shifted_sphere(x):
+    return float(np.sum((np.atleast_2d(x) - 1.0) ** 2))
+
+
+def _constrained_bads(non_box_cons, **options):
+    return BADS(
+        _shifted_sphere,
+        np.array([0.3, 0.2]),
+        -2 * np.ones(2),
+        2 * np.ones(2),
+        -np.ones(2),
+        np.ones(2),
+        non_box_cons=non_box_cons,
+        options={**OPTIONS, **options},
+    )
+
+
+@pytest.mark.parametrize(
+    "non_box_cons",
+    [
+        lambda x: float(np.sum(x**2) > 1),
+        lambda x: bool(np.sum(x**2) > 1),
+        lambda x: np.zeros((len(x), 2)),
+        lambda x: float(x[0] ** 2 + x[1] ** 2 > 1),
+    ],
+    ids=["scalar", "bool", "two_columns", "raises"],
+)
+def test_non_box_cons_output_is_checked(non_box_cons):
+    """`non_box_cons` takes an N x D array and returns N violations, or
+    `BADS` raises a `ValueError` that says so, as in MATLAB BADS
+    (`setupvars.m`), also when the constraint raises on such an array."""
+    with pytest.raises(ValueError, match="one point per row"):
+        _constrained_bads(non_box_cons)
+
+
+def test_non_box_cons_output_of_shape_n_or_n_by_1():
+    """The N violations may come as an (N,) or an (N, 1) array, which give
+    the same run."""
+    results = []
+    for shape in [(-1,), (-1, 1)]:
+
+        def disc(x, shape=shape):
+            outside = np.sum(np.atleast_2d(x) ** 2, axis=1) > 1
+            return np.reshape(outside, shape)
+
+        results.append(_constrained_bads(disc, max_fun_evals=50).optimize())
+    flat, column = results
+    assert np.sum(flat["x"] ** 2) <= 1
+    np.testing.assert_array_equal(column["x"], flat["x"])
+    assert column["func_count"] == flat["func_count"]
