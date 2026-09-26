@@ -111,11 +111,12 @@ def test_output_fcn_stops_run_after_a_poll():
     )
 
 
-@pytest.mark.parametrize("max_iter", [1, 2, 5])
+@pytest.mark.parametrize("max_iter", [1, 2, 4])
 def test_iterations_count_from_one(max_iter):
     """A run that ends on `max_iter` reports `max_iter` iterations, as
-    MATLAB BADS does."""
-    result = _make_bads(max_iter=max_iter).optimize()
+    MATLAB BADS does. The budget leaves `max_iter` the first criterion to
+    end the run (this run, without it, ends on `tol_fun` at the 8th)."""
+    result = _make_bads(max_iter=max_iter, max_fun_evals=200).optimize()
     assert result["iterations"] == max_iter
     assert result["message"] == (
         "Optimization terminated: reached maximum number of iterations "

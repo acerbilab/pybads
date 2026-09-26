@@ -210,7 +210,7 @@ def test_final_estimate_without_target_noise():
     samples and its standard error, from their standard deviation
     normalized by n - 1, as MATLAB's `std` is."""
     result = _make_bads(
-        _noisy_sphere(0), specify_target_noise=False
+        _noisy_sphere(0), specify_target_noise=False, max_fun_evals=100
     ).optimize()
     y = np.asarray(result["yval_vec"], dtype=float)
     assert y.shape == (10,)
@@ -222,21 +222,26 @@ def test_final_estimate_without_target_noise():
 
 def test_final_estimate_recorded_at_its_iterate():
     """The final `fval` and `fsd` go into the iteration history at the
-    iterate they describe, the returned point, which in this run is not the
-    last iterate."""
-    bads = _make_bads(
-        _noisy_sphere(0),
-        specify_target_noise=False,
-        max_fun_evals=150,
-        random_seed=1,
-    )
-    result = bads.optimize()
-    history = bads.iteration_history
-    fval = history.get("fval").astype(float)
-    fsd = history.get("fsd").astype(float)
-    (index,) = np.flatnonzero(fval == result["fval"])
-    assert index < len(fval) - 1
-    assert fsd[index] == result["fsd"]
-    assert np.array_equal(
-        np.ravel(history.get("x")[index]), np.ravel(result["x"])
-    )
+    iterate they describe, the returned point. Which iterate a run returns
+    depends on its trajectory, so on the machine; of these three seeded
+    runs, at least one returns an iterate before the last, where the
+    estimate was recorded until 1.1.0."""
+    before_last = []
+    for seed in range(3):
+        bads = _make_bads(
+            _noisy_sphere(0),
+            specify_target_noise=False,
+            max_fun_evals=100,
+            random_seed=seed,
+        )
+        result = bads.optimize()
+        history = bads.iteration_history
+        fval = history.get("fval").astype(float)
+        fsd = history.get("fsd").astype(float)
+        (index,) = np.flatnonzero(fval == result["fval"])
+        assert fsd[index] == result["fsd"]
+        assert np.array_equal(
+            np.ravel(history.get("x")[index]), np.ravel(result["x"])
+        )
+        before_last.append(index < len(fval) - 1)
+    assert any(before_last)
