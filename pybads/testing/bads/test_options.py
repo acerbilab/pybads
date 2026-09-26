@@ -151,7 +151,8 @@ def test_descriptions_are_whole_comment_lines():
     descriptions = _make_bads().options.descriptions
     assert descriptions["noise_size"] == (
         "Base observation noise magnitude (SD), e.g. noise_size = 1.0, or a "
-        "pair [SD, SD of the prior over log SD]; ignored with "
+        "pair [SD, SD of the prior over log SD]; None is 1.0 in a noisy run "
+        "and sqrt(tol_fun) in a deterministic one; ignored with "
         "specify_target_noise"
     )
     assert descriptions["periodic_vars"] == (

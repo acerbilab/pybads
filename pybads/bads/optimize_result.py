@@ -20,7 +20,9 @@ class OptimizeResult(dict):
             - Non-box constraints function (if any; the object passed, not
               a copy).
         - x0: np.ndarray
-            - Initial starting point.
+            - Initial starting point, as given or drawn at random, before it
+              is put on the mesh: the first point evaluated is the point of
+              the mesh nearest to it.
         - x: np.ndarray
             - The solution of the optimization.
         - fval: float
@@ -62,7 +64,8 @@ class OptimizeResult(dict):
         - problem_type: str
             - Type of problem (unconstrained, bound constraints, non-box constraints).
         - total_time: float
-            - Total time taken by the optimizer.
+            - Time taken by ``optimize()``, in seconds; the setup made when
+              ``BADS`` is created is not counted.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
         - random_seed: int or None

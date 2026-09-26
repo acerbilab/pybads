@@ -139,9 +139,10 @@ class BADS:
         The generator of every random draw of the run, including the random
         ``x0``. It is created with the ``BADS`` object from
         ``options['random_seed']``, which takes what
-        ``numpy.random.default_rng`` takes, such as an integer or a
-        ``SeedSequence``, or a ``Generator``, which is used as given; a float
-        that is a whole number is converted to an integer. A change of the
+        ``numpy.random.default_rng`` takes, such as a non-negative integer
+        (``True`` and ``False`` count as 1 and 0) or a ``SeedSequence``, or a
+        ``Generator``, which is used as given; a float that is a whole number
+        is converted to an integer. A change of the
         option after the object is created has no effect. If the option is
         ``None`` (default), the generator is derived from NumPy's global
         random state, so that ``np.random.seed`` before creating the ``BADS``
@@ -161,6 +162,8 @@ class BADS:
     ValueError
         When various checks for the bounds (``lower_bounds``, ``upper_bounds``,
         ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
+    ValueError
+        When ``options['random_seed']`` is a negative integer.
     TypeError
         When ``options['random_seed']`` is a float that is not a whole
         number, a string, or another value that ``numpy.random.default_rng``
