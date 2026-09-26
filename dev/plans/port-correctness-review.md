@@ -533,6 +533,19 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   release for now (PI). W1-25's switch, measured, stays off in PyBADS, to
   be revisited after all the fixes (PI; `TODO.md`). One pull request into
   `dev-next` carries the records and the fixes.
+- [x] 2026-09-26: wave 1 doublechecked after its merge (PI): four fresh
+  read-only Opus reviewers, of the fixes in `bads.py`, those in
+  `gaussian_process_train.py`, the records, and gpyreg's side, reporting
+  only substantial mistakes. Every fix implements its ruling. Found: with
+  gpyreg's switch on, a fit's second optimization could start from a design
+  point whose factorization had failed, and end the fit (acerbilab/gpyreg#58,
+  bit-identical with the switch off; W1-25's measurement predates it); the
+  changelog's W1-17 entry named the search's steps, which the length scale
+  never set; `AGENTS.md` still had the re-estimate read every stored GP,
+  which W0-1 changed; and `TODO.md` still listed follow-ups of the
+  GP-update guards that W0-1, W1-12, W1-13 and W1-20 fixed. The survey's
+  `_re_evaluate_history_` row, fixed by W0-1 and W1-35 and still open, is
+  wave 2's W2-40.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and

@@ -387,9 +387,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unbounded variable.
 - **One-dimensional problems.** At D = 1, the Gaussian process used a
   length scale of 1 instead of the fitted one when it chose its training
-  points and set the steps of the search, a defect shared with MATLAB BADS.
-  It now uses the fitted length scale, as at every other D. Results change
-  on 1-D problems.
+  points, a defect shared with MATLAB BADS. It now uses the fitted length
+  scale, as at every other D. Results change on 1-D problems.
 - **Mixed and half-bounded variables.** A problem that mixes bounded
   variables with unbounded ones (`lb[i] = -inf` and `ub[i] = inf`), as the
   docstring allows, is accepted, and so is a variable bounded on one side

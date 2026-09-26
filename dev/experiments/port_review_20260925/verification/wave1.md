@@ -511,4 +511,7 @@ failed trial point and restarts with the noise nudged,
 `gpHyperOptimize.m:65-176`); why PyBADS then does worse is not measured.
 Ruling (PI, 2026-09-26): the switch stays off in PyBADS, and KD-B6-6 stays
 on the sheet; the question is revisited once all the fixes have landed, at
-the end of the pass (`dev/TODO.md`).
+the end of the pass (`dev/TODO.md`). The measurement predates
+acerbilab/gpyreg#58, found by the doublecheck of the pass: with the switch
+on, a fit whose low-noise design points had all failed started its second
+optimization from one of them, which raised and ended the fit.
