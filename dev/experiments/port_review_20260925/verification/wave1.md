@@ -298,7 +298,7 @@ linear one underflows, so that no fit that succeeds today changes. The items of
 
 ## Fix pass
 
-Not started (PI, 2026-09-26), but for step 0. How it runs (PI,
+Done (2026-09-26). How it runs (PI,
 2026-09-26): the fixes go on `dev-port-review-w1`, and one pull request
 into `dev-next` carries wave 1's records and fixes once the pass is done;
 each fix is made by an agent in a git worktree of its own, one commit per
@@ -323,6 +323,78 @@ of wave 0 without W0-1) reproduces the previous reference exactly in every
 field `compare` reads. Its null check flags nothing. The fingerprint of
 `dev/scripts/fingerprint.py` at `ac3dfed` on this platform, for the fixes
 that must move nothing: `bfbc6d6737e99d88`.
+
+**The fixes** (2026-09-26). One commit per row on `dev-port-review-w1`,
+each made by a fix agent in a worktree of its own (their reports:
+`../fixes/`), reviewed and cherry-picked by the orchestrator, who added the
+changelog lines. The fingerprint is that of `dev/scripts/fingerprint.py` at
+the commit on the branch, on Linux with gpyreg 1.3.3; the comparisons are
+in `wave1_fixpass/`.
+
+| Row | Commit | Fingerprint | Gate and outcome |
+|---|---|---|---|
+| W1-9 | `91d3c33` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-8 | `c9ebdc7` | `bfbc6d6737e99d88` | fingerprint unchanged (default runs do not reach it) |
+| W1-34 | `43138f2` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-28 | `64616af` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-32 | `238afad` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-30 | `54e6424` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-20 | `b6a4fd5` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-26 | `cd1831f` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-19 | `e041de0` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-33 | `0889426` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-18 | `3cae0e1` | `bfbc6d6737e99d88` | fingerprint unchanged |
+| W1-10 | `9ac1a47` | `bfbc6d6737e99d88` | fingerprint unchanged; the inject gate (below) |
+| W1-11 | `f65bc91` | `bfbc6d6737e99d88` | fingerprint unchanged; the inject gate (below) |
+| W1-31 | `2794e94` | `bfbc6d6737e99d88` | a comment |
+| W1-21 | `5956c4b` | `bfbc6d6737e99d88` | fingerprint unchanged (batch 1) |
+| W1-13 | `446c443` | `bfbc6d6737e99d88` | fingerprint unchanged (batch 1) |
+| W1-12 | `776b70d` | `3a1c15091c801614` | batch 1 |
+| W1-14 | `3ddc047` | `395558ea21e5c213` | batch 1 |
+| W1-16 | `1c7200b` | `ed8f953edbd6f141` | batch 1 against the baseline: no flag in 54 tests |
+| W0-8 | `d1caf6b` | `b358563bf4b5222d` | batch 2 (moves the fingerprint: the order of the training rows) |
+| W1-22 | `ee9d5d6` | `e6eda82aaaf4b2be` | batch 2 |
+| W1-29 | `1d03801` | `0fd4da0afab95dcc` | batch 2 |
+| W1-23 | `172df00` | `788736f3cfcdb5bd` | batch 2 |
+| W0-7 | `3236c2f` | `b90104a70751473c` | batch 2 against batch 1: `ackley_D6` flagged, a lower error (median paired log10 ratio -0.34); its steps: W1-23 (-0.31) |
+| W1-4 | `e420486` | `e21e06d42caee6a3` | batch 3 |
+| W1-5 | `bd49445` | `e21e06d42caee6a3` | batch 3 (the fingerprint's runs have no sum of squares between the old and the new bounds) |
+| W1-3 | `d883cf9` | `240841b9c4bd42df` | batch 3 against batch 2: `sphere_D2` flagged, a lower error (-0.43); its steps: W1-4 (-0.46) |
+| W1-35 | `463312f` | `240841b9c4bd42df` | fingerprint unchanged; the inject gate: no crash in 180 runs |
+| W1-2 | `d3640ab` | `91f947f78e1087c2` | against batch 3's end: no flag in 54 tests |
+| W1-1 | `6e22d32` | `91f947f78e1087c2` | against W1-2: no flag in 54 tests; only `ellipsoid_D3_unbounded` changes |
+| W1-17 | `cfacb98` | `91f947f78e1087c2` | the `oned` suite (`db09fb6`) against W1-1: no flag in 18 tests; 43 of 180 runs change |
+
+- **Changelog.** Batch 1 is one entry, "Retries of a failed GP fit", that
+  its commits build up; batch 3 likewise, "Calibration check of the GP";
+  W1-23 and W0-7 extend "Prior of the GP mean", and W1-35 extends W0-1's
+  "Re-evaluation of the iterates in noisy runs", both unreleased. W0-8,
+  W1-13's exit flag and W1-31 have no line.
+- **Choices within the rulings**, made by the orchestrator on the agents'
+  reports: W1-12 also clips the retry's start into its bounds, as
+  `gpHyperOptimize.m:167` does, without which the start leaves the bounds
+  and the slice sampler refuses it; W0-7 takes the start's fraction from
+  `hpd_frac` (0.8 by default, which MATLAB hard-codes); W1-3 stores the SD
+  of the observation under the posterior that predicts, gpyreg's `sn2_mult`
+  included (KD-B6-6), where the hyperparameter's noise alone would give
+  smaller SDs at level 0 (the fingerprint's deterministic runs have 44, 28
+  and 49 of 74 statistics from posteriors with `sn2_mult` of 10 to 1000).
+- **The inject gate** (`gp_update_failures.py --inject 0.02`, seeds 0-9,
+  180 runs), after its restore count was fixed (`4ca8e41`): at `bc57dd6`,
+  the base of the pass, 50 crashes, every noisy run, all W1-35's; at
+  `463312f`, none, with 2,562 failed computations and 1,051 restores (229
+  of them in the re-estimate), and at most 2 consecutive restores by the
+  search and the poll.
+- **W1-2** comes back to the PI only on a flagged worsening, and none is
+  flagged; the fraction solved of `ellipsoid_D3_homo` falls from 0.70 to
+  0.47 and that of `multisensory_s1_D6_homo` from 1.00 to 0.90, within the
+  swing of the noisy configurations over the pass.
+- **The net change of the pass**, against the baseline: `ackley_D6`
+  flagged, a lower error, and no configuration worse; the pass ends in a
+  new Linux reference,
+  [`population_linux_wave1_20260926`](../../population_linux_wave1_20260926/README.md),
+  whose runs are those of W1-1 (W1-17 reaches no run of the default suite).
+- **The suite** passes at `cbe7523` (batch 3's package code): 268 tests.
 
 **Found while fixing** (2026-09-26):
 
@@ -357,6 +429,55 @@ that must move nothing: `bfbc6d6737e99d88`.
   there is no refit; it now reads the `needs_refit` marker on the GP
   returned (`4ca8e41`), which gives the old counts at a commit that always
   retries.
+- **Reported by the fix agents outside their rows**, not fixed in this
+  pass; each is left to the wave of the slice that owns its code:
+  - option descriptions are cut at their first `=` or `:`, the default
+    delimiters of the configparser in `options.py`'s `_read_config_file`
+    (`Options.descriptions["noise_size"]` is "Base observation noise
+    magnitude (SD), e.g. noise_size"); the docs include the `.ini` files
+    verbatim, so only `Options.descriptions` and `__str__` are affected (D);
+  - code that `BADS` no longer reaches: the `"negquad"` branches, the
+    `fit_lik=False` branches of `_gp_hyp` and the non-`"iso"` path of
+    `local_gp_fitting` (D, F); `_gp_hyp`'s `plb` and `pub` parameters, unused
+    since W1-33, which `init_and_train_gp`'s docstring misnames; and
+    `upper_gp_length_factor`, which nothing reads (C);
+  - `gp_fixed_mean`, `gp_cov_fun` and `use_effective_radius` have no
+    description in `advanced_bads_options.ini`, and several descriptions end
+    in a stray MATLAB `'` (D);
+  - with two starts (the second fit), a retry of `_robust_gp_fit_` averages
+    the prior draw with the last start alone and goes on from it, where
+    MATLAB retries each start (E);
+  - with `gp_warnings`, "Failed optimization of hyper-parameters (after 10
+    attempts)" is logged after a fit that succeeded on a retry; MATLAB warns
+    only when a start failed every try (E);
+  - `_get_random_samples_from_priors_` draws only Gaussian blocks, and a
+    NaN coordinate inside one as NaN (E);
+  - a user `noise_nudge[1]` of 2 lifts the noise's lower bound above its
+    upper bound, 5, after seven failures, and `set_bounds` raises (E);
+  - a scalar `s2` stops the removal step of `_robust_gp_fit_` (`s2.size`)
+    (E);
+  - with several hyperparameter samples, the poll scale sums over them
+    unweighted and the effective radius is one per sample, where MATLAB
+    weights by `hypweight` and averages; inert with one sample (B);
+  - the main loop discards the GP that `_poll_step_` returns, harmless
+    while the updates are in place, and the poll discards the return of
+    `period_check`, inert since periodic variables are refused (H); the
+    poll's `np.vstack(u_poll, u_poll_new)` is already in wave 0's records
+    (A, H);
+  - a thin feasible band at D = 2 (deterministic, seed 0) ends after two
+    evaluations at `x0` on `tol_fun`, before and after the fixes, and at
+    D = 3 the ES search logs "Something went wrong with the acquisition
+    function" on a GP with few points (C);
+  - with one training point, gpyreg's `_bounds_info_helper` replaces the
+    targets by `[0, 1]`, so the mean's prior at the initial fit is centred
+    at 0.5 whatever the target (F);
+  - the statistics that `_record_gp_refit_` creates have a `"gp"` key that
+    nothing records, and `acq_fcn_lcb`'s docstring calls its SD output a
+    variance (G); `search_n_try` is a float (A);
+  - a past iterate's `fval` and `fsd` can stay NaN in `iteration_history`
+    after a run (W1-35), and `bads_dump.py` writes them out as they are (J).
+- **W1-6** is not revisited: batch 3's flag comes from W1-4 (its steps),
+  not from the test of three or more statistics.
 
 **The gpyreg side** (2026-09-26): W1-25's opt-in switch,
 `raise_on_cholesky_failure`, off by default, is acerbilab/gpyreg#56, and

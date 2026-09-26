@@ -125,15 +125,21 @@ reference's number of seeds.
   noise-variance fix of `020d6a8`), with its null check and its comparison
   with the one before, which flags nothing: the two configurations with
   target noise change, and the other 16 are identical run by run.
-- [experiments/population_linux_wave0_20260926/](experiments/population_linux_wave0_20260926/README.md)
+- [experiments/population_linux_wave1_20260926/](experiments/population_linux_wave1_20260926/README.md)
   — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at the package code of `e004c79`: wave 0 of the port
-  review, W0-1 included), the baseline of wave 1's fix pass, with its null
-  check and its comparison with the previous Linux reference, which flags
-  the number of evaluations of three configurations with noise, fewer, as
-  W0-1's gate on Windows does; the 13 configurations without noise are
-  identical run by run, and the wave 0 fix pass without W0-1 reproduces the
-  previous reference.
+  seeds, gpyreg 1.3.3, at the package code of wave 1's fix pass of the
+  port review), with its null check and its comparison with the previous
+  Linux reference, the net change of the pass, which flags one
+  configuration, a lower error on `ackley_D6`.
+- [experiments/population_linux_wave0_20260926/](experiments/population_linux_wave0_20260926/README.md)
+  — the previous reference population of the benchmark on Linux (default
+  suite, 30 seeds, gpyreg 1.3.3, at the package code of `e004c79`: wave 0
+  of the port review, W0-1 included), the baseline of wave 1's fix pass,
+  with its null check and its comparison with the previous Linux
+  reference, which flags the number of evaluations of three configurations
+  with noise, fewer, as W0-1's gate on Windows does; the 13 configurations
+  without noise are identical run by run, and the wave 0 fix pass without
+  W0-1 reproduces the previous reference.
 - [experiments/population_linux_gpfixes_20260925/](experiments/population_linux_gpfixes_20260925/README.md)
   — the previous reference on Linux (default suite, 30
   seeds, gpyreg 1.3.3, at `97b2c66`: a repeated point merged into its own

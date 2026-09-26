@@ -468,7 +468,22 @@ request.
   `experiments/population_linux_wave0_20260926/`, which flags W0-1's
   evaluations as on Windows, and the fingerprint `bfbc6d6737e99d88` at
   `ac3dfed` (`verification/wave1.md`, "Fix pass").
-- [ ] Wave 1's fix pass, with W0-7 and W0-8, in the order of the rulings.
+- [x] 2026-09-26: wave 1's fix pass (`verification/wave1.md`, "Fix pass").
+  Every row ruled for a fix is committed on `dev-port-review-w1`, by fix
+  agents in worktrees of their own, reviewed and cherry-picked, with W0-7
+  and W0-8, and W1-35, found while fixing: W0-1's re-estimate crashed
+  every noisy run whose rebuild failed (PI: a failed iterate drops out of
+  the choices, as MATLAB, and the incumbent keeps its estimate). The rows
+  that move nothing kept the fingerprint; the three batches, W1-2 and W1-1
+  compare without a worsening flag, the two flags, lower errors, traced to
+  W1-23 and W1-4 by their steps, and W1-17 on a new 1-D suite. The net
+  change against the baseline flags only `ackley_D6`, a lower error; the
+  pass ends in the Linux reference
+  `experiments/population_linux_wave1_20260926/`. The gpyreg side is
+  merged (acerbilab/gpyreg#56, the switch, and #57, W1-24), with no
+  release for now (PI). W1-25's switch, measured, stays off in PyBADS, to
+  be revisited after all the fixes (PI; `TODO.md`). One pull request into
+  `dev-next` carries the records and the fixes.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and

@@ -1,0 +1,101 @@
+{
+ "label": "ellipsoid_D10",
+ "seed": 24,
+ "problem": "ellipsoid",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -2.421976408962773,
+  -2.7902360680898317,
+  3.206909828529822,
+  -1.1210115901524906,
+  1.2630136216225099,
+  3.7244862253606534,
+  3.0180021485379775,
+  -1.7643927110643762,
+  -4.064038507102453,
+  -0.0592042365752965
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 24
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 24,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -1.3148946637847914,
+   0.07444882460328373,
+   0.8367401588016854,
+   1.6976903419055134,
+   -1.0735263585025834,
+   0.8555446959137925,
+   -1.244736670647395,
+   2.2450836403036156,
+   0.621030858003131,
+   -2.1067756305132335
+  ],
+  "fval": 6.947957974150584e-07,
+  "fsd": 0.0,
+  "true_error": 6.947957974150584e-07,
+  "func_count": 659,
+  "iterations": 17,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 19.044794995999837,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "6e22d32",
+   "dirty": true
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev45+g3e9646c05",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/h_6e22d32/pybads",
+   "git": {
+    "sha": "6e22d32",
+    "dirty": true
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T13:32:48+0000",
+  "finished": "2026-09-26T13:33:08+0000"
+ }
+}

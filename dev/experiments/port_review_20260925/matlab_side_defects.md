@@ -16,14 +16,15 @@ Nothing here was run in MATLAB.
   refit when `PollTraining` is off, so the next refit of the search waits
   for the minimum refit time counted from one that did not happen. Off by
   default. PyBADS: with `poll_training` off, the poll neither performs nor
-  records the refit.
+  records the refit (`c9ebdc7`).
 - **At D = 1 the GP length scale used for the training set is 1**
   (W1-17). `private/gpupdate.m:285-292` takes the ARD length scales only
   when `gpstruct.ncovlen > 1`, the test meant to tell per-dimension length
   scales from an isotropic one; at D = 1 the ARD kernel has a single length
   scale, so the distances that choose the training set are not in its
   units. The effect is bounded (the training set has between `NtrainMin`
-  and `NtrainMax` points). PyBADS: the fitted length scale at every D.
+  and `NtrainMax` points). PyBADS: the fitted length scale at every D (`cfacb98`; on
+  a 1-D suite of 30 seeds it changes 43 of 180 runs, with no flag).
 
 ## Shared design observations (PyBADS keeps MATLAB's behavior)
 
