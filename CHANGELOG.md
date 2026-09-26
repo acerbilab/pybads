@@ -495,6 +495,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   hard bounds were mapped to the wrong range (the plausible box to [-0.77,
   1.07] instead of [-1, 1] for `lb=1`, `plb=2`, `pub=500`, `ub=1000`).
   Results change on such problems.
+- **No overflow warning beside a log-scaled variable.** A variable that is
+  not on a log scale, with an infinite bound or a bound above about 700 in
+  magnitude, beside one that is, no longer gives a harmless `RuntimeWarning:
+  overflow encountered in exp` when `BADS` is created or during the run.
+  Results are unchanged.
 
 ## [1.1.0] - 2026-09-25
 

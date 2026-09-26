@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pytest
 
@@ -229,3 +231,33 @@ def test_bounds_of_large_magnitude(bounds, log_t):
     np.testing.assert_allclose(parameter_transformer.pub, 1.0, atol=1e-12)
     X = parameter_transformer.inverse_transf(parameter_transformer.ub)
     np.testing.assert_allclose(X, ub, rtol=1e-12)
+
+
+@pytest.mark.parametrize(
+    "lb, ub",
+    [((1.0, -5.0), (1000.0, np.inf)), ((1.0, -1e3), (1000.0, 1e3))],
+    ids=["infinite", "finite"],
+)
+def test_log_beside_linear_gives_no_overflow_warning(lb, ub):
+    """The inverse of a mix of log-scaled and linear variables takes the
+    exponential of every variable and masks out the linear ones. That of a
+    linear variable overflows above about 709, at a bound of 1e3 or at the
+    1/sqrt(eps) where the self-test puts an infinite one, harmlessly: it
+    gives no warning, and the values are those of the transform."""
+    lb, ub = np.array([lb]), np.array([ub])
+    plb, pub = np.array([[2.0, -1.0]]), np.array([[500.0, 1.0]])
+    x = np.array([[10.0, 800.0]])
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        parameter_transformer = VariableTransformer(2, lb, ub, plb, pub)
+        X = parameter_transformer.inverse_transf(parameter_transformer(x))
+    assert np.all(parameter_transformer.apply_log_t == [[True, False]])
+    # The log-scaled variable maps [2, 500] to [-1, 1] and [1, 1000] to
+    # [-log(1000) / log(250), log(1000) / log(250)]; the linear one is
+    # unchanged
+    r = np.log(1000) / np.log(250)
+    np.testing.assert_allclose(parameter_transformer.lb, [[-r, lb[0, 1]]])
+    np.testing.assert_allclose(parameter_transformer.ub, [[r, ub[0, 1]]])
+    np.testing.assert_allclose(parameter_transformer.plb, [[-1.0, -1.0]])
+    np.testing.assert_allclose(parameter_transformer.pub, [[1.0, 1.0]])
+    np.testing.assert_allclose(X, x, rtol=1e-12)

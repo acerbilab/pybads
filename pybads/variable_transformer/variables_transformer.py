@@ -197,12 +197,17 @@ class VariableTransformer:
             )
         else:
             g = lambda x: z(x) + zlog(x)
-            ginv = lambda y: maskindex(
-                gamma * y + mu, ~self.apply_log_t
-            ) + maskindex(
-                np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
-                self.apply_log_t,
-            )
+
+            def ginv(y):
+                # The exponential of a linear variable, masked out, overflows
+                # at a value above about 709, harmlessly
+                with np.errstate(over="ignore"):
+                    x_log = np.minimum(
+                        np.finfo(np.float64).max, np.exp(gamma * y + mu)
+                    )
+                return maskindex(
+                    gamma * y + mu, ~self.apply_log_t
+                ) + maskindex(x_log, self.apply_log_t)
 
         # check that the transform works correctly in the range
         lbtest = self.orig_lb.copy()
