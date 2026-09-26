@@ -299,6 +299,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   every step of the poll that followed, where MATLAB BADS rebuilds it once.
   It now rebuilds it once, as MATLAB BADS does. Results change at default
   options.
+- **Unbounded variables.** In a variable without bounds, the scale that
+  the ES-ell search takes from the length scales of the Gaussian process
+  was a constant, because the lower and upper plausible bounds that stand
+  in for the infinite bounds were swapped; on a problem unbounded in every
+  variable, the search was the same in every direction. It now follows the
+  length scales, as MATLAB BADS does. Results change on problems with an
+  unbounded variable.
 
 ## [1.1.0] - 2026-09-25
 

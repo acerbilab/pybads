@@ -1244,3 +1244,40 @@ def test_gp_stats_hold_sd_of_observation(monkeypatch, level):
     assert len(ys) > 0
     assert np.array_equal(ymu, f_mu)
     np.testing.assert_allclose(ys, expected, rtol=1e-10)
+
+
+def test_poll_scale_follows_length_scales_when_unbounded():
+    """On a problem unbounded in every variable, the poll scale of a refit
+    follows the GP length scales, within the width of the plausible box,
+    which takes the place of the infinite bounds (2 in normalized units), as
+    in MATLAB's gpupdate.m."""
+    D = 3
+    bads = BADS(
+        lambda x: float(np.sum((np.array([1, 5, 30]) * np.ravel(x)) ** 2)),
+        np.array([1.0, -1.2, 0.8]),
+        None,
+        None,
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        options={"display": "off", "random_seed": 3},
+    )
+    gp, _, _, _ = bads._init_optimization_()
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        bads.function_logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        True,
+        rng=bads.rng,
+    )
+    log_ls = gp.get_hyperparameters()[0]["covariance_log_lengthscale"]
+    ll = np.exp(bads.options["gp_rescale_poll"] * (log_ls - np.mean(log_ls)))
+    poll_scale = gp.temporary_data["poll_scale"]
+    assert np.all(poll_scale > 0)
+    np.testing.assert_allclose(
+        poll_scale,
+        np.clip(ll, bads.optim_state["search_mesh_size"], 2.0),
+        rtol=1e-12,
+    )

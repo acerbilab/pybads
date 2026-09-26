@@ -641,8 +641,8 @@ class BADS:
         optim_state["ub"] = self.upper_bounds.copy()
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
-        optim_state["pub"] = self.plausible_lower_bounds.copy()
-        optim_state["plb"] = self.plausible_upper_bounds.copy()
+        optim_state["plb"] = self.plausible_lower_bounds.copy()
+        optim_state["pub"] = self.plausible_upper_bounds.copy()
 
         optim_state["lb_orig"] = self.var_transf.orig_lb.copy()
         optim_state["ub_orig"] = self.var_transf.orig_ub.copy()

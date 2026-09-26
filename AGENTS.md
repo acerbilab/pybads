@@ -171,10 +171,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   transform for a variable whose bounds are all positive and whose
   `pub/plb >= 10`); the target and `non_box_cons` see the original space.
   After `_init_optim_state_`, `self.lower_bounds` and its siblings hold the
-  transformed bounds, and the original ones are in `optim_state["*_orig"]`.
-  `optim_state["plb"]` holds the transformed upper plausible bound and
-  `optim_state["pub"]` the lower one; `gaussian_process_train.py` reads
-  them.
+  transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
+  and `["pub"]`, which `gaussian_process_train.py` reads; the original
+  ones are in `optim_state["*_orig"]`.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
   `["len_scale"]` and `["effective_radius"]`, set in
   `gaussian_process_train.py`, drive the poll basis and the ES-ell search.
