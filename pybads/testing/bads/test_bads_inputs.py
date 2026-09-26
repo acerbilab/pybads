@@ -33,21 +33,32 @@ def test_mixed_bounded_and_unbounded_variables():
 
 
 @pytest.mark.parametrize(
-    "lb, ub",
-    [([-10.0, -np.inf], [np.inf, np.inf]), ([-1.0, -np.inf], [1.0, 10.0])],
-    ids=["bounded_below", "bounded_above"],
+    "lb, ub, plb, pub, log",
+    [
+        ([0.0, -np.inf], [np.inf, np.inf], [0.1, -3.0], [0.9, 3.0], False),
+        ([-np.inf, -np.inf], [1.0, 10.0], [0.1, -3.0], [0.9, 3.0], False),
+        ([1e-3, 0.5], [np.inf, np.inf], [1e-2, 1.0], [1.0, 20.0], True),
+    ],
+    ids=["bounded_below", "bounded_above", "bounded_below_log"],
 )
-def test_half_bounded_variable_is_refused(lb, ub):
-    with pytest.raises(ValueError, match="bads:HalfBounds"):
-        BADS(
-            _quadratic,
-            np.array([0.5, 0.0]),
-            np.array(lb),
-            np.array(ub),
-            np.array([0.1, -3.0]),
-            np.array([0.9, 3.0]),
-            options=OPTIONS,
-        )
+def test_half_bounded_variables(lb, ub, plb, pub, log):
+    """A variable bounded on one side only is accepted, as in MATLAB BADS
+    (`setupvars.m` only cautions), log-transformed when its bounds are all
+    positive and `pub / plb >= 10` (which a variable bounded above only
+    cannot be), and the run finds the minimum."""
+    bads = BADS(
+        _quadratic,
+        np.array([0.5, 1.0]),
+        *[np.array(bound) for bound in (lb, ub, plb, pub)],
+        options={**OPTIONS, "max_fun_evals": 100},
+    )
+    state = bads.optim_state
+    assert np.isinf(state["lb"]).tolist() == [np.isinf(lb).tolist()]
+    assert np.isinf(state["ub"]).tolist() == [np.isinf(ub).tolist()]
+    assert bads.var_transf.apply_log_t.tolist() == [[log, log]]
+    result = bads.optimize()
+    assert result["func_count"] <= 100
+    np.testing.assert_allclose(result["x"], [0.3, 2.0], atol=0.05)
 
 
 def _sphere(x):

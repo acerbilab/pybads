@@ -71,18 +71,21 @@ class BADS:
         of strict lower and upper bounds for the coordinate vector, ``x``, so
         that the unknown function has support on ``lb`` <= ``x`` <= ``ub``.
         If scalars, the bound is replicated in each dimension. Use
-        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set ``lb[i] = -inf``
-        and ``ub [i] = inf`` if the `i`-th coordinate is unbounded (while
-        other coordinates may be bounded). Note that if ``lb`` and ``ub`` contain
-        unbounded variables, the respective values of ``plb`` and ``pub`` need to
-        be specified (see below). By default ``None``.
+        ``None`` for ``lb`` and ``ub`` if no bounds exist. Set
+        ``lb[i] = -inf`` if the `i`-th coordinate is unbounded below, and
+        ``ub[i] = inf`` if it is unbounded above (while other coordinates
+        may be bounded). Note that if ``lb`` and/or ``ub`` contain infinite
+        bounds, the respective values of ``plb`` and/or ``pub`` need to be
+        specified (see below). By default ``None``.
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
         Specifies a set of ``plausible_lower_bounds`` (``plb``) and
         ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``.
         Both ``plb`` and ``pub`` need to be finite, and are replicated in
-        each dimension if scalars. ``plb`` and ``pub`` represent a
-        `plausible` range, which should denote a region where the global minimum
-        is expected to be found. As a rule of thumb, set ``plausible_lower_bounds``
+        each dimension if scalars. If not specified, ``plb`` is ``lb`` and
+        ``pub`` is ``ub``: ``plb`` needs to be specified when ``lb`` has an
+        infinite bound, and ``pub`` when ``ub`` has one. ``plb`` and ``pub``
+        represent a `plausible` range, which should denote a region where the
+        global minimum is expected to be found. As a rule of thumb, set ``plausible_lower_bounds``
         and ``plausible_upper_bounds`` such that there is > 90% probability that
         the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
@@ -505,14 +508,6 @@ class BADS:
             plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
             )
 
-        # Check that each variable is either bounded or unbounded
-        # (not half-bounded)
-        if np.any(np.isfinite(lower_bounds) != np.isfinite(upper_bounds)):
-            raise ValueError(
-                """bads:HalfBounds: Each variable needs to be unbounded or
-            bounded. Variables bounded only below/above are not supported."""
-            )
-
         # Check non bound constraints: one violation per row of its input,
         # as in MATLAB BADS (setupvars.m)
         if non_box_cons is not None:
@@ -531,15 +526,20 @@ class BADS:
             if not isinstance(y, np.ndarray) or y.shape not in [(2,), (2, 1)]:
                 raise ValueError(message)
 
-        # Gentle warning for infinite bounds
-        ninfs = np.sum(np.isinf(np.concatenate([lower_bounds, upper_bounds])))
+        # Gentle warning for infinite bounds, as in MATLAB BADS
+        # (setupvars.m), which accepts a variable bounded on one side only
+        is_inf = np.isinf(np.concatenate([lower_bounds, upper_bounds]))
+        ninfs = np.sum(is_inf)
         if ninfs > 0:
             if ninfs == 2 * D:
                 self.logger.warning(
                     "Detected fully unconstrained optimization."
                 )
             else:
-                self.logger.warning(f"Detected {ninfs} infinite bound(s).")
+                self.logger.warning(
+                    f"Detected {ninfs} infinite bound(s), in variables"
+                    f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}."
+                )
 
         return (
             x0,

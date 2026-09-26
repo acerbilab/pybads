@@ -329,7 +329,8 @@ same gpyreg.
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
   comparison. The condition for adding the search point to the GP in
   `_search_step_` was once such a slip: `size > 0 & count < n_try`, which
-  is always true. The half-bounds check of `_bounds_check_` was one the
-  other way round, a test per variable written as `any(...) and any(...)`
-  across all of them: on arrays, an elementwise test stays elementwise
-  (`&`, `|`, `!=`) inside one `np.any`.
+  is always true. A check of `_bounds_check_` that refused a variable
+  bounded on one side only, since removed, was once one the other way
+  round, a test per variable written as `any(...) and any(...)` across all
+  of them: on arrays, an elementwise test stays elementwise (`&`, `|`,
+  `!=`) inside one `np.any`.

@@ -390,11 +390,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   points and set the steps of the search, a defect shared with MATLAB BADS.
   It now uses the fitted length scale, as at every other D. Results change
   on 1-D problems.
-- **Mixed bounds.** A problem that mixes bounded variables with unbounded
-  ones (`lb[i] = -inf` and `ub[i] = inf`), as the docstring allows, is
-  accepted; 1.1.0 refused any such mix with `bads:HalfBounds`, because its
-  check looked at all the variables at once. A variable bounded on one side
-  only is still refused.
+- **Mixed and half-bounded variables.** A problem that mixes bounded
+  variables with unbounded ones (`lb[i] = -inf` and `ub[i] = inf`), as the
+  docstring allows, is accepted, and so is a variable bounded on one side
+  only (`lb[i]` finite with `ub[i] = inf`, or `lb[i] = -inf` with `ub[i]`
+  finite), as in MATLAB BADS: 1.1.0 refused both with `bads:HalfBounds`, any
+  mix because its check looked at all the variables at once. The plausible
+  bound on an infinite side needs to be given. The warning for infinite
+  bounds names the variables that have one.
 - **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
   `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
   bound in every dimension, as the docstring says and MATLAB BADS does;
