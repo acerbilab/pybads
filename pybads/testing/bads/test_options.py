@@ -1,6 +1,6 @@
 """The options that `BADS` is given: a value of `None` stands for the
-default, the boolean options take only booleans, and the checks that MATLAB
-BADS's `setupoptions.m` makes."""
+default, the boolean options take only booleans, the checks that MATLAB
+BADS's `setupoptions.m` makes, and the options that are not supported."""
 
 import logging
 
@@ -124,3 +124,12 @@ def test_plot_takes_the_names_of_plots():
     """`plot`, whose default is `False`, also takes the names of MATLAB
     BADS's plots, as its description says."""
     assert _make_bads(plot="scatter").options["plot"] == "scatter"
+
+
+def test_fun_values_is_not_supported():
+    """Prior evaluations, which MATLAB BADS imports (`setupvars.m`), are
+    refused; the empty default passes."""
+    fun_values = {"X": np.ones((2, D)), "Y": np.array([[3.0], [3.0]])}
+    with pytest.raises(ValueError, match="fun_values'] is not supported"):
+        _make_bads(fun_values=fun_values)
+    assert _make_bads(fun_values={}).options["fun_values"] == {}

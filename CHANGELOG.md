@@ -88,6 +88,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `False` (NumPy booleans included), and `BADS` raises `ValueError` for any
   other value; 1.1.0 read any value as true or false by Python's rules, so
   that MATLAB's `"off"` was true.
+- **`fun_values`.** `BADS` refuses a non-empty `fun_values`, the evaluations
+  made before the run, with a message that the option is not supported yet;
+  the import was never ported, and 1.1.0 stopped with an unrelated
+  `ValueError`.
 
 ### Fixed
 
