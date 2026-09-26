@@ -193,6 +193,9 @@ class ESSearch(ABC):
             z = z_candidates[z_idx[0:N]]
             us = us_candidates[z_idx[0:N]]  # zlist in Matlab is not used
 
+            if us.shape[0] == 0:
+                break  # no candidate left to reproduce
+
             if i < self.n_search_iter - 1:
                 frac = n_new / ntest
                 # Update scale parameter
@@ -213,6 +216,9 @@ class ESSearch(ABC):
                     * self.scale
                 )
 
+        # No candidate left: an empty set, as MATLAB's searchES returns
+        if us.shape[0] == 0:
+            return us, z
         return us[0], z[0]
 
 

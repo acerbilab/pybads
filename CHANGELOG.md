@@ -138,6 +138,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   followed by other points was lost and the mesh contracted. With
   `opp_stobads`, a poll without a success moves to its best point when any
   of its points is uncertain, not only when the last one is.
+- **Search without a candidate.** A search that leaves no candidate, for
+  instance under a `non_box_cons` that does not always give the same answer
+  for a point, counts as a failed search, as in MATLAB BADS; the run
+  stopped with `UnboundLocalError` or `IndexError`.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
   starting point, where it raised `KeyError: 'eff_starting_points'`. As in
   MATLAB BADS, the starting point is evaluated a second time when

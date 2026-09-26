@@ -1657,8 +1657,8 @@ class BADS:
 
         Returns
         ----------
-        u_search : np.ndarray
-            Candidate search point.
+        u_search : np.ndarray or None
+            Candidate search point; None when the search set is empty.
         search_dist : np.ndarray
             Distance of the search point from thecurrent point.
         f_mu_search : float
@@ -1857,6 +1857,7 @@ class BADS:
 
         else:
             # Search set is empty
+            u_search = None
             y_search = self.yval
             f_mu_search = self.fval
             f_sd_search = 0
@@ -1907,6 +1908,10 @@ class BADS:
             else:
                 is_search_improved = sto_success == 1
                 is_search_success = is_search_improved
+
+        # An empty search set is a failed search, as in MATLAB BADS
+        if u_search is None:
+            is_search_improved = is_search_success = False
 
         # A search improvement implies an update of the incumbent
         if is_search_improved:
