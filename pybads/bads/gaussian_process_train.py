@@ -933,12 +933,6 @@ def _gp_hyp(
     ## Change default bounds and set priors over hyperparameters.
 
     bounds = gp.get_bounds()
-    if options["upper_gp_length_factor"] > 0:
-        # Max GP input length scale
-        bounds["covariance_log_lengthscale"] = (
-            -np.inf,
-            np.log(options["upper_gp_length_factor"] * (pub - plb)),
-        )
     # Increase minimum noise.
     bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
