@@ -2517,15 +2517,18 @@ class BADS:
         else:
             poll_string = "Refine grid"
 
+        # The actions of this pass, built anew at each poll as MATLAB BADS
+        # does
+        action_str = ""
         if self.gp_refitted_flag:
             action_str = "Train"
             if self.gp_exit_flag < 0:
                 action_str += " (failed)"
                 # self.gp_exit_flag = np.inf # Reset the flag
-            self.logging_action.append(action_str)
 
         if self.last_skipped == self.optim_state["iter"]:
-            self.logging_action.append("Skip")
+            action_str = "Skip" if action_str == "" else action_str + ", skip"
+        self.logging_action.append(action_str)
 
         # The display counts iterations from 1, as MATLAB BADS does
         self._display_function_log_(self.optim_state["iter"] + 1, poll_string)

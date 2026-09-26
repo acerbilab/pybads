@@ -434,6 +434,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   final samples, and with `specify_target_noise=True` of repeated
   evaluations, in the time of the target, as MATLAB BADS does; leaving them
   out overstated the overhead of noisy runs.
+- **Actions column of the display.** The Actions column of a poll's line
+  shows what its iteration did, as in MATLAB BADS: "Train" after a refit of
+  the Gaussian process, "Skip" after a skipped poll, "Train, skip" after
+  both; it could repeat the "Train" of an earlier poll, or show "Skip" alone
+  after both.
 
 ## [1.1.0] - 2026-09-25
 

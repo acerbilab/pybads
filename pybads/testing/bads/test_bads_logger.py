@@ -121,3 +121,89 @@ def test_display_levels(display, caplog):
     assert set(_display_levels(display, caplog)) == _SHOWN[display]
     if display == "full":
         assert logging.getLogger("BADS").level == logging.DEBUG
+
+
+def _poll_lines(monkeypatch, caplog, max_refit_checks=None, **options):
+    """Run on the sphere with `display="iter"`, and return, for each poll,
+    whether it refitted the GP, whether it was skipped, and its line.
+    `max_refit_checks` allows refits only at the first checks."""
+    n_checks = [0]
+    original_refit_time = BADS._is_gp_refit_time_
+
+    def refit_time(self, alpha, refit_allowed=True):
+        n_checks[0] += 1
+        refit, calibrate = original_refit_time(self, alpha, refit_allowed)
+        if max_refit_checks is not None and n_checks[0] > max_refit_checks:
+            refit = False
+        return refit, calibrate
+
+    polls = []
+    original_poll = BADS._poll_step_
+
+    def poll(self, gp):
+        out = original_poll(self, gp)
+        polls.append(
+            (
+                self.gp_refitted_flag,
+                self.last_skipped == self.optim_state["iter"],
+                caplog.records[-1].getMessage(),
+            )
+        )
+        return out
+
+    monkeypatch.setattr(BADS, "_is_gp_refit_time_", refit_time)
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    opts = {"display": "iter", "max_fun_evals": 100, "random_seed": 3}
+    opts.update(options)
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        BADS(
+            _sphere,
+            np.ones(D) * 4,
+            -100 * np.ones(D),
+            100 * np.ones(D),
+            -8 * np.ones(D),
+            12 * np.ones(D),
+            options=opts,
+        ).optimize()
+    return polls
+
+
+def test_poll_actions_without_a_refit(monkeypatch, caplog):
+    """The Actions column of a poll's line is built at each poll, as in
+    MATLAB BADS: a poll that refits no GP shows no "Train", whatever the
+    poll before it did. Refits are allowed only at the first three checks,
+    and without searches every poll follows a poll."""
+    polls = _poll_lines(
+        monkeypatch, caplog, max_refit_checks=3, search_n_try=0
+    )
+    assert any(trained for trained, _, _ in polls)
+    assert any(not trained for trained, _, _ in polls)
+    for trained, skipped, line in polls:
+        assert not skipped
+        assert line.rstrip().endswith("Train") == trained
+
+
+def test_poll_actions_of_a_poll_that_trains_and_skips(monkeypatch, caplog):
+    """A poll that refits the GP and is skipped shows both, "Train, skip",
+    as in MATLAB BADS; one that is only skipped shows "Skip". Skipping is
+    allowed from the first failed poll step (`min_failed_poll_steps=1`), and
+    a poll is skipped when no vector improves with probability above
+    `1 - tol_poi`."""
+    polls = _poll_lines(
+        monkeypatch,
+        caplog,
+        search_n_try=0,
+        min_failed_poll_steps=1,
+        tol_poi=0.5,
+    )
+    assert any(trained and skipped for trained, skipped, _ in polls)
+    for trained, skipped, line in polls:
+        action = line.rstrip()
+        if trained and skipped:
+            assert action.endswith("Train, skip")
+        elif skipped:
+            assert action.endswith("Skip") and "Train" not in action
+        elif trained:
+            assert action.endswith("Train")
+        else:
+            assert not action.endswith(("Train", "skip", "Skip"))
