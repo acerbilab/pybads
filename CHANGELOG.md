@@ -46,6 +46,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
   implement, and any other value, and then kept the initial prior over the
   length scales for the whole run.
+- **Large noise.** `BADS` warns when `noise_size` exceeds e^5, about 148,
+  the largest noise standard deviation its Gaussian process can represent
+  (the bound of MATLAB BADS): the noise it infers then stays at that bound,
+  and the target is better rescaled.
 
 ### Fixed
 

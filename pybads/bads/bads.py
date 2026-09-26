@@ -871,6 +871,18 @@ class BADS:
                 "options['noise_size'], if specified, needs to be positive "
                 "for numerical stability."
             )
+        # The GP's noise is bounded above at a log SD of 5 (_gp_hyp), as in
+        # MATLAB's gpdefBads.m
+        if (
+            not self.options["specify_target_noise"]
+            and self.options["noise_size"] is not None
+            and np.ravel(self.options["noise_size"])[0] > np.exp(5)
+        ):
+            self.logger.warning(
+                "options['noise_size'] exceeds exp(5), about 148: the GP "
+                "cannot represent a noise SD that large, and its noise will "
+                "sit at that bound. Rescale the target to reduce its noise."
+            )
         if (
             self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
