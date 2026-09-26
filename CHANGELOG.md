@@ -229,6 +229,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (MATLAB BADS does the same). The poll now leaves that refit to the search,
   and its stopping rule reads the calibration of the GP as it is. Results
   change only with `poll_training=False`.
+- **Fixed noise.** `fit_lik=False`, a fixed noise level, which MATLAB BADS
+  does not support either, is refused when `BADS` is created, with MATLAB
+  BADS's message "Fixed noise not supported"; 1.1.0 stopped the run at its
+  start with gpyreg's "Unknown hyperprior type delta".
 
 ## [1.1.0] - 2026-09-25
 

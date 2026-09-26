@@ -457,3 +457,10 @@ def test_gp_cov_prior_refused(value):
     `BADS` is created."""
     with pytest.raises(ValueError, match="'ard' is not supported"):
         _make_bads(gp_cov_prior=value)
+
+
+def test_fit_lik_false_refused():
+    """A fixed noise level (`fit_lik=False`) is refused when `BADS` is
+    created, with MATLAB's message."""
+    with pytest.raises(ValueError, match="Fixed noise not supported"):
+        _make_bads(fit_lik=False)

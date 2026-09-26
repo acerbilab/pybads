@@ -948,6 +948,13 @@ class BADS:
                 "shared by the GP length scales); 'ard' is not supported."
             )
 
+        # A known noise level, which MATLAB refuses too (gpdefBads.m)
+        if not self.options.get("fit_lik"):
+            raise ValueError(
+                "Fixed noise not supported: options['fit_lik'] should be "
+                "True."
+            )
+
         return optim_state
 
     def _variable_transformer_(self):
