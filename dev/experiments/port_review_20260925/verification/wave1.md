@@ -164,9 +164,10 @@ their pass ahead, or proposed here.
 
 ## Proposed rulings (orchestrator, 2026-09-26, for the PI's triage)
 
-Drafts, not rulings. Each follows its verifier's recommendation unless it
-says why not; the PI accepts, amends or rejects each, and the section then
-becomes "Rulings (PI, <date>)". As in wave 0, a fix is one commit per row on
+Drafts, not rulings, except where marked "(PI)": the PI's decisions of
+2026-09-26 so far. Each draft follows its verifier's recommendation unless
+it says why not; the PI accepts, amends or rejects each, and the section
+then becomes "Rulings (PI, <date>)". As in wave 0, a fix is one commit per row on
 `dev-port-review`, with a test that fails at `95da7f1` and passes at the
 commit, and a changelog line in every commit a user can notice.
 
@@ -197,15 +198,21 @@ commit, and a changelog line in every commit a user can notice.
 - W1-32: MATLAB's message ("Fixed noise not supported") when `BADS` is
   created, and "unsupported" in the option's description.
 - W1-33: remove the overwritten branch; the option moves to KD-B1-5.
-- W1-34: accept only `"zero"` and `"const"`, and refuse every other name
-  when `BADS` is created, `"negquad"` included: it has the wrong shape for
-  a minimizer, has no priors, and stops at the first retry. A stricter
-  interface: a changelog entry and an "Upgrading from" line.
-- W1-28: refuse `gp_cov_prior="ard"` and unknown values with a message, and
-  put the unported `"ard"` on the sheet (a changelog entry and an "Upgrading
+- W1-34 (PI: accepted): accept only `"zero"` and `"const"`, and refuse
+  every other name when `BADS` is created, `"negquad"` included: it has the
+  wrong shape for a minimizer, has no priors, and stops at the first retry.
+  A stricter interface: a changelog entry and an "Upgrading from" line.
+- W1-28 (PI: accepted): refuse `gp_cov_prior="ard"` and unknown values with
+  a message, and put the unported `"ard"` on the sheet (a changelog entry and an "Upgrading
   from" line). This departs from the verifier, which proposed porting it:
   it is off by default, and a port needs its own population comparison; a
   `TODO.md` item keeps the port.
+- W1-8 (PI: the orchestrator's call; revised from "keep"): with
+  `poll_training` off, the poll neither performs nor records the refit, so
+  that the search's next refit is not delayed by one that did not happen. It
+  is a defect MATLAB shares, but off by default, so MATLAB's tuning does not
+  bear on it. A unit test and the fingerprint (default runs do not reach it),
+  a changelog line, and an entry in `matlab_side_defects.md`.
 
 **Fix, moving results**, in batches, each ending in a population comparison
 on Linux (this platform and versions are those of
@@ -230,8 +237,8 @@ one only if its comparison flags something. In this order:
    under the fingerprint, and into this comparison if it moves).
 3. The calibration test: W1-3 (the SD of the observation, as MATLAB's `ys`;
    the fix checks which noise MATLAB's prediction adds at level 2, and the
-   replacement by 1e-6 goes), W1-4, W1-5. W1-6: keep scipy's Shapiro-Wilk
-   and put the substitution on the sheet, with the verifier's disagreement
+   replacement by 1e-6 goes), W1-4, W1-5. W1-6 (PI: accepted): keep scipy's
+   Shapiro-Wilk and put the substitution on the sheet, with the verifier's disagreement
    rates as its evidence. In default runs the two tests differ only on the
    replaced SDs that W1-3 removes; revisit if this comparison is flagged.
 4. W1-2 alone: clear `reset_gp` at the rebuild it asks for (a failed
@@ -239,6 +246,17 @@ one only if its comparison flags something. In this order:
    back to the PI, to keep and put on the sheet.
 5. W1-1 alone: swap the two assignments (the default suite's
    `ellipsoid_D3_unbounded` reaches it) and correct `AGENTS.md`.
+6. W1-17 (proposed after the PI's question "seems like a bug?"; revised
+   from "keep"): use the fitted length scale at D = 1 too. MATLAB's
+   `ncovlen > 1` (`gpupdate.m:285-292`) is meant to tell per-dimension
+   length scales from an isotropic one, and at D = 1 it takes the one length
+   scale of the ARD kernel for an isotropic kernel's; the port copied the
+   test. PyBADS's kernel is always ARD, so the test goes, together with
+   W1-18 on the same lines. The effect is bounded: at D = 1 the training set
+   has between 50 and 60 points whatever the radius. The default suite has
+   no D = 1 configuration, so its fingerprint and comparison stay unchanged,
+   and the gate is a comparison on a few 1-D configurations (30 seeds). An
+   entry in `matlab_side_defects.md`.
 
 W0-1, once ruled, is gated on top of whichever batches have landed by then;
 the fixes table records the order.
@@ -249,23 +267,30 @@ the fixes table records the order.
   tolerances: on the sheet, as deliberate. On the same data the design found
   the better optimum more often, and by far more, and it avoided fit
   failures that MATLAB's starts met.
-- W1-25, gpyreg's inflation of the noise: on the sheet under KD-B6-1, as
-  the settled Cholesky handling, and a `TODO.md` item to measure MATLAB's
-  handling (a failure at `sn2_mult > 1`, which needs a gpyreg switch) before
-  any change. Its effect on results is not measured, and each option other
-  than keeping it moves every run.
-- W1-27, the GP fit at initialization: on the sheet, as deliberate. Its
-  effect is the start of the first refit and the first target; W0-7 is fixed
-  regardless.
-- W1-7, W1-8, W1-17 and W1-30, which PyBADS shares with MATLAB: kept, as
-  MATLAB has them, and collected in `matlab_side_defects.md`, created with
-  this pass (W1-8 as a shared defect, the others as shared design
-  observations). W1-30 also gets a warning when `BADS` is created with a
+- W1-25, gpyreg's inflation of the noise (PI: measure, with the switch
+  opt-in in gpyreg): kept for now, on the sheet under KD-B6-1. A switch in
+  gpyreg, off by default so that no user of gpyreg (PyVBMC among them)
+  changes, makes a failed factorization an error, as MATLAB's
+  `CholAttempts = 0` (the fit's random design skips a draw that fails; the
+  optimizer's run fails). It goes to gpyreg on its own branch and pull
+  request. After batch 1, one population comparison with the switch on
+  (from the branch, recorded as exploratory) against batch 1's end. Turning
+  it on in PyBADS would change PyBADS's default runs, so that is a separate
+  ruling on that evidence, with its own gate.
+- W1-27, the GP fit at initialization (PI: kept; fitting the GP on the
+  initial design makes sense): on the sheet, as deliberate, by that ruling.
+  W1-20 and W1-26 are fixed within it, and W0-7 regardless.
+- W1-7 and W1-30, which PyBADS shares with MATLAB: kept, as MATLAB has
+  them, and collected in `matlab_side_defects.md`, created with this pass,
+  as shared design observations, beside W1-8 and W1-17 (shared defects that
+  PyBADS fixes). W1-30 also gets a warning when `BADS` is created with a
   `noise_size` above e^5.
 - The base noise of 1 at level 2 ("Found while verifying"): on the sheet,
   by the ruling of #71.
 
 **Out of this pass:** W1-24 goes to gpyreg, as an issue and a pull request
 on its own branch (the log mass in log space, and the design's draws from a
-prior far outside its bounds), gated as a gpyreg release. The items of
+prior far outside its bounds), gated as a gpyreg release. By the same
+principle as W1-25's switch, the log-space mass is taken only where the
+linear one underflows, so that no fit that succeeds today changes. The items of
 "Found while verifying" left to waves 2 and 3 go to them with their slices.
