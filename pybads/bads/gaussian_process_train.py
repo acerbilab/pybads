@@ -479,12 +479,14 @@ def local_gp_fitting(
 
         hyp_n_samples = len(dic_hyp_gp)
         # Update after fitting
-        # Gaussian process length scale
+        # Gaussian process length scale: MATLAB's sum over the samples
+        # weighted by `hypweight` (gpupdate.m), with equal weights
         if len(dic_hyp_gp[0]["covariance_log_lengthscale"]) > 1:
             len_scale = np.zeros(D)
             for i in range(hyp_n_samples):
-                len_scale += len_scale + np.exp(
-                    dic_hyp_gp[i]["covariance_log_lengthscale"]
+                len_scale += (
+                    np.exp(dic_hyp_gp[i]["covariance_log_lengthscale"])
+                    / hyp_n_samples
                 )
             gp.temporary_data["len_scale"] = len_scale
         else:

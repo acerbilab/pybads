@@ -575,3 +575,37 @@ def test_thin_feasible_region_runs():
     assert bads.optim_state["eff_starting_points"] == 1
     assert abs(result["x"][0] - result["x"][1]) <= 0.005
     assert result["fval"] < 1e-3
+
+
+def test_rebuild_len_scale_is_mean_over_samples(monkeypatch):
+    """With several hyperparameter samples, the GP length scale is MATLAB's
+    sum of their length scales weighted by `hypweight` (gpupdate.m), with
+    equal weights: their mean. (The refit returns one sample today.)"""
+    import pybads.bads.gaussian_process_train as gpt_module
+
+    def two_sample_fit(gp, x_train, y_train, s2_train, hyp_gp, *args, **kw):
+        first = gp.hyperparameters_to_dict(hyp_gp)[-1]
+        second = {name: value.copy() for name, value in first.items()}
+        second["covariance_log_lengthscale"] += np.log(3.0)
+        hyp = gp.hyperparameters_from_dict([first, second])
+        gp.set_hyperparameters(hyp, compute_posterior=False)
+        return gp, hyp, None, 1
+
+    monkeypatch.setattr(gpt_module, "_robust_gp_fit_", two_sample_fit)
+    bads, gp = _initialized_bads()
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        bads.function_logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        True,
+        rng=bads.rng,
+    )
+    samples = gp.get_hyperparameters()
+    assert len(samples) == 2
+    first = np.exp(samples[0]["covariance_log_lengthscale"])
+    np.testing.assert_allclose(
+        gp.temporary_data["len_scale"], 2 * first, rtol=1e-12
+    )
