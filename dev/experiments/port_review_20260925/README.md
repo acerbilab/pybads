@@ -18,6 +18,9 @@ against its own specification, in waves of fresh reviewers.
   its final message under a header that says what it read. Nothing in a
   report is verified; the verification of a wave goes to
   `verification/wave<N>.md`.
+- `briefs/`: the prompts of wave 1 (reviewers and verifiers), with
+  placeholders for the paths, for a session away from the orchestrator's
+  machine (the plan's "Wave 1 pickup").
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
 - `refresh_citations.py`: carries the `pybads/...:<line>` citations of a

@@ -328,6 +328,70 @@ The gates are those of `AGENTS.md`, "Numerical gates":
   log file, and each leaves a record that is checked before the next
   statement about it is written.
 
+## Wave 1 pickup
+
+For a session that runs wave 1 away from the orchestrator's machine, in a
+cloud sandbox (PI, 2026-09-26), while W0-1 is investigated there.
+Everything it needs is in this repository and in two public ones; nothing
+of `dev/scripts/runs/` (machine-local) is needed. It runs the reviews and
+their verification of slices B5 and B6, writes the ledger, and stops for
+the PI's triage: no fix, no population, no change to the package, no pull
+request.
+
+1. **Setup** (Linux; the paths are examples):
+
+   ```console
+   git clone https://github.com/acerbilab/pybads && cd pybads
+   git switch dev-port-review && git switch -c dev-port-review-w1
+   git worktree add --detach ../pybads-review 95da7f1
+   git clone https://github.com/acerbilab/bads ../bads
+   git -C ../bads checkout 74919c0
+   git clone https://github.com/acerbilab/gpyreg ../gpyreg-v1.3.3
+   git -C ../gpyreg-v1.3.3 checkout v1.3.3
+   python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+   PYTHONPATH=../pybads-review:../gpyreg-v1.3.3 .venv/bin/python -c "import pybads, gpyreg; print(pybads.__file__, gpyreg.__file__)"
+   ```
+
+   The last line prints the review worktree's `pybads` and the clone's
+   `gpyreg`; the reviewers' scripts select both the same way.
+2. **The reviewers.** Four fresh general-purpose Opus agents at once, never
+   forks: B5 internal, B5 comparison, B6 internal, B6 comparison. Each
+   prompt is the slice part (`experiments/port_review_20260925/briefs/wave1_B5.md`
+   or `wave1_B6.md`), then `briefs/wave1_common.md` from "You are a
+   reviewer" to its first rule, then the part of the track, with the
+   placeholders of `wave1_common.md` replaced; each reviewer has a scratch
+   directory of its own outside the repositories.
+3. **Saving.** Each report is saved verbatim as
+   `experiments/port_review_20260925/reviews/<slice>_<track>.md`, under a
+   header comment that says what it read and when, with
+   `experiments/port_review_20260925/extract_report.py` from the agent's
+   transcript (see "Working rules"). The sandbox is not kept, so each
+   reviewer's scratch directory is copied into
+   `experiments/port_review_20260925/verification/scripts/wave1/<slice>_<track>/`.
+4. **Verification.** Once both reports of a slice are saved, one fresh Opus
+   verifier for the slice (`briefs/wave1_verifier.md`), which did not write
+   either report; its report saved as `verification/wave1_<slice>_verifier.md`,
+   its scripts beside the reviewers'. The verifier of a slice also receives,
+   quoted in its prompt, the open rows (status "seen", "not looked at" or
+   "seen (MATLAB side read)") of the candidate table of
+   `results/2026-09-23-codebase-survey.md` that belong to the slice and that
+   neither report covers, and verifies them as findings.
+5. **The ledger.** `verification/wave1.md`, rows W1-1 onwards, in the form
+   of `verification/wave0.md`: source, what, classification, default run,
+   dating, survey row, proposed disposition, gate; then "Found while
+   verifying". Two sources of the orchestrator are not given to reviewers or
+   verifiers and are only checked against the reports: the list "Seen in
+   passing" of `prep_report.md` (whether a reviewer found an item of B5 or
+   B6 by itself), and the rows of `verification/wave0.md` that wave 1's fix
+   pass takes, W0-7 (the starting GP mean, B6) and W0-8 (the stable sort of
+   the training set, B5): a finding that repeats one is marked "also W0-7"
+   or "also W0-8".
+6. **Close.** `git status --porcelain --ignored` in every checkout, and
+   nothing a reviewer left; a line in the worklog below ("wave 1 run and
+   verified, cloud session"); commit on `dev-port-review-w1`, push, and
+   report to the PI. The orchestrator merges the branch into
+   `dev-port-review` after the PI's triage.
+
 ## Worklog
 
 - [x] 2026-09-25: design discussed and decided with the PI (decisions
