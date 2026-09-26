@@ -8,7 +8,8 @@ against its own specification, in waves of fresh reviewers.
 - `known_differences.md`: the known-differences sheet, the settled and
   deliberate differences between PyBADS and MATLAB BADS that a reviewer
   does not report as new, with the claims of the repository's records that
-  did not check out. Its Python line citations are at `ab4dded`.
+  did not check out. Its Python line citations are at `95da7f1`, the
+  freeze, carried from `ab4dded` by `refresh_citations.py --base ab4dded`.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -19,6 +20,9 @@ against its own specification, in waves of fresh reviewers.
   `verification/wave<N>.md`.
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
+- `refresh_citations.py`: carries the `pybads/...:<line>` citations of a
+  document from the commit at which they were checked to the working tree,
+  and reports the cited lines that changed (adapted from PyVBMC's review).
 
 The reviewers' check scripts and outputs are kept on the machine that ran
 them (`dev/scripts/runs/LOCAL.md`).

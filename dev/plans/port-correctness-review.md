@@ -358,6 +358,14 @@ The gates are those of `AGENTS.md`, "Numerical gates":
   sheet, its citations, entry KD-B1-8 and the claims C1 and C2 are checked
   against `95da7f1`, which #71 changed in `bads.py`,
   `gaussian_process_train.py` and `optimize_result.py`.
+- [x] 2026-09-26: the sheet carried to `95da7f1`. `refresh_citations.py`
+  (PyVBMC's, with a fixed base commit and the bare backticked line numbers
+  that follow a path on its line) moved 60 citations and found none whose
+  line #71 changed; the 15 citations of a file without its `pybads/` path
+  were mapped by the same diff (8 moved), and a sample of the moves read
+  against both revisions. KD-B1-8 no longer leaves the count in
+  `iterations` open. C1 and C2 still hold at `95da7f1`; their verification
+  is under way.
 - [ ] Waves 1 to 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.
