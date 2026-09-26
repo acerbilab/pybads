@@ -400,6 +400,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   options page has a description, without the closing quote of MATLAB's that
   ended many, and those of `max_iter` and `tol_stall_iters` say that an
   iteration counts once it has begun. `search_n_try` is an integer.
+- **`sloppy_improvement=False`.** A run with `sloppy_improvement=False` no
+  longer stops with `AttributeError` at its first iteration.
 
 ## [1.1.0] - 2026-09-25
 

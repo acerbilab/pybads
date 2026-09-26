@@ -261,3 +261,13 @@ def test_random_x0_is_uniform_in_the_transformed_box():
     # [1, 100] maps log-linearly to [-1, 1], [-5, 5] linearly
     expected = [10.0 ** (1.0 + u[0, 0]), 5.0 * u[0, 1]]
     np.testing.assert_allclose(bads.x0.ravel(), expected, rtol=1e-12)
+
+
+def test_run_without_sloppy_improvement():
+    """`sloppy_improvement=False`, which MATLAB BADS supports, requires the
+    improvement of the mesh size alone, without the floor at `tol_fun`, and
+    the run completes."""
+    result = _make_bads(sloppy_improvement=False, max_fun_evals=60).optimize()
+    assert result["func_count"] <= 60
+    assert result["iterations"] > 1
+    assert result["fval"] < _sphere(np.ones(D) * 4)

@@ -1368,7 +1368,7 @@ class BADS:
 
             self.optim_state[
                 "search_sufficient_improvement"
-            ] = self.sufficient_improvement.copy()
+            ] = self.sufficient_improvement
 
             do_search_step_flag = (
                 self.optim_state["search_count"] < self.options["search_n_try"]
