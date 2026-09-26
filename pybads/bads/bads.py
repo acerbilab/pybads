@@ -29,6 +29,13 @@ from .gaussian_process_train import (
 from .optimize_result import OptimizeResult
 from .options import Options
 
+# The levels of the BADS logger's messages above the iteration lines (INFO),
+# for MATLAB BADS's display levels: the opening message (and the message of a
+# random starting point, at 25) from "notify" on, the final message from
+# "final" on
+_LOG_NOTIFY = 25
+_LOG_FINAL = 22
+
 
 class BADS:
     r"""
@@ -246,15 +253,24 @@ class BADS:
         # set up the random generator of the run
         self._init_rng_()
 
-        # set up BADS logger
+        # set up BADS logger, from the first three letters of the display
+        # option, lower case, as in MATLAB BADS (bads.m): "off" and "none"
+        # show the warnings only, "notify" (and any other value) also the
+        # opening message, "final" also the final message, "iter" and "all"
+        # also the iteration lines, and "full", PyBADS's own, the debug
+        # messages too
         self.logger = logging.getLogger("BADS")
-        self.logger.setLevel(logging.INFO)
-        if self.options.get("display") == "off":
-            self.logger.setLevel(logging.WARN)
-        elif self.options.get("display") == "iter":
+        display = str(self.options.get("display"))[:3].lower()
+        if display in ("off", "non"):
+            self.logger.setLevel(logging.WARNING)
+        elif display == "fin":
+            self.logger.setLevel(_LOG_FINAL)
+        elif display in ("ite", "all"):
             self.logger.setLevel(logging.INFO)
-        elif self.options.get("display") == "full":
+        elif display == "ful":
             self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(_LOG_NOTIFY)
 
         # Empty lb and ub are Infs
         if lower_bounds is None:
@@ -1094,16 +1110,19 @@ class BADS:
 
         if self.optim_state["uncertainty_handling_level"] > 0:
             if self.options["specify_target_noise"]:
-                self.logger.info(
-                    "Beginning optimization of a STOCHASTIC objective function (specified noise)\n"
+                self.logger.log(
+                    _LOG_NOTIFY,
+                    "Beginning optimization of a STOCHASTIC objective function (specified noise)\n",
                 )
             else:
-                self.logger.info(
-                    "Beginning optimization of a STOCHASTIC objective function\n"
+                self.logger.log(
+                    _LOG_NOTIFY,
+                    "Beginning optimization of a STOCHASTIC objective function\n",
                 )
         else:
-            self.logger.info(
-                "Beginning optimization of a DETERMINISTIC objective function\n"
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Beginning optimization of a DETERMINISTIC objective function\n",
             )
 
         # set up strings for logging of the iteration
@@ -1709,18 +1728,22 @@ class BADS:
         self.optim_state["total_time"] = total_time
         self.optim_state["overhead"] = overhead
 
-        self.logger.info(msg)
+        self.logger.log(_LOG_FINAL, msg)
         if self.optim_state["uncertainty_handling_level"] > 0:
             if np.isscalar(yval_vec) or yval_vec.size == 1:
-                self.logger.info(
-                    f"Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM)."
+                self.logger.log(
+                    _LOG_FINAL,
+                    f"Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
                 )
             else:
-                self.logger.info(
-                    f"Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)"
+                self.logger.log(
+                    _LOG_FINAL,
+                    f"Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)",
                 )
         else:
-            self.logger.info(f"Function value at minimum: {self.fval}\n")
+            self.logger.log(
+                _LOG_FINAL, f"Function value at minimum: {self.fval}\n"
+            )
 
         # BADS's output
         optimize_result = OptimizeResult(self)

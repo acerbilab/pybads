@@ -379,6 +379,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   target whose value changes in its last digits from call to call, for
   example a sum taken in varying order, was optimized as a noisy one, with
   more evaluations and a worse result.
+- **Display levels.** `display` takes MATLAB BADS's levels, read from its
+  first three letters in any case: `"notify"` shows the opening message and
+  the warnings, `"final"` also the final message, `"iter"` (or `"all"`) also
+  the iteration lines, `"off"` (or `"none"`) only the warnings, and
+  `"full"`, PyBADS's own, the debug messages too; 1.1.0 showed everything
+  for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
+  On the `BADS` logger, the opening and the final messages are at levels 25
+  and 22, between INFO and WARNING.
 
 ## [1.1.0] - 2026-09-25
 
