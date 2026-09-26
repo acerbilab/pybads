@@ -394,3 +394,77 @@ def test_target_time_counts_every_evaluation_but_the_noise_test(monkeypatch):
     assert bads.function_logger.total_fun_eval_time == (
         result["func_count"] - 1
     )
+
+
+def test_re_estimation_moves_the_incumbent_with_its_value(monkeypatch):
+    """When the re-estimation at the end of an iteration finds an earlier
+    iterate better by more than `tol_fun`, the incumbent moves to it, its
+    location with its value (MATLAB BADS moves the value and leaves `ubest`
+    at the old incumbent): `u_best` is the iterate's, and so is the centre
+    of the next poll, unless a search moves the incumbent first."""
+    moves = []
+    pending = {}
+    original_re_evaluate = BADS._re_evaluate_history_
+    original_search = BADS._search_step_
+    original_poll = BADS._poll_step_
+
+    def re_evaluate(self, gp):
+        original_re_evaluate(self, gp)
+        history = self.iteration_history
+        pending["estimates"] = (
+            self.optim_state["iter"],
+            history.get("fval").astype(float),
+            [np.ravel(u) for u in history.get("u")],
+        )
+
+    def check(self, step):
+        if "estimates" in pending:
+            iteration, fval, u = pending.pop("estimates")
+            if self.fval != fval[iteration]:
+                (index, *_) = np.flatnonzero(fval == self.fval)
+                pending["move"] = move = {
+                    "u": u[index].copy(),
+                    "fval": self.fval,
+                    "elsewhere": not np.array_equal(u[index], u[iteration]),
+                    "polled": False,
+                }
+                moves.append(move)
+                assert np.array_equal(np.ravel(self.u_best), move["u"])
+                assert np.array_equal(
+                    np.ravel(self.optim_state["u"]), move["u"]
+                )
+                assert self.optim_state["fval"] == self.fval
+        if step == "poll" and "move" in pending:
+            move = pending.pop("move")
+            if self.fval == move["fval"]:  # no search has moved it
+                move["polled"] = True
+                assert np.array_equal(np.ravel(self.u), move["u"])
+
+    def search(self, gp):
+        check(self, "search")
+        return original_search(self, gp)
+
+    def poll(self, gp):
+        check(self, "poll")
+        return original_poll(self, gp)
+
+    monkeypatch.setattr(BADS, "_re_evaluate_history_", re_evaluate)
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    noise = np.random.default_rng(100)
+    bads = BADS(
+        lambda x: float(np.sum(x**2) + 0.5 * noise.standard_normal()),
+        np.array([1.5, -1.0]),
+        np.full(2, -5.0),
+        np.full(2, 5.0),
+        np.full(2, -2.0),
+        np.full(2, 2.0),
+        options={
+            "display": "off",
+            "max_fun_evals": 200,
+            "random_seed": 0,
+            "uncertainty_handling": True,
+        },
+    )
+    bads.optimize()
+    assert any(move["elsewhere"] and move["polled"] for move in moves)

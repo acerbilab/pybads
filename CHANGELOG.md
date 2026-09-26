@@ -104,6 +104,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   initialization, and True when it ends on `tol_mesh` or on the change of
   the function value (`status > 0`), the convention of MATLAB BADS's exit
   flags and of scipy; it was always True.
+- **Move to an earlier iterate in noisy runs.** When the re-estimation at
+  the end of an iteration of a noisy run finds an earlier iterate better by
+  more than `tol_fun`, the incumbent moves to that iterate, its location
+  with its value, and the next search and poll run around it. In 1.1.0, as
+  in MATLAB BADS, only the value moved, so that the next poll could run
+  around the old incumbent while it was judged by the other iterate's value.
+  Noisy runs change.
 
 ### Fixed
 

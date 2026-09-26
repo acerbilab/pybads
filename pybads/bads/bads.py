@@ -1569,11 +1569,16 @@ class BADS:
 
                 # Check if any point got better
                 if improvement > self.options["tol_fun"]:
-                    self.yval = self.iteration_history.get("yval")[idx_impr]
-                    self.fval = self.iteration_history.get("fval")[idx_impr]
-                    self.fsd = self.iteration_history.get("fsd")[idx_impr]
-                    self.u = self.iteration_history.get("u")[idx_impr]
-                    self.best_u = self.u.copy()
+                    # The incumbent moves to the iterate, its location with
+                    # its value. MATLAB BADS moves u but not ubest
+                    # (bads.m:1111-1118), and its next poll can run around
+                    # the old incumbent with the iterate's value.
+                    self._update_incumbent_(
+                        self.iteration_history.get("u")[idx_impr],
+                        self.iteration_history.get("yval")[idx_impr],
+                        self.iteration_history.get("fval")[idx_impr],
+                        self.iteration_history.get("fsd")[idx_impr],
+                    )
                     # As MATLAB BADS does, only the target's hyperparameters
                     # move to the iterate; the working GP stays
                     self.best_gp_hyp = self.iteration_history.get(
