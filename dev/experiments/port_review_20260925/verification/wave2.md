@@ -219,7 +219,7 @@ recommendation, the two revisions included. As in waves 0 and 1, a fix is
 one commit per row on the wave's branch, with a test that fails at
 `fef6c14` and passes at the commit, and a changelog line in every commit a
 user can notice; a stricter interface also has an "Upgrading from" line.
-The fix pass is not started.
+The fix pass: below.
 
 **Fix, moving nothing** (each under the fingerprint):
 
@@ -337,3 +337,212 @@ recorded at every commit:
 ahead. gpyreg's `get_bounds_info` on a one-point training set belongs to
 B6, whose wave has passed: a `TODO.md` line, with wave 1's note on the same
 helper. The `fun_values` port is a `TODO.md` line (W2-6).
+
+## Fix pass
+
+Done (2026-09-26). As in wave 1: the fixes go on `dev-port-review-w2`, from
+the triage's head, `353ad51`; each is made by a fix agent, a fresh Opus
+agent with a git worktree of its own and the brief
+`../briefs/wave2_fix_common.md`, one commit per row with its regression
+test; the orchestrator reviews each diff, cherry-picks it and adds the
+changelog lines. Six agents: A, B1's bounds, start and transform (W2-1,
+W2-3, W2-8, W2-9, W2-10, W2-37, W2-11, W2-5); B, the options and the
+display levels (W2-17, W2-18, W2-19, W2-15, W2-6, W2-7, W2-22, W2-23 with
+W2-24 and W2-42); C, the run's control, its result and its display (W2-28,
+W2-27, W2-12, W2-13, W2-14, W2-20, W2-34, W2-31, W2-38, W2-39); D, the rows
+that move results (W2-16, W2-29, W2-25); E, after A, the effective bounds,
+the start of `±inf` and the half-bounded variables (W2-4, the B1
+verifier's N4, W2-2); F, last, W2-45, which agent A found and the PI
+ruled after the table ("Found while fixing"). Their reports are in
+`../fixes/`, their scripts in `scripts/wave2/fix_<agent>/`; the hashes they
+cite are those of their branches. `dev-next` gained the doublecheck of
+wave 1 (`4c38da8`, documentation only) during the pass, merged into the
+branch at `17d265e`.
+
+The fingerprint is that of `dev/scripts/fingerprint.py` at the commit on
+the branch (Linux, gpyreg 1.3.3, one BLAS thread), computed again by the
+orchestrator at every commit of the pass
+(`scripts/wave2/orchestrator/fp_all.out`). The populations are the
+`default` suite × seeds 0-29 (the bounds suite for W2-4), each run from a
+worktree at its commit; the comparisons are in `wave2_fixpass/`.
+
+| Row | Commit | Fingerprint | Gate and outcome |
+|---|---|---|---|
+| W2-1 | `f08fd6d` | `91f947f78e1087c2` | fingerprint unchanged; a test with mixed bounds |
+| W2-3 | `4917bde` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-8 | `6250a3a` | `91f947f78e1087c2` | fingerprint unchanged; four GP-training tests built `BADS` from a two-row `x0` and now from one (`a1e8a93`) |
+| W2-9 | `9b172fc` | `91f947f78e1087c2` | the docstring |
+| W2-10 | `ab11b83` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-37 | `bdaef58` | `91f947f78e1087c2` | the docstring |
+| W2-11 | `c3d7815` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-5 | `a2b8d38` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-17 | `ba7de41` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-18 | `b29b9b5` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-19 | `49ac8aa` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-15 | `37be0d9` | `91f947f78e1087c2` | none (the display) |
+| W2-6 | `0ba1241` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-7 | `652b25c` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-22 | `93c86ee` | `91f947f78e1087c2` | none (the descriptions) |
+| W2-23, W2-24, W2-42 | `2d4304c` | `91f947f78e1087c2` | fingerprint unchanged (`search_n_try` an `int`) |
+| W2-28 | `f08b475` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-27 | `381bf32` | `91f947f78e1087c2` | fingerprint unchanged; wave 1's small-budget test (W1-19) checked a design that overran the budget, and now checks the one W2-27 leaves (`f6f7f74`) |
+| W2-12 | `d964576` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-13 | `877d63c` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-14 | `1fb162e` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-20 | `17e65ee` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-34 | `3476000` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-31 | `765f13c` | `91f947f78e1087c2` | none (the display) |
+| W2-38 | `500526b` | `91f947f78e1087c2` | fingerprint unchanged |
+| W2-39 | `763e21f` | `91f947f78e1087c2` | the documentation page |
+| *batch 1* | `f6f7f74` | `91f947f78e1087c2` | the baseline: the default suite at the batch's head against `population_linux_wave1_20260926` reproduces every run exactly (every field of the 540 records but the wall time; no flag in 54 tests) |
+| W2-16 | `3272bdd` | `dc11118754b18b47` | the default suite against batch 1: `ellipsoid_D10` flagged on the number of evaluations, more (median 643 → 676; KS 0.57, p Holm 0.005), its error unchanged by the tests (median 4.8e-7 → 7.3e-7; paired log10 ratio +0.09 [-0.08, +0.22]; solved 1.00 → 1.00); no other flag in 54 tests (`wave2_fixpass/w2-16_vs_baseline.md`) |
+| W2-29 | `c9a2cde` | `dc11118754b18b47` | the default suite against W2-16: every run identical (every field of the 540 records but the wall time; no flag in 54 tests), since no run of the benchmark has a failed poll at iteration 4 without an improvement of `tol_fun` since the first iterate (`wave2_fixpass/w2-29_vs_w2-16.md`). Where it binds, in the B2 verifier's two cases (a 2-D sphere started at its minimum, a 2-D Rosenbrock from `[-1, 1]`; seeds 0-29, `orchestrator/w229_reach.py`), all 60 runs change, only in the mesh at the end, halved, with the same value, evaluations and iterations |
+| W2-25 | `a9fbb97` | `dc11118754b18b47` | the default suite against W2-29: no flag in 54 tests, so the row stays as ruled. 143 runs change, all of the five noisy configurations (25 to 30 of each 30), and none of the deterministic ones. The median paired log10 error ratios are -0.06 to +0.00, every interval containing 0; the fraction solved falls on `ellipsoid_D3_homo` (0.80 → 0.67), `ellipsoid_D3_hetero` (0.20 → 0.13) and `sphere_D3_hetero` (0.43 → 0.37) and holds on the other two, a coarse measure at 30 seeds that moved as much between the batches of wave 1 (`wave2_fixpass/w2-25_vs_w2-29.md`) |
+| W2-4 | `a31a9be` | `dc11118754b18b47` | fingerprint unchanged; with N4, the bounds suite (below) |
+| N4 | `a236eb7` | `dc11118754b18b47` | the `bounds` suite (`a8feb9a`; 5 configurations × seeds 0-29) at `a236eb7` against W2-25 at `a9fbb97`: 4 configurations flagged in 15 tests (`wave2_fixpass/w2-4_bounds_vs_w2-25.md`; the records beside it). Before W2-4 the plausible box of the log-scaled sphere, `[0.01, 100]` in `[1e-3, 1e3]`, was moved to `[1.001, 100]`, and `[1.001, 999]` when omitted; the start on the lower bound of the sphere moved inside, and the box widened to it (`orchestrator/w24_box.py`). With the box as given: the noisy log-scaled sphere, a lower error (0.14 → 0.047; ratio -0.41 [-0.57, -0.13]; solved 0.33 → 0.73); the deterministic one, a higher error far below its tolerance of 1e-3 (1.8e-7 → 8.6e-7, the largest 5.3e-6; ratio +0.63 [+0.30, +0.92]) and more evaluations (73 → 82), the cost of the four decades that the user gave where two were searched; with the box omitted, evaluations 83 → 81; the start on a bound, fewer evaluations (91 → 77), the error unflagged; the linear sphere without plausible bounds, no flag. The deterministic configurations are solved in every run, before and after |
+| W2-2 | `8510ca8` | `dc11118754b18b47` | fingerprint unchanged; agent E's check of 25 runs on half-bounded problems (not a gate) |
+| W2-45 | `dc7383a` | `dc11118754b18b47` | fingerprint unchanged; no configuration of the benchmark passes a bound that is not float (`orchestrator/reach_int.out`) |
+| minor records | `6644498` | `dc11118754b18b47` | the docstrings and two descriptions |
+| descriptions | `b3a6a0c` | `dc11118754b18b47` | three descriptions and `AGENTS.md` |
+| *head* | `8510ca8` | `dc11118754b18b47` | the default suite against W2-25: every run identical (every field but the wall time), so W2-4, N4 and W2-2 reach no run of it; this population is the new Linux reference, `population_linux_wave2_20260926` |
+
+- **Changelog.** Every row that a user can notice has a line under
+  `Unreleased`, written by the orchestrator when cherry-picking, from the
+  agents' proposals: "Changed" for the stricter interfaces and the
+  changed meanings (W2-10, W2-18, W2-19, W2-6, W2-7, W2-13) and for W2-25,
+  a departure from MATLAB; "Fixed" for the rest. A line in "Upgrading from
+  1.1.0" for each change that can stop a script or change what it gets
+  back: W2-10, W2-17, W2-18, W2-19, W2-13, W2-34 and W2-4. W2-2 merges
+  W2-1's entry into "Mixed and half-bounded variables"; N4 extends
+  "Random starting point", and W2-27 "Small budgets", both unreleased.
+  W2-9, W2-24, W2-38's `lastreeval` and the records have no line. The
+  entries of W2-16, W2-29 and W2-4 give what their gates measured.
+- **Choices within the rulings**, made by the orchestrator on the agents'
+  reports:
+  - W2-27 does not truncate the design when `max_fun_evals` is infinite,
+    which W2-18 accepts (`int` of an infinite budget raises); added when
+    cherry-picking.
+  - N4 follows MATLAB in replacing the whole start when any element is not
+    finite, before the test of the hard bounds (`setupvars.m:79-85`), so a
+    start `[nan, 100]` with `ub = 2` is drawn at random, where 1.1.0 refused
+    it.
+  - W2-2's warning names the variables with an infinite bound; MATLAB's
+    caution that infinite bounds are deprecated is not adopted.
+  - W2-25's test needs a move to another location that a poll follows
+    before any search moves the incumbent; the seeded Linux run has 2, and
+    another platform's trajectory could have none, in which case its last
+    assertion fails and a second seed would restore it.
+  - The minor records of "Notes on the reports" are corrected in
+    `6644498` (the seed's `ValueError` and booleans, the result's `x0` and
+    `total_time`, the doubling of `mesh_overflow_warning`, the default of
+    `noise_size`); the warning "Estimatingplausible" went with W2-8 and the
+    order message with W2-4. W2-21 has no row in the survey's table: its
+    record is the preparatory report's item (c), closed by this ledger.
+  - Conflicts when cherry-picking, all of appended tests or of lines two
+    rows changed, resolved by keeping both: W2-34 over W2-15's final
+    messages, W2-31, W2-29 and W2-25 over tests appended by B and C.
+- **W2-4's flagged worsening.** The deterministic log-scaled sphere ends
+  with a higher error, at a level far below its tolerance, and 9 more
+  evaluations: the plausible box that the user gave, four decades wide, is
+  searched where PyBADS searched two after moving `plb` to its effective
+  bound, and MATLAB searches the given box too. The orchestrator keeps W2-4,
+  as ruled, and reports it to the PI with the rest of the pass.
+- **The net change of the pass**, against `population_linux_wave1_20260926`
+  (`fef6c14`'s runs): one flag in 54 tests, `ellipsoid_D10`'s evaluations
+  (W2-16's); unflagged, `ellipsoid_D3_homo` has a lower error (0.10 →
+  0.057, solved 0.47 → 0.67) and the noisy configurations take more
+  evaluations. The pass ends in a new Linux reference,
+  [`population_linux_wave2_20260926`](../../population_linux_wave2_20260926/README.md),
+  whose runs are those of `8510ca8`; its null check flags nothing in 36
+  tests.
+- **The suite** passes at the head of the pass's package code (`dc7383a`,
+  in the tree of `fa8b4cf`), 376 tests, with the fingerprint
+  `dc11118754b18b47`; the pre-commit hooks pass on the whole tree. CI's
+  smoke run failed at `a2b8d38` on the four GP-training tests that W2-8's
+  refusal of a two-row `x0` broke, fixed in `a1e8a93`, and passed at every
+  later push that touched the package.
+
+**Found while fixing** (2026-09-26), reported by the fix agents outside
+their rows (the letter names the agent) and not fixed in this pass unless
+said; each is left to the PI or to the wave of the slice that owns its
+code.
+
+- **W2-45. Integer-typed bounds give a wrong log transform** (A,
+  reproduced by its script, `fix_A/intbounds.py`, and the orchestrator's,
+  `orchestrator/int_bounds.py`). `VariableTransformer` copies the bounds and
+  writes the log of a log-scaled variable's bounds into the copies in
+  place, so integer bounds are truncated: `lb=1, ub=1000, plb=2, pub=500`
+  as integers map the plausible box to `[-0.769, 1.072]` in `u` space and
+  the hard bounds to `[-1, 1.303]`, where floats give `[-1, 1]` and
+  `[-1.251, 1.251]`. W2-3's broadcast keeps a scalar's dtype, so an integer
+  scalar bound, refused at D > 1 before the pass, reaches it too. No
+  configuration of the benchmark passes a bound or `x0` that is not float
+  (`orchestrator/reach_int.out`). Ruling (PI, 2026-09-26): fix, as
+  proposed, by casting the bounds and `x0` to float in `_bounds_check_`,
+  under the fingerprint. Fixed by agent F in `dc7383a`, after the test that
+  the inputs are real valued, which a cast before it would defeat; nothing
+  in the setup writes into the user's arrays, before or after
+  (`fix_F/writethrough.py`). Outside the row (F): `VariableTransformer`,
+  a documented class, still truncates integer arrays given to it directly;
+  float32 inputs now become float64; a complex input with zero imaginary
+  parts, which passes the real-valued test, now becomes float with NumPy's
+  `ComplexWarning`, where it stayed complex (MATLAB's `isreal` refuses an
+  array stored as complex).
+- **A spurious overflow warning at construction** (E).
+  `VariableTransformer`'s self-test evaluates `exp` for every column in the
+  mixed log/linear branch (`variables_transformer.py`, about line 203), so a
+  log-scaled variable beside a linear one with an infinite bound, or a
+  bound above about 700 in magnitude, gives a harmless `RuntimeWarning:
+  overflow encountered in exp` when `BADS` is created; the value is masked
+  out. W2-1 and W2-2 accept problems that reach it. Proposed:
+  `np.errstate(over="ignore")` around the test, under the fingerprint.
+  Slice B1.
+- **Stale notebook outputs** (C, E). `examples/pybads_example_2_nonbox_constraints.ipynb`
+  shows the `bads:TooCloseBounds` warning that W2-4 removes, and
+  `examples/pybads_example_5_extended_usage.ipynb` a result with `'fsd': 0`
+  and without `status`; nothing runs the notebooks, and their runs would
+  now differ. For the release's headless run of the examples.
+- **Options and their descriptions** (B): `Options.descriptions` has no
+  entry for an advanced option that the user set, since
+  `load_options_file` skips its description with its value, and
+  `str(options)` prints `(None)` for it (predates the pass);
+  `hedge_gamma`'s description is its section's header; after W2-19 the
+  checks `stobads is None` (`__init__`) and `specify_target_noise is None`
+  (`_init_optim_state_`) are redundant; `test_options.ini` and
+  `test_options2.ini` ship in the wheel and nothing reads them.
+- **The display** (B): after W2-7 `cache_active` is always False, so the
+  cache branches of `_log_column_headers` and
+  `_setup_logging_display_format`, and `optim_state["cache"]`, are
+  unreachable; MATLAB prints the reports of the log transform and of
+  periodic variables from `notify` on (`setupvars.m:119`, `122`), where
+  PyBADS logs them at INFO, so that `"notify"` and `"final"` hide them.
+- **The inputs** (A, E): a missing `x0` with list-valued plausible bounds
+  raises `AttributeError` (`.shape`, as the B1 verifier noted); the warning
+  `bads:pbUnspecified` is logged only before the error on infinite
+  plausible bounds, since `__init__` fills missing plausible bounds
+  silently, where MATLAB warns whenever it fills them; the Raises section
+  of `BADS` names `bads:StartingSet` and `bads:NONBCON` only as "various
+  checks"; W2-11's redraw tests the start before it is put on the mesh, so
+  a feasible draw near the constraint's boundary can still be refused after
+  it (KD-B1-9); `boundscheck.m` treats a variable as fixed only when `x0`
+  equals its bound too, where PyBADS's test of fixed variables leaves `x0`
+  out (KD-B1-7).
+- **The run's control** (C, D): `init_sobol` returns its exponent as
+  `n_samples`, which its docstring calls a number of samples (the caller
+  ignores it; B7); the docstring of
+  `test_run_control.py::test_iterations_count_from_one` says the run ends
+  "at the 8th", where it reports 7 (before the pass too); the noise test's
+  time is averaged into the start's `fun_eval_time` row, where MATLAB times
+  only its `'iter'` calls (the total leaves it out since W2-20); a noisy
+  run at D = 2 with `max_fun_evals` 38 reserves 4 final samples and ends
+  after its design without taking them (W0-18's rounding, B7); in the
+  accelerated mesh reduction `u_base` is computed and never used (B4); after
+  a re-estimate that moves nothing, `optim_state`'s `yval`, `fval` and
+  `fsd` keep the incumbent's older values, which `_get_target_from_gp_`
+  reads only when the GP's prediction is not finite, as in MATLAB
+  (`bads.m:1290`).
+- Resolved in the pass: `search_factor_min`'s missing description (D; by
+  W2-23), `mesh_overflow_warning`'s doubling (B; with the minor records,
+  `6644498`), and the descriptions of `fun_eval_start`, `fun_values` and
+  `f_vals` and `AGENTS.md`'s sentence on the initial design, which W2-27,
+  W2-6 and W2-7 left in contradiction with the code (B, C; `b3a6a0c`).

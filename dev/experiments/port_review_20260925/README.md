@@ -55,4 +55,11 @@ Those of wave 2, also in a cloud session, are under
 check under `verification/scripts/wave2/orchestrator/`, formatted by the
 pre-commit hooks in the same way. `reviews/B1_comparison_history.md` is the
 B1 comparison reviewer's re-dating of its report on the complete history,
-saved verbatim beside the report.
+saved verbatim beside the report. The fix agents of wave 2's fix pass (A to
+F, the letters of `fixes/`) have theirs under
+`verification/scripts/wave2/fix_<agent>/`, without their copies of a
+parent's tree, and the orchestrator's scripts of the pass (the
+cherry-picks, the changelog lines, the fingerprint at every commit, the
+comparisons of populations run by run) are with its check. The pass's
+comparisons are in `verification/wave2_fixpass/`, and its last population
+is kept whole as the Linux reference `population_linux_wave2_20260926`.

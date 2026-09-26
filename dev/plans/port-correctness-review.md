@@ -617,6 +617,26 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   wave's pass; W2-4's gate needs a suite of its own. Two `TODO.md` lines:
   the port of `fun_values`, and the GP on a one-point training set (B6).
   The fix pass is not started.
+- [x] 2026-09-26: wave 2's fix pass (PI: "Start the fixes"), on
+  `dev-port-review-w2` (the ledger's "Fix pass"). Six fresh Opus fix agents,
+  one worktree each, one commit per row, reviewed and cherry-picked by the
+  orchestrator with the changelog lines: every row ruled "fix", W2-45
+  (integer-typed bounds, found by fix agent A, approved by the PI during the
+  pass) included. The rows that move nothing keep the fingerprint at every
+  commit, and their batch reproduces the Linux reference run for run; W2-16
+  moves it to `dc11118754b18b47`, and nothing after it moves it again. The
+  gates: W2-16 flags more evaluations on `ellipsoid_D10` (643 → 676, its
+  error unchanged); W2-29 changes no run of the benchmark (where it binds,
+  only the mesh at the end); W2-25 flags nothing; W2-4, on a `bounds` suite
+  of its own, flags four of five configurations, a noisy log-scaled problem
+  solved in 73% of the runs against 33%, and its deterministic counterpart
+  with more evaluations and a higher error far below its tolerance, the cost
+  of searching the plausible box as given. The sheet gains seven entries and
+  has five corrected, `matlab_side_defects.md` six items, and the survey's
+  six rows of these slices are closed. The suite passes (376 tests) and the
+  pre-commit hooks pass on the whole tree. `dev-next`'s doublecheck of wave
+  1 (`4c38da8`) is merged in. New Linux reference:
+  `experiments/population_linux_wave2_20260926/`.
 - [ ] Waves 3 and 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.

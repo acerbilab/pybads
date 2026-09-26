@@ -482,7 +482,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
   `bads:StrictBoundsTooClose` are gone. Results change on problems with the
   plausible bounds omitted or near a hard bound, or with a start near a hard
-  bound.
+  bound. On a 3-D sphere in log-scaled variables, bounded in [1e-3, 1e3]
+  with a plausible box of [0.01, 100], which was shrunk to [1, 100], 73% of
+  noisy runs end within the tolerance, against 33% before; without noise the
+  runs take 82 evaluations instead of 73, with errors below 1e-5 either way.
+  A start on a hard bound of a 3-D sphere takes 77 evaluations instead of
+  91.
 - **Integer bounds.** Bounds and `x0` given as integers, as integer arrays
   or as an integer scalar such as `lower_bounds=1`, are taken as floats.
   With integer bounds on a variable that BADS puts on a log scale, 1.1.0
