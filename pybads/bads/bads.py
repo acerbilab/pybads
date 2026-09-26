@@ -2495,42 +2495,27 @@ class BADS:
         else:
             refit_period = self.D * 5
 
+        # Number of statistics of the GP prediction since the last refit
+        # (MATLAB's gpstats.last)
         gp_iter_idx = self.gp_stats.get("iter_gp")
+        n_stats = 0 if gp_iter_idx is None else len(gp_iter_idx)
 
         do_gp_calibration = False
         # empty stats
-        if (
-            gp_iter_idx is None
-            or len(gp_iter_idx) == 0
-            or gp_iter_idx[-1] == 0
-        ):
-            if gp_iter_idx is None:
-                gp_iter_idx = 0
+        if n_stats == 0:
             do_gp_calibration = True
-        else:
-            gp_iter_idx = gp_iter_idx[
-                -1
-            ]  # retrieve last recorded gp stat iteration
 
         # if stats data is available check z_score
         if not do_gp_calibration:
             f_vals = (
-                self.gp_stats.get("fval")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
+                self.gp_stats.get("fval")[:n_stats].flatten().astype("float")
             )
             yvals = (
-                self.gp_stats.get("ymu")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
+                self.gp_stats.get("ymu")[:n_stats].flatten().astype("float")
             )
 
             zscore = f_vals - yvals
-            gp_ys = (
-                self.gp_stats.get("ys")[: gp_iter_idx + 1]
-                .flatten()
-                .astype("float")
-            )
+            gp_ys = self.gp_stats.get("ys")[:n_stats].flatten().astype("float")
 
             # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
             idx_zero_gp_ys = np.where(np.isclose(0.0, gp_ys))[0]
@@ -2566,7 +2551,7 @@ class BADS:
             refit_allowed
             and self.optim_state["lastfitgp"]
             < (func_count - self.options["min_refit_time"])
-            and (gp_iter_idx >= refit_period or do_gp_calibration)
+            and (n_stats >= refit_period or do_gp_calibration)
             and func_count > self.D
         )
 

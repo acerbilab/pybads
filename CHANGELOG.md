@@ -278,6 +278,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   output scale of the Gaussian process is centred at the log of the
   targets' standard deviation normalized by N - 1, as MATLAB's `std`,
   where PyBADS normalized it by N.
+- **Calibration check of the GP.** The check of whether the Gaussian
+  process predicts well, which calls for its refits and ends a poll after a
+  successful poll vector when it fails, read the first prediction after a
+  refit as none, and so failed on it, and the periodic refit came one
+  evaluation after the refit period. It now counts the predictions as
+  MATLAB BADS does. Results change at default options.
 
 ## [1.1.0] - 2026-09-25
 

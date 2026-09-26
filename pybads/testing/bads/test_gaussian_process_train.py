@@ -1110,3 +1110,46 @@ def test_prior_samples_keep_block_without_prior(refit_case):
     draws = _prior_draws(gp, 10)
     for draw in draws:
         assert np.array_equal(draw["covariance_log_shape"], current)
+
+
+def _normal_quantiles(n):
+    """`n` z-scores that a normality test accepts: the quantiles of the
+    standard normal at the midpoints of `n` equal bins."""
+    return norm.ppf((np.arange(1, n + 1) - 0.5) / n)
+
+
+def _refit_verdict(z, func_count, last_fit):
+    """The verdicts (refit, unreliable) of `_is_gp_refit_time_` at D = 2
+    (refit period 10, `min_refit_time` 4) on statistics of the GP
+    prediction whose z-scores are `z` (targets `z`, predicted with mean 0
+    and SD 1), at `func_count` evaluations with the last refit at
+    `last_fit`."""
+    bads = _make_bads()
+    bads._record_gp_refit_()
+    for z_i in z:
+        bads._save_gp_stats_(z_i, 0.0, 1.0)
+    bads.function_logger.func_count = func_count
+    bads.optim_state["lastfitgp"] = last_fit
+    refit, unreliable = bads._is_gp_refit_time_(
+        bads.options["normalpha_level"]
+    )
+    return bool(refit), bool(unreliable)
+
+
+# The verdicts are those of MATLAB's IsRefitTime (bads.m) and gppredcheck.m
+@pytest.mark.parametrize(
+    "z, func_count, last_fit, verdict",
+    [
+        ([0.1], 30, 29, (False, False)),
+        ([0.1], 30, 20, (False, False)),
+        (_normal_quantiles(9), 60, 30, (False, False)),
+        (_normal_quantiles(10), 60, 30, (True, False)),
+    ],
+    ids=["n=1", "n=1, refit allowed", "n=period-1", "n=period"],
+)
+def test_gp_refit_time_counts_statistics(z, func_count, last_fit, verdict):
+    """The calibration test of the GP counts its statistics as MATLAB BADS
+    does: one statistic is tested (with the chi-square test), not taken
+    for none, and the periodic refit is due once the statistics number
+    the refit period."""
+    assert _refit_verdict(z, func_count, last_fit) == verdict
