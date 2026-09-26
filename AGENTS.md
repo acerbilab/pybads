@@ -134,8 +134,9 @@ regenerate them with `make -B -C examples/scripts`, do not edit them.
 `BADS.optimize()` in `pybads/bads/bads.py` holds nearly all of the
 algorithm. Initialization (`_init_mesh_`) evaluates `x0`, and a second time
 as a noise test when `uncertainty_handling` is `None`, then a Sobol initial
-design of `2**ceil(log2(fun_eval_start))` points (`init_functions/`), and
-trains the first GP (`init_and_train_gp`). The main loop then interleaves
+design of `2**ceil(log2(fun_eval_start))` points, twice as many when that
+number equals `D` (`init_functions/`; MATLAB draws `fun_eval_start`
+points), and trains the first GP (`init_and_train_gp`). The main loop then interleaves
 two stages:
 
 1. **SEARCH** (`_search_step_`, `search/`): at most one evaluation per pass

@@ -173,9 +173,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   next step, a target that cannot be predicted under the best
   hyperparameters is predicted from the current GP, and a point the GP
   cannot estimate counts as no improvement, with Sto-BADS
-  (`stobads=True`) too. A failed rebuild is retried at
-  the next step with refitted hyperparameters (in the poll, only with
-  `poll_training` on). Runs without such a failure give the same results.
+  (`stobads=True`) too. A failed rebuild is retried at the next step with
+  refitted hyperparameters (in the poll, with `poll_training` on or in the
+  first iteration), where MATLAB BADS refits only when its check of the
+  GP's predictions calls for it. Runs without such a failure give the same
+  results.
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
   `BADS` logger, whose level `display` sets; `display="full"` shows the
   debug messages. The warnings of the GP fits (a failed initial fit, failed
