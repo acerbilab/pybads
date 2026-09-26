@@ -1,0 +1,7 @@
+fix: at D = 1 the GP length scale is the fitted one, not 1 (W1-17)
+
+After a refit, local_gp_fitting took the GP length scale, which selects the training set of the local GP and measures the distance of a search point, from the fitted length scales only when there was more than one (len(covariance_log_lengthscale) > 1), and 1 otherwise. The test copies MATLAB's ncovlen > 1 (private/gpupdate.m:285-292), which is meant to tell per-dimension length scales from an isotropic one, and at D = 1 takes the one length scale of the ARD kernel for an isotropic kernel's; MATLAB shares the defect. PyBADS's kernel is always rational-quadratic ARD (KD-B6-1), so the test goes, and the length scale is the fitted one at every D (at D > 1 the same code as before). By the PI's ruling, a defect that PyBADS fixes. A comment says why the code departs from MATLAB.
+
+test_rebuild_len_scale_at_one_dimension (test_gaussian_process_train.py): at D = 1, after a refit, len_scale equals the exponential of the fitted log length scale (0.324, where it was 1.0). The default suite has no 1-D run: fingerprint c0639f00f056a030, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

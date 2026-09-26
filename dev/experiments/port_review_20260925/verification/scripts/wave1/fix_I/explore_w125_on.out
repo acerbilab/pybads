@@ -1,0 +1,4 @@
+gpyreg.__file__ = /home/user/gpyreg-wt/switch/gpyreg/__init__.py
+False ok [ 5.680000e-01  1.876000e+00  8.112000e+00  3.027000e+00 -7.836000e+00
+  1.010618e+03] nlZ -215.24170245849336 design inf 0 sn2_mult 1
+True raised Singular matrix for L Cholesky decomposition design inf 0

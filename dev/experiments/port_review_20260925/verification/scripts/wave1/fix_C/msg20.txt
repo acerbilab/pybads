@@ -1,0 +1,5 @@
+fix: the initial GP fit stops after 10 failed tries, with an error that says so (W1-20)
+
+The retry loop of the initial fit in init_and_train_gp had no cap: a fit that kept raising LinAlgError retried forever, from further draws of the priors, and the run hung. MATLAB BADS fits no GP at initialization (the fit is kept, by the PI's ruling on W1-27), so the cap is PyBADS's own: the loop keeps its schedule (the starting hyperparameters, two prior draws, zeros at the fourth try, then draws) and stops after 10 tries, as many as a refit makes in _robust_gp_fit_, with a RuntimeError that says the initial fit of the GP failed 10 times, chained to the last LinAlgError. Test: test_gp_update_failures.py::test_initial_fit_stops_after_repeated_failures, a fit that always raises (bounded at 50 calls, where the parent fails). Fingerprint bfbc6d6737e99d88, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

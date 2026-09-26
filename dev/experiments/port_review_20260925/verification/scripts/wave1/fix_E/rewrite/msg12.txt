@@ -1,0 +1,39 @@
+fix: a failed GP fit raises the noise's lower bound by noise_nudge[1] per failure, as MATLAB BADS (W1-12)
+
+After each failed fit, _robust_gp_fit_ read the lower bound of the noise
+from tmp_gp, which already held the earlier raises, and raised it by the
+cumulative nudge of the start: after k failures the bound stood at
+lb0 + k(k+1)/2 (at the default noise_nudge [1, 0]), the fifth failure put it
+above the upper bound 5 and set_bounds raised ValueError, and noise_nudge[1]
+was never read. A one-element nudge was completed into a 2x1 array. With
+use_slice_sampler=True, the bound overtook the start, and the third
+consecutive failure stopped the run with SliceSampler's "The initial
+starting point X0 is outside the bounds" (the B5 verifier's N1).
+
+MATLAB raises the start of the noise by the cumulative nudge(1) and its
+lower bound by nudge(2) per failure, which is 0 at the default NoiseNudge
+[1 0], completes a one-element nudge with half of it for the bound, and
+takes the start into the bounds (gpHyperOptimize.m:6-7, 160-167). The bound
+now comes from the bound at entry, which the GP given holds, raised by
+noise_nudge[1] per failure, so at the default it stays in place; the start
+keeps its cumulative nudge; a one-element noise_nudge, or a number, is
+completed as MATLAB completes it. The start is also taken into the bounds,
+as MATLAB's line 167 does: with the bound in place, the start of the noise,
+raised by 1 at each failure, otherwise passes the upper bound after a few
+failures, and the slice sampler refuses it in the same way (without the
+clip: in one of three Rosenbrock runs at D = 3 with use_slice_sampler and
+double_refit, 150 evaluations, and in all three with W1-14 on top).
+gpyreg's fit takes its starts into the bounds itself, so without the slice
+sampler the clip changes nothing (the fingerprint is the same with and
+without it).
+
+This moves default deterministic runs, whose refits often fail once or
+twice (B5 verifier: 13 of the 21 refits with a failure ended with the noise
+at the nudged bound). Tests: test_robust_fit_noise_nudge (the bound and the
+start of the noise at each of seven tries, at the default nudge and at a
+one-element one) and test_robust_fit_slice_sampler_starts_within_bounds
+(nine failures with the slice sampler, from a start with the noise at its
+upper bound). Fingerprint 3a1c15091c801614 (bfbc6d6737e99d88 at the
+parent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

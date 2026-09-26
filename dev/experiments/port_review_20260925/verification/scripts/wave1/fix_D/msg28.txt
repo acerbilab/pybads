@@ -1,0 +1,5 @@
+fix: gp_cov_prior other than "iso" is refused when BADS is created, "ard" included (W1-28)
+
+MATLAB BADS's gp_cov_prior "ard", a per-dimension empirical prior over the length scales (gpdefBads.m:254-274), was never ported, and any value other than "iso" was accepted: local_gp_fitting then skipped the empirical prior and kept the definition prior, a Gaussian of mean -1 and SD 2 over each log length scale, for the whole run, without a word. MATLAB raises on an unknown value ("Unknown prior for covariance parameters.", gpdefBads.m:274). _init_optim_state_ now refuses every value other than "iso" with a message that says "ard" is not supported, and the option's description says so; a port of "ard" needs its own population comparison. Test: test_gp_cov_prior_refused ("ard" and "foo", which BADS accepted at the parent), in test_gaussian_process_train.py. Fingerprint bfbc6d6737e99d88, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

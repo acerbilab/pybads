@@ -1,0 +1,5 @@
+fix: fit_lik=False is refused when BADS is created, with MATLAB's message (W1-32)
+
+fit_lik=False, a known noise level, passed the checks and stopped the run at initialization, where _gp_hyp gives the noise a "delta" prior that gpyreg does not have ("Unknown hyperprior type delta"). MATLAB BADS refuses it too: with FitLik off, bads.m:466 sets a known noise level and gpdefBads.m:139-140 raises "Fixed noise not supported.". _init_optim_state_ now refuses it when BADS is created, with MATLAB's message and what is accepted, and the option's description says it is unsupported; the known-noise branches of gaussian_process_train.py are unchanged. Test: test_fit_lik_false_refused, in test_gaussian_process_train.py (at the parent BADS was created without error). Fingerprint bfbc6d6737e99d88, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

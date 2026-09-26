@@ -37,5 +37,12 @@ against its own specification, in waves of fresh reviewers.
 The check scripts and outputs of wave 0 are kept on the machine that ran
 them (`dev/scripts/runs/LOCAL.md`). Those of wave 1, which ran in a cloud
 session, are under `verification/scripts/wave1/<slice>_<track>/` and
-`verification/scripts/wave1/<slice>_verifier/`, formatted by the pre-commit
-hooks after they ran; the reports cite them at the sandbox's scratch paths.
+`verification/scripts/wave1/<slice>_verifier/`, and those of the fix agents
+of its fix pass under `verification/scripts/wave1/fix_<agent>/` (A to J, the
+letters of `fixes/`), without the copies of package and test files that
+they made for their checks at a parent commit, which git holds; all were
+formatted by the pre-commit hooks after they ran, and the reports cite them
+at the sandbox's scratch paths. The raw outputs of the fix pass's inject
+gate are in `verification/wave1_fixpass/inject/`; its populations are
+summarized by the comparisons beside it, and only the final one is kept
+whole, as the Linux reference `population_linux_wave1_20260926`.
