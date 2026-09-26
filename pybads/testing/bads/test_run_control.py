@@ -148,6 +148,50 @@ def test_one_function_evaluation(uncertainty_handling, func_count):
     )
 
 
+def _small_budget_bads(dim, max_fun_evals, noisy=False):
+    rng = np.random.default_rng(0)
+
+    def fun(x):
+        return _sphere(x) + (rng.standard_normal() if noisy else 0.0)
+
+    return BADS(
+        fun,
+        np.ones(dim) * 0.5,
+        -5 * np.ones(dim),
+        5 * np.ones(dim),
+        -2 * np.ones(dim),
+        2 * np.ones(dim),
+        options={
+            "display": "off",
+            "max_fun_evals": max_fun_evals,
+            "random_seed": 1,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "dim, max_fun_evals", [(2, 3), (2, 4), (2, 5), (2, 6), (5, 7)]
+)
+def test_initial_design_within_budget(dim, max_fun_evals):
+    """The initial design, rounded up to a power of two (doubled when that
+    equals D), keeps its first points within the evaluations left after the
+    starting point and the noise test, so a budget below it is kept."""
+    result = _small_budget_bads(dim, max_fun_evals).optimize()
+    assert result["func_count"] <= max_fun_evals
+
+
+def test_initial_design_within_budget_of_noisy_run():
+    """In a noisy run the design, of 32 points at D = 2, keeps within the
+    budget, and the reserve for the final samples is never negative, so
+    `max_fun_evals` never grows."""
+    bads = _small_budget_bads(2, 25, noisy=True)
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["func_count"] <= 25
+    assert bads.options["noise_final_samples"] >= 0
+    assert bads.options["max_fun_evals"] <= 25
+
+
 def _box():
     return (
         np.ones(D) * 4,

@@ -1108,6 +1108,14 @@ class BADS:
                     fun_eval_start,
                     rng=self.rng,
                 )
+                # The design, rounded up to a power of two, keeps its first
+                # points within the evaluations left (the noise test counted)
+                n_left = (
+                    self.options["max_fun_evals"]
+                    - self.function_logger.func_count
+                )
+                if np.isfinite(n_left):
+                    u1 = u1[: int(n_left)]
                 # enforce periodicity TODO function
                 u1 = period_check(
                     u1,
@@ -1194,11 +1202,15 @@ class BADS:
                 # check of the local GP takes the default base
                 self.options["noise_size"] = 1.0
 
-            # Keep some function evaluations for the final resampling
-            self.options["noise_final_samples"] = min(
-                self.options["noise_final_samples"],
-                self.options["max_fun_evals"]
-                - self.function_logger.func_count,
+            # Keep some function evaluations for the final resampling, none
+            # when none are left (so that max_fun_evals never grows)
+            self.options["noise_final_samples"] = max(
+                0,
+                min(
+                    self.options["noise_final_samples"],
+                    self.options["max_fun_evals"]
+                    - self.function_logger.func_count,
+                ),
             )
             self.options["max_fun_evals"] = (
                 self.options["max_fun_evals"]

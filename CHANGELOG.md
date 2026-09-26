@@ -306,7 +306,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller
   budget its Gaussian-process fits no longer start from up to 968 random
-  points, above `gp_train_n_init`.
+  points, above `gp_train_n_init`. A run makes at most `max_fun_evals`
+  evaluations: the initial design keeps within the evaluations left after
+  the starting point and the noise test, and a noisy run no longer raises
+  `max_fun_evals` to make room for its final samples (1.1.0 made 6
+  evaluations with `max_fun_evals=3` at D = 2, and 34 with 25 in a noisy
+  run).
 - **Retries of a failed GP fit.** A failed fit of the Gaussian process's
   hyperparameters is retried as in MATLAB BADS. The lower bound of the
   noise rises by `noise_nudge[1]` at each failure, which is not at all at
