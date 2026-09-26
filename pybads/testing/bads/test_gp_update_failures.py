@@ -994,6 +994,101 @@ def test_sto_search_after_failed_rebuild_counts_as_failure(
     assert np.isfinite(result["fval"])
 
 
+def test_noisy_re_estimate_after_failed_rebuild(inject, monkeypatch):
+    """In each re-estimate of the iterates of a noisy run from the 3rd
+    iteration on, the rebuild around the 2nd iterate and around the current
+    one, the last, fails, leaving a GP without a posterior. As in MATLAB
+    BADS, the 2nd iterate has no estimate (NaN), which the choice of a
+    better iterate at the end of an iteration and the final choice skip;
+    the current one keeps its estimate, so that the incumbent has one. At
+    one choice, the 3rd iterate is made to improve the most, so that the
+    choice has to look past the 2nd."""
+    state = {"armed": False, "row": 0, "rows": 0, "boosted": False}
+
+    def should_fail(call):
+        if not state["armed"] or call.caller != "_re_evaluate_history_":
+            return False
+        row = state["row"]
+        state["row"] += 1
+        return row in (1, state["rows"] - 1)
+
+    injector = inject(should_fail)
+    re_estimates, choices = [], []
+    original_re_evaluate = BADS._re_evaluate_history_
+    original_eval = BADS._eval_improvement_
+    original_search = BADS._search_step_
+
+    def estimates(self):
+        history = self.iteration_history
+        return np.array([history.get("fval"), history.get("fsd")], float)
+
+    def re_evaluate(self, gp):
+        rows = self.iteration_history.get("u").shape[0]
+        before = estimates(self)
+        state.update(armed=rows >= 3, row=0, rows=rows)
+        try:
+            original_re_evaluate(self, gp)
+        finally:
+            state["armed"] = False
+        if state["row"] > 0:  # armed, and not skipped for want of new data
+            re_estimates.append((state["row"], before, estimates(self)))
+
+    def evaluate(self, f_base, f_new, s_base, s_new, q):
+        z = original_eval(self, f_base, f_new, s_base, s_new, q)
+        # The choice of a better iterate, from the whole history
+        if sys._getframe(1).f_code.co_name == "optimize" and np.ndim(f_new):
+            boost = not state["boosted"] and z.size >= 4
+            if boost:
+                # The 3rd iterate improves the most, so that the choice has
+                # to look past the 2nd, which has no estimate
+                z[2] = np.nanmax(z) + 1
+                state["boosted"] = True
+            choices.append([z.copy(), estimates(self), boost])
+        return z
+
+    def search(self, gp):
+        # The incumbent that the last choice left
+        if choices and len(choices[-1]) == 3:
+            choices[-1].append((self.fval, self.fsd))
+        return original_search(self, gp)
+
+    monkeypatch.setattr(BADS, "_re_evaluate_history_", re_evaluate)
+    monkeypatch.setattr(BADS, "_eval_improvement_", evaluate)
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    make_fun, options = LEVELS[1]
+    # Without final samples, the result holds the chosen iterate's estimate
+    bads = _make_bads(
+        make_fun(), max_fun_evals=150, noise_final_samples=0, **options
+    )
+    result = bads.optimize()
+
+    assert re_estimates
+    assert all(
+        call[:2] == ("local_gp_fitting", "update") for call in injector.failed
+    )
+    assert len(injector.failed) == 2 * len(re_estimates)
+    for calls, before, after in re_estimates:
+        assert calls == after.shape[1]  # one rebuild per iterate
+        assert np.all(np.isnan(after[:, 1]))
+        assert np.array_equal(after[:, -1], before[:, -1])
+        assert np.all(np.isfinite(np.delete(after, [1, -1], axis=1)))
+
+    # Each choice is the iterate of the largest improvement among those with
+    # an estimate, if it exceeds `tol_fun`, and else the current one
+    tol_fun = bads.options["tol_fun"]
+    checked = [c for c in choices if len(c) == 4 and np.isnan(c[0][1])]
+    assert any(boost for _, _, boost, _ in checked)
+    for z, (fval, fsd), boost, incumbent in checked:
+        best = np.nanargmax(z[1:]) + 1
+        row = best if z[best] > tol_fun else -1
+        assert row == 2 or not boost
+        assert incumbent == (fval[row], fsd[row])
+
+    # The final choice, with the 2nd iterate still without an estimate
+    assert np.isnan(bads.iteration_history.get("fval")[1])
+    assert np.isfinite(result["fval"]) and np.isfinite(result["fsd"])
+
+
 # --- whole runs ------------------------------------------------------------
 
 

@@ -208,10 +208,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   iteration's hyperparameters. As in MATLAB BADS, each iterate is now
   re-estimated with the hyperparameters recorded at its iteration, the
   working GP is kept, and `iteration_history` keeps its GPs as they were
-  recorded. Noisy runs end earlier, more often on `tol_fun`: on the noisy
-  targets of PyBADS's benchmark, 12 to 18% fewer evaluations, with no
-  significant change of the error (over 90 seeds on a 3-D ellipsoid with
-  inferred noise, a median error of 0.080 against 0.076).
+  recorded. An iterate whose Gaussian process fails on its new training
+  set has no estimate, NaN in `iteration_history`, and is left out of the
+  choice of the incumbent and of the returned point, as in MATLAB BADS;
+  when that iterate is the current one, it keeps its estimate. Noisy runs
+  end earlier, more often on `tol_fun`: on the noisy targets of PyBADS's
+  benchmark, 12 to 18% fewer evaluations, with no significant change of the
+  error (over 90 seeds on a 3-D ellipsoid with inferred noise, a median
+  error of 0.080 against 0.076).
 - **Messages on the BADS logger.** PyBADS logs every message of a run to the
   `BADS` logger, whose level `display` sets; `display="full"` shows the
   debug messages. The warnings of the GP fits (a failed initial fit, failed

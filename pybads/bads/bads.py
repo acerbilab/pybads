@@ -1521,7 +1521,9 @@ class BADS:
                     self.options["improvement_quantile"],
                 )
                 f_q_re_impr = f_q_re_impr[1:]  # Skip the first iteration
-                idx_impr = np.argmax(f_q_re_impr)
+                # An iterate without an estimate (NaN) is skipped, as by
+                # MATLAB's max
+                idx_impr = np.nanargmax(f_q_re_impr)
                 improvement = f_q_re_impr[idx_impr]
                 idx_impr = idx_impr + 1  # offset original index without skip
 
@@ -1573,7 +1575,9 @@ class BADS:
             q_beta = self.iteration_history.get(
                 "fval"
             ) + sigma_multiplier * self.iteration_history.get("fsd")
-            min_q_beta_idx = np.argmin(q_beta[1:])  # Skip first iteration
+            # Skip the first iteration; an iterate without an estimate (NaN)
+            # is skipped too, as by MATLAB's min
+            min_q_beta_idx = np.nanargmin(q_beta[1:])
             min_q_beta_idx += 1  # offset original index with no skip
             self.yval = self.iteration_history.get("yval")[min_q_beta_idx]
             self.fval = self.iteration_history.get("fval")[min_q_beta_idx]
@@ -2771,13 +2775,18 @@ class BADS:
         hyperparameters recorded at the end of that iteration, is rebuilt
         around the incumbent without a refit. The GPs stored in the iteration
         history are left as they were recorded.
+
+        An iterate whose rebuild fails has no estimate: its value and SD are
+        NaN, as in MATLAB BADS, except for the current iterate, the last,
+        which keeps the estimate it was recorded with.
         """
         if self.optim_state["last_re_eval"] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             u_history = self.iteration_history.get("u")
             hyp_history = self.iteration_history.get("gp_hyp_full")
+            n_iter = u_history.shape[0]
             tmp_gp = copy.deepcopy(gp)
-            for i in range(u_history.shape[0]):
+            for i in range(n_iter):
                 u = u_history[i]
                 tmp_gp.set_hyperparameters(
                     hyp_history[i], compute_posterior=False
@@ -2792,9 +2801,15 @@ class BADS:
                     False,
                     rng=self.rng,
                 )
-                fval, fsd = tmp_gp.predict(np.atleast_2d(u))
-                fval = fval.item()
-                fsd = np.sqrt(fsd).item()
+                if tmp_gp.temporary_data.get("needs_refit", False):
+                    # The rebuild failed, and the GP has no posterior
+                    if i == n_iter - 1:
+                        continue
+                    fval, fsd = np.nan, np.nan
+                else:
+                    fval, fsd = tmp_gp.predict(np.atleast_2d(u))
+                    fval = fval.item()
+                    fsd = np.sqrt(fsd).item()
 
                 self.iteration_history.record("fval", fval, i)
                 self.iteration_history.record("fsd", fsd, i)
