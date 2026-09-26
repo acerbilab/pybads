@@ -1,0 +1,39 @@
+353ad51 docs(dev): the brief of wave 2's fix agents | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+a8feb9a feat(dev): a bounds suite in benchmark_targets.py, the gate of W2-4 | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+b34a77c docs(dev): fix agent D's report (W2-16, W2-29, W2-25) and its scripts | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+f08fd6d fix: a problem that mixes bounded and unbounded variables is accepted; only a half | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+4917bde fix: scalar bounds are replicated in each dimension, as the docstring says and MAT | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+6250a3a fix: an x0 of more than one row is refused when BADS is created, and no plausible  | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+9b172fc docs: the Raises section of BADS says when a missing x0 is refused (W2-9) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+ab11b83 fix: non_box_cons must return one violation per row, of shape (N,) or (N, 1), or B | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+bdaef58 docs: a feasible region thinner than the mesh can resolve can end the run early; r | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+c3d7815 fix: a random start that violates non_box_cons is drawn again, up to 1000 draws, b | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+a2b8d38 fix: the transform's self-test allows an error relative to bounds of large magnitu | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+e7943e1 docs(dev): fix agent A's report (B1: bounds, start, transform) and its scripts | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+ba7de41 fix: the noise test's threshold tol_noise is sqrt(eps) * tol_fun, as in MATLAB BAD | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+b29b9b5 fix: BADS refuses a max_fun_evals that is not a positive integer, and warns for im | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+49ac8aa fix: a user option of None stands for its default, and the boolean options take on | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+37be0d9 fix: the display option follows MATLAB BADS's display levels, "notify" and "final" | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+0ba1241 fix: BADS refuses a non-empty fun_values, whose import was never ported, with a me | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+652b25c fix: BADS refuses f_vals, an option of PyBADS's own that could not work, with a me | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+93c86ee fix: an option's description keeps its whole comment line, an = or a : included (W | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+2d4304c fix: every option has a description, without MATLAB's closing quote, and search_n_ | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+a1e8a93 test: the GP-training tests build BADS from a single start point (W2-8) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+f08b475 fix: sloppy_improvement=False no longer stops the run at its first pass (W2-28) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+381bf32 fix: the initial design keeps within the evaluations left, and the final samples'  | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+d964576 fix: the result's status is MATLAB BADS's exit flag, and a deterministic fsd is th | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+877d63c fix: the result's success is False when a limit or the output function ends the ru | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+1fb162e fix: the result keeps the target and non_box_cons by reference, not copies (W2-14) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+17e65ee fix: overhead counts the time of the final samples and of merged repeats in the ta | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+3476000 fix: one final sample gives a yval_vec of shape (2,) at level 1 and a number in th | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+765f13c fix: the display's Actions column shows what each poll's pass did (W2-31) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+500526b fix: IterationHistory grows its arrays without copying what they hold, and the unr | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+763e21f docs: the IterationHistory page says that a noisy run's failed re-estimates are le | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+f6f7f74 test: the small-budget test of the GP fits checks the design that W2-27 leaves (W2 | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+7e32fb7 docs(dev): the reports and scratch scripts of wave 2's fix agents B and C | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py 91f947f78e1087c2
+3272bdd fix: a failed search floors the search factor at search_factor_min (W2-16) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
+c9a2cde fix: the accelerated mesh reduction is tested from MATLAB's iteration (W2-29) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
+a9fbb97 fix: the re-estimation's move takes the incumbent's location with its value (W2-25 | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
+a31a9be fix: the start and the plausible bounds are used as given, without effective bound | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
+a236eb7 fix: a start with an infinite element is replaced by a random point, as one with a | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
+8510ca8 fix: a variable bounded on one side only is accepted, as in MATLAB BADS (W2-2) | /home/user/pybads/dev/scripts/runs/worktrees/h_fp/pybads/__init__.py dc11118754b18b47
