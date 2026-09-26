@@ -702,6 +702,27 @@ cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
   briefs `briefs/wave3_*.md`, with the items kept from the reviewers in
   `wave3_kept_B3.md` (B3-K1 to B3-K13) and `wave3_kept_B4.md` (B4-K1 to
   B4-K11).
+- [x] 2026-09-26: wave 3 run and verified, cloud session (from "Wave 3
+  pickup", on `dev-port-review-w3`). Four fresh Opus reviewers, B3 and B4
+  on both tracks, reading `8aecb6a` in `../pybads-review` (B3 internal 9
+  findings, B3 comparison 10, B4 internal 10, B4 comparison 7), then one
+  fresh Opus verifier per slice, which also verified the kept items. The
+  reports and the verifications are saved verbatim with
+  `extract_report.py`, the scripts of all six agents under
+  `verification/scripts/wave3/`, formatted by the pre-commit hooks. Two
+  reviewers handed their report back more than once, and the B3 verifier
+  printed its report as text before handing it back; each time the last
+  hand-back is kept, identical to the earlier ones but for one sentence
+  naming a scratch directory (B4 comparison). The B3 internal reviewer's
+  closing message quotes its report's title, so a new extraction from its
+  transcript must name the candidate. The ledger `verification/wave3.md`, rows W3-1 to W3-38,
+  closes the 11 open survey rows of B3 and B4 (three of them fixed by wave
+  0 without the survey saying so). The reviewers found the preparatory
+  agent's (e), `p_less` (W3-19); its (a) is W2-16's fix, which holds as
+  MATLAB's (W3-16), as W2-29's does (W3-37). One finding, W3-29, finds
+  that W1-2's premise missed a line of `bads.m` (MATLAB's rebuilds persist
+  after a poll move), and the changelog says otherwise. The sweep after
+  the wave was clean (only `__pycache__`, removed).
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.

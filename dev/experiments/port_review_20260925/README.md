@@ -65,3 +65,10 @@ cherry-picks, the changelog lines, the fingerprint at every commit, the
 comparisons of populations run by run) are with its check. The pass's
 comparisons are in `verification/wave2_fixpass/`, and its last population
 is kept whole as the Linux reference `population_linux_wave2_20260926`.
+
+Those of wave 3, in a cloud session too, are under
+`verification/scripts/wave3/<slice>_<track>/` and
+`verification/scripts/wave3/<slice>_verifier/`, formatted by the
+pre-commit hooks in the same way. The items of the records kept from wave
+3's reviewers and given to its verifiers are quoted in
+`briefs/wave3_kept_B3.md` and `briefs/wave3_kept_B4.md`.
