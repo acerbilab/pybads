@@ -12,7 +12,7 @@
 
 **Not opened.** `poll/pollGPS2N.m`, `poll/private/*` and `private/covmatadapt.m`. They are unused at MATLAB's defaults, and KD-B4-1 and the counterpart map cover them.
 
-**Checks run.** Scripts are in the scratchpad directory, and each printed that it imported the review worktree and gpyreg 1.3.3.
+**Checks run.** Scripts are in `/tmp/claude-0/-home-user-pybads/67ddf7b2-c0cb-5e1e-ab93-2e18c75e4a05/scratchpad/review/B4_comparison`, and each printed that it imported the review worktree and gpyreg 1.3.3.
 - `check_poll_basis.py`: the port against a transcription of `pollMADS2N`.
 - `check_ucheck.py`, `check_pless.py`, `check_uncertain_incumbent_off.py`, `check_quantile.py`: reproductions of F2, F1, F3 and F7.
 - `instrument_runs.py`: 20 seeded default runs, each capped at 200 evaluations: Rosenbrock D=2 and D=4, ellipsoid D=3 and D=6, Ackley D=3, two seeds each, at level 0 and at level 1.
