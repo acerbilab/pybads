@@ -256,9 +256,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   noise rises by `noise_nudge[1]` at each failure, which is not at all at
   the default `[1, 0]`; 1.1.0 raised it by 1, then by 2 more, 3 more and so
   on, and stopped the run with `ValueError` at the fifth failure (the third
-  with `use_slice_sampler=True`). When all ten tries fail, the fit keeps the
-  best of its starting points. With `use_slice_sampler=True`, each retry
-  samples its start on the points that it fits, not on all of them.
+  with `use_slice_sampler=True`). The retries leave out the targets above
+  the 95th percentile as MATLAB BADS computes it, and stop once fewer points
+  than variables remain; when all of them fail, the fit keeps the best of
+  its starting points. With `use_slice_sampler=True`, each retry samples its
+  start on the points that it fits, not on all of them.
 
 ## [1.1.0] - 2026-09-25
 

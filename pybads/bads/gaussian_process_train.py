@@ -637,8 +637,9 @@ def _robust_gp_fit_(
 ):
     """A private method that compute fit the Gaussian Process.
     In the case it fails to fit the GP with new proposed parameters it sample a new one from the priors.
-    When every try fails, it returns the best of the starts ``hyp_gp``, with
-    exit flag -1, as MATLAB's gpHyperOptimize.m.
+    When every try fails, or fewer training points than dimensions remain,
+    it returns the best of the starts ``hyp_gp``, with exit flag -1, as
+    MATLAB's gpHyperOptimize.m; a fit, after retries too, has exit flag 1.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
     """
     rng = get_rng(rng)
@@ -654,19 +655,23 @@ def _robust_gp_fit_(
         s2 = None
     new_hyp = hyp_gp.copy()
     n_try = 10
-    success_flag = np.ones((n_try)).astype(bool)
+    fitted = False
     for i_try in range(0, n_try):
+        # Require a minimum number of points to do the fit (MATLAB:
+        # gpHyperOptimize.m:71)
+        if Y.shape[0] < X.shape[1]:
+            break
         try:
             new_hyp, _, res = tmp_gp.fit(
                 X, Y, s2, hyp0=new_hyp, options=gp_train, rng=rng
             )
+            fitted = True
             break
         except np.linalg.LinAlgError:
             # handle
             logger.debug(
                 "bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
             )
-            success_flag[i_try] = False
             if i_try > options["remove_points_after_tries"] - 1:
                 idx_drop_out = np.zeros(len(Y)).astype(bool)
                 # Remove closest pair sample
@@ -684,8 +689,10 @@ def _robust_gp_fit_(
                 else:
                     idx_drop_out[idx_min[1]] = True
 
+                # MATLAB's prctile1 is NumPy's "hazen" (gpHyperOptimize.m:137)
                 idx_drop_out = np.logical_or(
-                    idx_drop_out, (Y > np.percentile(Y, 95)).flatten()
+                    idx_drop_out,
+                    (Y > np.percentile(Y, 95, method="hazen")).flatten(),
                 )
                 X = X[~idx_drop_out]
                 Y = Y[~idx_drop_out]
@@ -749,11 +756,12 @@ def _robust_gp_fit_(
             )
             tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
-    if np.all(~success_flag):
-        # Every try failed: the best of the starts, taken into the bounds
-        # and ranked by the log posterior on the data at entry, which `gp`
-        # holds, as MATLAB (gpHyperOptimize.m:50-62, 197-200); a start that
-        # cannot be evaluated ranks last
+    if not fitted:
+        # Every try failed, or too few points remained: the best of the
+        # starts, taken into the bounds and ranked by the log posterior on
+        # the data at entry, which `gp` holds, as MATLAB
+        # (gpHyperOptimize.m:50-62, 197-200); a start that cannot be
+        # evaluated ranks last
         starts = np.minimum(
             np.maximum(np.atleast_2d(hyp_gp), gp.lower_bounds),
             gp.upper_bounds,
@@ -768,19 +776,16 @@ def _robust_gp_fit_(
         new_hyp = starts[[np.argmin(nlp)]]
         res = None
     gp.set_hyperparameters(new_hyp, False)
-    if np.any(~success_flag):
-        # at least one failed
+    if not fitted or i_try > 0:
+        # at least one failed, or none was made
         if options["gp_warnings"]:
             logger.warning(
                 f"bads:gpHyperOptFail: Failed optimization of hyper-parameters (after {n_try} attempts). GP approximation might be unreliable."
             )
 
-    if np.all(~success_flag):
-        success = -1
-    elif np.all(success_flag):
-        success = 1
-    else:
-        success = 0
+    # MATLAB's exit flag 0, for a fit of some of its starts, has no
+    # counterpart: gpyreg fits all of them at once (gpHyperOptimize.m:202-209)
+    success = 1 if fitted else -1
 
     return gp, new_hyp, res, success
 

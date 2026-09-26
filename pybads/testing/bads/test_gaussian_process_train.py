@@ -3,6 +3,7 @@ import copy
 import gpyreg as gpr
 import numpy as np
 import pytest
+from scipy.spatial.distance import cdist
 from scipy.stats import norm
 
 from pybads import BADS
@@ -813,3 +814,64 @@ def test_robust_fit_slice_sampler_starts_within_bounds(
     for call in calls:
         assert np.all(call["hyp0"] >= call["lower_bounds"])
         assert np.all(call["hyp0"] <= gp.upper_bounds)
+
+
+def test_robust_fit_removes_points_above_matlab_percentile(
+    monkeypatch, refit_case
+):
+    """From the second failure, a retry removes the worse point of the
+    closest pair and the points above the 95th percentile of the targets as
+    MATLAB's prctile1 computes it (NumPy's "hazen"), and a fit that
+    succeeds after retries has exit flag 1, as in MATLAB's
+    gpHyperOptimize.m."""
+    calls = _inject_fit_failures(monkeypatch, 2)
+    _, _, _, flag = _robust_fit(refit_case)
+    assert len(calls) == 3
+    _, gp, _ = refit_case
+    X, y = gp.X, gp.y.ravel()
+    assert np.array_equal(calls[1]["X"], X)
+    dist = cdist(X, X)
+    dist[np.tril_indices(dist.shape[0])] = np.inf
+    i, j = np.unravel_index(np.argmin(dist), dist.shape)
+    removed = np.union1d(
+        [i if y[i] > y[j] else j],
+        np.flatnonzero(y > np.percentile(y, 95, method="hazen")),
+    )
+    assert calls[2]["X"].shape[0] == X.shape[0] - removed.size
+    assert np.array_equal(calls[2]["X"], np.delete(X, removed, axis=0))
+    assert flag == 1
+
+
+def test_robust_fit_stops_below_D_points(monkeypatch):
+    """The retries stop once fewer training points than dimensions remain,
+    and the fit then returns its start, taken into the bounds, with exit
+    flag -1, as when every try fails, as in MATLAB's gpHyperOptimize.m."""
+    D = 3
+    bads, gp = _initialized_bads(D)
+    hyp = gp.get_hyperparameters(as_array=True)
+    gp_train = _get_gp_training_options(
+        bads.optim_state,
+        bads.iteration_history,
+        bads.options,
+        hyp,
+        0,
+        bads.function_logger,
+    )
+    calls = _inject_fit_failures(monkeypatch)
+    _, hyp_out, _, flag = _robust_gp_fit_(
+        gp,
+        gp.X,
+        gp.y,
+        gp.s2,
+        hyp,
+        gp_train,
+        bads.optim_state,
+        bads.options,
+        np.random.default_rng(1),
+    )
+    # From the second failure, each retry removes one of the 5 points (none
+    # lies above the percentile of 5 or 4), and 2 are fewer than D
+    assert [call["X"].shape[0] for call in calls] == [5, 5, 4, 3]
+    assert flag == -1
+    in_bounds = np.minimum(np.maximum(hyp, gp.lower_bounds), gp.upper_bounds)
+    assert np.array_equal(hyp_out, in_bounds)
