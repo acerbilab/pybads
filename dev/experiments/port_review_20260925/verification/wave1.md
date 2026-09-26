@@ -323,3 +323,37 @@ of wave 0 without W0-1) reproduces the previous reference exactly in every
 field `compare` reads. Its null check flags nothing. The fingerprint of
 `dev/scripts/fingerprint.py` at `ac3dfed` on this platform, for the fixes
 that must move nothing: `bfbc6d6737e99d88`.
+
+**Found while fixing** (2026-09-26):
+
+- **W1-35. W0-1's re-estimate crashes a noisy run whose rebuild fails.**
+  `_re_evaluate_history_` (`bads.py`, about line 2780, from W0-1 at
+  `e004c79`) sets an iterate's recorded hyperparameters on a copy of the
+  working GP with `compute_posterior=False` and rebuilds it around the
+  iterate. When the rebuild's posterior fails, `local_gp_fitting` puts back
+  the GP it was given, which has no posterior, and `predict` raises
+  `TypeError`. The inject gate (`gp_update_failures.py --inject 0.02`,
+  seeds 0-9) crashed 50 of 50 noisy runs at `bc57dd6` and 48 of 50 at
+  `4ba6787`, all there, after 49 to 490 evaluations; the stress run at
+  `a83bd51`, before W0-1, finished every run with 310 restores in the
+  re-estimate, since the stored GP it rebuilt kept its posterior. Default
+  runs do not reach it (no guarded computation fails over the default
+  suite: `dev/plans/gp-update-guards.md`, Phase 3), but W1-25's switch makes
+  failed factorizations real. MATLAB records NaN: a failed `gpupdate`
+  clears `post` (`private/gpupdate.m:340-349`), and `gppred` recomputes it,
+  fails and keeps its NaN (`utils/gppred.m:22-56`). Its `min` and `max`
+  skip a NaN, and the incumbent becomes NaN when the current iterate fails
+  (`bads.m:1101-1104`). NumPy's `argmin` and `argmax` pick a NaN instead of
+  skipping it: the end-of-iteration improvement (`bads.py`, about lines
+  1517-1535) and the final choice (about 1573-1580). Ruling (PI,
+  2026-09-26, the third of three options, after MATLAB's NaN throughout and
+  keeping the stale estimate): a past iterate whose re-estimate fails gets
+  NaN, as in MATLAB, and the two choices skip NaN; the current iterate
+  keeps its estimate when its own re-estimate fails, so that the incumbent
+  is never NaN. Under the fingerprint (default runs do not reach it), with
+  the inject gate, before W1-25's measurement.
+- The inject gate's script counted a restore of `local_gp_fitting` by a
+  failed call after the failed update, the retry that W1-11 removes when
+  there is no refit; it now reads the `needs_refit` marker on the GP
+  returned (`4ca8e41`), which gives the old counts at a commit that always
+  retries.
