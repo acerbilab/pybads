@@ -1194,7 +1194,9 @@ def get_grid_search_neighbors(
     )
     if dist.ndim > 1:
         dist = np.min(dist, axis=1)
-    sort_idx = np.argsort(dist)  # Ascending sort
+    # Ascending sort; stable, as MATLAB's sort, so that points at equal
+    # distance keep the order of the function log
+    sort_idx = np.argsort(dist, kind="stable")
 
     # Keep only points within a certain (rescale) radius from target
     radius = options["gp_radius"] * gp.temporary_data["effective_radius"]

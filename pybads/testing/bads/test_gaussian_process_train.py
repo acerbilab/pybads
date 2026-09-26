@@ -16,6 +16,7 @@ from pybads.bads.gaussian_process_train import (
     _meanfun_name_to_mean_function,
     _robust_gp_fit_,
     add_and_update_gp,
+    get_grid_search_neighbors,
     init_and_train_gp,
     local_gp_fitting,
 )
@@ -466,6 +467,36 @@ def test_add_enters_ill_defined_value_as_highest():
     assert gp.y.shape[0] == n + 1
     assert gp.y.ravel()[-1] == y_max
     assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))
+
+
+def test_nearest_neighbors_keep_log_order_at_equal_distance():
+    """The training set of the local GP is sorted by distance from the
+    incumbent with a stable sort, as MATLAB's gpupdate.m: points at equal
+    distance keep the order of the function log."""
+    bads, gp = _initialized_bads()
+    logger = bads.function_logger
+    # A grid around the origin in shuffled order: the points that differ
+    # only in the signs of their coordinates are at equal distance.
+    grid = np.arange(-3, 4)
+    U = np.array([(i, j) for i in grid for j in grid], dtype=float)
+    U = U[np.random.default_rng(0).permutation(len(U))]
+    n = len(U)
+    logger.X[:n] = U
+    logger.Y[:n, 0] = np.arange(n)  # the row of each point in the log
+    logger.X_flag[:] = False
+    logger.X_flag[:n] = True
+    logger.X_max_idx = n - 1
+    X, Y, _ = get_grid_search_neighbors(
+        logger, np.zeros((1, 2)), gp, bads.options, bads.optim_state
+    )
+    rows = Y.ravel().astype(int)
+    dist = np.sum(U**2, axis=1)
+    assert len(rows) == n
+    assert np.array_equal(X, U[rows])
+    assert np.all(np.diff(dist[rows]) >= 0)
+    ties = np.diff(dist[rows]) == 0
+    assert np.any(ties)
+    assert np.all(np.diff(rows)[ties] > 0)
 
 
 @pytest.mark.parametrize(
