@@ -442,6 +442,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Iteration history.** Recording an iteration no longer copies again every
   Gaussian process that `iteration_history` holds: a run of n iterations
   made n(n+1)/2 copies (20100, about 1.7 s, for 200).
+- **Scale of the search after failed searches.** A failed search shrinks the
+  scale of the next search by `search_scale_failure` but not below
+  `search_factor_min`, as in MATLAB BADS. `search_factor_min` was ignored,
+  and the late searches of a round of failures ran far below it (at 0.18 of
+  the full scale, against a floor of 0.5, at D = 6). Results change for D ≥
+  2.
 
 ## [1.1.0] - 2026-09-25
 

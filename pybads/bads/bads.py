@@ -2806,9 +2806,10 @@ class BADS:
 
         elif search_status == "failure":
             search_stats["success"].append(0.0)
-            self.optim_state["search_factor"] = (
+            self.optim_state["search_factor"] = np.maximum(
+                self.options["search_factor_min"],
                 self.optim_state["search_factor"]
-                * self.options["search_scale_failure"]
+                * self.options["search_scale_failure"],
             )
             if self.options["adaptive_incumbent_shift"]:
                 self.optim_state["sd_level"] = np.maximum(

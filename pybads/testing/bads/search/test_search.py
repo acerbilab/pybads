@@ -232,3 +232,51 @@ def test_last_search_of_a_round_adds_no_point_to_the_gp(monkeypatch):
     assert any(s["count"] < n_try for s in evaluated)
     for s in evaluated:
         assert s["added"] == (s["count"] < n_try)
+
+
+def test_failed_searches_floor_the_search_factor():
+    """A failed search shrinks the search factor by `search_scale_failure`,
+    but not below `search_factor_min`, as in MATLAB BADS; a successful or
+    incremental search scales it with no floor, and the end of a round
+    resets it to 1."""
+    D = 6
+    bads = BADS(
+        rosenbrocks_fcn,
+        np.zeros((1, D)),
+        -20 * np.ones((1, D)),
+        20 * np.ones((1, D)),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        options={"random_seed": 0, "display": "off"},
+    )
+    options = bads.options
+    n_try = int(options["search_n_try"])
+    assert n_try == 6
+    # A round of failed searches, and the factor each of them runs at
+    for count in range(1, n_try + 1):
+        bads.optim_state["search_count"] = count
+        bads._update_search_stats_("failure", 0.0)
+    factors = np.exp(bads.optim_state["search_stats"]["log_search_factor"])
+    assert np.allclose(
+        factors,
+        np.maximum(
+            options["search_factor_min"],
+            options["search_scale_failure"] ** np.arange(n_try),
+        ),
+    )
+    assert np.isclose(factors[-1], options["search_factor_min"])
+    assert bads.optim_state["search_factor"] == 1
+
+    bads.optim_state["search_count"] = 1
+    bads.optim_state["search_factor"] = 0.25
+    bads._update_search_stats_("success", 0.0)
+    assert np.isclose(
+        bads.optim_state["search_factor"],
+        0.25 * options["search_scale_success"],
+    )
+    bads.optim_state["search_factor"] = 0.125
+    bads._update_search_stats_("incremental", 0.0)
+    assert np.isclose(
+        bads.optim_state["search_factor"],
+        0.125 * options["search_scale_incremental"],
+    )
