@@ -574,6 +574,26 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   `optimize_result.py:151`, now `147`, and a guard of KD-B5-3, `621`, now
   `673`), and the entries of wave 1's rulings read against it, all of
   which hold.
-- [ ] Waves 2 to 4.
+- [x] 2026-09-26: wave 2 run and verified, cloud session (from "Wave 2
+  pickup", on `dev-port-review-w2`). Four fresh Opus reviewers, B1 and B2
+  on both tracks, reading `fef6c14` in `../pybads-review` (B1 internal 13
+  findings, B1 comparison 13, B2 internal 13, B2 comparison 13), then one
+  fresh Opus verifier per slice, which also verified the items kept from
+  the reviewers (B1-K1 to B1-K8, B2-K1 to B2-K9: the survey's open rows, the
+  differences seen in passing and what waves 0 and 1 left to these slices,
+  their found-while-fixing items of B1 and B2 among them). The reports and
+  the verifications are saved verbatim with `extract_report.py`, the scripts
+  of all six agents under `verification/scripts/wave2/`, formatted by the
+  pre-commit hooks. The clone was shallow (oldest commit `ce3a0b3`) when the
+  reviewers began; the complete history was fetched during their run, the
+  comparison reviewers were told, the B1 comparison reviewer re-dated its
+  lines (`reviews/B1_comparison_history.md`), and the verifiers dated every
+  row on it. The ledger `verification/wave2.md`, rows W2-1 to W2-44, closes
+  the 6 open survey rows of B1 and B2. The reviewers found every difference
+  seen in passing that belongs to these slices, (b) and (g), and (a), which
+  is B3's; (c) no longer holds. Two findings are in later slices' code
+  (W2-16, B3; W2-29, B4) and are proposed for this wave's fix pass. The
+  sweep after the wave was clean (only `__pycache__`, removed).
+- [ ] Waves 3 and 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.

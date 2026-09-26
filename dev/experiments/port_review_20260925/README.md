@@ -48,3 +48,11 @@ at the sandbox's scratch paths. The raw outputs of the fix pass's inject
 gate are in `verification/wave1_fixpass/inject/`; its populations are
 summarized by the comparisons beside it, and only the final one is kept
 whole, as the Linux reference `population_linux_wave1_20260926`.
+
+Those of wave 2, also in a cloud session, are under
+`verification/scripts/wave2/<slice>_<track>/` and
+`verification/scripts/wave2/<slice>_verifier/`, with the orchestrator's
+check under `verification/scripts/wave2/orchestrator/`, formatted by the
+pre-commit hooks in the same way. `reviews/B1_comparison_history.md` is the
+B1 comparison reviewer's re-dating of its report on the complete history,
+saved verbatim beside the report.

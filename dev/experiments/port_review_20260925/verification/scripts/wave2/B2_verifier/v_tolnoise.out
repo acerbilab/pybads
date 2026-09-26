@@ -1,0 +1,7 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+repeats at x0: ['0.6836421550010328', '0.6836421550010328', '0.6836421550010328', '0.6836421550010329', '0.6836421550010328', '0.6836421550010328']
+max |diff| 1.11e-16
+PyBADS tol_noise 2.22e-19 ; MATLAB's would be 1.49e-11
+bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init.
+target_type: stochastic | level 1 | design points 32 | tol_stall_iters 10 | n_train_min 100 | func_count 100 | fval 0.251329 fsd 5.85e-18 | x [-2.000e-04  3.009e-01]
