@@ -1153,3 +1153,30 @@ def test_gp_refit_time_counts_statistics(z, func_count, last_fit, verdict):
     for none, and the periodic refit is due once the statistics number
     the refit period."""
     assert _refit_verdict(z, func_count, last_fit) == verdict
+
+
+# The verdicts are those of MATLAB's IsRefitTime (bads.m) and gppredcheck.m;
+# the bounds of the sum of squares are 3.9e-13 and 25.26 at n = 1, 1.0e-6
+# and 29.02 at n = 2
+@pytest.mark.parametrize(
+    "z, func_count, last_fit, verdict",
+    [
+        ([4.0], 30, 29, (False, False)),
+        ([3.0, 3.2], 30, 29, (False, False)),
+        ([3.0, 3.2], 40, 20, (False, False)),
+        ([6e-4, 6e-4], 30, 29, (False, True)),
+        ([4.0, 4.0], 30, 29, (False, True)),
+    ],
+    ids=[
+        "n=1, 16",
+        "n=2, 19.24",
+        "n=2, 19.24, refit allowed",
+        "n=2, 7.2e-7",
+        "n=2, 32",
+    ],
+)
+def test_gp_refit_time_chi_square_bounds(z, func_count, last_fit, verdict):
+    """Fewer than three statistics are tested by their sum of squares
+    against the quantiles alpha/2 and 1 - alpha/2 of the chi-square
+    distribution with n degrees of freedom, as in MATLAB's gppredcheck.m."""
+    assert _refit_verdict(z, func_count, last_fit) == verdict

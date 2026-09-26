@@ -6,8 +6,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from gpyreg.gaussian_process import GP
-from scipy.special import erfc, erfcinv, gammaincinv
-from scipy.stats import shapiro
+from scipy.special import erfc, erfcinv
+from scipy.stats import chi2, shapiro
 
 from pybads.acquisition_functions import acq_fcn_lcb
 from pybads.function_logger import FunctionLogger, contraints_check
@@ -2528,9 +2528,10 @@ class BADS:
             else:
                 n = np.size(zscore)
                 if n < 3:
-                    chi_to_inv = lambda y, v: gammaincinv(v / 2, y)
-                    plo = chi_to_inv(alpha / 2, n)
-                    phi = chi_to_inv(1 - alpha / 2, n)
+                    # Quantiles of the chi-square distribution with n
+                    # degrees of freedom (gppredcheck.m)
+                    plo = chi2.ppf(alpha / 2, n)
+                    phi = chi2.ppf(1 - alpha / 2, n)
                     total = np.sum(zscore**2)
                     if (
                         total < plo

@@ -282,8 +282,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   process predicts well, which calls for its refits and ends a poll after a
   successful poll vector when it fails, read the first prediction after a
   refit as none, and so failed on it, and the periodic refit came one
-  evaluation after the refit period. It now counts the predictions as
-  MATLAB BADS does. Results change at default options.
+  evaluation after the refit period. With one or two predictions, it
+  compared the sum of their squared errors with half the chi-square
+  quantiles, and so failed on GPs that MATLAB BADS accepts. It now counts
+  the predictions and uses the quantiles as MATLAB BADS does. Results
+  change at default options.
 
 ## [1.1.0] - 2026-09-25
 
