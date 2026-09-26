@@ -380,6 +380,12 @@ class FunctionLogger:
             Raise if there is more than one match for a duplicate entry.
         """
 
+        # Every evaluation counts in the target's time, whether its point is
+        # new, merged into its row or not recorded, as in MATLAB's funlogger
+        # (funlogger.m:130)
+        if not np.isnan(fun_eval_time):
+            self.total_fun_eval_time += fun_eval_time
+
         # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
         if not record_duplicate_data:
             duplicate_flag = np.all(self.X == x, axis=1)
@@ -437,7 +443,6 @@ class FunctionLogger:
             # record function time
             if not np.isnan(fun_eval_time):
                 self.fun_eval_time[self.Xn] = fun_eval_time
-                self.total_fun_eval_time += fun_eval_time
 
             self.X_max_idx = np.minimum(self.X_max_idx + 1, self.X.shape[0])
             self.X_orig[self.Xn] = x_orig.copy()

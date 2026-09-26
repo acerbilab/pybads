@@ -424,6 +424,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `non_box_cons` passed to `BADS`, not copies: a bound method or callable
   object whose instance holds a lock or an open file no longer makes
   `optimize()` raise `TypeError` after its last evaluation.
+- **Overhead of noisy runs.** The returned `overhead` counts the time of the
+  final samples, and with `specify_target_noise=True` of repeated
+  evaluations, in the time of the target, as MATLAB BADS does; leaving them
+  out overstated the overhead of noisy runs.
 
 ## [1.1.0] - 2026-09-25
 

@@ -325,3 +325,34 @@ def test_iteration_history_keeps_the_gps_as_recorded(monkeypatch):
     assert len(gps) > 3
     for gp, hyp in zip(gps, hyps):
         assert np.array_equal(gp.get_hyperparameters(as_array=True), hyp)
+
+
+class _OneSecondTimer:
+    """A timer that times every evaluation at 1 s."""
+
+    def start_timer(self, name):
+        pass
+
+    def stop_timer(self, name):
+        pass
+
+    def get_duration(self, name):
+        return 1.0
+
+
+def test_target_time_counts_every_evaluation_but_the_noise_test(monkeypatch):
+    """The target's time, which `overhead` compares with the run's, counts
+    the final samples, as MATLAB BADS's does, and leaves out the noise test
+    at the starting point, which MATLAB BADS does not time."""
+    monkeypatch.setattr(
+        "pybads.function_logger.function_logger.Timer", _OneSecondTimer
+    )
+    bads = _make_bads(
+        _noisy_sphere(0), uncertainty_handling=None, specify_target_noise=False
+    )
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["yval_vec"].shape == (10,)
+    assert bads.function_logger.total_fun_eval_time == (
+        result["func_count"] - 1
+    )

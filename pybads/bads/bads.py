@@ -1050,9 +1050,13 @@ class BADS:
             # Test whether the function is noisy, only when the option is
             # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
+            # Its time stays out of the target's time, as MATLAB BADS calls
+            # the target directly for it (evalinitmesh.m:41)
+            total_fun_eval_time = self.function_logger.total_fun_eval_time
             yval_bis, _, _ = self.function_logger(
                 self.u, record_duplicate_data=False
             )
+            self.function_logger.total_fun_eval_time = total_fun_eval_time
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
                 self.logging_action.append("Uncertainty test")
