@@ -307,12 +307,9 @@ def test_add_without_failure_matches_assign_then_update(captured):
     points = np.vstack((gp.X[:4] + 0.01, np.atleast_2d(x)))
     for mine, theirs in zip(gp.predict(points), reference.predict(points)):
         assert np.array_equal(mine, theirs)
-    if level == 0:
+    if level < 2:
+        # Without the target's noise, the GP holds no noise variances
         assert gp.s2 is None
-    elif level == 1:
-        # gpyreg gives a point without a noise variance a zero; the noise
-        # function does not read these at level 1.
-        assert _same(gp.s2, np.vstack((s2_before, [[0.0]])))
     else:
         assert _same(gp.s2, np.vstack((s2_before, np.atleast_2d(sd) ** 2)))
     assert not gp.temporary_data.get("needs_rebuild", False)

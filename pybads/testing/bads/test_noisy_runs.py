@@ -245,3 +245,15 @@ def test_final_estimate_recorded_at_its_iterate():
         )
         before_last.append(index < len(fval) - 1)
     assert any(before_last)
+
+
+def test_inferred_noise_leaves_no_noise_variances_in_the_gp():
+    """With uncertainty handling and a target that returns no noise SD, the
+    function logger holds no noise SDs and the GP no noise variances of its
+    data, as in MATLAB BADS: the GP infers the noise."""
+    bads = _make_bads(_noisy_sphere(0), specify_target_noise=False)
+    bads.optimize()
+    assert not bads.function_logger.noise_flag
+    gps = [gp for gp in bads.iteration_history.get("gp") if gp is not None]
+    assert len(gps) > 0
+    assert all(gp.s2 is None for gp in gps)

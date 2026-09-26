@@ -285,11 +285,12 @@ class BADS:
 
         self.optim_state = self._init_optim_state_()
 
-        # create and init the function logger
+        # create and init the function logger; it holds the noise SDs only
+        # when the target returns them, as MATLAB's funlogger does
         self.function_logger = FunctionLogger(
             fun=fun,
             D=self.D,
-            noise_flag=self.optim_state.get("uncertainty_handling_level") > 0,
+            noise_flag=self.optim_state.get("uncertainty_handling_level") > 1,
             uncertainty_handling_level=self.optim_state.get(
                 "uncertainty_handling_level"
             ),

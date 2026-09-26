@@ -18,7 +18,8 @@ class FunctionLogger:
     D : int
         The number of dimensions that the function takes as input.
     noise_flag : bool
-        Whether the function fun is stochastic or not.
+        Whether the logger holds the standard deviations of the noise that
+        the function returns (``S``).
     uncertainty_handling_level : {0, 1, 2}
         The uncertainty handling level which can be one of
         (0: none; 1: unknown noise level; 2: user-provided noise).
