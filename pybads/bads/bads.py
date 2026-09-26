@@ -2154,18 +2154,21 @@ class BADS:
             if u_poll is None or u_poll.size == 0:
                 break
 
-            # Check whether it is time to refit the GP
+            # Check whether it is time to refit the GP. Without poll
+            # training, the poll refits only in the first iteration, and
+            # records no refit that it does not make (MATLAB BADS records
+            # it, and delays the next refit of the search).
+            poll_refit = (
+                self.options["poll_training"] or self.optim_state["iter"] == 0
+            )
             refit_flag, do_gp_calibration = self._is_gp_refit_time_(
-                self.options["normalpha_level"]
+                self.options["normalpha_level"], poll_refit
             )
 
             if (
-                not self.options["poll_training"]
-                and self.optim_state["iter"] > 0
-            ):
-                refit_flag = False
-            elif not refit_flag and gp.temporary_data.get(
-                "needs_refit", False
+                poll_refit
+                and not refit_flag
+                and gp.temporary_data.get("needs_refit", False)
             ):
                 # A failed rebuild of the local GP asks for a refit at the
                 # next one.
@@ -2467,8 +2470,10 @@ class BADS:
         self.gp_stats.record("ymu", ymu, iter)
         self.gp_stats.record("ys", ys, iter)
 
-    def _is_gp_refit_time_(self, alpha):
-        """A private method that checks the calibration of the GP prediction and if a fitting is required."""
+    def _is_gp_refit_time_(self, alpha, refit_allowed=True):
+        """A private method that checks the calibration of the GP prediction and if a fitting is required.
+        With ``refit_allowed`` false, no refit is due and none is recorded,
+        and the calibration is checked all the same."""
         if self.function_logger.func_count < 200:
             refit_period = np.maximum(10, self.D * 2)
         else:
@@ -2542,7 +2547,8 @@ class BADS:
         func_count = self.function_logger.func_count
 
         refit_flag = (
-            self.optim_state["lastfitgp"]
+            refit_allowed
+            and self.optim_state["lastfitgp"]
             < (func_count - self.options["min_refit_time"])
             and (gp_iter_idx >= refit_period or do_gp_calibration)
             and func_count > self.D

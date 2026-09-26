@@ -209,6 +209,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that it does, and a third is added. The module `pybads.testing.run_tests`,
   which failed on import, and six data files that no test read are no
   longer installed.
+- **Refits without poll training.** With `poll_training=False`, a poll
+  after the first iteration skipped a refit of the Gaussian process that was
+  due but counted it as made, which delayed the next refit of the search
+  (MATLAB BADS does the same). The poll now leaves that refit to the search,
+  and its stopping rule reads the calibration of the GP as it is. Results
+  change only with `poll_training=False`.
 
 ## [1.1.0] - 2026-09-25
 

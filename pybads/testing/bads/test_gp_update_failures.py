@@ -584,7 +584,10 @@ def _probe(
             return original_step(self, gp)
         state["probing"] = state["done"] = True
         self.reset_gp = False
-        self._is_gp_refit_time_ = lambda alpha: (False, False)
+        self._is_gp_refit_time_ = lambda alpha, refit_allowed=True: (
+            False,
+            False,
+        )
         gp_stats = self.gp_stats
         if not poll:
             for marker in markers:
@@ -659,6 +662,48 @@ def test_poll_refit_gives_way_to_poll_training(monkeypatch):
     )
     assert state["calls"] == [False, False]
     assert not state["gp_stats_reset"]
+
+
+def test_poll_without_poll_training_records_no_refit(monkeypatch):
+    """With `poll_training` off, a poll after the first iteration neither
+    refits the GP nor records a refit, so that the next refit of the search
+    is not delayed by one that did not happen: every refit recorded is
+    made."""
+    counts = {"recorded": 0, "made": 0}
+    original_local = bads_module.local_gp_fitting
+    original_record = BADS._record_gp_refit_
+
+    def spy_local(
+        gp,
+        current_point,
+        function_logger,
+        options,
+        optim_state,
+        iteration_history,
+        refit_flag,
+        rng=None,
+    ):
+        counts["made"] += bool(refit_flag)
+        return original_local(
+            gp,
+            current_point,
+            function_logger,
+            options,
+            optim_state,
+            iteration_history,
+            refit_flag,
+            rng=rng,
+        )
+
+    def record(self):
+        counts["recorded"] += 1
+        return original_record(self)
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
+    monkeypatch.setattr(BADS, "_record_gp_refit_", record)
+    _make_bads(_sphere, poll_training=False).optimize()
+    assert counts["made"] > 0
+    assert counts["recorded"] == counts["made"]
 
 
 @pytest.mark.parametrize("fail", [False, True], ids=["rebuilt", "restored"])
