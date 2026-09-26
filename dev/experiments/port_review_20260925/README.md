@@ -24,6 +24,10 @@ against its own specification, in waves of fresh reviewers.
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
   saved verbatim.
+- `matlab_side_defects.md`: what the review finds wrong or questionable in
+  MATLAB BADS itself, with PyBADS's disposition.
+- `briefs/wave1_fix_common.md`: the brief of the fix agents of wave 1's fix
+  pass; `fixes/`: their reports, saved verbatim.
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
 - `refresh_citations.py`: carries the `pybads/...:<line>` citations of a
