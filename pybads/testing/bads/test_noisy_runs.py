@@ -257,3 +257,39 @@ def test_inferred_noise_leaves_no_noise_variances_in_the_gp():
     gps = [gp for gp in bads.iteration_history.get("gp") if gp is not None]
     assert len(gps) > 0
     assert all(gp.s2 is None for gp in gps)
+
+
+def test_iteration_history_keeps_the_gps_as_recorded(monkeypatch):
+    """The end-of-iteration re-evaluation of a noisy run leaves the working
+    GP in place, as MATLAB BADS does (only the target's hyperparameters move
+    to the chosen iterate): no search or poll works on a GP of the iteration
+    history, and each stored GP keeps the hyperparameters recorded with it."""
+    shared = []
+    original_search = BADS._search_step_
+    original_poll = BADS._poll_step_
+
+    def check(self, gp):
+        slots = self.iteration_history.get("gp")
+        if slots is not None:
+            shared.append(any(gp is slot for slot in slots))
+
+    def search(self, gp):
+        check(self, gp)
+        return original_search(self, gp)
+
+    def poll(self, gp):
+        check(self, gp)
+        return original_poll(self, gp)
+
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    bads = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, max_fun_evals=150
+    )
+    bads.optimize()
+    assert len(shared) > 0 and not any(shared)
+    gps = bads.iteration_history.get("gp")
+    hyps = bads.iteration_history.get("gp_hyp_full")
+    assert len(gps) > 3
+    for gp, hyp in zip(gps, hyps):
+        assert np.array_equal(gp.get_hyperparameters(as_array=True), hyp)
