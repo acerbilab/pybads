@@ -53,26 +53,28 @@ class VariableTransformer:
         if plausible_upper_bounds is None:
             plausible_upper_bounds = np.copy(upper_bounds)
 
+        # Float copies, into which the log of a log-scaled variable's bounds
+        # is written in place, so that integer bounds are not truncated
         lb = (
-            lower_bounds.copy()
+            lower_bounds.astype(float)
             if lower_bounds is not None
             else np.ones((1, D)) * -np.inf
         )
         ub = (
-            upper_bounds.copy()
+            upper_bounds.astype(float)
             if upper_bounds is not None
             else np.ones((1, D)) * np.inf
         )
 
         plb = (
-            lower_bounds.copy()
+            lower_bounds.astype(float)
             if (plausible_lower_bounds is None)
-            else plausible_lower_bounds.copy()
+            else plausible_lower_bounds.astype(float)
         )
         pub = (
-            upper_bounds.copy()
+            upper_bounds.astype(float)
             if (plausible_upper_bounds is None)
-            else plausible_upper_bounds.copy()
+            else plausible_upper_bounds.astype(float)
         )
 
         if np.isscalar(lb):

@@ -261,3 +261,35 @@ def test_log_beside_linear_gives_no_overflow_warning(lb, ub):
     np.testing.assert_allclose(parameter_transformer.plb, [[-1.0, -1.0]])
     np.testing.assert_allclose(parameter_transformer.pub, [[1.0, 1.0]])
     np.testing.assert_allclose(X, x, rtol=1e-12)
+
+
+@pytest.mark.parametrize(
+    "plausible", [True, False], ids=["plausible", "plausible_omitted"]
+)
+def test_integer_bounds_are_taken_as_floats(plausible):
+    """The log of a log-scaled variable's bounds is written into the
+    transformer's copies of the bounds, which are floats, so that integer
+    bounds give the transform of the same values as floats."""
+    bounds = [[[1, -10]], [[1000, 10]]]
+    if plausible:
+        bounds += [[[2, -5]], [[500, 5]]]
+    transformers = [
+        VariableTransformer(2, *(np.array(b, dtype=dtype) for b in bounds))
+        for dtype in (int, float)
+    ]
+    x = np.array([[10.0, 3.0], [200.0, -7.0]])
+    int_transformer, float_transformer = transformers
+    assert np.all(float_transformer.apply_log_t == [[True, False]])
+    assert np.all(int_transformer.apply_log_t == float_transformer.apply_log_t)
+    names = ["lb", "ub", "plb", "pub"]
+    names += ["orig_" + name for name in names]
+    for name in names:
+        np.testing.assert_array_equal(
+            getattr(int_transformer, name), getattr(float_transformer, name)
+        )
+    u = float_transformer(x)
+    np.testing.assert_array_equal(int_transformer(x), u)
+    np.testing.assert_array_equal(
+        int_transformer.inverse_transf(u), float_transformer.inverse_transf(u)
+    )
+    assert all(getattr(int_transformer, name).dtype == float for name in names)
