@@ -396,7 +396,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and 22, between INFO and WARNING.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
   show each option's whole description; 1.1.0 cut eight of them at their
-  first `=` or `:`, that of `noise_size` among them.
+  first `=` or `:`, that of `noise_size` among them. Every option on the
+  options page has a description, without the closing quote of MATLAB's that
+  ended many, and those of `max_iter` and `tol_stall_iters` say that an
+  iteration counts once it has begun. `search_n_try` is an integer.
 
 ## [1.1.0] - 2026-09-25
 

@@ -9,6 +9,8 @@ import numpy as np
 import pytest
 
 from pybads import BADS
+from pybads.bads.option_configs import get_pybads_option_dir_path
+from pybads.bads.options import Options
 
 D = 3
 
@@ -161,3 +163,36 @@ def test_descriptions_are_whole_comment_lines():
     assert descriptions["stobads_frame_size_scaling_power"].startswith(
         "Power value of the Sto-BADS incumbent decision rule:  \\gamma"
     )
+
+
+def _default_options(D):
+    """The default options of both option files, for `D` variables."""
+    option_dir = get_pybads_option_dir_path()
+    options = Options(
+        option_dir + "/basic_bads_options.ini", evaluation_parameters={"D": D}
+    )
+    options.load_options_file(
+        option_dir + "/advanced_bads_options.ini",
+        evaluation_parameters={"D": D},
+    )
+    return options
+
+
+def test_every_option_has_a_description():
+    """The documentation shows the option files verbatim: every option has a
+    description, the comment line above it, and none ends in the closing
+    quote of MATLAB BADS's defaults."""
+    options = _default_options(2)
+    names = [name for name in options if name != "useroptions"]
+    assert len(names) > 150
+    for name in names:
+        description = options.descriptions[name]
+        assert description != "", name
+        assert not description.endswith(("'", ";")), name
+
+
+@pytest.mark.parametrize("D", [1, 2, 6, 20])
+def test_search_n_try_is_an_int(D):
+    search_n_try = _default_options(D)["search_n_try"]
+    assert type(search_n_try) is int
+    assert search_n_try == max(D, 3 + D // 2)
