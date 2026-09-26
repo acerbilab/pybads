@@ -237,6 +237,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   does not support either, is refused when `BADS` is created, with MATLAB
   BADS's message "Fixed noise not supported"; 1.1.0 stopped the run at its
   start with gpyreg's "Unknown hyperprior type delta".
+- **Initial fit of the GP.** A run whose initial Gaussian-process fit
+  keeps failing stops after 10 tries with a `RuntimeError` that says so;
+  1.1.0 retried without end.
 
 ## [1.1.0] - 2026-09-25
 

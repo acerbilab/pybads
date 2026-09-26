@@ -1007,3 +1007,29 @@ def test_initial_fit_recovers_from_failure(monkeypatch, caplog):
         for record in caplog.records
     )
     assert np.isfinite(result["fval"])
+
+
+def test_initial_fit_stops_after_repeated_failures(monkeypatch):
+    """A fit of `init_and_train_gp` that always raises `LinAlgError` stops
+    the run after 10 tries, with an error that says so, chained to the last
+    failure."""
+    original_fit = gpr.GP.fit
+    failures = []
+
+    def fit(gp, *args, **kwargs):
+        frames = _pybads_frames(sys._getframe(1))
+        if frames and frames[0] == "init_and_train_gp":
+            failures.append(True)
+            # Bounds an uncapped loop, which then fails here
+            assert len(failures) <= 50, "the initial fit kept retrying"
+            raise np.linalg.LinAlgError(f"injected failure {len(failures)}")
+        return original_fit(gp, *args, **kwargs)
+
+    monkeypatch.setattr(gpr.GP, "fit", fit)
+    with pytest.raises(
+        RuntimeError, match="initial fit of the GP failed 10 times"
+    ) as info:
+        _make_bads(_sphere).optimize()
+    assert len(failures) == 10
+    assert isinstance(info.value.__cause__, np.linalg.LinAlgError)
+    assert str(info.value.__cause__) == "injected failure 10"

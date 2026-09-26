@@ -65,6 +65,13 @@ def init_and_train_gp(
         An estimate of the GP noise variance at high posterior density.
     hyp_dict : dict
         The updated summary statistics.
+
+    Raises
+    ======
+    RuntimeError
+        Raised when the fit fails (``LinAlgError``) 10 times, from the
+        starting hyperparameters, from draws of their priors and from
+        zeros; the last failure is chained to it.
     """
 
     rng = get_rng(rng)
@@ -159,6 +166,8 @@ def init_and_train_gp(
     if hyp0.shape[1] != np.size(gp.hyper_priors["mu"]):
         hyp0 = None
 
+    # At most n_try fits, as many as a refit tries (`_robust_gp_fit_`)
+    n_try = 10
     fitted = False
     training_failures = 0
     while not fitted:
@@ -205,11 +214,17 @@ def init_and_train_gp(
                 hyp_dict["hyp"] = hyp0
                 fitted = True
 
-        except np.linalg.LinAlgError:
+        except np.linalg.LinAlgError as err:
             training_failures += 1
             logger.warning(
                 f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
             )
+            if training_failures == n_try:
+                raise RuntimeError(
+                    f"bads:gp: The initial fit of the GP failed {n_try} "
+                    "times, from the starting hyperparameters, from draws "
+                    "of their priors and from zeros."
+                ) from err
     # end gp hyp. init
 
     # Update running average of GP hyperparameter covariance (coarse)
