@@ -141,3 +141,31 @@ def test_iteration__setitem___key_not_existing():
     with pytest.raises(ValueError) as execinfo:
         iteration_history["foo"] = None
     assert "The key has not been specified" in execinfo.value.args[0]
+
+
+class _CountedCopies:
+    """A value that counts its deep copies."""
+
+    copies = 0
+
+    def __init__(self, value):
+        self.value = value
+
+    def __deepcopy__(self, memo):
+        _CountedCopies.copies += 1
+        return _CountedCopies(self.value)
+
+
+def test_iteration_history_copies_each_record_once():
+    """Each recorded value is copied once, when it is recorded: growing the
+    array of a key copies none of the values it holds (for the GPs of a run,
+    n records made n(n+1)/2 copies)."""
+    _CountedCopies.copies = 0
+    iteration_history = IterationHistory(["gp"])
+    values = [_CountedCopies(i) for i in range(20)]
+    for i, value in enumerate(values):
+        iteration_history.record("gp", value, i)
+    assert _CountedCopies.copies == 20
+    recorded = iteration_history.get("gp")
+    assert [gp.value for gp in recorded] == list(range(20))
+    assert not any(gp is value for gp, value in zip(recorded, values))

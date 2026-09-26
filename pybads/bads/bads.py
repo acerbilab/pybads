@@ -787,8 +787,6 @@ class BADS:
         optim_state["search_count"] = self.options[
             "search_n_try"
         ]  # Skip search at first iteration
-        optim_state["lastreeval"] = -np.inf
-        # Last time function values were re-evaluated
         optim_state["lastfitgp"] = -np.inf
         # Last fcn evaluation for which the gp was trained
         self.mesh_overflows = 0

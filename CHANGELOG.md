@@ -439,6 +439,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the Gaussian process, "Skip" after a skipped poll, "Train, skip" after
   both; it could repeat the "Train" of an earlier poll, or show "Skip" alone
   after both.
+- **Iteration history.** Recording an iteration no longer copies again every
+  Gaussian process that `iteration_history` holds: a run of n iterations
+  made n(n+1)/2 copies (20100, about 1.7 s, for 200).
 
 ## [1.1.0] - 2026-09-25
 
