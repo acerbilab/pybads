@@ -530,17 +530,17 @@ def local_gp_fitting(
         dic_hyp_gp = gp.get_hyperparameters()
         hyp_n_samples = len(dic_hyp_gp)
         # Gaussian process length scale: MATLAB's sum over the samples
-        # weighted by `hypweight` (gpupdate.m), with equal weights
-        if len(dic_hyp_gp[0]["covariance_log_lengthscale"]) > 1:
-            len_scale = np.zeros(D)
-            for i in range(hyp_n_samples):
-                len_scale += (
-                    np.exp(dic_hyp_gp[i]["covariance_log_lengthscale"])
-                    / hyp_n_samples
-                )
-            gp.temporary_data["len_scale"] = len_scale
-        else:
-            gp.temporary_data["len_scale"] = 1.0
+        # weighted by `hypweight` (gpupdate.m), with equal weights. MATLAB
+        # takes 1 when there is one length scale (`ncovlen > 1`), meant for
+        # an isotropic kernel, which at D = 1 also discards the one length
+        # scale of its ARD kernel; the kernel here is always ARD.
+        len_scale = np.zeros(D)
+        for i in range(hyp_n_samples):
+            len_scale += (
+                np.exp(dic_hyp_gp[i]["covariance_log_lengthscale"])
+                / hyp_n_samples
+            )
+        gp.temporary_data["len_scale"] = len_scale
 
         # GP-based geometric length scale
         ll = np.zeros((hyp_n_samples, D))

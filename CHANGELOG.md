@@ -306,6 +306,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   variable, the search was the same in every direction. It now follows the
   length scales, as MATLAB BADS does. Results change on problems with an
   unbounded variable.
+- **One-dimensional problems.** At D = 1, the Gaussian process used a
+  length scale of 1 instead of the fitted one when it chose its training
+  points and set the steps of the search, a defect shared with MATLAB BADS.
+  It now uses the fitted length scale, as at every other D. Results change
+  on 1-D problems.
 
 ## [1.1.0] - 2026-09-25
 

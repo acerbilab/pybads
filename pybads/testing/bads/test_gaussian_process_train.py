@@ -1246,6 +1246,27 @@ def test_gp_stats_hold_sd_of_observation(monkeypatch, level):
     np.testing.assert_allclose(ys, expected, rtol=1e-10)
 
 
+def test_rebuild_len_scale_at_one_dimension():
+    """At D = 1, the GP length scale is the fitted one, as at every D: the
+    one length scale of the ARD kernel is not an isotropic kernel's, which
+    MATLAB's gpupdate.m takes it for (`ncovlen > 1`), taking 1 instead."""
+    bads, gp = _initialized_bads(D=1)
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        bads.function_logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        True,
+        rng=bads.rng,
+    )
+    log_ls = gp.get_hyperparameters()[0]["covariance_log_lengthscale"]
+    np.testing.assert_allclose(
+        gp.temporary_data["len_scale"], np.exp(log_ls), rtol=1e-12
+    )
+
+
 def test_poll_scale_follows_length_scales_when_unbounded():
     """On a problem unbounded in every variable, the poll scale of a refit
     follows the GP length scales, within the width of the plausible box,
