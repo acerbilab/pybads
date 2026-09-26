@@ -205,10 +205,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0
   (deterministic), 1 (noise inferred) or 2 (`specify_target_noise`: the
   target returns exactly a `tuple` `(f, sd)`). In noisy runs the incumbent's
-  `fval`/`fsd` are GP predictions, `_re_evaluate_history_` recomputes them
-  from every stored GP, and the returned point is re-evaluated
-  `noise_final_samples` times, reserved from `max_fun_evals`, with those
-  samples kept out of the training set (`record_duplicate_data=False`).
+  `fval`/`fsd` are GP predictions. `_re_evaluate_history_` recomputes those
+  of every iteration from a copy of the working GP, under the
+  hyperparameters recorded at that iteration, and leaves the stored GPs as
+  recorded; a past iterate whose rebuild fails gets NaN. The returned point
+  is re-evaluated `noise_final_samples` times, reserved from
+  `max_fun_evals`, with those samples kept out of the training set
+  (`record_duplicate_data=False`).
 - **`FunctionLogger`** calls the target with a 1-D `x` in the original space
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
   preallocates its arrays, and `X_flag` marks the filled rows. A repeated

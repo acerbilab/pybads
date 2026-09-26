@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-25. The list describes scope, not priority or execution
+Updated 2026-09-26. The list describes scope, not priority or execution
 order.
 
 - [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
@@ -11,7 +11,10 @@ order.
   MATLAB's behaviour; turned on at the end of wave 1's first batch it made
   the deterministic ellipsoids take more evaluations and end with larger
   errors (`dev/experiments/port_review_20260925/verification/wave1.md`,
-  "W1-25's measurement"). Revisit once all of wave 1's fixes have landed
+  "W1-25's measurement"). That measurement predates acerbilab/gpyreg#58:
+  with the switch on, a fit whose low-noise design points all failed
+  started its second optimization from one of them and raised, discarding
+  its first. Revisit once all of wave 1's fixes have landed
   (PI, 2026-09-26): measure again at that head, count the failed
   factorizations and fits per run and which retries leave a worse GP, and
   weigh a jitter scaled to the signal that the fit and the predictions
@@ -146,14 +149,9 @@ order.
     hyperparameters, where MATLAB reuses the current posterior. That gives
     other targets at default options, and it is why that call can fail;
   - the refit forced after a failed rebuild, which ignores
-    `min_refit_time`, where MATLAB refits through `gppredcheck`. It sends
-    such runs into `_robust_gp_fit_`, whose fifth consecutive failed fit
-    raises `ValueError`, a combination no test or stress run covers;
+    `min_refit_time`, where MATLAB refits through `gppredcheck`;
   - after a failed rebuild, the search still ranks its candidates by the
     previous GP, where MATLAB takes the first candidate;
-  - `init_and_train_gp` retries a failing initial fit without bound;
-  - `_re_evaluate_history_` rebuilds the GPs stored in `IterationHistory`
-    in place;
   - under `stobads`, a NaN estimate counts as uncertain, not as a failure.
 
   No failure of the guarded calls occurs in the default suite under gpyreg
