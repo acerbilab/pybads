@@ -204,6 +204,43 @@ def test_declared_deterministic_target_takes_no_noise_test():
     assert bads.function_logger.func_count == len(evaluated)
 
 
+def _one_ulp_apart():
+    """The sphere, one unit in the last place higher on every other call,
+    as a deterministic target whose value depends on the order of a sum."""
+    n_calls = [0]
+
+    def fun(x):
+        n_calls[0] += 1
+        y = _sphere(x)
+        return float(np.nextafter(y, np.inf)) if n_calls[0] % 2 else y
+
+    return fun
+
+
+def _small_noise():
+    rng = np.random.default_rng(0)
+
+    def fun(x):
+        return _sphere(x) + 1e-6 * rng.standard_normal()
+
+    return fun
+
+
+@pytest.mark.parametrize(
+    "make_fun, level",
+    [(_one_ulp_apart, 0), (_small_noise, 1)],
+    ids=["one_ulp", "noise_sd_1e-6"],
+)
+def test_noise_test_threshold(make_fun, level):
+    """The noise test takes a target as noisy when its repeat at the
+    starting point differs by more than `tol_noise`, `sqrt(eps) * tol_fun`
+    (1.5e-11) as in MATLAB BADS (`bads.m`): a difference in the last bit is
+    not noise, a noise of SD 1e-6 is."""
+    bads = _make_bads(make_fun(), max_fun_evals=50)
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == level
+
+
 def test_random_x0_is_uniform_in_the_transformed_box():
     """A missing `x0` is drawn uniformly in the transformed plausible box,
     as in MATLAB BADS (`setupvars.m`): log-uniform in the original space for

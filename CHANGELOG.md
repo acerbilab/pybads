@@ -31,6 +31,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"ard"` included, which 1.1.0 accepted and ignored.
 - `BADS` raises `ValueError` when `non_box_cons`, given an N × D array, does
   not return a NumPy array of shape (N,) or (N, 1).
+- With `uncertainty_handling` left empty, a target whose two evaluations at
+  the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
+  a deterministic one, without the final samples of a noisy run.
 
 ### Changed
 
@@ -348,6 +351,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   variables can be inverted allows an error relative to the size of the
   bound, which rounding alone exceeded. The defect is shared with MATLAB
   BADS.
+- **Noise test.** When `uncertainty_handling` is left empty, the target is
+  taken as noisy when two evaluations at the starting point differ by more
+  than `tol_noise`, now `sqrt(eps) * tol_fun` (1.5e-11 at default), as in
+  MATLAB BADS. 1.1.0 used `eps * tol_fun` (2.2e-19), so that a deterministic
+  target whose value changes in its last digits from call to call, for
+  example a sum taken in varying order, was optimized as a noisy one, with
+  more evaluations and a worse result.
 
 ## [1.1.0] - 2026-09-25
 
