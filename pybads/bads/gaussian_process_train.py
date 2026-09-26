@@ -383,11 +383,12 @@ def local_gp_fitting(
 
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
-    # Empirical prior on covariance signal variance ((output scale). Targets
-    # with no spread (log 0) keep the previous centre, as the mean's prior
-    # keeps its previous width above
+    # Empirical prior on covariance signal variance ((output scale), at the
+    # log of the targets' SD normalized by N - 1, as MATLAB's std. A single
+    # target, or targets with no spread (log 0), keep the previous centre,
+    # as the mean's prior keeps its previous width above
     if options["warp_func"] == 0:
-        y_std = np.std(gp.y)
+        y_std = np.std(gp.y, ddof=1) if gp.y.size > 1 else 0.0
         if y_std > 0:
             sd_y = np.log(y_std)
         else:

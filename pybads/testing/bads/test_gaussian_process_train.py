@@ -648,6 +648,55 @@ def test_rebuild_with_equal_targets_keeps_output_scale_prior(refit_flag):
     assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))
 
 
+def test_rebuild_output_scale_prior_from_sample_sd():
+    """At a rebuild of the local GP, the prior of the output scale is
+    centred at the log of the targets' SD normalized by N - 1, as MATLAB's
+    `std` in gpdefBads.m, with the SD 2."""
+    bads, gp = _initialized_bads()
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        bads.function_logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        False,
+        rng=bads.rng,
+    )
+    assert gp.y.size > 1
+    kind, (mu, sigma) = gp.get_priors()["covariance_log_outputscale"]
+    assert kind == "gaussian"
+    assert np.isclose(mu.item(), np.log(np.std(gp.y, ddof=1)), rtol=1e-12)
+    assert sigma.item() == 2.0
+
+
+@pytest.mark.filterwarnings("error::RuntimeWarning")
+def test_rebuild_with_single_target_keeps_output_scale_prior():
+    """A rebuild of the local GP on a single training point keeps the centre
+    of the previous prior of the output scale, as targets with no spread
+    do, with no warning from an SD normalized by N - 1 = 0."""
+    bads, gp = _initialized_bads()
+    previous = gp.get_priors()["covariance_log_outputscale"]
+    logger = bads.function_logger
+    logger.X_flag[1:] = False
+    logger.X_max_idx = 0
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        False,
+        rng=bads.rng,
+    )
+    assert gp.y.size == 1
+    kind, (mu, sigma) = gp.get_priors()["covariance_log_outputscale"]
+    assert kind == "gaussian"
+    assert mu.item() == previous[1][0].item()
+    assert sigma.item() == 2.0
+
+
 def test_thin_feasible_region_runs():
     """A feasible region too thin for the initial design (`non_box_cons`
     |x1 - x2| <= 0.005) leaves the local GP one training point, whose

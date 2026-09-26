@@ -270,6 +270,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   mesh size, as in MATLAB BADS, so that it falls as the mesh shrinks.
   PyBADS computed that centre and never applied it. Results change at
   default options in deterministic runs.
+- **Prior of the GP output scale.** At each rebuild, the prior over the
+  output scale of the Gaussian process is centred at the log of the
+  targets' standard deviation normalized by N - 1, as MATLAB's `std`,
+  where PyBADS normalized it by N.
 
 ## [1.1.0] - 2026-09-25
 
