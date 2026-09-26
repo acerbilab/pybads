@@ -74,3 +74,16 @@ def test_scalar_bounds_are_replicated(plausible):
     assert by_scalars.optim_state["lb"].shape == (1, D)
     for scalar, vector in zip(_bounds_of(by_scalars), _bounds_of(by_vectors)):
         np.testing.assert_array_equal(scalar, vector)
+
+
+@pytest.mark.parametrize(
+    "bounds",
+    [(-np.ones(2), np.ones(2)), ()],
+    ids=["with_bounds", "without_bounds"],
+)
+def test_starting_set_is_refused(bounds):
+    """`x0` is a single point, as in MATLAB BADS: a set of starting points
+    is refused, and the plausible bounds are not estimated from it."""
+    x0 = np.array([[0.1, 0.2], [0.3, -0.4]])
+    with pytest.raises(ValueError, match="bads:StartingSet"):
+        BADS(_sphere, x0, *bounds, options=OPTIONS)

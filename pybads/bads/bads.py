@@ -52,7 +52,8 @@ class BADS:
         where ``fun`` is the function to optimize, and ``data`` and ``extra_params``
         are given in the outer scope.
     x0 : np.ndarray, optional
-        Starting point for the optimization. If not specified or ``None``, the
+        Starting point for the optimization, a single point of ``D``
+        elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``, the
         starting point ``x0`` is uniformly randomly drawn inside the plausible
         box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
         below).
@@ -339,44 +340,16 @@ class BADS:
 
         N0, D = x0.shape
 
-        # Estimation of the plb and pub if any of them is not specified
+        # Hard bounds for the plausible bounds that are not specified
         if plausible_lower_bounds is None or plausible_upper_bounds is None:
-            if N0 > 1:
-                self.logger.warning(
-                    "plausible_lower_bounds and/or plausible_upper_bounds not specified. Estimating"
-                    + "plausible bounds from starting set X0..."
-                )
-                width = x0.max(0) - x0.min(0)
-                if plausible_lower_bounds is None:
-                    plausible_lower_bounds = x0.min(0) - width / N0
-                    plausible_lower_bounds = np.maximum(
-                        plausible_lower_bounds, lower_bounds
-                    )
-                if plausible_upper_bounds is None:
-                    plausible_upper_bounds = x0.max(0) + width / N0
-                    plausible_upper_bounds = np.minimum(
-                        plausible_upper_bounds, upper_bounds
-                    )
-
-                idx = plausible_lower_bounds == plausible_upper_bounds
-                if np.any(idx):
-                    plausible_lower_bounds[idx] = lower_bounds[idx]
-                    plausible_upper_bounds[idx] = upper_bounds[idx]
-                    self.logger.warning(
-                        "bads:pbInitFailed: Some plausible bounds could not be "
-                        + "determined from starting set. Using hard upper/lower"
-                        + " bounds for those instead."
-                    )
-            else:
-                self.logger.warning(
-                    "bads:pbUnspecified: Plausible lower/upper bounds"
-                    " not specified and X0 is not a valid starting set. "
-                    + "Using hard upper/lower bounds instead."
-                )
-                if plausible_lower_bounds is None:
-                    plausible_lower_bounds = np.copy(lower_bounds)
-                if plausible_upper_bounds is None:
-                    plausible_upper_bounds = np.copy(upper_bounds)
+            self.logger.warning(
+                "bads:pbUnspecified: Plausible lower/upper bounds"
+                " not specified. Using hard upper/lower bounds instead."
+            )
+            if plausible_lower_bounds is None:
+                plausible_lower_bounds = np.copy(lower_bounds)
+            if plausible_upper_bounds is None:
+                plausible_upper_bounds = np.copy(upper_bounds)
 
         # ensure at least 2d dimensions
         upper_bounds = np.atleast_2d(upper_bounds)
@@ -410,6 +383,13 @@ class BADS:
                 f"""All input vectors (lower_bounds, upper_bounds,
                  plausible_lower_bounds, plausible_upper_bounds), if specified,
                  need to be of the same dimension D={D} as the starting point x_0={x0}."""
+            )
+
+        # A single starting point, as in MATLAB BADS (boundscheck.m)
+        if N0 > 1:
+            raise ValueError(
+                f"""bads:StartingSet: The starting point x0 needs to be a
+            single point, a vector of D={D} elements; x0 has {N0} rows."""
             )
 
         # check that plausible bounds are finite

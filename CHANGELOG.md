@@ -320,6 +320,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
   bound in every dimension, as the docstring says and MATLAB BADS does;
   1.1.0 refused it when D > 1.
+- **Starting point of several rows.** `x0` is a single point: `BADS` refuses
+  an `x0` of more than one row when it is created, as MATLAB BADS does.
+  1.1.0 accepted it, estimated missing plausible bounds from its rows, and
+  then failed in `optimize()`.
 
 ## [1.1.0] - 2026-09-25
 
