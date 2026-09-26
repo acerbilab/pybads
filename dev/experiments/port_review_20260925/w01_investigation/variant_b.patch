@@ -1,0 +1,22 @@
+diff --git a/pybads/bads/bads.py b/pybads/bads/bads.py
+index fb9bad2..aa64e9f 100644
+--- a/pybads/bads/bads.py
++++ b/pybads/bads/bads.py
+@@ -1496,7 +1496,6 @@ class BADS:
+                 self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
+                     poll_iteration
+                 ]
+-                gp = self.iteration_history.get("gp")[poll_iteration]
+ 
+                 f_q_re_impr = self._eval_improvement_(
+                     self.fval,
+@@ -1520,9 +1519,6 @@ class BADS:
+                     self.best_gp_hyp = self.iteration_history.get(
+                         "gp_hyp_full"
+                     )[idx_impr]
+-                    gp = self.iteration_history.get("gp")[
+-                        idx_impr
+-                    ]  # overwrite best gp
+ 
+             # if isFinished_flag
+             if is_finished:

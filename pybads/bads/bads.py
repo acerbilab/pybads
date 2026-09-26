@@ -1496,7 +1496,6 @@ class BADS:
                 self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                     poll_iteration
                 ]
-                gp = self.iteration_history.get("gp")[poll_iteration]
 
                 f_q_re_impr = self._eval_improvement_(
                     self.fval,
@@ -1517,12 +1516,11 @@ class BADS:
                     self.fsd = self.iteration_history.get("fsd")[idx_impr]
                     self.u = self.iteration_history.get("u")[idx_impr]
                     self.best_u = self.u.copy()
+                    # As MATLAB BADS does, only the target's hyperparameters
+                    # move to the iterate; the working GP stays
                     self.best_gp_hyp = self.iteration_history.get(
                         "gp_hyp_full"
                     )[idx_impr]
-                    gp = self.iteration_history.get("gp")[
-                        idx_impr
-                    ]  # overwrite best gp
 
             # if isFinished_flag
             if is_finished:
@@ -1569,7 +1567,6 @@ class BADS:
             self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                 min_q_beta_idx
             ]
-            gp = self.iteration_history.get("gp")[min_q_beta_idx]
 
             # Re-evalate estimated function value and SD at final point
             if self.options["noise_final_samples"] > 0:
@@ -2759,15 +2756,23 @@ class BADS:
 
     def _re_evaluate_history_(self, gp: GP):
         """A private method used in the case of a stochastic target function.
-        It updates the predicted values and the variance for each stored GP at each iteration, by computing the posterior on the current training set without refitting the parameters.
+        It re-estimates the value and the SD of the target at the incumbent of
+        each iteration, from the current data, as MATLAB BADS's
+        ``reevaluateIterList`` does: a copy of the working GP ``gp``, with the
+        hyperparameters recorded at the end of that iteration, is rebuilt
+        around the incumbent without a refit. The GPs stored in the iteration
+        history are left as they were recorded.
         """
         if self.optim_state["last_re_eval"] != self.function_logger.func_count:
             # Re-evaluate gp outputs
             u_history = self.iteration_history.get("u")
-            gps = self.iteration_history.get("gp")
+            hyp_history = self.iteration_history.get("gp_hyp_full")
+            tmp_gp = copy.deepcopy(gp)
             for i in range(u_history.shape[0]):
-                tmp_gp = gps[i]
                 u = u_history[i]
+                tmp_gp.set_hyperparameters(
+                    hyp_history[i], compute_posterior=False
+                )
                 tmp_gp, _ = local_gp_fitting(
                     tmp_gp,
                     u,

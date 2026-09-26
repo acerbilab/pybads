@@ -436,7 +436,11 @@ request.
   orchestrator's machine (PI): which of its parts moves the runs, and the
   error at an equal number of evaluations. Wave 1 starts meanwhile in a
   cloud session (PI), from "Wave 1 pickup" below.
-- [ ] W0-1 investigated and ruled.
+- [x] 2026-09-26: W0-1 investigated and ruled (`w01_investigation/`): on
+  `ellipsoid_D3_homo` over 90 seeds, no significant change of the error,
+  with or without the stall criterion, and 14 to 18% fewer evaluations,
+  most of them from the removal of the drift; the rise over seeds 0-29 was
+  not in seeds 30-89. PI: W0-1 stays, in a pull request of its own.
 - [ ] Wave 1 (cloud session): run, verified, reported for triage.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
