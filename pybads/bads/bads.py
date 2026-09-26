@@ -1652,7 +1652,7 @@ class BADS:
                     yval_vec.size == 1
                     and not self.options["specify_target_noise"]
                 ):
-                    yval_vec = np.vstack((yval_vec, self.yval))
+                    yval_vec = np.append(yval_vec, self.yval)
 
                 self.optim_state["yval_vec"] = np.copy(yval_vec)
                 self.optim_state["ysd_vec"] = np.copy(ysd_vec)
@@ -1705,7 +1705,7 @@ class BADS:
             if np.isscalar(yval_vec) or yval_vec.size == 1:
                 self.logger.log(
                     _LOG_FINAL,
-                    f"Observed function value at minimum: {yval_vec} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
+                    f"Observed function value at minimum: {np.ravel(yval_vec)[0]} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
                 )
             else:
                 self.logger.log(

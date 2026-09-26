@@ -2,6 +2,8 @@
 target that returns the standard deviation of its noise
 (`specify_target_noise`)."""
 
+import logging
+
 import numpy as np
 import pytest
 
@@ -124,6 +126,42 @@ def test_final_estimate_from_one_sample():
     assert y.shape == sd.shape == (1,)
     assert result["fval"] == pytest.approx(y[0], rel=1e-12)
     assert result["fsd"] == pytest.approx(sd[0], rel=1e-12)
+
+
+def test_final_message_from_one_sample_prints_a_number(caplog):
+    """With one final sample and the target's noise SD, the final message
+    gives the sample as a number, as MATLAB BADS's does, not an array."""
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        result = _make_bads(
+            _noisy_sphere_with_estimated_sd(0),
+            noise_final_samples=1,
+            display="iter",
+        ).optimize()
+    (message,) = [
+        record.getMessage()
+        for record in caplog.records
+        if "Observed function value at minimum" in record.getMessage()
+    ]
+    assert message.startswith(
+        "Observed function value at minimum: "
+        f"{float(result['yval_vec'][0])} (1 sample)."
+    )
+
+
+def test_one_final_sample_without_target_noise_adds_the_incumbent():
+    """With one final sample and no noise SD from the target, `yval_vec`
+    holds the sample and the incumbent's observation, a row of two as in
+    MATLAB BADS (the shape of every other `yval_vec`), and `fval` and `fsd`
+    are their mean and its standard error."""
+    bads = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, noise_final_samples=1
+    )
+    result = bads.optimize()
+    y = result["yval_vec"]
+    assert y.shape == (2,)
+    assert y[1] == bads.yval
+    assert result["fval"] == pytest.approx(np.mean(y), rel=1e-12)
+    assert result["fsd"] == pytest.approx(np.std(y, ddof=1) / np.sqrt(2))
 
 
 @pytest.mark.parametrize(

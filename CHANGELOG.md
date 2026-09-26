@@ -43,6 +43,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   keeps the log transform on.
 - The result's `success` is False when a run ends on `max_fun_evals` or
   `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
+- Without `specify_target_noise` and with `noise_final_samples=1`,
+  `yval_vec` has shape (2,), not (2, 1).
 
 ### Changed
 
@@ -160,7 +162,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
   sample and its standard deviation; before, the incumbent's earlier
   observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
-  The returned `x` and the number of evaluations are unchanged.
+  The returned `x` and the number of evaluations are unchanged. With one
+  sample, the final message gives it as a number.
 - **`specify_target_noise` alone.** With `specify_target_noise=True` and
   `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
   as MATLAB BADS does and as the error message asked; it raised
@@ -191,7 +194,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   was normalized by `n`, which made `fsd` smaller by a factor
   `sqrt((n - 1)/n)`, 0.95 at the default 10 samples. The final `fval` and
   `fsd` are recorded in `iteration_history` at the iterate they describe,
-  the returned point, instead of the last iterate.
+  the returned point, instead of the last iterate. With
+  `noise_final_samples=1`, `yval_vec` holds the sample and the incumbent's
+  observation with shape (2,), as every other `yval_vec`; it had shape (2,
+  1).
 - **Iteration count.** The returned `iterations` and the iteration column
   of the display count from 1, as in MATLAB BADS: a run that ends on
   `max_iter` reports `max_iter` iterations. They were one lower.
