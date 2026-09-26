@@ -1,0 +1,21 @@
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 port       n=10 median=3.2e-06 log10-mean=-5.57 vals=[2.24e-07 3.34e-05 1.41e-05 5.06e-06 3.62e-06 3.61e-07 7.60e-07 1.38e-06
+ 1.04e-05 2.77e-06] (31s)
+rosen3 ucov       n=10 median=1.81e-06 log10-mean=-5.80 vals=[2.05e-05 6.36e-07 2.60e-06 4.73e-07 1.09e-05 7.44e-08 2.33e-06 1.08e-05
+ 2.65e-07 1.28e-06] (30s)
+rosen3 mask       n=10 median=2.23e-06 log10-mean=-5.74 vals=[6.82e-05 2.76e-06 4.02e-07 3.11e-07 5.21e-06 2.10e-05 4.18e-08 1.71e-06
+ 5.99e-06 3.67e-07] (31s)
+rosen3 ucov+mask  n=10 median=1.11e-05 log10-mean=-5.27 vals=[1.55e-05 6.74e-06 3.13e-05 2.76e-06 7.92e-08 7.59e-07 2.42e-05 2.81e-06
+ 2.65e-05 2.20e-05] (32s)
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+ellipsoid4 port       n=10 median=7.18e-06 log10-mean=-5.29 vals=[1.24e-05 7.12e-06 7.89e-05 9.31e-06 3.64e-07 7.23e-06 2.75e-06 8.74e-07
+ 3.37e-06 8.91e-06] (69s)
+ellipsoid4 ucov       n=10 median=4.73e-06 log10-mean=-5.28 vals=[6.23e-05 3.92e-06 1.97e-06 4.45e-06 1.84e-05 7.63e-06 1.16e-06 1.48e-06
+ 5.01e-06 5.79e-06] (69s)
+ellipsoid4 mask       n=10 median=1.58e-05 log10-mean=-4.79 vals=[4.38e-05 3.91e-05 3.71e-06 6.48e-06 8.18e-06 1.05e-04 1.76e-05 3.74e-06
+ 1.39e-05 4.22e-05] (72s)
+ellipsoid4 ucov+mask  n=10 median=1.31e-05 log10-mean=-5.16 vals=[3.23e-05 2.60e-05 1.03e-06 1.28e-05 2.22e-06 7.69e-07 4.40e-05 1.57e-05
+ 1.35e-05 1.31e-06] (76s)
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+noisy_sphere3 port       n=10 median=0.0253 log10-mean=-1.64 vals=[0.03 0.01 0.02 0.03 0.02 0.03 0.03 0.02 0.02 0.03] (36s)
+noisy_sphere3 ei         n=10 median=0.0242 log10-mean=-1.65 vals=[0.03 0.01 0.02 0.03 0.02 0.03 0.02 0.02 0.02 0.03] (36s)
