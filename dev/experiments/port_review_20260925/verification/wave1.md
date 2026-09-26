@@ -295,3 +295,25 @@ prior far outside its bounds), gated as a gpyreg release. By the same
 principle as W1-25's switch, the log-space mass is taken only where the
 linear one underflows, so that no fit that succeeds today changes. The items of
 "Found while verifying" left to waves 2 and 3 go to them with their slices.
+
+## Fix pass
+
+Not started (PI, 2026-09-26), but for step 0. The records of wave 1 were
+rebased onto `dev-next` at `e004c79`, which carries wave 0 and its fix pass
+(#72) and W0-1 (#73), so the pass starts from there: `dev-port-review` is
+superseded, and W0-1 is in the base rather than gated on top of the
+batches.
+
+**Step 0, the baseline** (2026-09-26, Linux, the platform and versions of
+the Linux references): the default suite × seeds 0-29 at `ac3dfed` (the
+head of `dev-port-review-w1`, the package code of `e004c79`) is the new
+Linux reference,
+[`population_linux_wave0_20260926`](../../population_linux_wave0_20260926/README.md),
+against which the batches compare. Against the previous Linux reference it
+flags the number of evaluations of `ellipsoid_D3_homo`,
+`multisensory_s1_D6_homo` and `ellipsoid_D3_hetero`, fewer, with no error
+test flagged: W0-1's flags on Windows. Its step at `138a141` (the fix pass
+of wave 0 without W0-1) reproduces the previous reference exactly in every
+field `compare` reads. Its null check flags nothing. The fingerprint of
+`dev/scripts/fingerprint.py` at `ac3dfed` on this platform, for the fixes
+that must move nothing: `bfbc6d6737e99d88`.

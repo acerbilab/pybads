@@ -462,6 +462,12 @@ request.
   by default, W1-27 (the GP fit at initialization) is kept, and W1-8 and
   W1-17, which MATLAB shares, are fixed; W1-6, W1-28 and W1-34 as proposed.
   The fix pass is not started.
+- [x] 2026-09-26: the records of wave 1 rebased onto `dev-next` at
+  `e004c79` (wave 0 and W0-1; `dev-port-review` superseded), and step 0 of
+  wave 1's fix pass, its baseline on Linux: the reference
+  `experiments/population_linux_wave0_20260926/`, which flags W0-1's
+  evaluations as on Windows, and the fingerprint `bfbc6d6737e99d88` at
+  `ac3dfed` (`verification/wave1.md`, "Fix pass").
 - [ ] Wave 1's fix pass, with W0-7 and W0-8, in the order of the rulings.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
