@@ -311,6 +311,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   points and set the steps of the search, a defect shared with MATLAB BADS.
   It now uses the fitted length scale, as at every other D. Results change
   on 1-D problems.
+- **Mixed bounds.** A problem that mixes bounded variables with unbounded
+  ones (`lb[i] = -inf` and `ub[i] = inf`), as the docstring allows, is
+  accepted; 1.1.0 refused any such mix with `bads:HalfBounds`, because its
+  check looked at all the variables at once. A variable bounded on one side
+  only is still refused.
 
 ## [1.1.0] - 2026-09-25
 

@@ -530,14 +530,9 @@ class BADS:
             plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
             )
 
-        # Check that variables are either bounded or unbounded
+        # Check that each variable is either bounded or unbounded
         # (not half-bounded)
-        if (
-            np.any(np.isfinite(lower_bounds))
-            and np.any(np.invert(np.isfinite(upper_bounds)))
-            or np.any(np.invert(np.isfinite(lower_bounds)))
-            and np.any(np.isfinite(upper_bounds))
-        ):
+        if np.any(np.isfinite(lower_bounds) != np.isfinite(upper_bounds)):
             raise ValueError(
                 """bads:HalfBounds: Each variable needs to be unbounded or
             bounded. Variables bounded only below/above are not supported."""
