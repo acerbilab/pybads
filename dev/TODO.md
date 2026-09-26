@@ -133,7 +133,9 @@ order.
   1.3.3 (484,773 calls on Linux), so only the tests
   (`test_gp_update_failures.py`) and the stress run of
   `dev/scripts/gp_update_failures.py --inject` reach these paths.
-- [ ] **Bug hunt and verification against MATLAB BADS.** A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
+- [ ] **Bug hunt and verification against MATLAB BADS.** In progress:
+  [plans/port-correctness-review.md](plans/port-correctness-review.md), on
+  the branch `dev-port-review`. A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
   table (only partly looked at, never compared with MATLAB), and a finding
