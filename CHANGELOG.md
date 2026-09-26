@@ -13,6 +13,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - With `specify_target_noise=True`, the returned `fval` and `fsd` weight
   the final samples by the precisions that the target returns, and with
   `noise_final_samples=1`, `yval_vec` and `ysd_vec` hold one value.
+- Without `specify_target_noise`, the returned `fsd` of a noisy run is
+  larger by a factor `sqrt(n/(n - 1))`, `n` the number of final samples:
+  1.05 at the default 10.
+- The returned `iterations` is one more than in 1.1.0.
+- `output_fcn` is called as `output_fcn(x, optim_state, state)`, with
+  `state` one of `"init"`, `"iter"` and `"done"`, where 1.1.0 called
+  `output_fcn(x, "init")` once.
 
 ### Changed
 
@@ -87,7 +94,39 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`noise_size` with user-specified noise.** With
   `specify_target_noise=True`, a scalar `noise_size` made the creation of
   `BADS` fail with `IndexError`. It now gives the warning about
-  `noise_size` that an array gave.
+  `noise_size` that an array gave, and `noise_size` is ignored, as the
+  warning says. It set the threshold of a check for a Gaussian process that
+  explains the data as noise, so that `noise_size=0`, which the warning
+  proposed, made every refit of the GP a second fit, and runs ended at
+  other points.
+- **`noise_size` as a list or a pair.** A list `noise_size`, or MATLAB
+  BADS's pair of the base noise standard deviation and the standard
+  deviation of the prior over its logarithm, made a noisy run fail with
+  `TypeError` or `ValueError`; both are accepted. Without
+  `specify_target_noise`, a `noise_size` of 0 or less, which made the run
+  fail in the prior of the Gaussian process, raises `ValueError` that names
+  `noise_size` when `BADS` is created, as in MATLAB BADS.
+- **Final estimate without user-specified noise.** The returned `fsd` of a
+  noisy run is the standard error of the final samples computed from their
+  standard deviation normalized by `n - 1`, as MATLAB BADS computes it; it
+  was normalized by `n`, which made `fsd` smaller by a factor
+  `sqrt((n - 1)/n)`, 0.95 at the default 10 samples. The final `fval` and
+  `fsd` are recorded in `iteration_history` at the iterate they describe,
+  the returned point, instead of the last iterate.
+- **Iteration count.** The returned `iterations` and the iteration column
+  of the display count from 1, as in MATLAB BADS: a run that ends on
+  `max_iter` reports `max_iter` iterations. They were one lower.
+- **Output function.** `output_fcn` is called as in MATLAB BADS, as
+  `output_fcn(x, optim_state, state)` at the start (`state="init"`), after
+  each poll (`"iter"`) and at the end (`"done"`), with the incumbent `x` in
+  the original space and a copy of the internal state `optim_state`; a
+  true return value stops the run. It was called once, at the start, as
+  `output_fcn(x, "init")`, and a true return value raised
+  `UnboundLocalError`.
+- **One function evaluation.** A run with `max_fun_evals=1` returns the
+  starting point, where it raised `KeyError: 'eff_starting_points'`. As in
+  MATLAB BADS, the starting point is evaluated a second time when
+  `uncertainty_handling` is left empty, to test for noise.
 - **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
   `AttributeError` under NumPy 2.
 - **Termination message.** A run that ends because the mesh size fell below
