@@ -208,6 +208,15 @@ order.
   verifiers, `verification/wave2.md`, "Found while verifying"). Slice B6,
   whose wave has passed: decide the priors and bounds of such a GP, in
   PyBADS or in gpyreg, with a test on the thin band.
+- [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
+  of `examples/`, and two show outputs that the port review's wave 2
+  changed: `pybads_example_2_nonbox_constraints.ipynb` the warning
+  `bads:TooCloseBounds`, which W2-4 removed, and
+  `pybads_example_5_extended_usage.ipynb` a result with `'fsd': 0` and
+  without `status` (W2-12, W2-13). Rerun them once the review's fix passes
+  have landed, with the headless run of the examples before the release,
+  so that the outputs are not regenerated at every pass
+  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
 - [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
   `skills/pybads/SKILL.md` that points a coding agent to the parts of the
   documentation relevant to its task, linked from the README.
