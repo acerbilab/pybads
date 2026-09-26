@@ -484,6 +484,33 @@ def _initialized_bads(D=2, **options):
     return bads, gp
 
 
+def test_gp_mean_starts_at_median_of_lowest_ceil_fraction(monkeypatch):
+    """The constant mean of the GP starts at the median of the lowest
+    `ceil(0.8 N)` initial targets, as in MATLAB's gpdefBads.m, and its
+    prior stays centred on the high-density set, the lowest `round(0.8 N)`.
+    The two differ at D = 4, whose N = 9 initial targets give 8 and 7."""
+    import pybads.bads.gaussian_process_train as gpt_module
+
+    seen = {}
+    original_gp_hyp = gpt_module._gp_hyp
+
+    def spy_gp_hyp(optim_state, options, plb, pub, gp, X, y, *args):
+        gp, hyp0, gp_s_N = original_gp_hyp(
+            optim_state, options, plb, pub, gp, X, y, *args
+        )
+        seen.update(y=y.ravel().copy(), hyp0=hyp0.copy())
+        seen["prior"] = gp.get_priors()["mean_const"][1][0].item()
+        return gp, hyp0, gp_s_N
+
+    monkeypatch.setattr(gpt_module, "_gp_hyp", spy_gp_hyp)
+    _initialized_bads(D=4)
+    y = np.sort(seen["y"])
+    assert y.size == 9
+    assert seen["hyp0"][-1] == np.median(y[:8])
+    assert seen["prior"] == np.median(y[:7])
+    assert np.median(y[:8]) != np.median(y[:7])
+
+
 def test_rebuild_substitutes_ill_defined_values():
     """An ill-defined target value in the training set of the local GP is
     replaced by the highest well-defined one, as in MATLAB's gpupdate.m.

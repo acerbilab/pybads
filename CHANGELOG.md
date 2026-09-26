@@ -83,7 +83,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Rosenbrock function the runs that reach the global minimum end 17 times
   closer to it. The mean itself is unbounded, as in MATLAB BADS: PyBADS
   bounded it by the range of the initial design's targets, which kept it
-  from following the re-centred prior.
+  from following the re-centred prior. The initial fit starts the mean at
+  the median of the lowest 80% of the initial targets, a count rounded up
+  as in MATLAB BADS, where PyBADS rounded it to the nearest.
 - **Length scales of the GP.** The upper bound of each log length scale of
   the Gaussian process was the largest length scale itself, up to 100,
   instead of its logarithm, as in MATLAB BADS, so that a length scale

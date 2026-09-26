@@ -964,6 +964,14 @@ def _gp_hyp(
         cov_x0[-1] = 0.0  # shape hyp.
 
     mean_x0 = mean_bounds_info["x0"]
+    # The constant mean starts at the median of the lowest
+    # ceil(hpd_frac * N) targets, as in MATLAB's gpdefBads.m (ceil(0.8 N));
+    # its prior, below, stays centred on the high-density set, the lowest
+    # round(hpd_frac * N)
+    mean_start = mean_x0.copy()
+    if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
+        n_low = math.ceil(options["hpd_frac"] * y.size)
+        mean_start[0] = np.median(np.sort(y, axis=None)[:n_low])
 
     noise_x0 = noise_bounds_info["x0"]
 
@@ -989,7 +997,7 @@ def _gp_hyp(
         noise_mu = np.log(noise_size)
 
     noise_x0[0] = noise_mu
-    hyp0 = np.concatenate([cov_x0, noise_x0, mean_x0])
+    hyp0 = np.concatenate([cov_x0, noise_x0, mean_start])
 
     # Missing port: output warping hyperparameters not implemented
 
