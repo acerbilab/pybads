@@ -88,6 +88,42 @@ def test_scalar_bounds_are_replicated(plausible):
 
 
 @pytest.mark.parametrize(
+    "x0, bounds, log",
+    [
+        ([5, 3], ([1, -10], [1000, 10], [2, -5], [500, 5]), [True, False]),
+        ([5, 3], ([1, -10], [1000, 10]), [True, False]),
+        ([5, 30], (1, 1000, 2, 500), [True, True]),
+        ([1, -2], (-10, 10, -5, 5), [False, False]),
+    ],
+    ids=[
+        "arrays",
+        "arrays_plausible_omitted",
+        "scalars_log",
+        "scalars_linear",
+    ],
+)
+def test_integer_bounds_are_taken_as_floats(x0, bounds, log):
+    """Integer-typed bounds and `x0`, arrays or scalars, are taken as the
+    same values as floats, as MATLAB's numbers are doubles: the log of the
+    bounds of a log-scaled variable is not truncated."""
+
+    def inputs(dtype):
+        return [
+            np.array(b, dtype) if isinstance(b, list) else dtype(b)
+            for b in (x0, *bounds)
+        ]
+
+    by_ints = BADS(_sphere, *inputs(int), options=OPTIONS)
+    by_floats = BADS(_sphere, *inputs(float), options=OPTIONS)
+    for bads in (by_ints, by_floats):
+        assert bads.var_transf.apply_log_t.tolist() == [log]
+    ints, floats = _bounds_of(by_ints), _bounds_of(by_floats)
+    for by_int, by_float in zip(ints, floats):
+        np.testing.assert_array_equal(by_int, by_float)
+    assert [by_int.dtype for by_int in ints] == [float] * len(ints)
+
+
+@pytest.mark.parametrize(
     "bounds, log, u_bounds, u0",
     [
         ((0.0, -5.0, 5.0), False, (-1.0, 1.0), 0.0),

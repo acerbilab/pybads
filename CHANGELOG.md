@@ -479,6 +479,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `bads:StrictBoundsTooClose` are gone. Results change on problems with the
   plausible bounds omitted or near a hard bound, or with a start near a hard
   bound.
+- **Integer bounds.** Bounds and `x0` given as integers, as integer arrays
+  or as an integer scalar such as `lower_bounds=1`, are taken as floats.
+  With integer bounds on a variable that BADS puts on a log scale, 1.1.0
+  truncated the logarithms of the bounds, so that the plausible box and the
+  hard bounds were mapped to the wrong range (the plausible box to [-0.77,
+  1.07] instead of [-1, 1] for `lb=1`, `plb=2`, `pub=500`, `ub=1000`).
+  Results change on such problems.
 
 ## [1.1.0] - 2026-09-25
 

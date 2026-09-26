@@ -467,6 +467,25 @@ class BADS:
                  need to be real valued."""
             )
 
+        # Floats, as MATLAB's doubles: VariableTransformer writes the log of
+        # the bounds in place, which an integer array would truncate
+        (
+            x0,
+            lower_bounds,
+            upper_bounds,
+            plausible_lower_bounds,
+            plausible_upper_bounds,
+        ) = (
+            np.asarray(array, dtype=float)
+            for array in (
+                x0,
+                lower_bounds,
+                upper_bounds,
+                plausible_lower_bounds,
+                plausible_upper_bounds,
+            )
+        )
+
         # Fixed variables (all bounds equal) are not supported
         fix_idx = (
             (lower_bounds == upper_bounds)
