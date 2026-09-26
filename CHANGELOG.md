@@ -294,6 +294,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   outliers in deterministic runs. It now counts the predictions, uses the
   quantiles and the standard deviation of an observation, the GP's noise
   included, as MATLAB BADS does. Results change at default options.
+- **Rebuilds of the local GP.** After the incumbent moved, PyBADS rebuilt
+  the local Gaussian process at every later search of the round and at
+  every step of the poll that followed, where MATLAB BADS rebuilds it once.
+  It now rebuilds it once, as MATLAB BADS does. Results change at default
+  options.
 
 ## [1.1.0] - 2026-09-25
 

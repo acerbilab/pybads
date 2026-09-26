@@ -1723,6 +1723,10 @@ class BADS:
                 refit_flag,
                 rng=self.rng,
             )
+            # The rebuild answers a move of the incumbent once, as in MATLAB
+            # BADS it fills the posterior that the move emptied (a failed
+            # rebuild is marked for the next step)
+            self.reset_gp = False
 
             if refit_flag:
                 self.gp_refitted_flag = True
@@ -2215,6 +2219,9 @@ class BADS:
                     refit_flag,
                     rng=self.rng,
                 )
+                # The rebuild answers a move of the incumbent (see the
+                # search step)
+                self.reset_gp = False
                 if refit_flag:
                     self.gp_refitted_flag = True
                 self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)

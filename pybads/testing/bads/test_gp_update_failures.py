@@ -587,17 +587,20 @@ def _probe(
     min_iter=0,
     on_first=None,
     state=None,
+    reset_gp=False,
     **options,
 ):
     """Runs a short optimization and probes its first `step_name` step that
     is due (the search: `search_count > 0`; both: `optim_state["iter"] >=
-    min_iter`), with `reset_gp` false and no refit due. It sets ``markers``
-    on the GP: in the search, on the GP the step is given; in the poll,
-    right after the rebuild of its first iteration, when it also calls
-    ``on_first``. Returns ``state``: the `refit_flag` of each call of
-    `local_gp_fitting` during the step (``calls``), whether each refit was
-    recorded at the evaluation count (``refit_recorded``), and whether the
-    GP statistics were reset (``gp_stats_reset``)."""
+    min_iter`), with `reset_gp` set to ``reset_gp`` (true as after a move of
+    the incumbent) and no refit due. It sets ``markers`` on the GP: in the
+    search, on the GP the step is given; in the poll, right after the
+    rebuild of its first iteration, when it also calls ``on_first``.
+    Returns ``state``: the `refit_flag` of each call of `local_gp_fitting`
+    during the step (``calls``), whether each refit was recorded at the
+    evaluation count (``refit_recorded``), whether the GP statistics were
+    reset (``gp_stats_reset``), and `reset_gp` after the step
+    (``reset_gp``)."""
     state = {} if state is None else state
     state.update(probing=False, done=False, calls=[], refit_recorded=[])
     poll = step_name == "_poll_step_"
@@ -646,7 +649,7 @@ def _probe(
         if not due:
             return original_step(self, gp)
         state["probing"] = state["done"] = True
-        self.reset_gp = False
+        self.reset_gp = reset_gp
         self._is_gp_refit_time_ = lambda alpha, refit_allowed=True: (
             False,
             False,
@@ -661,6 +664,7 @@ def _probe(
             del self._is_gp_refit_time_
             state["probing"] = False
             state["gp_stats_reset"] = self.gp_stats is not gp_stats
+            state["reset_gp"] = self.reset_gp
 
     monkeypatch.setattr(bads_module, "local_gp_fitting", spy_local)
     monkeypatch.setattr(BADS, step_name, step)
@@ -692,6 +696,23 @@ def test_search_refits_after_failed_rebuild(monkeypatch):
     assert state["gp_stats_reset"]
 
 
+def test_search_rebuild_answers_move(monkeypatch):
+    """After a move of the incumbent, the search rebuilds the GP, and the
+    rebuild answers the move, as in MATLAB BADS it fills the posterior that
+    the move emptied: a search that does not move the incumbent leaves no
+    rebuild to the next step."""
+    state = {}
+    original = BADS._eval_improvement_
+
+    def no_improvement(self, *args):
+        return -np.inf if state["probing"] else original(self, *args)
+
+    monkeypatch.setattr(BADS, "_eval_improvement_", no_improvement)
+    _probe(monkeypatch, "_search_step_", [], state=state, reset_gp=True)
+    assert state["calls"] == [False]
+    assert state["reset_gp"] is False
+
+
 def test_poll_rebuilds_marked_gp(monkeypatch):
     # The first rebuild, and one more for the marker, which it clears.
     state = _probe(
@@ -702,6 +723,15 @@ def test_poll_rebuilds_marked_gp(monkeypatch):
 
 def test_poll_leaves_unmarked_gp(monkeypatch):
     state = _probe(monkeypatch, "_poll_step_", [], **COMPLETE_POLL)
+    assert state["calls"] == [False]
+
+
+def test_poll_rebuilds_once_after_move(monkeypatch):
+    """After a move of the incumbent, the poll rebuilds the GP once, in its
+    first iteration, not in every one."""
+    state = _probe(
+        monkeypatch, "_poll_step_", [], reset_gp=True, **COMPLETE_POLL
+    )
     assert state["calls"] == [False]
 
 
