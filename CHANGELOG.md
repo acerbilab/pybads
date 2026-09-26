@@ -36,6 +36,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a deterministic one, without the final samples of a noisy run.
 - `BADS` raises `ValueError` for a `max_fun_evals` that is not a positive
   integer, such as `30.5` or the string `"200*D"`.
+- The options whose default is `True` or `False`, and
+  `uncertainty_handling`, take only booleans: `BADS` raises `ValueError` for
+  `0`, `1`, `"on"`, `"off"` or any other value. A user value of `None`
+  stands for the option's default: `nonlinear_scaling=None`, for instance,
+  keeps the log transform on.
 
 ### Changed
 
@@ -75,6 +80,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   integer; 1.1.0 stopped `optimize()` with an unrelated error for 0 or a
   negative value, and made 31 evaluations for 30.5. An
   `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
+- **`None` and boolean options.** A user value of `None` stands for the
+  option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
+  itself, so that `nonlinear_scaling=None` turned the log transform off and
+  a numeric option set to `None` stopped the run. The options whose default
+  is `True` or `False`, and `uncertainty_handling`, take only `True` or
+  `False` (NumPy booleans included), and `BADS` raises `ValueError` for any
+  other value; 1.1.0 read any value as true or false by Python's rules, so
+  that MATLAB's `"off"` was true.
 
 ### Fixed
 

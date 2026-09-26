@@ -232,6 +232,13 @@ class BADS:
             evaluation_parameters={"D": self.D},
         )
         self.options.validate_option_names([basic_path, advanced_path])
+        # uncertainty_handling is None (the default), True or False; plot
+        # also takes the names of MATLAB BADS's plots
+        self.options.validate_boolean_options(
+            [basic_path, advanced_path],
+            extra_names=("uncertainty_handling",),
+            excluded_names=("plot",),
+        )
 
         if self.options["stobads"] is None or self.options["stobads"] == False:
             self.options["stobads"] = False
