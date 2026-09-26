@@ -81,7 +81,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with condition number 1e6, the median error of 30 seeded runs falls by a
   factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
   Rosenbrock function the runs that reach the global minimum end 17 times
-  closer to it.
+  closer to it. The mean itself is unbounded, as in MATLAB BADS: PyBADS
+  bounded it by the range of the initial design's targets, which kept it
+  from following the re-centred prior.
 - **Length scales of the GP.** The upper bound of each log length scale of
   the Gaussian process was the largest length scale itself, up to 100,
   instead of its logarithm, as in MATLAB BADS, so that a length scale

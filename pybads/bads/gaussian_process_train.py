@@ -1040,13 +1040,14 @@ def _gp_hyp(
     if isinstance(gp.mean, gpr.mean_functions.ZeroMean):
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
-        # Lower maximum constant mean. A single target, or targets with no
-        # spread, take the SD 1 (gpyreg refuses a zero SD)
+        # The constant mean is unbounded, as in MATLAB's gpdefBads.m: its
+        # prior is re-centred at each rebuild. A single target, or targets
+        # with no spread, take the SD 1 (gpyreg refuses a zero SD)
         sd = np.std(hpd_y) if len(hpd_y) > 1 else 0.0
         if not sd > 0:
             sd = 1.0
         priors["mean_const"] = ("gaussian", (mean_x0, sd))
-        bounds["mean_const"] = (mean_bounds_info["LB"], mean_bounds_info["UB"])
+        bounds["mean_const"] = (-np.inf, np.inf)
 
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):
         if options["gp_quadratic_mean_bound"]:

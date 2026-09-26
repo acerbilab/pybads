@@ -20,6 +20,7 @@ from pybads.bads.gaussian_process_train import (
     init_and_train_gp,
     local_gp_fitting,
 )
+from pybads.stats import get_hpd
 
 
 def test_get_fevals_data_no_noise():
@@ -695,6 +696,35 @@ def test_rebuild_with_single_target_keeps_output_scale_prior():
     assert kind == "gaussian"
     assert mu.item() == previous[1][0].item()
     assert sigma.item() == 2.0
+
+
+def test_refit_on_targets_below_initial_design_fits_mean_below_them():
+    """The constant mean of the GP is unbounded, as in MATLAB's
+    gpdefBads.m: a refit on local targets far below those of the initial
+    design fits a mean below the lower bound that gpyreg recommends for the
+    initial design, which bounded it all run."""
+    bads, gp = _initialized_bads()
+    logger = bads.function_logger
+    X, Y = logger.X[logger.X_flag], logger.Y[logger.X_flag]
+    hpd_X, hpd_y, _, _ = get_hpd(X, Y, bads.options["hpd_frac"])
+    initial_lower = gp.mean.get_bounds_info(hpd_X, hpd_y)["LB"].item()
+    logger.Y[logger.X_flag] -= 1e3
+    gp, exit_flag = local_gp_fitting(
+        gp,
+        bads.u,
+        logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        True,
+        rng=bads.rng,
+    )
+    assert exit_flag == 1
+    assert np.max(gp.y) < initial_lower
+    mean = gp.get_hyperparameters()[0]["mean_const"].item()
+    assert np.min(gp.y) < mean < initial_lower
+    lower, upper = gp.get_bounds()["mean_const"]
+    assert lower.item() == -np.inf and upper.item() == np.inf
 
 
 def test_thin_feasible_region_runs():
