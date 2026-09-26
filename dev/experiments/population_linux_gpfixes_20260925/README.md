@@ -1,9 +1,9 @@
 # Reference population on Linux after three fixes to the GP: the default suite, 30 seeds, gpyreg 1.3.3
 
 The reference on Linux for `dev/scripts/population.py compare` until a
-later reference replaces it (the one on Windows,
-[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md),
-predates the three fixes): 18 configurations of the `default` suite of
+later reference replaces it (the one on Windows is
+[`population_gpfixes_20260925`](../population_gpfixes_20260925/README.md),
+at `ab4dded`): 18 configurations of the `default` suite of
 `dev/scripts/benchmark_targets.py` × seeds 0-29, each run at BADS's default
 budget (500 D) and ending on BADS's own termination criteria, every random
 draw through the run's `numpy.random.Generator`, with gpyreg 1.3.3. It
