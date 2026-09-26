@@ -836,6 +836,34 @@ class BADS:
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
 
+        # The checks of MATLAB BADS's setupoptions.m: max_fun_evals is a
+        # positive integer (or inf); a whole-number float is converted
+        max_fun_evals = self.options["max_fun_evals"]
+        if (
+            isinstance(max_fun_evals, (bool, np.bool_))
+            or not isinstance(
+                max_fun_evals, (int, float, np.integer, np.floating)
+            )
+            or not max_fun_evals > 0
+            or (
+                np.isfinite(max_fun_evals)
+                and not float(max_fun_evals).is_integer()
+            )
+        ):
+            raise ValueError(
+                "options['max_fun_evals'] needs to be a positive integer, "
+                f"not {max_fun_evals!r}."
+            )
+        if np.isfinite(max_fun_evals):
+            self.options["max_fun_evals"] = int(max_fun_evals)
+        if self.options["improvement_quantile"] > 0.5:
+            self.logger.warning(
+                "options['improvement_quantile'] is greater than 0.5. This "
+                "might produce unpredictable behavior. Set "
+                "options['improvement_quantile'] < 0.5 for conservative "
+                "improvement."
+            )
+
         # Copy maximum number of fcn. evaluations,
         # used by some acquisition fcns.
         optim_state["max_fun_evals"] = self.options.get("max_fun_evals")

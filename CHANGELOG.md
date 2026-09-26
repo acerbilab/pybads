@@ -34,6 +34,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - With `uncertainty_handling` left empty, a target whose two evaluations at
   the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
   a deterministic one, without the final samples of a noisy run.
+- `BADS` raises `ValueError` for a `max_fun_evals` that is not a positive
+  integer, such as `30.5` or the string `"200*D"`.
 
 ### Changed
 
@@ -67,6 +69,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   docstring also says that a feasible region thinner than the mesh can
   resolve, such as a narrow band, can end a run early near `x0`, and how to
   reparametrize it.
+- **Checks of `max_fun_evals` and `improvement_quantile`.** `BADS` raises
+  `ValueError` when `max_fun_evals` is not a positive integer (or infinite),
+  as MATLAB BADS does, and converts a float that is a whole number to an
+  integer; 1.1.0 stopped `optimize()` with an unrelated error for 0 or a
+  negative value, and made 31 evaluations for 30.5. An
+  `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
 
 ### Fixed
 
