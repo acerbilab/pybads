@@ -272,6 +272,11 @@ def local_gp_fitting(
     and ``["needs_refit"]`` are set, so that the next search or poll step
     rebuilds the local GP with a refit. A call that leaves a posterior on
     the new training set removes both markers.
+
+    After a refit, the geometry that the poll and the search read from
+    ``gp.temporary_data`` (``"len_scale"``, ``"poll_scale"`` and
+    ``"effective_radius"``) is that of the hyperparameters the GP holds on
+    return, the refit's or the previous ones.
     """
     rng = get_rng(rng)
 
@@ -475,10 +480,43 @@ def local_gp_fitting(
             options,
             rng,
         )
-        dic_hyp_gp = gp.hyperparameters_to_dict(hyp_gp)
+    else:
+        hyp_gp = old_hyp_gp
 
+    # Recompute posterior
+    try:
+        gp.update(hyp=hyp_gp)
+    except np.linalg.LinAlgError:
+        # Posterior GP update failed (due to Cholesky decomposition)
+        logger.debug(
+            "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
+        )
+        gp.set_priors(old_priors)
+        exit_flag = -2
+        try:
+            gp.set_hyperparameters(old_hyp_gp)
+        except np.linalg.LinAlgError:
+            # Without a refit, `hyp_gp` is `old_hyp_gp`, and this repeats
+            # the computation that failed. Back to the GP of the entry, in
+            # place, marked for a rebuild with a refit (MATLAB's gpupdate
+            # clears the posterior, which has the next step rebuild it).
+            logger.debug(
+                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
+            )
+            vars(gp).clear()
+            vars(gp).update(entry_state)
+            gp.temporary_data.clear()
+            gp.temporary_data.update(entry_temporary_data)
+            gp.temporary_data["needs_rebuild"] = True
+            gp.temporary_data["needs_refit"] = True
+            return gp, exit_flag
+
+    if refit_flag:
+        # Update after fitting, from the hyperparameters the GP holds:
+        # the refit's, or the previous ones if the posterior could not be
+        # computed with the refit's
+        dic_hyp_gp = gp.get_hyperparameters()
         hyp_n_samples = len(dic_hyp_gp)
-        # Update after fitting
         # Gaussian process length scale: MATLAB's sum over the samples
         # weighted by `hypweight` (gpupdate.m), with equal weights
         if len(dic_hyp_gp[0]["covariance_log_lengthscale"]) > 1:
@@ -534,38 +572,8 @@ def local_gp_fitting(
                 gp.temporary_data["effective_radius"] = np.sqrt(
                     alpha * (np.exp(1 / alpha) - 1)
                 )
-    else:
-        hyp_gp = old_hyp_gp
 
-    # Matlab defines the signal variability in the GP, but is never used.
-
-    # Recompute posterior
-    try:
-        gp.update(hyp=hyp_gp)
-    except np.linalg.LinAlgError:
-        # Posterior GP update failed (due to Cholesky decomposition)
-        logger.debug(
-            "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
-        )
-        gp.set_priors(old_priors)
-        exit_flag = -2
-        try:
-            gp.set_hyperparameters(old_hyp_gp)
-        except np.linalg.LinAlgError:
-            # Without a refit, `hyp_gp` is `old_hyp_gp`, and this repeats
-            # the computation that failed. Back to the GP of the entry, in
-            # place, marked for a rebuild with a refit (MATLAB's gpupdate
-            # clears the posterior, which has the next step rebuild it).
-            logger.debug(
-                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
-            )
-            vars(gp).clear()
-            vars(gp).update(entry_state)
-            gp.temporary_data.clear()
-            gp.temporary_data.update(entry_temporary_data)
-            gp.temporary_data["needs_rebuild"] = True
-            gp.temporary_data["needs_refit"] = True
-            return gp, exit_flag
+        # Matlab defines the signal variability in the GP, but is never used.
 
     gp.temporary_data.pop("needs_rebuild", None)
     gp.temporary_data.pop("needs_refit", None)

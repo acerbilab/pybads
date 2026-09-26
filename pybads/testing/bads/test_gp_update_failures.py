@@ -442,6 +442,43 @@ def test_local_fit_recovered_failure_is_unchanged(captured, inject):
     assert not any(gp.temporary_data.get(m, False) for m in MARKERS)
 
 
+def test_local_fit_recovered_failure_has_geometry_of_old_hyperparameters(
+    captured, inject
+):
+    """After the recovery from a failed posterior update after a refit, the
+    geometry that the poll and the search read is that of the old
+    hyperparameters, which the GP holds, not the refit's."""
+    level, c = captured
+    inject(lambda call: call.site == "local_gp_fitting" and call.n == 1)
+    gp = copy.deepcopy(c.local["gp"])
+    _, exit_flag = _local_fit(c, gp, True)
+    assert exit_flag == -2
+    (hyp,) = gp.get_hyperparameters()
+    state, options = c.bads.optim_state, c.bads.options
+    # The rescaled length scales over their geometric mean, clipped to the
+    # search mesh and to the box (whose bounds are finite here)
+    log_scale = options["gp_rescale_poll"] * hyp["covariance_log_lengthscale"]
+    poll_scale = np.clip(
+        np.exp(log_scale - np.mean(log_scale)),
+        state["search_mesh_size"],
+        ((state["ub"] - state["lb"]) / state["scale"]).ravel(),
+    )
+    alpha = np.exp(hyp["covariance_log_shape"])
+    np.testing.assert_allclose(
+        gp.temporary_data["len_scale"],
+        np.exp(hyp["covariance_log_lengthscale"]),
+        rtol=1e-12,
+    )
+    np.testing.assert_allclose(
+        gp.temporary_data["poll_scale"], poll_scale, rtol=1e-12
+    )
+    np.testing.assert_allclose(
+        gp.temporary_data["effective_radius"],
+        np.sqrt(alpha * (np.exp(1 / alpha) - 1)),
+        rtol=1e-12,
+    )
+
+
 def test_local_fit_success_clears_markers(captured):
     level, c = captured
     gp = copy.deepcopy(c.local["gp"])
