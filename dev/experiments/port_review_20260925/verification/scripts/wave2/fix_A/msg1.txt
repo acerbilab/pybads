@@ -1,0 +1,7 @@
+fix: a problem that mixes bounded and unbounded variables is accepted; only a half-bounded variable is refused (W2-1)
+
+The half-bounds check of _bounds_check_ was `any(isfinite(lb)) and any(~isfinite(ub)) or any(~isfinite(lb)) and any(isfinite(ub))`, taken across all the variables, so any problem with one fully bounded and one fully unbounded variable raised bads:HalfBounds, against the docstring ("Set lb[i] = -inf and ub[i] = inf if the i-th coordinate is unbounded (while other coordinates may be bounded)") and the check's own message, which mean a test per variable. MATLAB BADS has no such check (boundscheck.m) and accepts the mix. The test is now per variable, `np.any(np.isfinite(lb) != np.isfinite(ub))`: a variable bounded on one side only is still refused, with the same message (W2-2 is to lift that). The transform and W1-1's limits of the poll scale already take infinite bounds variable by variable. AGENTS.md, "MATLAB logicals", gains the check as the second instance of the slip it describes, the other way round.
+
+test_mixed_bounded_and_unbounded_variables (test_bads_inputs.py, a new file for the inputs of BADS): lb = [0, -inf], ub = [1, inf] is accepted and a 100-evaluation run finds the minimum (it raised bads:HalfBounds); test_half_bounded_variable_is_refused: a variable bounded below or above only is still refused. Only inputs refused so far reach the change: fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

@@ -1,0 +1,7 @@
+docs: the Raises section of BADS says when a missing x0 is refused (W2-9)
+
+The section said that BADS raises ValueError "when neither x0 or (plausible_lower_bounds and plausible_upper_bounds) are specified". Since 9037851, __init__ takes a missing plausible bound from the hard bound before it tests x0, so x0=None with only lower_bounds and upper_bounds is accepted and the start is drawn between them. The PI ruled to keep accepting it (the docstring advises plb = lb and pub = ub "where in doubt", and the code defaults to exactly that), and to correct the section: a missing x0 is refused when neither the lower plausible bound nor the lower hard bound is given, or neither of the upper ones. MATLAB BADS refuses x0 = [] without PLB and PUB (bads.m:331-342); this is a departure from it, by the ruling.
+
+A docstring only, no test. Fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
