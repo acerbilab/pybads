@@ -27,6 +27,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   evaluation fewer, and a noisy target is optimized as a deterministic one.
 - `BADS` raises `ValueError` for a `gp_mean_fun` other than `"const"` or
   `"zero"`, `"negquad"` included.
+- `BADS` raises `ValueError` for a `gp_cov_prior` other than `"iso"`,
+  `"ard"` included, which 1.1.0 accepted and ignored.
 
 ### Changed
 
@@ -39,6 +41,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   accepted ten more: nine stopped the run when the Gaussian process was
   built, and `"negquad"`, a concave mean made for log densities, has the
   wrong shape for a minimizer and could stop the run at a failed fit.
+- **Prior over the GP length scales.** `gp_cov_prior` accepts only
+  `"iso"`, the default, and `BADS` refuses any other value when it is
+  created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
+  implement, and any other value, and then kept the initial prior over the
+  length scales for the whole run.
 
 ### Fixed
 

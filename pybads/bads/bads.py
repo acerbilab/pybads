@@ -940,6 +940,14 @@ class BADS:
             )
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 
+        # MATLAB's per-dimension empirical prior over the length scales,
+        # 'ard' (gpdefBads.m), is not ported
+        if self.options.get("gp_cov_prior") != "iso":
+            raise ValueError(
+                "options['gp_cov_prior'] should be 'iso' (an empirical prior "
+                "shared by the GP length scales); 'ard' is not supported."
+            )
+
         return optim_state
 
     def _variable_transformer_(self):
