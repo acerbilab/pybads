@@ -2340,7 +2340,7 @@ class BADS:
                 self.options["max_poll_grid_number"],
             )
 
-            self.optim_state["u_success"].append(self.u_best.copy)
+            self.optim_state["u_success"].append(self.u_best.copy())
             self.optim_state["y_success"].append(self.yval)
             self.optim_state["f_success"].append(self.fval)
         else:

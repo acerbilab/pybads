@@ -175,3 +175,14 @@ def test_gamma_uncertain_interval_is_keyword_only():
         _sphere, *_box(), options=options, gamma_uncertain_interval=2.0
     )
     assert bads.gamma_uncertain_interval == 2.0
+
+
+def test_successful_points_are_recorded_as_arrays():
+    """`optim_state["u_success"]` holds the points of the successful searches
+    and polls, as arrays. Without searches, every success is a poll's."""
+    bads = _make_bads(search_n_try=0)
+    bads.optimize()
+    successes = bads.optim_state["u_success"]
+    assert len(successes) > 0
+    for u in successes:
+        assert isinstance(u, np.ndarray) and u.size == D
