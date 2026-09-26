@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-25. The list describes scope, not priority or execution
+Updated 2026-09-26. The list describes scope, not priority or execution
 order.
 
 - [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
@@ -190,6 +190,26 @@ order.
   (`experiments/port_review_20260925/verification/wave1.md`), PyBADS
   refuses the value with a message instead. A port needs its own population
   comparison with the option set.
+- [ ] **Prior evaluations (`fun_values`).** MATLAB BADS imports
+  evaluations made before the run into its log and its GP
+  (`private/setupvars.m:126-167`, `private/funlogger.m`) and takes its
+  first incumbent from `x0` and the initial design only
+  (`private/evalinitmesh.m:120-123`). PyBADS's `fun_values` never worked,
+  and by the ruling on row W2-6 of the port review
+  (`experiments/port_review_20260925/verification/wave2.md`) a non-empty
+  value is refused with a message. A port imports them after the function
+  logger exists, keeps them out of the choice of the first incumbent, and
+  needs a test that its GP holds them.
+- [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
+  only `x0` feasible (the thin band of row W2-37 of the port review), the
+  GP is fitted on one point: gpyreg's bounds helper replaces the targets by
+  `[0, 1]`, so the mean's prior at the initial fit is centred at 0.5
+  whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
+  while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
+  log of zero and a variance with no degrees of freedom (wave 2's
+  verifiers, `verification/wave2.md`, "Found while verifying"). Slice B6,
+  whose wave has passed: decide the priors and bounds of such a GP, in
+  PyBADS or in gpyreg, with a test on the thin band.
 - [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
   `skills/pybads/SKILL.md` that points a coding agent to the parts of the
   documentation relevant to its task, linked from the README.

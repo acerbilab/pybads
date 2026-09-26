@@ -203,3 +203,137 @@ slice, or is proposed here.
   Slice B3, wave 3.
 - At level 2 with one final sample the final message prints an array,
   `[0.345]`, where MATLAB prints a number (B2 verifier). With W2-41.
+
+## Rulings (PI, 2026-09-26)
+
+The orchestrator proposed a disposition for every row, following its
+verifier's recommendation unless the row says why not. Before the ruling it
+set out the ten rows left to the PI with their context and a
+recommendation each (W2-2, W2-5, W2-11, W2-13, W2-19, W2-25, W2-32, W2-33,
+W2-36, W2-37), and revised two of the rows' proposals: W2-5 from "keep" to a
+relative tolerance, since the absolute test fails from rounding alone on
+bounds where the transform is exact to machine precision, and W2-9 from
+"refuse" to "keep accepting it", since the docstring advises `plb = lb`
+where in doubt and the code defaults to exactly that. The PI accepted every
+recommendation, the two revisions included. As in waves 0 and 1, a fix is
+one commit per row on the wave's branch, with a test that fails at
+`fef6c14` and passes at the commit, and a changelog line in every commit a
+user can notice; a stricter interface also has an "Upgrading from" line.
+The fix pass is not started.
+
+**Fix, moving nothing** (each under the fingerprint):
+
+- W2-1: the half-bounds test per variable; the example of `AGENTS.md`,
+  "MATLAB logicals", gains this instance.
+- W2-3: scalar bounds broadcast to (1, D).
+- W2-5 (revised): the transform's self-test with a relative tolerance,
+  `1e-6 · max(1, |b|)`; it only accepts bounds refused today. An entry in
+  `matlab_side_defects.md`, as a shared defect that PyBADS fixes.
+- W2-6: a non-empty `fun_values` refused with a message; the port is a
+  `TODO.md` item.
+- W2-7: `f_vals` refused with a message, and KD-B1-4 corrected.
+- W2-8: a multi-row `x0` refused, and the estimation of the plausible bounds
+  from a starting set removed.
+- W2-9 (revised): `x0=None` with only `lb` and `ub` stays accepted (with
+  W2-4, the start is then drawn in the transformed hard box); the "Raises"
+  section of `BADS` is corrected.
+- W2-10: `non_box_cons`'s output accepted as (N,) or (N, 1) and refused
+  otherwise with a message; the docstring's example written in Python, and
+  the contract (N×D in, one violation per row out) stated.
+- W2-11: a random start that violates `non_box_cons` is redrawn in the
+  plausible box, up to 1000 draws, then today's error; runs whose first draw
+  is feasible use the same draws. An entry in `matlab_side_defects.md`.
+- W2-12 and W2-13: `status` is MATLAB's exit flag (0 at the budget, the
+  iteration limit or a stop by the output function; 1 at `tol_mesh`; 2 on
+  the stall criterion), KD-B1-8 corrected, and `success = status > 0`. All
+  540 runs of the Linux reference end on the stall criterion (407) or
+  `tol_mesh` (133), so no default run changes `success`; a run that ends on
+  a limit the user set reports False (an "Upgrading from" line). A
+  deterministic result's `fsd`, the `int` 0 ("Found while verifying"), is
+  traced and made a float in the same commit.
+- W2-14: `fun` and `non_box_cons` kept by reference in the result.
+- W2-15: MATLAB's display levels (the first three letters, lower case), with
+  the opening and final messages above the iteration lines; `"full"` in the
+  option's description.
+- W2-17: `tol_noise = sqrt(eps) · tol_fun`, and the description's typo; a
+  test with a nearly deterministic target.
+- W2-18: a `max_fun_evals` that is not a positive integer refused, and a
+  warning for `improvement_quantile > 0.5`.
+- W2-19: a user value of `None` stands for the default (for the options
+  whose default is `None`, nothing changes), and the boolean options refuse
+  a non-boolean with a message; MATLAB's `'on'`/`'off'` are not converted,
+  since KD-B1-3 settles that values are used verbatim. KD-B1-3 updated.
+- W2-20: `overhead` counts the final samples and the merged level-2
+  repeats; the noise test stays out, as in MATLAB.
+- W2-22 and W2-23: the descriptions of the option files (whole, present,
+  without MATLAB's quotes); W2-24: `search_n_try` cast to `int` in the same
+  commit.
+- W2-27: the initial design capped after its rounding, at the evaluations
+  left with the noise test counted, and the reserve for the final samples
+  floored at 0; an entry in `matlab_side_defects.md` for the uncounted noise
+  test. Whether the doubling stays is W0-18's question, wave 4.
+- W2-28: `sloppy_improvement=False`.
+- W2-31: the display's actions built per poll.
+- W2-34: `yval_vec` of shape (2,) with one final sample at level 1; the
+  number, not an array, in the final message at level 2 ("Found while
+  verifying").
+- W2-38: `IterationHistory` grows without the deep copy; the unread
+  `optim_state["lastreeval"]` goes in the same commit.
+- W2-2: half-bounded variables supported as MATLAB, after W2-4 and W2-1;
+  tests with and without the log transform, and a check of a few seeds on a
+  half-bounded problem before the commit (not a gate), for code paths that
+  have not met a one-sided infinity.
+
+**Fix, moving results**, in this order, each ending in a population
+comparison on Linux against `population_linux_wave1_20260926`, whose
+environment this sandbox has (the fingerprint at `fef6c14` is its
+`91f947f78e1087c2`), against the end of the step before; the fingerprint
+recorded at every commit:
+
+1. W2-16: the floor `search_factor_min` on the search factor after a failed
+   search (B3's code), at default.
+2. W2-29: the accelerated mesh reduction tested from MATLAB's iteration
+   (B4's code), at default.
+3. W2-25 (PI: (b)): the incumbent moves with its value
+   (`_update_incumbent_`), and the dead `best_u` line goes; a comparison of
+   the noisy configurations. If it flags a worsening, the row comes back to
+   the PI, and MATLAB's behaviour goes on the sheet. An entry in
+   `matlab_side_defects.md`.
+4. W2-4: the effective bounds removed, MATLAB's checks kept, I-F3's
+   direction not adopted; with it the start of `±inf` that MATLAB replaces
+   by a random point ("Found while verifying"), after a check that it holds.
+   The benchmark does not reach the change: its gate is a comparison on a
+   suite of its own (bounded problems with `plb`/`pub` omitted, a
+   log-scaled variable, a start on a bound), with the fingerprint
+   unchanged. W2-2 follows it.
+
+**Keep, and record:**
+
+- W2-26: kept, as MATLAB; revisited with W2-25 if its comparison says so.
+- W2-30: kept, on the sheet (KD-B2-4, the current iterate's estimate after
+  a failed rebuild, by the ruling on W1-35).
+- W2-32 (PI: keep 0): a run that ends in its initialization reports 0
+  iterations; KD-B1-8 corrected to say so.
+- W2-33: kept, on the sheet (the stop's message, a false return at
+  `"init"`, the timing of the `"init"` call).
+- W2-35: `min_iter` and `min_fun_evals` on KD-B1-5 (d).
+- W2-36 (PI: keep MATLAB's): a shared design observation in
+  `matlab_side_defects.md`; if W2-25's comparison moves the noisy runs, it
+  can be measured as a separate step.
+- W2-37 (PI: document): the documentation of `non_box_cons` says that a
+  feasible region thinner than the mesh can resolve ends the run early, and
+  suggests a reparametrization. MATLAB's GP on one point is not needed for
+  this disposition, so no MATLAB run is written up.
+- W2-39: the NaN estimates on the `IterationHistory` documentation page.
+- W2-21 and W2-40: the survey's rows corrected.
+- W2-41, W2-42 (the descriptions of `max_iter` and `tol_stall_iters` say
+  that a round counts once begun), W2-43, W2-44: kept.
+- The sheet also gains the refusal of a start that `non_box_cons` rejects
+  once on the grid (`1bee482`), and the minor records of "Notes on the
+  reports" are corrected in the docstrings of the pass.
+
+**Out of this pass:** `force_to_grid`'s rounding of halves and the order of
+`contraints_check`'s candidates go to slice B3, wave 3, which has its pass
+ahead. gpyreg's `get_bounds_info` on a one-point training set belongs to
+B6, whose wave has passed: a `TODO.md` line, with wave 1's note on the same
+helper. The `fun_values` port is a `TODO.md` line (W2-6).

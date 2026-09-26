@@ -594,6 +594,16 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   is B3's; (c) no longer holds. Two findings are in later slices' code
   (W2-16, B3; W2-29, B4) and are proposed for this wave's fix pass. The
   sweep after the wave was clean (only `__pycache__`, removed).
+- [x] 2026-09-26: wave 2 triaged (PI; the rulings in
+  `verification/wave2.md`). The orchestrator set out the ten rows left open
+  with a recommendation each and revised two proposals (W2-5 to a relative
+  tolerance, W2-9 to keep accepting a missing `x0` with only hard bounds);
+  the PI accepted every recommendation. W2-25 moves the incumbent with its
+  value, a departure from MATLAB under a comparison of the noisy
+  configurations; W2-16 and W2-29, in slices B3 and B4, are fixed in this
+  wave's pass; W2-4's gate needs a suite of its own. Two `TODO.md` lines:
+  the port of `fun_values`, and the GP on a one-point training set (B6).
+  The fix pass is not started.
 - [ ] Waves 3 and 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.
