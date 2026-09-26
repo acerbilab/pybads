@@ -3,8 +3,8 @@
 It predates `032dfcb`, `8afbe16` and `97b2c66`, which change the runs of
 every configuration (by how much, on Linux:
 [`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md)),
-so it no longer stands for the current code; `dev/TODO.md` lists the
-replacement.
+so it no longer stands for the current code; its replacement is
+[`population_gpfixes_20260925`](../population_gpfixes_20260925/README.md).
 
 The reference on Windows for `dev/scripts/population.py compare` at
 `c044fea` (the one on Linux, at `1c8c71d`, is

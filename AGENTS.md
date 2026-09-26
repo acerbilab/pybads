@@ -182,7 +182,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   through `self.get(...)`; the dict is used verbatim, so a user's `"200*D"`
   stays a string. An unknown name raises `ValueError`, so a new option
   starts as a `# description` line followed by `name = <expr>` in the right
-  `.ini`. Options stay mutable: a noisy run rewrites several of them
+  `.ini`; the description is the last comment line above the option, so it
+  fits on one line. Options stay mutable: a noisy run rewrites several of them
   (`tol_stall_iters`, `n_train_min`, `n_train_max`, `max_fun_evals` and
   others) at the start of `optimize()`, so a `BADS` object runs once.
 - **Many options do nothing.** Some are PyVBMC or MATLAB leftovers that no

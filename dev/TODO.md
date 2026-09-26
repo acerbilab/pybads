@@ -55,13 +55,6 @@ order.
 
   The survey's subsection "Found while fixing the tests" also records the
   defect.
-- [ ] **A Windows reference after `97b2c66`.** `8afbe16` (the GP mean prior)
-  and `97b2c66` (the bound of the GP length scales) change the runs of
-  every configuration, and `032dfcb` those with target noise, so
-  `experiments/population_targetnoise_20260925/` no longer stands for the
-  current code on Windows. The replacement is the default suite at 30
-  seeds on Windows, with its null check, as for the Linux reference
-  (`experiments/population_linux_gpfixes_20260925/`).
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
@@ -96,7 +89,8 @@ order.
   - the high-noise check of `local_gp_fitting` reads `noise_size` under
     `specify_target_noise`, where the warning says that it is ignored, and
     `noise_size=0` makes every refit a high-noise one; MATLAB does the
-    same, so this one needs a decision more than a fix;
+    same, so this one needs a decision: keep MATLAB's check and reword
+    the warning, or skip the check under target noise;
   - the reported `iterations` is one below MATLAB's count;
   - `output_fcn` is called only at the start, with two arguments where
     MATLAB passes three, and one that stops the run there raises
@@ -129,7 +123,10 @@ order.
   - a run of MATLAB BADS on this problem, which would show whether correct
     noise handling alone gives such runs;
   - the bounds of the GP mean, which the port fixes by the initial design
-    and MATLAB leaves infinite (a row of the survey's candidate table).
+    and MATLAB leaves infinite (a row of the survey's candidate table);
+    since `8afbe16` the prior of the mean can fall outside them, which
+    makes the log prior NaN in the fits of 67 runs of the Windows reference
+    ([experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
