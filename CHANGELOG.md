@@ -251,11 +251,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `ValueError: cannot convert float NaN to integer`, and with a smaller
   budget its Gaussian-process fits no longer start from up to 968 random
   points, above `gp_train_n_init`.
-- **Retries of a failed GP fit.** When all ten tries of a fit of the
-  Gaussian process's hyperparameters fail, the fit keeps the best of its
-  starting points, as MATLAB BADS does, where 1.1.0 could stop with
-  `UnboundLocalError`. With `use_slice_sampler=True`, each retry samples its
-  start on the points that it fits, not on all of them.
+- **Retries of a failed GP fit.** A failed fit of the Gaussian process's
+  hyperparameters is retried as in MATLAB BADS. The lower bound of the
+  noise rises by `noise_nudge[1]` at each failure, which is not at all at
+  the default `[1, 0]`; 1.1.0 raised it by 1, then by 2 more, 3 more and so
+  on, and stopped the run with `ValueError` at the fifth failure (the third
+  with `use_slice_sampler=True`). When all ten tries fail, the fit keeps the
+  best of its starting points. With `use_slice_sampler=True`, each retry
+  samples its start on the points that it fits, not on all of them.
 
 ## [1.1.0] - 2026-09-25
 

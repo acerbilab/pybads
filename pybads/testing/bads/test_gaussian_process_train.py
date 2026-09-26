@@ -757,3 +757,59 @@ def test_robust_fit_every_try_failed_returns_best_start(
     _, hyp, _, flag = _robust_fit(refit_case, starts, noise_nudge=nudge)
     assert flag == -1
     assert np.array_equal(hyp, in_bounds[:1])
+
+
+@pytest.mark.parametrize(
+    "noise_nudge, bound_nudge",
+    [(np.array([1, 0]), 0.0), (np.array([1]), 0.5)],
+    ids=["default", "one_element"],
+)
+def test_robust_fit_noise_nudge(
+    monkeypatch, refit_case, noise_nudge, bound_nudge
+):
+    """After each failure, the start of the noise is raised by the
+    cumulative `noise_nudge[0]`, and its lower bound from the bound at entry
+    by `noise_nudge[1]` per failure, as in MATLAB's gpHyperOptimize.m, which
+    completes a one-element nudge with half of it for the bound. At the
+    default [1, 0] the bound stays in place, and the fifth failure no longer
+    raises the bound above the upper one."""
+    _, gp, _ = refit_case
+    i_noise = gp.covariance.hyperparameter_count(gp.D)
+    lb0 = gp.lower_bounds[i_noise]
+    # A start with the noise at its lower bound, from which each retry
+    # starts, with the noise raised by its nudge
+    hyp = gp.get_hyperparameters(as_array=True)
+    hyp[0, i_noise] = lb0
+    monkeypatch.setattr(
+        gaussian_process_train,
+        "_get_random_samples_from_priors_",
+        lambda gp, rng=None: hyp.copy(),
+    )
+    calls = _inject_fit_failures(monkeypatch, 6)
+    _robust_fit(refit_case, hyp, noise_nudge=noise_nudge)
+    assert len(calls) == 7
+    for k, call in enumerate(calls):
+        assert np.isclose(call["lower_bounds"][i_noise], lb0 + k * bound_nudge)
+        assert np.isclose(call["hyp0"][0, i_noise], lb0 + k)
+
+
+def test_robust_fit_slice_sampler_starts_within_bounds(
+    monkeypatch, refit_case
+):
+    """With `use_slice_sampler`, the start of each retry lies within the
+    bounds, which the slice sampler requires ("The initial starting point
+    X0 is outside the bounds"): the lower bound of the noise no longer
+    rises faster than its start, which stopped the run at the third
+    consecutive failure, and the start is taken into the bounds, as in
+    MATLAB's gpHyperOptimize.m, so that its noise, raised at each failure,
+    stays below the upper bound."""
+    _, gp, _ = refit_case
+    i_noise = gp.covariance.hyperparameter_count(gp.D)
+    hyp = gp.get_hyperparameters(as_array=True)
+    hyp[0, i_noise] = gp.upper_bounds[i_noise]
+    calls = _inject_fit_failures(monkeypatch, 9)
+    _robust_fit(refit_case, hyp, use_slice_sampler=True)
+    assert len(calls) == 10
+    for call in calls:
+        assert np.all(call["hyp0"] >= call["lower_bounds"])
+        assert np.all(call["hyp0"] <= gp.upper_bounds)

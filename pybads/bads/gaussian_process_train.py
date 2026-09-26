@@ -715,18 +715,25 @@ def _robust_gp_fit_(
                 new_hyp = old_hyp_gp
 
             nudge = options["noise_nudge"]
-            if nudge is None or len(nudge) == 0:
+            if nudge is None or np.size(nudge) == 0:
                 nudge = np.array([0, 0])
-            elif len(nudge) == 1:
-                nudge = np.vstack((nudge, 0.5 * nudge[0]))
+            elif np.size(nudge) == 1:
+                # Half of it for the bound, as MATLAB completes it
+                # (gpHyperOptimize.m:7)
+                nudge = np.ravel(nudge)[0] * np.array([1, 0.5])
 
             # Try increase starting point of noise
             noise_nudge = noise_nudge + nudge[0]
 
-            # Increase gp noise hyp lower bounds
-            bounds = tmp_gp.get_bounds()
+            # Increase gp noise hyp lower bounds, by nudge[1] per failure
+            # from the bound at entry, which `gp` holds (MATLAB:
+            # gpHyperOptimize.m:163-164)
+            bounds = gp.get_bounds()
             noise_bound = bounds["noise_log_scale"]
-            noise_bound = (noise_bound[0] + noise_nudge, noise_bound[1])
+            noise_bound = (
+                noise_bound[0] + (i_try + 1) * nudge[1],
+                noise_bound[1],
+            )
             bounds["noise_log_scale"] = noise_bound
             tmp_gp.set_bounds(bounds)
 
@@ -736,6 +743,10 @@ def _robust_gp_fit_(
                 new_hyp[0]["noise_log_scale"] + noise_nudge
             )
             new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
+            # Into the bounds of the retry (MATLAB: gpHyperOptimize.m:167)
+            new_hyp = np.minimum(
+                np.maximum(new_hyp, tmp_gp.lower_bounds), tmp_gp.upper_bounds
+            )
             tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
     if np.all(~success_flag):
