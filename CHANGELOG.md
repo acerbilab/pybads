@@ -284,9 +284,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   refit as none, and so failed on it, and the periodic refit came one
   evaluation after the refit period. With one or two predictions, it
   compared the sum of their squared errors with half the chi-square
-  quantiles, and so failed on GPs that MATLAB BADS accepts. It now counts
-  the predictions and uses the quantiles as MATLAB BADS does. Results
-  change at default options.
+  quantiles, and so failed on GPs that MATLAB BADS accepts. It divided the
+  errors by the standard deviation of the latent function instead of that
+  of an observation, and replaced one near zero by 1e-6, which gave
+  outliers in deterministic runs. It now counts the predictions, uses the
+  quantiles and the standard deviation of an observation, the GP's noise
+  included, as MATLAB BADS does. Results change at default options.
 
 ## [1.1.0] - 2026-09-25
 

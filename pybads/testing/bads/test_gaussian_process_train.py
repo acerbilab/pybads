@@ -1180,3 +1180,67 @@ def test_gp_refit_time_chi_square_bounds(z, func_count, last_fit, verdict):
     against the quantiles alpha/2 and 1 - alpha/2 of the chi-square
     distribution with n degrees of freedom, as in MATLAB's gppredcheck.m."""
     assert _refit_verdict(z, func_count, last_fit) == verdict
+
+
+@pytest.mark.parametrize("level", [0, 2])
+def test_gp_stats_hold_sd_of_observation(monkeypatch, level):
+    """The statistics of the GP prediction that the calibration test reads
+    hold, for each point that the search or the poll evaluates, the SD of
+    the observation there, MATLAB's `ys` (acqLCB.m, from gppred.m): the
+    latent SD with the noise of the GP's posterior added, its noise
+    hyperparameter times the factor by which gpyreg raises the noise of a
+    posterior that fails to factorize. At level 2 that noise is the GP's
+    base noise, without the target's own SD, which is not known where the
+    GP predicts (mygp.m calls likGaussHe.m without it)."""
+    import pybads.bads.bads as bads_module
+
+    rng = np.random.default_rng(1000)
+
+    def fun(x):
+        y = np.sum(np.atleast_2d(x) ** 2)
+        if level == 0:
+            return y
+        sd = 2 + np.sqrt(y)
+        return y + sd * rng.standard_normal(), sd
+
+    predictions, stats = [], []
+    original_acq = bads_module.acq_fcn_lcb
+    original_save = BADS._save_gp_stats_
+
+    def spy_acq(xi, func_count, gp, *args, **kwargs):
+        out = original_acq(xi, func_count, gp, *args, **kwargs)
+        predictions.append((xi, gp, out))
+        return out
+
+    def spy_save(self, fval, ymu, ys):
+        # The point evaluated is the one of lowest LCB of the last batch
+        xi, gp, (z, f_mu, _) = predictions[-1]
+        index = np.argmin(z)
+        _, f_s2 = gp.predict(xi[index : index + 1])
+        noise_log_scale = gp.get_hyperparameters()[0]["noise_log_scale"]
+        sn2_mult = gp.posteriors[0].sn2_mult or 1
+        s2 = f_s2.item() + np.exp(2 * noise_log_scale.item()) * sn2_mult
+        stats.append((ymu, f_mu[index].item(), ys, np.sqrt(s2)))
+        return original_save(self, fval, ymu, ys)
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", spy_acq)
+    monkeypatch.setattr(BADS, "_save_gp_stats_", spy_save)
+    options = {"display": "off", "max_fun_evals": 60, "random_seed": 0}
+    if level == 2:
+        options.update(uncertainty_handling=True, specify_target_noise=True)
+    D = 3
+    bads = BADS(
+        fun,
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options=options,
+    )
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == level
+    ymu, f_mu, ys, expected = np.array(stats).T
+    assert len(ys) > 0
+    assert np.array_equal(ymu, f_mu)
+    np.testing.assert_allclose(ys, expected, rtol=1e-10)

@@ -1782,7 +1782,7 @@ class BADS:
         index_acq = None
         if u_search_set.size > 0:
             # Batch evaluation of acquisition function on search set
-            z, f_mu, fs = acq_fcn_lcb(
+            z, f_mu, _ = acq_fcn_lcb(
                 u_search_set, self.function_logger.func_count, gp
             )
             # Evaluate best candidate point in original coordinates
@@ -1811,9 +1811,11 @@ class BADS:
             y_search, f_sd_search, idx = self.function_logger(u_search)
 
             if z.size > 0:
-                # Save statistics of gp prediction,
+                # Save statistics of gp prediction, with the SD of the
+                # observation, the GP's noise included (MATLAB's ys)
+                _, y_s2 = gp.predict(np.atleast_2d(u_search), add_noise=True)
                 self._save_gp_stats_(
-                    y_search, f_mu[index_acq].item(), fs[index_acq].item()
+                    y_search, f_mu[index_acq].item(), np.sqrt(y_s2).item()
                 )
 
             # Add search point to training set, except at the last search
@@ -2278,9 +2280,11 @@ class BADS:
             # Remove polled vector from set.
             u_poll = np.delete(u_poll, index_acq, axis=0)
 
-            # Save statistics of gp prediction
+            # Save statistics of gp prediction, with the SD of the
+            # observation, the GP's noise included (MATLAB's ys)
+            _, y_s2 = gp.predict(np.atleast_2d(u_new), add_noise=True)
             self._save_gp_stats_(
-                y_poll, f_mu[index_acq].item(), fs[index_acq].item()
+                y_poll, f_mu[index_acq].item(), np.sqrt(y_s2).item()
             )
 
             if self.optim_state["uncertainty_handling_level"] > 0:
@@ -2516,10 +2520,6 @@ class BADS:
 
             zscore = f_vals - yvals
             gp_ys = self.gp_stats.get("ys")[:n_stats].flatten().astype("float")
-
-            # Avoid division by zero, sometimes the GP variance is zero (e.g at end of the optimization of a deterministic)
-            idx_zero_gp_ys = np.where(np.isclose(0.0, gp_ys))[0]
-            gp_ys[idx_zero_gp_ys] = 1e-6
 
             zscore = zscore / gp_ys
 
