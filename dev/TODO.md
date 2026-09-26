@@ -3,6 +3,20 @@
 Updated 2026-09-25. The list describes scope, not priority or execution
 order.
 
+- [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
+  gpyreg multiplies the noise by ten per failed Cholesky factorization, up
+  to 1e9, and the posterior keeps the multiplier, which the hyperparameters
+  do not show; MATLAB BADS treats the failure as an error. gpyreg's
+  `raise_on_cholesky_failure` (acerbilab/gpyreg#56, off by default) gives
+  MATLAB's behaviour; turned on at the end of wave 1's first batch it made
+  the deterministic ellipsoids take more evaluations and end with larger
+  errors (`dev/experiments/port_review_20260925/verification/wave1.md`,
+  "W1-25's measurement"). Revisit once all of wave 1's fixes have landed
+  (PI, 2026-09-26): measure again at that head, count the failed
+  factorizations and fits per run and which retries leave a worse GP, and
+  weigh a jitter scaled to the signal that the fit and the predictions
+  share. Turning the switch on in PyBADS needs a gpyreg release and moves
+  its minimum and CI pin.
 - [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
   to the GP (`gpupdate(..., 'add', ...)`, `private/gpupdate.m`) by a rank-1
   update of the posterior (`utils/update_posterior.m`), falls back to the

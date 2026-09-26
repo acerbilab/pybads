@@ -367,3 +367,24 @@ no gpyreg release for now. PyBADS keeps gpyreg 1.3.3 as its minimum and
 its CI pin, since it neither turns the switch on nor, after W1-23, reaches
 W1-24's route at default options; a release waits for the ruling on
 turning the switch on in PyBADS.
+
+**W1-25's measurement** (exploratory, 2026-09-26;
+`wave1_fixpass/w125_switch_on_vs_batch1.md`): batch 1's end with W1-35
+(without which a failed rebuild would stop the noisy runs) and gpyreg's
+`raise_on_cholesky_failure` turned on, a local commit never pushed, against
+batch 1's end. With the switch off the same setup gives batch 1's
+fingerprint, `ed8f953edbd6f141`, so the comparison measures the switch
+alone. All 540 runs finished. Four configurations are flagged: more
+evaluations on `ellipsoid_D3` (median 144 to 182) and
+`ellipsoid_D3_unbounded` (150 to 208), a larger error on `ellipsoid_D6`
+(9.1e-8 to 3.4e-7) and a smaller one on `sphere_D2` (7.4e-7 to 1.9e-7).
+Unflagged: the fraction solved of `ellipsoid_D3` falls from 1.00 to 0.90
+and that of `rosenbrock_D2` to 0.93, that of `ellipsoid_D3_homo` rises from
+0.47 to 0.67, and the runs take longer (19 s to 26 s on `ellipsoid_D10`).
+With failed factorizations as errors, the deterministic ill-conditioned
+targets fall back on the fit's retries (MATLAB's fit, too, aborts at a
+failed trial point and restarts with the noise nudged,
+`gpHyperOptimize.m:65-176`); why PyBADS then does worse is not measured.
+Ruling (PI, 2026-09-26): the switch stays off in PyBADS, and KD-B6-6 stays
+on the sheet; the question is revisited once all the fixes have landed, at
+the end of the pass (`dev/TODO.md`).
