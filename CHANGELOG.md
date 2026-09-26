@@ -41,6 +41,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `0`, `1`, `"on"`, `"off"` or any other value. A user value of `None`
   stands for the option's default: `nonlinear_scaling=None`, for instance,
   keeps the log transform on.
+- The result's `success` is False when a run ends on `max_fun_evals` or
+  `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
 
 ### Changed
 
@@ -95,6 +97,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`f_vals`.** `BADS` refuses an `f_vals` other than `None` with a message
   that the option is not supported; in 1.1.0 every run given it stopped at
   its first display line, with `display="off"` too.
+- **`success`.** The result's `success` is False when `max_fun_evals` or
+  `max_iter` ends the run, `output_fcn` stops it or it ends in its
+  initialization, and True when it ends on `tol_mesh` or on the change of
+  the function value (`status > 0`), the convention of MATLAB BADS's exit
+  flags and of scipy; it was always True.
 
 ### Fixed
 

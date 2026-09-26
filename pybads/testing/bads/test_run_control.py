@@ -160,12 +160,14 @@ _ENDS = {
 def test_status_is_the_exit_flag(end):
     """`status` is MATLAB BADS's exit flag: 0 when the run ends on
     `max_fun_evals`, `max_iter`, a stop by `output_fcn` or in its
-    initialization, 1 on `tol_mesh`, 2 on the stall criterion. The `fsd` of
-    a deterministic run is the float 0.0."""
+    initialization, 1 on `tol_mesh`, 2 on the stall criterion; `success` is
+    True for the last two only, as in MATLAB and scipy. The `fsd` of a
+    deterministic run is the float 0.0."""
     options, status, message = _ENDS[end]
     result = _make_bads(**options).optimize()
     assert message in result["message"]
     assert result["status"] == status
+    assert result["success"] is (status > 0)
     assert isinstance(result["fsd"], float) and result["fsd"] == 0.0
 
 

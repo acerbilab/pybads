@@ -41,6 +41,13 @@ class OptimizeResult(dict):
             - Number of evaluations of the objective functions.
         - iterations: int
             - Number of iterations performed by the optimizer.
+        - success: bool
+            - True when the run ended on one of its convergence criteria,
+              ``tol_mesh`` or the stall criterion (``status`` 1 or 2); False
+              when ``max_fun_evals`` or ``max_iter`` ended it, the
+              ``output_fcn`` stopped it or it ended in its initialization
+              (``status`` 0): the convention of MATLAB's exit flags and of
+              ``scipy.optimize``.
         - status: int
             - The exit flag of MATLAB BADS, the criterion that ended the
               run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the
@@ -164,9 +171,9 @@ class OptimizeResult(dict):
 
         self["version"] = __version__
 
-        self[
-            "success"
-        ] = True  # TODO: In our case when an error occurs, the application just stops.
+        # A positive exit flag, the convention of MATLAB and scipy: False
+        # when a limit (max_fun_evals, max_iter) or output_fcn ends the run
+        self["success"] = self["status"] > 0
         self["message"] = bads.optim_state["termination_msg"]
 
     def __getattr__(self, name):
