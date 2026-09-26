@@ -162,6 +162,110 @@ their pass ahead, or proposed here.
   (W1-33) (B6 verifier). No finding contradicts an entry outright (both
   verifiers).
 
-## Rulings
+## Proposed rulings (orchestrator, 2026-09-26, for the PI's triage)
 
-Awaiting the PI's triage.
+Drafts, not rulings. Each follows its verifier's recommendation unless it
+says why not; the PI accepts, amends or rejects each, and the section then
+becomes "Rulings (PI, <date>)". As in wave 0, a fix is one commit per row on
+`dev-port-review`, with a test that fails at `95da7f1` and passes at the
+commit, and a changelog line in every commit a user can notice.
+
+**Fix, moving nothing** (each under the fingerprint):
+
+- W1-9: count with the round's `optim_state["search_count"]`; the example in
+  `AGENTS.md`, "MATLAB logicals", then names a fixed slip and is reworded.
+- W1-10 and W1-11: retry with the previous hyperparameters only after a
+  refit, and take the geometry from the hyperparameters the GP holds.
+  Without a refit the retry repeats a failed deterministic computation, so
+  skipping it changes no run. This settles the open part of KD-B5-2.
+- W1-13: when every try fails, `_robust_gp_fit_` returns the best start it
+  evaluated with exit flag -1, as MATLAB (committed within the retries
+  batch below).
+- W1-18: MATLAB's weighted sum over the samples.
+- W1-19: guard the denominator of the `init_N` schedule and clip its
+  argument, so that `init_N` stays between the final and the initial size.
+- W1-20: cap the retries of the initial fit, then stop with a clear message.
+- W1-21: the retry's slice sampler samples on the retry's data. N1 comes
+  from W1-12's rising bound and should go with it; the test with
+  `use_slice_sampler=True` checks both.
+- W1-26: a positive fallback wherever a prior's width or centre comes from
+  the spread of the targets (the mean's SD in `_gp_hyp`; at a rebuild, the
+  output scale's centre keeps the previous prior, as KD-B6-2 does for the
+  mean), with wave 0's thin feasible region as a second reproduction if it
+  is the same mechanism. KD-B6-2 is extended.
+- W1-31: a comment naming the convention.
+- W1-32: MATLAB's message ("Fixed noise not supported") when `BADS` is
+  created, and "unsupported" in the option's description.
+- W1-33: remove the overwritten branch; the option moves to KD-B1-5.
+- W1-34: accept only `"zero"` and `"const"`, and refuse every other name
+  when `BADS` is created, `"negquad"` included: it has the wrong shape for
+  a minimizer, has no priors, and stops at the first retry. A stricter
+  interface: a changelog entry and an "Upgrading from" line.
+- W1-28: refuse `gp_cov_prior="ard"` and unknown values with a message, and
+  put the unported `"ard"` on the sheet (a changelog entry and an "Upgrading
+  from" line). This departs from the verifier, which proposed porting it:
+  it is off by default, and a port needs its own population comparison; a
+  `TODO.md` item keeps the port.
+
+**Fix, moving results**, in batches, each ending in a population comparison
+on Linux (this platform and versions are those of
+`population_linux_gpfixes_20260925`) against the end of the batch before; the
+fingerprint recorded at every commit, and a batch's steps compared one by
+one only if its comparison flags something. In this order:
+
+0. Baseline: the head of `dev-port-review` against
+   `population_linux_gpfixes_20260925` (at `97b2c66`; #67, #70, #71 and the
+   wave 0 fix pass came after it), which serves as the pass's baseline if it
+   reproduces the records `compare` reads. Otherwise a new baseline at the
+   head.
+1. The fit retries: W1-12 (the bound raised from the entry bound by
+   `nudge[1]`, so not at all at the default `[1, 0]`), W1-13, W1-14 (the
+   `"hazen"` percentile, the stop below D points, exit flag 1), W1-16 (draws
+   of N(μ, σ) in log units; a block without a prior keeps its value). This
+   comes first because the second fit that MATLAB and PyBADS make when the
+   mean falls below the targets (`gpupdate.m:384-393`) draws from W1-16's
+   sampler, and W1-23 changes where the mean goes.
+2. The priors and bounds: W1-23 (the mean unbounded, as MATLAB; this also
+   closes W1-24's route at default), W1-22, W1-29, W0-7, and W0-8 (first
+   under the fingerprint, and into this comparison if it moves).
+3. The calibration test: W1-3 (the SD of the observation, as MATLAB's `ys`;
+   the fix checks which noise MATLAB's prediction adds at level 2, and the
+   replacement by 1e-6 goes), W1-4, W1-5. W1-6: keep scipy's Shapiro-Wilk
+   and put the substitution on the sheet, with the verifier's disagreement
+   rates as its evidence. In default runs the two tests differ only on the
+   replaced SDs that W1-3 removes; revisit if this comparison is flagged.
+4. W1-2 alone: clear `reset_gp` at the rebuild it asks for (a failed
+   rebuild is already marked). If the comparison flags a worsening, it comes
+   back to the PI, to keep and put on the sheet.
+5. W1-1 alone: swap the two assignments (the default suite's
+   `ellipsoid_D3_unbounded` reaches it) and correct `AGENTS.md`.
+
+W0-1, once ruled, is gated on top of whichever batches have landed by then;
+the fixes table records the order.
+
+**Keep, and record:**
+
+- W1-15, the refit's starts from gpyreg's design, with its optimizer's
+  tolerances: on the sheet, as deliberate. On the same data the design found
+  the better optimum more often, and by far more, and it avoided fit
+  failures that MATLAB's starts met.
+- W1-25, gpyreg's inflation of the noise: on the sheet under KD-B6-1, as
+  the settled Cholesky handling, and a `TODO.md` item to measure MATLAB's
+  handling (a failure at `sn2_mult > 1`, which needs a gpyreg switch) before
+  any change. Its effect on results is not measured, and each option other
+  than keeping it moves every run.
+- W1-27, the GP fit at initialization: on the sheet, as deliberate. Its
+  effect is the start of the first refit and the first target; W0-7 is fixed
+  regardless.
+- W1-7, W1-8, W1-17 and W1-30, which PyBADS shares with MATLAB: kept, as
+  MATLAB has them, and collected in `matlab_side_defects.md`, created with
+  this pass (W1-8 as a shared defect, the others as shared design
+  observations). W1-30 also gets a warning when `BADS` is created with a
+  `noise_size` above e^5.
+- The base noise of 1 at level 2 ("Found while verifying"): on the sheet,
+  by the ruling of #71.
+
+**Out of this pass:** W1-24 goes to gpyreg, as an issue and a pull request
+on its own branch (the log mass in log space, and the design's draws from a
+prior far outside its bounds), gated as a gpyreg release. The items of
+"Found while verifying" left to waves 2 and 3 go to them with their slices.
