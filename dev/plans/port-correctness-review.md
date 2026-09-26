@@ -67,7 +67,7 @@ sessions.
 
 | Code | Location | Revision |
 | --- | --- | --- |
-| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for waves 1 to 4 (the freeze: `dev-next` after #70 and #71) |
+| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26) |
 | gpyreg | the clone `dev/scripts/runs/gpyreg/v1.3.3` | `98ab5a4` (v1.3.3) |
 | MATLAB BADS, comparison target | `../bads`, `master` | `74919c0` (v1.1.3, 2025-12-05; equal to the remote `master` on 2026-09-25) |
 
@@ -558,6 +558,22 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   tests) and the fingerprint with the gpyreg 1.3.3 clone is
   `3411ef0625d24b22`. The review worktree stays at `95da7f1` until wave 2's
   kickoff ("Wave 2 pickup").
+- [x] 2026-09-26: wave 2's kickoff, cloud session (from "Wave 2 pickup",
+  on `dev-port-review-w2`, cut from `dev-next` at `95a87bc`, whose package
+  code is `fef6c14`'s). PI: wave 2 reviews `fef6c14`, `dev-next` after the
+  fix passes of waves 0 and 1; the table "Reference revisions" says so. The
+  review worktree `../pybads-review` is at `fef6c14`, `../bads` at
+  `74919c0`, gpyreg at v1.3.3 (`98ab5a4`), on Python 3.11.15, NumPy 2.4.6
+  and SciPy 1.17.1, where `dev/scripts/fingerprint.py` at `fef6c14` prints
+  `91f947f78e1087c2`, the Linux reference's. The sheet is carried to
+  `fef6c14` (`refresh_citations.py --base 95da7f1`: 89 citations moved; of
+  the 23 it leaves to a reading by hand, the 11 in entries mapped by the
+  same diff, the 2 of gpyreg left at v1.3.3 and the 10 of the claims C1 to
+  C8 left at `95da7f1`, under a note that wave 0 settled them; two
+  citations already wrong at `95da7f1` corrected, the seed's
+  `optimize_result.py:151`, now `147`, and a guard of KD-B5-3, `621`, now
+  `673`), and the entries of wave 1's rulings read against it, all of
+  which hold.
 - [ ] Waves 2 to 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.
