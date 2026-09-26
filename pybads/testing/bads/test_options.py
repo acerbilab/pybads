@@ -1,6 +1,7 @@
 """The options that `BADS` is given: a value of `None` stands for the
 default, the boolean options take only booleans, the checks that MATLAB
-BADS's `setupoptions.m` makes, and the options that are not supported."""
+BADS's `setupoptions.m` makes, and the options that are not supported; and
+the option files, whose comment lines describe the options."""
 
 import logging
 
@@ -140,3 +141,23 @@ def test_f_vals_is_not_supported():
     the run at its first display line."""
     with pytest.raises(ValueError, match="f_vals'] is not supported"):
         _make_bads(f_vals=[48.0])
+
+
+def test_descriptions_are_whole_comment_lines():
+    """An option's description is the whole comment line above it, an `=`
+    or a `:` included."""
+    descriptions = _make_bads().options.descriptions
+    assert descriptions["noise_size"] == (
+        "Base observation noise magnitude (SD), e.g. noise_size = 1.0, or a "
+        "pair [SD, SD of the prior over log SD]; ignored with "
+        "specify_target_noise"
+    )
+    assert descriptions["periodic_vars"] == (
+        "Array with indices of periodic variables, like periodic_vars = [1, 2]"
+    )
+    assert descriptions["gp_samples"] == (
+        "Hyperparameters samples (0 = optimize)"
+    )
+    assert descriptions["stobads_frame_size_scaling_power"].startswith(
+        "Power value of the Sto-BADS incumbent decision rule:  \\gamma"
+    )

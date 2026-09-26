@@ -394,6 +394,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
   On the `BADS` logger, the opening and the final messages are at levels 25
   and 22, between INFO and WARNING.
+- **Descriptions of the options.** `str(options)` and `Options.descriptions`
+  show each option's whole description; 1.1.0 cut eight of them at their
+  first `=` or `:`, that of `noise_size` among them.
 
 ## [1.1.0] - 2026-09-25
 

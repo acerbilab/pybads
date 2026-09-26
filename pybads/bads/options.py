@@ -270,22 +270,33 @@ def _read_config_file(options_path: str):
     list of tuples (key, value, description).
 
     Note that strings starting with # in the .ini file act as description to
-    the option in the following line.
+    the option in the following line. The comment lines are read apart from
+    the values, so that a description keeps its whole text, an ``=`` or a
+    ``:`` included.
     """
-    conf = configparser.ConfigParser(comment_prefixes="", allow_no_value=True)
+    conf = configparser.ConfigParser(delimiters=("=",))
     # do not lower() both values as well as descriptions
     conf.optionxform = str
-    conf.read(options_path)
+    read_paths = conf.read(options_path)
+
+    # The description of an option is the last comment line above it
+    descriptions = dict()
+    description = ""
+    for path in read_paths:
+        with open(path) as file:
+            for line in file:
+                line = line.strip()
+                if line.startswith("#"):
+                    description = line.strip("# ")
+                elif "=" in line:
+                    key = line.split("=", 1)[0].strip()
+                    descriptions[key] = description
+                    description = ""
 
     option_list = list()
-    description = ""
     for section in conf.sections():
         for key, value in conf.items(section):
-            if "#" in key:
-                description = key.strip("# ")
-            else:
-                option_list.append([key, value, description])
-                description = ""
+            option_list.append([key, value, descriptions[key]])
 
     if len(option_list) == 0:
         raise ValueError(
