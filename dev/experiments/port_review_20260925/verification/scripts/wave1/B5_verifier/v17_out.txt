@@ -1,0 +1,8 @@
+n=  5: removed by np.percentile(linear) 1, by prctile1 0, by np.percentile(hazen) 0
+n= 10: removed by np.percentile(linear) 1, by prctile1 0, by np.percentile(hazen) 0
+n= 19: removed by np.percentile(linear) 1, by prctile1 1, by np.percentile(hazen) 1
+n= 20: removed by np.percentile(linear) 1, by prctile1 1, by np.percentile(hazen) 1
+n= 21: removed by np.percentile(linear) 1, by prctile1 1, by np.percentile(hazen) 1
+n= 49: removed by np.percentile(linear) 3, by prctile1 2, by np.percentile(hazen) 2
+n= 50: removed by np.percentile(linear) 3, by prctile1 2, by np.percentile(hazen) 2
+n=100: removed by np.percentile(linear) 5, by prctile1 5, by np.percentile(hazen) 5

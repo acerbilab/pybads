@@ -1,0 +1,4 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+poll_training=True: refits recorded 10 (the initial reset of gp_stats is not counted), performed 10, fval 1.237e-05
+poll_training=False: refits recorded 9 (the initial reset of gp_stats is not counted), performed 3, fval 7.945e-08

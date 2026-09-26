@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3         seed 40: refits 9, with >=1 failure 0, max consecutive 0, noise at nudged bound 0/0, fval 6.21e-05
+rosen3         seed 41: refits 10, with >=1 failure 4, max consecutive 2, noise at nudged bound 2/4, fval 5.5e-06
+ell4           seed 40: refits 14, with >=1 failure 8, max consecutive 2, noise at nudged bound 6/8, fval 1.83e-06
+ell4           seed 41: refits 14, with >=1 failure 5, max consecutive 2, noise at nudged bound 4/5, fval 2.47e-06
+ell2           seed 40: refits 6, with >=1 failure 4, max consecutive 2, noise at nudged bound 1/4, fval 8.23e-06
+noisy sphere3  seed 40: refits 15, with >=1 failure 0, max consecutive 0, noise at nudged bound 0/0, fval 0.657
+noisy sphere3  seed 41: refits 14, with >=1 failure 0, max consecutive 0, noise at nudged bound 0/0, fval 0.0495
+total refits 82 with failure 21 histogram of failures: [61 11 10]

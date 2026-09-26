@@ -1,0 +1,14 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+covariance_log_lengthscale ('gaussian', (array([-2.97437472, -2.97437472]), array([4.27335836, 4.27335836])))
+covariance_log_outputscale ('gaussian', (array([2.44873268]), array([2.])))
+covariance_log_shape ('gaussian', (array([1.]), array([1.])))
+noise_log_scale ('gaussian', (array([-3.45387764]), array([1.])))
+mean_const ('gaussian', (array([14.98199626]), array([2.91995946])))
+name                              prior mean  prior sd    draw mean    draw sd   bounds
+covariance_log_lengthscale[0]         -2.974     4.273       -1.318      70.69   [-13.17, 3.91] outside: 0.91
+covariance_log_lengthscale[1]         -2.974     4.273       -1.396      70.88   [-13.17, 3.91] outside: 0.90
+covariance_log_outputscale[0]          2.449     2.000         11.6      7.481   [-6.91, 20.08] outside: 0.14
+covariance_log_shape[0]                1.000     1.000        2.687      2.692   [-5.00, 5.00] outside: 0.20
+noise_log_scale[0]                    -3.454     1.000      0.02433      2.712   [-7.91, 5.00] outside: 0.03
+mean_const[0]                         14.982     2.920        15.02      2.885   [0.17, 9.61] outside: 0.97

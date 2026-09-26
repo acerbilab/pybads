@@ -1,0 +1,22 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- refit=True, failing posterior updates=0: exit flag 0, hyp back to entry: False, markers [], calls 1
+    held lengthscale   [50.     15.1506  4.2335]   temporary_data len_scale [50.     15.1506  4.2335]
+    poll_scale from held hyp [3.3905 1.0274 0.2871]   temporary_data poll_scale [3.3905 1.0274 0.2871]
+    eff. radius from held hyp 1.0718   temporary_data [1.07176041]
+    training rows 59 (entry 58), posterior ok: True
+--- refit=True, failing posterior updates=1: exit flag -2, hyp back to entry: True, markers [], calls 2
+    held lengthscale   [50.     24.7957  7.0131]   temporary_data len_scale [50.     15.1506  4.2335]
+    poll_scale from held hyp [2.4316 1.2058 0.3411]   temporary_data poll_scale [3.3905 1.0274 0.2871]
+    eff. radius from held hyp 1.0448   temporary_data [1.07176041]
+    training rows 59 (entry 58), posterior ok: True
+--- refit=False, failing posterior updates=1: exit flag -2, hyp back to entry: True, markers [], calls 2
+    held lengthscale   [50.     24.7957  7.0131]   temporary_data len_scale [1. 1. 1.]
+    poll_scale from held hyp [2.4316 1.2058 0.3411]   temporary_data poll_scale [2.4316 1.2058 0.3411]
+    eff. radius from held hyp 1.0448   temporary_data [1.04484314]
+    training rows 59 (entry 58), posterior ok: True
+--- refit=False, failing posterior updates=2: exit flag -2, hyp back to entry: True, markers ['needs_rebuild', 'needs_refit'], calls 2
+    held lengthscale   [50.     24.7957  7.0131]   temporary_data len_scale [1. 1. 1.]
+    poll_scale from held hyp [2.4316 1.2058 0.3411]   temporary_data poll_scale [2.4316 1.2058 0.3411]
+    eff. radius from held hyp 1.0448   temporary_data [1.04484314]
+    training rows 58 (entry 58), posterior ok: True

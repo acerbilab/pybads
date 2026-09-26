@@ -1,0 +1,5 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3: checks with n>=3: 84; leptokurtic (SF branch) 31; scipy rejects 5, swtest rejects 1; disagree 4
+ell3: checks with n>=3: 79; leptokurtic (SF branch) 19; scipy rejects 1, swtest rejects 0; disagree 1
+noisy sphere3: checks with n>=3: 125; leptokurtic (SF branch) 13; scipy rejects 0, swtest rejects 0; disagree 0
