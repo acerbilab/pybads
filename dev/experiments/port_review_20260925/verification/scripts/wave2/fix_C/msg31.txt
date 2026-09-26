@@ -1,0 +1,24 @@
+fix: the display's Actions column shows what each poll's pass did (W2-31)
+
+The poll appended "Train" (with " (failed)") to `logging_action` only
+when the pass refitted the GP, and "Skip" only when the poll was skipped,
+and the display printed the last entry: a poll that did neither showed
+the entry of an earlier poll, a stale "Train" (12 of 13 polls in the
+reviewer's run with refits suppressed after the first ones, 1 in 8 to 3
+in 11 at default options), and one that trained and was skipped showed
+"Skip" alone. MATLAB BADS builds `action` anew at each poll
+(bads.m:1024-1029): "Train", " (failed)" when the fit failed, then "Skip"
+or ", skip". The poll now builds its action string in the same way and
+always appends it, empty when the pass did neither.
+
+Tests, in test_bads_logger.py, on the poll lines of a `display="iter"`
+run: ::test_poll_actions_without_a_refit (refits allowed only at the
+first three checks, no searches; at the parent the line of the second
+poll ends in a stale "Train") and
+::test_poll_actions_of_a_poll_that_trains_and_skips (skipping allowed
+from the first failed poll step; at the parent the first poll, which
+refits and is skipped, shows "Skip"); both pass at this commit.
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
