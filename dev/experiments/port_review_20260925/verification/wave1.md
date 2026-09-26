@@ -394,7 +394,10 @@ in `wave1_fixpass/`.
   new Linux reference,
   [`population_linux_wave1_20260926`](../../population_linux_wave1_20260926/README.md),
   whose runs are those of W1-1 (W1-17 reaches no run of the default suite).
-- **The suite** passes at `cbe7523` (batch 3's package code): 268 tests.
+- **The suite** passes at `cbe7523` (batch 3's package code), 268 tests,
+  and at the head of the pass, `b3751e4` (the package code of `cfacb98`),
+  273 tests, with the fingerprint `91f947f78e1087c2`; the pre-commit hooks
+  pass on the whole tree.
 
 **Found while fixing** (2026-09-26):
 
