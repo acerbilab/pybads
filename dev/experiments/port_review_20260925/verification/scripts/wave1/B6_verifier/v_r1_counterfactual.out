@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere D=2 seed=0: port fval=1.550e-06 n=55 it=7 refits-at-noise-LB=0.40 (1s) | with update fval=1.080e-07 n=55 it=7 refits-at-noise-LB=0.40 (1s)
+sphere D=2 seed=1: port fval=7.800e-08 n=55 it=7 refits-at-noise-LB=0.40 (1s) | with update fval=1.743e-06 n=55 it=7 refits-at-noise-LB=0.40 (1s)
+rosenbrock D=3 seed=0: port fval=1.451e-05 n=97 it=10 refits-at-noise-LB=0.33 (1s) | with update fval=2.046e-05 n=111 it=11 refits-at-noise-LB=0.00 (2s)
+rosenbrock D=3 seed=1: port fval=1.908e-07 n=126 it=13 refits-at-noise-LB=0.08 (2s) | with update fval=5.331e-05 n=125 it=12 refits-at-noise-LB=0.08 (2s)
+  lp -= masks["log_norm"]
+  x = um.subtract(arr, arrmean, out=...)
+ackley D=4 seed=0: port fval=2.088e-04 n=200 it=13 refits-at-noise-LB=0.06 (3s) | with update fval=5.490e-04 n=200 it=12 refits-at-noise-LB=0.00 (3s)
+ackley D=4 seed=1: port fval=5.606e-04 n=200 it=13 refits-at-noise-LB=0.06 (2s) | with update fval=3.822e-04 n=200 it=13 refits-at-noise-LB=0.06 (2s)

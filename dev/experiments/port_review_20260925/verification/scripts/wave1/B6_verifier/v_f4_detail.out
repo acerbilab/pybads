@@ -1,0 +1,5 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sn2_mult=100: N=46 fitted sn=0.00466, effective sn=0.0466; sf=2.42e+05, std(y)=1.13e+03; uninflated K+sn2 I fails; |mean-y| at the 10 best points: max 0.0103 (their range 0.0123)
+sn2_mult=100: N=47 fitted sn=0.00466, effective sn=0.0466; sf=2.42e+05, std(y)=1.12e+03; uninflated K+sn2 I fails; |mean-y| at the 10 best points: max 0.00526 (their range 0.00598)
+sn2_mult=100: N=48 fitted sn=0.00466, effective sn=0.0466; sf=2.42e+05, std(y)=1.11e+03; uninflated K+sn2 I fails; |mean-y| at the 10 best points: max 0.00519 (their range 0.0052)
