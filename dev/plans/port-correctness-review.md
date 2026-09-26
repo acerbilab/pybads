@@ -360,7 +360,20 @@ The gates are those of `AGENTS.md`, "Numerical gates":
   triage. The verifiers found two of the differences kept from the
   reviewers (`search_factor_min`; a budget below the initial design),
   left to their slices' waves.
-- [ ] Wave 0 triaged, and its fixes.
+- [x] 2026-09-26: wave 0 triaged (PI; the rulings in
+  `verification/wave0.md`) and fixed: the fix pass on `dev-port-review`,
+  one commit per row, the fingerprint unchanged at each, the suite passing,
+  and the benchmark unchanged (`verification/wave0.md`, "Fixes"); W0-7 and
+  W0-8 go to the GP fix pass of wave 1; the design of Sto-BADS's rule
+  (W0-12, W0-13) is a `TODO.md` item. W0-1, a commit of its own
+  (`d6e3f61`, local branch `w0-1-investigation`), flagged the number of
+  evaluations of three noisy configurations and raised the median error
+  of `ellipsoid_D3_homo`, not significantly; under investigation on the
+  orchestrator's machine (PI): which of its parts moves the runs, and the
+  error at an equal number of evaluations. Wave 1 starts meanwhile in a
+  cloud session (PI), from "Wave 1 pickup" below.
+- [ ] W0-1 investigated and ruled.
+- [ ] Wave 1 (cloud session): run, verified, reported for triage.
 - [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
   Windows reference, `2210046`) and #71 (the small defects of the noise
   options, the final estimate, the iteration count, `output_fcn` and

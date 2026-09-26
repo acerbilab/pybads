@@ -85,3 +85,44 @@ belongs to a later slice, whose wave checks it.
 - W0-18: the records are corrected now; whether the doubling stays is
   decided in wave 4 (slice B7, the initial design).
 - W0-2 and W0-3: fixed by #71.
+
+## Fixes (the fix pass of wave 0)
+
+One commit per row, each with a test that fails at the freeze `95da7f1`
+and passes at the commit, and the fingerprint of
+`dev/scripts/fingerprint.py` unchanged at every commit
+(`f80abf397f44fc62`, Windows, gpyreg 1.3.3):
+
+| Row | Commit |
+|---|---|
+| W0-14 | `34ed21e` |
+| W0-16 | `d634e09` |
+| W0-11 | `491596e` |
+| W0-10 | `79c83a7` |
+| W0-15 | `5d65c53` |
+| W0-17 | `1bbd6d1` |
+| W0-5 | `6c830c9` |
+| W0-6 | `abf9814` |
+| W0-9 | `90d1101` |
+| W0-20 | `a73a844` |
+| W0-4, W0-18, W0-19, W0-21 | `010eeb4` |
+
+The suite passes at `010eeb4` (212 tests). On the benchmark the pass
+changes nothing: the five configurations with noise × seeds 0-3 and
+`sphere_D2`, `ellipsoid_D3`, `rosenbrock_D2` × seeds 0-1, run at
+`010eeb4` from a clean worktree, give the records of the Windows reference
+`population_gpfixes_20260925` in `x`, `fval`, `func_count` and
+`true_error`; they differ in `iterations` (one more) and, with inferred
+noise, `fsd` (larger by `sqrt(10/9)`), as #71 made them.
+
+W0-1 has a commit of its own, `d6e3f61` on the local branch
+`w0-1-investigation`, outside this pass. Its population comparison (the
+five configurations with noise × seeds 0-29, against the Windows
+reference) flags the number of evaluations of `ellipsoid_D3_hetero`,
+`ellipsoid_D3_homo` and `multisensory_s1_D6_homo`, 12 to 18% fewer, as more
+runs end on the stall criterion; no error test is flagged, but the median
+error of `ellipsoid_D3_homo` rises from 0.053 to 0.099 (signed-rank p =
+0.017 before the Holm correction, 0.20 after) and its fraction solved
+falls from 0.73 to 0.50. Under investigation (PI, 2026-09-26): which part
+of the change moves it, and whether the error at an equal number of
+evaluations moves.

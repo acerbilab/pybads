@@ -105,6 +105,19 @@ order.
     since `8afbe16` the prior of the mean can fall outside them, which
     makes the log prior NaN in the fits of 67 runs of the Windows reference
     ([experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)).
+- [ ] **The uncertainty interval of Sto-BADS.** Rows W0-12 and W0-13 of the
+  port review's ledger (`experiments/port_review_20260925/verification/wave0.md`):
+  the success rule of `stobads=True` compares the estimated improvement
+  with `gamma * epsilon * mesh_size**2`, epsilon the GP's standard
+  deviations, which do not shrink with the mesh as the accuracy that
+  Sto-MADS requires of its estimates does, so that its "certain" outcomes
+  are nearly coin flips at small meshes; and `opp_stobads` moves the search
+  incumbent on any uncertain outcome, to worse estimates too, and widens
+  the search as after an incremental improvement. To decide (PI,
+  2026-09-26) after a population with `stobads=True` on the noisy
+  configurations of the default suite that compares the current rule, the
+  rule without the mesh factor (`stobads_frame_size_scaling_power = 0`)
+  and `opp_stobads` moves limited to a positive estimated improvement.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
