@@ -412,3 +412,60 @@ def test_accelerate_mesh_steps_positive_integer_is_accepted(
     assert type(bads.options["accelerate_mesh_steps"]) is int
     result = bads.optimize()
     assert np.isfinite(result["fval"])
+
+
+def _bads_with_hedge_gamma(hedge_gamma, n_search_methods=2):
+    search_method = [("ES-wcm", 1), ("ES-ell", 1), ("ES-wcm", 1)]
+    return BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={
+            **OPTIONS,
+            "hedge_gamma": hedge_gamma,
+            "search_method": search_method[:n_search_methods],
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "hedge_gamma, n_search_methods",
+    [
+        (-0.1, 2),
+        (-1e-12, 2),
+        (0.5 + 1e-12, 2),
+        (1.25, 2),
+        (0.34, 3),
+        (1.5, 1),
+        (np.nan, 2),
+        (np.inf, 2),
+        (True, 2),
+        ("0.1", 2),
+        (np.array([0.1, 0.2]), 2),
+    ],
+)
+def test_hedge_gamma_outside_zero_to_one_over_n_is_refused(
+    hedge_gamma, n_search_methods
+):
+    """A `hedge_gamma` outside [0, 1 / n], n the number of search methods,
+    is refused when `BADS` is created: above 1 / n the hedge's
+    probabilities favor the search of lower gain, and above 1 / (n - 1)
+    some of them are negative; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError, match=r"hedge_gamma'\] needs to lie between 0 and 1 / n"
+    ):
+        _bads_with_hedge_gamma(hedge_gamma, n_search_methods)
+
+
+@pytest.mark.parametrize(
+    "hedge_gamma, n_search_methods",
+    [(0, 2), (0.125, 2), (0.5, 2), (1 / 3, 3), (1, 1), (np.float64(0.25), 2)],
+)
+def test_hedge_gamma_from_zero_to_one_over_n_is_accepted(
+    hedge_gamma, n_search_methods
+):
+    bads = _bads_with_hedge_gamma(hedge_gamma, n_search_methods)
+    assert bads.options["hedge_gamma"] == hedge_gamma

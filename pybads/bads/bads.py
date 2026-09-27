@@ -844,6 +844,26 @@ class BADS:
                 "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
+        # hedge_gamma, the smallest probability of each search method, lies
+        # in [0, 1 / n], n the number of search methods: the hedge chooses a
+        # method with the probabilities (1 - n * hedge_gamma) * softmax +
+        # hedge_gamma, which invert above 1 / n and turn negative above
+        # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
+        hedge_gamma = self.options["hedge_gamma"]
+        n_search_methods = len(self.options["search_method"])
+        try:
+            in_range = not isinstance(hedge_gamma, (bool, np.bool_)) and bool(
+                0 <= hedge_gamma and n_search_methods * hedge_gamma <= 1
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_gamma'] needs to lie between 0 and 1 / n, n "
+                "the number of search methods in options['search_method'] "
+                f"({n_search_methods}), not {hedge_gamma!r}."
+            )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "

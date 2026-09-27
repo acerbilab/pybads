@@ -66,6 +66,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A target that returns a value of a complex type, even one whose imaginary
   part is zero, raises `ValueError`, where 1.1.0 accepted a NumPy complex
   value.
+- `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
+  number of searches in `search_method` (1/2 at default).
 
 ### Changed
 
@@ -161,6 +163,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   search.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
+- **`hedge_gamma`.** `BADS` raises `ValueError` for a `hedge_gamma` that is
+  not a number from 0 to 1/n, n the number of searches in `search_method`
+  (1/2 at default). 1.1.0, like MATLAB BADS, ran with any value: above 1/n
+  the search hedge favored the search of lower gain, and above 1/(n − 1) it
+  gave some searches a negative probability, so that they were never chosen.
 
 ### Fixed
 
