@@ -164,7 +164,7 @@ class ESSearchHedge:
                 # Expected reward
                 er = fs_hedge * (
                     gamma_z * fpi
-                    + np.exp(-0.5 * (gamma_z**2) / np.sqrt(2 * np.pi))
+                    + np.exp(-0.5 * (gamma_z**2)) / np.sqrt(2 * np.pi)
                 )
             else:
                 er = 0

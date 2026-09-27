@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import gpyreg as gpr
 import numpy as np
 import pytest
+from scipy.stats import norm
 
 import pybads.bads.bads as bads_module
 import pybads.search.es_search as es_search_module
@@ -658,3 +659,26 @@ def test_constraint_check_removes_evaluated_points_as_matlab():
     )
     # The rows that uCheck.m returns
     assert np.array_equal(U_new, [[0.25, -0.25], [0.75, 0.0], [1.0, 0.0]])
+
+
+@pytest.mark.parametrize(
+    "f, fs", [(1.0, 2.0), (-0.5, 0.25), (3.0, 1.0), (0.0, 1e-3)]
+)
+def test_hedge_reward_is_the_expected_improvement(f, fs):
+    """The reward of the chosen search is sigma * (gamma * Phi(gamma) +
+    phi(gamma)), with gamma = (fval_old - f) / sigma, as in MATLAB BADS's
+    acqPortfolio.m, where phi is the standard normal density."""
+    D = 3
+    options = load_options(D, get_pybads_option_dir_path())
+    hedge = ESSearchHedge(
+        options["search_method"], options, rng=np.random.default_rng(0)
+    )
+    hedge.g = np.zeros(hedge.n_funs)
+    hedge.chosen_hedge = np.array([0])
+    hedge.phat = np.array([1.0, np.inf])
+    fval_old = 0.0
+    hedge.update_hedge(np.zeros(D), fval_old, f, fs, None, 1.0)
+    gamma = (fval_old - f) / fs
+    reward = fs * (gamma * norm.cdf(gamma) + norm.pdf(gamma))
+    assert np.isclose(hedge.g[0], reward, rtol=1e-12, atol=0)
+    assert hedge.g[1] == 0

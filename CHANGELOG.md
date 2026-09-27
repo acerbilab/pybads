@@ -571,6 +571,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   longer evaluate again a point already evaluated, as in MATLAB BADS: with a
   minimum on a bound, about half of the evaluations of a run at D = 1 or 2
   repeated earlier ones, and noisy runs repeated points in the poll.
+- **Search hedge in noisy runs.** In a run with noise, the search hedge,
+  which chooses between the ES-wcm and ES-ell searches, rewards a search
+  with its expected improvement, with the standard normal density as in
+  MATLAB BADS; a misplaced parenthesis rewarded a search whose point was
+  worse than the incumbent 2.5 to hundreds of times more than MATLAB BADS
+  does. Results change in noisy runs.
 
 ## [1.1.0] - 2026-09-25
 
