@@ -5,12 +5,12 @@ from pybads.rng import get_rng
 
 
 def init_sobol(
-    u0=np.ndarray,
-    lb=np.ndarray,
-    ub=np.ndarray,
-    plb=np.ndarray,
-    pub=np.ndarray,
-    fun_eval_start=int,
+    u0,
+    lb,
+    ub,
+    plb,
+    pub,
+    fun_eval_start,
     rng=None,
 ):
     """
@@ -20,20 +20,24 @@ def init_sobol(
 
     Roy et al., (2023). Quasi-Monte Carlo Methods in Python. Journal of Open Source Software, 8(84), 5309, https://doi.org/10.21105/joss.05309
 
+    The design has ``2**ceil(log2(fun_eval_start))`` points, twice as many
+    when that number equals the dimension ``D``, scaled to the plausible box.
+
     Parameters
     ----------
-    u0 : array_like
-        Initial point.
-    lb : array_like
-        Lower bounds.
-    ub : array_like
-        Upper bounds.
-    plb : array_like
-        Lower bounds for the parameters.
-    pub : array_like
-        Upper bounds for the parameters.
+    u0 : np.ndarray
+        The starting point, of shape ``(D,)``.
+    lb : np.ndarray
+        The lower bounds (unused).
+    ub : np.ndarray
+        The upper bounds (unused).
+    plb : np.ndarray
+        The plausible lower bounds, which the design spans.
+    pub : np.ndarray
+        The plausible upper bounds, which the design spans.
     fun_eval_start : int
-        Number of initial function evaluations.
+        The number of points asked of the design, which is rounded up as
+        above.
     rng : numpy.random.Generator, optional
         Draws the seed of the Sobol sequence when ``u0`` is not all finite;
         otherwise the seed derives from the integer parts of the first 11
@@ -43,10 +47,10 @@ def init_sobol(
 
     Returns
     -------
-    u_init : array_like
-        Initial points.
+    u_init : np.ndarray
+        The points of the design, of shape ``(n_samples, D)``.
     n_samples : int
-        Number of samples used for the initialization.
+        The number of points of the design.
     """
 
     max_seed = 997
@@ -70,10 +74,11 @@ def init_sobol(
 
     # n_samples = fun_eval_start
     # samples = sobol_sampler.random(n_samples)
-    n_samples = int(np.ceil(np.log2(fun_eval_start)))
-    if 2**n_samples == u0.size:
-        n_samples += 1
-    samples = sobol_sampler.random_base2(n_samples)
+    m = int(np.ceil(np.log2(fun_eval_start)))
+    if 2**m == u0.size:
+        m += 1
+    samples = sobol_sampler.random_base2(m)
+    n_samples = samples.shape[0]
 
     u_init = plb + samples * (pub - plb)
 

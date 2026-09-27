@@ -61,6 +61,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   which stopped a run with `UnboundLocalError` at its first improving
   search.
 - `pybads.search.ESSearchCMA` is removed.
+- `pybads.init_functions.init_sobol` returns the number of points of its
+  design as its second value, not its base-2 logarithm.
 
 ### Changed
 
@@ -624,6 +626,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   leave it, no longer stops the run with gpyreg's `ValueError` for a prior
   with a zero width: the prior of the length scales stays as it was, its
   centre and its width.
+- **`init_sobol`'s second value.** `pybads.init_functions.init_sobol`
+  returns the number of points of its design as its second value, as its
+  docstring says, where 1.1.0 returned the base-2 logarithm of that number.
 
 ## [1.1.0] - 2026-09-25
 
