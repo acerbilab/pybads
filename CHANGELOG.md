@@ -544,6 +544,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   MATLAB BADS; PyBADS counted older candidates as new from the third
   generation on, so that the scale grew where that of MATLAB BADS shrinks.
   The default, 2, is not affected.
+- **Root logger.** Creating an evolution-strategy search
+  (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
+  root logger; `BADS` still configures it when it is created, if nothing
+  else has.
 
 ## [1.1.0] - 2026-09-25
 

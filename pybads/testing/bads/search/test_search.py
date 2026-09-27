@@ -1,3 +1,5 @@
+import logging
+
 import gpyreg as gpr
 import numpy as np
 import pytest
@@ -502,3 +504,26 @@ def test_es_scale_follows_the_fraction_of_new_candidates(monkeypatch):
     assert np.isclose(
         search_es.scale, bads.options["es_start"] * np.exp(log_scale)
     )
+
+
+def test_es_search_adds_no_handler_to_the_root_logger():
+    """Constructing an ES search leaves the root logger as it was, which
+    BADS.__init__ configures."""
+    root = logging.getLogger()
+    handlers = root.handlers[:]
+    for handler in handlers:
+        root.removeHandler(handler)
+    try:
+        ESSearchWM(
+            1,
+            2048,
+            load_options(3, get_pybads_option_dir_path()),
+            rng=np.random.default_rng(0),
+        )
+        added = root.handlers[:]
+    finally:
+        for handler in root.handlers[:]:
+            root.removeHandler(handler)
+        for handler in handlers:
+            root.addHandler(handler)
+    assert added == []

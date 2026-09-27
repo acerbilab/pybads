@@ -1,5 +1,4 @@
 import logging
-import sys
 from abc import ABC, abstractclassmethod
 from typing import Callable
 
@@ -46,7 +45,6 @@ class ESSearch(ABC):
         self.search_acq_fcn = options_dict["search_acq_fcn"]
         self.es_beta = options_dict["es_beta"]
         self.logger = logging.getLogger("BADS")
-        logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
     def _get_selection_idx_mask_(self, mu, lamb):
         """
