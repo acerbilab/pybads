@@ -675,6 +675,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other
   arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long
   as the others, where 1.1.0 left them of unequal lengths.
+- **Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names
+  no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0
+  refused it.
 
 ## [1.1.0] - 2026-09-25
 

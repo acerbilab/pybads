@@ -177,8 +177,8 @@ class BADS:
         integer nor ``inf``, a value other than ``True`` or ``False`` for
         ``uncertainty_handling`` or for an option whose default is one of
         them (``plot`` excepted), or an ``f_vals`` that holds a finite value,
-        a non-empty ``fun_values`` or ``acq_hedge=True``, options that are
-        not supported.
+        a non-empty ``fun_values`` or ``periodic_vars``, or
+        ``acq_hedge=True``, options that are not supported.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -320,6 +320,17 @@ class BADS:
         )
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
+
+        # Periodic variables are not supported yet: refused before the first
+        # transform of the variables, which a random x0 needs. An empty
+        # periodic_vars names none, as in MATLAB BADS (setupvars.m), and is
+        # taken as None
+        if np.size(self.options["periodic_vars"]) == 0:
+            self.options["periodic_vars"] = None
+        elif self.options["periodic_vars"] is not None:
+            raise ValueError(
+                "Periodic variables are not yet supported. Please set periodic_vars to None."
+            )
 
         # starting point
         if not np.all(np.isfinite(self.x0)):
@@ -640,12 +651,6 @@ class BADS:
         )
         self.search_mesh_size = optim_state["search_mesh_size"]
         optim_state["scale"] = 1.0
-
-        # Check if periodic_vars is not None and raise error, since it is not yet supported
-        if self.options["periodic_vars"] is not None:
-            raise ValueError(
-                "Periodic variables are not yet supported. Please set periodic_vars to None."
-            )
 
         # Compute transformation of variables
         self.var_transf = self._variable_transformer_()

@@ -560,3 +560,49 @@ def test_n_search_iter_positive_integer_is_accepted(n_search_iter):
     assert type(bads.options["n_search_iter"]) is int
     result = bads.optimize()
     assert np.isfinite(result["fval"])
+
+
+@pytest.mark.parametrize(
+    "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
+)
+@pytest.mark.parametrize("periodic_vars", [[1], [5]], ids=["index", "out"])
+def test_periodic_vars_is_refused(x0, periodic_vars):
+    """Periodic variables are not supported yet: a `periodic_vars` that
+    names a variable is refused with `ValueError` when `BADS` is created,
+    before the variables are transformed, also with a random `x0`, whose
+    draw transforms them, and for an index out of range, which raised
+    `IndexError` there."""
+    with pytest.raises(
+        ValueError, match="Periodic variables are not yet supported"
+    ):
+        BADS(
+            _quadratic,
+            x0,
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "periodic_vars": periodic_vars},
+        )
+
+
+@pytest.mark.parametrize(
+    "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
+)
+@pytest.mark.parametrize(
+    "periodic_vars", [[], np.array([], dtype=int)], ids=["list", "array"]
+)
+def test_empty_periodic_vars_stands_for_none(x0, periodic_vars):
+    """An empty `periodic_vars` names no periodic variable, as in MATLAB
+    BADS (`setupvars.m`), and stands for `None`, its default."""
+    bads = BADS(
+        _quadratic,
+        x0,
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={**OPTIONS, "periodic_vars": periodic_vars},
+    )
+    assert bads.options["periodic_vars"] is None
+    assert not np.any(bads.optim_state["periodic_vars"])
