@@ -8,11 +8,12 @@ against its own specification, in waves of fresh reviewers.
 - `known_differences.md`: the known-differences sheet, the settled and
   deliberate differences between PyBADS and MATLAB BADS that a reviewer
   does not report as new, with the claims of the repository's records that
-  did not check out. Its Python line citations are at `8aecb6a`, the
-  revision of wave 3, carried from `ab4dded` to `95da7f1`, the freeze of
+  did not check out. Its Python line citations are at `0d866e8`, the
+  revision of wave 4, carried from `ab4dded` to `95da7f1`, the freeze of
   wave 1, by `refresh_citations.py --base ab4dded`, from there to
-  `fef6c14`, the revision of wave 2, by `--base 95da7f1`, and on by
-  `--base fef6c14`; the claims keep the lines of `95da7f1`.
+  `fef6c14`, the revision of wave 2, by `--base 95da7f1`, to `8aecb6a`,
+  the revision of wave 3, by `--base fef6c14`, and on by `--base
+  8aecb6a`; the claims keep the lines of `95da7f1`.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -21,9 +22,9 @@ against its own specification, in waves of fresh reviewers.
   its final message under a header that says what it read. Nothing in a
   report is verified; the verification of a wave goes to
   `verification/wave<N>.md`.
-- `briefs/`: the prompts of waves 1 to 3 (reviewers and verifiers), with
+- `briefs/`: the prompts of waves 1 to 4 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
-  machine (the plan's "Wave 1 pickup" to "Wave 3 pickup").
+  machine (the plan's "Wave 1 pickup" to "Wave 4 pickup").
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
   saved verbatim.

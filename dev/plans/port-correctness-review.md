@@ -67,7 +67,7 @@ sessions.
 
 | Code | Location | Revision |
 | --- | --- | --- |
-| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26); `8aecb6a` for wave 3 (`dev-next` after wave 2's fix pass, #76; PI, 2026-09-26) |
+| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26); `8aecb6a` for wave 3 (`dev-next` after wave 2's fix pass, #76; PI, 2026-09-26); `0d866e8` for wave 4 (`dev-next` after wave 3's fix pass, #77; PI, 2026-09-27) |
 | gpyreg | the clone `dev/scripts/runs/gpyreg/v1.3.3` | `98ab5a4` (v1.3.3) |
 | MATLAB BADS, comparison target | `../bads`, `master` | `74919c0` (v1.1.3, 2025-12-05; equal to the remote `master` on 2026-09-25) |
 
@@ -838,6 +838,39 @@ Wave 3's records are the model: its worklog lines below and
   `0d866e8` (PI), after the full matrix passed on its head (Ubuntu,
   Windows and macOS, Python 3.10 to 3.12), the first run of wave 3's tests
   off Linux. "Wave 4 pickup" written for the session that starts wave 4.
+- [x] 2026-09-27: wave 4's kickoff, cloud session (from "Wave 4 pickup",
+  on `dev-port-review-w4`, cut from `dev-next` at `ed82ec0`, whose package
+  code is `0d866e8`'s). PI: wave 4 reviews `0d866e8`, `dev-next` after wave
+  3's fix pass (#77); the table "Reference revisions" says so. The review
+  worktree `../pybads-review` is at `0d866e8`, `../bads` at `74919c0`,
+  gpyreg at v1.3.3 (`98ab5a4`) in `../gpyreg-v1.3.3`, the venv as
+  `AGENTS.md` says (gpyreg's `main` in `../gpyreg`, editable), on Python
+  3.11.15, NumPy 2.4.6 and SciPy 1.17.1, where `dev/scripts/fingerprint.py`
+  at `0d866e8` with the v1.3.3 clone and one BLAS thread prints
+  `360971bf1f0ba6cb`, the Linux reference's
+  (`population_linux_wave3_20260927`), so the reference pairs by seed here.
+  The clone was shallow; the complete history, the branches
+  `dev-port-review-w2` and `dev-port-review-w3` and the heads of the pull
+  requests #67, #71, #72, #74, #76 and #77, which hold commits that the
+  sheet and the kept items cite, were fetched before any agent began. The
+  sheet is carried to `0d866e8` (`refresh_citations.py --base 8aecb6a`: 96
+  citations moved, each checked to cite the same text; of the 17 it leaves
+  to a reading by hand, the 5 whose lines wave 3's fix pass rewrote, 4
+  mapped by the same diff (the acquisition's call sites in KD-B3-2 and
+  KD-B5-2, whose label `8aecb6a` goes, and the empty search set in
+  KD-B3-5) and the ES search's fallback draw in KD-B1-1, which W3-9
+  removed, dropped; the 2 of gpyreg left at v1.3.3 and the 10 of the claims
+  C1 to C8 left at `95da7f1`). The entries of wave 3's rulings (KD-B3-1,
+  KD-B3-3, KD-B3-5, KD-B3-6, KD-B4-1, KD-B4-2, KD-B5-2, KD-B5-9, KD-B6-2)
+  read against `0d866e8`: all hold. The briefs `briefs/wave4_*.md`, with
+  the track part of the third reader in `wave4_common.md`; O's brief names
+  wave 3's rulings on its code (W3-24 reverted, W3-6, W3-25), the sheet's
+  entries, and the two design questions of Sto-BADS's rule that wave 0 left
+  to a measurement (W0-12, W0-13), which it does not report again. The
+  items kept from the reviewers are in `wave4_kept_B7.md` (B7-K1 to B7-K9)
+  and `wave4_kept_O.md` (O-K1 to O-K5); none of the preparatory report's
+  differences seen in passing belongs to B7 or O, and the survey has no
+  open row in O's code.
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
