@@ -90,24 +90,43 @@ class ESSearch(ABC):
         sum_rule=True,
         non_box_cons: Callable = None,
     ):
-        """Main method for computing the search.
+        """Run the evolution-strategy search from the incumbent.
 
         Parameters
         ----------
-            u (np.ndarray): incumbent point
-            lb (np.ndarray): lower bound
-            ub (np.ndarray): upper bound
-            func_logger (FunctionLogger):
-            gp (GP):
-            optim_state :
-            sum_rule (bool, optional) :
-            non_box_cons (Callable, optional): A given non-bound constraints function.
+        u : np.ndarray
+            The incumbent.
+        lb : np.ndarray
+            The lower bounds of the search.
+        ub : np.ndarray
+            The upper bounds of the search.
+        func_logger : FunctionLogger
+            The function logger, whose evaluated points are removed from the
+            candidates.
+        gp : GP
+            The local Gaussian process, which ranks the candidates by their
+            acquisition value.
+        optim_state : dict
+            The optimization state.
+        sum_rule : bool, optional
+            ES-wcm normalizes the eigenvalues of its covariance by their sum
+            if ``True``, and by the largest otherwise; ES-ell ignores it.
+        non_box_cons : callable, optional
+            The non-box constraints, which remove the candidates that
+            violate them.
 
-        Raises:
-            ValueError: _description_
+        Raises
+        ------
+        ValueError
+            If the search's acquisition function is not ``'acq_LCB'``.
 
-        Returns:
-            _type_: _description_
+        Returns
+        -------
+        u_search : np.ndarray
+            The best candidate of every generation, or an empty array when no
+            candidate is left.
+        z : np.ndarray
+            Its acquisition value, or an empty array.
         """
 
         self.mesh_size = optim_state["mesh_size"]

@@ -176,8 +176,9 @@ class BADS:
         take: for instance a ``max_fun_evals`` that is neither a positive
         integer nor ``inf``, a value other than ``True`` or ``False`` for
         ``uncertainty_handling`` or for an option whose default is one of
-        them (``plot`` excepted), or an ``f_vals`` that holds a finite value
-        or a non-empty ``fun_values``, options that are not supported.
+        them (``plot`` excepted), or an ``f_vals`` that holds a finite value,
+        a non-empty ``fun_values`` or ``acq_hedge=True``, options that are
+        not supported.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -812,7 +813,12 @@ class BADS:
         # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
         # it evaluates an improvement (bads.m:1269-1271)
         improvement_quantile = self.options["improvement_quantile"]
-        if not 0 < improvement_quantile < 1:
+        try:
+            in_range = bool(0 < improvement_quantile < 1)
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
             raise ValueError(
                 "options['improvement_quantile'] needs to be greater than 0 "
                 f"and less than 1, not {improvement_quantile!r}."
@@ -833,7 +839,9 @@ class BADS:
         ):
             raise ValueError(
                 "options['accelerate_mesh_steps'] needs to be a positive "
-                f"integer, not {accelerate_mesh_steps!r}."
+                f"integer, not {accelerate_mesh_steps!r}; "
+                "options['accelerate_mesh'] = False turns the accelerated "
+                "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
         if self.options["improvement_quantile"] > 0.5:
@@ -983,6 +991,14 @@ class BADS:
             raise ValueError(
                 "options['gp_cov_prior'] should be 'iso' (an empirical prior "
                 "shared by the GP length scales); 'ard' is not supported."
+            )
+
+        # MATLAB's acquisition hedge (AcqHedge), which MATLAB BADS labels
+        # unsupported, is not ported
+        if self.options.get("acq_hedge"):
+            raise ValueError(
+                "options['acq_hedge'] should be False: the acquisition hedge "
+                "is not supported."
             )
 
         # A known noise level, which MATLAB refuses too (gpdefBads.m)
@@ -2153,7 +2169,8 @@ class BADS:
 
     def _poll_step_(self, gp: GP):
         """
-        A private method that performs poll step using the LTMADS poll direction method.
+        A private method that performs the poll step, along the directions of
+        ``poll_mads_2n`` (the signed coordinate directions at default).
         It also evaluates and update the incumbent and the poll parameters (like the ``mesh_size_integer``) according to the found improvement.
 
         Returns
@@ -2165,7 +2182,7 @@ class BADS:
         y_poll_best : float
             Function value at the best poll point.
         f_sd_poll_best : float
-            Estimated GP variance at the best poll point.
+            Estimated GP standard deviation at the best poll point.
         gp : gpyreg.gaussian_process.GP
         """
 
@@ -2704,10 +2721,13 @@ class BADS:
         Returns
         -------
         f_target_mu : np.ndarray
-            The GP's mean prediction at ``u``, of shape ``(1, 1)``.
+            The GP's mean prediction at ``u``, of shape ``(1, 1)`` (the
+            incumbent's ``fval`` when the prediction is not finite, and when
+            no prediction is made).
         f_target_s : np.ndarray or float
             The GP's predictive standard deviation at ``u`` (the incumbent's
-            ``fsd`` when the prediction is not finite).
+            ``fsd`` when the prediction is not finite, and ``np.zeros(1)``
+            when no prediction is made).
         f_target : np.ndarray
             The optimization target, of shape ``(1, 1)``.
         """

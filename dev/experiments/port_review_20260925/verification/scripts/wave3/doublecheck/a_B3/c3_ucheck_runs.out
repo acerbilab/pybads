@@ -1,0 +1,34 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+edge_D1 seed 0: fval 1 evals 25 mesh_size end 0.0156
+   bads.py: calls 22, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 32, output differs with MATLAB's round 2, from uCheck.m 2
+   ES searches 16: point returned differs with MATLAB's round 0, with uCheck.m 0
+edge_D2 seed 0: fval 2 evals 43 mesh_size end 0.00391
+   bads.py: calls 32, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 50, output differs with MATLAB's round 10, from uCheck.m 10
+   ES searches 25: point returned differs with MATLAB's round 2, with uCheck.m 3
+sphere_D3 seed 0: fval 9.88e-06 evals 77 mesh_size end 0.00195
+   bads.py: calls 37, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 58, output differs with MATLAB's round 10, from uCheck.m 10
+   ES searches 29: point returned differs with MATLAB's round 0, with uCheck.m 0
+noisy_D2 seed 0: fval -0.294 evals 184 mesh_size end 0.00195
+   bads.py: calls 106, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 186, output differs with MATLAB's round 116, from uCheck.m 123
+   ES searches 93: point returned differs with MATLAB's round 1, with uCheck.m 1
+edge_D1 seed 1: fval 1 evals 25 mesh_size end 0.0156
+   bads.py: calls 22, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 32, output differs with MATLAB's round 2, from uCheck.m 2
+   ES searches 16: point returned differs with MATLAB's round 0, with uCheck.m 0
+edge_D2 seed 1: fval 2 evals 43 mesh_size end 0.00391
+   bads.py: calls 32, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 50, output differs with MATLAB's round 10, from uCheck.m 10
+   ES searches 25: point returned differs with MATLAB's round 3, with uCheck.m 3
+sphere_D3 seed 1: fval 1.55e-06 evals 87 mesh_size end 0.000977
+   bads.py: calls 42, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 66, output differs with MATLAB's round 16, from uCheck.m 16
+   ES searches 33: point returned differs with MATLAB's round 0, with uCheck.m 0
+noisy_D2 seed 1: fval -0.176 evals 200 mesh_size end 0.000122
+   bads.py: calls 116, output differs with MATLAB's round 0, from uCheck.m 0
+   es: calls 202, output differs with MATLAB's round 71, from uCheck.m 148
+   ES searches 101: point returned differs with MATLAB's round 0, with uCheck.m 1

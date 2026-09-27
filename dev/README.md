@@ -45,11 +45,15 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
-  in log-scaled variables, `logsphere`, and two maximum-likelihood fits to
-  real data, `timing` and `multisensory_s1`) and the suites `smoke`,
-  `default`, `oned` (the configurations at D = 1) and `bounds` (plausible
-  bounds omitted, a start on a hard bound, and `logsphere`: the setup's
-  checks of the bounds and the start). `--list` prints the suites,
+  in log-scaled variables, `logsphere`, a sphere whose minimum lies on a
+  hard bound, `edgesphere`, a nonsmooth valley along the diagonal,
+  `ridge`, a sphere in a thin feasible band, `sphere_band`, and two
+  maximum-likelihood fits to real data, `timing` and `multisensory_s1`)
+  and the suites `smoke`, `default`, `oned` (the configurations at D = 1),
+  `bounds` (plausible bounds omitted, a start on a hard bound, and
+  `logsphere`: the setup's checks of the bounds and the start) and
+  `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
+  and W3-24 of the port review). `--list` prints the suites,
   `--check` verifies each target's minimum, bounds and noise, and the
   pinned likelihood values of the real-data targets, and `--smoke` runs
   each configuration of a suite once, in a fresh process as a population

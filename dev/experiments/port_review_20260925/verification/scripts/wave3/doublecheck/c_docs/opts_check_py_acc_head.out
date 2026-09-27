@@ -1,0 +1,10 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+accelerate_mesh_steps=0: at BADS(): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 0.
+accelerate_mesh_steps=-1: at BADS(): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not -1.
+accelerate_mesh_steps=3.0: ran; fval 5.44e-07, x [0.0007 0.0003], func_count 54, iterations 7
+accelerate_mesh_steps=2.5: at BADS(): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 2.5.
+accelerate_mesh_steps=inf: at BADS(): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not inf.
+accelerate_mesh_steps=True: at BADS(): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not True.
+accelerate_mesh_steps=1000.0: ran; fval 5.44e-07, x [0.0007 0.0003], func_count 54, iterations 7
+accelerate_mesh_steps=1: ran; fval 1.18e-07, x [0.0002 0.0003], func_count 54, iterations 7

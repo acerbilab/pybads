@@ -52,10 +52,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or
   complex, which 1.1.0 accepted as a NumPy scalar or a one-element array,
   raises `ValueError` at the first search.
-- `BADS` raises `ValueError` for an `improvement_quantile` that is not
-  greater than 0 and less than 1.
+- `BADS` raises `ValueError` for an `improvement_quantile` that is not a
+  number greater than 0 and less than 1.
 - `BADS` raises `ValueError` for an `accelerate_mesh_steps` that is not a
-  positive integer.
+  positive integer, `inf` included, which 1.1.0 ran without the accelerated
+  reduction of the mesh: `accelerate_mesh=False` turns it off.
+- `BADS` raises `ValueError` for `acq_hedge=True`, which 1.1.0 accepted and
+  which stopped a run with `UnboundLocalError` at its first improving
+  search.
 - `pybads.search.ESSearchCMA` is removed.
 
 ### Changed
@@ -74,6 +78,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
   implement, and any other value, and then kept the initial prior over the
   length scales for the whole run.
+- **Acquisition hedge.** `BADS` refuses `acq_hedge=True` when it is
+  created: the acquisition hedge, which MATLAB BADS labels unsupported, is
+  not implemented, and 1.1.0 accepted the option and stopped the run with
+  `UnboundLocalError` at its first improving search.
 - **Large noise.** `BADS` warns when `noise_size` exceeds e^5, about 148,
   the largest noise standard deviation its Gaussian process can represent
   (the bound of MATLAB BADS): the noise it infers then stays at that bound,
@@ -96,13 +104,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a float that is a whole number to an integer; 1.1.0 stopped `optimize()`
   with an unrelated error for 0 or a negative value, and made 31 evaluations
   for 30.5. An `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
-  An `improvement_quantile` that is not greater than 0 and less than 1
-  raises `ValueError`, as in MATLAB BADS; 1.1.0 ran with it, and at 0 or 1
-  never moved the incumbent. An `accelerate_mesh_steps` that is not a
-  positive integer raises `ValueError`, and a float that is a whole number
-  is converted to an integer; 1.1.0 stopped the run with `TypeError` at its
-  first failed poll for 0 or a negative value, as MATLAB BADS stops, and
-  with `IndexError` for a float.
+  An `improvement_quantile` that is not a number greater than 0 and less
+  than 1 raises `ValueError`, as in MATLAB BADS; 1.1.0 ran with a number
+  outside that range: at 0, and at 1 without noise, the incumbent never
+  left the best point of the initial design, and a noisy run at 1 moved it
+  at most searches and never ended its first iteration. An
+  `accelerate_mesh_steps` that is not a positive integer raises
+  `ValueError`, and a float that is a whole number is converted to an
+  integer. 1.1.0 stopped the run at a failed poll, with `IndexError` for 0
+  (from the second iteration on), with `TypeError` for a negative value,
+  and with `IndexError` for a float once the iterations exceeded it, as
+  MATLAB BADS stops for these values; a float larger than every iteration,
+  `inf` included, ran without the accelerated reduction of the mesh, as in
+  MATLAB BADS, and `True` ran as 1; `accelerate_mesh=False` turns the
+  reduction off, and the message says so.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and
@@ -264,9 +279,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   stopped with `UnboundLocalError` or `IndexError`. The search hedge's gains
   then decay, as after any failed search and as in MATLAB BADS. When a later
   generation of the evolution-strategy search leaves no candidate, the
-  search evaluates the best candidate of the earlier generations, as in
-  MATLAB BADS, and its warning says that the generation left no candidate,
-  where it said that a random search was performed.
+  search keeps the candidates of the earlier generations and evaluates the
+  best one, as in MATLAB BADS, and its warning says that the generation left
+  no candidate, where it said that a random search was performed.
 - **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
   starting point is not evaluated a second time to test for noise, as in
   MATLAB BADS; the test ran unless uncertainty handling was on, and a
@@ -549,17 +564,19 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Rounding to the search grid.** A point halfway between two points of the
   search grid goes to the one farther from zero, as in MATLAB BADS, where
   1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048, 2048]`
-  starts at `[2, 4]`, not `[0, 4]`. Once the search grid is fine, the
-  candidates of the search often fall halfway, so results change at default
-  options: in PyBADS's benchmark, 31 of 540 runs end at other points, all of
-  them 6-D or 10-D or noisy, with no significant change of their errors or
-  evaluations.
+  within wider hard bounds starts at `[2, 4]`, where 1.1.0 started at
+  `[0, 4]`. Once the search grid is fine, the candidates of the search often
+  fall halfway, so results change at default options: in PyBADS's
+  benchmark, 31 of 540 runs change, 29 of them ending at other points, all
+  of them 6-D or 10-D or noisy, with no significant change of their errors
+  or evaluations.
 - **Scale of the evolution-strategy search.** With `n_search_iter` of 3 or
   more, the scale of each generation of the evolution-strategy search
   follows the fraction of new candidates among the best, counted as in
   MATLAB BADS; PyBADS counted older candidates as new from the third
-  generation on, so that the scale grew where that of MATLAB BADS shrinks.
-  The default, 2, is not affected.
+  generation on, so that the scale grew faster than that of MATLAB BADS,
+  and from about the fifth generation grew where that of MATLAB BADS
+  shrinks. The default, 2, is not affected.
 - **Root logger.** Creating an evolution-strategy search
   (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
   root logger; `BADS` still configures it when it is created, if nothing
@@ -573,8 +590,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   they now skip it, and choose a candidate at random, with a warning, when
   every value is NaN.
 - **Covariance of the ES-wcm search.** The ES-wcm search estimates its
-  covariance from the ⌊μ⌋ best points, one per weight, as in MATLAB BADS; it
-  took one point more. Results change at default options.
+  covariance from the best half of the training points of the Gaussian
+  process, ⌊n/2⌋ of n, one per weight, as in MATLAB BADS; it took one point
+  more. Results change at default options.
 - **Offspring in the evolution-strategy search.** Each candidate that the
   evolution-strategy search keeps has as many offspring as MATLAB BADS gives
   it; each had those of the candidate ranked before it, and the best one a
@@ -584,16 +602,18 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   their order, as the stable sort of MATLAB BADS does; NumPy's default sort
   ordered them otherwise.
 - **Points evaluated again.** The initial design, the search and the poll no
-  longer evaluate again a point already evaluated, as in MATLAB BADS. Over
-  30 seeded runs each, a 2-D sphere with its minimum on a bound repeated 137
-  of its 1411 evaluations, and a 3-D ellipsoid with target noise 100 of
-  8800; neither repeats any now. Results change at default options.
+  longer evaluate again a point already evaluated, as in MATLAB BADS. In
+  PyBADS's benchmark, with this release's other changes and before this
+  one, a 2-D sphere with its minimum on a bound repeated 137 of its 1411
+  evaluations over 30 seeded runs, and a 3-D ellipsoid with target noise 100
+  of 8800; neither repeats any after it. Results change at default options.
 - **Search hedge in noisy runs.** In a run with noise, the search hedge,
   which chooses between the ES-wcm and ES-ell searches, rewards a search
   with its expected improvement, with the standard normal density as in
   MATLAB BADS; a misplaced parenthesis rewarded a search whose point was
-  worse than the incumbent 2.5 to hundreds of times more than MATLAB BADS
-  does. Results change in noisy runs.
+  worse than the incumbent 2.5 times or more what MATLAB BADS gives, the
+  more the worse the point (424 times at three standard deviations).
+  Results change in noisy runs.
 - **Early stop of the poll.** The probability that no remaining poll point
   improves, which decides whether the poll stops early, was computed over
   the last D + 1 points of the poll set in their order, whatever their
@@ -602,8 +622,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Length scales on two points.** A rebuild of the local Gaussian process
   on two distinct points, which a thin feasible region of `non_box_cons` can
   leave it, no longer stops the run with gpyreg's `ValueError` for a prior
-  with a zero width: the prior of the length scales keeps its previous
-  width, as the prior of the GP mean does when the targets have no spread.
+  with a zero width: the prior of the length scales stays as it was, its
+  centre and its width.
 
 ## [1.1.0] - 2026-09-25
 

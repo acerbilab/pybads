@@ -1,0 +1,14 @@
+8aecb6a fix: wave 2 of the port review (setup, bounds, options, result; the main loop) and | threads=1 | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+a1bf658 fix: the search and the poll skip a NaN acquisition value, and choose at random wh | threads=1 | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+81c6a15 fix: ES-wcm takes one best training point per weight, floor(mu), as MATLAB BADS (W | threads=1 | /home/user/pybads-fp/pybads/__init__.py fd21e5d0c558f2f0
+115a922 fix: each parent of the ES gets the offspring MATLAB BADS gives it, not those of t | threads=1 | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+d79ab75 fix: the search hedge's expected reward uses the standard normal density, as MATLA | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+869a033 fix: the poll steps along LTMADS directions on the search mesh, a departure from M | threads=1 | /home/user/pybads-fp/pybads/__init__.py f5af904cfcb6b73c
+b03a320 revert: the poll's LTMADS directions (W3-24), by the PI's ruling after its gate | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+0d866e8 fix: wave 3 of the port review (the search; the poll, the mesh, the incumbent and  | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+8aecb6a fix: wave 2 of the port review (setup, bounds, options, result; the main loop) and | threads=default | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+0d866e8 fix: wave 3 of the port review (the search; the poll, the mesh, the incumbent and  | threads=default | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+c276d79 fix: the ES search ranks tied candidates and training points in their order, with  | threads=1 | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+149d528 fix: contraints_check removes the candidates already evaluated, as MATLAB BADS (W3 | threads=1 | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+8e28124 fix: the poll's probability of no improvement takes the D largest probabilities of | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+0b7add3 fix: after a poll that moves the incumbent, every search rebuilds the local GP unt | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb

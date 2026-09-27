@@ -1,0 +1,6 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+ES calls of force_to_grid: 146
+log2 search mesh in [-100,-30): calls 2, coordinates 24576, exact halves 0, candidates with a half 0 of 4096
+log2 search mesh in [-30,-20): calls 36, coordinates 442368, exact halves 0, candidates with a half 0 of 73728
+log2 search mesh in [-20,0): calls 108, coordinates 1327104, exact halves 0, candidates with a half 0 of 221184

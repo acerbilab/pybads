@@ -1,0 +1,4 @@
+pybads /home/user/pybads-v1.1.0/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+ESSearchCMA: TypeError: slice indices must be integers or None or have an __index__ method at _initialize_:255
+search_method ES-cma+: ValueError: search_hedge:Requested search method not implemented yet

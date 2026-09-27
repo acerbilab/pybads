@@ -23,14 +23,17 @@ against its own specification, in waves of fresh reviewers.
   `verification/wave<N>.md`.
 - `briefs/`: the prompts of waves 1 to 3 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
-  machine (the plan's "Wave 1 pickup" to "Wave 3 pickup").
+  machine (the plan's "Wave 1 pickup" to "Wave 3 pickup"), and
+  `briefs/wave3_doublecheck.md`, those of the doublecheck of wave 3.
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
-  saved verbatim.
+  saved verbatim; `verification/wave3_doublecheck_<scope>.md`, the reports
+  of the four reviewers of wave 3's doublecheck (`B3`, `B4`, `docs`,
+  `records`), saved verbatim.
 - `matlab_side_defects.md`: what the review finds wrong or questionable in
   MATLAB BADS itself, with PyBADS's disposition.
-- `briefs/wave1_fix_common.md` and `briefs/wave2_fix_common.md`: the
-  briefs of the fix agents of the fix passes of waves 1 and 2; `fixes/`:
+- `briefs/wave1_fix_common.md` to `briefs/wave3_fix_common.md`: the
+  briefs of the fix agents of the fix passes of waves 1 to 3; `fixes/`:
   their reports, saved verbatim.
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
@@ -79,8 +82,28 @@ fix pass (A to D, the letters of `fixes/`) have theirs under
 `verification/scripts/wave3/fix_<agent>/`, without their copies of a
 parent's tree, and the orchestrator's scripts of the pass (the
 cherry-picks and their conflicts, the changelog lines, the fingerprint at
-every commit of the branch, the gates, the attribution of W3-14's moves,
-the count of repeated evaluations, W3-39's reproduction) are under
-`verification/scripts/wave3/orchestrator/`. The pass's comparisons and
-medians are in `verification/wave3_fixpass/`, and its last population is
-kept whole as the Linux reference `population_linux_wave3_20260927`.
+every commit of the branch that changes the package, the gates, the
+attribution of W3-14's moves, the count of repeated evaluations, W3-39's
+reproduction) are under `verification/scripts/wave3/orchestrator/`. The
+shell scripts there and `cl.py` name the sandbox's paths (its scratch
+directory, `/home/user/pybads`, `/home/user/pybads-fp`,
+`/home/user/gpyreg-v1.3.3`), call one another from the scratch
+directory's `orch/`, and read logs that were not kept (`picks_CD.log`,
+`g0.log`, `moved.txt`), so they record what ran rather than run from
+here; `same_fields.py` compares `final.wall_s` too, which every
+`_fields.txt` lists, although its docstring says that timings are left
+out, and `cl.py` has a `replace` mode, which W3-29's changelog entry
+used and its docstring omits. The rerun behind
+`verification/wave3_fixpass/w3-40_crashed_runs.txt` has no script. The
+pass's comparisons and medians are in `verification/wave3_fixpass/`, and
+its last population is kept whole as the Linux reference
+`population_linux_wave3_20260927`.
+
+The doublecheck of wave 3, after its merge, is recorded in
+`verification/wave3.md`, "Doublecheck": its briefs in
+`briefs/wave3_doublecheck.md`, its reports in
+`verification/wave3_doublecheck_<scope>.md`, and the reviewers' scripts
+and outputs under `verification/scripts/wave3/doublecheck/<letter>_<scope>/`,
+without their copies of the tree at other commits, with the
+orchestrator's fingerprints and checks under
+`verification/scripts/wave3/doublecheck/orchestrator/`.
