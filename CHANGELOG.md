@@ -567,6 +567,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   equal acquisition value, and ES-wcm the training points of equal value, in
   their order, as the stable sort of MATLAB BADS does; NumPy's default sort
   ordered them otherwise.
+- **Points evaluated again.** The initial design, the search and the poll no
+  longer evaluate again a point already evaluated, as in MATLAB BADS: with a
+  minimum on a bound, about half of the evaluations of a run at D = 1 or 2
+  repeated earlier ones, and noisy runs repeated points in the poll.
 
 ## [1.1.0] - 2026-09-25
 

@@ -21,7 +21,7 @@ from pybads.search.search_hedge import ESSearchHedge
 
 def test_incumbent_constraint_check():
     D = 3
-    U = np.random.normal(size=(10, D))
+    U = np.random.default_rng(0).normal(size=(10, D))
     # check duplicates
     U = np.unique(U, axis=0)
     lb = np.array([[-5] * D]) * 100
@@ -31,12 +31,10 @@ def test_incumbent_constraint_check():
         y, y_sd, idx_y = f(U[i])
 
     U = np.vstack((U, U[-1]))  # add duplicate
-    # Every row of U is already evaluated, and contraints_check removes none
-    # of them, only the duplicate: MATLAB's uCheck would remove them all (a
-    # candidate defect, in dev/results/2026-09-23-codebase-survey.md).
+    # Every row of U is already evaluated: contraints_check removes them
+    # all, as MATLAB's uCheck
     U_new = contraints_check(U, lb, ub, 1e-6, f, True)
-    assert U_new.size != U.size
-    assert U_new.shape[0] == U.shape[0] - 1
+    assert U_new.shape == (0, D)
 
     # Check outliers and project them
     lb = np.array([[-0.5] * D])
@@ -631,3 +629,32 @@ def test_es_search_ranks_tied_candidates_in_their_order(monkeypatch):
     assert z == np.min(Z)
     # np.argmin returns the first of the minima
     assert np.array_equal(us, U[np.argmin(Z)])
+
+
+def test_constraint_check_removes_evaluated_points_as_matlab():
+    """contraints_check removes the candidates whose bin, of half tol_mesh,
+    holds an evaluated point, and keeps one candidate per bin, the bins
+    sorted, as MATLAB's uCheck with setdiff(u1, u2, 'rows') does."""
+    D = 2
+    tol_mesh = 2.0**-19
+    X_eval = np.array([[0.5, 0.25], [0.0, 0.0], [-0.25, 0.75]])
+    function_logger = SimpleNamespace(
+        X=np.vstack((X_eval, np.full((5, D), np.nan))), X_max_idx=2
+    )
+    U = np.array(
+        [
+            [0.5, 0.25],  # evaluated
+            [0.75, 0.0],
+            [0.0, 0.0],  # evaluated
+            [0.0, 0.0],  # duplicate
+            [0.0, 1e-8],  # in the bin of [0, 0], evaluated
+            [0.25, -0.25],
+            [2.0, 0.0],  # projected onto [1, 0]
+            [-0.25, 0.75 + 3e-7],  # in the bin of [-0.25, 0.75], evaluated
+        ]
+    )
+    U_new = contraints_check(
+        U, -np.ones((1, D)), np.ones((1, D)), tol_mesh, function_logger, True
+    )
+    # The rows that uCheck.m returns
+    assert np.array_equal(U_new, [[0.25, -0.25], [0.75, 0.0], [1.0, 0.0]])
