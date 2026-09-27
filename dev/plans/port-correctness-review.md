@@ -893,7 +893,14 @@ Wave 3's records are the model: its worklog lines below and
   say. Wave 2's note that W2-4 made the undefined cast reachable does not
   hold: 1.1.0 reached it too (W4-2). The sweep after the wave was clean
   (only `__pycache__`, removed).
-- [ ] Wave 4's triage and fix pass.
+- [x] 2026-09-27: wave 4 triaged (PI; the rulings in
+  `verification/wave4.md`). W4-1 (a): the design is seeded from the run's
+  generator, so that `random_seed` decides it, whatever MATLAB's own seed
+  gives; W4-3: the design's doubling kept at every D, where the proposal
+  was to remove it; W4-14 (a): the reserved final samples taken at the
+  incumbent when a noisy run ends in its first iteration. Every other
+  proposal accepted as written. The fix pass is not started.
+- [ ] Wave 4's fix pass.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
   Windows reference at the head of the last fix pass: the current one,

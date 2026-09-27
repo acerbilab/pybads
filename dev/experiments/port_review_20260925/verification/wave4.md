@@ -202,3 +202,122 @@ the review's last wave.
   construction value after the noise test raises the run's level, and
   `y_max` and `cache_count` are never read (B7-I); `Y_max` is not updated
   by a merge (both). For the docstrings of the fix pass, or none.
+
+## Rulings (PI, 2026-09-27)
+
+The orchestrator proposed a disposition for every row, following its
+verifier's recommendation unless the row says why not. The PI ruled W4-1
+(a), the design seeded from the run's generator; W4-3 keep, the design's
+doubling kept at every D, where the proposal was to remove it; and W4-14
+(a), the reserved final samples taken at the incumbent; and accepted every
+other proposal as written. As in waves 0 to 3, a fix is one commit per row
+on the wave's branch, with a test that fails at `0d866e8` and passes at the
+commit, and a changelog line in every commit a user can notice; a stricter
+interface also has an "Upgrading from" line. The fix pass follows
+`wave3.md`, "Fix pass", with the whole fast suite and the fingerprint after
+every cherry-pick, CI checked after every push that touches `pybads/`, and
+the head's population as the new Linux reference. The sheet,
+`matlab_side_defects.md`, the survey and `dev/TODO.md` are updated in the
+pass, each entry with the fix it describes, as in wave 3.
+
+**Fix, moving results**, in this order, each ending in a population
+comparison on Linux against the end of the step before, the first against
+`population_linux_wave3_20260927`, whose environment this sandbox has (the
+fingerprint at `0d866e8` is its `360971bf1f0ba6cb`):
+
+1. W4-1 (a): `init_sobol` seeds the scrambling of the design from the
+   run's generator (`bads.rng`, which it already receives), and no longer
+   from the integer parts of `u0`, so that `random_seed` decides the design,
+   a departure from MATLAB BADS, whose design depends on the start alone.
+   W4-2's undefined cast goes with the seed from `u0`. With it: KD-B1-1 and
+   KD-B7-1, `AGENTS.md`'s sentence on the Sobol design's seed, the survey's
+   row of `init_sobol` closed (its clause on W2-4 and wave 2's doublecheck
+   note corrected, W4-2), and in `matlab_side_defects.md` the open question
+   of MATLAB's own seed, the one call that settles it
+   (`mod(prod(uint64(num2str([0.25 -0.5]))),997)+1`: 966 for an exact
+   `mod`, 1 otherwise), with the negative seed that `i4_sobol.m` would clamp
+   ("Found while verifying"). A test that two seeds give two designs and one
+   seed the same design, whatever the start. The default suite; the seeded
+   optimization tests checked over their seeds with
+   `dev/scripts/tolerance_sweep.py` if one fails.
+2. W4-6: the noise test leaves the start's row of the log as it was
+   (`n_evals` and its time), as MATLAB BADS's direct call does, so that
+   `n_eff` counts what `eff_starting_points` counts; B7-K7's line of
+   `dev/TODO.md` closes with it. The default suite against W4-1's step.
+
+**Fix, moving nothing** (each under the fingerprint):
+
+- W4-4: `init_sobol` returns the number of points, as its docstring says,
+  and its docstring states the rounding to a power of two and the doubling
+  (W4-3), with its parameters described as what they are.
+- W4-8: the target's SD is converted and checked as its value is, both
+  before the row is written, and the logger's own conversion errors carry
+  no note that blames the target.
+- W4-9: `finalize` trims `n_evals` too, and `reset_fun_eval_time` keeps the
+  arrays' current length; `test_finalize` checks `n_evals`.
+- W4-14 (a): when a noisy run ends within its first iteration, the final
+  samples it reserved are taken at the incumbent, the only candidate, and
+  give the reported `fval` and `fsd`, as the final estimate does after a
+  later iteration; a departure from MATLAB BADS, which shares the gap, in
+  `matlab_side_defects.md` and on the sheet; `dev/TODO.md`'s item of the
+  small noisy budget closes with it, and so does the default `fsd` of such
+  a run ("Found while verifying"). A test at a small noisy budget.
+- W4-15: an uncertain poll moves the incumbent, and is marked as moved,
+  only to a polled point that improves on it; `test_stobads.py` asserts that
+  the incumbent changed. Also under the fingerprint with `stobads=True`.
+  W0-13's item of `dev/TODO.md` gains the report's note that the search
+  moves on every uncertain outcome and scales its factor as for an
+  incremental search.
+- W4-16: `poll_scale` and `effective_radius` over several hyperparameter
+  samples as MATLAB BADS computes them (weights of 1/N, the weighted α),
+  with a test that forces two samples.
+- W4-18: `hedge_gamma` outside `[0, 1/n]`, `n` the number of search
+  methods, is refused when `BADS` is created (a stricter interface), its
+  description saying so; `hedge_beta` and `hedge_decay` looked at with it
+  ("Found while verifying"); an entry in `matlab_side_defects.md`.
+- W4-19: the `sqrt_beta` of `search_acq_fcn` is checked when `BADS` is
+  created, and a callable's value at each call (a stricter interface for a
+  callable that returns a value that is not positive and finite).
+- `periodic_vars` ("Found while verifying"): refused before the variables
+  are transformed, and an empty one taken as `None`, as MATLAB BADS takes
+  it; KD-B1-6's "unreachable" corrected.
+- The records and docstrings: `init_sobol`'s with W4-4; the statements that
+  every random draw of a run comes from one generator hold after W4-1
+  (`bads.py:142`, `index.rst:23`); KD-B7-3, the changelog's two entries on
+  repeats and `AGENTS.md`'s `FunctionLogger` bullet (W4-5); the
+  description of `overhead`, which counts the noise test as the
+  optimizer's time, on both sides (W4-7); the docstrings of `__call__` and
+  `add`, which take `x` in `u` space (W4-10); the description of
+  `cache_size` (W4-12); `acq_fcn_lcb`'s summary and its unused `n`, and
+  `update_hedge`'s docstring (W4-17); the caption of Fig. 1 in `README.md`
+  and `docsrc/source/index.rst` (W4-20); and the docstrings that the pass
+  touches, from the reports' answers.
+
+**Keep, and record:**
+
+- W4-3 (PI): the design keeps its doubling when its power of two equals D,
+  at every D. KD-B7-1 records the design's size as deliberate, by this
+  ruling; KD-B2-6's "Not settled" clause, claim C2 and W0-18 close. The
+  description of `fun_eval_start` and `AGENTS.md` already state it.
+- W4-5: the merge stays, a documented behavior of `FunctionLogger` that no
+  run reaches since W3-1; the survey's row of `function_logger.py`,
+  `__call__`, closes by KD-B7-3 as corrected.
+- W4-7: the accounting of `overhead`, MATLAB BADS's, as W2-20 ruled; a
+  shared observation in `matlab_side_defects.md`.
+- W4-10: `add`'s semantics wait for the port of `fun_values`
+  (`dev/TODO.md`).
+- W4-11: `period_check`'s call sites, as W3-35 ruled, until periodic
+  variables are ported; that line of `dev/TODO.md` gains the form of the
+  design's argument.
+- W4-12: the growing log, a sheet entry; MATLAB's unwritten row of its ring,
+  and the row it reads after the ring wraps, in `matlab_side_defects.md`.
+- W4-13: the noise test through the logger's checks, a sheet entry.
+- W4-20: the figure, which is MATLAB BADS's, with the caption above.
+- The sheet gains entries for the three differences that O found recorded
+  elsewhere: `len_scale` at D = 1 (W1-17), W3-10's refusal of a `sqrt_beta`
+  that is not positive and finite, and W3-27's random choice when every
+  acquisition value is NaN.
+- The survey's two rows of B7 are closed by this ledger; slice O had none.
+
+**Out of this pass:** nothing of this ledger. The plan's "Close" follows
+wave 4 in a session of its own.
