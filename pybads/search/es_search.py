@@ -189,7 +189,7 @@ class ESSearch(ABC):
             # No candidate left in this generation: it adds none, and the
             # candidates of the earlier generations are kept, as in MATLAB
             if u_new.shape[0] == 0:
-                self.logger.warning(
+                self.logger.debug(
                     f"bads:es_search: No candidate left in generation {i + 1} "
                     "of the search, once the points already evaluated or "
                     "violating the constraints are removed"

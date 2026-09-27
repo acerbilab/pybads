@@ -3,6 +3,8 @@ the search step counts it as a failed search, as MATLAB BADS does. A later
 generation of the ES that leaves no candidate adds none, and the search
 returns the best of the earlier ones."""
 
+import logging
+
 import numpy as np
 import pytest
 
@@ -150,8 +152,10 @@ def test_es_search_keeps_the_candidates_of_an_emptied_generation(
     """When the constraints reject every candidate of the second generation,
     the ES search keeps those of the first and returns the best of them, as
     MATLAB's searchES does; a third generation is reproduced from them, at
-    an unchanged scale."""
+    an unchanged scale. The emptied generation is logged at DEBUG, since
+    MATLAB's searchES says nothing of it."""
     bads, gp = _initial_state(n_search_iter=n_search_iter)
+    caplog.set_level(logging.DEBUG, logger="BADS")
     generations = []
     original_lcb = es_search_module.acq_fcn_lcb
 
@@ -193,4 +197,10 @@ def test_es_search_keeps_the_candidates_of_an_emptied_generation(
     assert z == np.min(Z)
     assert np.any(np.all(U[Z == z] == us, axis=1))
     assert search_es.scale == bads.options["es_start"]
-    assert "No candidate left in generation 2 of the search" in caplog.text
+    records = [
+        record
+        for record in caplog.records
+        if "No candidate left in generation 2 of the search"
+        in record.getMessage()
+    ]
+    assert [record.levelno for record in records] == [logging.DEBUG]
