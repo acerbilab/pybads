@@ -1,4 +1,4 @@
-<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the entries and edits that cite the rulings of wave 1 (verification/wave1.md) were added by the orchestrator from 2026-09-26, at the same revisions. For wave 2 the Python citations were carried to fef6c14 on 2026-09-26 (refresh_citations.py --base 95da7f1, the citations that it leaves to a reading by hand mapped by the same diff), the entries of wave 1's rulings read against it, and the path conventions and a note on the claims edited to match; the entries and edits that cite the rulings of wave 2 (verification/wave2.md) were made by the orchestrator on 2026-09-26, with the lines of `fef6c14` where they cite its code and the commits of wave 2's fix pass, on `dev-port-review-w2`, where they cite code that the pass wrote. For wave 3 the Python citations were carried to 8aecb6a on 2026-09-26 (refresh_citations.py --base fef6c14, the two citations that it leaves to a reading by hand mapped by the same diff, and the citations of wave 2's entries labelled with fef6c14 carried by hand), and the entries of wave 2's rulings read against it; the rest is the agent's text. -->
+<!-- Written by the preparatory agent of the port review (wave 0), reading PyBADS at ab4dded and MATLAB BADS at 74919c0; saved verbatim from its final message on 2026-09-25 (the three parts of that message are kept as known_differences.md, counterpart_map.md and prep_report.md). Its Python line citations were carried to 95da7f1 on 2026-09-26 (refresh_citations.py), and KD-B1-8 and the path conventions edited to match; the entries and edits that cite the rulings of wave 1 (verification/wave1.md) were added by the orchestrator from 2026-09-26, at the same revisions. For wave 2 the Python citations were carried to fef6c14 on 2026-09-26 (refresh_citations.py --base 95da7f1, the citations that it leaves to a reading by hand mapped by the same diff), the entries of wave 1's rulings read against it, and the path conventions and a note on the claims edited to match; the entries and edits that cite the rulings of wave 2 (verification/wave2.md) were made by the orchestrator on 2026-09-26, with the lines of `fef6c14` where they cite its code and the commits of wave 2's fix pass, on `dev-port-review-w2`, where they cite code that the pass wrote. For wave 3 the Python citations were carried to 8aecb6a on 2026-09-26 (refresh_citations.py --base fef6c14, the two citations that it leaves to a reading by hand mapped by the same diff, and the citations of wave 2's entries labelled with fef6c14 carried by hand), and the entries of wave 2's rulings read against it; the entries and edits that cite the rulings of wave 3 (verification/wave3.md) were made by the orchestrator on 2026-09-27, with the lines of `8aecb6a` where they cite its code and the commits of wave 3's fix pass, on `dev-port-review-w3`, where they cite code that the pass wrote; the rest is the agent's text. -->
 
 # Known differences between PyBADS and MATLAB BADS
 
@@ -171,10 +171,10 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 ## B3: search
 
 **KD-B3-1. The search hedge chooses only between ES-wcm and ES-ell; the other search methods are not ported**
-- Python: `pybads/search/search_hedge.py:86-119` (dispatch by name; anything else raises "not implemented yet"); `pybads/search/es_search.py:225-303` (`ESSearchWM` = `searchES` method 1, `ESSearchELL` = method 2), `283-290` (`ESSearchCMA`, `searchES` method 5 `'ES-cma+'`, which is unreachable); `pybads/bads/bads.py:1757-1771`.
+- Python: `pybads/search/search_hedge.py:86-119` (dispatch by name; anything else raises "not implemented yet"); `pybads/search/es_search.py:225-303` (`ESSearchWM` = `searchES` method 1, `ESSearchELL` = method 2; `ESSearchCMA`, method 5 `'ES-cma+'`, which no search method reached and which failed when called, was removed by W3-13, `4865fad`); `pybads/bads/bads.py:1757-1771`.
 - MATLAB: `bads.m:239`; `search/searchES.m:3-12`, `39-70` (methods 1-5: `ES-wcm`, `ES-ell`, `ES-eye`, `ES-cov`, `ES-cma+`); `search/searchCMA.m`, `searchCombine.m`, `searchCrossover.m`, `searchGauss.m`, `searchGrid.m`, `searchMax.m`, `searchMaxAcq.m`, `searchNewton.m`, `searchOptim.m`, `searchWCM.m`, `search/private/*.m`.
-- What differs: only MATLAB's default search set exists in PyBADS. `ES-eye`, `ES-cov` and the other search functions are absent, and `ES-cma+` cannot be selected.
-- Why: `AGENTS.md`, "Extension points are hard-coded" (`ESSearchCMA` unreachable; a new search method needs a subclass, an `elif` and an option entry).
+- What differs: only MATLAB's default search set exists in PyBADS. `ES-eye`, `ES-cov`, `ES-cma+` and the other search functions are absent.
+- Why: `AGENTS.md`, "Extension points are hard-coded" (a new search method needs a subclass, an `elif` and an option entry); the PI's ruling on W3-13 (`verification/wave3.md`).
 - Kind: unported feature.
 - Slice: B3.
 
@@ -189,7 +189,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B3-3. The acquisition hedge (`AcqHedge`) is not implemented**
 - Python: `pybads/bads/bads.py:886-887`, `1797`, `1807`, `1962-1964`, `1993`, `2252`, `2259`; `advanced_bads_options.ini:182`.
 - MATLAB: `bads.m:271`, `569-573`, `684-686`, `716-719`, `845-848`; `acq/acqPortfolio.m` ('acq' branch; its help line says "(unsupported)"); `acq/acqHedge.m`; `search/searchES.m:139-141` (`error('Hedge not supported here.')`).
-- What differs: `acq_hedge=True` does nothing. Both default to off. This entry does not cover the *search* hedge's reward update, which is ported (`ESSearchHedge.update_hedge` ↔ `acqPortfolio.m` 'upd', reached at default).
+- What differs: `acq_hedge=True` does nothing. Both default to off. This entry does not cover the *search* hedge's reward update, which is ported (`ESSearchHedge.update_hedge` ↔ `acqPortfolio.m` 'upd', reached at default): its expected reward took `exp(-0.5*g**2/sqrt(2*pi))` for the standard normal density of `acqPortfolio.m:64` until W3-6 (`d79ab75`), and an empty search set decays its gains, as MATLAB's update does, since W3-11 (`4388e6d`; KD-B3-5).
 - Why: code comments "not yet supported (even in Matlab)"; MATLAB's own "(unsupported)" label.
 - Kind: unported feature.
 - Slice: B3.
@@ -202,21 +202,45 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Kind: unported feature.
 - Slice: B3.
 
+**KD-B3-5. An empty search set is a failed search on every path; MATLAB moves to a stale point at `ImprovementQuantile` > 0.5, and stops on a first empty search**
+- Python: `pybads/bads/bads.py:1956-2004` (`_search_step_`, the branch for an empty set: W0-15, `0c56d86`; the hedge's update with no point, W3-11, `4388e6d`); `pybads/search/search_hedge.py` (`update_hedge` with `u_search=None`: every gain decays).
+- MATLAB: `bads.m:667-725` (the search stage; `722-725`, the hedge's update), `1257-1279` (`SearchStep`'s improvement tests); `acq/acqPortfolio.m:56-69`.
+- What differs: a search set is empty when every candidate violates `non_box_cons` or, on both sides since W3-1 (`149d528`), was already evaluated. PyBADS counts a failed search and decays the hedge's gains, as MATLAB does at `ImprovementQuantile` ≤ 0.5 (the default) or without noise. At `ImprovementQuantile` > 0.5 in a noisy run, MATLAB counts an incremental search and moves the incumbent to the previous search's point `usearch`, with its `fval` and an SD of 0; when the run's first search set is empty, `usearch` is undefined and MATLAB stops with an error. MATLAB's hedge update scores the stale `usearch`, with a reward of 0; PyBADS scores no point, and the gains are the same.
+- Why: the PI's ruling on W3-11 (`verification/wave3.md`): the move and the error are MATLAB defects that PyBADS avoids (`matlab_side_defects.md`), and W0-15's ruling counts an empty set as a failed search.
+- Kind: deliberate change.
+- Slice: B3.
+
+**KD-B3-6. A generation of the ES search that adds no candidate leaves its scale unchanged; MATLAB's scale becomes NaN**
+- Python: `pybads/search/es_search.py`, `ESSearch.__call__` (the scale is updated only when `ntest > 0`; W3-9, `a77d95d`, and W3-8, `c788617`).
+- MATLAB: `search/searchES.m:170-193` (`frac = nnew/ntest`, 0/0 when `uCheck` removed every candidate of the generation).
+- What differs: from `n_search_iter` = 3 (the default is 2), a generation that `non_box_cons` or the removal of evaluated points empties makes MATLAB's scale NaN, and `uCheck`'s projection, whose `min` and `max` ignore NaN, sends every later candidate of the search to the corner `UBsearch` (by reading). PyBADS keeps the scale and reproduces the kept candidates at it.
+- Why: the rulings on W3-8 and W3-9 (PI, 2026-09-27, `verification/wave3.md`); `matlab_side_defects.md`.
+- Kind: deliberate change.
+- Slice: B3.
+
 ## B4: poll, mesh, incumbent, target
 
 **KD-B4-1. The poll always uses LTMADS (`poll_mads_2n`); the other poll methods are not ported**
 - Python: `pybads/bads/bads.py:2137-2143`.
 - MATLAB: `bads.m:206`, `791-798` (`feval(options.PollMethod{:}, …)`); `poll/pollGPS2N.m`; `poll/private/pollBADS2N.m`, `pollBMADS2N.m`.
-- What differs: `poll_method` is ignored (KD-B1-5). Both default to MADS 2N.
+- What differs: `poll_method` is ignored (KD-B1-5). Both default to MADS 2N; the directions that PyBADS's MADS 2N draws differ from MATLAB's (KD-B4-3).
 - Why: `AGENTS.md`, "Many options do nothing … `poll_method`".
 - Kind: unported feature.
 - Slice: B4.
 
-**KD-B4-2. When the posterior under the best iteration's hyperparameters cannot be computed, the target is predicted from the current GP**
+**KD-B4-2. The target is predicted from the posterior recomputed under the best iteration's hyperparameters, and from the current GP when that posterior cannot be computed**
 - Python: `pybads/bads/bads.py:2659-2670` (`try` around `set_hyperparameters(hyp_best)` and `predict`; on `LinAlgError`, `gp.predict` on the unchanged GP).
 - MATLAB: `bads.m:1296-1312` (`UpdateTarget` sets `gptemp.hyp = hyp` and keeps `gptemp.post`, so it never refactorizes and cannot fail at this point).
-- What differs: PyBADS has a failure path that MATLAB lacks, and on that path it uses the GP's own hyperparameters and posterior. **Settled:** only this fallback. **Not settled:** the recomputation under `hyp_best` itself, where MATLAB reuses the current posterior. That recomputation is why the call can fail, and it gives different targets at default options.
-- Why: `dev/plans/gp-update-guards.md`, Design "Target (call 1)" and Open Question 2.
+- What differs: PyBADS recomputes the posterior of a copy of the GP under `hyp_best`, the hyperparameters of the best iteration, and predicts the target from it. MATLAB's `UpdateTarget` keeps the current posterior and evaluates the kernel and mean under `hyp` (`bads.m:1301`, `utils/gppred.m:39-47`, `utils/mygp.m:122-123`, `146-187`), a hybrid that is no GP prediction under one set of hyperparameters: emulated under the hyperparameters of 1 to 3 iterations earlier, it gave means of 1.2e3 to 2.8e7 where the observed values were at most 5e-3 (W3-21). PyBADS computes the prediction that MATLAB's code intends. The two agree when `hyp_best` is the current set; they differed in 0 of 21 decisions at level 0 and 5 of 13 at level 1. The recomputation is why the call can fail, and PyBADS has a failure path that MATLAB lacks, on which it uses the GP's own hyperparameters and posterior. **Settled:** the recomputation (W3-21 (a)) and the fallback.
+- Why: `dev/plans/gp-update-guards.md`, Design "Target (call 1)" and Open Question 2; the PI's ruling on W3-21 (`verification/wave3.md`).
+- Kind: deliberate change.
+- Slice: B4.
+
+**KD-B4-3. The poll draws LTMADS directions on the search mesh; MATLAB's poll steps along one coordinate at a time**
+- Python: `pybads/poll/poll_mads_2n.py` (`n_max = max(1, round(mesh_size / search_mesh_size))`; the basis divided by `n_max`, in units of the poll size), and the poll vectors `B_new * mesh_size * poll_scale` in `_poll_step_` (`pybads/bads/bads.py`); W3-24, `869a033`.
+- MATLAB: `poll/pollMADS2N.m:7` (`Nmax = max(1, round(SearchMeshSize/MeshSize))`), `bads.m:791-798`.
+- What differs: MATLAB bounds the entries of the LTMADS basis by the ratio of the search mesh size to the poll mesh size, which is below 1 at every default state (the locked search mesh is `2^(2k-10)` at the poll mesh `2^k`), so that its basis is always a signed permutation of the identity and its poll steps along one coordinate at a time, as both user documents say. PyBADS takes LTMADS's bound, the ratio of the poll size to the mesh size (`2^(10-k)` at default; Audet and Dennis, 2006), and takes the basis in units of `mesh_size / n_max`, the search mesh size at default: each direction steps by `mesh_size` along one coordinate and is tilted along the others by entries drawn from `-n_max + 1` to `n_max - 1`, and the poll points lie on the search mesh when the incumbent does. A new basis is drawn at each poll, as on both sides before; LTMADS's one direction per mesh index is not adopted. Results change at default options.
+- Why: the PI's ruling on W3-24 (b) (`verification/wave3.md`, with its gate in "Fix pass"): `pollMADS2N.m:7` inverts the ratio that bounds the basis, and a coordinate poll makes no progress along a valley that no coordinate descends (B4-I, `verification/scripts/wave3/B4_internal/check12_ltmads_variant.py`); `matlab_side_defects.md`.
 - Kind: deliberate change.
 - Slice: B4.
 
@@ -233,8 +257,8 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B5-2. A failed rebuild restores the GP as it was on entry, marks it, and forces a refit at the next rebuild**
 - Python: `pybads/bads/gaussian_process_train.py:285-289` (snapshot), `492-524` (restore; `needs_rebuild` and `needs_refit` set; exit flag -2), `594-595` (markers cleared once a posterior is left on the new set); `pybads/bads/bads.py:1711-1722` (search), `2202-2219` (poll; with `poll_training` off after the first iteration, the forced refit gives way), `2236-2239` (the poll treats the GP as unreliable after its own rebuild fails), `2617-2632` (`_record_gp_refit_`).
 - MATLAB: `private/gpupdate.m:340-354` (the new data and the failed rebuild's hyperparameters and `pollscale` stay, with `post = []`); `bads.m:523-536`, `826-839` (rebuild while `post` is empty), `1223-1254` (refit only when `gppredcheck` finds the NaN predictions unreliable and `MinRefitTime` has passed).
-- What differs: PyBADS throws away the new data and hyperparameters on failure and refits at the very next rebuild, whatever `min_refit_time` says. The markers in `gp.temporary_data` stand in for MATLAB's empty `post`. The retry with the previous hyperparameters on the new training set, which MATLAB lacks, is made only after a refit (without one it would repeat the computation that failed), and the GP's geometry then comes from the hyperparameters it keeps: W1-11 (`f65bc91`) and W1-10 (`9ac1a47`), by the rulings of wave 1 (PI, 2026-09-26).
-- Why: survey, candidate row "`local_gp_fitting`, and `bads.py`, the forced refit", status "by design (… Open Question 7)"; `dev/plans/gp-update-guards.md`, Design and Open Questions 3 and 7.
+- What differs: PyBADS throws away the new data and hyperparameters on failure and refits at the very next rebuild, whatever `min_refit_time` says. The markers in `gp.temporary_data` stand in for MATLAB's empty `post`. The retry with the previous hyperparameters on the new training set, which MATLAB lacks, is made only after a refit (without one it would repeat the computation that failed), and the GP's geometry then comes from the hyperparameters it keeps: W1-11 (`f65bc91`) and W1-10 (`9ac1a47`), by the rulings of wave 1 (PI, 2026-09-26). After a failed rebuild the search ranks its candidates by the LCB of the restored GP, a consistent GP with finite predictions (`pybads/bads/bads.py:1801-1805` at `8aecb6a`); in MATLAB the empty `post` makes `gppred` fail again, `acqLCB` sums over no prediction samples, every candidate scores 0, and the stable sort keeps `uCheck`'s first candidate, the lexicographically smallest, an arbitrary point far from the incumbent (W3-12; with an injected failure, 142, 38 and 93 grid units from the incumbent in PyBADS, 1891, 1696 and 291 in MATLAB's rule). The poll treats such a GP as unreliable on both sides.
+- Why: survey, candidate row "`local_gp_fitting`, and `bads.py`, the forced refit", status "by design (… Open Question 7)"; `dev/plans/gp-update-guards.md`, Design and Open Questions 3 and 7; for the search's ranking, the PI's ruling on W3-12 (`verification/wave3.md`).
 - Kind: deliberate change.
 - Slice: B5.
 
@@ -285,6 +309,14 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Why: the PI's ruling of 2026-09-25, in #71 (`7b50a3a`): the code comment; `CHANGELOG.md`, "`noise_size` with user-specified noise"; the survey's row fixed in `7b50a3a`.
 - Kind: deliberate change.
 - Slice: B5.
+
+**KD-B5-9. With `poll_training` off, the poll neither records a refit that it does not make nor clears the flag of an unreliable GP**
+- Python: `pybads/bads/bads.py:2195-2200` (`c9ebdc7`, W1-8).
+- MATLAB: `bads.m:822-823` (the poll drops the refit when `PollTraining` is off), `1242-1252` (`IsRefitTime` has already set `lastfitgp`, reset the GP statistics and cleared `unrelgp_flag`).
+- What differs: MATLAB records a refit that the poll then cancels, so that the next refit of the search waits for `MinRefitTime` counted from a refit that did not happen, and it clears the flag that marks the GP as unreliable; PyBADS does neither, and its stopping rule reads the calibration of the GP as it is. Off by default.
+- Why: the PI's rulings on W1-8 (`verification/wave1.md`) and W3-30 (`verification/wave3.md`); `matlab_side_defects.md`, "With `PollTraining` off, the poll records a refit that it then cancels"; `CHANGELOG.md`, "Refits without poll training".
+- Kind: deliberate change.
+- Slice: B5 (the code is the poll's, B4).
 
 ## B6: GP model and its gpyreg objects
 
@@ -394,7 +426,7 @@ No entry of its own. Entries that touch the eight commits: KD-B5-1 (the rank-1 `
 
 ## O: third reader
 
-No entry of its own. For this slice, see KD-B3-3 (the search hedge's reward is ported; the acquisition hedge is not), KD-B4-2, KD-B5-1, KD-B5-2 and KD-B6-1.
+No entry of its own. For this slice, see KD-B3-3 (the search hedge's reward is ported; the acquisition hedge is not), KD-B3-5, KD-B4-2, KD-B4-3, KD-B5-1, KD-B5-2 and KD-B6-1.
 
 ## Tests (no slice; for test-adequacy notes)
 
