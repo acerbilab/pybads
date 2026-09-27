@@ -1,0 +1,24 @@
+fix: an empty search set decays the search hedge's gains, as a failed search (W3-11)
+
+Since W0-15 an empty search set counts as a failed search, but the step
+skipped the hedge's update for it, so the gains kept their values. MATLAB
+BADS updates the hedge after an empty set too (bads.m:722-725): its
+acqPortfolio 'upd' gives the chosen search the reward er = 0 (its estimate
+is the incumbent's fval, with SD 0) and the others none (phat = Inf), so
+every gain decays (acqPortfolio.m:56-69). The step now calls update_hedge
+after an empty set, which decays every gain by hedge_decay without scoring
+a point (MATLAB scores the previous search's stale usearch).
+
+The comment on the empty set no longer says that it is handled as in
+MATLAB on every path: the status matches MATLAB's at improvement_quantile
+<= 0.5 (the default) or without noise, and the hedge decays as MATLAB's;
+PyBADS does not move to the previous search's point at a larger quantile
+in a noisy run, nor stop with an error when the first search set is empty,
+as MATLAB does. The empty branch's f_sd_search is 0.0, a float as on the
+other paths (W3-18).
+
+Test: test_empty_search_set_decays_the_hedge_gains, an empty third search
+set leaves the gains multiplied by hedge_decay (at the parent they stay
+unchanged). Fingerprint dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
