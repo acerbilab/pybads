@@ -562,3 +562,41 @@ def test_re_estimation_keeps_optim_state_in_step(target_noise):
     run["bads"].optimize()
     assert len(polls) > 5
     assert all(polls)
+
+
+@pytest.mark.parametrize("target_noise", [False, True])
+def test_final_estimate_keeps_optim_state_in_step(target_noise):
+    """The final estimate of a noisy run, at the iterate it chooses and from
+    the final samples, goes into `optim_state` too: the output function's
+    last call (`"done"`) receives the returned point in `u`, its
+    observation in `yval`, and the returned `fval` and `fsd`."""
+    done = []
+
+    def output_fcn(x, optim_state, state):
+        if state == "done":
+            done.append((np.array(x, dtype=float), optim_state))
+        return False
+
+    fun = (
+        _noisy_sphere_with_estimated_sd(0)
+        if target_noise
+        else _noisy_sphere(0)
+    )
+    bads = _make_bads(
+        fun,
+        specify_target_noise=target_noise,
+        max_fun_evals=100,
+        random_seed=1,
+        output_fcn=output_fcn,
+    )
+    result = bads.optimize()
+    assert result["yval_vec"].shape == (10,)
+    ((x, state),) = done
+    assert np.array_equal(np.ravel(x), np.ravel(result["x"]))
+    assert np.array_equal(
+        np.ravel(bads.var_transf.inverse_transf(state["u"])),
+        np.ravel(result["x"]),
+    )
+    assert state["yval"] == bads.yval
+    assert state["fval"] == result["fval"]
+    assert state["fsd"] == result["fsd"]

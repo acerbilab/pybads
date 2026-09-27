@@ -1767,6 +1767,14 @@ class BADS:
             self.iteration_history.record("fval", self.fval, final_idx)
             self.iteration_history.record("fsd", self.fsd, final_idx)
 
+        if final_idx is not None:
+            # optim_state keeps the returned point and its values in step,
+            # for the output function's last call
+            self.optim_state["u"] = self.u.copy()
+            self.optim_state["yval"] = self.yval
+            self.optim_state["fval"] = self.fval
+            self.optim_state["fsd"] = self.fsd
+
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
 
