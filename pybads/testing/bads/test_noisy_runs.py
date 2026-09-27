@@ -169,17 +169,73 @@ def test_one_final_sample_without_target_noise_adds_the_incumbent():
     [(_noisy_sphere, False), (_noisy_sphere_with_estimated_sd, True)],
     ids=["inferred_noise", "specified_noise"],
 )
-def test_noisy_run_in_one_iteration_reports_incumbent(make_fun, target_noise):
-    """A noisy run that ends within its first iteration takes no final
-    samples: `yval_vec` holds the incumbent's observation and `ysd_vec` is
-    None. `max_iter=1` ends the run within its first iteration, before the
+def test_noisy_run_in_one_iteration_takes_the_final_samples(
+    make_fun, target_noise
+):
+    """A noisy run that ends within its first iteration takes the final
+    samples at the incumbent, its one iterate, and reports their estimate,
+    recorded at that iterate, as the final estimate after a later iteration
+    does. `max_iter=1` ends the run within its first iteration, before the
     iteration count moves."""
     bads = _make_bads(
         make_fun(0), specify_target_noise=target_noise, max_iter=1
     )
     result = bads.optimize()
-    assert np.array_equal(result["yval_vec"], [bads.yval])
-    assert result["ysd_vec"] is None
+    assert result["iterations"] == 1
+    y = result["yval_vec"]
+    assert y.shape == (10,)
+    if target_noise:
+        precision = 1 / result["ysd_vec"] ** 2
+        assert result["fval"] == pytest.approx(
+            np.sum(y * precision) / np.sum(precision), rel=1e-12
+        )
+        assert result["fsd"] == pytest.approx(
+            1 / np.sqrt(np.sum(precision)), rel=1e-12
+        )
+    else:
+        assert result["ysd_vec"] is None
+        assert result["fval"] == pytest.approx(np.mean(y), rel=1e-12)
+        assert result["fsd"] == pytest.approx(
+            np.std(y, ddof=1) / np.sqrt(y.size), rel=1e-12
+        )
+    assert bads.iteration_history.get("fval")[0] == result["fval"]
+    assert bads.iteration_history.get("fsd")[0] == result["fsd"]
+
+
+def test_small_noisy_budget_takes_the_reserved_final_samples():
+    """A budget that ends a noisy run within its first iteration still
+    takes the final samples it reserved, at the returned point, and no
+    evaluation beyond `max_fun_evals`: at D = 2, 38 evaluations leave 4 for
+    them after the starting point, the noise test and the initial design of
+    32 points."""
+    rng = np.random.default_rng(0)
+    points = []
+
+    def fun(x):
+        points.append(np.ravel(x).copy())
+        return float(np.sum((np.ravel(x) - 0.1) ** 2)) + 0.5 * rng.normal()
+
+    bads = BADS(
+        fun,
+        0.3 * np.ones(2),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -2 * np.ones(2),
+        2 * np.ones(2),
+        options={"display": "off", "random_seed": 0, "max_fun_evals": 38},
+    )
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["iterations"] == 1
+    assert result["func_count"] == len(points) == 38
+    y = result["yval_vec"]
+    assert y.shape == (4,)
+    for x in points[-4:]:
+        assert np.array_equal(x, np.ravel(result["x"]))
+    assert result["fval"] == pytest.approx(np.mean(y), rel=1e-12)
+    assert result["fsd"] == pytest.approx(
+        np.std(y, ddof=1) / np.sqrt(y.size), rel=1e-12
+    )
 
 
 def test_noise_size_zero_with_target_noise_changes_nothing():

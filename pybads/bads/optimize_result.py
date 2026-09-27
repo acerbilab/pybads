@@ -31,7 +31,8 @@ class OptimizeResult(dict):
             - Standard deviation of objective function at solution (0 if noiseless).
         - yval_vec: np.ndarray or None
             - Final sampled observations at the solution; the incumbent's
-              observation alone if the run ends within its first iteration.
+              observation alone if ``output_fcn`` stops the run in its
+              initialization.
               None for a run without uncertainty handling, with
               ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves
               no evaluation for a final sample after the initial design.

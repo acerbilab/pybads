@@ -1683,10 +1683,12 @@ class BADS:
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
-        # A run that ends within its first iteration takes no final samples:
-        # the result reports the incumbent's observation
+        # A run that ends in its initialization takes no final samples: the
+        # result reports the incumbent's observation
         self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
         self.optim_state["ysd_vec"] = None
+        # The iterate whose point takes the final samples
+        final_idx = None
         if (
             self.optim_state["uncertainty_handling_level"] > 0
             and poll_iteration > 0
@@ -1713,53 +1715,57 @@ class BADS:
             self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                 min_q_beta_idx
             ]
+            final_idx = min_q_beta_idx
+        elif (
+            self.optim_state["uncertainty_handling_level"] > 0
+            and self.optim_state["iter"] == 0
+        ):
+            # A run that ends within its first iteration has one iterate,
+            # the incumbent, which takes the final samples that the run
+            # reserved; MATLAB BADS takes none then (bads.m:1138)
+            final_idx = 0
 
-            # Re-evalate estimated function value and SD at final point
-            if self.options["noise_final_samples"] > 0:
-                # Estimate function value and standard deviation at final point.
-                # Note that by default we do *not* use YVAL because it is biased
-                # (since it was an incumbent at some iteration, it is more likely to be a
-                # random fluctuation lower than the mean)
-                yval_vec = np.empty(self.options["noise_final_samples"])
-                ysd_vec = np.empty(self.options["noise_final_samples"])
-                for i_sample in range(self.options["noise_final_samples"]):
-                    y, y_sd, _ = self.function_logger(
-                        self.u, record_duplicate_data=False
-                    )
-                    yval_vec[i_sample] = y
-                    ysd_vec[i_sample] = y_sd
-
-                # With one sample and no noise estimate from the target, YVAL
-                # is used as well (biased, but better than no uncertainty)
-                if (
-                    yval_vec.size == 1
-                    and not self.options["specify_target_noise"]
-                ):
-                    yval_vec = np.append(yval_vec, self.yval)
-
-                self.optim_state["yval_vec"] = np.copy(yval_vec)
-                self.optim_state["ysd_vec"] = np.copy(ysd_vec)
-
-                if self.options["specify_target_noise"]:
-                    # Weight the samples by the precisions the target returns
-                    precision = 1 / ysd_vec**2
-                    tot_precision = np.sum(precision)
-                    self.fval = (
-                        np.sum(yval_vec * precision) / tot_precision
-                    ).item()
-                    self.fsd = (1 / np.sqrt(tot_precision)).item()
-                else:
-                    # Mean of the samples and its standard error, from
-                    # their SD normalized by n - 1 (MATLAB's std)
-                    self.fval = np.mean(yval_vec).item()
-                    self.fsd = (
-                        np.std(yval_vec, ddof=1) / np.sqrt(yval_vec.size)
-                    ).item()
-                # The estimate describes the chosen iterate
-                self.iteration_history.record(
-                    "fval", self.fval, min_q_beta_idx
+        # Re-evalate estimated function value and SD at final point
+        if final_idx is not None and self.options["noise_final_samples"] > 0:
+            # Estimate function value and standard deviation at final point.
+            # Note that by default we do *not* use YVAL because it is biased
+            # (since it was an incumbent at some iteration, it is more likely to be a
+            # random fluctuation lower than the mean)
+            yval_vec = np.empty(self.options["noise_final_samples"])
+            ysd_vec = np.empty(self.options["noise_final_samples"])
+            for i_sample in range(self.options["noise_final_samples"]):
+                y, y_sd, _ = self.function_logger(
+                    self.u, record_duplicate_data=False
                 )
-                self.iteration_history.record("fsd", self.fsd, min_q_beta_idx)
+                yval_vec[i_sample] = y
+                ysd_vec[i_sample] = y_sd
+
+            # With one sample and no noise estimate from the target, YVAL
+            # is used as well (biased, but better than no uncertainty)
+            if yval_vec.size == 1 and not self.options["specify_target_noise"]:
+                yval_vec = np.append(yval_vec, self.yval)
+
+            self.optim_state["yval_vec"] = np.copy(yval_vec)
+            self.optim_state["ysd_vec"] = np.copy(ysd_vec)
+
+            if self.options["specify_target_noise"]:
+                # Weight the samples by the precisions the target returns
+                precision = 1 / ysd_vec**2
+                tot_precision = np.sum(precision)
+                self.fval = (
+                    np.sum(yval_vec * precision) / tot_precision
+                ).item()
+                self.fsd = (1 / np.sqrt(tot_precision)).item()
+            else:
+                # Mean of the samples and its standard error, from
+                # their SD normalized by n - 1 (MATLAB's std)
+                self.fval = np.mean(yval_vec).item()
+                self.fsd = (
+                    np.std(yval_vec, ddof=1) / np.sqrt(yval_vec.size)
+                ).item()
+            # The estimate describes that iterate
+            self.iteration_history.record("fval", self.fval, final_idx)
+            self.iteration_history.record("fsd", self.fsd, final_idx)
 
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)

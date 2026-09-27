@@ -247,9 +247,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `ValueError` unless `uncertainty_handling=True` was set as well.
 - **Noisy runs that end within their first iteration.** A run with
   uncertainty handling that ends within its first iteration, for instance
-  with `max_iter=1`, returns its result, with the incumbent's observation
-  in `yval_vec` and `ysd_vec` set to `None`, instead of raising
-  `KeyError: 'yval_vec'`.
+  with `max_iter=1`, returns its result instead of raising `KeyError:
+  'yval_vec'`. Such a run, which a `max_fun_evals` that the initial design
+  nearly uses up also gives, takes the final samples that it reserves from
+  `max_fun_evals` at the incumbent, as a longer run takes them at the point
+  it returns: `fval` and `fsd` are their estimate, and `yval_vec` and
+  `ysd_vec` hold them. MATLAB BADS takes none then.
 - **`noise_size` with user-specified noise.** With
   `specify_target_noise=True`, a scalar `noise_size` made the creation of
   `BADS` fail with `IndexError`. It now gives the warning about
