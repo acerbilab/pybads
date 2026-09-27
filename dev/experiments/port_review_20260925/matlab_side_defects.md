@@ -92,6 +92,41 @@ Nothing here was run in MATLAB.
   not known without MATLAB. PyBADS computed the same, and gpyreg 1.3.3
   refuses it with `ValueError`, which stopped the run; it now keeps the
   previous prior (`a14524d`; KD-B6-2).
+- **A noisy run that ends in its first iteration takes none of the final
+  samples it reserves** (W4-14, `verification/wave4.md`). `bads.m:1138`
+  makes the final estimate only at `iter > 1`, so a noisy run that ends
+  within its first iteration, on `MaxIter = 1` or on a `MaxFunEvals` that
+  the initial design nearly uses up, leaves unused the evaluations it
+  reserved for the final samples and reports the incumbent's single
+  observation, with an `fsd` that at uncertainty level 1 is the default
+  `NoiseSize` (`bads.m:448-452`, as the verifier read them). PyBADS had the
+  same rule, over more budgets, since its design is larger (at D = 2, up to
+  48 evaluations against MATLAB's 32); it now takes the reserved samples at
+  the incumbent, the run's only iterate, and reports their estimate
+  (`b61a880`; KD-B2-8).
+- **The search hedge's parameters are not checked** (W4-18, W4-29).
+  `search/searchHedge.m:45-46` chooses a search with the probabilities
+  `(1 - n γ) softmax(β g) + γ`, n the number of searches, and
+  `acq/acqPortfolio.m:69` decays the gains by `HedgeDecay` at each update;
+  none of `HedgeGamma`, `HedgeBeta` and `HedgeDecay` is checked, and every
+  bad value runs without a warning. A `HedgeGamma` above `1/n` favors the
+  search of lower gain, and above `1/(n - 1)` gives some searches a negative
+  probability, so that they are never chosen; a negative `HedgeBeta`
+  inverts the hedge, and an infinite or NaN one makes the probabilities NaN
+  (PyBADS then chose at random every time); a `HedgeDecay` above 1 makes
+  the gains grow until they overflow, and a negative one makes them
+  alternate in sign. Off by default (0.125, `1e-3/TolFun` and
+  `0.1^(1/(2*nvars))`). PyBADS ran with such values too; it now refuses, when
+  `BADS` is created, a `hedge_gamma` outside `[0, 1/n]` (`6e24519`), a
+  `hedge_beta` that is not a finite number at least 0 and a `hedge_decay`
+  outside `[0, 1]` (`bd793f2`; KD-B3-8).
+- **`Nsearchiter` is not checked** (W4-25). `private/setupoptions.m:26`
+  evaluates it and `search/searchES.m:125` loops over `1:Nsearchiter`; what
+  MATLAB does with 0, a negative value or a non-integer was not run. PyBADS
+  stopped its run at the first search, with `ZeroDivisionError` for 0,
+  `ValueError` for a negative value and `TypeError` for a float; it now
+  refuses a value that is not a positive integer when `BADS` is created
+  (`36e8b70`; KD-B4-6).
 
 ## Shared design observations (PyBADS keeps MATLAB's behavior)
 
@@ -168,6 +203,12 @@ Nothing here was run in MATLAB.
   along the diagonal, the case that the tilted directions address, did
   not improve (`verification/wave3.md`, "Fix pass"). PyBADS keeps MATLAB's
   poll.
+- **The noise test's time counts as the optimizer's time** (W4-7).
+  `private/evalinitmesh.m:41` calls the target directly for the noise test,
+  and `private/funlogger.m:130` times only the logged calls, so the
+  overhead that `bads.m:1186` reports counts the test's evaluation as the
+  optimizer's time. PyBADS keeps this accounting (W2-20), and the
+  description of `overhead` says so (`e744ed9`).
 
 ## Defects that PyBADS does not share
 
@@ -190,3 +231,31 @@ Nothing here was run in MATLAB.
   `min` and `max` ignore NaN, sends every later candidate of the search to
   the corner `UBsearch`. PyBADS keeps the scale after such a generation
   (`a77d95d`; KD-B3-6).
+- **The ring of evaluations never writes its last row, and reads it**
+  (W4-12, found while verifying). `private/funlogger.m:120-121` advances
+  the row as `Xn = max(1, mod(Xn + 1, CacheSize))`, rows 1, 2, 3, 4, 1, …
+  for a `CacheSize` of 5, so that its last row is never written, while
+  `Xmax = min(Xmax + 1, CacheSize)` reaches it: once the ring has wrapped,
+  `U(1:Xmax)` and `Y(1:Xmax)` (`utils/uCheck.m:23`,
+  `private/gpupdate.m:30`) take in the row that `funlogger`'s `'init'` left
+  unwritten (the verifier, by reading). Reached past 9999 logged
+  evaluations at the default `CacheSize` of 1e4. PyBADS's log grows
+  instead (KD-B7-4).
+
+## Questions that need MATLAB
+
+- **The seed of the initial design** (W4-1). `init/initSobol.m:9-15` sets
+  the skip index into the Sobol sequence to
+  `mod(prod(uint64(num2str(u0(1:min(10,end))))), MaxSeed) + 1`, with
+  `MaxSeed` 997. If `prod` of a `uint64` array returns a double, as the
+  verifier read MATLAB's documentation, the product of a start that is not
+  an integer exceeds `flintmax` from D = 2, and the seed then depends on how
+  `mod` treats such a double: with an exact remainder, 378 to 395 seeds
+  over 500 random starts; with the documented formula `x - floor(x./y).*y`
+  or its round-off compensation, 1 for all of them, one design per D, as
+  PyBADS had. Under the literal formula one transcribed seed came out
+  negative, which `i4_sobol.m:249-250` clamps to 0, the start of the
+  sequence (the verifier, unverified). The call that settles it:
+  `mod(prod(uint64(num2str([0.25 -0.5]))), 997) + 1`, 966 for an exact
+  remainder and 1 otherwise. PyBADS seeds its scrambled design from the
+  run's generator, whatever MATLAB computes (`efe5e95`; KD-B7-1).

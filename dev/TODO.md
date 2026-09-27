@@ -100,6 +100,9 @@ order.
   configurations of the default suite that compares the current rule, the
   rule without the mesh factor (`stobads_frame_size_scaling_power = 0`)
   and `opp_stobads` moves limited to a positive estimated improvement.
+  Since wave 4 (W4-15) an uncertain poll moves the incumbent only to a
+  point that improves on it; the search's move on an uncertain outcome is
+  not limited so.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -131,9 +134,9 @@ order.
   settling the reach and effect of each candidate defect. The starting point
   is the [survey](results/2026-09-23-codebase-survey.md): its candidate
   table (only partly looked at, never compared with MATLAB), and a finding
-  of its section on the tests: the seed of the initial Sobol design, which
-  ignores all but the integer part of `u0` (whether MATLAB's `uint64`
-  product saturates needs MATLAB itself).
+  of its section on the tests, the seed of the initial Sobol design, fixed
+  by wave 4 (W4-1); what MATLAB's own seed is, a question for MATLAB, is in
+  `experiments/port_review_20260925/matlab_side_defects.md`.
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.
@@ -147,7 +150,11 @@ order.
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
-  variables, benchmarking on neurobench).
+  variables, benchmarking on neurobench). A port of periodic variables also
+  assigns `period_check`'s result at every call site, as MATLAB BADS does,
+  where the poll discards it, and gives the initial design `optim_state`'s
+  boolean mask of the periodic variables, where it passes the option, a
+  list of indices (rows W3-35 and W4-11 of the port review).
 - [ ] **`gp_cov_prior="ard"`.** MATLAB's per-dimension empirical prior of
   the GP length scales (`gpdef/gpdefBads.m:254-274`) is not ported; by the
   ruling on row W1-28 of the port review
@@ -163,7 +170,9 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`) a non-empty
   value is refused with a message. A port imports them after the function
   logger exists, keeps them out of the choice of the first incumbent, and
-  needs a test that its GP holds them.
+  needs a test that its GP holds them. `FunctionLogger.add`, which such a
+  port would call, keeps checks of its own on the value and its SD, and
+  what it records for a repeated point is settled with it (row W4-10).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -211,44 +220,49 @@ order.
     whenever it fills them; the redraw of a random start tests it before it
     is put on the mesh (KD-B1-9); the test of fixed variables leaves `x0`
     out (KD-B1-7);
-  - the run's control: the noise test's time is averaged into the start's
-    row of `fun_eval_time`; a noisy run whose design leaves fewer
-    evaluations than `noise_final_samples` ends in its first iteration
-    without taking the samples it reserved, so that `yval_vec` is `None`
-    when it reserved none and the incumbent's observation otherwise, and
-    the test of that reserve does not reach its floor at 0; the docstring
-    of `test_iterations_count_from_one` says "8th" where the run reports 7;
+  - the run's control: the test of the reserve for the final samples does
+    not reach its floor at 0; the docstring of
+    `test_iterations_count_from_one` says "8th" where the run reports 7;
   - `VariableTransformer` used directly: a scalar `apply_log_t` raises
     `AttributeError`, a 1-D bound `IndexError`, and a NumPy scalar hard
     bound with the plausible bounds omitted fails; the `else` branches of
     its four bounds cannot run.
-- [ ] **Minor items of slices B3 and B4 of the port review**, whose wave has
-  passed (`experiments/port_review_20260925/verification/wave3.md`, "Found
-  while fixing" and "Doublecheck", with the details). Not fixed:
-  - for wave 4's fix pass, by the PI's ruling after the doublecheck:
-    `contraints_check` bins the candidates and the evaluated points with
-    `np.round`, which takes a half to the even integer, where `uCheck.m`'s
-    `round` takes it away from zero, so that once the search mesh is finer
-    than `tol_mesh / 2` (from the poll mesh `2^-6` at default) other
-    candidates are merged and removed than in MATLAB BADS, within
-    `tol_mesh / 2`; the ES search splits its first population with the
-    same rounding, which differs from MATLAB's when
-    `n_search / n_search_iter` is odd (not at default). Both are fixed as
-    MATLAB rounds, and the change moves results;
-  - the search: `n_search_iter` below 1 is not refused (0 stops the run at
-    its first search with `ZeroDivisionError`, 0.5 with `TypeError`); the
-    empty set's `search_dist = 0` is an `int`, read only by
-    `_update_search_stats_`; the warning for a generation of the ES search
-    that no candidate is left in is logged at WARNING, a few times per run
-    on a thin band; `grid_functions.py` imports matplotlib's `axis` and
-    `constraints_check.py` imports `Value`, unused, and `force_to_grid`
-    has no docstring;
-  - the poll: the main loop discards the GP that `_poll_step_` returns,
-    which works because the GP functions change it in place;
-    `poll_mads_2n.py` imports `GP` unused;
-  - the final estimate of a noisy run sets `u`, `yval`, `fval` and `fsd` on
-    the object but not in `optim_state`, so that `output_fcn`'s `"done"`
-    call receives the last iteration's values with the final `x`.
+- [ ] **Minor items of slices B7 and O of the port review**, whose wave has
+  passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
+  while fixing", with the details). Not fixed:
+  - the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
+    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578`
+    applies `SearchAcqFcn`; only its mean is read, so nothing moves, but a
+    callable `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
+    `# Returns z, dz,ymu,ys,fmu,fs,*fpi*` lists MATLAB's outputs; the port
+    floors the ES search's `mu = n_search / n_search_iter`, where
+    `private/setupvars.m:186` does not; `n_search` and `search_method` are
+    not checked (an empty `search_method` fails at the first search), and a
+    `search_acq_fcn` that is not a pair fails when `BADS` is created with an
+    unrelated `IndexError` or `TypeError`, while a first element other than
+    `"acq_LCB"` fails only at the first search; `_search_step_`'s docstring
+    gives `search_dist` as an array and has the typo "thecurrent";
+  - the checks: a NumPy complex scalar passes the checks of `hedge_gamma`,
+    `hedge_beta`, `hedge_decay` and `improvement_quantile`, since NumPy
+    orders complex numbers, and a one-element array is accepted and stored
+    as an array; `tol_fun` is not checked (0 raises a bare
+    `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
+    evaluated, and a negative value is refused only through `hedge_beta`);
+  - the function logger: `FunctionLogger.add` keeps checks of its own (a
+    string value raises `TypeError`, a Python complex of zero imaginary part
+    passes `np.isreal` and fails while recorded, a one-element array is
+    refused); the final samples still add to the incumbent's `n_evals` and
+    average their times into its row, as the noise test did before W4-6, at
+    the end of the run; `test_function_logger.py` calls
+    `test_add_parameter_transform()` at module level;
+  - the rest: the description of `periodic_vars` does not say that the
+    option is refused, and `test_options.py` asserts its text;
+    `_get_gp_training_options`'s docstring gives the type `dic`, leaves out
+    `function_logger` and `second_fit` and lists `hyp_dict`, which it does
+    not read; `init_sobol` keeps two commented-out lines; comments,
+    strings and docstrings longer than 79 characters in
+    `constraints_check.py`, `grid_functions.py`, `es_search.py` and
+    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`.
 - [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
   with `time.time()`, whose resolution on Windows before Python 3.13 is
   about 15.6 ms: for a fast target most evaluations time as 0, and the
