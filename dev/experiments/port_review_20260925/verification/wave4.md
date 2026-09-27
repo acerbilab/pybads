@@ -659,8 +659,10 @@ one BLAS thread and with the default
 | `46af65a` | W4-6's completion | `4146a986863602cb` | `4146a986863602cb` |
 | `81385ac` | `dev-next` after #80 | `4146a986863602cb` | `4146a986863602cb` |
 
-The Windows fingerprints of the same commits come from
-`scripts/wave4/doublecheck/orchestrator/fp_windows.ps1`.
+The Windows fingerprints of the same commits, by
+`scripts/wave4/doublecheck/orchestrator/fp_windows.ps1`, are added after
+the merge; the commits before `46af65a` are on `origin/dev-port-review-w4`
+only, which stays until then.
 
 The PI's questions on the pass:
 
