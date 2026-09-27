@@ -776,3 +776,23 @@ tests):
 - For `dev/TODO.md` ("Minor items of slices B3 and B4"): the other items
   of "Found while fixing", `n_search_iter` below 1, `force_to_grid`'s
   missing docstring, and the items for the PI above.
+
+**Rulings on what was left (PI, 2026-09-27)**, on the orchestrator's
+recommendations:
+
+- The rounding of `contraints_check`'s bins: fixed as MATLAB BADS rounds,
+  with `force_to_grid`'s exact rule, in wave 4's fix pass, as its first
+  row, gated by the `default` and `geometry` suites against
+  `population_linux_wave3_20260927`, with the split of the ES search's
+  first population in the same commit (its unit test, since no suite sets
+  an `n_search_iter` that reaches it); wave 2 took W2-16 and W2-29 into
+  its pass in the same way.
+- `acq_hedge=True`: refused with `ValueError` when `BADS` is created, as
+  `gp_cov_prior="ard"` is (W1-28), in the commit that records these
+  rulings, with a changelog entry and an "Upgrading from" line.
+- `accelerate_mesh_steps=inf`: refused as W3-39 rules, and the message
+  names `accelerate_mesh=False`, the switch that turns the accelerated
+  reduction off, in the same commit.
+
+Both commits keep the fingerprint `360971bf1f0ba6cb` (Linux, one BLAS
+thread).

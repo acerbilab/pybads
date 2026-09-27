@@ -374,6 +374,35 @@ def test_accelerate_mesh_steps_not_a_positive_integer_is_refused(
         _bads_with_accelerate_mesh_steps(accelerate_mesh_steps)
 
 
+def test_accelerate_mesh_steps_refusal_names_accelerate_mesh():
+    """`inf`, which MATLAB BADS and 1.1.0 ran without the accelerated
+    reduction of the mesh, is refused, and the message names the switch
+    that turns the reduction off, `accelerate_mesh=False`."""
+    with pytest.raises(
+        ValueError, match=r"options\['accelerate_mesh'\] = False turns"
+    ):
+        _bads_with_accelerate_mesh_steps(np.inf)
+
+
+def test_acq_hedge_true_is_refused():
+    """`acq_hedge=True`, MATLAB BADS's acquisition hedge, which PyBADS does
+    not implement and MATLAB BADS labels unsupported, is refused when
+    `BADS` is created; a run with it stopped with `UnboundLocalError` at
+    its first improving search."""
+    with pytest.raises(
+        ValueError, match=r"options\['acq_hedge'\] should be False"
+    ):
+        BADS(
+            _quadratic,
+            np.array([0.5, 0.0]),
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "acq_hedge": True},
+        )
+
+
 @pytest.mark.parametrize("accelerate_mesh_steps", [1, 3, 3.0, np.int64(2)])
 def test_accelerate_mesh_steps_positive_integer_is_accepted(
     accelerate_mesh_steps,

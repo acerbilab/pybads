@@ -225,19 +225,16 @@ order.
 - [ ] **Minor items of slices B3 and B4 of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave3.md`, "Found
   while fixing" and "Doublecheck", with the details). Not fixed:
-  - for the PI, from the doublecheck: `contraints_check` bins the
-    candidates and the evaluated points with `np.round`, which takes a
-    half to the even integer, where `uCheck.m`'s `round` takes it away from
-    zero, so that once the search mesh is finer than `tol_mesh / 2` (from
-    the poll mesh `2^-6` at default) other candidates are merged and
-    removed than in MATLAB BADS, within `tol_mesh / 2`; the ES search
-    splits its first population with the same rounding, which differs from
-    MATLAB's when `n_search / n_search_iter` is odd (not at default). Either
-    change moves results. `acq_hedge=True` stops a run with
-    `UnboundLocalError` at its first improving search (KD-B3-3), where
-    refusing it when `BADS` is created would say that it is not supported;
-    `accelerate_mesh_steps=inf`, which MATLAB BADS and 1.1.0 run without the
-    accelerated reduction of the mesh, is refused (KD-B4-6);
+  - for wave 4's fix pass, by the PI's ruling after the doublecheck:
+    `contraints_check` bins the candidates and the evaluated points with
+    `np.round`, which takes a half to the even integer, where `uCheck.m`'s
+    `round` takes it away from zero, so that once the search mesh is finer
+    than `tol_mesh / 2` (from the poll mesh `2^-6` at default) other
+    candidates are merged and removed than in MATLAB BADS, within
+    `tol_mesh / 2`; the ES search splits its first population with the
+    same rounding, which differs from MATLAB's when
+    `n_search / n_search_iter` is odd (not at default). Both are fixed as
+    MATLAB rounds, and the change moves results;
   - the search: `n_search_iter` below 1 is not refused (0 stops the run at
     its first search with `ZeroDivisionError`, 0.5 with `TypeError`); the
     empty set's `search_dist = 0` is an `int`, read only by

@@ -176,8 +176,9 @@ class BADS:
         take: for instance a ``max_fun_evals`` that is neither a positive
         integer nor ``inf``, a value other than ``True`` or ``False`` for
         ``uncertainty_handling`` or for an option whose default is one of
-        them (``plot`` excepted), or an ``f_vals`` that holds a finite value
-        or a non-empty ``fun_values``, options that are not supported.
+        them (``plot`` excepted), or an ``f_vals`` that holds a finite value,
+        a non-empty ``fun_values`` or ``acq_hedge=True``, options that are
+        not supported.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -838,7 +839,9 @@ class BADS:
         ):
             raise ValueError(
                 "options['accelerate_mesh_steps'] needs to be a positive "
-                f"integer, not {accelerate_mesh_steps!r}."
+                f"integer, not {accelerate_mesh_steps!r}; "
+                "options['accelerate_mesh'] = False turns the accelerated "
+                "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
         if self.options["improvement_quantile"] > 0.5:
@@ -988,6 +991,14 @@ class BADS:
             raise ValueError(
                 "options['gp_cov_prior'] should be 'iso' (an empirical prior "
                 "shared by the GP length scales); 'ard' is not supported."
+            )
+
+        # MATLAB's acquisition hedge (AcqHedge), which MATLAB BADS labels
+        # unsupported, is not ported
+        if self.options.get("acq_hedge"):
+            raise ValueError(
+                "options['acq_hedge'] should be False: the acquisition hedge "
+                "is not supported."
             )
 
         # A known noise level, which MATLAB refuses too (gpdefBads.m)

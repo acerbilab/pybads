@@ -55,7 +55,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `BADS` raises `ValueError` for an `improvement_quantile` that is not a
   number greater than 0 and less than 1.
 - `BADS` raises `ValueError` for an `accelerate_mesh_steps` that is not a
-  positive integer.
+  positive integer, `inf` included, which 1.1.0 ran without the accelerated
+  reduction of the mesh: `accelerate_mesh=False` turns it off.
+- `BADS` raises `ValueError` for `acq_hedge=True`, which 1.1.0 accepted and
+  which stopped a run with `UnboundLocalError` at its first improving
+  search.
 - `pybads.search.ESSearchCMA` is removed.
 
 ### Changed
@@ -74,6 +78,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
   implement, and any other value, and then kept the initial prior over the
   length scales for the whole run.
+- **Acquisition hedge.** `BADS` refuses `acq_hedge=True` when it is
+  created: the acquisition hedge, which MATLAB BADS labels unsupported, is
+  not implemented, and 1.1.0 accepted the option and stopped the run with
+  `UnboundLocalError` at its first improving search.
 - **Large noise.** `BADS` warns when `noise_size` exceeds e^5, about 148,
   the largest noise standard deviation its Gaussian process can represent
   (the bound of MATLAB BADS): the noise it infers then stays at that bound,
@@ -108,7 +116,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and with `IndexError` for a float once the iterations exceeded it, as
   MATLAB BADS stops for these values; a float larger than every iteration,
   `inf` included, ran without the accelerated reduction of the mesh, as in
-  MATLAB BADS, and `True` ran as 1.
+  MATLAB BADS, and `True` ran as 1; `accelerate_mesh=False` turns the
+  reduction off, and the message says so.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and

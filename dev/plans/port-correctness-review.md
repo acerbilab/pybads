@@ -534,7 +534,12 @@ Wave 3's records are the model: its worklog lines below and
    agents run only their own test files), CI checked after every push that
    touches `pybads/`, each row that moves results gated by the default
    suite against the step before, and the head's population as the new
-   Linux reference; then a pull request to `dev-next`. Three lessons of
+   Linux reference; then a pull request to `dev-next`. Its first row is the
+   rounding of `contraints_check`'s bins, which the PI ruled after wave
+   3's doublecheck (`verification/wave3.md`, "Doublecheck"): fixed as
+   MATLAB BADS rounds, with the split of the ES search's first population,
+   and gated alone by the `default` and `geometry` suites against
+   `population_linux_wave3_20260927`. Three lessons of
    wave 3's pass:
    - the fingerprint's runs are small, so it misses changes that reach
      only 6-D, 10-D, noisy or long runs: the batch that moves nothing is
@@ -864,7 +869,11 @@ Wave 3's records are the model: its worklog lines below and
   `TODO.md` (two items of B1 and B2 that the pass fixed; a line for B3's
   and B4's minor items), and "Wave 4 pickup", which named only W3-6 of
   what wave 3 changed in O's code (`verification/wave3.md`,
-  "Doublecheck").
+  "Doublecheck"). PI, on what was left: the rounding goes to wave 4's fix
+  pass as its first row ("Wave 4 pickup", step 6); `acq_hedge=True` is
+  refused when `BADS` is created, and the refusal of
+  `accelerate_mesh_steps=inf` names `accelerate_mesh=False`, both under
+  the same fingerprint.
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
