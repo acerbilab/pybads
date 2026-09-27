@@ -1,0 +1,29 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+flat D=3 level1 seed 3: uncertain polls 1, self-moves 1, real uncertain moves 0; search rebuilds 132 (extra, only for the mark: 3) vs 129 unmarked
+    as is:    x=[ 0.798  1.624 -1.265] fval=0.1628 fsd=0.3900 iters=13 fevals=200
+    unmarked: x=[ 0.798  1.624 -1.265] fval=0.1628 fsd=0.3900 iters=13 fevals=200
+flat D=3 level1 seed 4: uncertain polls 3, self-moves 1, real uncertain moves 2; search rebuilds 123 (extra, only for the mark: 3) vs 120 unmarked
+    as is:    x=[-3.104 -0.214 -1.521] fval=0.0382 fsd=0.1951 iters=15 fevals=200
+    unmarked: x=[-3.104 -0.214 -1.521] fval=0.0382 fsd=0.1951 iters=15 fevals=200
+flat D=3 level1 seed 5: uncertain polls 1, self-moves 1, real uncertain moves 0; search rebuilds 139 (extra, only for the mark: 3) vs 136 unmarked
+    as is:    x=[1.083 2.973 0.636] fval=0.0371 fsd=0.2800 iters=12 fevals=200
+    unmarked: x=[1.083 2.973 0.636] fval=0.0371 fsd=0.2800 iters=12 fevals=200
+aniso D=2 level1 seed 3: uncertain polls 0, self-moves 0, real uncertain moves 0; search rebuilds 176 (extra, only for the mark: 0) vs 176 unmarked
+    as is:    x=[0.511 0.463] fval=-0.1058 fsd=0.1084 iters=12 fevals=200
+    unmarked: x=[0.511 0.463] fval=-0.1058 fsd=0.1084 iters=12 fevals=200
+aniso D=2 level1 seed 4: uncertain polls 0, self-moves 0, real uncertain moves 0; search rebuilds 162 (extra, only for the mark: 0) vs 162 unmarked
+    as is:    x=[0.507 0.351] fval=0.1942 fsd=0.1643 iters=13 fevals=196
+    unmarked: x=[0.507 0.351] fval=0.1942 fsd=0.1643 iters=13 fevals=196
+aniso D=2 level1 seed 5: uncertain polls 0, self-moves 0, real uncertain moves 0; search rebuilds 193 (extra, only for the mark: 0) vs 193 unmarked
+    as is:    x=[0.449 0.464] fval=-0.1177 fsd=0.1305 iters=11 fevals=200
+    unmarked: x=[0.449 0.464] fval=-0.1177 fsd=0.1305 iters=11 fevals=200
+flat D=3 level2 seed 3: uncertain polls 1, self-moves 1, real uncertain moves 0; search rebuilds 146 (extra, only for the mark: 3) vs 143 unmarked
+    as is:    x=[1.031 0.85  0.082] fval=-0.5278 fsd=0.3162 iters=12 fevals=200
+    unmarked: x=[1.031 0.85  0.082] fval=-0.5278 fsd=0.3162 iters=12 fevals=200
+flat D=3 level2 seed 4: uncertain polls 3, self-moves 1, real uncertain moves 2; search rebuilds 150 (extra, only for the mark: 3) vs 147 unmarked
+    as is:    x=[-1.454 -1.378  1.084] fval=0.2571 fsd=0.3162 iters=14 fevals=200
+    unmarked: x=[-1.454 -1.378  1.084] fval=0.2571 fsd=0.3162 iters=14 fevals=200
+flat D=3 level2 seed 5: uncertain polls 1, self-moves 1, real uncertain moves 0; search rebuilds 145 (extra, only for the mark: 3) vs 142 unmarked
+    as is:    x=[-0.865  0.673 -0.542] fval=0.2873 fsd=0.3162 iters=11 fevals=200
+    unmarked: x=[-0.865  0.673 -0.542] fval=0.2873 fsd=0.3162 iters=11 fevals=200

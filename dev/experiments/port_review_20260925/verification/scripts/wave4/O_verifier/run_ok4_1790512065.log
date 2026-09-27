@@ -1,0 +1,16 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sqrt_beta=-1.0: BADS() created, 0 evaluations so far
+    optimize() raised ValueError after 12 evaluations: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive
+sqrt_beta=0.0: BADS() created, 0 evaluations so far
+    optimize() raised ValueError after 12 evaluations: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive
+sqrt_beta='ucb': BADS() created, 0 evaluations so far
+    optimize() raised ValueError after 12 evaluations: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive
+callable -> -1.0: BADS() created, 0 evaluations so far
+    optimize() finished: 60 evaluations, fval 4.09e-06, 0 Python warnings
+callable -> nan: BADS() created, 0 evaluations so far
+    optimize() finished: 60 evaluations, fval 0.142, 0 Python warnings
+callable -> array of 2: BADS() created, 0 evaluations so far
+    optimize() raised IndexError after 12 evaluations: index 4065 is out of bounds for axis 0 with size 2048
+callable -> 'x': BADS() created, 0 evaluations so far
+    optimize() raised UFuncTypeError after 12 evaluations: ufunc 'multiply' did not contain a loop with signature matching types (dtype('<U1'), dtype('float64')) -> None
