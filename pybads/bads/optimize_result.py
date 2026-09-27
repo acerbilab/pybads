@@ -29,6 +29,11 @@ class OptimizeResult(dict):
             - Value of objective function at solution.
         - fsd: float
             - Standard deviation of objective function at solution (0 if noiseless).
+              For a noisy run that ``output_fcn`` stops in its
+              initialization, which takes no final samples, it is not an
+              estimate: ``noise_size`` without ``specify_target_noise``,
+              and otherwise the standard deviation that the target returned
+              at the incumbent.
         - yval_vec: np.ndarray or None
             - Final sampled observations at the solution; the incumbent's
               observation alone if ``output_fcn`` stops the run in its
