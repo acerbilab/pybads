@@ -11,6 +11,7 @@ from pybads.bads.options import Options
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
+from pybads.search.grid_functions import force_to_grid
 from pybads.search.search_hedge import ESSearchHedge
 
 
@@ -393,3 +394,47 @@ def test_lcb_refuses_other_values_of_sqrt_beta(sqrt_beta):
     accepted."""
     with pytest.raises(ValueError, match="positive finite real number"):
         acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), sqrt_beta)
+
+
+def test_force_to_grid_rounds_halves_away_from_zero():
+    """`force_to_grid` rounds as MATLAB's `round` in `force2grid.m` does:
+    halves away from zero, where `np.round` takes them to the even
+    integer."""
+    q = np.array([0.5, 1.5, 2.5, -0.5, -1.5, -2.5, 0.49, 0.51, -0.51, 3.0])
+    expected = np.array([1, 2, 3, -1, -2, -3, 0, 1, -1, 3])
+    tol = 2.0**-10
+    assert np.array_equal(force_to_grid(q * tol, tol) / tol, expected)
+    assert np.array_equal(force_to_grid(q, 0.1, tol=1.0), expected)
+    # The largest double below one half, which floor(|q| + 0.5) takes to 1
+    below_half = np.nextafter(0.5, 0.0)
+    assert np.array_equal(
+        force_to_grid(np.array([below_half, -below_half]), 1.0), [0, 0]
+    )
+
+
+def test_start_on_a_half_goes_to_matlabs_grid_point():
+    """`x0 = [1, 3]` in the plausible box `[-2048, 2048]` lies at 0.5 and
+    1.5 search meshes from the origin, and starts at `[2, 4]`, as in MATLAB
+    BADS, not at `[0, 4]`."""
+    bads = BADS(
+        lambda x: float(np.sum(np.atleast_2d(x) ** 2)),
+        np.array([1.0, 3.0]),
+        np.full(2, -4096.0),
+        np.full(2, 4096.0),
+        np.full(2, -2048.0),
+        np.full(2, 2048.0),
+        options={"display": "off", "random_seed": 0},
+    )
+    search_mesh_size = bads.optim_state["search_mesh_size"]
+    u_x0 = bads.var_transf(np.array([1.0, 3.0]))
+    np.testing.assert_allclose(
+        np.ravel(u_x0) / search_mesh_size, [0.5, 1.5], rtol=1e-12
+    )
+    np.testing.assert_allclose(
+        np.ravel(bads.u) / search_mesh_size, [1.0, 2.0], rtol=1e-12
+    )
+    np.testing.assert_allclose(
+        np.ravel(bads.var_transf.inverse_transf(np.atleast_2d(bads.u))),
+        [2.0, 4.0],
+        rtol=1e-12,
+    )

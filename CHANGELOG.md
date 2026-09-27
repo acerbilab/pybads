@@ -527,6 +527,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `uncertain_incumbent=False` no longer stops with `AttributeError` at its
   first poll; its optimization target is the incumbent's value less
   `tol_fun`, as in MATLAB BADS.
+- **Start point on the grid.** A starting point halfway between two points
+  of the search grid goes to the one farther from zero, as in MATLAB BADS,
+  where 1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048,
+  2048]` starts at `[2, 4]`, not `[0, 4]`.
 
 ## [1.1.0] - 2026-09-25
 

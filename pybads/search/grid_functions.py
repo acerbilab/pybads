@@ -9,7 +9,10 @@ def force_to_grid(x, search_mesh_size, tol=None):
     if tol is None:
         tol = search_mesh_size
 
-    return tol * np.round(x / tol)
+    # MATLAB's round (force2grid.m), which takes halves away from zero, where
+    # np.round takes them to the even integer
+    frac, r = np.modf(x / tol)
+    return tol * (r + np.sign(frac) * (np.abs(frac) >= 0.5))
 
 
 def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):
