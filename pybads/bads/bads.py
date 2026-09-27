@@ -1515,6 +1515,10 @@ class BADS:
                 self.yval = self.iteration_history.get("yval")[poll_iteration]
                 self.fval = self.iteration_history.get("fval")[poll_iteration]
                 self.fsd = self.iteration_history.get("fsd")[poll_iteration]
+                # optim_state keeps the incumbent's values in step
+                self.optim_state["yval"] = self.yval
+                self.optim_state["fval"] = self.fval
+                self.optim_state["fsd"] = self.fsd
                 self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                     poll_iteration
                 ]
