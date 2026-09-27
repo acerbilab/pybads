@@ -1,0 +1,46 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+
+(1) random x0, D = 3, 20 seeds
+distinct x0 20; designs identical in all 20: True; start after the design: 16 of 20 at the same design point, 4 stay at x0
+
+(2) malformed outputs
+level 0, output array([1.]): accepted -> 1.0, sd None
+level 0, output [1.0]: accepted -> np.float64(1.0), sd None
+level 0, output array([1., 2.]): ValueError: can only convert an array of size 1 to a Python scalar (+FuncError note); Xn -1, X_max_idx -1, func_count 0
+level 0, output 'a': TypeError: ufunc 'isfinite' not supported for the input types, and the ; Xn -1, X_max_idx -1, func_count 0
+level 0, output None: ValueError: FunctionLogger:InvalidFuncValue:; Xn -1, X_max_idx -1, func_count 0
+level 0, output (1+0j): TypeError: float() argument must be a string or a real number, not 'com; Xn 0, X_max_idx 0, func_count 0
+level 0, output np.complex128(1+0j): accepted -> np.complex128(1+0j), sd None
+level 0, output (1+1j): ValueError: FunctionLogger:InvalidFuncValue:; Xn -1, X_max_idx -1, func_count 0
+level 0, output True: accepted -> True, sd None
+level 0, output nan: ValueError: FunctionLogger:InvalidFuncValue:; Xn -1, X_max_idx -1, func_count 0
+level 0, output (1.0, 0.5): ValueError: FunctionLogger:InvalidFuncValue:; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, 0.5): accepted -> 1.0, sd 0.5
+level 2, output (1.0, array([0.5])): accepted -> 1.0, sd 0.5
+level 2, output (1.0, [0.5]): TypeError: '<=' not supported between instances of 'list' and 'float'; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, None): TypeError: ufunc 'isfinite' not supported for the input types, and the ; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, 'a'): TypeError: ufunc 'isfinite' not supported for the input types, and the ; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, [0.5, 0.6]): ValueError: The truth value of an array with more than one element is am; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, array([0.5, 0.6])): ValueError: can only convert an array of size 1 to a Python scalar (+FuncError note); Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, 0.0): ValueError: FunctionLogger:InvalidNoiseValue; Xn -1, X_max_idx -1, func_count 0
+level 2, output (1.0, inf): ValueError: FunctionLogger:InvalidNoiseValue; Xn -1, X_max_idx -1, func_count 0
+level 2, output [1.0, 0.5]: ValueError: The `specify_target_noise` option has been set to `True`.; Xn -1, X_max_idx -1, func_count 0
+level 2, output array([1. , 0.5]): ValueError: The `specify_target_noise` option has been set to `True`.; Xn -1, X_max_idx -1, func_count 0
+
+(3) finalize and reset_fun_eval_time
+before: X (5, 2), n_evals (5, 1), fun_eval_time (5, 1)
+after reset_fun_eval_time: fun_eval_time (3, 1)
+after finalize: X (5, 2), X_flag (5,), n_evals (5, 1)
+n_evals[X_flag] works
+finalize( called in bads.py: False ; reset_fun_eval_time( called: False ; .add( called: False
+
+(4) add
+noise_flag False, add(1.0,): -> (1.0, None, 0), S[0] None
+noise_flag False, add(array([1.]),): ValueError
+noise_flag True, add(1.0,): -> (1.0, 1, 0), S[0] 1.0
+noise_flag False, add(1.0, 0.3): -> (1.0, None, 0), S[0] None
+
+(5) noise test whose second value is NaN / inf
+second value nan: ValueError at call 2: FunctionLogger:InvalidFuncValue:
+second value inf: ValueError at call 2: FunctionLogger:InvalidFuncValue:

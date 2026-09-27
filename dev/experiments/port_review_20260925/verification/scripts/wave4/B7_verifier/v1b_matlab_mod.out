@@ -1,0 +1,28 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+p for typical starts, and the seeds under the three readings
+D= 1 '0'                                p=4.800e+01 (> 2^53: False, p/997 > 2^53: False) seed exact 49, compens. 49, naive 49
+D= 2 '0  0'                             p=2.359e+06 (> 2^53: False, p/997 > 2^53: False) seed exact 395, compens. 395, naive 395
+D= 4 '0  0  0  0'                       p=5.700e+15 (> 2^53: False, p/997 > 2^53: False) seed exact 982, compens. 982, naive 982
+D= 5 '0  0  0  0  0'                    p=2.802e+20 (> 2^53: True, p/997 > 2^53: True) seed exact 202, compens. 1, naive 1
+D= 1 '0.25'                             p=5.851e+06 (> 2^53: False, p/997 > 2^53: False) seed exact 805, compens. 805, naive 805
+D= 1 '0.2998'                           p=2.009e+10 (> 2^53: False, p/997 > 2^53: False) seed exact 775, compens. 775, naive 775
+D= 2 '0.25         -0.5'                p=1.084e+27 (> 2^53: True, p/997 > 2^53: True) seed exact 966, compens. 1, naive 1
+D= 1 '0.61035'                          p=7.580e+11 (> 2^53: False, p/997 > 2^53: False) seed exact 12, compens. 12, naive 12
+D= 1 '0.61621'                          p=7.729e+11 (> 2^53: False, p/997 > 2^53: False) seed exact 698, compens. 698, naive 698
+D= 2 '0.030273     -0.42871'            p=4.760e+34 (> 2^53: True, p/997 > 2^53: True) seed exact 536, compens. 1, naive 1
+D= 2 '-0.89258      -0.2334'            p=3.396e+34 (> 2^53: True, p/997 > 2^53: True) seed exact 505, compens. 1, naive 1
+D= 3 '-0.18262     -0.90918     -0.9'   p=6.352e+55 (> 2^53: True, p/997 > 2^53: True) seed exact 959, compens. 1, naive 1
+D=10 '0.99805      0.30469     -0.53'   p=4.249e+201 (> 2^53: True, p/997 > 2^53: True) seed exact 784, compens. 1, naive 1
+
+over 500 random grid starts: distinct seeds, and share with seed 1
+D= 1 exact   : 355 distinct, seed 1 in 0 of 500
+D= 1 compens.: 355 distinct, seed 1 in 0 of 500
+D= 2 exact   : 395 distinct, seed 1 in 0 of 500
+D= 2 compens.:   1 distinct, seed 1 in 500 of 500
+D= 3 exact   : 378 distinct, seed 1 in 1 of 500
+D= 3 compens.:   1 distinct, seed 1 in 500 of 500
+D= 5 exact   : 394 distinct, seed 1 in 0 of 500
+D= 5 compens.:   1 distinct, seed 1 in 500 of 500
+D=10 exact   : 384 distinct, seed 1 in 0 of 500
+D=10 compens.:   1 distinct, seed 1 in 500 of 500

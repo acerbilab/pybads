@@ -1,0 +1,28 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D | level 0: evals in init (x0, noise test, design), design rows | rounding alone | MATLAB Ninit || level 1: evals, design rows | rounding alone | MATLAB
+ 1 | L0:   4 evals, design   2 (share of 500 budget 0.400%) |   1 |   1 || L1:  34 evals, design  32 |  32 |  20
+ 2 | L0:   6 evals, design   4 (share of 1000 budget 0.400%) |   2 |   2 || L1:  34 evals, design  32 |  32 |  20
+ 3 | L0:   6 evals, design   4 (share of 1500 budget 0.267%) |   4 |   3 || L1:  34 evals, design  32 |  32 |  20
+ 4 | L0:  10 evals, design   8 (share of 2000 budget 0.400%) |   4 |   4 || L1:  34 evals, design  32 |  32 |  20
+ 5 | L0:  10 evals, design   8 (share of 2500 budget 0.320%) |   8 |   5 || L1:  34 evals, design  32 |  32 |  20
+ 6 | L0:  10 evals, design   8 (share of 3000 budget 0.267%) |   8 |   6 || L1:  34 evals, design  32 |  32 |  20
+ 7 | L0:  10 evals, design   8 (share of 3500 budget 0.229%) |   8 |   7 || L1:  34 evals, design  32 |  32 |  20
+ 8 | L0:  18 evals, design  16 (share of 4000 budget 0.400%) |   8 |   8 || L1:  34 evals, design  32 |  32 |  20
+ 9 | L0:  18 evals, design  16 (share of 4500 budget 0.356%) |  16 |   9 || L1:  34 evals, design  32 |  32 |  20
+10 | L0:  18 evals, design  16 (share of 5000 budget 0.320%) |  16 |  10 || L1:  34 evals, design  32 |  32 |  20
+11 | L0:  18 evals, design  16 (share of 5500 budget 0.291%) |  16 |  11 || L1:  34 evals, design  32 |  32 |  20
+12 | L0:  18 evals, design  16 (share of 6000 budget 0.267%) |  16 |  12 || L1:  34 evals, design  32 |  32 |  20
+13 | L0:  18 evals, design  16 (share of 6500 budget 0.246%) |  16 |  13 || L1:  34 evals, design  32 |  32 |  20
+14 | L0:  18 evals, design  16 (share of 7000 budget 0.229%) |  16 |  14 || L1:  34 evals, design  32 |  32 |  20
+15 | L0:  18 evals, design  16 (share of 7500 budget 0.213%) |  16 |  15 || L1:  34 evals, design  32 |  32 |  20
+16 | L0:  34 evals, design  32 (share of 8000 budget 0.400%) |  16 |  16 || L1:  34 evals, design  32 |  32 |  20
+17 | L0:  34 evals, design  32 (share of 8500 budget 0.376%) |  32 |  17 || L1:  34 evals, design  32 |  32 |  20
+18 | L0:  34 evals, design  32 (share of 9000 budget 0.356%) |  32 |  18 || L1:  34 evals, design  32 |  32 |  20
+19 | L0:  34 evals, design  32 (share of 9500 budget 0.337%) |  32 |  19 || L1:  34 evals, design  32 |  32 |  20
+20 | L0:  34 evals, design  32 (share of 10000 budget 0.320%) |  32 |  20 || L1:  34 evals, design  32 |  32 |  20
+
+fun_eval_start set by the user, at D = 8 and 16 (init_sobol sizes)
+D=4: 1:1 2:2 3:8 4:8 5:8 6:8 7:8 8:8 9:16
+D=8: 1:1 2:2 3:4 4:4 5:16 6:16 7:16 8:16 9:16 10:16 11:16 12:16 13:16 14:16 15:16 16:16 17:32
+D=16: 1:1 2:2 3:4 4:4 5:8 6:8 7:8 8:8 9:32 10:32 11:32 12:32 13:32 14:32 15:32 16:32 17:32 18:32 19:32 20:32 21:32 22:32 23:32 24:32 25:32 26:32 27:32 28:32 29:32 30:32 31:32 32:32 33:64
