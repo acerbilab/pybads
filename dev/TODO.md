@@ -171,8 +171,10 @@ order.
   value is refused with a message. A port imports them after the function
   logger exists, keeps them out of the choice of the first incumbent, and
   needs a test that its GP holds them. `FunctionLogger.add`, which such a
-  port would call, keeps checks of its own on the value and its SD, and
-  what it records for a repeated point is settled with it (row W4-10).
+  port would call, keeps checks of its own on the value and its SD, records
+  a missing SD as 1 when the logger holds SDs and drops a given one when it
+  does not, and what it records for a repeated point is settled with it
+  (row W4-10).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -245,9 +247,17 @@ order.
   - the checks: a NumPy complex scalar passes the checks of `hedge_gamma`,
     `hedge_beta`, `hedge_decay` and `improvement_quantile`, since NumPy
     orders complex numbers, and a one-element array is accepted and stored
-    as an array; `tol_fun` is not checked (0 raises a bare
-    `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
-    evaluated, and a negative value is refused only through `hedge_beta`);
+    as an array; for the hedge's three options such an array can stop the
+    run at its first search with an unrelated `ValueError` (a `hedge_decay`
+    of `[0.5]`, a `hedge_gamma` or `hedge_beta` of shape (1, 1)), and so
+    can a `Decimal` or a `Fraction`, which pass too; a Python integer of
+    2**63 or more raises `TypeError` from `np.isfinite` in the checks of
+    `max_fun_evals`, `accelerate_mesh_steps` and `n_search_iter`, and an
+    `n_search_iter` above `n_search` leaves the ES search no candidate (the
+    doublecheck of wave 4, "Doublecheck" in the same ledger); `tol_fun` is
+    not checked (0 raises a bare `ZeroDivisionError` while the `.ini`
+    default of `hedge_beta` is evaluated, and a negative value is refused
+    only through `hedge_beta`);
   - the function logger: `FunctionLogger.add` keeps checks of its own (a
     string value raises `TypeError`, a Python complex of zero imaginary part
     passes `np.isreal` and fails while recorded, a one-element array is
@@ -255,14 +265,18 @@ order.
     average their times into its row, as the noise test did before W4-6, at
     the end of the run; `test_function_logger.py` calls
     `test_add_parameter_transform()` at module level;
-  - the rest: the description of `periodic_vars` does not say that the
-    option is refused, and `test_options.py` asserts its text;
-    `_get_gp_training_options`'s docstring gives the type `dic`, leaves out
-    `function_logger` and `second_fit` and lists `hyp_dict`, which it does
-    not read; `init_sobol` keeps two commented-out lines; comments,
+  - the rest: `_get_gp_training_options`'s docstring gives the type `dic`,
+    leaves out `function_logger` and `second_fit` and lists `hyp_dict`,
+    which it does not read; `init_sobol` keeps two commented-out lines; comments,
     strings and docstrings longer than 79 characters in
     `constraints_check.py`, `grid_functions.py`, `es_search.py` and
-    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`.
+    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`;
+    `test_get_gp_training_options_samplers` and `_opts_N` assign
+    `hyp_dict_none` and never use it; `bads.py` imports
+    `matplotlib.pyplot`, which nothing in the package uses; the docstring of
+    `BADS.optimize` renders with numpydoc's warning on an underline and a
+    docutils error ("Unexpected indentation"), and the References block of
+    `ESSearchHedge`'s docstring is malformed.
 - [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
   with `time.time()`, whose resolution on Windows before Python 3.13 is
   about 15.6 ms: for a fast target most evaluations time as 0, and the

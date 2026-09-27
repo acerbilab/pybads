@@ -128,20 +128,21 @@ class BADS:
         determine at runtime if the objective function is noisy, or turn
         uncertainty handling on with ``options['specify_target_noise']``
         = ``True``.
+        To obtain reproducible results of the optimization, set
+        ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
     gamma_uncertain_interval : float, optional, keyword-only
         With ``options['stobads']``, the multiplier of the half-width of the
         uncertainty interval of the Sto-BADS success rule. By default
         ``None``, which is 1.96.
-        To obtain reproducible results of the optimization, set
-        ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
     Attributes
     ----------
     rng : numpy.random.Generator
         The generator of every random draw of the run, including the random
-        ``x0``. It is created with the ``BADS`` object from
-        ``options['random_seed']``, which takes what
+        ``x0``; the scrambling of the initial design draws from a generator
+        that scipy seeds with one draw of it. It is created with the
+        ``BADS`` object from ``options['random_seed']``, which takes what
         ``numpy.random.default_rng`` takes, such as a non-negative integer
         (``True`` and ``False`` count as 1 and 0) or a ``SeedSequence``, or a
         ``Generator``, which is used as given; a float that is a whole number

@@ -249,7 +249,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   neither does `optim_state`: a copy would be a second generator in the same
   state. The scrambling of the Sobol design is seeded by one draw of the
   generator in `init_sobol`, so that the seed decides the design, whatever
-  the start; MATLAB BADS's design depends on the start alone.
+  `x0` is given (a random `x0` is drawn from the generator before it);
+  MATLAB BADS derives its design from the start alone, with no random draw.
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.

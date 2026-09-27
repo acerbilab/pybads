@@ -64,10 +64,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   search.
 - `pybads.search.ESSearchCMA` is removed.
 - `pybads.init_functions.init_sobol` returns the number of points of its
-  design as its second value, not its base-2 logarithm.
-- A target that returns a value of a complex type, even one whose imaginary
-  part is zero, raises `ValueError`, where 1.1.0 accepted a NumPy complex
-  value.
+  design as its second value, not its base-2 logarithm, and takes `lb` and
+  `ub`, which it does not read, as required arguments, which 1.1.0 let a
+  call leave out.
+- A target that returns a value, or with `specify_target_noise=True` a
+  noise SD, of a complex type raises `ValueError`, even when its imaginary
+  part is zero, where 1.1.0 accepted a NumPy complex value or SD whose
+  imaginary part is zero.
 - `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
   that is not a finite number at least 0, which the default `1e-3 / tol_fun`
@@ -134,8 +137,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   integer raises `ValueError`, and a float that is a whole number is
   converted to an integer; 1.1.0 did not check it and stopped the run at its
   first search, with `ZeroDivisionError` for 0, `ValueError` for a negative
-  value and `TypeError` for any float, whole numbers included, and `True`
-  ran as 1.
+  value or NaN and `TypeError` for any other float, whole numbers included,
+  and `True` ran as 1.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and
@@ -175,20 +178,23 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   evaluation, and the search raises `ValueError` when the callable returns
   another value; 1.1.0 ran with a callable that returned −1 or NaN, and
   stopped with an unrelated error when it returned an array of several
-  values or a string.
+  values or a string. `pybads.acquisition_functions.check_sqrt_beta` makes
+  the same check.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
 - **Search hedge parameters.** `BADS` raises `ValueError` for a
   `hedge_gamma` that is not a number from 0 to 1/n, n the number of searches
   in `search_method` (1/2 at default), a `hedge_beta` that is not a finite
   number at least 0, and a `hedge_decay` outside [0, 1]. 1.1.0, like MATLAB
-  BADS, ran with any value: a `hedge_gamma` above 1/n made the search hedge
-  favor the search of lower gain, and above 1/(n − 1) gave some searches a
-  negative probability, so that they were never chosen; a negative
-  `hedge_beta` inverted the hedge too, and an infinite or NaN one made every
-  choice random; a `hedge_decay` above 1 made the searches' gains grow until
-  they overflowed, after which every choice was random, and a negative one
-  made them alternate in sign. Since the default `hedge_beta` is `1e-3 /
+  BADS, ran with any number: a `hedge_gamma` above 1/n made the search
+  hedge favor the search of lower gain, and above 1/(n − 1) gave some
+  searches a negative probability, so that they were never chosen; a
+  negative `hedge_beta` inverted the hedge too, and a `hedge_decay` above 1
+  made the searches' gains grow, a negative one alternate in sign. An
+  infinite or NaN `hedge_beta`, one far below 0, a NaN `hedge_decay`, or
+  gains grown until they overflowed stopped the run with `IndexError` at
+  the next search, where MATLAB BADS chooses a search at random; a string
+  stopped it with `TypeError`. Since the default `hedge_beta` is `1e-3 /
   tol_fun`, a negative `tol_fun` is refused through it.
 
 ### Fixed
@@ -208,12 +214,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `specify_target_noise=True`, a point evaluated again was merged with the
   first earlier evaluation that shared any one of its coordinates, usually
   that of another point, whose value and noise it then changed.
-  `FunctionLogger` now merges it with its own earlier evaluation, and a run
-  no longer evaluates a point again (see "Points evaluated again"), so that
-  no run of `BADS` merges one. On the 3-D ellipsoid above, run over 90 seeds
-  on Linux, where 54 runs made such a merge, the fix of the merge alone
-  lowered the median error from 0.58 to 0.48, and the number of runs with an
-  error of 1 or more from 31 to 20.
+  `FunctionLogger` now merges it with its own earlier evaluation; the
+  initial design, the search and the poll no longer evaluate a point again
+  (see "Points evaluated again") and the final samples are not recorded, so
+  that no run of `BADS` merges one. On the 3-D ellipsoid above, run over 90
+  seeds on Linux, where 54 runs made such a merge, the fix of the merge
+  alone lowered the median error from 0.58 to 0.48, and the number of runs
+  with an error of 1 or more from 31 to 20.
 - **Prior of the GP mean.** At each rebuild of the local Gaussian process,
   the prior over its constant mean is centred at the 90th percentile of the
   training targets, with a width set by their spread, as in MATLAB BADS.
@@ -617,11 +624,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   MATLAB BADS; PyBADS counted older candidates as new from the third
   generation on, so that the scale grew faster than that of MATLAB BADS, and
   from about the fifth generation grew where that of MATLAB BADS shrinks.
-  When a generation has an odd number of candidates (`n_search` over
-  `n_search_iter`, rounded down), the first generation draws the extra
-  candidate at the smaller of its two scales, as MATLAB BADS does, where
-  PyBADS drew it at the larger. The default `n_search_iter`, 2, is affected
-  by neither.
+  When a generation has one more candidate than a multiple of 4
+  (`n_search` over `n_search_iter`, rounded down: 1365 at `n_search_iter =
+  3`, for instance), the first generation draws the extra candidate at the
+  smaller of its two scales, as MATLAB BADS does, where PyBADS drew it at
+  the larger. The defaults, `n_search = 4096` and `n_search_iter = 2`, are
+  affected by neither.
 - **Root logger.** Creating an evolution-strategy search
   (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
   root logger; `BADS` still configures it when it is created, if nothing
@@ -654,7 +662,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with this release's other changes and before this one, a 2-D sphere with
   its minimum on a bound repeated 137 of its 1411 evaluations over 30 seeded
   runs, and a 3-D ellipsoid with target noise 100 of 8800; neither repeats
-  any after it. Results change at default options.
+  any after it. Results change at default options; the rounding of the
+  boundary alone changes 34 of the benchmark's 540 runs, 25 of them ending
+  at other points, with no significant change of their errors or
+  evaluations.
 - **Search hedge in noisy runs.** In a run with noise, the search hedge,
   which chooses between the ES-wcm and ES-ell searches, rewards a search
   with its expected improvement, with the standard normal density as in
@@ -682,7 +693,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is taken as that number, as the value already was. 1.1.0 raised
   `TypeError` or NumPy's own errors for some of them (an SD of `None` or in
   a list), said that the target had failed for a value of several elements,
-  and accepted a NumPy complex value.
+  and accepted a NumPy complex value or SD whose imaginary part is zero.
 - **`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other
   arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long
   as the others, where 1.1.0 left them of unequal lengths.
@@ -691,12 +702,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   refused it.
 - **Initial design.** The scrambling of the initial Sobol design is seeded
   from the run's generator, so that `random_seed` decides the design, as it
-  decides every other random draw of a run; MATLAB BADS's design depends on
-  the start alone. In 1.1.0 the design depended on neither the seed nor the
-  start: every start inside the plausible box gave one design for each
-  number of variables, and a start on or below a plausible lower bound gave
-  a design that could differ between x86 and arm64 machines. Results change
-  at default options.
+  decides every other random draw of a run; MATLAB BADS derives its design
+  from the start alone, with no random draw. In 1.1.0 the design did not
+  depend on the seed, and depended on the start only through the integer
+  parts of its normalized coordinates: every start inside the plausible box
+  gave one design for each number of variables, a start on or beyond a
+  plausible upper bound another, and a start on or below a plausible lower
+  bound one that could differ between x86 and arm64 machines. Results
+  change at default options.
 - **Noise test in the schedule of the GP's fits.** The noise test, the
   second evaluation of the starting point when `uncertainty_handling` is
   left empty, no longer counts in the schedule of the hyperparameter fits of

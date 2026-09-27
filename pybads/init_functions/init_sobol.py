@@ -57,7 +57,7 @@ def init_sobol(
     # the generator advances by one draw whatever scipy's Sobol draws from
     # the generator it seeds. MATLAB BADS derives a skip index into the
     # unscrambled sequence from the digits of u0 instead (initSobol.m:9-15),
-    # so that its design depends on the start alone
+    # so that its design follows from the start alone, with no random draw
     seed = get_rng(rng).integers(2**63)
 
     # Sobol’ sequences are a quadrature rule and they lose their balance properties

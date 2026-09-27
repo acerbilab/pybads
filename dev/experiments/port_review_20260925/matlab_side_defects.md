@@ -101,7 +101,8 @@ Nothing here was run in MATLAB.
   observation, with an `fsd` that at uncertainty level 1 is the default
   `NoiseSize` (`bads.m:448-452`, as the verifier read them). PyBADS had the
   same rule, over more budgets, since its design is larger (at D = 2, up to
-  48 evaluations against MATLAB's 32); it now takes the reserved samples at
+  44 evaluations with the design alone, against MATLAB's 32, and up to 48
+  with the first poll); it now takes the reserved samples at
   the incumbent, the run's only iterate, and reports their estimate
   (`b61a880`; KD-B2-8).
 - **The search hedge's parameters are not checked** (W4-18, W4-29).

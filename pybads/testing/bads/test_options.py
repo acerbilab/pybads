@@ -162,7 +162,9 @@ def test_descriptions_are_whole_comment_lines():
         "specify_target_noise"
     )
     assert descriptions["periodic_vars"] == (
-        "Array with indices of periodic variables, like periodic_vars = [1, 2]"
+        "Array with indices of periodic variables, like periodic_vars = "
+        "[1, 2] (not supported yet: BADS refuses any value but None or an "
+        "empty one)"
     )
     assert descriptions["gp_samples"] == (
         "Hyperparameters samples (0 = optimize)"
