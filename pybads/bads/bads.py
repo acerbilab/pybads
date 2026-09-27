@@ -2451,9 +2451,6 @@ class BADS:
                 f_sd_base = self.iteration_history.get("fsd")[
                     iter - self.options["accelerate_mesh_steps"]
                 ]
-                u_base = self.iteration_history.get("u")[
-                    iter - self.options["accelerate_mesh_steps"]
-                ]
                 self.f_q_historic_improvement = self._eval_improvement_(
                     f_base,
                     self.fval,
@@ -2461,9 +2458,7 @@ class BADS:
                     self.fsd,
                     self.options["improvement_quantile"],
                 )
-                if (
-                    self.f_q_historic_improvement < self.options["tol_fun"]
-                ):  # or np.all(u_base.flatten() == self.u.flatten()):
+                if self.f_q_historic_improvement < self.options["tol_fun"]:
                     self.mesh_size_integer -= 1
                     self.logger.debug(
                         "bads: The optimization is stalling, further decrease of the mesh size"
