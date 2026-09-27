@@ -747,6 +747,22 @@ cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
   threads, which `AGENTS.md` states. Left to wave 3's ledger, a row for
   `accelerate_mesh_steps=0` (B4); to wave 4, the Sobol seed at `u0 = -1`
   (B7); the rest to `TODO.md` (`verification/wave2.md`, "Doublecheck").
+- [x] 2026-09-27: wave 3's fix pass, but for W3-24 (`verification/wave3.md`,
+  "Fix pass"), on `dev-port-review-w3`: four fresh Opus fix agents (A to
+  D) in worktrees of their own, one commit per row, each picked with the
+  whole fast suite and the fingerprint after it, and CI's smoke run after
+  every push that touched the package. `dev-next`'s doublecheck of wave 2
+  (`68d4516`) merged at `4f50376`, the fingerprint unchanged. The gates
+  (default suite, seeds 0-29, each against the step before; the
+  `geometry` suite for W3-1 and W3-24): batch 1 moves 31 runs, all by
+  W3-14, whose rounding of halves reaches the search's candidates at a fine
+  mesh, unflagged; the ES batch, W3-1, W3-6, W3-19 and W3-29 flag nothing,
+  and the pass up to W3-29 flags nothing against
+  `population_linux_wave2_20260926`. W3-24 is flagged (higher errors on
+  the deterministic configurations, far below their tolerances, and the
+  thin band at D = 3 worse), exposes a crash of the GP layer on two
+  points, and does not help the ridges: back to the PI, as ruled. W3-39,
+  from the doublecheck of wave 2, added to the ledger, not ruled.
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a

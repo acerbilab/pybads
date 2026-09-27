@@ -1,0 +1,60 @@
+Runs of the geometry suite at W3-24 (869a033) that crashed; none crashed at W3-29 (0b7add3).
+
+sphere_band_D2 seed 13, after 3 evaluations:
+Traceback (most recent call last):
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/dev/scripts/population.py", line 298, in run_task
+    res = bads.optimize()
+          ^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 1417, in optimize
+    self._poll_step_(gp)
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 2241, in _poll_step_
+    gp, gp_exit_flag = local_gp_fitting(
+                       ^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/gaussian_process_train.py", line 402, in local_gp_fitting
+    gp.set_priors(gp_priors)
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 819, in set_priors
+    if _write_prior_block(
+       ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 182, in _write_prior_block
+    raise ValueError(
+ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A prior needs a finite location, with a <= b for a smooth box, and a finite, positive sigma; a hyperparameter without a prior is set to `None`, and a coordinate of a block without a prior has NaN for both its location and its sigma.
+
+
+sphere_band_D2 seed 23, after 3 evaluations:
+Traceback (most recent call last):
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/dev/scripts/population.py", line 298, in run_task
+    res = bads.optimize()
+          ^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 1417, in optimize
+    self._poll_step_(gp)
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 2241, in _poll_step_
+    gp, gp_exit_flag = local_gp_fitting(
+                       ^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/gaussian_process_train.py", line 402, in local_gp_fitting
+    gp.set_priors(gp_priors)
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 819, in set_priors
+    if _write_prior_block(
+       ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 182, in _write_prior_block
+    raise ValueError(
+ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A prior needs a finite location, with a <= b for a smooth box, and a finite, positive sigma; a hyperparameter without a prior is set to `None`, and a coordinate of a block without a prior has NaN for both its location and its sigma.
+
+
+sphere_band_D3 seed 15, after 3 evaluations:
+Traceback (most recent call last):
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/dev/scripts/population.py", line 298, in run_task
+    res = bads.optimize()
+          ^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 1417, in optimize
+    self._poll_step_(gp)
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/bads.py", line 2241, in _poll_step_
+    gp, gp_exit_flag = local_gp_fitting(
+                       ^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads/dev/scripts/runs/worktrees/h_869a033/pybads/bads/gaussian_process_train.py", line 402, in local_gp_fitting
+    gp.set_priors(gp_priors)
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 819, in set_priors
+    if _write_prior_block(
+       ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py", line 182, in _write_prior_block
+    raise ValueError(
+ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A prior needs a finite location, with a <= b for a smooth box, and a finite, positive sigma; a hyperparameter without a prior is set to `None`, and a coordinate of a block without a prior has NaN for both its location and its sigma.

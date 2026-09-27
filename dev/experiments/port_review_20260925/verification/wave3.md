@@ -345,3 +345,222 @@ recorded at every commit:
 default (time only), and the cause of the frequent zero predictive SDs at
 level 0: `dev/TODO.md` lines. The first-iteration note of the B3 brief
 needs no change.
+
+## Fix pass
+
+Done (2026-09-27), but for W3-24, whose gate sends it back to the PI. As
+in waves 1 and 2: the fixes go on `dev-port-review-w3`, from the brief's commit `326aefe`; each is made by a
+fix agent, a fresh Opus agent with a git worktree of its own and the brief
+`../briefs/wave3_fix_common.md`, one commit per row with its regression
+test; the orchestrator reviews each diff, cherry-picks it, adds the
+changelog lines and runs the whole fast suite and the fingerprint after
+every pick. Four agents: A, the search step, the hedge and the LCB (W3-11
+with W3-18, W3-7, W3-10, W3-6); B, the target, the options and the poll's
+dead code (W3-20, W3-23, W3-31, W3-33, W3-34, W3-36, the records of W3-25
+and W3-28, W3-14); C, the ES search and `contraints_check` (W3-9, W3-8,
+W3-13, the root logger, the comments of W3-2 and W3-3, W3-4, W3-5, W3-15,
+W3-1); D, the poll (W3-22, W3-27, W3-19, W3-29, W3-24). Their reports are
+in `../fixes/`, their scripts in `scripts/wave3/fix_<agent>/`; the hashes
+they cite are those of their branches, and the fingerprints in their
+commit messages are those at their branches' commits, from `326aefe`.
+`dev-next` gained the doublecheck of wave 2 (`68d4516`) during the pass,
+merged into the branch at `4f50376`.
+
+The fingerprint is that of `dev/scripts/fingerprint.py` at the commit on
+the branch (Linux, gpyreg 1.3.3 from the clone at `98ab5a4`, one BLAS
+thread), computed again by the orchestrator at every commit of the pass
+(`scripts/wave3/orchestrator/fp_all.out`). The populations are the
+`default` suite × seeds 0-29, each run from a worktree at its commit and
+compared with the one before, and for W3-1 and W3-24 the `geometry` suite
+(`8824c9e`: a sphere with its minimum on a lower bound, nonsmooth ridges
+along the diagonal, a thin feasible band) × seeds 0-29 before and after;
+the comparisons are in `wave3_fixpass/`, the orchestrator's scripts in
+`scripts/wave3/orchestrator/`. Every population reads gpyreg from the
+clone at the tag `v1.3.3`; its records give gpyreg's version as
+`1.3.4.dev10+gd96d0d9f7`, the metadata of the venv's editable install of
+`../gpyreg`, with the module path of the clone.
+
+| Row | Commit | Fingerprint | Gate and outcome |
+|---|---|---|---|
+| W3-11, W3-18 | `4388e6d` | `dc11118754b18b47` | fingerprint unchanged; an empty search set decays the hedge's gains |
+| W3-7 | `4d357e4` | `dc11118754b18b47` | fingerprint unchanged; a run with `hedge_gamma=0` completes |
+| W3-10 | `599115b` | `dc11118754b18b47` | fingerprint unchanged; CI's smoke run passed |
+| W3-20 | `5f31837` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-23 | `dac062e` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-31 | `ec1b2d0` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-33 | `43ee8ed` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-34 | `01ee524` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-36 | `e4b3bca` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-25, W3-28 and the descriptions | `fd8641d` | `dc11118754b18b47` | none (`AGENTS.md`, the descriptions, a docstring) |
+| W3-14 | `1f7c8ee` | `dc11118754b18b47` | fingerprint unchanged, but it moves the default suite (batch 1, below) |
+| W3-9 | `a77d95d` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-8 | `c788617` | `dc11118754b18b47` | fingerprint unchanged; CI's smoke run passed |
+| W3-13 | `4865fad` | `dc11118754b18b47` | fingerprint unchanged |
+| the root logger | `d0c7178` | `dc11118754b18b47` | fingerprint unchanged |
+| W3-2, W3-3 | `7e09887` | `dc11118754b18b47` | none (comments) |
+| W3-22 | `f595f1b` | `dc11118754b18b47` | fingerprint unchanged; the suite shows 12 more warnings, gpyreg's log of a zero width in three tests of degenerate training sets, which an earlier test's process-wide `np.seterr` had hidden |
+| W3-27 | `a1bf658` | `dc11118754b18b47` | fingerprint unchanged; CI's smoke run passed |
+| *batch 1* | `a1bf658` | `dc11118754b18b47` | the default suite against `population_linux_wave2_20260926`: no flag in 54 tests, but 31 of the 540 runs end at other points, all 6-D, 10-D or noisy (`sphere_D10` 7, `ellipsoid_D10` 7, `ellipsoid_D6` 6, `rosenbrock_D6` 6, `multisensory_s1_D6_homo` 3, `ackley_D6` 1, `ellipsoid_D3_homo` 1). W3-14 alone moves them: each of the 31, run again, equals the reference at W3-14's parent `fd8641d` and batch 1 at `1f7c8ee` (`wave3_fixpass/w3-14_attribution.txt`). The ES search's candidates fall on halves of the search grid once its mesh is fine (at `2^-42`, `x / tol` is about `1e12`, where the fraction of a double comes in steps of `2^-11`), which W3-14's agent had excluded by reading and the fingerprint's small runs do not reach. So this gate is W3-14's population comparison, which its ruling asks for when it moves: no flag (`wave3_fixpass/batch1_vs_reference.md`) |
+| W3-4 | `81c6a15` | `fd21e5d0c558f2f0` | with the batch |
+| W3-5 | `115a922` | `3a6c31fe4f430b0b` | with the batch |
+| W3-15 | `c276d79` | `3a6c31fe4f430b0b` | the ES batch against batch 1: no flag in 54 tests, every run changed (`wave3_fixpass/es_vs_batch1.md`); so its steps were not compared one by one |
+| W3-1 | `149d528` | `3a6c31fe4f430b0b` | the default suite against the ES batch: no flag in 54 tests, 325 runs changed (`w3-1_vs_es.md`); the geometry suite before and after: no flag in 21 tests, 124 of 210 runs changed (`geometry_w3-1_vs_es.md`). It removes every repeated evaluation: over seeds 0-29, 137 of the 1411 evaluations of `edgesphere_D2`, 94 of 6840 of `edgesphere_D3_homo`, 13 of `sphere_band_D3`, 3 and 6 of the ridges and 100 of the 8800 of `ellipsoid_D3_hetero` repeated an earlier one before it, none after (`w3-1_repeats.txt`). `ellipsoid_D3_hetero`'s median error moves from 0.43 to 0.36, unflagged. No seeded test failed |
+| W3-6 | `d79ab75` | `360971bf1f0ba6cb` | the default suite against W3-1: no flag in 54 tests; 128 runs changed, those of the five noisy configurations; the fraction solved falls on `ellipsoid_D3_homo` (0.63 → 0.50) and holds or moves by one run elsewhere (`w3-6_vs_w3-1.md`) |
+| W3-19 | `8e28124` | `360971bf1f0ba6cb` | the default suite against W3-6: no flag in 54 tests; 5 runs changed (`w3-19_vs_w3-6.md`) |
+| W3-29 | `0b7add3` | `360971bf1f0ba6cb` | the default suite against W3-19: no flag in 54 tests; 277 runs changed, so the default suite reaches it (`w3-29_vs_w3-19.md`) |
+| W3-24 | `869a033` | `f5af904cfcb6b73c` | **flagged; back to the PI** (below): the default suite against W3-29 flags `ellipsoid_D6` (a higher error) and `sphere_nonbox_D3` (fewer evaluations), and the geometry suite flags `edgesphere_D2` and `edgesphere_D4` (fewer evaluations) and `sphere_band_D2` and `sphere_band_D3`, whose runs crash for the first time (`w3-24_vs_w3-29.md`, `geometry_w3-24_vs_w3-29.md`) |
+| merge of `dev-next` | `4f50376` | `f5af904cfcb6b73c` | fingerprint unchanged; the doublecheck of wave 2, whose one change of behaviour, an `f_vals` without a finite value, no run of the benchmark reaches; the `default` and `geometry` suites unchanged |
+| W3-39 | — | — | added to the B4 table after the triage (wave 2's doublecheck); not ruled |
+
+- **Choices within the rulings**, made by the orchestrator on the agents'
+  reports:
+  - W3-14 rounds exactly: `np.modf` splits `x / tol` into its integer and
+    fractional parts, and the integer part moves away from zero when the
+    fractional part is at least one half in magnitude. The agent's
+    `sign(q) * floor(|q| + 0.5)` took 0.49999999999999994 to 1, and a first
+    exact variant, `q - trunc(q)`, warned on an infinite bound (`inf -
+    inf`), which eight tests of the suite reach; changed when
+    cherry-picking, with a test of the largest double below one half.
+  - W3-24 keeps `poll_mads_2n`'s return type: the function returns the
+    basis in units of the poll size (the LTMADS matrix divided by `n_max`,
+    exact at default, where `n_max` is a power of two), and the poll's
+    vectors stay `B_new * mesh_size * poll_scale`, so that `AGENTS.md`'s
+    description holds and no "Upgrading from" line is needed; the agent's
+    first version returned `(B_new, n_max)` (its report's rework, the
+    fingerprint unchanged by it). The comment on the permutation says that
+    it permutes the rows only, the same set of directions as MATLAB's
+    permutation of rows and columns.
+  - W3-9 keeps reproducing after an emptied generation, from the kept
+    candidates at the unchanged scale, rather than ending the ES search;
+    the two agree at the default `n_search_iter` of 2. Its warning stays at
+    WARNING, as the ruling's "reworded" reads; a thin band can log it a few
+    times per run, which the PI may prefer at DEBUG.
+  - W3-13 also removes `ESSearchWM`'s `active_flag` and its branch, which
+    only `ESSearchCMA` switched on (the broken lines that the row cites);
+    `pybads.search.ESSearchCMA` has an "Upgrading from" line, since a
+    script that imports it stops.
+  - W3-10 refuses zero, negative, boolean and complex values of
+    `sqrt_beta`, which 1.1.0 accepted as a NumPy scalar or a one-element
+    array: an "Upgrading from" line.
+  - W3-27 makes the fallback live when every acquisition value is NaN (a
+    random choice with a warning), where MATLAB's `min` returns the first
+    index and its fallback cannot fire either; no such case was observed.
+  - W3-29 sets the flag only at the end of the poll, moved or not, so a
+    poll that makes no rebuild of its own (an empty poll set, or the
+    budget spent) no longer cancels a pending rebuild of the search, as
+    MATLAB's emptied posterior does not.
+  - W3-1 keeps, within one bin of `tol_mesh`, the first candidate in input
+    order, where MATLAB's `setdiff` keeps the smallest; the difference is
+    below `tol_mesh / 2`.
+  - W3-14 moved results although its fingerprint did not, so its
+    population comparison is batch 1's, the first gate of the pass, where
+    the ruling put it sixth; each gate still measures one step.
+  - Conflicts when cherry-picking, all of tests appended at the end of the
+    same file, resolved by keeping both (W3-14, W3-9, W3-8, W3-27 and W3-6,
+    over tests of A and C). A union merge driver, tried first on the test
+    files, dropped common lines of the two sides; the picks it made were
+    reset before any gate ran, and the conflicts were resolved by keeping
+    both sides in full wherever their common base was empty
+    (`scripts/wave3/orchestrator/resolve_appends.py`).
+
+- **W3-24's flagged worsening, back to the PI** (as ruled). Against W3-29
+  (`w3-24_vs_w3-29.md`, `geometry_w3-24_vs_w3-29.md`, the medians of
+  every step in `medians_default.md` and `medians_geometry.md`):
+  - the default suite flags `ellipsoid_D6`, a higher error (median
+    1.1e-7 → 4.3e-7; paired log10 ratio +0.67 [+0.15, +1.12]; KS 0.53, p
+    Holm 0.016), every run still solved, and `sphere_nonbox_D3`, fewer
+    evaluations (97 → 88; KS 0.53, p Holm 0.016) with an error of 6.1e-6 →
+    1.0e-5, solved throughout. Unflagged, the deterministic errors rise on
+    most configurations, far below their tolerances (paired ratios +0.10
+    to +0.40 on `ackley_D6`, `sphere_D10`, `multisensory_s1_D6` and
+    `timing_D5`, every run solved); among the noisy ones `sphere_D3_hetero`
+    improves (solved 0.40 → 0.60, ratio -0.19 [-0.35, +0.01]),
+    `ellipsoid_D3_homo` falls (solved 0.73 → 0.57) and
+    `multisensory_s1_D6_homo` loses two runs (1.00 → 0.93);
+  - the geometry suite flags `edgesphere_D2` and `edgesphere_D4`, fewer
+    evaluations (47 → 45, 96 → 79) at lower errors, and the two thin bands:
+    `sphere_band_D2` gains 2 solved runs of 30 (W2-37's stall at `x0` ends
+    the rest, as before) and 2 crashes, and `sphere_band_D3` falls from
+    30 solved runs to 23, with 1 crash and 6 runs that end far off (the
+    worst at an error of 74.7), in fewer evaluations (58 → 48). The
+    ridges, the valley that W3-24 aims at, do not improve over these
+    starts: `ridge_D2` 0.83 → 0.73 solved (the worst error 0.023 → 3.9),
+    `ridge_D4` 0.87 → 0.83, the median errors unchanged by the tests;
+  - the three crashes (`geometry_w3-24_crashes.txt`) are gpyreg's
+    `ValueError` for a prior with a sigma of 0: when the tilted poll
+    reaches the thin band, the local GP holds two distinct points, whose
+    one pairwise distance makes the empirical prior of the length scales
+    degenerate (`gaussian_process_train.py:360-382`, as MATLAB's
+    `gpdefBads.m:240-251`). A latent defect of the GP layer that W3-24
+    exposes, recorded in `dev/TODO.md` ("The GP on a one-point training
+    set");
+  - the net change of the pass against `population_linux_wave2_20260926`
+    flags nothing in 54 tests at W3-29 (`0b7add3`, `w3-29_vs_reference.md`)
+    and four configurations at W3-24 (`869a033`, `w3-24_vs_reference.md`):
+    `ellipsoid_D6` and `multisensory_s1_D6`, higher errors, every run
+    solved, and `ellipsoid_D3_unbounded` (133 → 149) and
+    `sphere_nonbox_D3` (101 → 88), the number of evaluations.
+
+  W3-24 stays on the branch until the PI rules; the new Linux reference
+  waits for the ruling (W3-29's population if W3-24 goes, W3-24's if it
+  stays).
+- - **Changelog.** Every row that a user can notice has a line under
+  `Unreleased`, written by the orchestrator when cherry-picking, from the
+  agents' proposals: "Changed" for W3-10 and W3-31 (stricter interfaces),
+  W3-13 (a removal) and W3-24 (a departure from MATLAB); "Fixed" for the
+  rest. A line in "Upgrading from 1.1.0" for W3-10, W3-31 and W3-13. W3-11
+  and W3-9 extend "Search without a candidate", W3-25 and W3-28
+  "Descriptions of the options", W3-31 "Checks of `max_fun_evals` and
+  `improvement_quantile`", and W3-29 replaces "Rebuilds of the local GP",
+  all unreleased. W3-2, W3-3, W3-23, W3-33, W3-34 and W3-36 have no line.
+  The entries of W3-14 and W3-1 give what their gates measured (`bd110f0`,
+  `6281663`).
+- **The suite** passes at the head of the pass's package code (`869a033`,
+  W3-24), 449 tests, and at the merge of `dev-next` (`4f50376`), with the
+  fingerprint `f5af904cfcb6b73c` at both; the pre-commit hooks pass on the
+  whole tree. CI's smoke run passed at every push that touched the
+  package (`599115b`, `c788617`, `a1bf658`, `869a033`, `dd78136`).
+
+**Found while fixing** (2026-09-27), reported by the fix agents outside
+their rows (the letter names the agent) or met by the orchestrator, and not
+fixed in this pass; each is left to the PI or to the wave of the slice that
+owns its code.
+
+- **A degenerate prior of the length scales on two points** (the
+  orchestrator, W3-24's gate): above, and in `dev/TODO.md`.
+- **W3-14's premise** (the orchestrator): halves are frequent among the
+  search's candidates at a fine mesh (batch 1's row); the commit message
+  of `1f7c8ee` says otherwise.
+- **Warnings that `np.seterr` hid** (the orchestrator, W3-22): gpyreg's
+  `get_bounds_info` takes the log of a zero width on a degenerate training
+  set (`covariance_functions.py:476-479` at v1.3.3), the warnings that
+  `dev/TODO.md`'s "The GP on a one-point training set" names.
+- **The search and the LCB** (A): the empty-set branch of `_search_step_`
+  sets `search_dist = 0`, an `int`, read only by `_update_search_stats_`;
+  `acq_fcn_lcb`'s summary line says that it retrieves a point, and it
+  computes an unused `n`; `update_hedge`'s docstring speaks of a
+  probability of improvement; `hedge_gamma` is not checked (above `1/n`
+  the hedge's probabilities invert, above `1/(n-1)` they turn negative);
+  `sqrt_beta` is checked at the first search, not when `BADS` is created,
+  and the value that a callable returns is not checked.
+- **The target and the poll** (B): the final estimate of a noisy run sets
+  `u`, `yval`, `fval` and `fsd` on the object but not in `optim_state`, so
+  `output_fcn`'s `"done"` call receives the last iteration's values (its
+  `x` is right); `_poll_step_`'s docstring lists return values it does not
+  return and calls an SD a variance; `grid_functions.py` imports
+  matplotlib's `axis` unused.
+- **The ES search and `contraints_check`** (C): `contraints_check`'s
+  docstring says it returns an incumbent, and its module imports an unused
+  `Value`; `ESSearch.__call__`'s docstring has placeholders; with
+  `n_search_iter = 0` the search returns its `np.empty` placeholders, and
+  no check refuses a value below 1; W3-9's warning is at WARNING, which a
+  thin band can log a few times per run (DEBUG, if the PI prefers); other
+  tests of `test_search.py` draw from NumPy's global stream (the one C
+  corrected is seeded).
+- **The poll** (D): a 4-D ridge started on its valley stalls at `x0`
+  before and after W3-24, since the only descent direction is the exact
+  diagonal; Fig. 1 of the documentation (`docsrc/source/_static/bads-cartoon.png`,
+  in `README.md` and `index.rst`) draws a coordinate poll with anisotropic
+  steps (W3-24, W3-25); the main loop discards the GP that `_poll_step_`
+  returns, which works because the GP functions change it in place;
+  `poll_mads_2n.py` imports `GP` unused.
