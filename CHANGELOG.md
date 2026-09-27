@@ -49,6 +49,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is no longer moved inside it, the plausible bounds are no longer moved
   away from the hard ones, and a start near a hard bound no longer widens
   the plausible box.
+- A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or
+  complex, which 1.1.0 accepted as a NumPy scalar or a one-element array,
+  raises `ValueError` at the first search.
 
 ### Changed
 
@@ -115,6 +118,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in MATLAB BADS, only the value moved, so that the next poll could run
   around the old incumbent while it was judged by the other iterate's value.
   Noisy runs change.
+- **LCB parameter of the search.** The second element of `search_acq_fcn`,
+  the `sqrt_beta` of the search's lower confidence bound, can be a plain
+  number such as `2.0`, which stopped the run with `AttributeError`. It is
+  `None` (the default schedule), a callable `sqrt_beta(t, D)` or a positive
+  finite number, and any other value raises `ValueError` at the first
+  search.
 
 ### Fixed
 

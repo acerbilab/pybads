@@ -4,6 +4,7 @@ import pytest
 
 import pybads.bads.bads as bads_module
 from pybads import BADS
+from pybads.acquisition_functions import acq_fcn_lcb
 from pybads.bads.gaussian_process_train import get_grid_search_neighbors
 from pybads.bads.option_configs import get_pybads_option_dir_path
 from pybads.bads.options import Options
@@ -315,3 +316,80 @@ def test_hedge_gamma_zero_scores_each_search_at_the_search_point(
     assert len(points) > 1
     assert np.isfinite(result["fval"])
     assert np.all(np.isfinite(bads.search_es_hedge.g))
+
+
+class _FixedGP:
+    """A stand-in for a GP, with fixed predictions at any point."""
+
+    f_mu = np.array([[1.0], [2.0]])
+    f_s2 = np.array([[4.0], [0.25]])
+
+    def predict(self, x):
+        return self.f_mu.copy(), self.f_s2.copy()
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [2.0, 2, np.float64(2.0), np.int64(2), np.array(2.0), np.array([2.0])],
+    ids=["float", "int", "np.float64", "np.int64", "0-d", "1-element"],
+)
+def test_lcb_accepts_a_positive_number_as_sqrt_beta(sqrt_beta):
+    """`sqrt_beta` is a positive finite real number: a Python or NumPy
+    scalar, or an array of one element."""
+    xi = np.zeros((2, 3))
+    z, f_mu, f_s = acq_fcn_lcb(xi, 9, _FixedGP(), sqrt_beta)
+    assert np.array_equal(f_s, np.array([[2.0], [0.5]]))
+    assert np.array_equal(z, np.array([[-3.0], [1.0]]))
+
+
+def test_lcb_sqrt_beta_schedule_and_callable():
+    """`sqrt_beta=None` is the schedule of MATLAB BADS's acqLCB, and a
+    callable is called with the evaluation count plus one and D."""
+    xi = np.zeros((2, 3))
+    z, _, _ = acq_fcn_lcb(xi, 9, _FixedGP())
+    t, n_vars = 10, 3
+    sqrt_beta = np.sqrt(0.4 * np.log(n_vars * t**2 * np.pi**2 / 0.6))
+    assert np.allclose(z, _FixedGP.f_mu - sqrt_beta * np.sqrt(_FixedGP.f_s2))
+    calls = []
+
+    def schedule(t, n_vars):
+        calls.append((t, n_vars))
+        return 1.5
+
+    z, _, _ = acq_fcn_lcb(xi, 9, _FixedGP(), schedule)
+    assert calls == [(10, 3)]
+    assert np.array_equal(z, np.array([[-2.0], [1.25]]))
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [
+        0.0,
+        -1.0,
+        np.float64(-1.0),
+        np.inf,
+        np.nan,
+        "acq_schedule",
+        np.array([1.0, 2.0]),
+        np.array([]),
+        True,
+        np.complex128(2.0),
+    ],
+    ids=[
+        "zero",
+        "negative",
+        "np.float64 negative",
+        "inf",
+        "nan",
+        "name",
+        "2 elements",
+        "empty",
+        "bool",
+        "complex",
+    ],
+)
+def test_lcb_refuses_other_values_of_sqrt_beta(sqrt_beta):
+    """Any other `sqrt_beta` is refused with a message that says what is
+    accepted."""
+    with pytest.raises(ValueError, match="positive finite real number"):
+        acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), sqrt_beta)

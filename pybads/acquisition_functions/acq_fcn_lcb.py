@@ -15,17 +15,26 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
         Number of function evaluations
     gp: GP
         Gaussian process
-    sqrt_beta: float
-        LCB parameter
+    sqrt_beta: None, callable or float
+        LCB parameter, the multiplier of the GP's SD. If ``None``, the
+        schedule of Srinivas et al. (2010), with an empirical correction; a
+        callable is called as ``sqrt_beta(t, n_vars)``, with
+        ``t = func_count + 1``; otherwise a positive finite real number (a
+        Python or NumPy scalar, or an array of one element).
 
     Returns
     ==========
     z: lower confidence bound
-        Point at the lower confidence bound
+        Lower confidence bound at xi.
     f_mu: GP prediction at xi
-        GP prediction at z.
-    f_s: GP variance
-        GP variance at z.
+        GP mean at xi.
+    f_s: GP standard deviation
+        GP standard deviation at xi.
+
+    Raises
+    ==========
+    ValueError
+        If ``sqrt_beta`` is none of the values above.
     """
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
 
@@ -39,11 +48,20 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
         )
     elif callable(sqrt_beta):
         sqrt_beta = sqrt_beta(t, n_vars)
-    elif ~np.isfinite(sqrt_beta) or sqrt_beta.size > 1:
-        raise ValueError(
-            "acq_lcb: The SQRTBETAT parameter of the acquisition \
-            function needs to be a scalar or a function handle/name to an annealing schedule."
-        )
+    else:
+        sqrt_beta_array = np.asarray(sqrt_beta)
+        if not (
+            sqrt_beta_array.size == 1
+            and sqrt_beta_array.dtype.kind in "iuf"
+            and np.isfinite(sqrt_beta_array).item()
+            and sqrt_beta_array.item() > 0
+        ):
+            raise ValueError(
+                "acq_fcn_lcb: sqrt_beta needs to be None (the default "
+                "schedule), a callable sqrt_beta(t, n_vars) or a positive "
+                f"finite real number, not {sqrt_beta!r}."
+            )
+        sqrt_beta = sqrt_beta_array.item()
 
     f_mu, f_s2 = gp.predict(xi)
     f_s = np.sqrt(f_s2)
