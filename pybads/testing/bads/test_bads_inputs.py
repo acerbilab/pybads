@@ -521,3 +521,42 @@ def test_search_sqrt_beta_accepted(sqrt_beta):
         options={**OPTIONS, "search_acq_fcn": ("acq_LCB", sqrt_beta)},
     )
     assert bads.options["search_acq_fcn"][1] is sqrt_beta
+
+
+def _bads_with_n_search_iter(n_search_iter):
+    return BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={
+            **OPTIONS,
+            "n_search_iter": n_search_iter,
+            "max_fun_evals": 60,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "n_search_iter", [0, -1, 0.5, 2.5, np.nan, np.inf, True, "2"]
+)
+def test_n_search_iter_not_a_positive_integer_is_refused(n_search_iter):
+    """An `n_search_iter` that is not a positive integer is refused when
+    `BADS` is created: the run stopped at its first search, with
+    `ZeroDivisionError` at 0, `TypeError` at 0.5 or 2.5 and NumPy's
+    `ValueError` at -1."""
+    with pytest.raises(
+        ValueError, match=r"n_search_iter'\] needs to be a positive integer"
+    ):
+        _bads_with_n_search_iter(n_search_iter)
+
+
+@pytest.mark.parametrize("n_search_iter", [1, 2, 3.0, np.int64(4)])
+def test_n_search_iter_positive_integer_is_accepted(n_search_iter):
+    bads = _bads_with_n_search_iter(n_search_iter)
+    assert bads.options["n_search_iter"] == n_search_iter
+    assert type(bads.options["n_search_iter"]) is int
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])

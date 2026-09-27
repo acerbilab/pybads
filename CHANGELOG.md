@@ -70,6 +70,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   value.
 - `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
   number of searches in `search_method` (1/2 at default).
+- `BADS` raises `ValueError` for an `n_search_iter` that is not a positive
+  integer.
 
 ### Changed
 
@@ -107,26 +109,31 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   1.1.0's was written with MATLAB's `.^`. The docstring also says that a
   feasible region thinner than the mesh can resolve, such as a narrow band,
   can end a run early near `x0`, and how to reparametrize it.
-- **Checks of `max_fun_evals`, `improvement_quantile` and
-  `accelerate_mesh_steps`.** `BADS` raises `ValueError` when `max_fun_evals`
-  is not a positive integer (or infinite), as MATLAB BADS does, and converts
-  a float that is a whole number to an integer; 1.1.0 stopped `optimize()`
-  with an unrelated error for 0 or a negative value, and made 31 evaluations
-  for 30.5. An `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
-  An `improvement_quantile` that is not a number greater than 0 and less
-  than 1 raises `ValueError`, as in MATLAB BADS; 1.1.0 ran with a number
-  outside that range: at 0, and at 1 without noise, the incumbent never
-  left the best point of the initial design, and a noisy run at 1 moved it
-  at most searches and never ended its first iteration. An
-  `accelerate_mesh_steps` that is not a positive integer raises
-  `ValueError`, and a float that is a whole number is converted to an
+- **Checks of `max_fun_evals`, `improvement_quantile`,
+  `accelerate_mesh_steps` and `n_search_iter`.** `BADS` raises `ValueError`
+  when `max_fun_evals` is not a positive integer (or infinite), as MATLAB
+  BADS does, and converts a float that is a whole number to an integer;
+  1.1.0 stopped `optimize()` with an unrelated error for 0 or a negative
+  value, and made 31 evaluations for 30.5. An `improvement_quantile` above
+  0.5 gives MATLAB BADS's warning. An `improvement_quantile` that is not a
+  number greater than 0 and less than 1 raises `ValueError`, as in MATLAB
+  BADS; 1.1.0 ran with a number outside that range: at 0, and at 1 without
+  noise, the incumbent never left the best point of the initial design, and
+  a noisy run at 1 moved it at most searches and never ended its first
+  iteration. An `accelerate_mesh_steps` that is not a positive integer
+  raises `ValueError`, and a float that is a whole number is converted to an
   integer. 1.1.0 stopped the run at a failed poll, with `IndexError` for 0
-  (from the second iteration on), with `TypeError` for a negative value,
-  and with `IndexError` for a float once the iterations exceeded it, as
-  MATLAB BADS stops for these values; a float larger than every iteration,
-  `inf` included, ran without the accelerated reduction of the mesh, as in
-  MATLAB BADS, and `True` ran as 1; `accelerate_mesh=False` turns the
-  reduction off, and the message says so.
+  (from the second iteration on), with `TypeError` for a negative value, and
+  with `IndexError` for a float once the iterations exceeded it, as MATLAB
+  BADS stops for these values; a float larger than every iteration, `inf`
+  included, ran without the accelerated reduction of the mesh, as in MATLAB
+  BADS, and `True` ran as 1; `accelerate_mesh=False` turns the reduction
+  off, and the message says so. An `n_search_iter` that is not a positive
+  integer raises `ValueError`, and a float that is a whole number is
+  converted to an integer; 1.1.0 did not check it and stopped the run at its
+  first search, with `ZeroDivisionError` for 0, `ValueError` for a negative
+  value and `TypeError` for any float, whole numbers included, and `True`
+  ran as 1.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and

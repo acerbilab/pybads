@@ -844,6 +844,25 @@ class BADS:
                 "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
+        # n_search_iter, the number of generations of the ES search, is a
+        # positive integer: the search draws n_search / n_search_iter
+        # candidates in each (MATLAB BADS does not check it, and loops over
+        # 1:Nsearchiter, searchES.m:125); a whole-number float is converted
+        n_search_iter = self.options["n_search_iter"]
+        if (
+            isinstance(n_search_iter, (bool, np.bool_))
+            or not isinstance(
+                n_search_iter, (int, float, np.integer, np.floating)
+            )
+            or not np.isfinite(n_search_iter)
+            or not n_search_iter >= 1
+            or not float(n_search_iter).is_integer()
+        ):
+            raise ValueError(
+                "options['n_search_iter'] needs to be a positive integer, "
+                f"not {n_search_iter!r}."
+            )
+        self.options["n_search_iter"] = int(n_search_iter)
         # hedge_gamma, the smallest probability of each search method, lies
         # in [0, 1 / n], n the number of search methods: the hedge chooses a
         # method with the probabilities (1 - n * hedge_gamma) * softmax +
