@@ -229,7 +229,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **`FunctionLogger`** calls the target with a 1-D `x` in the original space
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
   preallocates its arrays, and `X_flag` marks the filled rows. A repeated
-  point at level 2 is merged into its row by precision weighting.
+  point at level 2 is merged into its row by precision weighting, which
+  only a direct use of the logger reaches: in a run, `contraints_check`
+  removes the candidates already evaluated, and the final samples take
+  `record_duplicate_data=False`.
 - **Randomness goes through one `numpy.random.Generator`, `bads.rng`.**
   `BADS.__init__` creates it from `random_seed` (`pybads/rng.py: get_rng`)
   before its first draw, the random `x0`, and passes it as `rng` to
