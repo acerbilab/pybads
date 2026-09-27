@@ -548,6 +548,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
   root logger; `BADS` still configures it when it is created, if nothing
   else has.
+- **NumPy's error handling.** A run turned off NumPy's warning on division
+  by zero for the rest of the process, unless the root logger was at DEBUG,
+  so that a division by zero in the user's code no longer warned after it; a
+  run now leaves `np.geterr()` as it found it.
 
 ## [1.1.0] - 2026-09-25
 

@@ -2280,13 +2280,15 @@ class BADS:
                     "bads:optimize: Acquisition function failed"
                 )
                 index_acq = self.rng.integers(0, len(u_poll))
-            if logging.getLogger().level > logging.DEBUG:
-                np.seterr(divide="ignore")
-            gamma_z = (
-                self.optim_state["f_target"]
-                - self.sufficient_improvement
-                - f_mu
-            ) / fs
+            # A zero predictive SD makes gamma_z infinite or NaN, which marks
+            # the GP as unreliable below: NumPy's warnings are silenced for
+            # this division only
+            with np.errstate(divide="ignore", invalid="ignore"):
+                gamma_z = (
+                    self.optim_state["f_target"]
+                    - self.sufficient_improvement
+                    - f_mu
+                ) / fs
             if np.all(np.isfinite(gamma_z)) and np.all(np.isreal(gamma_z)):
                 f_pi = 0.5 * erfc(-gamma_z / np.sqrt(2))
                 # sort descend

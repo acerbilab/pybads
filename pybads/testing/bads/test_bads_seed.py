@@ -222,12 +222,18 @@ def test_seeded_run_leaves_global_state_untouched(make_fun, options):
     `bads.rng`: NumPy's global random state is the same before and after,
     so no draw site of PyBADS and no gpyreg call (the GP fits, the slice
     sampler) uses it. `double_refit` makes each refit draw a second starting
-    point, from the priors or from the slice sampler."""
+    point, from the priors or from the slice sampler. NumPy's handling of
+    floating-point errors (`np.geterr()`), from its defaults, is the same
+    before and after too."""
     np.random.seed(7)
     before = np.random.get_state()
-    bads = _make_bads(make_fun(0), 3, **options)
-    bads.optimize()
+    with np.errstate(all="warn", under="ignore"):
+        err_before = np.geterr()
+        bads = _make_bads(make_fun(0), 3, **options)
+        bads.optimize()
+        err_after = np.geterr()
     after = np.random.get_state()
     assert before[0] == after[0]
     assert np.array_equal(before[1], after[1])
     assert before[2:] == after[2:]
+    assert err_after == err_before
