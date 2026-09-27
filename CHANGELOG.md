@@ -514,6 +514,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`hedge_gamma=0`.** A run with `hedge_gamma=0` completes: the search
   hedge scores the searches it did not choose at the search point, as MATLAB
   BADS intends; it stopped at the first search with `ValueError`.
+- **`uncertain_incumbent=False`.** On a deterministic target, a run with
+  `uncertain_incumbent=False` no longer stops with `AttributeError` at its
+  first poll; its optimization target is the incumbent's value less
+  `tol_fun`, as in MATLAB BADS.
 
 ## [1.1.0] - 2026-09-25
 

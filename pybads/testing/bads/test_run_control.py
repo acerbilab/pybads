@@ -434,3 +434,21 @@ def test_result_keeps_the_callables_by_reference():
     assert result["fun"] is target
     assert result["fun"].__self__ is locked
     assert result["non_box_cons"] is locked
+
+
+def test_run_with_certain_incumbent():
+    """With `uncertain_incumbent=False`, a deterministic target's
+    optimization target is the incumbent's value less `tol_fun`, as in
+    MATLAB BADS (`UpdateTarget` in `bads.m`), in the form the search and
+    the poll store with `.item()`, and the run completes."""
+    bads = _make_bads(uncertain_incumbent=False, max_fun_evals=60)
+    result = bads.optimize()
+    optim_state = bads.optim_state
+    assert optim_state["uncertainty_handling_level"] == 0
+    assert result["iterations"] > 1
+    assert result["fval"] < _sphere(np.ones(D) * 4)
+    assert (
+        optim_state["f_target"]
+        == optim_state["f_target_mu"] - bads.options["tol_fun"]
+    )
+    assert np.all(optim_state["f_target_s"] == 0)

@@ -2700,9 +2700,12 @@ class BADS:
                     "sd_level"
                 ] * np.sqrt(fs2 + self.options["tol_fun"] ** 2)
         else:
-            f_target = self.optim_state["fval"] - self.options["tol_fun"]
-            f_target_mu = self.optim_state["fval"]
-            f_target_s = 0
+            # Arrays of the prediction's shapes: the callers call `.item()`
+            f_target_mu = np.atleast_2d(
+                np.asarray(self.optim_state["fval"], dtype=float)
+            )
+            f_target_s = np.zeros(1)
+            f_target = f_target_mu - self.options["tol_fun"]
 
         return f_target_mu, f_target_s, f_target
 
