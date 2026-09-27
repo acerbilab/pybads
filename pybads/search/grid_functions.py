@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib.pyplot import axis
 from scipy.spatial.distance import cdist
 
 from pybads.rounding import round_half_away
