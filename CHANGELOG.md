@@ -502,6 +502,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   magnitude, beside one that is, no longer gives a harmless `RuntimeWarning:
   overflow encountered in exp` when `BADS` is created or during the run.
   Results are unchanged.
+- **`hedge_gamma=0`.** A run with `hedge_gamma=0` completes: the search
+  hedge scores the searches it did not choose at the search point, as MATLAB
+  BADS intends; it stopped at the first search with `ValueError`.
 
 ## [1.1.0] - 2026-09-25
 

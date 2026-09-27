@@ -131,15 +131,20 @@ class ESSearchHedge:
             self.g *= self.decay
             return
 
+        # Every search is scored at the search point, taken as a row, as
+        # MATLAB BADS's u(min(iHedge,end),:) takes its single row
+        u_rows = np.atleast_2d(u_search)
         for i_hedge in range(self.n_funs):
-            u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()
+            i_row = np.minimum(i_hedge, len(u_rows) - 1)
+            u_hedge = u_rows[i_row : i_row + 1].copy()
 
             if i_hedge == self.chosen_hedge:
                 f_hedge = f
                 fs_hedge = fs
             elif self.gamma == 0:
                 f_hedge, fs_hedge = gp.predict(u_hedge)
-                fs_hedge = np.sqrt(fs_hedge)
+                f_hedge = f_hedge.item()
+                fs_hedge = np.sqrt(fs_hedge).item()
             else:
                 f_hedge = 0
                 fs_hedge = 1

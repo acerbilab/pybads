@@ -280,3 +280,38 @@ def test_failed_searches_floor_the_search_factor():
         bads.optim_state["search_factor"],
         0.125 * options["search_scale_incremental"],
     )
+
+
+def test_hedge_gamma_zero_scores_each_search_at_the_search_point(
+    monkeypatch,
+):
+    """With `hedge_gamma = 0` the hedge rewards every search, the searches not
+    chosen at the GP's prediction at the search point, taken as a row (MATLAB
+    BADS's intent): the run completes."""
+    points = []
+    original_update = ESSearchHedge.update_hedge
+
+    def update(self, u_search, *args, **kwargs):
+        points.append(u_search)
+        return original_update(self, u_search, *args, **kwargs)
+
+    monkeypatch.setattr(ESSearchHedge, "update_hedge", update)
+    D = 3
+    bads = BADS(
+        rosenbrocks_fcn,
+        np.zeros((1, D)),
+        -20 * np.ones((1, D)),
+        20 * np.ones((1, D)),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        options={
+            "random_seed": 0,
+            "display": "off",
+            "max_fun_evals": 60,
+            "hedge_gamma": 0,
+        },
+    )
+    result = bads.optimize()
+    assert len(points) > 1
+    assert np.isfinite(result["fval"])
+    assert np.all(np.isfinite(bads.search_es_hedge.g))
