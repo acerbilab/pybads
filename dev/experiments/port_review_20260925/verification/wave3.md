@@ -362,8 +362,8 @@ W3-24's flagged gate ("Fix pass"):
 
 ## Fix pass
 
-Done (2026-09-27), but for W3-24, whose gate sends it back to the PI. As
-in waves 1 and 2: the fixes go on `dev-port-review-w3`, from the brief's commit `326aefe`; each is made by a
+Done (2026-09-27). As in waves 1 and 2: the fixes go on
+`dev-port-review-w3`, from the brief's commit `326aefe`; each is made by a
 fix agent, a fresh Opus agent with a git worktree of its own and the brief
 `../briefs/wave3_fix_common.md`, one commit per row with its regression
 test; the orchestrator reviews each diff, cherry-picks it, adds the
@@ -373,7 +373,9 @@ with W3-18, W3-7, W3-10, W3-6); B, the target, the options and the poll's
 dead code (W3-20, W3-23, W3-31, W3-33, W3-34, W3-36, the records of W3-25
 and W3-28, W3-14); C, the ES search and `contraints_check` (W3-9, W3-8,
 W3-13, the root logger, the comments of W3-2 and W3-3, W3-4, W3-5, W3-15,
-W3-1); D, the poll (W3-22, W3-27, W3-19, W3-29, W3-24). Their reports are
+W3-1); D, the poll (W3-22, W3-27, W3-19, W3-29, W3-24). The orchestrator
+made the three commits that the PI's rulings after the gates asked for
+(the revert of W3-24, W3-39, W3-40). The agents' reports are
 in `../fixes/`, their scripts in `scripts/wave3/fix_<agent>/`; the hashes
 they cite are those of their branches, and the fingerprints in their
 commit messages are those at their branches' commits, from `326aefe`.
@@ -422,9 +424,12 @@ clone at the tag `v1.3.3`; its records give gpyreg's version as
 | W3-6 | `d79ab75` | `360971bf1f0ba6cb` | the default suite against W3-1: no flag in 54 tests; 128 runs changed, those of the five noisy configurations; the fraction solved falls on `ellipsoid_D3_homo` (0.63 → 0.50) and holds or moves by one run elsewhere (`w3-6_vs_w3-1.md`) |
 | W3-19 | `8e28124` | `360971bf1f0ba6cb` | the default suite against W3-6: no flag in 54 tests; 5 runs changed (`w3-19_vs_w3-6.md`) |
 | W3-29 | `0b7add3` | `360971bf1f0ba6cb` | the default suite against W3-19: no flag in 54 tests; 277 runs changed, so the default suite reaches it (`w3-29_vs_w3-19.md`) |
-| W3-24 | `869a033` | `f5af904cfcb6b73c` | **flagged; back to the PI** (below): the default suite against W3-29 flags `ellipsoid_D6` (a higher error) and `sphere_nonbox_D3` (fewer evaluations), and the geometry suite flags `edgesphere_D2` and `edgesphere_D4` (fewer evaluations) and `sphere_band_D2` and `sphere_band_D3`, whose runs crash for the first time (`w3-24_vs_w3-29.md`, `geometry_w3-24_vs_w3-29.md`) |
+| W3-24 | `869a033` | `f5af904cfcb6b73c` | flagged, and reverted by the PI's ruling (below): the default suite against W3-29 flags `ellipsoid_D6` (a higher error) and `sphere_nonbox_D3` (fewer evaluations), and the geometry suite flags `edgesphere_D2` and `edgesphere_D4` (fewer evaluations) and `sphere_band_D2` and `sphere_band_D3`, whose runs crash for the first time (`w3-24_vs_w3-29.md`, `geometry_w3-24_vs_w3-29.md`) |
 | merge of `dev-next` | `4f50376` | `f5af904cfcb6b73c` | fingerprint unchanged; the doublecheck of wave 2, whose one change of behaviour, an `f_vals` without a finite value, no run of the benchmark reaches; the `default` and `geometry` suites unchanged |
-| W3-39 | — | — | added to the B4 table after the triage (wave 2's doublecheck); not ruled |
+| revert of W3-24 | `b03a320` | `360971bf1f0ba6cb` | W3-29's fingerprint again; `poll_mads_2n`'s docstring says what its basis is, a coordinate poll at default |
+| W3-39 | `5d711bf` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W3-40 | `a14524d` | `360971bf1f0ba6cb` | fingerprint unchanged; on W3-24's code with the change, the three runs of the thin bands that crashed end at errors of 1e-7, 3e-10 and 1.2e-5 (`w3-40_crashed_runs.txt`) |
+| *head* | `a14524d` | `360971bf1f0ba6cb` | the default and geometry suites against W3-29: every run identical (every field but the wall time; `head_vs_w3-29.md`, `geometry_head_vs_w3-29.md`), so the merge, the revert, W3-39 and W3-40 reach no run of either suite; this population is the new Linux reference, `population_linux_wave3_20260927`, whose comparison with `population_linux_wave2_20260926`, the net change of the pass, flags nothing in 54 tests, and whose null check flags nothing in 36 |
 
 - **Choices within the rulings**, made by the orchestrator on the agents'
   reports:
@@ -477,7 +482,7 @@ clone at the tag `v1.3.3`; its records give gpyreg's version as
     both sides in full wherever their common base was empty
     (`scripts/wave3/orchestrator/resolve_appends.py`).
 
-- **W3-24's flagged worsening, back to the PI** (as ruled). Against W3-29
+- **W3-24's flagged worsening, and its revert.** Against W3-29
   (`w3-24_vs_w3-29.md`, `geometry_w3-24_vs_w3-29.md`, the medians of
   every step in `medians_default.md` and `medians_geometry.md`):
   - the default suite flags `ellipsoid_D6`, a higher error (median
@@ -504,10 +509,9 @@ clone at the tag `v1.3.3`; its records give gpyreg's version as
     `ValueError` for a prior with a sigma of 0: when the tilted poll
     reaches the thin band, the local GP holds two distinct points, whose
     one pairwise distance makes the empirical prior of the length scales
-    degenerate (`gaussian_process_train.py:360-382`, as MATLAB's
-    `gpdefBads.m:240-251`). A latent defect of the GP layer that W3-24
-    exposes, recorded in `dev/TODO.md` ("The GP on a one-point training
-    set");
+    degenerate (`gaussian_process_train.py:360-382` at `869a033`, as
+    MATLAB's `gpdefBads.m:240-251`): a latent defect of the GP layer that
+    W3-24 exposed, fixed as W3-40;
   - the net change of the pass against `population_linux_wave2_20260926`
     flags nothing in 54 tests at W3-29 (`0b7add3`, `w3-29_vs_reference.md`)
     and four configurations at W3-24 (`869a033`, `w3-24_vs_reference.md`):
@@ -515,33 +519,32 @@ clone at the tag `v1.3.3`; its records give gpyreg's version as
     solved, and `ellipsoid_D3_unbounded` (133 → 149) and
     `sphere_nonbox_D3` (101 → 88), the number of evaluations.
 
-  W3-24 stays on the branch until the PI rules; the new Linux reference
-  waits for the ruling (W3-29's population if W3-24 goes, W3-24's if it
-  stays).
+  The orchestrator reported it to the PI, who ruled to revert it and keep
+  MATLAB BADS's poll ("After the gates"): `b03a320`, whose fingerprint is
+  W3-29's.
 - - **Changelog.** Every row that a user can notice has a line under
   `Unreleased`, written by the orchestrator when cherry-picking, from the
-  agents' proposals: "Changed" for W3-10 and W3-31 (stricter interfaces),
-  W3-13 (a removal) and W3-24 (a departure from MATLAB); "Fixed" for the
-  rest. A line in "Upgrading from 1.1.0" for W3-10, W3-31 and W3-13. W3-11
-  and W3-9 extend "Search without a candidate", W3-25 and W3-28
-  "Descriptions of the options", W3-31 "Checks of `max_fun_evals` and
-  `improvement_quantile`", and W3-29 replaces "Rebuilds of the local GP",
-  all unreleased. W3-2, W3-3, W3-23, W3-33, W3-34 and W3-36 have no line.
-  The entries of W3-14 and W3-1 give what their gates measured (`bd110f0`,
+  agents' proposals: "Changed" for W3-10, W3-31 and W3-39 (stricter
+  interfaces) and W3-13 (a removal); "Fixed" for the rest. A line in
+  "Upgrading from 1.1.0" for W3-10, W3-31, W3-39 and W3-13. W3-11 and W3-9
+  extend "Search without a candidate", W3-25 and W3-28 "Descriptions of the
+  options", W3-31 and W3-39 "Checks of `max_fun_evals`,
+  `improvement_quantile` and `accelerate_mesh_steps`", and W3-29 replaces
+  "Rebuilds of the local GP", all unreleased. W3-24's entry went with its
+  revert. W3-2, W3-3, W3-23, W3-33, W3-34 and W3-36 have no line. The
+  entries of W3-14 and W3-1 give what their gates measured (`bd110f0`,
   `6281663`).
-- **The suite** passes at the head of the pass's package code (`869a033`,
-  W3-24), 449 tests, and at the merge of `dev-next` (`4f50376`), with the
-  fingerprint `f5af904cfcb6b73c` at both; the pre-commit hooks pass on the
-  whole tree. CI's smoke run passed at every push that touched the
-  package (`599115b`, `c788617`, `a1bf658`, `869a033`, `dd78136`).
+- **The suite** passes at every commit of the pass, 457 tests at the head
+  (`a14524d`), with the fingerprint `360971bf1f0ba6cb`; the pre-commit
+  hooks pass on the whole tree. CI's smoke run passed at every push that
+  touched the package (`599115b`, `c788617`, `a1bf658`, `869a033`,
+  `dd78136`, `a14524d`).
 
 **Found while fixing** (2026-09-27), reported by the fix agents outside
 their rows (the letter names the agent) or met by the orchestrator, and not
 fixed in this pass; each is left to the PI or to the wave of the slice that
 owns its code.
 
-- **A degenerate prior of the length scales on two points** (the
-  orchestrator, W3-24's gate): above, and in `dev/TODO.md`.
 - **W3-14's premise** (the orchestrator): halves are frequent among the
   search's candidates at a fine mesh (batch 1's row); the commit message
   of `1f7c8ee` says otherwise.
@@ -574,7 +577,7 @@ owns its code.
 - **The poll** (D): a 4-D ridge started on its valley stalls at `x0`
   before and after W3-24, since the only descent direction is the exact
   diagonal; Fig. 1 of the documentation (`docsrc/source/_static/bads-cartoon.png`,
-  in `README.md` and `index.rst`) draws a coordinate poll with anisotropic
-  steps (W3-24, W3-25); the main loop discards the GP that `_poll_step_`
+  in `README.md` and `index.rst`) draws the poll's steps anisotropic, which
+  `poll_scale` does not make them (W3-25); the main loop discards the GP that `_poll_step_`
   returns, which works because the GP functions change it in place;
   `poll_mads_2n.py` imports `GP` unused.

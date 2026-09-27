@@ -66,11 +66,21 @@ cherry-picks, the changelog lines, the fingerprint at the commits from
 `353ad51` to `8510ca8`, the comparisons of populations run by run) are with
 its check. The pass's
 comparisons are in `verification/wave2_fixpass/`, and its last population
-is kept whole as the Linux reference `population_linux_wave2_20260926`.
+is kept whole as the Linux reference `population_linux_wave2_20260926`,
+which wave 3's `population_linux_wave3_20260927` replaces.
 
 Those of wave 3, in a cloud session too, are under
 `verification/scripts/wave3/<slice>_<track>/` and
 `verification/scripts/wave3/<slice>_verifier/`, formatted by the
 pre-commit hooks in the same way. The items of the records kept from wave
 3's reviewers and given to its verifiers are quoted in
-`briefs/wave3_kept_B3.md` and `briefs/wave3_kept_B4.md`.
+`briefs/wave3_kept_B3.md` and `briefs/wave3_kept_B4.md`. The fix agents of wave 3's
+fix pass (A to D, the letters of `fixes/`) have theirs under
+`verification/scripts/wave3/fix_<agent>/`, without their copies of a
+parent's tree, and the orchestrator's scripts of the pass (the
+cherry-picks and their conflicts, the changelog lines, the fingerprint at
+every commit of the branch, the gates, the attribution of W3-14's moves,
+the count of repeated evaluations, W3-39's reproduction) are under
+`verification/scripts/wave3/orchestrator/`. The pass's comparisons and
+medians are in `verification/wave3_fixpass/`, and its last population is
+kept whole as the Linux reference `population_linux_wave3_20260927`.
