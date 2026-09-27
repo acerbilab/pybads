@@ -26,3 +26,6 @@ d79ab75 fix: the search hedge's expected reward uses the standard normal density
 869a033 fix: the poll steps along LTMADS directions on the search mesh, a departure from M | /home/user/pybads-fp/pybads/__init__.py f5af904cfcb6b73c
 1f7c8ee fix: force_to_grid rounds halves away from zero, as MATLAB BADS's force2grid (W3-1 | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
 4f50376 chore: merge dev-next (the doublecheck of wave 2, 68d4516) into dev-port-review-w3 | /home/user/pybads-fp/pybads/__init__.py f5af904cfcb6b73c
+b03a320 revert: the poll's LTMADS directions (W3-24), by the PI's ruling after its gate | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+5d711bf fix: BADS refuses an accelerate_mesh_steps that is not a positive integer (W3-39) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+a14524d fix: a rebuild of the local GP on two points keeps the prior of the length scales  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb

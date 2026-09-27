@@ -171,15 +171,12 @@ order.
   whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
   while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
   log of zero and a variance with no degrees of freedom (wave 2's
-  verifiers, `verification/wave2.md`, "Found while verifying"). With two
-  distinct points, the empirical prior of the length scales has a sigma of
-  0, the largest and the smallest distance being equal (MATLAB's
-  `gpdefBads.m:240-251` computes the same), and gpyreg 1.3.3 refuses it
-  with `ValueError`: once W3-24's poll reaches the thin band, 3 of the 60
-  runs of `sphere_band_D2` and `sphere_band_D3` stop so at their third
-  evaluation (wave 3's fix pass, `verification/wave3.md`). Slice B6,
-  whose wave has passed: decide the priors and bounds of such a GP, in
-  PyBADS or in gpyreg, with a test on the thin band.
+  verifiers, `verification/wave2.md`, "Found while verifying"). On two
+  distinct points, the empirical prior of the length scales had a sigma of
+  0, which gpyreg refuses; since W3-40 (wave 3's fix pass,
+  `verification/wave3.md`) a rebuild keeps the previous prior there.
+  Slice B6, whose wave has passed: decide the priors and bounds of such a
+  GP, in PyBADS or in gpyreg, with a test on the thin band.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of all five predate the port
   review, whose fix passes change their numbers, and some of their

@@ -223,7 +223,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B4-1. The poll always uses LTMADS (`poll_mads_2n`); the other poll methods are not ported**
 - Python: `pybads/bads/bads.py:2137-2143`.
 - MATLAB: `bads.m:206`, `791-798` (`feval(options.PollMethod{:}, …)`); `poll/pollGPS2N.m`; `poll/private/pollBADS2N.m`, `pollBMADS2N.m`.
-- What differs: `poll_method` is ignored (KD-B1-5). Both default to MADS 2N; the directions that PyBADS's MADS 2N draws differ from MATLAB's (KD-B4-3).
+- What differs: `poll_method` is ignored (KD-B1-5). Both default to MADS 2N, whose basis is the signed coordinate directions at every default state on both sides; LTMADS's tilted directions, tried in wave 3 (W3-24), were reverted after their gate (`verification/wave3.md`, "Fix pass"; `matlab_side_defects.md`).
 - Why: `AGENTS.md`, "Many options do nothing … `poll_method`".
 - Kind: unported feature.
 - Slice: B4.
@@ -233,14 +233,6 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - MATLAB: `bads.m:1296-1312` (`UpdateTarget` sets `gptemp.hyp = hyp` and keeps `gptemp.post`, so it never refactorizes and cannot fail at this point).
 - What differs: PyBADS recomputes the posterior of a copy of the GP under `hyp_best`, the hyperparameters of the best iteration, and predicts the target from it. MATLAB's `UpdateTarget` keeps the current posterior and evaluates the kernel and mean under `hyp` (`bads.m:1301`, `utils/gppred.m:39-47`, `utils/mygp.m:122-123`, `146-187`), a hybrid that is no GP prediction under one set of hyperparameters: emulated under the hyperparameters of 1 to 3 iterations earlier, it gave means of 1.2e3 to 2.8e7 where the observed values were at most 5e-3 (W3-21). PyBADS computes the prediction that MATLAB's code intends. The two agree when `hyp_best` is the current set; they differed in 0 of 21 decisions at level 0 and 5 of 13 at level 1. The recomputation is why the call can fail, and PyBADS has a failure path that MATLAB lacks, on which it uses the GP's own hyperparameters and posterior. **Settled:** the recomputation (W3-21 (a)) and the fallback.
 - Why: `dev/plans/gp-update-guards.md`, Design "Target (call 1)" and Open Question 2; the PI's ruling on W3-21 (`verification/wave3.md`).
-- Kind: deliberate change.
-- Slice: B4.
-
-**KD-B4-3. The poll draws LTMADS directions on the search mesh; MATLAB's poll steps along one coordinate at a time**
-- Python: `pybads/poll/poll_mads_2n.py` (`n_max = max(1, round(mesh_size / search_mesh_size))`; the basis divided by `n_max`, in units of the poll size), and the poll vectors `B_new * mesh_size * poll_scale` in `_poll_step_` (`pybads/bads/bads.py`); W3-24, `869a033`.
-- MATLAB: `poll/pollMADS2N.m:7` (`Nmax = max(1, round(SearchMeshSize/MeshSize))`), `bads.m:791-798`.
-- What differs: MATLAB bounds the entries of the LTMADS basis by the ratio of the search mesh size to the poll mesh size, which is below 1 at every default state (the locked search mesh is `2^(2k-10)` at the poll mesh `2^k`), so that its basis is always a signed permutation of the identity and its poll steps along one coordinate at a time, as both user documents say. PyBADS takes LTMADS's bound, the ratio of the poll size to the mesh size (`2^(10-k)` at default; Audet and Dennis, 2006), and takes the basis in units of `mesh_size / n_max`, the search mesh size at default: each direction steps by `mesh_size` along one coordinate and is tilted along the others by entries drawn from `-n_max + 1` to `n_max - 1`, and the poll points lie on the search mesh when the incumbent does. A new basis is drawn at each poll, as on both sides before; LTMADS's one direction per mesh index is not adopted. Results change at default options.
-- Why: the PI's ruling on W3-24 (b) (`verification/wave3.md`, with its gate in "Fix pass"): `pollMADS2N.m:7` inverts the ratio that bounds the basis, and a coordinate poll makes no progress along a valley that no coordinate descends (B4-I, `verification/scripts/wave3/B4_internal/check12_ltmads_variant.py`); `matlab_side_defects.md`.
 - Kind: deliberate change.
 - Slice: B4.
 
@@ -328,11 +320,11 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Kind: substituted library.
 - Slice: B6 (and B5).
 
-**KD-B6-2. A zero range of the training targets keeps the previous width of the GP-mean prior**
+**KD-B6-2. A zero range of the training targets keeps the previous width of the GP-mean prior, and distances without spread the previous prior of the length scales**
 - Python: `pybads/bads/gaussian_process_train.py:341-355` (`mean_sd = y_range / 2` only when `y_range > 0`).
 - MATLAB: `gpdef/gpdefBads.m:219-222` (variance `yrange.^2/4` whatever `yrange` is).
-- What differs: when `gp_mean_range_fun` gives 0, MATLAB sets a zero-variance prior and PyBADS keeps the previous width. Otherwise the re-centred prior follows MATLAB (the fix of `8afbe16`). Likewise, since W1-26 (`cd1831f`), targets with no spread give the mean's prior the SD 1 in `_gp_hyp`, and a rebuild keeps the previous centre of the output scale's prior where MATLAB centres it at `log(std(y)) = -Inf` (`gpdefBads.m:293-295`).
-- Why: the code comment "A zero range, which MATLAB leaves to fail, keeps the previous width", written with `8afbe16` (survey row for the GP-mean prior, status "fixed in `8afbe16`"); the ruling on W1-26 (PI, 2026-09-26).
+- What differs: when `gp_mean_range_fun` gives 0, MATLAB sets a zero-variance prior and PyBADS keeps the previous width. Otherwise the re-centred prior follows MATLAB (the fix of `8afbe16`). Likewise, since W1-26 (`cd1831f`), targets with no spread give the mean's prior the SD 1 in `_gp_hyp`, and a rebuild keeps the previous centre of the output scale's prior where MATLAB centres it at `log(std(y)) = -Inf` (`gpdefBads.m:293-295`). Since W3-40 (`a14524d`), a rebuild whose pairwise distances have no spread (two distinct points) keeps the previous prior of the length scales (`gaussian_process_train.py`, the empirical prior of `gp_cov_prior = "iso"`), where MATLAB's `covsigma` is 0 (`gpdefBads.m:240-251`) and gpyreg refuses a zero sigma.
+- Why: the code comment "A zero range, which MATLAB leaves to fail, keeps the previous width", written with `8afbe16` (survey row for the GP-mean prior, status "fixed in `8afbe16`"); the ruling on W1-26 (PI, 2026-09-26); the PI's ruling on W3-40 (`verification/wave3.md`, "After the gates").
 - Kind: deliberate change.
 - Slice: B6.
 
@@ -426,7 +418,7 @@ No entry of its own. Entries that touch the eight commits: KD-B5-1 (the rank-1 `
 
 ## O: third reader
 
-No entry of its own. For this slice, see KD-B3-3 (the search hedge's reward is ported; the acquisition hedge is not), KD-B3-5, KD-B4-2, KD-B4-3, KD-B5-1, KD-B5-2 and KD-B6-1.
+No entry of its own. For this slice, see KD-B3-3 (the search hedge's reward is ported; the acquisition hedge is not), KD-B3-5, KD-B4-2, KD-B5-1, KD-B5-2 and KD-B6-1.
 
 ## Tests (no slice; for test-adequacy notes)
 

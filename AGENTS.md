@@ -147,8 +147,10 @@ two stages:
    candidates by LCB (`acquisition_functions/acq_fcn_lcb.py`) and returns
    the best one.
 2. **POLL** (`_poll_step_`, `poll/poll_mads_2n.py`): runs at the end of each
-   round of up to `search_n_try` searches. It evaluates the 2D LTMADS
-   directions in LCB order and stops early when the GP's probability of
+   round of up to `search_n_try` searches. It evaluates 2D directions in
+   LCB order, the signed coordinate directions at default (`poll_mads_2n`
+   draws an LTMADS basis under MATLAB BADS's bound, which is 1 at every
+   default state), and stops early when the GP's probability of
    improvement drops below `tol_poi`. The mesh
    (`poll_mesh_multiplier ** mesh_size_integer`) grows after a successful
    poll and shrinks after a failed one. An iteration is a round of

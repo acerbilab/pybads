@@ -86,7 +86,7 @@ slice of its code, with the other slice's reach added.
 | W3-36 | B4-K9 | `u_base` computed and never used in the accelerated mesh reduction (`bads.py:2442-2444`), beside a commented-out condition | confirmed, inert | executed, without effect | `9037851` | — | remove it | fingerprint |
 | W3-37 | B4-K10 | the accelerated mesh reduction tested from the wrong iteration (W2-29) | no longer holds: `c9a2cde` tests `iter >= accelerate_mesh_steps`, MATLAB's `iter > steps` with its count from 1, and reads the same stored iteration (`iter - steps`, MATLAB's `iter - steps` counted from 1); at each poll with `iter` ≥ 3 the history holds exactly `iter` entries | yes | fixed 2026-09-26 | — | none | — |
 | W3-38 | B4-K11 | under `stobads`, a NaN estimate after a failed add counts as uncertain | no longer holds: `_sto_success_improvement_` returns −1 for a non-finite estimate since `0c56d86` (W0-11) | no (`stobads`) | fixed in wave 0's fix pass | the `_poll_step_` row with `stobads` "(at `a83bd51`)" | correct the survey's row | — |
-| W3-39 | wave 2's doublecheck (`wave2.md`, "Doublecheck", "Left"), added after the triage | `accelerate_mesh_steps` below 1 stops the run with `TypeError` at its first failed poll: the accelerated mesh reduction reads `iteration_history`'s `fval` and `fsd` at `iter - accelerate_mesh_steps` (`bads.py:2434-2443`), an iteration not recorded yet (the current one at 0; at the first failed poll `iteration_history.get("fval")` is still `None`). Reproduced by the orchestrator at `4f50376` on a 2-D sphere, seeds 0 and 1 (`scripts/wave3/orchestrator/w3_acc0.py`). MATLAB fails too: `iterList` starts empty (`setupvars.m:179-182`) and `bads.m:976-979` read `iterList.fval(iter - AccelerateMeshSteps)` with `iter > 0` | confirmed shared defect | no (default 3) | older than the review (`157bd09`, 2022; MATLAB 2017) | — | not ruled (after the triage). Proposed: refuse a value that is not a positive integer when `BADS` is created, as W3-31 does for `improvement_quantile` (a stricter interface: a changelog entry and an "Upgrading from" line), and an entry in `matlab_side_defects.md` | fingerprint; a test with `accelerate_mesh_steps=0` |
+| W3-39 | wave 2's doublecheck (`wave2.md`, "Doublecheck", "Left"), added after the triage | `accelerate_mesh_steps` below 1 stops the run with `TypeError` at its first failed poll: the accelerated mesh reduction reads `iteration_history`'s `fval` and `fsd` at `iter - accelerate_mesh_steps` (`bads.py:2434-2443`), an iteration not recorded yet (the current one at 0; at the first failed poll `iteration_history.get("fval")` is still `None`). Reproduced by the orchestrator at `4f50376` on a 2-D sphere, seeds 0 and 1 (`scripts/wave3/orchestrator/w3_acc0.py`). MATLAB fails too: `iterList` starts empty (`setupvars.m:179-182`) and `bads.m:976-979` read `iterList.fval(iter - AccelerateMeshSteps)` with `iter > 0` | confirmed shared defect | no (default 3) | older than the review (`157bd09`, 2022; MATLAB 2017) | — | PI, after the gates: refuse a value that is not a positive integer when `BADS` is created (fixed in `5d711bf`), as W3-31 does for `improvement_quantile` (a stricter interface: a changelog entry and an "Upgrading from" line), and an entry in `matlab_side_defects.md` | fingerprint; a test with `accelerate_mesh_steps=0` |
 
 ## Notes on the reports
 
@@ -345,6 +345,20 @@ recorded at every commit:
 default (time only), and the cause of the frequent zero predictive SDs at
 level 0: `dev/TODO.md` lines. The first-iteration note of the B3 brief
 needs no change.
+
+**After the gates (PI, 2026-09-27)**, on the orchestrator's report of
+W3-24's flagged gate ("Fix pass"):
+
+- W3-24: revert the LTMADS directions and keep MATLAB BADS's coordinate
+  poll, with a docstring of `poll_mads_2n` that says what its basis is; the
+  inverted ratio goes into `matlab_side_defects.md` as a shared
+  observation, with the gate's evidence, and KD-B4-3 goes.
+- W3-39: refuse an `accelerate_mesh_steps` that is not a positive integer
+  when `BADS` is created (the orchestrator's proposal).
+- W3-40, the degenerate prior of the length scales on two points that
+  W3-24's gate exposed (PI: "can we still fix this?"): fixed in this pass,
+  by the orchestrator's proposal of keeping the previous prior, as a
+  rebuild on targets without spread keeps its own (KD-B6-2).
 
 ## Fix pass
 

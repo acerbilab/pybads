@@ -74,21 +74,22 @@ Nothing here was run in MATLAB.
   follows a failed rebuild, whose `post` is empty. PyBADS did the same, where
   gpyreg's predictions are non-finite only on overflow; it now computes the
   target from the incumbent's SD (`dac062e`).
-- **The poll's basis is bounded by the inverse of LTMADS's ratio, so the
-  poll steps along the coordinates** (W3-24). `poll/pollMADS2N.m:7` sets
-  `Nmax = max(1, round(SearchMeshSize/MeshSize))`, the ratio of the search
-  mesh to the poll mesh, which is below 1 at every default state (the
-  locked search mesh is `2^(2k-10)` at the poll mesh `2^k`): `Nmax` is 1,
-  the entries below the diagonal are 0, and the basis is a signed
-  permutation of the identity. The poll is a coordinate search, which is not
-  dense in the directions, and makes no progress along a valley that no
-  coordinate descends (a ridge `10|x1 - x2| + |x1 + x2|` stalled in B4-I's
-  runs). LTMADS (Audet and Dennis, 2006), which the code names, bounds the
-  basis by the ratio of the poll size to the mesh size. The user documents
-  of both describe steps along one direction at a time. PyBADS: LTMADS's
-  bound, with the directions taken in units of the search mesh size, a
-  departure from MATLAB (`869a033`; KD-B4-3; its gate in
-  `verification/wave3.md`, "Fix pass").
+- **`AccelerateMeshSteps` below 1 stops the run** (W3-39, from the
+  doublecheck of wave 2). `bads.m:976-979` compare the incumbent with
+  `iterList.fval(iter - AccelerateMeshSteps)`, and `iterList` starts empty
+  (`private/setupvars.m:179-182`), so a value of 0 or less reads an
+  iteration not recorded yet at the first failed poll. Off by default (3).
+  PyBADS failed too, with `TypeError`; it now refuses a value that is not a
+  positive integer when `BADS` is created (`5d711bf`).
+- **The prior of the length scales on two points has a zero width**
+  (W3-40, found by W3-24's gate). `gpdef/gpdefBads.m:240-251` centre the
+  empirical prior of the log length scales between the logs of the
+  largest and the smallest pairwise distance of the training set, with
+  half their difference as its SD, which is 0 when the local GP holds two
+  distinct points; what the fit then does with a zero-variance prior is
+  not known without MATLAB. PyBADS computed the same, and gpyreg 1.3.3
+  refuses it with `ValueError`, which stopped the run; it now keeps the
+  previous prior (`a14524d`; KD-B6-2).
 
 ## Shared design observations (PyBADS keeps MATLAB's behavior)
 
@@ -147,6 +148,24 @@ Nothing here was run in MATLAB.
   11.44), and the LCB and the probabilities of improvement of the remaining
   poll points ignore the poll's observations. A GP that holds the points changed 1 of
   9 runs. PyBADS keeps MATLAB's behaviour.
+- **The poll's basis is bounded by the inverse of LTMADS's ratio, so the
+  poll steps along the coordinates** (W3-24). `poll/pollMADS2N.m:7` sets
+  `Nmax = max(1, round(SearchMeshSize/MeshSize))`, the ratio of the search
+  mesh to the poll mesh, which is below 1 at every default state (the
+  locked search mesh is `2^(2k-10)` at the poll mesh `2^k`): `Nmax` is 1,
+  the entries below the diagonal are 0, and the basis is a signed
+  permutation of the identity, so that the poll is a coordinate search, as
+  the user documents of both describe it. LTMADS (Audet and Dennis, 2006),
+  whose basis the code draws, bounds it by the ratio of the poll size to
+  the mesh size, and its tilted directions are dense in the limit. PyBADS
+  tried LTMADS's bound, with the directions in units of the search mesh
+  size (`869a033`), and reverted it (`b03a320`) after its gate: on
+  PyBADS's benchmark the deterministic problems ended with higher errors,
+  far below their tolerances (`ellipsoid_D6` flagged), a thin feasible band
+  at D = 3 was solved in 23 of 30 runs instead of 30, and nonsmooth ridges
+  along the diagonal, the case that the tilted directions address, did
+  not improve (`verification/wave3.md`, "Fix pass"). PyBADS keeps MATLAB's
+  poll.
 
 ## Defects that PyBADS does not share
 
