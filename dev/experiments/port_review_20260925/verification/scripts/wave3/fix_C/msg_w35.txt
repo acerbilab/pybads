@@ -1,0 +1,32 @@
+fix: each parent of the ES gets the offspring MATLAB BADS gives it, not those of the parent before (W3-5)
+
+The ES reproduces its ranked candidates with a selection mask, in which
+parent k appears w_k times, w decreasing with the rank (MATLAB's
+utils/ESupdate.m). MATLAB builds it from the 1-based start positions of
+the parents' blocks, cw = cumsum(w) - w + 1, with idx(cw) = 1 and
+selectmask = cumsum(idx(1:end-1)), whose values are 1-based parent
+indices (ESupdate.m:19-21). The port used cw as 0-based positions, so
+its mask was [0] followed by MATLAB's 1-based mask used as 0-based
+indices: the best parent had one offspring and each other parent those
+of the parent ranked before it (at mu = lambda = 2048, 1, 17, 12, 10, 9,
+8 for the first six against MATLAB's 17, 12, 10, 9, 8, 7).
+
+The mask is now np.repeat(np.arange(len(w)), w), MATLAB's 1-based
+selectmask minus one: equal to it at every pair of mu and lambda from 1
+to 59, and at the pairs of mu in 100, 1000, 1365, 2048, 4096 and lambda
+in 100, 1024, 1365, 2048, 4096. The weights w are computed as before. This changes the reproduction of every search, at default
+options.
+
+Test: test_search.py::test_search_selection_mask, parametrized over
+(mu, lambda) = (1, 2048), (2048, 2048), (100, 2048), (7, 20), (3, 3):
+the offspring counts per parent equal the w of a transcription of
+ESupdate.m, and the mask equals its selectmask minus one. It replaces
+the golden sum 885072, which was the sum of MATLAB's 1-based mask and so
+locked the shift in (the correct 0-based mask sums to 883024). The five
+cases fail at the parent (at (1, 2048) the counts begin 1, 23, 17
+against 23, 17, 14) and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+3a6c31fe4f430b0b (fd21e5d0c558f2f0 at the parent, W3-4).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

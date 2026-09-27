@@ -1,0 +1,25 @@
+fix: ES-wcm takes one best training point per weight, floor(mu), as MATLAB BADS (W3-4)
+
+ES-wcm computes its search covariance from the best training points of
+the GP about the incumbent, mu = 0.5 times their number, with
+floor(mu) log weights. The port took y_idx[0 : floor(mu + 1)], the
+floor(mu) + 1 best points, one more than the weights and than MATLAB,
+which takes index(1:floor(mu)) (search/searchES.m:62). Since ucov does
+not weight the scatter (W3-3), the extra point entered the covariance
+in full: the normalized search covariance differed from MATLAB's by 2
+to 40% (median 11%, relative Frobenius) over the verifier's captured
+states.
+
+The slice is now y_idx[0 : floor(mu)], so the point count equals the
+number of weights, as in MATLAB. This changes every ES-wcm search, at
+default options.
+
+Test: test_search.py::test_es_wcm_takes_one_best_point_per_weight: the
+rows that ES-wcm passes to ucov after the initial design (17 training
+points) are the floor(17 / 2) = 8 best, as many as the weights. It
+fails at the parent (assert 9 == 8) and passes here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+fd21e5d0c558f2f0 (dc11118754b18b47 at the parent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
