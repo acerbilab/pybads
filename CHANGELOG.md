@@ -556,6 +556,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   candidate whose acquisition value was NaN, where MATLAB BADS skips NaN;
   they now skip it, and choose a candidate at random, with a warning, when
   every value is NaN.
+- **Covariance of the ES-wcm search.** The ES-wcm search estimates its
+  covariance from the ⌊μ⌋ best points, one per weight, as in MATLAB BADS; it
+  took one point more. Results change at default options.
 
 ## [1.1.0] - 2026-09-25
 

@@ -248,7 +248,7 @@ class ESSearchWM(ESSearch):
 
         # Compute best vectors
         y_idx = np.argsort(Y)
-        idx_sel = (y_idx[0 : np.floor(mu + 1).astype(int)]).flatten()
+        idx_sel = (y_idx[0 : np.floor(mu).astype(int)]).flatten()
         Ubest = U[idx_sel].copy()
 
         # Compute the covariance matrix wrt u0: the unweighted scatter of the

@@ -527,3 +527,25 @@ def test_es_search_adds_no_handler_to_the_root_logger():
         for handler in handlers:
             root.addHandler(handler)
     assert added == []
+
+
+def test_es_wcm_takes_one_best_point_per_weight(monkeypatch):
+    """ES-wcm computes its covariance from the floor(mu) best training
+    points, mu half their number, one per weight, as in MATLAB's
+    searchES."""
+    bads, gp = _initial_state()
+    calls = []
+    original_ucov = es_search_module.ucov
+
+    def ucov(U, u, w, *args, **kwargs):
+        calls.append((U.copy(), w.copy()))
+        return original_ucov(U, u, w, *args, **kwargs)
+
+    monkeypatch.setattr(es_search_module, "ucov", ucov)
+    search_es = ESSearchWM(1, 1, bads.options, rng=bads.rng)
+    search_es._initialize_(bads.u, gp, bads.optim_state, True)
+    ((U_best, weights),) = calls
+    n_best = int(np.floor(0.5 * gp.X.shape[0]))
+    assert U_best.shape[0] == n_best == weights.size
+    best = np.argsort(gp.y.ravel(), kind="stable")[:n_best]
+    assert np.array_equal(U_best, gp.X[best])
