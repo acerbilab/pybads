@@ -6,7 +6,8 @@ noise, BADS options) and the named suites built from them, so that
 
 Synthetic targets (``make_problem(name, D)``); all but ``sphere_nonbox``
 are shifted so that their minimum lies at a point ``c`` drawn uniformly in
-the central half of the plausible box, with ``z = x - c``:
+the central half of the plausible box (in log10 units for ``logsphere``),
+with ``z = x - c``:
 
 ``sphere``         ``sum(z**2)``
 ``ellipsoid``      ``sum(a_i * z_i**2)``, axis-aligned, with ``a_i`` spaced
@@ -32,13 +33,17 @@ the central half of the plausible box, with ``z = x - c``:
 ``sphere_band``    ``sum(z**2)``, with ``c_1 = c_2`` and the non-box
                    constraint ``|x_1 - x_2| <= SPHERE_BAND``: a feasible band
                    thinner than a coordinate step, around the diagonal
+``logsphere``      ``sum((log10(x) - log10(c))**2)``, a sphere in log10
+                   units on the hard bounds ``[1e-3, 1e3]`` and the
+                   plausible box ``[1e-2, 1e2]``, all positive with
+                   ``pub / plb >= 10``, so that BADS works on it in log
+                   coordinates
 
 Every synthetic minimum is 0 except those of ``sphere_nonbox`` and
-``edgesphere``. The shifted
-targets share the hard bounds ``[-20, 20]`` and the plausible box
+``edgesphere``. The shifted targets other than ``logsphere`` and
+``edgesphere`` share the hard bounds ``[-20, 20]`` and the plausible box
 ``[-5, 5]`` in each variable; a configuration with ``unbounded=True``
-replaces the hard bounds by infinities and keeps the plausible box (BADS
-accepts either all bounds finite or all infinite).
+replaces the hard bounds by infinities and keeps the plausible box.
 
 Real-data targets, each defined at one dimension: negative
 log-likelihoods of two models of the 2020 noisy-VBMC paper, fitted by
@@ -1153,9 +1158,6 @@ def check_problem(cfg, n=None):
         (prob.lb <= prob.plb) & (prob.plb < prob.pub) & (prob.pub <= prob.ub)
     ):
         msgs.append("bounds not ordered lb <= plb < pub <= ub")
-    finite = np.isfinite(np.concatenate([prob.lb, prob.ub]))
-    if not (np.all(finite) or not np.any(finite)):
-        msgs.append("hard bounds mix finite and infinite values")
     # values of an independent implementation of the likelihood
     pin_diffs = []
     for x, expected, kind, tol in prob.pins:
@@ -1173,7 +1175,7 @@ def check_problem(cfg, n=None):
     X_near = x_min + 1e-3 * (prob.pub - prob.plb) * rng.standard_normal((n, D))
     X_near = np.clip(X_near, prob.lb, prob.ub)
     X_hard = np.empty((0, D))
-    if np.all(finite):
+    if np.all(np.isfinite(np.concatenate([prob.lb, prob.ub]))):
         X_hard = prob.lb + rng.random((n, D)) * (prob.ub - prob.lb)
     X = np.vstack([X_box, X_near, X_hard])
     X = X[prob.feasible(X)]

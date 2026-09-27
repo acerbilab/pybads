@@ -14,11 +14,11 @@ class OptimizeResult(dict):
     Attributes:
 
         - fun: callable
-            - The objective function to be minimized (the object passed,
-              not a copy).
+            - The objective function to be minimized, the object passed to
+              ``BADS``.
         - non_box_cons: callable
-            - Non-box constraints function (if any; the object passed, not
-              a copy).
+            - Non-box constraints function (if any), the object passed to
+              ``BADS``.
         - x0: np.ndarray
             - Initial starting point, as given or drawn at random, before it
               is put on the mesh: the first point evaluated is the point of
@@ -32,8 +32,9 @@ class OptimizeResult(dict):
         - yval_vec: np.ndarray or None
             - Final sampled observations at the solution; the incumbent's
               observation alone if the run ends within its first iteration.
-              None for a run without uncertainty handling or with
-              ``noise_final_samples = 0``.
+              None for a run without uncertainty handling, with
+              ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves
+              no evaluation for a final sample after the initial design.
         - ysd_vec: np.ndarray or None
             - Standard deviations of the final sampled observations
               (``"yval_vec"``) that the target returns with
@@ -47,9 +48,10 @@ class OptimizeResult(dict):
             - Number of iterations performed by the optimizer.
         - success: bool
             - True when the run ended on one of its convergence criteria,
-              ``tol_mesh`` or the stall criterion (``status`` 1 or 2); False
-              when ``max_fun_evals`` or ``max_iter`` ended it, the
-              ``output_fcn`` stopped it or it ended in its initialization
+              ``tol_mesh`` or the stall criterion (``status`` 1 or 2), which
+              prevail when ``max_fun_evals``, ``max_iter`` or the
+              ``output_fcn`` ends the same iteration; False when one of
+              those ended it alone, or it ended in its initialization
               (``status`` 0): the convention of MATLAB's exit flags and of
               ``scipy.optimize``.
         - status: int

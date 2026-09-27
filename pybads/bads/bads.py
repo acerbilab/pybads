@@ -62,10 +62,13 @@ class BADS:
         Starting point for the optimization, a single point of ``D``
         elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``,
         or if an element is not finite (``nan``, ``inf`` or ``-inf``), the
-        starting point ``x0`` is uniformly randomly drawn inside the plausible
-        box between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
-        below). With ``non_box_cons``, a point that violates the constraints
-        is drawn again, up to 1000 draws in all.
+        starting point ``x0`` is drawn at random inside the plausible box
+        between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
+        below): uniformly, and log-uniformly in a variable on a log scale
+        (with ``options['nonlinear_scaling']``, the default, a variable whose
+        bounds are all positive, with ``pub/plb >= 10``). With
+        ``non_box_cons``, a point that violates the constraints is drawn
+        again, up to 1000 draws in all.
     lower_bounds, upper_bounds : np.ndarray, optional
         ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set
         of strict lower and upper bounds for the coordinate vector, ``x``, so
@@ -160,8 +163,21 @@ class BADS:
         ``upper_bounds`` is: a missing plausible bound defaults to the hard
         bound, and the random ``x0`` is drawn between the plausible bounds.
     ValueError
-        When various checks for the bounds (``lower_bounds``, ``upper_bounds``,
-        ``plausible_lower_bounds``, ``plausible_upper_bounds``) of BADS fail.
+        When ``x0`` or the bounds fail the checks of their shapes, values and
+        order: for instance an ``x0`` of more than one row, plausible bounds
+        that are not finite, or bounds out of the order ``lb <= plb < pub <=
+        ub``.
+    ValueError
+        When ``non_box_cons``, given an ``(N, D)`` array, does not return an
+        array of shape ``(N,)`` or ``(N, 1)``, or when ``x0`` violates the
+        constraints, or each of the 1000 random draws of it does.
+    ValueError
+        When an option has an unknown name or a value that BADS does not
+        take: for instance a ``max_fun_evals`` that is neither a positive
+        integer nor ``inf``, a value other than ``True`` or ``False`` for
+        ``uncertainty_handling`` or for an option whose default is one of
+        them (``plot`` excepted), or an ``f_vals`` that holds a finite value
+        or a non-empty ``fun_values``, options that are not supported.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -222,7 +238,7 @@ class BADS:
             ):
                 raise ValueError(
                     """bads:UnknownDims If no starting point is
-                 provided, plausible_lower_bounds and plausible_upper_bounds need to be specified."""
+                 provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
                 )
             else:
                 x0 = np.full((plausible_lower_bounds.shape), np.nan)
@@ -576,12 +592,19 @@ class BADS:
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
         # Record starting points (original coordinates); f_vals, their
-        # function values, is not supported
-        if self.options["f_vals"] is not None:
-            raise ValueError(
-                "options['f_vals'] is not supported: leave it None (its "
-                "default)."
-            )
+        # function values, is not supported: a value without a finite
+        # element stands for None
+        f_vals = self.options["f_vals"]
+        if f_vals is not None:
+            try:
+                has_values = np.any(np.isfinite(np.asarray(f_vals, float)))
+            except (TypeError, ValueError):
+                has_values = True
+            if has_values:
+                raise ValueError(
+                    "options['f_vals'] is not supported: leave it None (its "
+                    "default)."
+                )
         y_orig = np.full([self.x0.shape[0]], np.nan)
 
         optim_state = dict()

@@ -39,13 +39,17 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 
 - `fingerprint.py` prints one hash of six seeded runs (three deterministic,
   three with inferred noise). A change that must not move results shows
-  the same hash before and after, on one machine: BLAS and platform
-  differences can change the value.
+  the same hash before and after, on one machine and with the same number
+  of BLAS threads: BLAS, its thread count and platform differences can
+  change the value.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
-  noise, one with a non-box constraint, one with infinite bounds, and two
-  maximum-likelihood fits to real data, `timing` and `multisensory_s1`)
-  and the suites `smoke` and `default`. `--list` prints the suites,
+  noise, one with a non-box constraint, one with infinite bounds, a sphere
+  in log-scaled variables, `logsphere`, and two maximum-likelihood fits to
+  real data, `timing` and `multisensory_s1`) and the suites `smoke`,
+  `default`, `oned` (the configurations at D = 1) and `bounds` (plausible
+  bounds omitted, a start on a hard bound, and `logsphere`: the setup's
+  checks of the bounds and the start). `--list` prints the suites,
   `--check` verifies each target's minimum, bounds and noise, and the
   pinned likelihood values of the real-data targets, and `--smoke` runs
   each configuration of a suite once, in a fresh process as a population
@@ -120,7 +124,7 @@ reference's number of seeds.
   which flags the five configurations that the same fixes flag on Linux,
   all better, and the runs in which the prior of the GP mean falls outside
   the bounds of the mean and the log prior is NaN. It predates the fix
-  passes of waves 0 and 1 of the port review (`fef6c14`), which move
+  passes of waves 0 to 2 of the port review (`8aecb6a`), which move
   results: a gate on Windows after them needs a new reference first.
 - [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
   — the previous reference on Windows (at `c044fea`, with the

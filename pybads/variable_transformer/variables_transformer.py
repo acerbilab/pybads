@@ -20,16 +20,16 @@ class VariableTransformer:
         of strict lower and upper bounds for each variable, given in the
         original space. By default `None`.
     plausible_lower_bounds : np.ndarray, optional
-        The plausible lower bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
+        The plausible lower bounds such that ``lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <=
         upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
         for each variable, given in the original space. By default `None`.
     plausible_upper_bounds : np.ndarray, optional
-        The plausible upper bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
+        The plausible upper bounds such that ``lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <=
         upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
         for each variable, given in the original space. By default `None`.
     apply_log_t : np.ndarray, optional
         A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation.
-        By default `None`, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.
+        By default `None`, in which case the log transformation is applied if the bounds are all positive and the plausible box spans at least one order of magnitude (``pub/plb >= 10``).
     """
 
     def __init__(

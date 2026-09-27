@@ -341,8 +341,10 @@ helper. The `fun_values` port is a `TODO.md` line (W2-6).
 ## Fix pass
 
 Done (2026-09-26). As in wave 1: the fixes go on `dev-port-review-w2`, from
-the triage's head, `353ad51`; each is made by a fix agent, a fresh Opus
-agent with a git worktree of its own and the brief
+the triage's head, `353ad51`; the commits these records cite are those of
+that branch, which #76 squash-merged into `dev-next` as `8aecb6a`, and stay
+reachable from `refs/pull/76/head` (`125b6eb`). Each fix is made by a fix
+agent, a fresh Opus agent with a git worktree of its own and the brief
 `../briefs/wave2_fix_common.md`, one commit per row with its regression
 test; the orchestrator reviews each diff, cherry-picks it and adds the
 changelog lines. Seven agents: A, B1's bounds, start and transform (W2-1,
@@ -362,8 +364,11 @@ branch at `17d265e`.
 
 The fingerprint is that of `dev/scripts/fingerprint.py` at the commit on
 the branch (Linux, gpyreg 1.3.3, one BLAS thread), computed again by the
-orchestrator at every commit of the pass
-(`scripts/wave2/orchestrator/fp_all.out`). The populations are the
+orchestrator at every commit from `353ad51` to `8510ca8`
+(`scripts/wave2/orchestrator/fp_all.out`); those of the later commits that
+touch the package, `6644498`, `b3a6a0c`, `dc7383a`, `885fc33` and
+`a07be4e`, are the ones their commit messages and agents F and G record
+(`scripts/wave2/fix_F/`, `scripts/wave2/fix_G/`). The populations are the
 `default` suite × seeds 0-29 (the bounds suite for W2-4), each run from a
 worktree at its commit; the comparisons are in `wave2_fixpass/`.
 
@@ -453,8 +458,8 @@ worktree at its commit; the comparisons are in `wave2_fixpass/`.
 - **The net change of the pass**, against `population_linux_wave1_20260926`
   (`fef6c14`'s runs): one flag in 54 tests, `ellipsoid_D10`'s evaluations
   (W2-16's); unflagged, `ellipsoid_D3_homo` has a lower error (0.10 →
-  0.057, solved 0.47 → 0.67) and the noisy configurations take more
-  evaluations. The pass ends in a new Linux reference,
+  0.057, solved 0.47 → 0.67), and the other four noisy configurations take
+  more evaluations. The pass ends in a new Linux reference,
   [`population_linux_wave2_20260926`](../../population_linux_wave2_20260926/README.md),
   whose runs are those of `8510ca8`; its null check flags nothing in 36
   tests.
@@ -563,3 +568,107 @@ code.
   `6644498`), and the descriptions of `fun_eval_start`, `fun_values` and
   `f_vals` and `AGENTS.md`'s sentence on the initial design, which W2-27,
   W2-6 and W2-7 left in contradiction with the code (B, C; `b3a6a0c`).
+
+## Doublecheck
+
+Done (2026-09-27), after #76 was squash-merged into `dev-next` as
+`8aecb6a`, as for wave 1 (PI): four fresh read-only Opus reviewers, of the
+fixes of B1, the fixes of B2 with W2-16, W2-29 and W2-25, the user-facing
+documentation, and the records, gates and tooling. The orchestrator ran the
+suite and the fingerprints on Windows (Python 3.12.6, NumPy 2.5.3, SciPy
+1.18.1, the gpyreg 1.3.3 clone), and checked each finding it took against
+the code, MATLAB BADS at `74919c0` or 1.1.0.
+
+**What holds.** Every row implements its ruling, and the comparisons with
+MATLAB BADS that the rulings rest on hold. The counts of these records and
+the numbers of the gates, recomputed from the committed records, match, and
+the `default` suite of `benchmark_targets.py` is unchanged. The suite
+passes at `8aecb6a` on Windows (380 tests), and the fingerprints there
+repeat the pattern of Linux's, the batch that moves nothing unchanged and
+W2-16 the only step that moves the hash:
+
+| Commit | Default BLAS threads | One BLAS thread |
+|---|---|---|
+| `fef6c14` | `3411ef0625d24b22` | `a0567977ed2474b7` |
+| `7e32fb7`, the last before W2-16 | `3411ef0625d24b22` | `a0567977ed2474b7` |
+| `3272bdd`, W2-16 | — | `8d8552d1f5bee1e6` |
+| `8aecb6a` | `6825faa249798851` | `8d8552d1f5bee1e6` |
+
+The hash of one commit depends on the number of BLAS threads, as
+`AGENTS.md` states; the Windows hash that the plan's worklog gives for
+`fef6c14` is that of the default.
+
+**Fixed in the commit that adds this section**, which keeps both hashes of
+`8aecb6a`:
+
+- W2-7: an `f_vals` without a finite value, which the fix refused and
+  1.1.0 ignored when it held at most one element, stands for `None`; one
+  that holds a finite value is refused as before. The changelog said that
+  every run given `f_vals` stopped in 1.1.0.
+- The changelog. "Small budgets" said that a run never exceeds
+  `max_fun_evals`: a run with `max_fun_evals=1` makes two evaluations when
+  the noise test runs, as in MATLAB BADS (`test_one_function_evaluation`),
+  and its "34 with 25 in a noisy run" was a count of `fef6c14`, where 1.1.0
+  stops with `ValueError`; and "as in MATLAB BADS" belongs to the exception
+  alone, since MATLAB BADS does not count the noise test in the design's
+  cap (KD-B2-6). `plot` is an exception to the boolean options, in the
+  entry and its "Upgrading from" line. Smaller corrections: the 1000
+  draws of a random start, the descriptions that are no longer cut, the
+  infinite `max_fun_evals`, the shape of `yval_vec`, `fun_values`' import,
+  the example of `non_box_cons`, the iterations of a run that ends in its
+  initialization (W2-32), and the overflow warning's infinite bound, which
+  no release accepted.
+- `AGENTS.md`: the options bullet (a user's `None`, and the boolean options
+  of `validate_boolean_options`), the fingerprint's BLAS threads, and the
+  sentence on `np.any` in "MATLAB logicals".
+- Docstrings and messages: the Raises section of `BADS` and its random
+  start; `success` of `OptimizeResult`, which the convergence criteria
+  decide when a limit or the `output_fcn` ends the same iteration, and its
+  `yval_vec`; the order of the
+  bounds and the condition of the log transform of `VariableTransformer`;
+  `bads:UnknownDims`. Twelve descriptions of `advanced_bads_options.ini`
+  read "True" for MATLAB's "on", a slip of the port; `hessian_update`,
+  `hessian_method`, `min_fun_evals` and `min_iter` are marked unused.
+- `examples/pybads_example_2_nonbox_constraints.ipynb`, whose text
+  announced the warning that W2-4 removed.
+- The records: `dev/README.md` (the Windows reference predates waves 0 to
+  2; the suites `oned` and `bounds`; `logsphere`); `benchmark_targets.py`
+  (`logsphere` in the docstring; its `--check` no longer refuses hard
+  bounds that mix finite and infinite values, which BADS accepts since W2-1
+  and W2-2); in this ledger, the range of `fp_all.out` and the noisy
+  configurations of the net change, and in `port_review_20260925/README.md`
+  the same range and the fix agents A to G; the pull refs that keep the
+  commits of waves 1 and 2; the sheet's KD-B1-4 on `f_vals` and KD-B2-6's
+  "a run never exceeds `max_fun_evals`"; the plan's worklog lines for the
+  merge of wave 2 and this doublecheck, and in its "Close" a Windows
+  reference after the last fix pass, since waves 3 and 4 move results
+  again; the survey's row of `init_sobol` (below); `TODO.md`, the
+  notebooks' line widened to all five, a line for the minor items of B1 and
+  B2 ("Found while fixing" and this section), and one for `Timer`.
+
+**Left**, and where each goes:
+
+- For wave 3's ledger (`dev-port-review-w3`, whose fix pass was under way
+  when this was written), a row (B4) for `accelerate_mesh_steps=0`: the
+  run raises `TypeError` at its first failed poll, reading an iteration
+  that `iteration_history` does not hold yet (`bads.py`, the accelerated
+  mesh reduction, from `iter - accelerate_mesh_steps`); MATLAB BADS fails
+  too (`iterList` starts empty, `setupvars.m:179-182`). A non-default
+  option, and older than the review. The integer `f_sd_search` of the
+  empty search is W3-18.
+- For `TODO.md`, with the minor items of "Found while fixing": a 0-d array
+  for `max_fun_evals` or a boolean option is refused, where 1.1.0 took it;
+  the caution for infinite bounds is logged at WARNING, so that
+  `display="off"` shows it, where MATLAB BADS prints it from `"notify"` on;
+  the test of W2-27 does not reach the floor at 0 of the final samples'
+  reserve; `Timer` measures with `time.time()`.
+- For wave 4 (B7): since W2-4, a start on a lower hard bound with the
+  plausible bounds omitted gives `u0 = -1` exactly, where 1.1.0 moved it
+  inside, and so reaches the undefined `uint64` cast of `init_sobol`'s seed
+  at default options: on x86 it gives `2**64 - 1`, and on arm64 it
+  saturates to 0 (the survey's row of `init_sobol`).
+- Kept as ruled, for the PI: W2-25 lowers the fraction solved of three of
+  the five noisy configurations, unflagged at 30 seeds, which goes with the
+  revisit of W1-25 after all the fixes (`TODO.md`); W2-17, W2-27 and W2-45
+  move results only on inputs that the benchmark does not reach, and are
+  gated by the fingerprint and their tests.

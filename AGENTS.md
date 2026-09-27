@@ -189,10 +189,17 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
   into the module globals of `options.py`, and may read earlier options
   through `self.get(...)`; the dict is used verbatim, so a user's `"200*D"`
-  stays a string. An unknown name raises `ValueError`, so a new option
-  starts as a `# description` line followed by `name = <expr>` in the right
-  `.ini`; the description is the last comment line above the option, so it
-  fits on one line. Options stay mutable: a noisy run rewrites several of them
+  stays a string, except that a user value of `None` leaves the option at
+  its default (`Options.unset_user_options` records its name): an `is None`
+  test on an option whose default is not `None` never fires. An option
+  whose default in an `.ini` is `True` or `False` takes only a boolean
+  (`Options.validate_boolean_options`, called in `BADS.__init__` with
+  `uncertainty_handling` added and `plot` exempted), so a new such option
+  that takes other values too goes into its `excluded_names` there. An
+  unknown name raises `ValueError`, so a new option starts as a
+  `# description` line followed by `name = <expr>` in the right `.ini`; the
+  description is the last comment line above the option, so it fits on one
+  line. Options stay mutable: a noisy run rewrites several of them
   (`tol_stall_iters`, `n_train_min`, `n_train_max`, `max_fun_evals` and
   others) at the start of `optimize()`, so a `BADS` object runs once.
 - **Many options do nothing.** Some are PyVBMC or MATLAB leftovers that no
@@ -292,8 +299,10 @@ installation. If that installation has NumPy and SciPy, the scripts under
 is a change to PyBADS's numerics; its gate is the comparison run with that
 release's clone, beside the test suite, with `gpyreg.__file__` printed. A
 change that must move nothing shows the same hash of
-`dev/scripts/fingerprint.py` before and after, on one machine and with the
-same gpyreg.
+`dev/scripts/fingerprint.py` before and after, on one machine, with the
+same gpyreg and the same number of BLAS threads: one thread
+(`OMP_NUM_THREADS=1` and its kin) and the default can give different
+hashes of the same commit, and a recorded hash names its setting.
 
 ## Tests and their traps
 
@@ -337,8 +346,8 @@ same gpyreg.
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
   comparison. The condition for adding the search point to the GP in
   `_search_step_` was once such a slip: `size > 0 & count < n_try`, which
-  is always true. A check of `_bounds_check_` that refused a variable
-  bounded on one side only, since removed, was once one the other way
-  round, a test per variable written as `any(...) and any(...)` across all
-  of them: on arrays, an elementwise test stays elementwise (`&`, `|`,
-  `!=`) inside one `np.any`.
+  is always true. On NumPy arrays the converse holds: a test per variable
+  stays elementwise, with `&`, `|` or `!=` inside a single `np.any`;
+  written as `np.any(a) and np.any(b)`, it tests all the variables at once,
+  a slip that once made a check of `_bounds_check_` refuse every problem
+  that mixed bounded and unbounded variables.

@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-26. The list describes scope, not priority or execution
+Updated 2026-09-27. The list describes scope, not priority or execution
 order.
 
 - [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
@@ -209,14 +209,59 @@ order.
   whose wave has passed: decide the priors and bounds of such a GP, in
   PyBADS or in gpyreg, with a test on the thin band.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
-  of `examples/`, and two show outputs that the port review's wave 2
-  changed: `pybads_example_2_nonbox_constraints.ipynb` the warning
-  `bads:TooCloseBounds`, which W2-4 removed, and
-  `pybads_example_5_extended_usage.ipynb` a result with `'fsd': 0` and
-  without `status` (W2-12, W2-13). Rerun them once the review's fix passes
-  have landed, with the headless run of the examples before the release,
-  so that the outputs are not regenerated at every pass
+  of `examples/`, and the saved outputs of all five predate the port
+  review, whose fix passes change their numbers, and some of their
+  messages: `pybads_example_2_nonbox_constraints.ipynb` shows the warning
+  `bads:TooCloseBounds`, which W2-4 removed;
+  `pybads_example_4_user_provided_noise.ipynb` a termination message on
+  `tol_mesh` that speaks of the change in the function value, which wave 0
+  corrected; `pybads_example_5_extended_usage.ipynb` a result with
+  `'fsd': 0` and without `status` (W2-12, W2-13), from version
+  `0.8.3.dev21`. Rerun all five once the review's fix passes have landed,
+  with the headless run of the examples before the release, so that the
+  outputs are not regenerated at every pass
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
+- [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
+  passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
+  while fixing" and "Doublecheck", with the details). Not fixed:
+  - the options: `Options.descriptions` has no entry for an advanced
+    option that the user set, so `str(options)` prints `(None)` for it;
+    `hedge_gamma`'s description is its section's header; the checks
+    `stobads is None` and `specify_target_noise is None` cannot fire since
+    W2-19; `test_options.ini` and `test_options2.ini` ship in the wheel and
+    nothing reads them; a 0-d array for `max_fun_evals` or a boolean option
+    is refused, where 1.1.0 took it;
+  - the display: `optim_state["cache_active"]` is always False since W2-7,
+    so the cache branches of the display cannot run; the reports of the log
+    transform and of periodic variables are logged at INFO, so that
+    `"notify"` and `"final"` hide them, and the caution for infinite bounds
+    at WARNING, so that `"off"` shows it, where MATLAB BADS prints all three
+    from `"notify"` on (`setupvars.m:30`, `119`, `122`);
+  - the inputs: a missing `x0` with plausible bounds given as a list or a
+    Python scalar raises `AttributeError`; `__init__` fills missing
+    plausible bounds without `bads:pbUnspecified`, which MATLAB BADS logs
+    whenever it fills them; the redraw of a random start tests it before it
+    is put on the mesh (KD-B1-9); the test of fixed variables leaves `x0`
+    out (KD-B1-7);
+  - the run's control: the noise test's time is averaged into the start's
+    row of `fun_eval_time`; after a re-estimate that moves nothing,
+    `optim_state`'s `yval`, `fval` and `fsd` keep older values; a noisy run
+    whose design leaves fewer evaluations than `noise_final_samples` ends
+    in its first iteration without taking the samples it reserved, so that
+    `yval_vec` is `None` when it reserved none and the incumbent's
+    observation otherwise, and the test of that reserve does not reach its
+    floor at 0; the docstring of `test_iterations_count_from_one` says "8th"
+    where the run reports 7;
+  - `VariableTransformer` used directly: a scalar `apply_log_t` raises
+    `AttributeError`, a 1-D bound `IndexError`, and a NumPy scalar hard
+    bound with the plausible bounds omitted fails; the `else` branches of
+    its four bounds cannot run.
+- [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
+  with `time.time()`, whose resolution on Windows before Python 3.13 is
+  about 15.6 ms: for a fast target most evaluations time as 0, and the
+  returned `overhead` of two near-identical runs can differ by orders of
+  magnitude. `time.perf_counter` fixes it, and changes the returned
+  `overhead`, which needs a changelog line.
 - [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
   `skills/pybads/SKILL.md` that points a coding agent to the parts of the
   documentation relevant to its task, linked from the README.
