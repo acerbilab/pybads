@@ -63,6 +63,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `pybads.search.ESSearchCMA` is removed.
 - `pybads.init_functions.init_sobol` returns the number of points of its
   design as its second value, not its base-2 logarithm.
+- A target that returns a value of a complex type, even one whose imaginary
+  part is zero, raises `ValueError`, where 1.1.0 accepted a NumPy complex
+  value.
 
 ### Changed
 
@@ -629,6 +632,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`init_sobol`'s second value.** `pybads.init_functions.init_sobol`
   returns the number of points of its design as its second value, as its
   docstring says, where 1.1.0 returned the base-2 logarithm of that number.
+- **Malformed target outputs.** A value that the target returns, or with
+  `specify_target_noise=True` a noise SD, that is not a finite real number
+  (and, for the SD, a positive one) raises the documented `ValueError`
+  before anything is recorded; an SD of one element, in a list or an array,
+  is taken as that number, as the value already was. 1.1.0 raised
+  `TypeError` or NumPy's own errors for some of them (an SD of `None` or in
+  a list), said that the target had failed for a value of several elements,
+  and accepted a NumPy complex value.
 
 ## [1.1.0] - 2026-09-25
 

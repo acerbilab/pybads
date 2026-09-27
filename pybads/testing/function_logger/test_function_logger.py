@@ -350,3 +350,60 @@ def test_add_invalid_sd_value():
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
     with pytest.raises(ValueError):
         f_logger.add(x, 3, np.inf)
+
+
+_VALUE = "FunctionLogger:InvalidFuncValue"
+_SD = "FunctionLogger:InvalidNoiseValue"
+_FORMAT = "The `specify_target_noise` option has been set to `True`"
+
+
+@pytest.mark.parametrize(
+    "level, output, message",
+    [
+        (0, np.array([1.0, 2.0]), _VALUE),
+        (0, "a", _VALUE),
+        (0, None, _VALUE),
+        (0, 1 + 0j, _VALUE),
+        (0, np.complex128(1 + 0j), _VALUE),
+        (0, 1 + 1j, _VALUE),
+        (0, np.nan, _VALUE),
+        (0, (1.0, 0.5), _VALUE),
+        (2, (1.0, None), _SD),
+        (2, (1.0, "a"), _SD),
+        (2, (1.0, [0.5, 0.6]), _SD),
+        (2, (1.0, np.array([0.5, 0.6])), _SD),
+        (2, (1.0, 1 + 0j), _SD),
+        (2, (1.0, 0.0), _SD),
+        (2, (1.0, np.inf), _SD),
+        (2, [1.0, 0.5], _FORMAT),
+        (2, np.array([1.0, 0.5]), _FORMAT),
+    ],
+)
+def test_call_malformed_output_raises_value_error_and_records_nothing(
+    level, output, message
+):
+    """A value or an SD that is not a finite real scalar (an SD also
+    positive) raises the documented ValueError, with no note that blames the
+    target, and leaves the log as it was."""
+    outputs = iter([(1.0, 0.5) if level == 2 else 1.0, output])
+    f_logger = FunctionLogger(lambda x: next(outputs), 2, level == 2, level)
+    f_logger(np.zeros(2))
+    X = f_logger.X.copy()
+    Y = f_logger.Y.copy()
+    with pytest.raises(ValueError, match=message) as err:
+        f_logger(np.ones(2))
+    assert "FunctionLogger:FuncError" not in str(err.value)
+    assert f_logger.Xn == 0
+    assert f_logger.X_max_idx == 0
+    assert f_logger.func_count == 1
+    assert np.array_equal(f_logger.X, X, equal_nan=True)
+    assert np.array_equal(f_logger.Y, Y, equal_nan=True)
+
+
+@pytest.mark.parametrize("sd", [np.array([0.5]), [0.5], np.array([[0.5]])])
+def test_call_one_element_sd_taken_as_a_number(sd):
+    f_logger = FunctionLogger(lambda x: ([1.0], sd), 2, True, 2)
+    fval, fsd, idx = f_logger(np.zeros(2))
+    assert fval == 1.0 and fsd == 0.5 and idx == 0
+    assert np.isscalar(fsd)
+    assert f_logger.S[0, 0] == 0.5
