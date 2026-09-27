@@ -2191,16 +2191,10 @@ class BADS:
                     self.non_box_cons,
                 )
 
-                # Add new poll points to polling set
-                if u_poll is None:
-                    u_poll = u_poll_new.copy()
-                else:
-                    u_poll = np.vstack(u_poll, u_poll_new)
-
-                if B is None:
-                    B = B_new.copy()
-                else:
-                    B = np.vstack((B, B_new))
+                # The polling set and its basis, filled once: B is never
+                # emptied, so the basis is not refilled
+                u_poll = u_poll_new.copy()
+                B = B_new.copy()
 
             # Cannot refill poll vector set, stop polling
             if u_poll is None or u_poll.size == 0:
