@@ -599,6 +599,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the last D + 1 points of the poll set in their order, whatever their
   probabilities of improvement; it is now computed over the D largest, as in
   MATLAB BADS. At the default `tol_poi` the difference is rare.
+- **Length scales on two points.** A rebuild of the local Gaussian process
+  on two distinct points, which a thin feasible region of `non_box_cons` can
+  leave it, no longer stops the run with gpyreg's `ValueError` for a prior
+  with a zero width: the prior of the length scales keeps its previous
+  width, as the prior of the GP mean does when the targets have no spread.
 
 ## [1.1.0] - 2026-09-25
 
