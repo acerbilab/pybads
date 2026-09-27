@@ -1,0 +1,29 @@
+fix: refuse a hedge_gamma outside [0, 1/n], n the number of search methods, when BADS is created (W4-18)
+
+hedge_gamma was not checked. The hedge chooses a search method with the
+probabilities (1 - n * hedge_gamma) * softmax(hedge_beta * g) +
+hedge_gamma (search_hedge.py, as searchHedge.m:45-46, which does not
+check it either), which invert above 1 / n, so that the search of lower
+gain is the likelier, and turn negative above 1 / (n - 1), so that a
+search is never chosen. A run took 1.25 or -0.5 without a warning.
+
+_init_optim_state_ now refuses, with ValueError, a hedge_gamma that is
+not a number from 0 to 1 / n, n = len(options['search_method']), beside
+the checks of max_fun_evals, improvement_quantile and
+accelerate_mesh_steps, in their form: a bool, a string, a complex number,
+NaN and an array of several values are refused. The bound is tested as
+n * hedge_gamma <= 1, the condition for the softmax's weight in the
+hedge to be non-negative as computed. 0, whose scoring W3-7 fixed, stays
+accepted. The description of hedge_gamma gives the range.
+
+Tests (test_bads_inputs.py): test_hedge_gamma_outside_zero_to_one_over_n_is_refused
+(-0.1, -1e-12, 0.5 + 1e-12 and 1.25 with two methods, 0.34 with three,
+1.5 with one, NaN, inf, True, "0.1" and an array of two values), which
+fails at the parent in all 11 cases (no ValueError), and
+test_hedge_gamma_from_zero_to_one_over_n_is_accepted (0, 0.125, 0.5 and
+np.float64(0.25) with two methods, 1/3 with three, 1 with one).
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

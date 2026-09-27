@@ -1,0 +1,27 @@
+fix: refuse an n_search_iter that is not a positive integer when BADS is created (W4-25)
+
+n_search_iter, the number of generations of the ES search, was not
+checked, and a wrong value stopped the run at its first search, after
+the initial design: 0 with ZeroDivisionError (search_hedge.py divides
+n_search by it), 0.5, 2.5 or inf with TypeError (es_search.py loops over
+range(n_search_iter)), -1 with NumPy's ValueError "negative dimensions
+are not allowed", "2" with TypeError; True ran as 1. MATLAB BADS does not
+check it either (setupoptions.m only evaluates it; searchES.m:125 loops
+over 1:Nsearchiter).
+
+_init_optim_state_ refuses, with ValueError, an n_search_iter that is not
+a positive integer, beside the check of accelerate_mesh_steps and in its
+form: a bool, a non-numeric value, NaN and inf are refused, and a
+whole-number float is converted to int.
+
+Tests (test_bads_inputs.py): test_n_search_iter_not_a_positive_integer_is_refused
+(0, -1, 0.5, 2.5, NaN, inf, True and "2"), which fails at the parent in
+all 8 cases (no ValueError), and
+test_n_search_iter_positive_integer_is_accepted (1, 2, 3.0 and
+np.int64(4), stored as int, and a run of 60 evaluations), which fails at
+the parent at 3.0 and np.int64(4).
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

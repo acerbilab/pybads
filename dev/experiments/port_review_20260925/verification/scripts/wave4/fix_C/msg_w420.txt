@@ -1,0 +1,16 @@
+docs: Fig. 1's caption says that the poll's steps are equal in the normalized coordinates and scale with the plausible box in the original ones (W4-20)
+
+Fig. 1, MATLAB BADS's figure (docsrc/source/_static/bads-cartoon.png,
+in README.md and docsrc/source/index.rst), draws the poll's steps about
+twice as long along x1 as along x2. The poll's directions are divided by
+poll_scale and multiplied back (poll_mads_2n, _poll_step_; as
+pollMADS2N.m:24 and bads.m:803), so at default its steps are +-Delta
+along one coordinate of the normalized space, where the plausible box
+spans [-1, 1] in every variable, and are unequal in the original
+coordinates, which the figure draws, only through the plausible box (or
+the log transform), which it does not show. The figure stays, and its
+caption, in both places, now says so.
+
+No test: documentation.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

@@ -1,0 +1,42 @@
+fix: bin the candidates of contraints_check and split the ES search's first population with MATLAB's round (W4-21)
+
+contraints_check binned the candidates and the evaluated points on a grid
+of tol_mesh / 2 with np.round, which takes an exact half to the even
+integer, where uCheck.m:22 and 24 use MATLAB's round, which takes it away
+from zero. From the poll mesh 2^-6 at default the search grid is finer
+than a bin, and its points fall on halves of a bin: the port then merged
+other candidates into one bin, and removed other candidates as
+evaluated, than uCheck.m does. The ES search split its first population
+between its two scales with the same rounding (searchES.m:111), which
+differs when n_search / n_search_iter is odd, never at default: at
+n_search_iter = 3 the port gave [682, 683] and MATLAB gives [683, 682].
+
+The exact rule of force_to_grid (np.modf, the integer part moved away
+from zero when the fraction is at least one half in magnitude) becomes
+round_half_away, in a module of its own, pybads/rounding.py, used by
+force_to_grid (whose results it leaves as they were), by the bins of
+contraints_check and by the split of ESSearch. It lives outside
+pybads.search because constraints_check.py cannot import that package:
+pybads.search imports es_search, which imports contraints_check, and
+pybads.bads imports pybads.function_logger first. The comment above the
+bins says what the code does.
+
+Tests (test_search.py): test_constraint_check_rounds_halves_of_a_bin_away_from_zero,
+candidates half a bin from an evaluated point on both sides of zero, one
+bin from it, and pairs of candidates half a bin apart, against a
+transcription of uCheck.m with MATLAB's round and against the rows it
+returns; test_es_search_splits_its_first_population_as_matlab, the split
+at n_search_iter 2, 3, 7 and 4096. At the parent, the first fails and the
+second fails at 3, 7 and 4096. The doublecheck's random comparison with
+uCheck.m (c2_ucheck_random.py) now keeps the same bins in 3000 of 3000
+sets on grids finer than a bin (1748 of 3000 before); the rows differ in
+1075 of them only by the candidate kept within a bin, the first in input
+order where setdiff keeps the smallest (W3-1).
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged: its deterministic runs reach the search grid 2^-22, and 8 of
+the 104 calls of contraints_check in each of them return other rows, but
+the final points, values and counts stay the same; its noisy runs have no
+such call.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

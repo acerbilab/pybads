@@ -1,0 +1,37 @@
+fix: a noisy run that ends in its first iteration takes its reserved final samples, at the incumbent (W4-14)
+
+A noisy run reserves noise_final_samples evaluations of max_fun_evals
+for the final estimate at the returned point (_init_optimization_), but
+optimize took them only after a later iteration (poll_iteration > 0),
+as MATLAB BADS's iter > 1 (bads.m:1138), whose choice among the
+iterates skips the first. A run that ended within its first iteration,
+on max_iter=1 or on a small budget (at D = 2, any max_fun_evals up to
+48, since the initial design has 32 points), left the reserved
+evaluations unused and reported the incumbent's single observation in
+yval_vec, with the GP's fsd, which at level 1 is the default
+noise_size.
+
+Such a run has one iterate, the incumbent, and it now takes the
+reserved samples there: fval and fsd are their mean and its standard
+error (their precision-weighted mean with specify_target_noise), with
+yval_vec and ysd_vec, and the estimate is recorded at that iterate of
+iteration_history, as the final estimate after a later iteration does.
+The choice among the iterates and the re-evaluation of the history are
+unchanged for later iterations. A run that output_fcn stops in its
+initialization, whose loop never ran, still takes no final samples.
+This departs from MATLAB BADS, which shares the gap.
+
+Tests: test_noisy_runs.py::
+test_small_noisy_budget_takes_the_reserved_final_samples, a run at
+D = 2 with max_fun_evals=38 (the B7 verifier's v4_noisy_budget.py):
+it ends within its first iteration, takes its 4 reserved samples at the
+returned point and makes 38 evaluations; at the parent it makes 34.
+test_noisy_run_in_one_iteration_takes_the_final_samples, formerly
+test_noisy_run_in_one_iteration_reports_incumbent, which asserted the
+old behavior, now asserts the new one at max_iter=1, for both kinds of
+noise; at the parent yval_vec has shape (1,), not (10,).
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

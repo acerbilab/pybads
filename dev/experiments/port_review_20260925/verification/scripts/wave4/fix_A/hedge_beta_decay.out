@@ -1,0 +1,22 @@
+default=None: 45 searches, non-finite probabilities in 0, choices of ES-wcm 18, max |g| 43.8, non-finite g in 0; fval -1.633, func_count 105
+hedge_beta=0.0: 41 searches, non-finite probabilities in 0, choices of ES-wcm 25, max |g| 10.9, non-finite g in 0; fval -1.633, func_count 95
+hedge_beta=-1.0: 41 searches, non-finite probabilities in 0, choices of ES-wcm 20, max |g| 10.5, non-finite g in 0; fval -1.633, func_count 95
+/home/user/pybads-fix-A/pybads/search/search_hedge.py:65: RuntimeWarning: overflow encountered in exp
+  self.prob = np.exp(self.beta * (self.g - np.max(self.g)))
+/home/user/pybads-fix-A/pybads/search/search_hedge.py:67: RuntimeWarning: overflow encountered in exp
+  np.exp(self.beta * (self.g - np.max(self.g)))
+/home/user/pybads-fix-A/pybads/search/search_hedge.py:66: RuntimeWarning: invalid value encountered in divide
+  self.prob = self.prob / np.sum(
+hedge_beta=-1000.0: 41 searches, non-finite probabilities in 41, choices of ES-wcm 16, max |g| 10, non-finite g in 40; fval -1.633, func_count 89
+/home/user/pybads-fix-A/pybads/search/search_hedge.py:65: RuntimeWarning: invalid value encountered in multiply
+  self.prob = np.exp(self.beta * (self.g - np.max(self.g)))
+/home/user/pybads-fix-A/pybads/search/search_hedge.py:67: RuntimeWarning: invalid value encountered in multiply
+  np.exp(self.beta * (self.g - np.max(self.g)))
+hedge_beta=inf: 41 searches, non-finite probabilities in 41, choices of ES-wcm 16, max |g| 10, non-finite g in 40; fval -1.633, func_count 89
+hedge_beta=nan: 41 searches, non-finite probabilities in 41, choices of ES-wcm 16, max |g| 10, non-finite g in 40; fval -1.633, func_count 89
+hedge_decay=1.0: 41 searches, non-finite probabilities in 0, choices of ES-wcm 6, max |g| 53.9, non-finite g in 0; fval -1.633, func_count 95
+hedge_decay=2.0: 41 searches, non-finite probabilities in 0, choices of ES-wcm 6, max |g| 2.41e+13, non-finite g in 0; fval -1.633, func_count 95
+hedge_decay=50.0: 41 searches, non-finite probabilities in 0, choices of ES-wcm 38, max |g| 9.09e+68, non-finite g in 0; fval -1.633, func_count 95
+hedge_decay=-1.0: 45 searches, non-finite probabilities in 0, choices of ES-wcm 22, max |g| 43.8, non-finite g in 0; fval -1.633, func_count 99
+hedge_decay=nan: 45 searches, non-finite probabilities in 44, choices of ES-wcm 24, max |g| 10, non-finite g in 44; fval -1.633, func_count 105
+/home/user/pybads-fix-A/pybads/__init__.py

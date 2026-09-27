@@ -1,0 +1,18 @@
+fix: log a generation of the ES search that leaves no candidate at DEBUG, not as a warning (W4-27)
+
+The ES search logged "No candidate left in generation k of the search,
+..." as a warning when the constraints and the points already evaluated
+removed every candidate of a generation, which happens a few times per
+run on a thin band; MATLAB's searchES.m is silent there, and the search
+goes on with the candidates of the earlier generations, as it does. The
+message is logged at DEBUG, which display="full" shows.
+
+Test: test_es_search_keeps_the_candidates_of_an_emptied_generation
+(test_empty_search.py) sets the BADS logger to DEBUG and checks that the
+message is logged once, at DEBUG; at the parent it fails in both of its
+cases, the record at WARNING (30 != 10).
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

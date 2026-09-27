@@ -1,0 +1,16 @@
+docs: FunctionLogger.__call__ and add take x in the transformed space, and add's docstring says what it does with the SD (W4-10)
+
+The docstrings of FunctionLogger.__call__ and add described x as the
+point at which the function is or was evaluated, but both take it in the
+transformed space of the run (u), and map it back to the original space
+with the logger's variable_transformer, if it has one, before calling the
+target or recording the point (function_logger.py, "Convert back to
+original space"). add's docstring also did not say that a logger that
+holds SDs records a missing SD as 1, and that one that does not ignores
+a given SD. Both docstrings now say so, and add's return value is
+described as the SD it recorded.
+
+Docstrings only; no test. Fingerprint (dev/scripts/fingerprint.py,
+Linux, gpyreg v1.3.3, one BLAS thread): 360971bf1f0ba6cb, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
