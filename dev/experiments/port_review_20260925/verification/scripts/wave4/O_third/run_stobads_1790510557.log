@@ -1,0 +1,8 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+seed 0: fval=0.01227 x=[ 0.019  0.016 -0.036] evals=200
+  polls 11 outcomes (1/0/-1): 1 0 10 | poll moves 1 of which to the incumbent itself 0 | search moves 31 of which uncertain and worse 7
+seed 1: fval=0.1253 x=[0.014 0.001 0.023] evals=200
+  polls 9 outcomes (1/0/-1): 0 0 9 | poll moves 0 of which to the incumbent itself 0 | search moves 46 of which uncertain and worse 9
+seed 2: fval=-0.098 x=[-0.021 -0.02   0.059] evals=200
+  polls 10 outcomes (1/0/-1): 1 0 9 | poll moves 1 of which to the incumbent itself 0 | search moves 40 of which uncertain and worse 10
