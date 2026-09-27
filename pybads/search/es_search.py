@@ -233,7 +233,6 @@ class ESSearch(ABC):
 class ESSearchWM(ESSearch):
     def __init__(self, mu, lamb, options_dict, rng=None):
         super().__init__(mu, lamb, options_dict, rng)
-        self.active_flag = False
         self.frac = 0.5
 
     # Ovveride abstract method
@@ -244,7 +243,6 @@ class ESSearchWM(ESSearch):
         U = gp.X
         Y = gp.y.flatten()
         # Compute vector weights
-        nvars = U.shape[1]
         mu = self.frac * U.shape[0]
 
         weights = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu + 1)))
@@ -265,12 +263,6 @@ class ESSearchWM(ESSearch):
             optim_state["scale"],
             optim_state["periodic_vars"],
         )
-        if self.active_flag:
-            U_worst = U[y_idx[-1 : -1 : (len(y_idx) - np.floor(mu) + 1)]]
-            negC = ucov(U_worst, u, weights, optim_state)
-            negmueff = np.sum(1.0 / weights**2)
-            negcov = 0.25 * negmueff / ((nvars + 2) ** 1.5 + 2 * negmueff)
-            C = C - negcov * negC
 
         # Rescale covariance matrix according to mean vector length
         eig_values, E = scipy.linalg.eigh(C)
@@ -286,16 +278,6 @@ class ESSearchWM(ESSearch):
 
     def get_jitter(self, optim_state):
         return optim_state["mesh_size"]
-
-
-class ESSearchCMA(ESSearchWM):
-    def __init__(self, mu, lamb, options_dict, rng=None):
-        super().__init__(mu, lamb, options_dict, rng)
-        self.active_flag = True
-        self.frac = 0.25
-
-    def get_jitter(self, optim_state):
-        return optim_state["search_mesh_size"]
 
 
 class ESSearchELL(ESSearch):

@@ -54,6 +54,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   raises `ValueError` at the first search.
 - `BADS` raises `ValueError` for an `improvement_quantile` that is not
   greater than 0 and less than 1.
+- `pybads.search.ESSearchCMA` is removed.
 
 ### Changed
 
@@ -129,6 +130,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `None` (the default schedule), a callable `sqrt_beta(t, D)` or a positive
   finite number, and any other value raises `ValueError` at the first
   search.
+- **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
+  `search_method` selects and that failed when called, is removed.
 
 ### Fixed
 

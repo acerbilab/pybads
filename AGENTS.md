@@ -202,9 +202,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a
-  search by string comparison (`ESSearchCMA` is unreachable), LCB is called
-  directly at the search and poll call sites, and the initial design is
-  selected by `init_fun == "init_sobol"`. A new search method is an
+  search by string comparison, LCB is called directly at the search and
+  poll call sites, and the initial design is selected by
+  `init_fun == "init_sobol"`. A new search method is an
   `ESSearch` subclass, an `elif` in the hedge, and an entry in the
   `search_method` option.
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0
