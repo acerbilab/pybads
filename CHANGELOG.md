@@ -447,7 +447,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   first `=` or `:`, that of `noise_size` among them. Every option on the
   options page has a description, without the closing quote of MATLAB's that
   ended many, and those of `max_iter` and `tol_stall_iters` say that an
-  iteration counts once it has begun. `search_n_try` is an integer.
+  iteration counts once it has begun. `search_n_try` is an integer. Those of
+  `tol_poi`, `sloppy_improvement` and `gp_rescale_poll` say that an
+  unreliable Gaussian process stops a good poll whatever `tol_poi`, that
+  `sloppy_improvement` also floors the sufficient improvement at `tol_fun`,
+  and that `gp_rescale_poll` shapes only the ES-ell search.
 - **`sloppy_improvement=False`.** A run with `sloppy_improvement=False` no
   longer stops with `AttributeError` at its first iteration.
 - **Exit status.** The result's `status` is MATLAB BADS's exit flag: 0 when

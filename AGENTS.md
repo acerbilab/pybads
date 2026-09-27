@@ -177,10 +177,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
-  `["len_scale"]` and `["effective_radius"]`, set in
-  `gaussian_process_train.py`, drive the poll basis and the ES-ell search.
-  `poll_mads_2n` returns directions divided by `poll_scale`, and
-  `_poll_step_` multiplies them back.
+  `["len_scale"]` and `["effective_radius"]` are set in
+  `gaussian_process_train.py`. `poll_scale` shapes the ES-ell search and
+  not the poll: `poll_mads_2n` returns directions divided by it, and
+  `_poll_step_` multiplies them back, as MATLAB BADS does. `len_scale`
+  scales the distances of `udist` (the neighbours of the local training
+  set, the length of a search's step), and `effective_radius` the radius
+  of the training set.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`

@@ -2639,24 +2639,31 @@ class BADS:
         )
 
     def _get_target_from_gp_(self, u, gp: GP, hyp_best):
-        """A private method that retrieve the prediction of the gp at the input ``u``.
-            If the target function is stochastic then set the optimization target ``f_target`` slightly below the mean prediction.
+        """A private method that retrieves the prediction of the GP at the
+        input ``u`` and sets the optimization target ``f_target`` slightly
+        below the mean prediction, in a noisy run and whenever
+        ``uncertain_incumbent`` is on (the default); a prediction that is
+        not finite is replaced by the incumbent's ``fval`` and ``fsd``.
+        Otherwise the target is the incumbent's ``fval`` less ``tol_fun``.
 
         Parameters
         ----------
-            u : np.array
-                input point u
-            gp : GP
-            hyp_best : np.ndarray
-                Hyperparameter used by the GP in the prediction
+        u : np.ndarray
+            The input point, the incumbent.
+        gp : GP
+            The GP.
+        hyp_best : np.ndarray
+            The hyperparameters under which the GP predicts.
 
-        Returns:
-            f_target_mu :
-                GP prediction, it corresponds to the mean values.
-            f_target_s :
-                GP variance/noise at point u.
-            f_target : optimization target, it is slighly below the GP prediction when the target function is stochastic.
-
+        Returns
+        -------
+        f_target_mu : np.ndarray
+            The GP's mean prediction at ``u``, of shape ``(1, 1)``.
+        f_target_s : np.ndarray or float
+            The GP's predictive standard deviation at ``u`` (the incumbent's
+            ``fsd`` when the prediction is not finite).
+        f_target : np.ndarray
+            The optimization target, of shape ``(1, 1)``.
         """
         # Corresponds to Matlab: updateTarget
         if (
