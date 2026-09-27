@@ -85,3 +85,12 @@ the count of repeated evaluations, W3-39's reproduction) are under
 `verification/scripts/wave3/orchestrator/`. The pass's comparisons and
 medians are in `verification/wave3_fixpass/`, and its last population is
 kept whole as the Linux reference `population_linux_wave3_20260927`.
+
+Those of wave 4, in a cloud session too, are under
+`verification/scripts/wave4/<slice>_<track>/` (`B7_internal`,
+`B7_comparison`, `O_third`) and `verification/scripts/wave4/<slice>_verifier/`,
+formatted by the pre-commit hooks in the same way, with their `.log`
+outputs added past the `*.log` rule of `.gitignore`, and without the B7
+verifier's copy of v1.1.0's package, which the tag holds. The items of the
+records kept from wave 4's reviewers and given to its verifiers are quoted
+in `briefs/wave4_kept_B7.md` and `briefs/wave4_kept_O.md`.

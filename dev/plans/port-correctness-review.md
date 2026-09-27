@@ -871,7 +871,29 @@ Wave 3's records are the model: its worklog lines below and
   and `wave4_kept_O.md` (O-K1 to O-K5); none of the preparatory report's
   differences seen in passing belongs to B7 or O, and the survey has no
   open row in O's code.
-- [ ] Wave 4.
+- [x] 2026-09-27: wave 4 run and verified, cloud session (from "Wave 4
+  pickup", on `dev-port-review-w4`). Three fresh Opus reviewers reading
+  `0d866e8` in `../pybads-review`: B7 on both tracks (B7 internal 11
+  findings, B7 comparison 7) and O, the third reader (1 finding, in
+  Sto-BADS; every other formula of the slice matches MATLAB BADS and its own
+  derivation); then one fresh Opus verifier per slice, which also verified
+  the kept items. The reports and the verifications are saved verbatim with
+  `extract_report.py`, each agent's hand-back its one candidate, and the
+  scripts of all five agents under `verification/scripts/wave4/`, formatted
+  by the pre-commit hooks, with their `.log` outputs added past the `*.log`
+  rule of `.gitignore` and without the B7 verifier's copy of v1.1.0's
+  package. The B7 verifier's closing turn hit the session's usage limit
+  seconds after it had handed back its report, which is complete. The
+  ledger `verification/wave4.md`, rows W4-1 to W4-20, closes the 2 open
+  survey rows of B7 (O has none). The reviewers found every kept item of
+  B7 but the small noisy budget (B7-K5) and W2-20's fix (B7-K8, which holds
+  as MATLAB's, W4-7), and O-K1 of O's; W0-18's doubling is set out for the
+  PI's decision (W4-3), and the seed of the design (W4-1) is decided by
+  PyBADS's own contract whatever MATLAB's `mod` gives, which only MATLAB can
+  say. Wave 2's note that W2-4 made the undefined cast reachable does not
+  hold: 1.1.0 reached it too (W4-2). The sweep after the wave was clean
+  (only `__pycache__`, removed).
+- [ ] Wave 4's triage and fix pass.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
   Windows reference at the head of the last fix pass: the current one,
