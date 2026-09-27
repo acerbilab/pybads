@@ -1515,9 +1515,9 @@ class BADS:
 
             self.u = self.u_best
 
-            # check and do poll step
+            # check and do poll step; the poll's GP goes on, as the search's
             if do_poll_step:
-                self._poll_step_(gp)
+                (_, _, _, _, gp) = self._poll_step_(gp)
                 if output_fcn is not None and output_fcn(
                     self.var_transf.inverse_transf(self.u),
                     copy.deepcopy(self.optim_state),
