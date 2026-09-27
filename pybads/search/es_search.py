@@ -176,7 +176,8 @@ class ESSearch(ABC):
                     "violating the constraints are removed"
                 )
 
-            nold = us.shape[0]
+            # Candidates kept before this generation (none before the first)
+            nold = us.shape[0] if i > 0 else 0
             if i == 0:
                 us_candidates = u_new.copy()
                 z_candidates = z_new.copy()
@@ -190,8 +191,12 @@ class ESSearch(ABC):
 
             # Order candidates and select
             z_idx = np.argsort(z_candidates)
+            # New candidates among the best ntest, as in MATLAB's searchES:
+            # the pool is not trimmed, and this generation's are its last rows
             ntest = np.minimum(u_new.shape[0], nold)
-            n_new = np.sum(z_idx[0 : ntest + 1] > nold)
+            n_new = np.sum(
+                z_idx[0:ntest] >= us_candidates.shape[0] - u_new.shape[0]
+            )
             z = z_candidates[z_idx[0:N]]
             us = us_candidates[z_idx[0:N]]  # zlist in Matlab is not used
 

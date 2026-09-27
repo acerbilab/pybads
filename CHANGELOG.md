@@ -535,6 +535,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of the search grid goes to the one farther from zero, as in MATLAB BADS,
   where 1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048,
   2048]` starts at `[2, 4]`, not `[0, 4]`.
+- **Scale of the evolution-strategy search.** With `n_search_iter` of 3 or
+  more, the scale of each generation of the evolution-strategy search
+  follows the fraction of new candidates among the best, counted as in
+  MATLAB BADS; PyBADS counted older candidates as new from the third
+  generation on, so that the scale grew where that of MATLAB BADS shrinks.
+  The default, 2, is not affected.
 
 ## [1.1.0] - 2026-09-25
 

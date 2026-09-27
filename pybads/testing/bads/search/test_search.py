@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 import pybads.bads.bads as bads_module
+import pybads.search.es_search as es_search_module
 from pybads import BADS
 from pybads.acquisition_functions import acq_fcn_lcb
 from pybads.bads.gaussian_process_train import get_grid_search_neighbors
@@ -437,4 +438,67 @@ def test_start_on_a_half_goes_to_matlabs_grid_point():
         np.ravel(bads.var_transf.inverse_transf(np.atleast_2d(bads.u))),
         [2.0, 4.0],
         rtol=1e-12,
+    )
+
+
+def _initial_state(D=3, **options):
+    """A BADS object and its GP after the initial design, for a unit call of
+    the ES search."""
+    bads = BADS(
+        rosenbrocks_fcn,
+        np.zeros((1, D)),
+        -20 * np.ones((1, D)),
+        20 * np.ones((1, D)),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        options={"random_seed": 0, "display": "off", **options},
+    )
+    bads.options["fun_eval_start"] = 10
+    gp, _, _, _ = bads._init_optimization_()
+    return bads, gp
+
+
+def test_es_scale_follows_the_fraction_of_new_candidates(monkeypatch):
+    """From the second generation of the ES search, the scale follows the
+    fraction of the generation's candidates among the best ntest of the
+    candidates kept before it and its own, ntest the smaller of their two
+    numbers, as in MATLAB's searchES."""
+    n_search_iter = 4
+    bads, gp = _initial_state(n_search_iter=n_search_iter)
+    values = np.random.default_rng(1)
+    generations = []
+
+    def lcb(u, *args, **kwargs):
+        # Each generation is better than the one before, on average
+        z = values.normal(-0.3 * len(generations), 1.0, size=(len(u), 1))
+        generations.append(z.ravel())
+        return z, z, np.zeros_like(z)
+
+    monkeypatch.setattr(es_search_module, "acq_fcn_lcb", lcb)
+    mu = int(bads.options["n_search"] / n_search_iter)
+    search_es = ESSearchWM(mu, mu, bads.options, rng=bads.rng)
+    search_es(
+        bads.u,
+        None,
+        None,
+        bads.function_logger,
+        gp,
+        bads.optim_state,
+        True,
+        None,
+    )
+    assert len(generations) == n_search_iter
+
+    kept = np.empty(0)
+    log_scale = 0.0
+    for i, z_new in enumerate(generations):
+        ntest = min(z_new.size, kept.size)
+        pool = np.concatenate((kept, z_new))
+        best = np.sort(pool)[:ntest]
+        if 0 < i < n_search_iter - 1:
+            frac = np.sum(np.isin(best, z_new)) / ntest
+            log_scale += bads.options["es_beta"] * (frac - 0.2)
+        kept = np.sort(pool)[:mu]
+    assert np.isclose(
+        search_es.scale, bads.options["es_start"] * np.exp(log_scale)
     )
