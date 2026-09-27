@@ -1,0 +1,18 @@
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+hedge_gamma=array([0.1]): accepted, stored ndarray; run completed: func_count=55 warnings=[]
+hedge_gamma=array([[0.1]]): accepted, stored ndarray; run stopped: ValueError: shape mismatch: value array of shape (1,2) could not be broa
+hedge_gamma=np.complex128(0.1-5j): accepted, stored complex128; run completed: func_count=55 warnings=['ComplexWarning']
+hedge_gamma=Decimal('0.25'): accepted, stored Decimal; run stopped: TypeError: unsupported operand type(s) for *: 'float' and 'decimal.Deci
+hedge_beta=array([1.]): accepted, stored ndarray; run completed: func_count=55 warnings=[]
+hedge_beta=array([[1.]]): accepted, stored ndarray; run stopped: ValueError: shape mismatch: value array of shape (1,2) could not be broa
+hedge_beta=array([ True]): accepted, stored ndarray; run completed: func_count=55 warnings=[]
+hedge_beta=Fraction(1, 4): accepted, stored Fraction; run stopped: TypeError: loop of ufunc does not support argument 0 of type float whic
+hedge_decay=array([0.5]): accepted, stored ndarray; run stopped: ValueError: setting an array element with a sequence.
+hedge_decay=array([[0.5]]): accepted, stored ndarray; run stopped: ValueError: setting an array element with a sequence.
+hedge_decay=array([ True]): accepted, stored ndarray; run stopped: ValueError: setting an array element with a sequence.
+hedge_decay=np.complex128(0.5+1j): accepted, stored complex128; run completed: func_count=55 warnings=['ComplexWarning']
+n_search_iter=1180591620717411303424: refused at creation: TypeError
+n_search_iter=1e+308: accepted, stored int; run completed: func_count=65 warnings=[]
+n_search_iter=5000: accepted, stored int; run completed: func_count=65 warnings=[]
+max_fun_evals=1180591620717411303424: refused at creation: TypeError
+accelerate_mesh_steps=1180591620717411303424: refused at creation: TypeError

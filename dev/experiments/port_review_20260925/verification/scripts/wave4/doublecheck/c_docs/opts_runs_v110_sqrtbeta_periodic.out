@@ -1,0 +1,25 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- sqrt_beta
+search_acq_fcn=('acq_LCB', 2.0)                        optimize: AttributeError: 'float' object has no attribute 'size' [acquisition_functions/acq_fcn_lcb.py:42]
+search_acq_fcn=('acq_LCB', np.float64(0.0))            completed: func_count=63 fval=1.18e-06 iterations=7
+search_acq_fcn=('acq_LCB', np.float64(-1.0))           completed: func_count=59 fval=2.85e-07 iterations=6
+search_acq_fcn=('acq_LCB', array([-1.]))               completed: func_count=59 fval=2.85e-07 iterations=6
+search_acq_fcn=('acq_LCB', np.True_)                   completed: func_count=55 fval=1.91e-06 iterations=6
+search_acq_fcn=('acq_LCB', np.complex128(2+0j))        completed: func_count=59 fval=7.97e-07 iterations=6
+search_acq_fcn=('acq_LCB', np.float64(nan))            optimize: ValueError: acq_lcb: The SQRTBETAT parameter of the acquisition function needs to be a scalar or a function hand [acquisition_functions/acq_fcn_lcb.py:43]
+search_acq_fcn=('acq_LCB', np.float64(inf))            optimize: ValueError: acq_lcb: The SQRTBETAT parameter of the acquisition function needs to be a scalar or a function hand [acquisition_functions/acq_fcn_lcb.py:43]
+search_acq_fcn=('acq_LCB', '2')                        optimize: TypeError: ufunc 'isfinite' not supported for the input types, and the inputs could not be safely coerced to an [acquisition_functions/acq_fcn_lcb.py:42]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   completed: func_count=59 fval=2.85e-07 iterations=6
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   completed: func_count=100 fval=5.64e-05 iterations=12
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: IndexError: index 2159 is out of bounds for axis 0 with size 2048 [search/es_search.py:194]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: UFuncTypeError: <ufunc 'multiply'> (dtype('<U1'), dtype('float64'), None) [acquisition_functions/acq_fcn_lcb.py:52]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   completed: func_count=59 fval=8.18e-07 iterations=6
+-- periodic
+periodic_vars=[]                                       create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=[], random x0                            create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=array([], dtype=float64)                 create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=array([], dtype=float64), random x0      create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=[0]                                      create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=[0], random x0                           create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=[5]                                      create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]
+periodic_vars=[5], random x0                           create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:617]

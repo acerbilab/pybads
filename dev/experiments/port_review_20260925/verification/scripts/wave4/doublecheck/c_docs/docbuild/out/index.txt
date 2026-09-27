@@ -1,0 +1,30 @@
+API check
+*********
+
+* Acquisition Functions
+
+  * "acq_fcn_lcb()"
+
+  * "check_sqrt_beta()"
+
+* "FunctionLogger"
+
+  * "FunctionLogger"
+
+    * "FunctionLogger.__call__()"
+
+    * "FunctionLogger.add()"
+
+    * "FunctionLogger.finalize()"
+
+    * "FunctionLogger.reset_fun_eval_time()"
+
+* "OptimizeResult"
+
+  * "OptimizeResult"
+
+    * "OptimizeResult.set_attributes()"
+
+* "BADS"
+
+  * "BADS"

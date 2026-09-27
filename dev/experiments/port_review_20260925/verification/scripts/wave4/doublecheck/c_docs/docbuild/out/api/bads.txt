@@ -1,0 +1,219 @@
+"BADS"
+******
+
+Note:
+
+  The "BADS" class implements the Bayesian Adaptive Direct Search
+  (BADS) algorithm.BADS attempts to solve an unbounded, bounded or
+  nonlinearly constrained optimization (minimization) problem, and is
+  compatible with both noiseless and noisy target functions.To perform
+  the optimization, first initialize a "BADS" object and then call
+  "bads.optimize()" on the instance.See below for more details on the
+  "BADS" class methods and interface. The primary entry-points for
+  users are the "BADS" class, which initializes the algorithm, and the
+  *``OptimizeResult``* class, which represents the returned
+  optimization solution. The *Basic options* may also be useful.
+
+class pybads.bads.BADS(fun: callable, x0: ndarray = None, lower_bounds: ndarray = None, upper_bounds: ndarray = None, plausible_lower_bounds: ndarray = None, plausible_upper_bounds: ndarray = None, non_box_cons: callable = None, options: dict = None, *, gamma_uncertain_interval: float = None)
+
+   BADS Constrained optimization using Bayesian Adaptive Direct
+   Search.
+
+   BADS attempts to solve problems of the form:
+      \mathtt{argmin}_x  f(x)  subject to:  lower_bounds <= x <=
+      upper_bounds, and optionally C(x) <= 0
+
+   Initialize a "PyBADS" object to set up the optimization problem,
+   then run "optimize()". See the examples for more details under the
+   *examples* directory.
+
+   Parameters:
+      **fun** : callable
+         A given target "fun". "fun" accepts input "x" and returns a
+         scalar function value of the target evaluated at "x" and the
+         noise if provided. In case the target function "fun" requires
+         additional data/parameters, they can be handled using an
+         anonymous function. For example: "fun_for_pybads = lambda x:
+         fun(x, data, extra_params)", where "fun" is the function to
+         optimize, and "data" and "extra_params" are given in the
+         outer scope.
+
+      **x0** : np.ndarray, optional
+         Starting point for the optimization, a single point of "D"
+         elements, of shape "(D,)" or "(1, D)". If not specified or
+         "None", or if an element is not finite ("nan", "inf" or
+         "-inf"), the starting point "x0" is drawn at random inside
+         the plausible box between "plausible_lower_bounds" and
+         "plausible_upper_bounds" (see below): uniformly, and log-
+         uniformly in a variable on a log scale (with
+         "options['nonlinear_scaling']", the default, a variable whose
+         bounds are all positive, with "pub/plb >= 10"). With
+         "non_box_cons", a point that violates the constraints is
+         drawn again, up to 1000 draws in all.
+
+      **lower_bounds, upper_bounds** : np.ndarray, optional
+         "lower_bounds" ("lb") and "upper_bounds" ("ub") define a set
+         of strict lower and upper bounds for the coordinate vector,
+         "x", so that the unknown function has support on "lb" <= "x"
+         <= "ub". If scalars, the bound is replicated in each
+         dimension. Use "None" for "lb" and "ub" if no bounds exist.
+         Set "lb[i] = -inf" if the *i*-th coordinate is unbounded
+         below, and "ub[i] = inf" if it is unbounded above (while
+         other coordinates may be bounded). Note that if "lb" and/or
+         "ub" contain infinite bounds, the respective values of "plb"
+         and/or "pub" need to be specified (see below). By default
+         "None".
+
+      **plausible_lower_bounds, plausible_upper_bounds** : np.ndarray,
+      optional
+         Specifies a set of "plausible_lower_bounds" ("plb") and
+         "plausible_upper_bounds" ("pub") such that "lb" <= "plb" <
+         "pub" <= "ub". Both "plb" and "pub" need to be finite, and
+         are replicated in each dimension if scalars. If not
+         specified, "plb" is "lb" and "pub" is "ub": "plb" needs to be
+         specified when "lb" has an infinite bound, and "pub" when
+         "ub" has one. "plb" and "pub" represent a *plausible* range,
+         which should denote a region where the global minimum is
+         expected to be found. As a rule of thumb, set
+         "plausible_lower_bounds" and "plausible_upper_bounds" such
+         that there is > 90% probability that the minimum is found
+         within the box (where in doubt, just set "plb = lb" and "pub
+         = ub").
+
+      **non_box_cons** : callable, optional
+         A given non-box constraints function that specifies
+         constraint *violations*. It takes an array of shape "(N, D)",
+         one point per row in the original space, and returns an array
+         of shape "(N,)" or "(N, 1)", one value per point, true or
+         positive where the point violates the constraints. For
+         example, "lambda x: np.sum(x**2, axis=1) > 1" keeps the
+         search inside the unit ball. A feasible region thinner than
+         the mesh can resolve, such as a band narrower than the poll
+         steps, can leave every point of the initial design and of the
+         polls infeasible, and the run can then end early, near "x0",
+         on the stall criterion (an improvement below "tol_fun" over
+         "tol_stall_iters" iterations). Reparametrize such a problem
+         so that its feasible region is wide: for the band "abs(x[0] -
+         x[1]) <= w", for example, optimize over "(x[0] + x[1]) / 2"
+         and "(x[0] - x[1]) / w", the latter bounded by -1 and 1 in
+         place of the constraint.
+
+      **options** : dict, optional
+         Additional options can be passed as a dict. Please refer to
+         the BADS options page for the default options. If no
+         *options* are passed, the default options are used. To run
+         BADS on a noisy (stochastic) objective function, set
+         "options['uncertainty_handling']" = "True". You can help BADS
+         by providing an estimate of the noise. "options['noise_size']
+         = sigma" provides a global estimate of the SD of the noise in
+         your problem in a good region of the parameter space. (If not
+         specified, default "sigma = 1.0"). Alternatively, you can
+         specify the target noise *at each location* with
+         "options['specify_target_noise']" = "True". In this case,
+         "fun" is expected to return *two* values, the estimate of the
+         target at "x" and an estimate of the SD of the noise at "x"
+         (see the examples). If "options['uncertainty_handling']" is
+         not specified, BADS will determine at runtime if the
+         objective function is noisy, or turn uncertainty handling on
+         with "options['specify_target_noise']" = "True".
+
+      **gamma_uncertain_interval** : float, optional, keyword-only
+         With "options['stobads']", the multiplier of the half-width
+         of the uncertainty interval of the Sto-BADS success rule. By
+         default "None", which is 1.96. To obtain reproducible results
+         of the optimization, set "options['random_seed']" to a fixed
+         integer (see "rng" below).
+
+   Attributes:
+      **rng** : numpy.random.Generator
+         The generator of every random draw of the run, including the
+         random "x0". It is created with the "BADS" object from
+         "options['random_seed']", which takes what
+         "numpy.random.default_rng" takes, such as a non-negative
+         integer ("True" and "False" count as 1 and 0) or a
+         "SeedSequence", or a "Generator", which is used as given; a
+         float that is a whole number is converted to an integer. A
+         change of the option after the object is created has no
+         effect. If the option is "None" (default), the generator is
+         derived from NumPy's global random state, so that
+         "np.random.seed" before creating the "BADS" object fixes the
+         run; deriving it advances that state by four draws. Apart
+         from those draws, the run neither draws from nor seeds
+         NumPy's global random state; a target that draws from it is
+         not fixed by "random_seed". Draws from "rng" before
+         "optimize()" change the run.
+
+   Raises:
+      ValueError
+         When "x0" is not specified and neither
+         "plausible_lower_bounds" nor "lower_bounds" is, or neither
+         "plausible_upper_bounds" nor "upper_bounds" is: a missing
+         plausible bound defaults to the hard bound, and the random
+         "x0" is drawn between the plausible bounds.
+
+      ValueError
+         When "x0" or the bounds fail the checks of their shapes,
+         values and order: for instance an "x0" of more than one row,
+         plausible bounds that are not finite, or bounds out of the
+         order "lb <= plb < pub <= ub".
+
+      ValueError
+         When "non_box_cons", given an "(N, D)" array, does not return
+         an array of shape "(N,)" or "(N, 1)", or when "x0" violates
+         the constraints, or each of the 1000 random draws of it does.
+
+      ValueError
+         When an option has an unknown name or a value that BADS does
+         not take: for instance a "max_fun_evals" that is neither a
+         positive integer nor "inf", a value other than "True" or
+         "False" for "uncertainty_handling" or for an option whose
+         default is one of them ("plot" excepted), or an "f_vals" that
+         holds a finite value, a non-empty "fun_values" or
+         "periodic_vars", or "acq_hedge=True", options that are not
+         supported.
+
+      ValueError
+         When "options['random_seed']" is a negative integer.
+
+      TypeError
+         When "options['random_seed']" is a float that is not a whole
+         number, a string, or another value that
+         "numpy.random.default_rng" does not take.
+
+   -[ References ]-
+
+   [1] Singh, S. G. & Acerbi, L. (2024). "PyBADS: Fast and robust
+       black-box optimization in Python". Journal of Open Source
+       Software, 9(94), 5694, https://doi.org/10.21105/joss.05694.
+
+   [2] Acerbi, L. & Ma, W. J. (2017). "Practical Bayesian Optimization
+       for Model Fitting with Bayesian Adaptive Direct Search". In
+       *Advances in Neural Information Processing Systems* 30, pages
+       1834-1844. (arXiv preprint: https://arxiv.org/abs/1705.04405).
+
+   -[ Examples ]-
+
+   For *BADS* usage examples, please look up the Jupyter notebook
+   tutorials in the PyBADS documentation:
+   https://acerbilab.github.io/pybads/examples.html
+
+   optimize()
+
+      Run the optimization on an initialized "PyBADS" object.
+
+      BADS starts at X0 and finds a local minimum X of the target
+      function 'fun'.
+
+      A history of the optimization problem can be found at the
+      "self.iteration_history" variable of the "PyBADS" object.
+
+      Returns:
+         optimize_result: OptimizeResult
+            Dictionary containing the result of the optimization. See
+            the documentation of the "OptimizeResult" class for more
+            details. For example, retrieve the final solution with the
+            following attributes:
+
+               * "optimize_result.x"
+
+               * "optimize_result.fval"

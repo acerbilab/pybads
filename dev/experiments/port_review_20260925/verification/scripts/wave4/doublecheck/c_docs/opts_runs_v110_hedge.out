@@ -1,0 +1,21 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- hedge
+hedge_gamma=0.75                                       completed: func_count=55 fval=3.97e-07 iterations=6
+hedge_gamma=1.25                                       completed: func_count=55 fval=1.65e-07 iterations=6
+hedge_gamma=-0.5                                       completed: func_count=59 fval=2.4e-06 iterations=6
+hedge_gamma='0.1'                                      optimize: TypeError: unsupported operand type(s) for -: 'int' and 'str' [search/search_hedge.py:69]
+hedge_gamma=True                                       completed: func_count=55 fval=1.65e-07 iterations=6
+hedge_beta=-1.0                                        completed: func_count=55 fval=1.65e-07 iterations=6
+  self.prob = np.exp(self.beta * (self.g - np.max(self.g)))
+  np.exp(self.beta * (self.g - np.max(self.g)))
+  self.prob = self.prob / np.sum(
+hedge_beta=-1000.0                                     optimize: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]
+  self.prob = np.exp(self.beta * (self.g - np.max(self.g)))
+  np.exp(self.beta * (self.g - np.max(self.g)))
+hedge_beta=inf                                         optimize: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]
+hedge_beta=nan                                         optimize: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]
+hedge_beta='1'                                         optimize: UFuncTypeError: <ufunc 'multiply'> (dtype('<U1'), dtype('float64'), None) [search/search_hedge.py:65]
+hedge_decay=-0.5                                       completed: func_count=59 fval=5.24e-08 iterations=6
+hedge_decay=2.0                                        completed: func_count=59 fval=2.29e-07 iterations=6
+hedge_decay=10000000000.0                              completed: func_count=59 fval=2.29e-07 iterations=6
+hedge_decay=nan                                        optimize: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]

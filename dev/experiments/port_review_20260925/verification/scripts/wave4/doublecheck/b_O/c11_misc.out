@@ -1,0 +1,8 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+round_half_away(2.5): np.float64(3.0) <class 'numpy.float64'>
+round_half_away([2.5]): array([3.])
+noise_final_samples=0 max_fun_evals=38: iterations 2 func_count 38 fsd=0.19938660109518422 yval_vec=None
+noise_final_samples=10 max_fun_evals=38: iterations 1 func_count 38 fsd=0.22426297471726192 yval_vec=5
+noise_final_samples=10 max_fun_evals=33: iterations 1 func_count 33 fsd=1.0 yval_vec=None
+noise_final_samples=10 max_fun_evals=34: iterations 1 func_count 34 fsd=0.2345220414108813 yval_vec=2

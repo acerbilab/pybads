@@ -1,0 +1,11 @@
+pybads: /home/user/dc4/b_O/at_6c36782/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+flat_D3_level1_seed3: uncertain polls 1, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 129; x=[ 0.798  1.624 -1.265] fval=0.1628 fsd=0.3900 iters=13 fevals=200
+flat_D3_level1_seed4: uncertain polls 3, self-moves 0, moves to a polled point 2, marked as moved 2; search rebuilds 120; x=[-3.104 -0.214 -1.521] fval=0.0382 fsd=0.1951 iters=15 fevals=200
+flat_D3_level1_seed5: uncertain polls 1, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 136; x=[1.083 2.973 0.636] fval=0.0371 fsd=0.2800 iters=12 fevals=200
+aniso_D2_level1_seed3: uncertain polls 0, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 176; x=[0.511 0.463] fval=-0.1058 fsd=0.1084 iters=12 fevals=200
+aniso_D2_level1_seed4: uncertain polls 0, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 165; x=[0.507 0.352] fval=0.1942 fsd=0.1643 iters=13 fevals=196
+aniso_D2_level1_seed5: uncertain polls 0, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 193; x=[0.449 0.464] fval=-0.1177 fsd=0.1305 iters=11 fevals=200
+flat_D3_level2_seed3: uncertain polls 1, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 143; x=[1.031 0.85  0.082] fval=-0.5278 fsd=0.3162 iters=12 fevals=200
+flat_D3_level2_seed4: uncertain polls 3, self-moves 0, moves to a polled point 2, marked as moved 2; search rebuilds 147; x=[-1.454 -1.378  1.084] fval=0.2571 fsd=0.3162 iters=14 fevals=200
+flat_D3_level2_seed5: uncertain polls 1, self-moves 0, moves to a polled point 0, marked as moved 0; search rebuilds 142; x=[-0.865  0.673 -0.542] fval=0.2873 fsd=0.3162 iters=11 fevals=200

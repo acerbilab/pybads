@@ -1,0 +1,18 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+5 points, cache 500 before: {'X_orig': 500, 'Y_orig': 500, 'X': 500, 'Y': 500, 'X_flag': 500, 'fun_eval_time': 500, 'n_evals': 500}
+5 points, cache 500 finalize: {'X_orig': 5, 'Y_orig': 5, 'X': 5, 'Y': 5, 'X_flag': 5, 'fun_eval_time': 5, 'n_evals': 500}
+5 points, cache 500 reset: {'X_orig': 5, 'Y_orig': 5, 'X': 5, 'Y': 5, 'X_flag': 5, 'fun_eval_time': 500, 'n_evals': 500}
+5 points, cache 500 n_evals[X_flag]: IndexError boolean index did not match indexed array along axis 0; size of axis is 500 but size of corresponding boolean axis is 5
+8 points, cache 4 (grown) before: {'X_orig': 9, 'Y_orig': 9, 'X': 9, 'Y': 9, 'X_flag': 9, 'fun_eval_time': 9, 'n_evals': 9}
+8 points, cache 4 (grown) finalize: {'X_orig': 8, 'Y_orig': 8, 'X': 8, 'Y': 8, 'X_flag': 8, 'fun_eval_time': 8, 'n_evals': 9}
+8 points, cache 4 (grown) reset: {'X_orig': 8, 'Y_orig': 8, 'X': 8, 'Y': 8, 'X_flag': 8, 'fun_eval_time': 4, 'n_evals': 9}
+8 points, cache 4 (grown) n_evals[X_flag]: IndexError boolean index did not match indexed array along axis 0; size of axis is 9 but size of corresponding boolean axis is 8
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+5 points, cache 500 before: {'X_orig': 500, 'Y_orig': 500, 'X': 500, 'Y': 500, 'X_flag': 500, 'fun_eval_time': 500, 'n_evals': 500}
+5 points, cache 500 finalize: {'X_orig': 5, 'Y_orig': 5, 'X': 5, 'Y': 5, 'X_flag': 5, 'fun_eval_time': 5, 'n_evals': 5}
+5 points, cache 500 reset: {'X_orig': 5, 'Y_orig': 5, 'X': 5, 'Y': 5, 'X_flag': 5, 'fun_eval_time': 5, 'n_evals': 5}
+5 points, cache 500 n_evals[X_flag]: [1. 1. 1. 1. 1.]
+8 points, cache 4 (grown) before: {'X_orig': 9, 'Y_orig': 9, 'X': 9, 'Y': 9, 'X_flag': 9, 'fun_eval_time': 9, 'n_evals': 9}
+8 points, cache 4 (grown) finalize: {'X_orig': 8, 'Y_orig': 8, 'X': 8, 'Y': 8, 'X_flag': 8, 'fun_eval_time': 8, 'n_evals': 8}
+8 points, cache 4 (grown) reset: {'X_orig': 8, 'Y_orig': 8, 'X': 8, 'Y': 8, 'X_flag': 8, 'fun_eval_time': 8, 'n_evals': 8}
+8 points, cache 4 (grown) n_evals[X_flag]: [1. 1. 1. 1. 1. 1. 1. 1.]

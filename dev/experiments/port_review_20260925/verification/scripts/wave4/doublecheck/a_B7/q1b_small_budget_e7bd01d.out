@@ -1,0 +1,10 @@
+/home/user/dc4/a_B7/at_e7bd01d/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D=2 mfe=2: fc=2 esp=1 init_N=[128] -> FAIL
+D=2 mfe=3: fc=3 esp=2 init_N=[128] -> FAIL
+D=2 mfe=4: fc=4 esp=3 init_N=[128] -> FAIL
+D=2 mfe=5: fc=5 esp=4 init_N=[128] -> FAIL
+D=3 mfe=2: fc=2 esp=1 init_N=[128] -> FAIL
+D=3 mfe=3: fc=3 esp=2 init_N=[128] -> FAIL
+D=3 mfe=4: fc=4 esp=3 init_N=[128] -> FAIL
+D=3 mfe=5: fc=5 esp=4 init_N=[128] -> FAIL

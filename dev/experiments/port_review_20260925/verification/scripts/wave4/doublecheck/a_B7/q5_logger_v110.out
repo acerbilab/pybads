@@ -1,0 +1,62 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+level 0, well-formed values:
+   1.0                          -> accepted fval=1.0 type=float Y=1.0
+   np.float64(1.0)              -> accepted fval=np.float64(1.0) type=float64 Y=1.0
+   np.float32(1.0)              -> accepted fval=np.float32(1.0) type=float32 Y=1.0
+   np.int64(3)                  -> accepted fval=np.int64(3) type=int64 Y=3.0
+   3                            -> accepted fval=3 type=int Y=3.0
+   True                         -> accepted fval=True type=bool Y=1.0
+   np.True_                     -> accepted fval=np.True_ type=bool Y=1.0
+   array([1.])                  -> accepted fval=1.0 type=float Y=1.0
+   array(1.)                    -> accepted fval=1.0 type=float Y=1.0
+   array([[1.]])                -> accepted fval=1.0 type=float Y=1.0
+   [1.0]                        -> accepted fval=np.float64(1.0) type=float64 Y=1.0
+   (1.0,)                       -> accepted fval=np.float64(1.0) type=float64 Y=1.0
+   array([3])                   -> accepted fval=3 type=int Y=3.0
+level 2, well-formed SDs (value 1.0):
+   0.5                          -> accepted fsd=0.5 S=0.5
+   np.float64(0.5)              -> accepted fsd=np.float64(0.5) S=0.5
+   np.float32(0.5)              -> accepted fsd=np.float32(0.5) S=0.5
+   1                            -> accepted fsd=1 S=1.0
+   array(0.5)                   -> accepted fsd=0.5 S=0.5
+   array([0.5])                 -> accepted fsd=0.5 S=0.5
+   [0.5]                        -> TypeError: '<=' not supported between instances of 'list' and 'float'
+   array([[0.5]])               -> accepted fsd=0.5 S=0.5
+level 0, malformed values: refused before any state change?
+   [1. 2.]                      -> ValueError (note); state changed: None
+   1.0                          -> TypeError; state changed: None
+   None                         -> ValueError; state changed: None
+   (1+0j)                       -> TypeError; state changed: Xn
+   np.complex128(1+0j)          -> ACCEPTED
+   nan                          -> ValueError; state changed: None
+   inf                          -> ValueError; state changed: None
+   -inf                         -> ValueError; state changed: None
+   (1.0, 0.5)                   -> ValueError; state changed: None
+   []                           -> ValueError; state changed: None
+   []                           -> ValueError (note); state changed: None
+   {}                           -> ValueError; state changed: None
+   <object object at 0x7fe53d   -> ValueError; state changed: None
+   [[1.0, 2.0]]                 -> ValueError; state changed: None
+   [1, [2, 3]]                  -> ValueError; state changed: None
+   10000000000000000000000000   -> TypeError; state changed: None
+level 2, malformed SDs:
+   None                         -> TypeError; state changed: None
+   0.5                          -> TypeError; state changed: None
+   [0.5, 0.6]                   -> ValueError; state changed: None
+   [0.5 0.6]                    -> ValueError; state changed: None
+   (1+0j)                       -> TypeError; state changed: None
+   np.complex128(0.5+0j)        -> ACCEPTED fsd, S=0.5
+   0.0                          -> ValueError; state changed: None
+   -1.0                         -> ValueError; state changed: None
+   nan                          -> ValueError; state changed: None
+   inf                          -> ValueError; state changed: None
+   []                           -> ValueError; state changed: None
+   True                         -> ACCEPTED fsd, S=1.0
+grown: {'X': 8, 'Y': 8, 'X_orig': 8, 'Y_orig': 8, 'X_flag': 8, 'n_evals': 8, 'fun_eval_time': 8}
+finalized: {'X': 7, 'Y': 7, 'X_orig': 7, 'Y_orig': 7, 'X_flag': 7, 'n_evals': 8, 'fun_eval_time': 7}
+Traceback (most recent call last):
+  File "/home/user/dc4/a_B7/q5_logger.py", line 89, in <module>
+    fl(np.ones(3) * 9); print("call after finalize:", lens(fl), "n_evals over flag", fl.n_evals[fl.X_flag].ravel())
+                                                                                     ~~~~~~~~~~^^^^^^^^^^^
+IndexError: boolean index did not match indexed array along axis 0; size of axis is 12 but size of corresponding boolean axis is 11

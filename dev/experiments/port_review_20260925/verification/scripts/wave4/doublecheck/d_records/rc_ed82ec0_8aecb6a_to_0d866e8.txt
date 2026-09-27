@@ -1,0 +1,114 @@
+MOVE   kd_ed82ec0.md:14: pybads/bads/bads.py:260-261 -> 276-277
+MOVE   kd_ed82ec0.md:14: pybads/bads/bads.py:969-983 -> 1019-1033
+MOVE   kd_ed82ec0.md:14: pybads/bads/bads.py:308-323 -> 324-339
+MOVE   kd_ed82ec0.md:14: pybads/bads/bads.py:1818 -> 1878
+MOVE   kd_ed82ec0.md:14: pybads/bads/bads.py:2270 -> 2327
+MOVE   kd_ed82ec0.md:14: pybads/poll/poll_mads_2n.py:25 -> 62
+MOVE   kd_ed82ec0.md:14: pybads/poll/poll_mads_2n.py:30 -> 67
+MOVE   kd_ed82ec0.md:14: pybads/poll/poll_mads_2n.py:34 -> 72
+MOVE   kd_ed82ec0.md:14: pybads/search/es_search.py:132 -> 128
+MANUAL kd_ed82ec0.md:14: pybads/search/es_search.py:172  (was: '                z_candidates = self.rng.random(u_new.shape[0])')
+MOVE   kd_ed82ec0.md:14: pybads/search/es_search.py:215 -> 219
+MOVE   kd_ed82ec0.md:14: pybads/bads/gaussian_process_train.py:447 -> 449
+MOVE   kd_ed82ec0.md:14: pybads/bads/gaussian_process_train.py:668-670 -> 670-672
+MOVE   kd_ed82ec0.md:14: pybads/bads/gaussian_process_train.py:813 -> 815
+MOVE   kd_ed82ec0.md:14: pybads/bads/gaussian_process_train.py:841-849 -> 843-851
+MOVE   kd_ed82ec0.md:14: pybads/bads/optimize_result.py:166 -> 168
+MOVE   kd_ed82ec0.md:22: pybads/bads/bads.py:233-248 -> 249-264
+MOVE   kd_ed82ec0.md:30: pybads/bads/bads.py:236-248 -> 252-264
+MOVE   kd_ed82ec0.md:42: pybads/bads/bads.py:1910-1915 -> 1970-1975
+MOVE   kd_ed82ec0.md:58: pybads/bads/bads.py:899 -> 949
+MOVE   kd_ed82ec0.md:66: pybads/bads/bads.py:620-624 -> 643-647
+MOVE   kd_ed82ec0.md:66: pybads/bads/gaussian_process_train.py:384 -> 386
+MOVE   kd_ed82ec0.md:66: pybads/search/es_search.py:142 -> 138
+MOVE   kd_ed82ec0.md:66: pybads/bads/bads.py:952-956 -> 1002-1006
+MOVE   kd_ed82ec0.md:66: pybads/bads/bads.py:714-729 -> 737-752
+MOVE   kd_ed82ec0.md:74: pybads/bads/bads.py:489-499 -> 505-515
+MOVE   kd_ed82ec0.md:82: pybads/bads/optimize_result.py:8-182 -> 8-184
+MOVE   kd_ed82ec0.md:82: pybads/bads/bads.py:1681-1684 -> 1742-1745
+MOVE   kd_ed82ec0.md:90: pybads/bads/bads.py:677-686 -> 700-709
+MOVE   kd_ed82ec0.md:116: pybads/bads/bads.py:1269 -> 1320
+MOVE   kd_ed82ec0.md:116: pybads/bads/bads.py:1546-1550 -> 1607-1611
+MOVE   kd_ed82ec0.md:124: pybads/bads/bads.py:1418-1420 -> 1475-1477
+MOVE   kd_ed82ec0.md:124: pybads/bads/bads.py:2466 -> 2519
+MOVE   kd_ed82ec0.md:132: pybads/bads/bads.py:204-205 -> 220-221
+MOVE   kd_ed82ec0.md:132: pybads/bads/bads.py:263-282 -> 279-298
+MOVE   kd_ed82ec0.md:132: pybads/bads/bads.py:2849-2907 -> 2915-2973
+MOVE   kd_ed82ec0.md:140: pybads/bads/bads.py:2824-2828 -> 2890-2894
+MOVE   kd_ed82ec0.md:174: pybads/search/es_search.py:225-303 -> 229-291
+MOVE   kd_ed82ec0.md:174: pybads/bads/bads.py:1757-1771 -> 1820-1834
+MANUAL kd_ed82ec0.md:182: pybads/bads/bads.py:1801-1805  (was: '            z, f_mu, _ = acq_fcn_lcb(')
+MANUAL kd_ed82ec0.md:182: pybads/bads/bads.py:2253-2257  (was: '            z, f_mu, fs = acq_fcn_lcb(')
+MOVE   kd_ed82ec0.md:182: pybads/search/es_search.py:158-168 -> 154-164
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:886-887 -> 936-937
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:1797 -> 1860
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:1807 -> 1871
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:1962-1964 -> 2027-2029
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:1993 -> 2058
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:2252 -> 2312
+MOVE   kd_ed82ec0.md:190: pybads/bads/bads.py:2259 -> 2320
+MOVE   kd_ed82ec0.md:198: pybads/bads/bads.py:1823-1825 -> 1883-1885
+MANUAL kd_ed82ec0.md:206: pybads/bads/bads.py:1956-2004  (was: '        # An empty search set is a failed search, as in MATLAB BADS')
+MOVE   kd_ed82ec0.md:224: pybads/bads/bads.py:2137-2143 -> 2203-2209
+MOVE   kd_ed82ec0.md:232: pybads/bads/bads.py:2659-2670 -> 2719-2730
+MOVE   kd_ed82ec0.md:242: pybads/bads/gaussian_process_train.py:1313-1370 -> 1315-1372
+MOVE   kd_ed82ec0.md:242: pybads/bads/bads.py:1837-1857 -> 1897-1917
+MOVE   kd_ed82ec0.md:242: pybads/bads/bads.py:2309-2329 -> 2367-2387
+MOVE   kd_ed82ec0.md:250: pybads/bads/gaussian_process_train.py:492-524 -> 494-526
+MOVE   kd_ed82ec0.md:250: pybads/bads/gaussian_process_train.py:594-595 -> 596-597
+MOVE   kd_ed82ec0.md:250: pybads/bads/bads.py:1711-1722 -> 1772-1783
+MOVE   kd_ed82ec0.md:250: pybads/bads/bads.py:2202-2219 -> 2262-2279
+MOVE   kd_ed82ec0.md:250: pybads/bads/bads.py:2236-2239 -> 2296-2299
+MOVE   kd_ed82ec0.md:250: pybads/bads/bads.py:2617-2632 -> 2670-2685
+MANUAL kd_ed82ec0.md:252: pybads/bads/bads.py:1801-1805  (was: '            z, f_mu, _ = acq_fcn_lcb(')
+MOVE   kd_ed82ec0.md:258: pybads/bads/gaussian_process_train.py:494 -> 496
+MOVE   kd_ed82ec0.md:258: pybads/bads/gaussian_process_train.py:509 -> 511
+MOVE   kd_ed82ec0.md:258: pybads/bads/gaussian_process_train.py:1364 -> 1366
+MOVE   kd_ed82ec0.md:258: pybads/bads/bads.py:2663 -> 2723
+MOVE   kd_ed82ec0.md:258: pybads/bads/gaussian_process_train.py:673 -> 675
+MOVE   kd_ed82ec0.md:266: pybads/bads/gaussian_process_train.py:400 -> 402
+MOVE   kd_ed82ec0.md:266: pybads/bads/gaussian_process_train.py:461 -> 463
+MOVE   kd_ed82ec0.md:266: pybads/bads/gaussian_process_train.py:1085 -> 1087
+MOVE   kd_ed82ec0.md:274: pybads/bads/bads.py:1844 -> 1904
+MOVE   kd_ed82ec0.md:282: pybads/bads/gaussian_process_train.py:1141-1172 -> 1143-1174
+MOVE   kd_ed82ec0.md:282: pybads/bads/gaussian_process_train.py:477-487 -> 479-489
+MOVE   kd_ed82ec0.md:282: pybads/bads/gaussian_process_train.py:668-670 -> 670-672
+MANUAL kd_ed82ec0.md:282: gaussian_process.py:1885-1920  (a Python file cited without its pybads/ path is not carried)
+MOVE   kd_ed82ec0.md:290: pybads/bads/bads.py:2569-2570 -> 2622-2623
+MOVE   kd_ed82ec0.md:298: pybads/bads/bads.py:1156-1163 -> 1207-1214
+MOVE   kd_ed82ec0.md:298: pybads/bads/gaussian_process_train.py:412-421 -> 414-423
+MOVE   kd_ed82ec0.md:306: pybads/bads/bads.py:2195-2200 -> 2255-2260
+MOVE   kd_ed82ec0.md:316: pybads/bads/gaussian_process_train.py:888-889 -> 890-891
+MOVE   kd_ed82ec0.md:316: pybads/bads/gaussian_process_train.py:902-1090 -> 904-1092
+MOVE   kd_ed82ec0.md:316: pybads/bads/gaussian_process_train.py:668-670 -> 670-672
+MOVE   kd_ed82ec0.md:316: pybads/bads/gaussian_process_train.py:1093-1176 -> 1095-1178
+MOVE   kd_ed82ec0.md:316: pybads/bads/gaussian_process_train.py:832 -> 834
+MOVE   kd_ed82ec0.md:316: pybads/bads/bads.py:896-915 -> 946-965
+MOVE   kd_ed82ec0.md:340: pybads/bads/gaussian_process_train.py:390-401 -> 392-403
+MOVE   kd_ed82ec0.md:340: pybads/bads/gaussian_process_train.py:959 -> 961
+MOVE   kd_ed82ec0.md:340: pybads/bads/gaussian_process_train.py:1002 -> 1004
+MOVE   kd_ed82ec0.md:340: pybads/bads/gaussian_process_train.py:1045-1046 -> 1047-1048
+MOVE   kd_ed82ec0.md:340: pybads/bads/gaussian_process_train.py:1082 -> 1084
+MOVE   kd_ed82ec0.md:348: pybads/bads/bads.py:1213-1233 -> 1264-1284
+MOVE   kd_ed82ec0.md:348: pybads/bads/gaussian_process_train.py:948-1000 -> 950-1002
+MANUAL kd_ed82ec0.md:356: gaussian_process.py:3584-3666  (a Python file cited without its pybads/ path is not carried)
+MOVE   kd_ed82ec0.md:382: pybads/bads/bads.py:1055-1070 -> 1105-1120
+MOVE   kd_ed82ec0.md:390: pybads/bads/bads.py:1061-1115 -> 1111-1165
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:202 -> 218
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:305 -> 321
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:257-258 -> 273-274
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:1195-1197 -> 1246-1248
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:1920-1954 -> 1980-2014
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:2039-2086 -> 2105-2152
+MOVE   kd_ed82ec0.md:412: pybads/bads/bads.py:2351-2404 -> 2409-2462
+MANUAL kd_ed82ec0.md:437: bads.py:893-902  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:437: bads.py:997-1005  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:438: init_sobol.py:73-75  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:439: init_sobol.py:55-62  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:440: bads.py:916  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:440: gaussian_process_train.py:797-798  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:441: gaussian_process_train.py:176-177  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:443: gaussian_process_train.py:955  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:450: gaussian_process_train.py:267  (a Python file cited without its pybads/ path is not carried)
+MANUAL kd_ed82ec0.md:452: function_logger.py:289  (a Python file cited without its pybads/ path is not carried)
+moved 96, unchanged 27, to read by hand 17, bare citations of other files left alone 8

@@ -1,0 +1,123 @@
+"OptimizeResult"
+****************
+
+Note:
+
+  The main output of a PyBADS run is a "OptimizeResult" dictionary
+  object.Its attributes and interface are described below.
+
+class pybads.bads.OptimizeResult(bads=None)
+
+   It represents the optimization result. The class is based on
+   "scipy.optimize.OptimizeResult". See also: https://docs.scipy.org/d
+   oc/scipy/reference/generated/scipy.optimize.OptimizeResult.html.
+
+   Attributes:
+
+      * fun: callable
+           * The objective function to be minimized, the object passed
+             to "BADS".
+
+      * non_box_cons: callable
+           * Non-box constraints function (if any), the object passed
+             to "BADS".
+
+      * x0: np.ndarray
+           * Initial starting point, as given or drawn at random,
+             before it is put on the mesh: the first point evaluated
+             is the point of the mesh nearest to it.
+
+      * x: np.ndarray
+           * The solution of the optimization.
+
+      * fval: float
+           * Value of objective function at solution.
+
+      * fsd: float
+           * Standard deviation of objective function at solution (0
+             if noiseless). For a noisy run that "output_fcn" stops in
+             its initialization, which takes no final samples, it is
+             not an estimate: "noise_size" without
+             "specify_target_noise", and otherwise the standard
+             deviation that the target returned at the incumbent.
+
+      * yval_vec: np.ndarray or None
+           * Final sampled observations at the solution; the
+             incumbent's observation alone if "output_fcn" stops the
+             run in its initialization. None for a run without
+             uncertainty handling, with "noise_final_samples = 0", or
+             whose "max_fun_evals" leaves no evaluation for a final
+             sample after the initial design.
+
+      * ysd_vec: np.ndarray or None
+           * Standard deviations of the final sampled observations
+             (""yval_vec"") that the target returns with
+             "specify_target_noise"; None otherwise, and when no final
+             sample was taken.
+
+      * mesh_size: float
+           * Final mesh size.
+
+      * func_count: int
+           * Number of evaluations of the objective functions.
+
+      * iterations: int
+           * Number of iterations performed by the optimizer.
+
+      * success: bool
+           * True when the run ended on one of its convergence
+             criteria, "tol_mesh" or the stall criterion ("status" 1
+             or 2), which prevail when "max_fun_evals", "max_iter" or
+             the "output_fcn" ends the same iteration; False when one
+             of those ended it alone, or it ended in its
+             initialization ("status" 0): the convention of MATLAB's
+             exit flags and of "scipy.optimize".
+
+      * status: int
+           * The exit flag of MATLAB BADS, the criterion that ended
+             the run: 0 when it reached "max_fun_evals" or "max_iter",
+             the "output_fcn" stopped it or it ended in its
+             initialization; 1 when the mesh size fell below
+             "tol_mesh"; 2 when the improvement over the last
+             "tol_stall_iters" iterations fell below "tol_fun".
+
+      * message: str
+           * Termination message.
+
+      * problem_type: str
+           * Type of problem (unconstrained, bound constraints, non-
+             box constraints).
+
+      * total_time: float
+           * Time taken by "optimize()", in seconds; the setup made
+             when "BADS" is created is not counted.
+
+      * overhead: float
+           * Fractional overhead taken by the optimizer, compared to
+             function time. The second evaluation of the starting
+             point that tests the target for noise (with
+             "uncertainty_handling" left empty) counts as the
+             optimizer's time, since the function time leaves it out,
+             as in MATLAB BADS.
+
+      * random_seed: int or None
+           * The "random_seed" option if it is an integer (a float
+             that is a whole number is converted to one), and "None"
+             otherwise.
+
+      * version: str
+           * Version of the optimizer.
+
+   Parameters:
+      bads: pybads.BADS
+         * An Instance of the BADS class. It is used to set the
+           attributes of the optimization result.
+
+   set_attributes(bads)
+
+      Set the attributes of the dictionary.
+
+      Parameters:
+         * bads: pybads.BADS
+              An Instance of the BADS class. It is used to set the
+              attributes of the optimization result.

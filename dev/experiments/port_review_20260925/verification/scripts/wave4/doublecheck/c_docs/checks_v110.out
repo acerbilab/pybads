@@ -1,0 +1,8 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+max_fun_evals=30.5: completed: func_count=31 fval=2.68e-06 iterations=2
+accelerate_mesh_steps=0: IndexError: index 1 is out of bounds for axis 0 with size 1 [bads/bads.py:2243]
+accelerate_mesh_steps=-1: TypeError: 'NoneType' object is not subscriptable [bads/bads.py:2243]
+accelerate_mesh_steps=2.5: IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boole [bads/bads.py:2243]
+accelerate_mesh_steps=True: completed: func_count=59 fval=6.7e-07 iterations=6
+Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid.
+non_box_cons flaky: ValueError: Initial starting point X0 does no longer satisfy non-bound constraint after being fit into [bads/bads.py:696]

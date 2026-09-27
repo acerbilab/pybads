@@ -1,0 +1,18 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+linear map, plausible widths 2 and 20:
+  log-transformed: [False False]
+  u steps: [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]]
+  x steps: [[1.0, 0.0], [0.0, -10.0], [0.0, 10.0], [-1.0, 0.0]]  x at incumbent [0.2998, 2.998]
+  u steps: [[0.5, 0.0], [0.0, 0.5], [-0.5, 0.0], [0.0, -0.5]]
+  x steps: [[0.5, 0.0], [0.0, 5.0], [-0.5, 0.0], [0.0, -5.0]]  x at incumbent [0.1653, 1.4819]
+  u steps: [[-0.25, 0.0], [0.0, 0.25], [0.0, -0.25], [0.25, 0.0]]
+  x steps: [[-0.25, 0.0], [0.0, 2.5], [0.0, -2.5], [0.25, 0.0]]  x at incumbent [0.2004, 1.9958]
+positive bounds, pub/plb = 100 on x2 (log map at default):
+  log-transformed: [False  True]
+  u steps: [[1.0, 0.0], [-1.0, 0.0], [0.0, 1.0], [0.0, -1.0]]
+  x steps: [[1.0, 0.0], [-1.0, 0.0], [0.0, 27.025988], [0.0, -2.702599]]  x at incumbent [0.2998, 3.0029]
+  u steps: [[-0.5, 0.0], [0.5, 0.0], [0.0, 0.5], [0.0, -0.5]]
+  x steps: [[-0.5, 0.0], [0.5, 0.0], [0.0, 4.256973], [0.0, -1.346173]]  x at incumbent [0.269, 1.9687]
+  u steps: [[-0.25, 0.0], [0.25, 0.0], [0.0, 0.25], [0.0, -0.25]]
+  x steps: [[-0.25, 0.0], [0.25, 0.0], [0.0, 1.553919], [0.0, -0.873833]]  x at incumbent [0.1996, 1.9966]
