@@ -52,6 +52,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or
   complex, which 1.1.0 accepted as a NumPy scalar or a one-element array,
   raises `ValueError` at the first search.
+- `BADS` raises `ValueError` for an `improvement_quantile` that is not
+  greater than 0 and less than 1.
 
 ### Changed
 
@@ -90,7 +92,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as MATLAB BADS does, and converts a float that is a whole number to an
   integer; 1.1.0 stopped `optimize()` with an unrelated error for 0 or a
   negative value, and made 31 evaluations for 30.5. An
-  `improvement_quantile` above 0.5 gives MATLAB BADS's warning.
+  `improvement_quantile` above 0.5 gives MATLAB BADS's warning. An
+  `improvement_quantile` that is not greater than 0 and less than 1 raises
+  `ValueError`, as in MATLAB BADS; 1.1.0 ran with it, and at 0 or 1 never
+  moved the incumbent.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and

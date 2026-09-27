@@ -786,6 +786,14 @@ class BADS:
             )
         if np.isfinite(max_fun_evals):
             self.options["max_fun_evals"] = int(max_fun_evals)
+        # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
+        # it evaluates an improvement (bads.m:1269-1271)
+        improvement_quantile = self.options["improvement_quantile"]
+        if not 0 < improvement_quantile < 1:
+            raise ValueError(
+                "options['improvement_quantile'] needs to be greater than 0 "
+                f"and less than 1, not {improvement_quantile!r}."
+            )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "
