@@ -99,18 +99,41 @@ def test_search():
     assert np.all(gp.y >= z)
 
 
-def test_search_selection_mask():
+def _es_update_select_mask(mu, lamb):
+    """The selection mask of MATLAB's ESupdate.m, transcribed: its 1-based
+    parent indices, and the numbers of offspring of the parents."""
+    tot = mu + lamb
+    s = 1.0 / np.sqrt(np.arange(1, tot + 1))
+    w = np.ceil(s / np.sum(s) * lamb).astype(int)
+    nonzero = np.sum(w > 0)
+    while np.sum(w) - lamb > nonzero:
+        w = np.maximum(0, w - 1)
+        nonzero = np.sum(w > 0)
+    delta = np.sum(w) - lamb
+    last = np.flatnonzero(w > 0)[-1] + 1  # find(w > 0, 1, 'last')
+    w[max(1, last - delta + 1) - 1 : last] -= 1
+    cw = np.cumsum(w) - w + 1
+    idx = np.zeros(np.max(cw), dtype=int)
+    idx[cw - 1] = 1  # idx(cw) = 1
+    return np.cumsum(idx[:-1]), w
+
+
+@pytest.mark.parametrize(
+    "mu, lamb", [(1, 2048), (2048, 2048), (100, 2048), (7, 20), (3, 3)]
+)
+def test_search_selection_mask(mu, lamb):
+    """Each parent has the offspring that MATLAB's ESupdate.m gives it: the
+    selection mask is MATLAB's, 1-based, minus one."""
     D = 3
-    mu = 1
-    lamb = 2048
     options = load_options(
         D,
         get_pybads_option_dir_path(),
     )
     search_es = ESSearchWM(mu, lamb, options, rng=np.random.default_rng(0))
     mask = search_es._get_selection_idx_mask_(mu, lamb)
-    assert np.sum(mask) == 885072
-    assert np.min(mask + 1) == 1
+    select_mask, w = _es_update_select_mask(mu, lamb)
+    assert np.array_equal(np.bincount(mask, minlength=w.size), w)
+    assert np.array_equal(mask, select_mask - 1)
 
 
 def test_search_hedge():

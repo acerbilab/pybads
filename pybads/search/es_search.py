@@ -65,11 +65,9 @@ class ESSearch(ABC):
         strt_point = np.maximum(0, lastnonzero - int(delta.item()) + 1).item()
         w[strt_point : lastnonzero + 1] = w[strt_point : lastnonzero + 1] - 1
 
-        # Create selection mask
-        cw = np.cumsum(w) - w + 1
-        idx = np.zeros(np.max(cw) + 1, dtype=int)
-        idx[cw] = 1
-        select_mask = np.cumsum(idx[0:-1])
+        # Create selection mask: parent k, 0-based, repeated w[k] times, which
+        # is MATLAB's 1-based selectmask minus one
+        select_mask = np.repeat(np.arange(len(w)), w)
 
         return select_mask
 

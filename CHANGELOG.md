@@ -559,6 +559,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Covariance of the ES-wcm search.** The ES-wcm search estimates its
   covariance from the ⌊μ⌋ best points, one per weight, as in MATLAB BADS; it
   took one point more. Results change at default options.
+- **Offspring in the evolution-strategy search.** Each candidate that the
+  evolution-strategy search keeps has as many offspring as MATLAB BADS gives
+  it; each had those of the candidate ranked before it, and the best one a
+  single offspring. Results change at default options.
 
 ## [1.1.0] - 2026-09-25
 
