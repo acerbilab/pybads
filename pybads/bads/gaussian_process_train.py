@@ -1152,10 +1152,15 @@ def _get_gp_training_options(
     d = options["gp_train_n_init"]
     eff_starting_points = optim_state["eff_starting_points"]
     # The fraction of the budget used after the initial design, in [0, 1],
-    # where the cubic falls from gp_train_n_init to gp_train_n_init_final;
-    # a budget no larger than the initial design is used up
+    # where the cubic falls from gp_train_n_init to gp_train_n_init_final.
+    # The budget counts points, as n_eff and eff_starting_points do, so it
+    # leaves out the noise test, which max_fun_evals counts; a budget no
+    # larger than the initial design is used up
     n_budget = (
-        min(options["max_fun_evals"], options["n_train_max"])
+        min(
+            options["max_fun_evals"] - optim_state["n_noise_test"],
+            options["n_train_max"],
+        )
         - eff_starting_points
     )
     if n_budget > 0:

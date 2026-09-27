@@ -184,6 +184,7 @@ def test_get_gp_training_options_samplers():
     hyp_dict = {"run_cov": np.eye(3)}
     hyp_dict_none = {"run_cov": None}
     bads.optim_state["eff_starting_points"] = 10
+    bads.optim_state["n_noise_test"] = 1
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 1
     bads.options["weighted_hyp_cov"] = False
@@ -210,6 +211,7 @@ def test_get_gp_training_options_opts_N():
     bads = BADS(f, x0, lb, ub, plb, pub)
 
     bads.optim_state["eff_starting_points"] = 10
+    bads.optim_state["n_noise_test"] = 1
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 2
     bads.options["weighted_hyp_cov"] = False
@@ -267,6 +269,41 @@ def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
     assert seen
     assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
     assert np.isfinite(result["fval"])
+
+
+@pytest.mark.parametrize("uncertainty_handling", [None, False])
+def test_get_gp_training_options_budget_counts_points(uncertainty_handling):
+    """The schedule of the GP's fits counts its budget in points, as `n_eff`
+    does: the noise test, which runs when `uncertainty_handling` is left
+    empty, counts in `max_fun_evals` and adds no point. The fits start from
+    `gp_train_n_init_final` points once the log holds `max_fun_evals`
+    points less the noise test, and from more at the point before."""
+    max_fun_evals = 10
+    bads, _ = _initialized_bads(
+        D=2,
+        max_fun_evals=max_fun_evals,
+        uncertainty_handling=uncertainty_handling,
+    )
+    logger = bads.function_logger
+    # The noise test is the one evaluation without a point
+    n_noise_test = 1 if uncertainty_handling is None else 0
+    assert logger.func_count == logger.Xn + 1 + n_noise_test
+    rng = np.random.default_rng(0)
+    seen = []
+    while logger.Xn + 1 < max_fun_evals - n_noise_test:
+        logger(rng.uniform(-1, 1, 2))
+        gp_train = _get_gp_training_options(
+            bads.optim_state,
+            bads.iteration_history,
+            bads.options,
+            {},
+            0,
+            logger,
+        )
+        seen.append(gp_train["init_N"])
+    assert len(seen) >= 2
+    assert seen[-2] > bads.options["gp_train_n_init_final"]
+    assert seen[-1] == bads.options["gp_train_n_init_final"]
 
 
 def test_gp_noise_variances_with_target_noise(monkeypatch):

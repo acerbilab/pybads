@@ -1173,10 +1173,15 @@ class BADS:
             function_logger.total_fun_eval_time = total_fun_eval_time
             function_logger.n_evals[idx_start] = n_evals
             function_logger.fun_eval_time[idx_start] = fun_eval_time
+            # The test counts in max_fun_evals and adds no point to the log,
+            # so the GP's fit schedule leaves it out of its budget
+            # (_get_gp_training_options)
+            self.optim_state["n_noise_test"] = 1
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
                 self.logging_action.append("Uncertainty test")
         else:
+            self.optim_state["n_noise_test"] = 0
             self.logging_action.append("")
 
         if self.optim_state["uncertainty_handling_level"] > 0:

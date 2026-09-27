@@ -698,7 +698,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   second evaluation of the starting point when `uncertainty_handling` is
   left empty, no longer counts in the schedule of the hyperparameter fits of
   the Gaussian process, whose number of starting points follows the fraction
-  of the budget used after the initial design; in 1.1.0 the schedule ran one
+  of the budget used after the initial design: it counts neither among the
+  evaluations used nor in the budget. In 1.1.0 the schedule ran one
   evaluation ahead. The noise test still counts in `max_fun_evals` and
   `func_count`. Results change at default options.
 
