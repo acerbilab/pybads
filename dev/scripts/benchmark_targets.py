@@ -21,8 +21,20 @@ the central half of the plausible box, with ``z = x - c``:
                    1, at ``(sqrt(2)/2, sqrt(2)/2, 0, ...)``; with the
                    bounds of ``get_test_opt_conf`` in the PyBADS tests, the
                    problem of their ``test_sphere_opt``
+``edgesphere``     ``sum((x - c)**2)`` on the hard box ``[0, 10]``, with
+                   ``c_i = -1`` in the first ``ceil(D/2)`` variables: its
+                   minimum, ``ceil(D/2)``, lies on the lower hard bound
+                   there, outside the plausible box ``[1, 9]``, and at a
+                   shifted point inside it in the others
+``ridge``          ``10 * sum(|z_(i+1) - z_i|) + |sum(z)|``: nonsmooth, with
+                   its valley along the diagonal, so that no step along a
+                   coordinate axis descends from a point of the valley
+``sphere_band``    ``sum(z**2)``, with ``c_1 = c_2`` and the non-box
+                   constraint ``|x_1 - x_2| <= SPHERE_BAND``: a feasible band
+                   thinner than a coordinate step, around the diagonal
 
-Every synthetic minimum is 0 except that of ``sphere_nonbox``. The shifted
+Every synthetic minimum is 0 except those of ``sphere_nonbox`` and
+``edgesphere``. The shifted
 targets share the hard bounds ``[-20, 20]`` and the plausible box
 ``[-5, 5]`` in each variable; a configuration with ``unbounded=True``
 replaces the hard bounds by infinities and keeps the plausible box (BADS
@@ -119,6 +131,9 @@ STRUCTURE_SEED = 20260924
 
 HOMO_SD = 1.0
 ELLIPSOID_CONDITION = 1e6
+# Half the width of sphere_band's feasible band, |x_1 - x_2| <= SPHERE_BAND
+# (the thin band of the port review's W2-37)
+SPHERE_BAND = 0.005
 
 # Error f_true(x) - f_min below which a run counts as solved: BADS's default
 # tol_fun for the unimodal deterministic targets; for the multimodal ones,
@@ -192,6 +207,9 @@ class Problem:
     pins: tuple = ()
     check_n: int = 20_000
     omit_plausible: bool = False
+    # True when the minimum lies on the hard bounds by construction, outside
+    # the plausible box (edgesphere)
+    min_on_bound: bool = False
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
     )
@@ -500,6 +518,86 @@ def _sphere_nonbox(D, rng):
     )
 
 
+def _edgesphere(D, rng):
+    # The minimum on the lower hard bound in the first ceil(D/2) variables,
+    # outside the plausible box; at a shifted point inside it in the others
+    lb, ub, plb, pub = (
+        np.zeros(D),
+        np.full(D, 10.0),
+        np.ones(D),
+        np.full(D, 9.0),
+    )
+    h = (D + 1) // 2
+    c = _shift(rng, plb, pub)
+    c[:h] = -1.0
+    x_min = c.copy()
+    x_min[:h] = 0.0
+
+    def f_vec(X):
+        return np.sum((np.atleast_2d(X) - c) ** 2, axis=1)
+
+    return Problem(
+        name="edgesphere",
+        D=D,
+        f_vec=f_vec,
+        f_min=float(h),
+        x_min=x_min,
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        min_on_bound=True,
+        notes="sum((x - c)^2), c_i = -1 in ceil(D/2) variables, on [0, 10]",
+    )
+
+
+def _ridge_of_z(Z):
+    return 10.0 * np.sum(np.abs(np.diff(Z, axis=1)), axis=1) + np.abs(
+        np.sum(Z, axis=1)
+    )
+
+
+def _ridge(D, rng):
+    if D < 2:
+        raise ValueError("ridge needs D >= 2")
+    return _shifted_problem(
+        "ridge",
+        D,
+        rng,
+        _ridge_of_z,
+        TOL_UNIMODAL,
+        "10 sum(|z_(i+1) - z_i|) + |sum(z)|, a nonsmooth diagonal valley",
+    )
+
+
+def _sphere_band(D, rng):
+    if D < 2:
+        raise ValueError("sphere_band needs D >= 2")
+    lb, ub, plb, pub = _shifted_box(D)
+    c = _shift(rng, plb, pub)
+    c[1] = c[0]
+
+    def non_box_cons(X):
+        X = np.atleast_2d(X)
+        return np.abs(X[:, 0] - X[:, 1]) > SPHERE_BAND
+
+    return Problem(
+        name="sphere_band",
+        D=D,
+        f_vec=lambda X: np.sum((np.atleast_2d(X) - c) ** 2, axis=1),
+        f_min=0.0,
+        x_min=c.copy(),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        non_box_cons=non_box_cons,
+        notes=f"sum(z^2), c_1 = c_2, feasible where |x_1 - x_2| <= {SPHERE_BAND}",
+    )
+
+
 # --------------------------------------------------------------------------
 # Real-data targets (see the module docstring). The likelihoods, their
 # constants and their pins are those of PyVBMC's
@@ -786,6 +884,9 @@ _REGISTRY = {
     "rastrigin": _rastrigin,
     "logsphere": _logsphere,
     "sphere_nonbox": _sphere_nonbox,
+    "edgesphere": _edgesphere,
+    "ridge": _ridge,
+    "sphere_band": _sphere_band,
     "timing": _timing,
     "multisensory_s1": _multisensory_s1,
 }
@@ -939,11 +1040,29 @@ _BOUNDS = [
     Config("logsphere", 3, noise="homo", budget=500),
 ]
 
+# The configurations that reach what the default suite rarely does: a
+# minimum on a hard bound, where the search's candidates projected onto the
+# bound repeat points already evaluated (the port review's W3-1), with and
+# without noise; a nonsmooth valley along the diagonal, which no coordinate
+# step descends (W3-24); and a feasible band thinner than a coordinate step
+# around the diagonal, which empties the ES search's later generations (W3-9)
+# and ends a coordinate poll early at D = 2 (W2-37).
+_GEOMETRY = [
+    Config("edgesphere", 2, budget=500),
+    Config("edgesphere", 4, budget=500),
+    Config("edgesphere", 3, noise="homo", budget=500),
+    Config("ridge", 2, budget=500),
+    Config("ridge", 4, budget=500),
+    Config("sphere_band", 2, budget=500),
+    Config("sphere_band", 3, budget=500),
+]
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
     "oned": _ONED,
     "bounds": _BOUNDS,
+    "geometry": _GEOMETRY,
 }
 
 
@@ -1018,10 +1137,13 @@ def check_problem(cfg, n=None):
         msgs.append(f"f_true(x_min) = {f_at_min!r} != f_min = {prob.f_min!r}")
     if not (np.all(prob.lb <= x_min) and np.all(x_min <= prob.ub)):
         msgs.append("x_min outside the hard bounds")
-    # an analytic minimum lies inside the plausible box by construction; a
-    # reference minimum need not (that of timing does not)
-    if prob.reference is None and not (
-        np.all(prob.plb < x_min) and np.all(x_min < prob.pub)
+    # an analytic minimum lies inside the plausible box by construction,
+    # unless it is on the hard bounds by design (edgesphere); a reference
+    # minimum need not (that of timing does not)
+    if (
+        prob.reference is None
+        and not prob.min_on_bound
+        and not (np.all(prob.plb < x_min) and np.all(x_min < prob.pub))
     ):
         msgs.append("x_min outside the plausible box")
     if not prob.feasible(x_min)[0]:
