@@ -244,20 +244,13 @@ order.
     unrelated `IndexError` or `TypeError`, while a first element other than
     `"acq_LCB"` fails only at the first search; `_search_step_`'s docstring
     gives `search_dist` as an array and has the typo "thecurrent";
-  - the checks: a NumPy complex scalar passes the checks of `hedge_gamma`,
-    `hedge_beta`, `hedge_decay` and `improvement_quantile`, since NumPy
-    orders complex numbers, and a one-element array is accepted and stored
-    as an array; for the hedge's three options such an array can stop the
-    run at its first search with an unrelated `ValueError` (a `hedge_decay`
-    of `[0.5]`, a `hedge_gamma` or `hedge_beta` of shape (1, 1)), and so
-    can a `Decimal` or a `Fraction`, which pass too; a Python integer of
-    2**63 or more raises `TypeError` from `np.isfinite` in the checks of
-    `max_fun_evals`, `accelerate_mesh_steps` and `n_search_iter`, and an
-    `n_search_iter` above `n_search` leaves the ES search no candidate (the
-    doublecheck of wave 4, "Doublecheck" in the same ledger); `tol_fun` is
-    not checked (0 raises a bare `ZeroDivisionError` while the `.ini`
-    default of `hedge_beta` is evaluated, and a negative value is refused
-    only through `hedge_beta`);
+  - the checks: a Python integer of 2**63 or more raises `TypeError` from
+    `np.isfinite` in the checks of `max_fun_evals`, `accelerate_mesh_steps`
+    and `n_search_iter`, and an `n_search_iter` above `n_search` leaves the
+    ES search no candidate (the doublecheck of wave 4, "Doublecheck" in the
+    same ledger); `tol_fun` is not checked (0 raises a bare
+    `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
+    evaluated, and a negative value is refused only through `hedge_beta`);
   - the function logger: `FunctionLogger.add` keeps checks of its own (a
     string value raises `TypeError`, a Python complex of zero imaginary part
     passes `np.isreal` and fails while recorded, a one-element array is

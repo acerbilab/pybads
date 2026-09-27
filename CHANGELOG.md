@@ -55,7 +55,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   whose value is not a positive finite number raises `ValueError` at the
   search.
 - `BADS` raises `ValueError` for an `improvement_quantile` that is not a
-  number greater than 0 and less than 1.
+  number greater than 0 and less than 1, an array of one element or a
+  complex number included.
 - `BADS` raises `ValueError` for an `accelerate_mesh_steps` that is not a
   positive integer, `inf` included, which 1.1.0 ran without the accelerated
   reduction of the mesh: `accelerate_mesh=False` turns it off.
@@ -74,7 +75,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
   that is not a finite number at least 0, which the default `1e-3 / tol_fun`
-  is not when `tol_fun` is negative, and for a `hedge_decay` outside [0, 1].
+  is not when `tol_fun` is negative, and for a `hedge_decay` outside [0, 1],
+  an array of one element or a complex number included.
 - `BADS` raises `ValueError` for an `n_search_iter` that is not a positive
   integer.
 
@@ -117,28 +119,30 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Checks of `max_fun_evals`, `improvement_quantile`,
   `accelerate_mesh_steps` and `n_search_iter`.** `BADS` raises `ValueError`
   when `max_fun_evals` is not a positive integer (or infinite), as MATLAB
-  BADS does, and converts a float that is a whole number to an integer;
-  1.1.0 stopped `optimize()` with an unrelated error for 0 or a negative
-  value, and made 31 evaluations for 30.5. An `improvement_quantile` above
-  0.5 gives MATLAB BADS's warning. An `improvement_quantile` that is not a
-  number greater than 0 and less than 1 raises `ValueError`, as in MATLAB
-  BADS; 1.1.0 ran with a number outside that range: at 0, and at 1 without
-  noise, the incumbent never left the best point of the initial design, and
-  a noisy run at 1 moved it at most searches and never ended its first
-  iteration. An `accelerate_mesh_steps` that is not a positive integer
-  raises `ValueError`, and a float that is a whole number is converted to an
+  BADS does, and converts a float that is a whole number to an integer; 1.1.0
+  stopped `optimize()` with an unrelated error for 0 or a negative value, and
+  made 31 evaluations for 30.5. An `improvement_quantile` above 0.5 gives
+  MATLAB BADS's warning. An `improvement_quantile` that is not a number
+  greater than 0 and less than 1 raises `ValueError`, as in MATLAB BADS, and
+  one that is not a real number (a Python or NumPy integer or float) too, an
+  array of one element or a complex number included; the value is stored as a
+  float. 1.1.0 ran with a number outside that range: at 0, and at 1 without
+  noise, the incumbent never left the best point of the initial design, and a
+  noisy run at 1 moved it at most searches and never ended its first
+  iteration. An `accelerate_mesh_steps` that is not a positive integer raises
+  `ValueError`, and a float that is a whole number is converted to an
   integer. 1.1.0 stopped the run at a failed poll, with `IndexError` for 0
   (from the second iteration on), with `TypeError` for a negative value, and
   with `IndexError` for a float once the iterations exceeded it, as MATLAB
   BADS stops for these values; a float larger than every iteration, `inf`
   included, ran without the accelerated reduction of the mesh, as in MATLAB
-  BADS, and `True` ran as 1; `accelerate_mesh=False` turns the reduction
-  off, and the message says so. An `n_search_iter` that is not a positive
-  integer raises `ValueError`, and a float that is a whole number is
-  converted to an integer; 1.1.0 did not check it and stopped the run at its
-  first search, with `ZeroDivisionError` for 0, `ValueError` for a negative
-  value or NaN and `TypeError` for any other float, whole numbers included,
-  and `True` ran as 1.
+  BADS, and `True` ran as 1; `accelerate_mesh=False` turns the reduction off,
+  and the message says so. An `n_search_iter` that is not a positive integer
+  raises `ValueError`, and a float that is a whole number is converted to an
+  integer; 1.1.0 did not check it and stopped the run at its first search,
+  with `ZeroDivisionError` for 0, `ValueError` for a negative value or NaN
+  and `TypeError` for any other float, whole numbers included, and `True` ran
+  as 1.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and
@@ -185,9 +189,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Search hedge parameters.** `BADS` raises `ValueError` for a
   `hedge_gamma` that is not a number from 0 to 1/n, n the number of searches
   in `search_method` (1/2 at default), a `hedge_beta` that is not a finite
-  number at least 0, and a `hedge_decay` outside [0, 1]. 1.1.0, like MATLAB
-  BADS, ran with any number: a `hedge_gamma` above 1/n made the search
-  hedge favor the search of lower gain, and above 1/(n − 1) gave some
+  number at least 0, and a `hedge_decay` outside [0, 1]; each is a real
+  number (a Python or NumPy integer or float), stored as a float, and an
+  array of one element or a complex number is refused too. 1.1.0, like
+  MATLAB BADS, ran with any number: a `hedge_gamma` above 1/n made the
+  search hedge favor the search of lower gain, and above 1/(n − 1) gave some
   searches a negative probability, so that they were never chosen; a
   negative `hedge_beta` inverted the hedge too, and a `hedge_decay` above 1
   made the searches' gains grow, a negative one alternate in sign. An

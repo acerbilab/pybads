@@ -29,6 +29,22 @@ from .gaussian_process_train import (
 from .optimize_result import OptimizeResult
 from .options import Options
 
+
+def _as_real_number(value):
+    """Return ``value`` as a float if it is a real number, a Python or NumPy
+    integer or float that is not a boolean, and None otherwise: for a
+    string, a complex number, an array (of one element too), a ``Decimal``
+    or a ``Fraction``, or an integer too large for a float."""
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value, (int, float, np.integer, np.floating)
+    ):
+        return None
+    try:
+        return float(value)
+    except OverflowError:
+        return None
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message (and the message of a
 # random starting point, at 25) from "notify" on, the final message from
@@ -817,18 +833,17 @@ class BADS:
         if np.isfinite(max_fun_evals):
             self.options["max_fun_evals"] = int(max_fun_evals)
         # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
-        # it evaluates an improvement (bads.m:1269-1271)
+        # it evaluates an improvement (bads.m:1269-1271). It and the hedge's
+        # three options below take a real number (_as_real_number), which
+        # is stored as a float
         improvement_quantile = self.options["improvement_quantile"]
-        try:
-            in_range = bool(0 < improvement_quantile < 1)
-        except (TypeError, ValueError):
-            # a string, a complex number or an array of several values
-            in_range = False
-        if not in_range:
+        value = _as_real_number(improvement_quantile)
+        if value is None or not 0 < value < 1:
             raise ValueError(
                 "options['improvement_quantile'] needs to be greater than 0 "
                 f"and less than 1, not {improvement_quantile!r}."
             )
+        self.options["improvement_quantile"] = value
         # accelerate_mesh_steps is a positive integer: the accelerated mesh
         # reduction reads the iterate accelerate_mesh_steps iterations
         # back, which below 1 is not recorded yet (MATLAB BADS fails there
@@ -876,19 +891,14 @@ class BADS:
         # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
         hedge_gamma = self.options["hedge_gamma"]
         n_search_methods = len(self.options["search_method"])
-        try:
-            in_range = not isinstance(hedge_gamma, (bool, np.bool_)) and bool(
-                0 <= hedge_gamma and n_search_methods * hedge_gamma <= 1
-            )
-        except (TypeError, ValueError):
-            # a string, a complex number or an array of several values
-            in_range = False
-        if not in_range:
+        value = _as_real_number(hedge_gamma)
+        if value is None or not (0 <= value and n_search_methods * value <= 1):
             raise ValueError(
                 "options['hedge_gamma'] needs to lie between 0 and 1 / n, n "
                 "the number of search methods in options['search_method'] "
                 f"({n_search_methods}), not {hedge_gamma!r}."
             )
+        self.options["hedge_gamma"] = value
         # hedge_beta, the inverse temperature of the hedge's softmax, is a
         # finite number at least 0 (0 is a uniform choice): below 0 the hedge
         # favors the search of lower gain, and at inf or NaN (or far below 0,
@@ -896,36 +906,26 @@ class BADS:
         # so that every choice is at random; MATLAB BADS does not check it
         # (searchHedge.m:45)
         hedge_beta = self.options["hedge_beta"]
-        try:
-            in_range = not isinstance(hedge_beta, (bool, np.bool_)) and bool(
-                0 <= hedge_beta < np.inf
-            )
-        except (TypeError, ValueError):
-            # a string, a complex number or an array of several values
-            in_range = False
-        if not in_range:
+        value = _as_real_number(hedge_beta)
+        if value is None or not 0 <= value < np.inf:
             raise ValueError(
                 "options['hedge_beta'] needs to be a finite number greater "
                 f"than or equal to 0, not {hedge_beta!r}; its default is "
                 "1e-3 / options['tol_fun']."
             )
+        self.options["hedge_beta"] = value
         # hedge_decay, the decay of the hedge's gains at each update, lies in
         # [0, 1] (1 is no decay): above 1 the gains grow until they overflow
         # and every later choice is at random, and below 0 they alternate in
         # sign; MATLAB BADS does not check it (acqPortfolio.m:69)
         hedge_decay = self.options["hedge_decay"]
-        try:
-            in_range = not isinstance(hedge_decay, (bool, np.bool_)) and bool(
-                0 <= hedge_decay <= 1
-            )
-        except (TypeError, ValueError):
-            # a string, a complex number or an array of several values
-            in_range = False
-        if not in_range:
+        value = _as_real_number(hedge_decay)
+        if value is None or not 0 <= value <= 1:
             raise ValueError(
                 "options['hedge_decay'] needs to lie between 0 and 1, not "
                 f"{hedge_decay!r}."
             )
+        self.options["hedge_decay"] = value
         # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
         # call, is checked here too, before any evaluation
         check_sqrt_beta(

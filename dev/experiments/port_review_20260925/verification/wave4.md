@@ -823,3 +823,26 @@ tests):
   did not follow; the ruling on W4-1 holds the sentence true after W4-1.
   The proposal: leave it until the next release rewrites the list, or
   qualify it now.
+
+**Rulings on what was left (PI, 2026-09-27)**, on the orchestrator's
+recommendations:
+
+- The hedge's checks: `hedge_gamma`, `hedge_beta`, `hedge_decay` and,
+  with them, `improvement_quantile` (W3-31's check, which has the same
+  gap) take a real number, a Python or NumPy integer or float that is not
+  a boolean, stored as a float; an array, of one element too, a complex
+  number, a `Decimal`, a `Fraction` or an integer too large for a float is
+  refused with the check's `ValueError`, as `max_fun_evals`,
+  `accelerate_mesh_steps` and `n_search_iter` refuse arrays. `sqrt_beta`
+  keeps its one-element arrays, as MATLAB BADS takes any numeric scalar
+  there and a callable may return one.
+- Large integers: the checks of `max_fun_evals`, `accelerate_mesh_steps`
+  and `n_search_iter` test for an integer before `np.isfinite`, so that a
+  positive integer of any size is taken; `n_search` is checked as a
+  positive integer, and an `n_search_iter` above it is refused with W4-25's
+  `ValueError`, since it leaves the search no candidate (in MATLAB BADS the
+  population's size is then a fraction below 1, which `randn` at
+  `searchES.m:117` does not take, by reading). An `n_search_iter`
+  that does not divide `n_search` keeps its rounded-down generations.
+- "What's new in PyBADS 1.1": left to the next release, which rewrites the
+  list, with a line in `dev/TODO.md`'s release item.

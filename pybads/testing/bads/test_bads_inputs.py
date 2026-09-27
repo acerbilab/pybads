@@ -1,6 +1,9 @@
 """The inputs of `BADS` as MATLAB BADS checks them (`boundscheck.m`,
 `setupvars.m`): the bounds, the starting point and `non_box_cons`."""
 
+from decimal import Decimal
+from fractions import Fraction
+
 import numpy as np
 import pytest
 
@@ -557,6 +560,55 @@ def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
 def test_hedge_decay_from_zero_to_one_is_accepted(hedge_decay):
     bads = _bads_with_options({"hedge_decay": hedge_decay})
     assert bads.options["hedge_decay"] == hedge_decay
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("hedge_gamma", np.array([0.1])),
+        ("hedge_gamma", np.array([[0.1]])),
+        ("hedge_gamma", np.complex128(0.1 - 5j)),
+        ("hedge_gamma", Decimal("0.25")),
+        ("hedge_beta", np.array([[1.0]])),
+        ("hedge_beta", np.array([True])),
+        ("hedge_beta", np.complex128(1.0)),
+        ("hedge_beta", Fraction(1, 4)),
+        ("hedge_beta", 10**400),
+        ("hedge_decay", np.array([0.5])),
+        ("hedge_decay", np.array([True])),
+        ("hedge_decay", np.complex128(0.5 + 1j)),
+        ("improvement_quantile", np.array([0.3])),
+        ("improvement_quantile", np.complex128(0.3)),
+        ("improvement_quantile", Fraction(1, 3)),
+    ],
+)
+def test_real_valued_options_refuse_what_is_not_a_real_number(name, value):
+    """`hedge_gamma`, `hedge_beta`, `hedge_decay` and `improvement_quantile`
+    take a real number, a Python or NumPy integer or float that is not a
+    boolean: an array, of one element too, a NumPy complex number, which
+    NumPy orders, a `Decimal`, a `Fraction` or an integer too large for a
+    float is refused when `BADS` is created. Some of them passed the range
+    checks and stopped the run at its first search with an unrelated error
+    (a `hedge_decay` of `[0.5]`, a `hedge_gamma` of shape (1, 1))."""
+    with pytest.raises(ValueError, match=rf"{name}'\] needs to"):
+        _bads_with_options({name: value})
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("hedge_gamma", np.float32(0.25)),
+        ("hedge_gamma", np.int64(0)),
+        ("hedge_beta", 1),
+        ("hedge_beta", np.float64(0.5)),
+        ("hedge_decay", np.float16(0.5)),
+        ("improvement_quantile", np.float64(0.25)),
+    ],
+)
+def test_real_valued_options_are_stored_as_floats(name, value):
+    bads = _bads_with_options({name: value})
+    assert bads.options[name] == value
+    assert type(bads.options[name]) is float
 
 
 @pytest.mark.parametrize("tol_fun", [1e-3, 1e-6, 0.1])
