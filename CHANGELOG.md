@@ -546,10 +546,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `uncertain_incumbent=False` no longer stops with `AttributeError` at its
   first poll; its optimization target is the incumbent's value less
   `tol_fun`, as in MATLAB BADS.
-- **Start point on the grid.** A starting point halfway between two points
-  of the search grid goes to the one farther from zero, as in MATLAB BADS,
-  where 1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048,
-  2048]` starts at `[2, 4]`, not `[0, 4]`.
+- **Rounding to the search grid.** A point halfway between two points of the
+  search grid goes to the one farther from zero, as in MATLAB BADS, where
+  1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048, 2048]`
+  starts at `[2, 4]`, not `[0, 4]`. Once the search grid is fine, the
+  candidates of the search often fall halfway, so results change at default
+  options: in PyBADS's benchmark, 31 of 540 runs end at other points, all of
+  them 6-D or 10-D or noisy, with no significant change of their errors or
+  evaluations.
 - **Scale of the evolution-strategy search.** With `n_search_iter` of 3 or
   more, the scale of each generation of the evolution-strategy search
   follows the fraction of new candidates among the best, counted as in

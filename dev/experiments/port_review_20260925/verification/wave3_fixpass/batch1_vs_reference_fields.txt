@@ -1,0 +1,8 @@
+final.wall_s: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.597424455001601' -> '1.991306710000572'
+final.fval: 30 runs; e.g. sphere_D10_seed16.json: '6.93240117402572e-07' -> '5.619625799915313e-07'
+final.true_error: 29 runs; e.g. sphere_D10_seed16.json: '6.93240117402572e-07' -> '5.619625799915313e-07'
+final.x: 29 runs; e.g. sphere_D10_seed16.json: '[2.3473688476153853, 0.16605660198969474, -0.645194518674046' -> '[2.347306537260039, 0.16626858067908756, -0.6451507105354182'
+final.fsd: 2 runs; e.g. ellipsoid_D3_homo_seed4.json: '0.3095977288384777' -> '0.30959772883847764'
+final.min_noise_var: 1 runs; e.g. multisensory_s1_D6_homo_seed0.json: '0.8013644447612186' -> '0.8013644447607671'
+final.func_count: 1 runs; e.g. multisensory_s1_D6_homo_seed25.json: '652' -> '634'
+final.iterations: 1 runs; e.g. multisensory_s1_D6_homo_seed25.json: '29' -> '28'
