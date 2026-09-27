@@ -396,10 +396,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   quantiles and the standard deviation of an observation, the GP's noise
   included, as MATLAB BADS does. Results change at default options.
 - **Rebuilds of the local GP.** After the incumbent moved, PyBADS rebuilt
-  the local Gaussian process at every later search of the round and at
-  every step of the poll that followed, where MATLAB BADS rebuilds it once.
-  It now rebuilds it once, as MATLAB BADS does. Results change at default
-  options.
+  the local Gaussian process at every later search of the round and at every
+  step of the poll that followed. It now rebuilds it as MATLAB BADS does:
+  once after a move by the search, and after a move by the poll at every
+  search until a poll that does not move the incumbent. Results change at
+  default options.
 - **Unbounded variables.** In a variable without bounds, the scale that
   the ES-ell search takes from the length scales of the Gaussian process
   was a constant, because the lower and upper plausible bounds that stand

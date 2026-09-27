@@ -1144,6 +1144,7 @@ class BADS:
         """
         gp = None
         self.reset_gp = False
+        self.poll_moved = False
         hyp_dict = {}
 
         # Evaluate starting point and initial mesh,
@@ -1420,6 +1421,12 @@ class BADS:
                     "iter",
                 ):
                     is_finished = True
+
+            # A poll that moved the incumbent asks for a rebuild of the local
+            # GP at the end of every pass, until a poll that does not move,
+            # as MATLAB BADS empties the posterior (bads.m:1049)
+            if self.poll_moved:
+                self.reset_gp = True
 
             # Finalize the iteration
 
@@ -1743,9 +1750,11 @@ class BADS:
                 refit_flag,
                 rng=self.rng,
             )
-            # The rebuild answers a move of the incumbent once, as in MATLAB
-            # BADS it fills the posterior that the move emptied (a failed
-            # rebuild is marked for the next step)
+            # The rebuild answers a move of the incumbent, as in MATLAB BADS
+            # it fills the posterior that the move emptied: once after a
+            # search's move, and at every pass after a poll's move, until a
+            # poll that does not move (a failed rebuild is marked for the
+            # next step)
             self.reset_gp = False
 
             if refit_flag:
@@ -2497,7 +2506,7 @@ class BADS:
         # The display counts iterations from 1, as MATLAB BADS does
         self._display_function_log_(self.optim_state["iter"] + 1, poll_string)
 
-        self.reset_gp = is_poll_moved
+        self.poll_moved = is_poll_moved
 
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
 
