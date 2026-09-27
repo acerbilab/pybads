@@ -1,0 +1,30 @@
+8c8d6f8 chore: merge dev-next (the doublecheck of wave 3, #79) into dev-port-review-w4 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+0d866e8 fix: wave 3 of the port review (the search; the poll, the mesh, the incumbent and  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+8daf7ad fix: init_sobol returns the number of points of its design, as its docstring says  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+5dd92b7 fix: the function logger refuses a malformed SD with its documented ValueError, an | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+29a258a fix: FunctionLogger.finalize trims n_evals too, and reset_fun_eval_time keeps the  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4ea665a docs: FunctionLogger.__call__ and add take x in the transformed space, and add's d | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+f1247d0 docs: cache_size is the initial size of the log of evaluations, which grows when i | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+2dc5807 docs: AGENTS.md says that only a direct use of FunctionLogger reaches its merge of | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+86512c9 fix: bin the candidates of contraints_check and split the ES search's first popula | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+2f15781 fix: remove the unused n of acq_fcn_lcb, and say that the poll uses it too (W4-17) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+6e24519 fix: refuse a hedge_gamma outside [0, 1/n], n the number of search methods, when B | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+36c9ec1 fix: check the sqrt_beta of search_acq_fcn when BADS is created, and a callable's  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+3b7e64c fix: remove three unused imports (W4-22) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4f535b8 docs: write force_to_grid's docstring, and how round_half_away rounds exactly (W4- | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+36e8b70 fix: refuse an n_search_iter that is not a positive integer when BADS is created ( | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+6f673a2 fix: log a generation of the ES search that leaves no candidate at DEBUG, not as a | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+b61a880 fix: a noisy run that ends in its first iteration takes its reserved final samples | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+6c36782 fix: with opp_stobads, an uncertain poll moves only to a polled point that improve | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+fa5d842 fix: poll_scale and effective_radius over several hyperparameter samples, as MATLA | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+e744ed9 docs: the description of overhead says that the noise test counts as the optimizer | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+5442a6c docs: Fig. 1's caption says that the poll's steps are equal in the normalized coor | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+65e2434 fix: an empty search set's search distance is the float 0.0, like its f_sd_search  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+684d2e0 fix: the output function's "done" call receives the final estimate of a noisy run  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ffaf424 fix: the main loop takes the GP that the poll returns, as it takes the search's (W | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+39b647a fix: periodic_vars is refused before the variables are transformed, and an empty o | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+bd793f2 fix: refuse a hedge_beta that is not a finite number at least 0 and a hedge_decay  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4b84a2d docs: the description of fsd says what a noisy run that output_fcn stops in its in | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+efe5e95 fix: the initial design is seeded from the run's generator, so that random_seed de | /home/user/pybads-fp/pybads/__init__.py 663b49edc9320c55
+46af65a fix: the GP's fit schedule counts its budget without the noise test, as it counts  | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb
+e7bd01d fix: the noise test leaves the start's row of the log as it was, so that n_eff cou | /home/user/pybads-fp/pybads/__init__.py c91725823bc62b29

@@ -136,6 +136,21 @@ def test_search_selection_mask(mu, lamb):
     assert np.array_equal(mask, select_mask - 1)
 
 
+@pytest.mark.parametrize(
+    "n_search_iter, ns",
+    [(2, [1024, 1024]), (3, [683, 682]), (7, [293, 292]), (4096, [1, 0])],
+)
+def test_es_search_splits_its_first_population_as_matlab(n_search_iter, ns):
+    """The ES search splits its first population between its two scales with
+    MATLAB's round, as searchES.m does, which takes a half away from zero:
+    the 1365 points of `n_search_iter = 3` give 683 and 682."""
+    options = load_options(3, get_pybads_option_dir_path())
+    mu = int(options["n_search"] / n_search_iter)
+    search_es = ESSearchWM(mu, mu, options, rng=np.random.default_rng(0))
+    assert np.array_equal(search_es.ns, ns)
+    assert np.array_equal(np.ravel(search_es.vec), np.repeat(search_es.w, ns))
+
+
 def test_search_hedge():
     x0 = np.array([[0, 0, 0]])
     # Starting point
@@ -422,6 +437,43 @@ def test_lcb_refuses_other_values_of_sqrt_beta(sqrt_beta):
         acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), sqrt_beta)
 
 
+@pytest.mark.parametrize(
+    "value",
+    [-1.0, 0, np.nan, np.inf, np.array([1.0, 2.0]), "1.5", None, True],
+    ids=[
+        "negative",
+        "zero",
+        "nan",
+        "inf",
+        "2 elements",
+        "string",
+        "None",
+        "bool",
+    ],
+)
+def test_lcb_refuses_a_callable_sqrt_beta_of_another_value(value):
+    """A callable `sqrt_beta` returns a positive finite real number: any
+    other value is refused at the call, with the arguments it was called
+    with."""
+    with pytest.raises(
+        ValueError,
+        match=r"sqrt_beta\(t, n_vars\) needs to return a positive finite "
+        r"real number, not .* \(t = 10, n_vars = 3\)",
+    ):
+        acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), lambda t, n_vars: value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [1.5, np.float64(1.5), np.array(1.5), np.array([1.5])],
+    ids=["float", "np.float64", "0-d", "1-element"],
+)
+def test_lcb_accepts_a_callable_sqrt_beta_of_a_positive_number(value):
+    xi = np.zeros((2, 3))
+    z, _, _ = acq_fcn_lcb(xi, 9, _FixedGP(), lambda t, n_vars: value)
+    assert np.array_equal(z, np.array([[-2.0], [1.25]]))
+
+
 def test_force_to_grid_rounds_halves_away_from_zero():
     """`force_to_grid` rounds as MATLAB's `round` in `force2grid.m` does:
     halves away from zero, where `np.round` takes them to the even
@@ -659,6 +711,62 @@ def test_constraint_check_removes_evaluated_points_as_matlab():
     )
     # The rows that uCheck.m returns
     assert np.array_equal(U_new, [[0.25, -0.25], [0.75, 0.0], [1.0, 0.0]])
+
+
+def _u_check(U, lb, ub, tol_mesh, X_eval):
+    """MATLAB BADS's uCheck.m with projection, transcribed: the sorted unique
+    rows of U, binned with MATLAB's round, which takes halves away from
+    zero, and setdiff(u1, u2, 'rows'), the first row of each bin that holds
+    no evaluated point, the bins sorted."""
+
+    def matlab_round(q):
+        frac, r = np.modf(q)
+        return r + np.sign(frac) * (np.abs(frac) >= 0.5)
+
+    U = np.unique(np.maximum(np.minimum(U, ub), lb), axis=0)
+    tol = tol_mesh / 2
+    evaluated = {tuple(r) for r in matlab_round(X_eval / tol)}
+    first = {}
+    for i, r in enumerate(matlab_round(U / tol)):
+        if tuple(r) not in evaluated:
+            first.setdefault(tuple(r), i)
+    return U[[first[k] for k in sorted(first)]].reshape(-1, U.shape[1])
+
+
+def test_constraint_check_rounds_halves_of_a_bin_away_from_zero():
+    """contraints_check bins with MATLAB's round, as uCheck.m does, which
+    takes a half of a bin away from zero: a candidate half a bin from an
+    evaluated point, on either side of zero, is removed or kept, and two
+    candidates half a bin apart share a bin or not, as in MATLAB BADS."""
+    D = 2
+    tol_mesh = 2.0**-19
+    tol = tol_mesh / 2  # The width of a bin
+    X_eval = tol * np.array([[0, 0], [-3, 4], [3, 5], [4.5, -6]])
+    function_logger = SimpleNamespace(
+        X=np.vstack((X_eval, np.full((5, D), np.nan))), X_max_idx=3
+    )
+    U = tol * np.array(
+        [
+            [0.5, 0],  # half a bin from [0, 0], in the bin [1, 0]
+            [-0.5, 0],  # half a bin from [0, 0], in the bin [-1, 0]
+            [-2.5, 4],  # in the bin of [-3, 4]
+            [2.5, 5],  # in the bin of [3, 5]
+            [5, -6],  # in the bin of [4.5, -6], [5, -6]
+            [2.5, 2],  # in the bin [3, 2], with the next
+            [3, 2],
+            [0, 3],  # in the bin [0, 3], the next in [1, 3]
+            [0.5, 3],
+            [-1, -2],  # in the bin [-1, -2], with the next
+            [-0.5, -2],
+        ]
+    )
+    lb, ub = -np.ones((1, D)), np.ones((1, D))
+    U_new = contraints_check(U, lb, ub, tol_mesh, function_logger, True)
+    assert np.array_equal(U_new, _u_check(U, lb, ub, tol_mesh, X_eval))
+    assert np.array_equal(
+        U_new / tol,
+        [[-1, -2], [-0.5, 0], [0, 3], [0.5, 0], [0.5, 3], [2.5, 2]],
+    )
 
 
 @pytest.mark.parametrize(

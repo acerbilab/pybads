@@ -1,0 +1,16 @@
+docs: write force_to_grid's docstring, and how round_half_away rounds exactly (W4-24)
+
+force_to_grid had no docstring. It now says what it returns, the
+multiples of tol nearest to x, tol defaulting to search_mesh_size, and
+how it rounds: a coordinate halfway between two multiples goes to the one
+farther from zero, as MATLAB's round in force2grid.m takes it (W3-14),
+through round_half_away. round_half_away's docstring says how it computes
+that rounding exactly: from the integer part and the fraction of
+np.modf, both exact.
+
+No test: the change edits docstrings.
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

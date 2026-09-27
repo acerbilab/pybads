@@ -9,7 +9,7 @@ from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
 from scipy.stats import chi2, shapiro
 
-from pybads.acquisition_functions import acq_fcn_lcb
+from pybads.acquisition_functions import acq_fcn_lcb, check_sqrt_beta
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.init_functions import init_sobol
 from pybads.poll import poll_mads_2n
@@ -177,8 +177,8 @@ class BADS:
         integer nor ``inf``, a value other than ``True`` or ``False`` for
         ``uncertainty_handling`` or for an option whose default is one of
         them (``plot`` excepted), or an ``f_vals`` that holds a finite value,
-        a non-empty ``fun_values`` or ``acq_hedge=True``, options that are
-        not supported.
+        a non-empty ``fun_values`` or ``periodic_vars``, or
+        ``acq_hedge=True``, options that are not supported.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -320,6 +320,17 @@ class BADS:
         )
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
+
+        # Periodic variables are not supported yet: refused before the first
+        # transform of the variables, which a random x0 needs. An empty
+        # periodic_vars names none, as in MATLAB BADS (setupvars.m), and is
+        # taken as None
+        if np.size(self.options["periodic_vars"]) == 0:
+            self.options["periodic_vars"] = None
+        elif self.options["periodic_vars"] is not None:
+            raise ValueError(
+                "Periodic variables are not yet supported. Please set periodic_vars to None."
+            )
 
         # starting point
         if not np.all(np.isfinite(self.x0)):
@@ -641,12 +652,6 @@ class BADS:
         self.search_mesh_size = optim_state["search_mesh_size"]
         optim_state["scale"] = 1.0
 
-        # Check if periodic_vars is not None and raise error, since it is not yet supported
-        if self.options["periodic_vars"] is not None:
-            raise ValueError(
-                "Periodic variables are not yet supported. Please set periodic_vars to None."
-            )
-
         # Compute transformation of variables
         self.var_transf = self._variable_transformer_()
         # optim_state["variables_trans"] = var_transf
@@ -844,6 +849,88 @@ class BADS:
                 "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
+        # n_search_iter, the number of generations of the ES search, is a
+        # positive integer: the search draws n_search / n_search_iter
+        # candidates in each (MATLAB BADS does not check it, and loops over
+        # 1:Nsearchiter, searchES.m:125); a whole-number float is converted
+        n_search_iter = self.options["n_search_iter"]
+        if (
+            isinstance(n_search_iter, (bool, np.bool_))
+            or not isinstance(
+                n_search_iter, (int, float, np.integer, np.floating)
+            )
+            or not np.isfinite(n_search_iter)
+            or not n_search_iter >= 1
+            or not float(n_search_iter).is_integer()
+        ):
+            raise ValueError(
+                "options['n_search_iter'] needs to be a positive integer, "
+                f"not {n_search_iter!r}."
+            )
+        self.options["n_search_iter"] = int(n_search_iter)
+        # hedge_gamma, the smallest probability of each search method, lies
+        # in [0, 1 / n], n the number of search methods: the hedge chooses a
+        # method with the probabilities (1 - n * hedge_gamma) * softmax +
+        # hedge_gamma, which invert above 1 / n and turn negative above
+        # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
+        hedge_gamma = self.options["hedge_gamma"]
+        n_search_methods = len(self.options["search_method"])
+        try:
+            in_range = not isinstance(hedge_gamma, (bool, np.bool_)) and bool(
+                0 <= hedge_gamma and n_search_methods * hedge_gamma <= 1
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_gamma'] needs to lie between 0 and 1 / n, n "
+                "the number of search methods in options['search_method'] "
+                f"({n_search_methods}), not {hedge_gamma!r}."
+            )
+        # hedge_beta, the inverse temperature of the hedge's softmax, is a
+        # finite number at least 0 (0 is a uniform choice): below 0 the hedge
+        # favors the search of lower gain, and at inf or NaN (or far below 0,
+        # where the softmax overflows) its probabilities and gains are NaN,
+        # so that every choice is at random; MATLAB BADS does not check it
+        # (searchHedge.m:45)
+        hedge_beta = self.options["hedge_beta"]
+        try:
+            in_range = not isinstance(hedge_beta, (bool, np.bool_)) and bool(
+                0 <= hedge_beta < np.inf
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_beta'] needs to be a finite number greater "
+                f"than or equal to 0, not {hedge_beta!r}; its default is "
+                "1e-3 / options['tol_fun']."
+            )
+        # hedge_decay, the decay of the hedge's gains at each update, lies in
+        # [0, 1] (1 is no decay): above 1 the gains grow until they overflow
+        # and every later choice is at random, and below 0 they alternate in
+        # sign; MATLAB BADS does not check it (acqPortfolio.m:69)
+        hedge_decay = self.options["hedge_decay"]
+        try:
+            in_range = not isinstance(hedge_decay, (bool, np.bool_)) and bool(
+                0 <= hedge_decay <= 1
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_decay'] needs to lie between 0 and 1, not "
+                f"{hedge_decay!r}."
+            )
+        # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
+        # call, is checked here too, before any evaluation
+        check_sqrt_beta(
+            self.options["search_acq_fcn"][1],
+            "options['search_acq_fcn'][1] (sqrt_beta)",
+        )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "
@@ -1061,7 +1148,7 @@ class BADS:
             the evaluation of the starting point.
         """
         # Evaluate starting point and initial mesh, determine if function is noisy
-        self.yval, self.fsd, _ = self.function_logger(self.u)
+        self.yval, self.fsd, idx_start = self.function_logger(self.u)
         if self.fsd is None:
             self.fsd = np.nan
         self.fval = self.yval
@@ -1072,17 +1159,29 @@ class BADS:
             # Test whether the function is noisy, only when the option is
             # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
-            # Its time stays out of the target's time, as MATLAB BADS calls
-            # the target directly for it (evalinitmesh.m:41)
-            total_fun_eval_time = self.function_logger.total_fun_eval_time
-            yval_bis, _, _ = self.function_logger(
+            # Its time stays out of the target's time, and the start's row of
+            # the log (its count of evaluations and its time) stays as it
+            # was, as MATLAB BADS calls the target directly for it
+            # (evalinitmesh.m:41)
+            function_logger = self.function_logger
+            total_fun_eval_time = function_logger.total_fun_eval_time
+            n_evals = function_logger.n_evals[idx_start].copy()
+            fun_eval_time = function_logger.fun_eval_time[idx_start].copy()
+            yval_bis, _, _ = function_logger(
                 self.u, record_duplicate_data=False
             )
-            self.function_logger.total_fun_eval_time = total_fun_eval_time
+            function_logger.total_fun_eval_time = total_fun_eval_time
+            function_logger.n_evals[idx_start] = n_evals
+            function_logger.fun_eval_time[idx_start] = fun_eval_time
+            # The test counts in max_fun_evals and adds no point to the log,
+            # so the GP's fit schedule leaves it out of its budget
+            # (_get_gp_training_options)
+            self.optim_state["n_noise_test"] = 1
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
                 self.logging_action.append("Uncertainty test")
         else:
+            self.optim_state["n_noise_test"] = 0
             self.logging_action.append("")
 
         if self.optim_state["uncertainty_handling_level"] > 0:
@@ -1470,9 +1569,9 @@ class BADS:
 
             self.u = self.u_best
 
-            # check and do poll step
+            # check and do poll step; the poll's GP goes on, as the search's
             if do_poll_step:
-                self._poll_step_(gp)
+                (_, _, _, _, gp) = self._poll_step_(gp)
                 if output_fcn is not None and output_fcn(
                     self.var_transf.inverse_transf(self.u),
                     copy.deepcopy(self.optim_state),
@@ -1638,10 +1737,12 @@ class BADS:
 
         # Re-evaluate all best points for noisy evaluations
         yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
-        # A run that ends within its first iteration takes no final samples:
-        # the result reports the incumbent's observation
+        # A run that ends in its initialization takes no final samples: the
+        # result reports the incumbent's observation
         self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
         self.optim_state["ysd_vec"] = None
+        # The iterate whose point takes the final samples
+        final_idx = None
         if (
             self.optim_state["uncertainty_handling_level"] > 0
             and poll_iteration > 0
@@ -1668,53 +1769,65 @@ class BADS:
             self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                 min_q_beta_idx
             ]
+            final_idx = min_q_beta_idx
+        elif (
+            self.optim_state["uncertainty_handling_level"] > 0
+            and self.optim_state["iter"] == 0
+        ):
+            # A run that ends within its first iteration has one iterate,
+            # the incumbent, which takes the final samples that the run
+            # reserved; MATLAB BADS takes none then (bads.m:1138)
+            final_idx = 0
 
-            # Re-evalate estimated function value and SD at final point
-            if self.options["noise_final_samples"] > 0:
-                # Estimate function value and standard deviation at final point.
-                # Note that by default we do *not* use YVAL because it is biased
-                # (since it was an incumbent at some iteration, it is more likely to be a
-                # random fluctuation lower than the mean)
-                yval_vec = np.empty(self.options["noise_final_samples"])
-                ysd_vec = np.empty(self.options["noise_final_samples"])
-                for i_sample in range(self.options["noise_final_samples"]):
-                    y, y_sd, _ = self.function_logger(
-                        self.u, record_duplicate_data=False
-                    )
-                    yval_vec[i_sample] = y
-                    ysd_vec[i_sample] = y_sd
-
-                # With one sample and no noise estimate from the target, YVAL
-                # is used as well (biased, but better than no uncertainty)
-                if (
-                    yval_vec.size == 1
-                    and not self.options["specify_target_noise"]
-                ):
-                    yval_vec = np.append(yval_vec, self.yval)
-
-                self.optim_state["yval_vec"] = np.copy(yval_vec)
-                self.optim_state["ysd_vec"] = np.copy(ysd_vec)
-
-                if self.options["specify_target_noise"]:
-                    # Weight the samples by the precisions the target returns
-                    precision = 1 / ysd_vec**2
-                    tot_precision = np.sum(precision)
-                    self.fval = (
-                        np.sum(yval_vec * precision) / tot_precision
-                    ).item()
-                    self.fsd = (1 / np.sqrt(tot_precision)).item()
-                else:
-                    # Mean of the samples and its standard error, from
-                    # their SD normalized by n - 1 (MATLAB's std)
-                    self.fval = np.mean(yval_vec).item()
-                    self.fsd = (
-                        np.std(yval_vec, ddof=1) / np.sqrt(yval_vec.size)
-                    ).item()
-                # The estimate describes the chosen iterate
-                self.iteration_history.record(
-                    "fval", self.fval, min_q_beta_idx
+        # Re-evalate estimated function value and SD at final point
+        if final_idx is not None and self.options["noise_final_samples"] > 0:
+            # Estimate function value and standard deviation at final point.
+            # Note that by default we do *not* use YVAL because it is biased
+            # (since it was an incumbent at some iteration, it is more likely to be a
+            # random fluctuation lower than the mean)
+            yval_vec = np.empty(self.options["noise_final_samples"])
+            ysd_vec = np.empty(self.options["noise_final_samples"])
+            for i_sample in range(self.options["noise_final_samples"]):
+                y, y_sd, _ = self.function_logger(
+                    self.u, record_duplicate_data=False
                 )
-                self.iteration_history.record("fsd", self.fsd, min_q_beta_idx)
+                yval_vec[i_sample] = y
+                ysd_vec[i_sample] = y_sd
+
+            # With one sample and no noise estimate from the target, YVAL
+            # is used as well (biased, but better than no uncertainty)
+            if yval_vec.size == 1 and not self.options["specify_target_noise"]:
+                yval_vec = np.append(yval_vec, self.yval)
+
+            self.optim_state["yval_vec"] = np.copy(yval_vec)
+            self.optim_state["ysd_vec"] = np.copy(ysd_vec)
+
+            if self.options["specify_target_noise"]:
+                # Weight the samples by the precisions the target returns
+                precision = 1 / ysd_vec**2
+                tot_precision = np.sum(precision)
+                self.fval = (
+                    np.sum(yval_vec * precision) / tot_precision
+                ).item()
+                self.fsd = (1 / np.sqrt(tot_precision)).item()
+            else:
+                # Mean of the samples and its standard error, from
+                # their SD normalized by n - 1 (MATLAB's std)
+                self.fval = np.mean(yval_vec).item()
+                self.fsd = (
+                    np.std(yval_vec, ddof=1) / np.sqrt(yval_vec.size)
+                ).item()
+            # The estimate describes that iterate
+            self.iteration_history.record("fval", self.fval, final_idx)
+            self.iteration_history.record("fsd", self.fsd, final_idx)
+
+        if final_idx is not None:
+            # optim_state keeps the returned point and its values in step,
+            # for the output function's last call
+            self.optim_state["u"] = self.u.copy()
+            self.optim_state["yval"] = self.yval
+            self.optim_state["fval"] = self.fval
+            self.optim_state["fsd"] = self.fsd
 
         # Convert back to original space
         self.x = self.var_transf.inverse_transf(self.u)
@@ -1981,7 +2094,7 @@ class BADS:
             y_search = self.yval
             f_mu_search = self.fval
             f_sd_search = 0.0
-            search_dist = 0
+            search_dist = 0.0
 
         # TODO: CMA-ES like estimation of local covariance structure (unused)
         if (
@@ -2466,10 +2579,15 @@ class BADS:
         else:
             # StoBads: a success moves to the successful point, and with
             # opp_stobads an uncertain poll moves to the best polled point
+            # if that point improves on the incumbent
             if sto_poll == 1:
                 self._update_incumbent_(*sto_best)
                 is_poll_moved = True
-            elif self.options["opp_stobads"] and sto_poll == 0:
+            elif (
+                self.options["opp_stobads"]
+                and sto_poll == 0
+                and poll_best_improvement > 0
+            ):
                 self._update_incumbent_(
                     u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
                 )

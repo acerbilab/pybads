@@ -1,0 +1,27 @@
+fix: periodic_vars is refused before the variables are transformed, and an empty one is taken as None (W4, periodic_vars)
+
+Periodic variables are not ported, and _init_optim_state_ refused a
+periodic_vars that is not None. With a random x0, BADS.__init__ builds
+the variable transform for the draw before _init_optim_state_ runs, and
+_variable_transformer_ indexes the variables by periodic_vars, so an
+index out of range raised IndexError there instead of the refusal's
+ValueError. An empty periodic_vars, which MATLAB BADS takes as no
+periodic variable (setupvars.m:107-108, isempty), was refused.
+
+The refusal moves to BADS.__init__, after the bounds check and before
+the random draw of x0, the first transform; an empty periodic_vars (an
+empty list, tuple or array) is set to None, its default, and the run
+goes on as with None. The Raises section of BADS's docstring names the
+refusal of a non-empty periodic_vars beside that of fun_values.
+
+Tests: test_bads_inputs.py::test_periodic_vars_is_refused, an index in
+and out of range, with a given and a random x0: ValueError in all four;
+at the parent the out-of-range index with a random x0 raises
+IndexError. test_empty_periodic_vars_stands_for_none, an empty list and
+an empty array, with a given and a random x0: the option is None and no
+variable is periodic; at the parent all four are refused.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

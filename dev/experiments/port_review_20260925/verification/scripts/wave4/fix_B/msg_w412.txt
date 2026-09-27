@@ -1,0 +1,16 @@
+docs: cache_size is the initial size of the log of evaluations, which grows when it is full (W4-12)
+
+The description of cache_size, "Size of cache for storing fcn
+evaluations", read as a bound on the log, but cache_size is only the
+number of rows that FunctionLogger allocates at the start: when they are
+full, it adds half as many rows as it holds (_expand_arrays), and no
+evaluation is dropped. (MATLAB BADS keeps a ring of CacheSize rows that
+overwrites its oldest ones, funlogger.m:120-121; the two agree up to 9999
+logged evaluations at MATLAB's default of 1e4.) The description, which
+the options page shows, now says so.
+
+An option's description only; no test. Fingerprint
+(dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS thread):
+360971bf1f0ba6cb, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

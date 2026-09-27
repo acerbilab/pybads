@@ -1,0 +1,1 @@
+A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or complex, which 1.1.0 accepted as a NumPy scalar or a one-element array, raises `ValueError` when `BADS` is created, and a callable `sqrt_beta` whose value is not a positive finite number raises `ValueError` at the search.

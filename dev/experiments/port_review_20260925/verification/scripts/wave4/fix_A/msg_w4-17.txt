@@ -1,0 +1,20 @@
+fix: remove the unused n of acq_fcn_lcb, and say that the poll uses it too (W4-17)
+
+acq_fcn_lcb assigned n = xi.shape[0], which nothing reads: MATLAB's
+acqLCB.m uses its n only in the catch branch that returns Inf when the
+weighting by hyperparameter samples fails, a branch the port does not
+have. The assignment is removed.
+
+The docstring that #79 wrote, read against the code: its summary, its
+parameters and its returns hold; its second paragraph called the LCB the
+acquisition function of the search, where _poll_step_ uses it too (as
+bads.m:852 uses PollAcqFcn, acqLCB by default), and now says so.
+update_hedge's docstring holds: the gains decay and take the expected
+reward at the search point, and an empty search set only decays them.
+
+No test: the change removes a dead assignment and edits a docstring.
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

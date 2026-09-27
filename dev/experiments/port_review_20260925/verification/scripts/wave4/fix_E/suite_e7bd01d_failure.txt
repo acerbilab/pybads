@@ -1,0 +1,82 @@
+........................................................................ [ 11%]
+........................................................................ [ 23%]
+........................................................................ [ 35%]
+....................................................F
+=================================== FAILURES ===================================
+________________ test_get_gp_training_options_small_budget[2-2] ________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f43fc9ea190>, D = 2
+max_fun_evals = 2
+
+    @pytest.mark.parametrize("max_fun_evals", [2, 3, 4, 5])
+    @pytest.mark.parametrize("D", [2, 3])
+    def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
+        """With a budget no larger than the initial design, the design takes what
+        the starting point and the noise test leave of it, and the budget counts
+        as used up: the GP fits start from `gp_train_n_init_final` points, within
+        the range of the schedule, from `gp_train_n_init` down."""
+        import pybads.bads.gaussian_process_train as gpt
+
+        seen = []
+        original = gpt._get_gp_training_options
+
+        def spy(*args, **kwargs):
+            gp_train = original(*args, **kwargs)
+            seen.append(gp_train["init_N"])
+            return gp_train
+
+        monkeypatch.setattr(gpt, "_get_gp_training_options", spy)
+        bads = BADS(
+            lambda x: float(np.sum(np.ravel(x) ** 2)),
+            0.5 * np.ones(D),
+            -5 * np.ones(D),
+            5 * np.ones(D),
+            -2 * np.ones(D),
+            2 * np.ones(D),
+            options={
+                "display": "off",
+                "max_fun_evals": max_fun_evals,
+                "random_seed": 0,
+            },
+        )
+        result = bads.optimize()
+        # The noise test repeats x0, so the points are one fewer than the
+        # evaluations
+        assert result["func_count"] == max_fun_evals
+        assert bads.optim_state["eff_starting_points"] == max_fun_evals - 1
+        assert seen
+>       assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
+E       assert False
+E        +  where False = all(<generator object test_get_gp_training_options_small_budget.<locals>.<genexpr> at 0x7f43fc4b65e0>)
+
+pybads/testing/bads/test_gaussian_process_train.py:268: AssertionError
+=============================== warnings summary ===============================
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:476: RuntimeWarning: divide by zero encountered in log
+    lower_bounds[0:D] = np.log(width) + np.log(tol)
+
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:477: RuntimeWarning: divide by zero encountered in log
+    upper_bounds[0:D] = np.log(width * 10)
+
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:478: RuntimeWarning: divide by zero encountered in log
+    plausible_lower_bounds[0:D] = np.log(width) + 0.5 * np.log(tol)
+
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:479: RuntimeWarning: divide by zero encountered in log
+    plausible_upper_bounds[0:D] = np.log(width)
+
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+  /home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:208: RuntimeWarning: invalid value encountered in divide
+    ret = um.true_divide(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 268 passed, 6 warnings in 68.64s (0:01:08)

@@ -8,11 +8,12 @@ against its own specification, in waves of fresh reviewers.
 - `known_differences.md`: the known-differences sheet, the settled and
   deliberate differences between PyBADS and MATLAB BADS that a reviewer
   does not report as new, with the claims of the repository's records that
-  did not check out. Its Python line citations are at `8aecb6a`, the
-  revision of wave 3, carried from `ab4dded` to `95da7f1`, the freeze of
+  did not check out. Its Python line citations are at `0d866e8`, the
+  revision of wave 4, carried from `ab4dded` to `95da7f1`, the freeze of
   wave 1, by `refresh_citations.py --base ab4dded`, from there to
-  `fef6c14`, the revision of wave 2, by `--base 95da7f1`, and on by
-  `--base fef6c14`; the claims keep the lines of `95da7f1`.
+  `fef6c14`, the revision of wave 2, by `--base 95da7f1`, to `8aecb6a`,
+  the revision of wave 3, by `--base fef6c14`, and on by `--base
+  8aecb6a`; the claims keep the lines of `95da7f1`.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -21,9 +22,9 @@ against its own specification, in waves of fresh reviewers.
   its final message under a header that says what it read. Nothing in a
   report is verified; the verification of a wave goes to
   `verification/wave<N>.md`.
-- `briefs/`: the prompts of waves 1 to 3 (reviewers and verifiers), with
+- `briefs/`: the prompts of waves 1 to 4 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
-  machine (the plan's "Wave 1 pickup" to "Wave 3 pickup"), and
+  machine (the plan's "Wave 1 pickup" to "Wave 4 pickup"), and
   `briefs/wave3_doublecheck.md`, those of the doublecheck of wave 3.
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
@@ -107,3 +108,26 @@ and outputs under `verification/scripts/wave3/doublecheck/<letter>_<scope>/`,
 without their copies of the tree at other commits, with the
 orchestrator's fingerprints and checks under
 `verification/scripts/wave3/doublecheck/orchestrator/`.
+
+Those of wave 4, in a cloud session too, are under
+`verification/scripts/wave4/<slice>_<track>/` (`B7_internal`,
+`B7_comparison`, `O_third`) and `verification/scripts/wave4/<slice>_verifier/`,
+formatted by the pre-commit hooks in the same way, with their `.log`
+outputs added past the `*.log` rule of `.gitignore`, and without the B7
+verifier's copy of v1.1.0's package, which the tag holds. The items of the
+records kept from wave 4's reviewers and given to its verifiers are quoted
+in `briefs/wave4_kept_B7.md` and `briefs/wave4_kept_O.md`.
+The fix agents of wave 4's fix pass (A to E, the letters of `fixes/`) have
+theirs under `verification/scripts/wave4/fix_<agent>/`, without their
+copies of a parent's tree, and the orchestrator's scripts of the pass (the
+cherry-picks and their conflicts, the changelog lines, whose texts are in
+`changelog_entries/`, the fingerprint at every commit of the branch that
+changes the package, the gates, the chain that ran the last steps, the
+runs that each step changed, W4-30's check, the fixed designs of `edgesphere_D2`) are under
+`verification/scripts/wave4/orchestrator/`. As in wave 3, the shell
+scripts and the lists name the sandbox's paths and call one another from
+the scratch directory's `orch/`, so they record what ran rather than run
+from here; `chain_rest.sh` stopped at W4-6's failed suite, and W4-6's
+completion and gates were run by hand, with the same scripts. The pass's
+comparisons are in `verification/wave4_fixpass/`, and its last population
+is kept whole as the Linux reference `population_linux_wave4_20260927`.

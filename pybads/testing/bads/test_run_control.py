@@ -235,6 +235,38 @@ def test_one_function_evaluation(uncertainty_handling, func_count):
     )
 
 
+def test_noise_test_leaves_the_start_row_as_it_was(monkeypatch):
+    """The noise test evaluates the starting point again without recording
+    it, as MATLAB BADS calls the target directly for it: the start's row of
+    the log keeps its one evaluation and its own time, and the rows' counts
+    of evaluations, whose sum is the `n_eff` of the GP's training, count the
+    points recorded, as `eff_starting_points` does."""
+    calls = []
+
+    class _CountingTimer:
+        """A timer that times the k-th evaluation at k s."""
+
+        def start_timer(self, name):
+            calls.append(name)
+
+        def stop_timer(self, name):
+            pass
+
+        def get_duration(self, name):
+            return float(len(calls))
+
+    monkeypatch.setattr(
+        "pybads.function_logger.function_logger.Timer", _CountingTimer
+    )
+    bads = _make_bads(max_fun_evals=10)
+    bads.optimize()
+    logger = bads.function_logger
+    assert logger.n_evals[0, 0] == 1
+    assert logger.fun_eval_time[0, 0] == 1.0
+    assert np.sum(logger.n_evals[logger.X_flag]) == logger.Xn + 1
+    assert logger.Xn + 1 == logger.func_count - 1
+
+
 def _small_budget_bads(dim, max_fun_evals, noisy=False):
     rng = np.random.default_rng(0)
 

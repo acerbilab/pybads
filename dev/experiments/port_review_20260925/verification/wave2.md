@@ -666,7 +666,11 @@ The hash of one commit depends on the number of BLAS threads, as
   plausible bounds omitted gives `u0 = -1` exactly, where 1.1.0 moved it
   inside, and so reaches the undefined `uint64` cast of `init_sobol`'s seed
   at default options: on x86 it gives `2**64 - 1`, and on arm64 it
-  saturates to 0 (the survey's row of `init_sobol`).
+  saturates to 0 (the survey's row of `init_sobol`). [Wave 4 (W4-2,
+  `wave4.md`): not since W2-4; 1.1.0 moved `x0` and `plb` together, so that
+  `x0 = lb` with the plausible bounds omitted gave `u0 = -1` there too, and
+  any `x0 <= plb` has reached the cast since `c7c88ab`. W4-1 removes the
+  cast.]
 - Kept as ruled, for the PI: W2-25 lowers the fraction solved of three of
   the five noisy configurations, unflagged at 30 seeds, which goes with the
   revisit of W1-25 after all the fixes (`TODO.md`); W2-17, W2-27 and W2-45

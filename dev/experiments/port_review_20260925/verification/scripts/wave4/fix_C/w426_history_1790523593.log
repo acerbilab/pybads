@@ -1,0 +1,13 @@
+/home/user/pybads-fix-C/pybads/__init__.py
+target_noise=False seed=0 {}: iterations 6, returned iterate(s) [1, 5] of 6, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=False seed=1 {}: iterations 6, returned iterate(s) [3, 4] of 6, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=False seed=2 {}: iterations 5, returned iterate(s) [4] of 5, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=False seed=3 {}: iterations 6, returned iterate(s) [2] of 6, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=False seed=4 {}: iterations 6, returned iterate(s) [3, 4, 5] of 6, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=False seed=0 {'max_iter': 1}: iterations 1, returned iterate(s) [0] of 1, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=0 {}: iterations 5, returned iterate(s) [4] of 5, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=1 {}: iterations 5, returned iterate(s) [2, 3] of 5, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=2 {}: iterations 5, returned iterate(s) [3] of 5, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=3 {}: iterations 5, returned iterate(s) [2, 3] of 5, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=4 {}: iterations 6, returned iterate(s) [2, 5] of 6, history holds the final estimate there: True; done's fval/fsd equal the result's: True
+target_noise=True seed=0 {'max_iter': 1}: iterations 1, returned iterate(s) [0] of 1, history holds the final estimate there: True; done's fval/fsd equal the result's: True

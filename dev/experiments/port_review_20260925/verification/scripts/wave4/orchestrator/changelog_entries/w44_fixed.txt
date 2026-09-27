@@ -1,0 +1,1 @@
+**`init_sobol`'s second value.** `pybads.init_functions.init_sobol` returns the number of points of its design as its second value, as its docstring says, where 1.1.0 returned the base-2 logarithm of that number.

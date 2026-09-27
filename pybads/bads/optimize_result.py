@@ -29,9 +29,15 @@ class OptimizeResult(dict):
             - Value of objective function at solution.
         - fsd: float
             - Standard deviation of objective function at solution (0 if noiseless).
+              For a noisy run that ``output_fcn`` stops in its
+              initialization, which takes no final samples, it is not an
+              estimate: ``noise_size`` without ``specify_target_noise``,
+              and otherwise the standard deviation that the target returned
+              at the incumbent.
         - yval_vec: np.ndarray or None
             - Final sampled observations at the solution; the incumbent's
-              observation alone if the run ends within its first iteration.
+              observation alone if ``output_fcn`` stops the run in its
+              initialization.
               None for a run without uncertainty handling, with
               ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves
               no evaluation for a final sample after the initial design.
@@ -70,6 +76,10 @@ class OptimizeResult(dict):
               ``BADS`` is created is not counted.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
+              The second evaluation of the starting point that tests the
+              target for noise (with ``uncertainty_handling`` left empty)
+              counts as the optimizer's time, since the function time leaves
+              it out, as in MATLAB BADS.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
         - version: str

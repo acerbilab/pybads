@@ -1,18 +1,38 @@
 import numpy as np
-from matplotlib.pyplot import axis
 from scipy.spatial.distance import cdist
 
+from pybads.rounding import round_half_away
 from pybads.variable_transformer import VariableTransformer
 
 
 def force_to_grid(x, search_mesh_size, tol=None):
+    """
+    Put ``x`` on the grid of step ``tol``, as MATLAB BADS's ``force2grid``.
+
+    Each coordinate goes to the nearest multiple of ``tol``; one halfway
+    between two multiples goes to the one farther from zero, as MATLAB's
+    ``round`` takes it, a rounding that
+    ``pybads.rounding.round_half_away`` computes exactly.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        The coordinates, of any shape.
+    search_mesh_size : float
+        The step of the grid if ``tol`` is ``None``.
+    tol : float, optional
+        The step of the grid. If ``None`` (default), ``search_mesh_size``.
+
+    Returns
+    -------
+    x_grid : np.ndarray
+        The multiples of ``tol`` nearest to ``x``, of the shape of ``x``.
+    """
     if tol is None:
         tol = search_mesh_size
 
-    # MATLAB's round (force2grid.m), which takes halves away from zero, where
-    # np.round takes them to the even integer
-    frac, r = np.modf(x / tol)
-    return tol * (r + np.sign(frac) * (np.abs(frac) >= 0.5))
+    # MATLAB's round (force2grid.m), which takes halves away from zero
+    return tol * round_half_away(x / tol)
 
 
 def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):

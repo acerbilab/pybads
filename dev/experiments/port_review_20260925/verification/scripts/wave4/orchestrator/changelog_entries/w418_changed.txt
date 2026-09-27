@@ -1,0 +1,1 @@
+**`hedge_gamma`.** `BADS` raises `ValueError` for a `hedge_gamma` that is not a number from 0 to 1/n, n the number of searches in `search_method` (1/2 at default). 1.1.0, like MATLAB BADS, ran with any value: above 1/n the search hedge favored the search of lower gain, and above 1/(n − 1) it gave some searches a negative probability, so that they were never chosen.

@@ -1,0 +1,14 @@
+fix: an empty search set's search distance is the float 0.0, like its f_sd_search (W4-23)
+
+In _search_step_, the branch for an empty search set set search_dist to
+the int 0, beside f_sd_search = 0.0 (W3-18), where a search with a
+candidate gives a float, in a 1 x 1 array. search_dist is read only by
+_update_search_stats_, which appends it to optim_state's
+search_stats["udist"], and computes the same with either; it is now 0.0.
+
+No test: the value is the same number, and nothing reads its type.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

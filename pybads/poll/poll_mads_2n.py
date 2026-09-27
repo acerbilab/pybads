@@ -1,5 +1,4 @@
 import numpy as np
-from gpyreg.gaussian_process import GP
 
 from pybads.rng import get_rng
 

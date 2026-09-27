@@ -1,0 +1,49 @@
+fix: the initial design is seeded from the run's generator, so that random_seed decides it (W4-1)
+
+init_sobol seeded scipy's scrambled Sobol set from the characters of
+array2string(u0[:11].astype(uint64)): every coordinate inside the
+plausible box, (-1, 1) in u, has the integer part 0, so every start
+inside the box gave one design per D (seed 967 at D = 3; 1 from D = 8,
+where the int64 product of the characters is 0), whatever random_seed.
+A coordinate at or below -1 (x0 on or below its plausible lower bound)
+reached the cast of a negative float to uint64, which is undefined in C
+and differs between x86-64 and AArch64 (W4-2). The branch that drew the
+seed from the run's generator was unreachable, since BADS replaces a
+non-finite x0 first. So the scrambling drew from a generator that the
+run's seed did not reach, against the statements that every random draw
+of a run comes from bads.rng.
+
+As ruled (W4-1 (a)), the seed of the scrambling is now one draw of the
+generator that init_sobol receives, bads.rng, and the seed from u0 goes,
+with its cast to uint64 (and W4-2's platform dependence with it). This
+departs from MATLAB BADS, whose initSobol.m:9-15 derives a skip index
+into the unscrambled sequence from num2str(u0), so that its design
+depends on the start alone. The draw covers [0, 2**63): the range
+[1, 997] of the old branch is MATLAB's bound on its skip index
+(MaxSeed = 997), which means nothing for a scrambling seed and would
+allow only 997 designs per D. One draw rather than the generator itself
+passed to scipy's Sobol: the run's generator then advances by exactly one
+draw at the design, whatever scipy's Sobol draws for its scrambling,
+which depends on D and on scipy's implementation. init_sobol's docstring
+and AGENTS.md's sentence on the design's seed (in "Randomness goes
+through one numpy.random.Generator") say so.
+
+Tests: test_init_sobol.py::
+test_init_sobol_design_follows_the_generator_not_the_start, at D = 3:
+four starts, two inside the plausible box and two on its bounds, give
+one design for one generator seed, and two seeds give two designs; at
+the parent the starts on the bounds give another design, and the two
+seeds the same one. test_bads_seed.py::test_seed_decides_initial_design,
+the same through BADS (the log's rows of the design in a run of 10
+evaluations): starts at x0 = 4, at (-5, 0, 10) and on the plausible lower
+bound give one design at random_seed 42, and 43 gives another; at the
+parent the start on the bound gives another design, and 42 and 43 the
+same one. Both fail at the parent and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 663b49edc9320c55, from 360971bf1f0ba6cb: every run moves from
+its first design point. The gate is the default suite's population
+comparison; the seeded tests of test_bads_optimization.py were not run
+here.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

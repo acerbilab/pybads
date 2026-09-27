@@ -1,0 +1,25 @@
+        # The noise test is the one evaluation without a point
+        n_noise_test = 1 if uncertainty_handling is None else 0
+        assert logger.func_count == logger.Xn + 1 + n_noise_test
+        rng = np.random.default_rng(0)
+        seen = []
+        while logger.Xn + 1 < max_fun_evals - n_noise_test:
+            logger(rng.uniform(-1, 1, 2))
+            gp_train = _get_gp_training_options(
+                bads.optim_state,
+                bads.iteration_history,
+                bads.options,
+                {},
+                0,
+                logger,
+            )
+            seen.append(gp_train["init_N"])
+        assert len(seen) >= 2
+        assert seen[-2] > bads.options["gp_train_n_init_final"]
+>       assert seen[-1] == bads.options["gp_train_n_init_final"]
+E       assert 9 == 8
+
+pybads/testing/bads/test_gaussian_process_train.py:306: AssertionError
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_budget_counts_points[None]
+1 failed, 1 passed, 62 deselected in 1.69s

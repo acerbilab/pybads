@@ -1,0 +1,18 @@
+docs: the description of overhead says that the noise test counts as the optimizer's time, as in MATLAB BADS (W4-7)
+
+The result's overhead is the time of optimize() over the target's time,
+minus 1. The target's time counts every evaluation but the noise test,
+the second evaluation of the starting point made when
+uncertainty_handling is left empty, which is not timed, as MATLAB BADS
+calls the target directly for it (evalinitmesh.m:41) and times only its
+logged calls (funlogger.m:130); the run's time spans it, so it counts as
+the optimizer's time, in MATLAB BADS too (bads.m:1186). The accounting
+stays, as W2-20 ruled; the description of overhead in OptimizeResult
+now says so.
+
+No test: a docstring.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

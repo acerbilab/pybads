@@ -1,0 +1,1 @@
+**`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long as the others, where 1.1.0 left them of unequal lengths.

@@ -1,0 +1,19 @@
+fix: the main loop takes the GP that the poll returns, as it takes the search's (W4-28)
+
+optimize takes the GP that _search_step_ returns, but called
+self._poll_step_(gp) and discarded its return value, whose last element
+is the GP. The loop worked on the right GP only because every GP
+function the poll calls (local_gp_fitting, add_and_update_gp) changes
+the GP in place and returns the object it was given; a GP function
+that returned a new object would have left the loop with the stale one.
+The loop now unpacks the poll's return, (u_poll_best, f_poll_best,
+y_poll_best, f_sd_poll_best, gp), and keeps its gp.
+
+No test: in every run the poll returns the object it was given (32 of
+32 polls in the six runs of the fingerprint), so the loop holds the
+same GP as before.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

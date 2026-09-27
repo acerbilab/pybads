@@ -1,0 +1,17 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+linear, x0 = lb, plb/pub omitted: x0 [-3.0, 0.5], plb (orig) [-3.0, -3.0], lb (u) [-1.0, -1.0], u0 on the grid [-1.0, 0.1669921875], u0[0] == -1 exactly: True
+linear, x0 = lb = plb given: x0 [-3.0, 0.5], plb (orig) [-3.0, -3.0], lb (u) [-1.0, -1.0], u0 on the grid [-1.0, 0.1669921875], u0[0] == -1 exactly: True
+log, x0 = lb, plb/pub omitted: x0 [0.1, 1.0], plb (orig) [0.1, 0.1], lb (u) [-1.0, -1.0], u0 on the grid [-1.0, -0.0], u0[0] == -1 exactly: True
+log, x0 = lb = 1e-3, [1e-3, 1e3], D=3: x0 [0.001, 1.0, 2.0], plb (orig) [0.001, 0.001, 0.001], lb (u) [-1.0, -1.0, -1.0], u0 on the grid [-1.0, 0.0, 0.1005859375], u0[0] == -1 exactly: True
+linear, x0 between lb and plb: x0 [-2.5, 0.5], plb (orig) [-2.0, -2.0], lb (u) [-1.5, -1.5], u0 on the grid [-1.25, 0.25], u0[0] == -1 exactly: False
+interior start: x0 [-2.9, 0.5], plb (orig) [-3.0, -3.0], lb (u) [-1.0, -1.0], u0 on the grid [-0.966796875, 0.1669921875], u0[0] == -1 exactly: False
+
+linear, x0 = lb, plb/pub omitted: default run reached init_sobol with u0 [-1.0, 0.1669921875]; cast [18446744073709551615, 0] (warnings []); seed 1; design rows 4; run: 61 evaluations, fval 1.92e-07
+
+interior start: default run reached init_sobol with u0 [-0.966796875, 0.1669921875]; cast [0, 0] (warnings []); seed 948; design rows 4; run: 61 evaluations, fval 2.65e-07
+
+log, x0 = lb, plb/pub omitted: default run reached init_sobol with u0 [-1.0, -0.0]; cast [18446744073709551615, 0] (warnings []); seed 1; design rows 4; run: 72 evaluations, fval 2.97e-08
+
+linear on-bound design equals interior design: False
+seed of '0 0' (what a saturating cast gives): 948

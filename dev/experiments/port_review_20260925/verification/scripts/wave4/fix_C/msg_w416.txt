@@ -1,0 +1,31 @@
+fix: poll_scale and effective_radius over several hyperparameter samples, as MATLAB BADS weights them (W4-16)
+
+After a refit, local_gp_fitting computes the geometry of the local GP
+over its hyperparameter samples. len_scale was their mean, MATLAB's sum
+weighted by hypweight with equal weights, but poll_scale summed the
+centred log length scales over the samples without the weights, which
+gives MATLAB's value raised to the number of samples, and
+effective_radius was one value per sample, where gpupdate.m takes one
+radius from the weighted mean of the shape alpha (gpupdate.m:294-299,
+313-317). No option or path gives the GP more than one sample today
+(_robust_gp_fit_ returns one row, and gp_s_N is 0 at both call sites),
+so no run was affected.
+
+poll_scale now weights the centred log length scales by 1/N, and the
+radius comes from the mean shape, one value, as the initial
+effective_radius of 1.0 that _gp_hyp sets. With one sample the
+division by 1 and the sum of one element are exact, so nothing moves.
+
+Test: test_gaussian_process_train.py::
+test_rebuild_geometry_is_weighted_over_samples, beside the test of
+len_scale: a refit forced to return two samples (the O verifier's
+v_ok1_samples.py, part B), whose poll_scale and effective_radius must
+equal a transcription of gpupdate.m:294-299 and 313-317 with hypweight
+1/2. At the parent poll_scale is the transcription's squared
+([3.630, 0.275] against [1.905, 0.525]) and effective_radius has two
+values. The verifier's part B gives MATLAB's values with the fix.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

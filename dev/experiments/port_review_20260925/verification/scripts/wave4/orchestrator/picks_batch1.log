@@ -1,0 +1,24 @@
+ok fixed
+ok upgrading
+8daf7ad fix: init_sobol returns the number of points of its design, as its docstring says (W4-4)
+suite at 8daf7ad: 468 passed, 20 warnings in 136.08s (0:02:16)
+8daf7ad fix: init_sobol returns the number of points of its design, as its docstring says  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok fixed
+ok upgrading
+5dd92b7 fix: the function logger refuses a malformed SD with its documented ValueError, and checks both outputs before recording anything (W4-8)
+suite at 5dd92b7: 488 passed, 20 warnings in 136.67s (0:02:16)
+5dd92b7 fix: the function logger refuses a malformed SD with its documented ValueError, an | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok fixed
+29a258a fix: FunctionLogger.finalize trims n_evals too, and reset_fun_eval_time keeps the arrays' length (W4-9)
+suite at 29a258a: 490 passed, 20 warnings in 134.34s (0:02:14)
+29a258a fix: FunctionLogger.finalize trims n_evals too, and reset_fun_eval_time keeps the  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4ea665a docs: FunctionLogger.__call__ and add take x in the transformed space, and add's docstring says what it does with the SD (W4-10)
+suite at 4ea665a: 490 passed, 20 warnings in 135.20s (0:02:15)
+4ea665a docs: FunctionLogger.__call__ and add take x in the transformed space, and add's d | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+f1247d0 docs: cache_size is the initial size of the log of evaluations, which grows when it is full (W4-12)
+suite at f1247d0: 490 passed, 20 warnings in 131.60s (0:02:11)
+f1247d0 docs: cache_size is the initial size of the log of evaluations, which grows when i | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+2dc5807 docs: AGENTS.md says that only a direct use of FunctionLogger reaches its merge of a repeated point (W4-5)
+suite at 2dc5807: 490 passed, 20 warnings in 132.52s (0:02:12)
+2dc5807 docs: AGENTS.md says that only a direct use of FunctionLogger reaches its merge of | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+done

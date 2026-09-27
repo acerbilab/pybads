@@ -1,0 +1,5 @@
+ok replace
+46af65a fix: the GP's fit schedule counts its budget without the noise test, as it counts the evaluations used (W4-6)
+suite at 46af65a: 613 passed, 21 warnings in 148.89s (0:02:28)
+46af65a fix: the GP's fit schedule counts its budget without the noise test, as it counts  | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb
+done

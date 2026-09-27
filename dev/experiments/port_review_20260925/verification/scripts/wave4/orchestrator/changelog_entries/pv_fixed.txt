@@ -1,0 +1,1 @@
+**Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0 refused it.

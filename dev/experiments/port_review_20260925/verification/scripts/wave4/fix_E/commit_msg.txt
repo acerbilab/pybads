@@ -1,0 +1,51 @@
+fix: the GP's fit schedule counts its budget without the noise test, as it counts the evaluations used (W4-6)
+
+The fraction of the budget used after the initial design, from which
+init_N (the number of prior draws that a hyperparameter fit starts from)
+follows, is (n_eff - eff_starting_points) / n_budget in
+_get_gp_training_options, with n_budget = min(max_fun_evals, n_train_max)
+- eff_starting_points. n_eff and eff_starting_points count the points of
+the log; max_fun_evals counts the evaluations, the noise test among them
+(381bf32, W2-27). Since e7bd01d (W4-6), which took the noise test out of
+the start's n_evals, the numerator no longer counted the test and the
+denominator still did, so a budget that x0, the noise test and the
+initial design use up read as unused: with max_fun_evals from 2 to 5, the
+fits started from gp_train_n_init (128) draws instead of
+gp_train_n_init_final (8), and test_get_gp_training_options_small_budget
+failed in its 8 cases. Before e7bd01d, the extra count in n_eff cancelled
+that of the denominator.
+
+The budget now counts points too: n_budget = min(max_fun_evals -
+n_noise_test, n_train_max) - eff_starting_points, where n_noise_test,
+which _init_mesh_ records in optim_state, is 1 when the noise test ran
+(uncertainty_handling left empty) and 0 otherwise. The count is kept by
+the code that runs the test, beside eff_starting_points, which _init_mesh_
+records for this schedule too. The difference between func_count and the
+sum of the rows' counts gives the same number today, but only as long as
+every other evaluation adds to a row's count, and a second test of the
+uncertainty_handling option would repeat _init_mesh_'s condition. The
+schedule is PyBADS's own; MATLAB BADS has none to follow.
+
+Tests (test_gaussian_process_train.py):
+test_get_gp_training_options_small_budget passes again, unchanged (8
+failures at the parent). The new
+test_get_gp_training_options_budget_counts_points, with
+uncertainty_handling None and False at max_fun_evals = 10 (D = 2), adds
+points to the log after the initialization: init_N reaches
+gp_train_n_init_final at the last point that the budget allows (the 9th
+with the noise test, the 10th without) and not one point before. At the
+parent the case with the noise test ends at 9 draws instead of 8; the
+case without it guards the count of 0. The two unit tests that set the
+initialization's state by hand set n_noise_test too.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 4146a986863602cb, from the parent's c91725823bc62b29. Its runs
+have max_fun_evals 80, which equals n_train_max at D = 3, so the budget of
+its three deterministic runs, which take the noise test, falls from 80
+points to 79 and they move; its three noisy runs
+(uncertainty_handling=True, no noise test) are the same, run for run.
+With max_fun_evals 81 all six runs are the same as at the parent. n_budget
+changes only when max_fun_evals - 1 < n_train_max, so no run at the
+default max_fun_evals (500 D, against 50 + 10 D) moves.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

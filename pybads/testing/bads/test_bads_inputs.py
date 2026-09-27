@@ -412,3 +412,295 @@ def test_accelerate_mesh_steps_positive_integer_is_accepted(
     assert type(bads.options["accelerate_mesh_steps"]) is int
     result = bads.optimize()
     assert np.isfinite(result["fval"])
+
+
+def _bads_with_hedge_gamma(hedge_gamma, n_search_methods=2):
+    search_method = [("ES-wcm", 1), ("ES-ell", 1), ("ES-wcm", 1)]
+    return BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={
+            **OPTIONS,
+            "hedge_gamma": hedge_gamma,
+            "search_method": search_method[:n_search_methods],
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "hedge_gamma, n_search_methods",
+    [
+        (-0.1, 2),
+        (-1e-12, 2),
+        (0.5 + 1e-12, 2),
+        (1.25, 2),
+        (0.34, 3),
+        (1.5, 1),
+        (np.nan, 2),
+        (np.inf, 2),
+        (True, 2),
+        ("0.1", 2),
+        (np.array([0.1, 0.2]), 2),
+    ],
+)
+def test_hedge_gamma_outside_zero_to_one_over_n_is_refused(
+    hedge_gamma, n_search_methods
+):
+    """A `hedge_gamma` outside [0, 1 / n], n the number of search methods,
+    is refused when `BADS` is created: above 1 / n the hedge's
+    probabilities favor the search of lower gain, and above 1 / (n - 1)
+    some of them are negative; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError, match=r"hedge_gamma'\] needs to lie between 0 and 1 / n"
+    ):
+        _bads_with_hedge_gamma(hedge_gamma, n_search_methods)
+
+
+@pytest.mark.parametrize(
+    "hedge_gamma, n_search_methods",
+    [(0, 2), (0.125, 2), (0.5, 2), (1 / 3, 3), (1, 1), (np.float64(0.25), 2)],
+)
+def test_hedge_gamma_from_zero_to_one_over_n_is_accepted(
+    hedge_gamma, n_search_methods
+):
+    bads = _bads_with_hedge_gamma(hedge_gamma, n_search_methods)
+    assert bads.options["hedge_gamma"] == hedge_gamma
+
+
+def _bads_with_options(options, D=2):
+    return BADS(
+        _sphere,
+        np.full(D, 0.5),
+        -5 * np.ones(D),
+        5 * np.ones(D),
+        -3 * np.ones(D),
+        3 * np.ones(D),
+        options={**OPTIONS, **options},
+    )
+
+
+@pytest.mark.parametrize(
+    "hedge_beta",
+    [
+        -1.0,
+        -1e-12,
+        -1000.0,
+        np.nan,
+        np.inf,
+        -np.inf,
+        True,
+        "1",
+        1 + 0j,
+        np.array([1.0, 2.0]),
+    ],
+)
+def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+    """A `hedge_beta` that is not a finite number at least 0 is refused when
+    `BADS` is created: below 0 the hedge favors the search of lower gain,
+    and at inf or NaN its probabilities and gains are NaN, so that every
+    choice is at random; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError,
+        match=r"hedge_beta'\] needs to be a finite number greater than or "
+        r"equal to 0",
+    ):
+        _bads_with_options({"hedge_beta": hedge_beta})
+
+
+def test_hedge_beta_refusal_names_its_default():
+    """A negative `tol_fun` makes the default `hedge_beta`, `1e-3 / tol_fun`,
+    negative, and the refusal names that default."""
+    with pytest.raises(
+        ValueError,
+        match=r"not -1\.0; its default is 1e-3 / options\['tol_fun'\]",
+    ):
+        _bads_with_options({"tol_fun": -1e-3})
+
+
+@pytest.mark.parametrize("hedge_beta", [0, 0.0, 1, 1e3, np.float64(0.5)])
+def test_hedge_beta_finite_number_at_least_zero_is_accepted(hedge_beta):
+    bads = _bads_with_options({"hedge_beta": hedge_beta})
+    assert bads.options["hedge_beta"] == hedge_beta
+
+
+@pytest.mark.parametrize(
+    "hedge_decay",
+    [
+        -0.1,
+        -1e-12,
+        1 + 1e-12,
+        2.0,
+        50.0,
+        np.nan,
+        np.inf,
+        True,
+        "0.5",
+        0.5 + 0j,
+        np.array([0.5, 0.6]),
+    ],
+)
+def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+    """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+    above 1 the hedge's gains grow until they overflow, and below 0 they
+    alternate in sign; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+    ):
+        _bads_with_options({"hedge_decay": hedge_decay})
+
+
+@pytest.mark.parametrize("hedge_decay", [0, 0.5, 1, 1.0, np.float64(0.9)])
+def test_hedge_decay_from_zero_to_one_is_accepted(hedge_decay):
+    bads = _bads_with_options({"hedge_decay": hedge_decay})
+    assert bads.options["hedge_decay"] == hedge_decay
+
+
+@pytest.mark.parametrize("tol_fun", [1e-3, 1e-6, 0.1])
+@pytest.mark.parametrize("D", [1, 2, 5, 20, 60])
+def test_hedge_beta_and_hedge_decay_defaults_are_accepted(D, tol_fun):
+    """The defaults, `hedge_beta = 1e-3 / tol_fun` and `hedge_decay =
+    0.1 ** (1 / (2 * D))`, are accepted at every `D`."""
+    bads = _bads_with_options({"tol_fun": tol_fun}, D)
+    assert bads.options["hedge_beta"] == 1e-3 / tol_fun
+    assert bads.options["hedge_decay"] == 0.1 ** (1 / (2 * D))
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [0, -1.0, np.nan, np.inf, "acq_schedule", np.array([1.0, 2.0]), True],
+    ids=["zero", "negative", "nan", "inf", "name", "2 elements", "bool"],
+)
+def test_search_sqrt_beta_refused_before_any_evaluation(sqrt_beta):
+    """A `sqrt_beta` of `search_acq_fcn` that is not None, a callable or a
+    positive finite real number, which the search's LCB refuses, is refused
+    when `BADS` is created, before the target is evaluated."""
+    calls = []
+
+    def target(x):
+        calls.append(x)
+        return _quadratic(x)
+
+    with pytest.raises(
+        ValueError,
+        match=r"options\['search_acq_fcn'\]\[1\] \(sqrt_beta\) needs to be "
+        r"None \(the default schedule\), a callable",
+    ):
+        BADS(
+            target,
+            np.array([0.5, 0.0]),
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "search_acq_fcn": ("acq_LCB", sqrt_beta)},
+        )
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [None, 2.0, np.float64(0.5), np.array([1.0]), lambda t, n_vars: -1.0],
+    ids=["None", "float", "np.float64", "1-element", "callable"],
+)
+def test_search_sqrt_beta_accepted(sqrt_beta):
+    """None, a positive finite real number and a callable are accepted when
+    `BADS` is created; a callable's value is checked at each call."""
+    bads = BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={**OPTIONS, "search_acq_fcn": ("acq_LCB", sqrt_beta)},
+    )
+    assert bads.options["search_acq_fcn"][1] is sqrt_beta
+
+
+def _bads_with_n_search_iter(n_search_iter):
+    return BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={
+            **OPTIONS,
+            "n_search_iter": n_search_iter,
+            "max_fun_evals": 60,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "n_search_iter", [0, -1, 0.5, 2.5, np.nan, np.inf, True, "2"]
+)
+def test_n_search_iter_not_a_positive_integer_is_refused(n_search_iter):
+    """An `n_search_iter` that is not a positive integer is refused when
+    `BADS` is created: the run stopped at its first search, with
+    `ZeroDivisionError` at 0, `TypeError` at 0.5 or 2.5 and NumPy's
+    `ValueError` at -1."""
+    with pytest.raises(
+        ValueError, match=r"n_search_iter'\] needs to be a positive integer"
+    ):
+        _bads_with_n_search_iter(n_search_iter)
+
+
+@pytest.mark.parametrize("n_search_iter", [1, 2, 3.0, np.int64(4)])
+def test_n_search_iter_positive_integer_is_accepted(n_search_iter):
+    bads = _bads_with_n_search_iter(n_search_iter)
+    assert bads.options["n_search_iter"] == n_search_iter
+    assert type(bads.options["n_search_iter"]) is int
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])
+
+
+@pytest.mark.parametrize(
+    "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
+)
+@pytest.mark.parametrize("periodic_vars", [[1], [5]], ids=["index", "out"])
+def test_periodic_vars_is_refused(x0, periodic_vars):
+    """Periodic variables are not supported yet: a `periodic_vars` that
+    names a variable is refused with `ValueError` when `BADS` is created,
+    before the variables are transformed, also with a random `x0`, whose
+    draw transforms them, and for an index out of range, which raised
+    `IndexError` there."""
+    with pytest.raises(
+        ValueError, match="Periodic variables are not yet supported"
+    ):
+        BADS(
+            _quadratic,
+            x0,
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "periodic_vars": periodic_vars},
+        )
+
+
+@pytest.mark.parametrize(
+    "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
+)
+@pytest.mark.parametrize(
+    "periodic_vars", [[], np.array([], dtype=int)], ids=["list", "array"]
+)
+def test_empty_periodic_vars_stands_for_none(x0, periodic_vars):
+    """An empty `periodic_vars` names no periodic variable, as in MATLAB
+    BADS (`setupvars.m`), and stands for `None`, its default."""
+    bads = BADS(
+        _quadratic,
+        x0,
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={**OPTIONS, "periodic_vars": periodic_vars},
+    )
+    assert bads.options["periodic_vars"] is None
+    assert not np.any(bads.optim_state["periodic_vars"])

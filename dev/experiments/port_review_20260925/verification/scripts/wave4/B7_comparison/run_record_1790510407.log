@@ -1,0 +1,11 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+level 0 seed 1: func_count 115 logger.func_count 115 rows 114 paths {'new row': 114, 'unrecorded (dup row)': 1} n_evals[0] 2.0 sum(n_evals) 115.0 design rows 5 total_time 4.278e-03 sum_row_time 4.240e-03 X rows allocated 500 n_evals rows 500
+level 0 seed 2: func_count 95 logger.func_count 95 rows 94 paths {'new row': 94, 'unrecorded (dup row)': 1} n_evals[0] 2.0 sum(n_evals) 95.0 design rows 5 total_time 2.658e-03 sum_row_time 2.649e-03 X rows allocated 500 n_evals rows 500
+level 0 seed 3: func_count 105 logger.func_count 105 rows 104 paths {'new row': 104, 'unrecorded (dup row)': 1} n_evals[0] 2.0 sum(n_evals) 105.0 design rows 5 total_time 3.092e-03 sum_row_time 3.063e-03 X rows allocated 500 n_evals rows 500
+level 1 seed 1: func_count 200 logger.func_count 200 rows 189 paths {'new row': 189, 'unrecorded (dup row)': 11} n_evals[0] 2.0 sum(n_evals) 200.0 design rows 33 total_time 8.144e-03 sum_row_time 7.890e-03 X rows allocated 500 n_evals rows 500
+level 1 seed 2: func_count 200 logger.func_count 200 rows 189 paths {'new row': 189, 'unrecorded (dup row)': 11} n_evals[0] 2.0 sum(n_evals) 200.0 design rows 33 total_time 9.369e-03 sum_row_time 9.126e-03 X rows allocated 500 n_evals rows 500
+level 1 seed 3: func_count 200 logger.func_count 200 rows 189 paths {'new row': 189, 'unrecorded (dup row)': 11} n_evals[0] 2.0 sum(n_evals) 200.0 design rows 33 total_time 8.133e-03 sum_row_time 7.829e-03 X rows allocated 500 n_evals rows 500
+level 2 seed 1: func_count 200 logger.func_count 200 rows 190 paths {'new row': 190, 'unrecorded (dup row)': 10} n_evals[0] 1.0 sum(n_evals) 200.0 design rows 33 total_time 8.609e-03 sum_row_time 8.363e-03 X rows allocated 500 n_evals rows 500
+level 2 seed 2: func_count 200 logger.func_count 200 rows 190 paths {'new row': 190, 'unrecorded (dup row)': 10} n_evals[0] 1.0 sum(n_evals) 200.0 design rows 33 total_time 8.348e-03 sum_row_time 8.102e-03 X rows allocated 500 n_evals rows 500
+level 2 seed 3: func_count 200 logger.func_count 200 rows 190 paths {'new row': 190, 'unrecorded (dup row)': 10} n_evals[0] 1.0 sum(n_evals) 200.0 design rows 33 total_time 8.538e-03 sum_row_time 8.275e-03 X rows allocated 500 n_evals rows 500

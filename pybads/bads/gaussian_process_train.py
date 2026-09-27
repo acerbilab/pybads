@@ -552,8 +552,9 @@ def local_gp_fitting(
                 * dic_hyp_gp[i]["covariance_log_lengthscale"]
             )
         # ll = exp(sum(bsxfun(@times, gpstruct.hypweight, ll - mean(ll(:))),2))';
+        # with equal weights, as for the length scale above
         ll = ll - np.mean(ll)
-        ll = np.exp(np.sum(ll, axis=0))
+        ll = np.exp(np.sum(ll / hyp_n_samples, axis=0))
 
         # Take bounded limits
         ub_bounded = optim_state["ub"].copy()
@@ -582,6 +583,10 @@ def local_gp_fitting(
                     # Casting to a scalar suppress deprecation warnings in pytest runs.
                     # "Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future."
                     alpha[i] = np.exp(dic_hyp_gp[i]["covariance_log_shape"])[0]
+
+                # The shape over the samples, MATLAB's sum weighted by
+                # `hypweight`, with equal weights: one radius
+                alpha = np.sum(alpha / hyp_n_samples)
 
                 # As in MATLAB's gpupdate.m: the distance, in length scales,
                 # at which the kernel (1 + r^2 / (2 alpha))^-alpha falls to
@@ -1147,10 +1152,15 @@ def _get_gp_training_options(
     d = options["gp_train_n_init"]
     eff_starting_points = optim_state["eff_starting_points"]
     # The fraction of the budget used after the initial design, in [0, 1],
-    # where the cubic falls from gp_train_n_init to gp_train_n_init_final;
-    # a budget no larger than the initial design is used up
+    # where the cubic falls from gp_train_n_init to gp_train_n_init_final.
+    # The budget counts points, as n_eff and eff_starting_points do, so it
+    # leaves out the noise test, which max_fun_evals counts; a budget no
+    # larger than the initial design is used up
     n_budget = (
-        min(options["max_fun_evals"], options["n_train_max"])
+        min(
+            options["max_fun_evals"] - optim_state["n_noise_test"],
+            options["n_train_max"],
+        )
         - eff_starting_points
     )
     if n_budget > 0:

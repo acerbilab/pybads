@@ -1,0 +1,10 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+quad D=3 seed 0: func_count 77, x [0.101323, 0.100608, 0.099149], fval 4.66e-06
+quad D=3 seed 1: func_count 77, x [0.100779, 0.101511, 0.100544], fval 6.06e-06
+quad D=3 seed 2: func_count 77, x [0.099795, 0.100117, 0.100265], fval 2.79e-07
+  seeds 0 and 1: evaluated points identical up to row 11 (None = all 76 rows identical)
+rosenbrock D=3 seed 0: func_count 110, x [0.999071, 0.997967, 0.995977], fval 8.22e-06
+rosenbrock D=3 seed 1: func_count 110, x [0.99907, 0.998277, 0.996355], fval 9.72e-06
+rosenbrock D=3 seed 2: func_count 124, x [1.000028, 1.000133, 1.000277], fval 6.1e-07
+  seeds 0 and 1: evaluated points identical up to row 11 (None = all 109 rows identical)
