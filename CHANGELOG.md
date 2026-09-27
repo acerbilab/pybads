@@ -299,8 +299,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   points succeeds, as in Sto-MADS, and moves the incumbent to that point;
   before, the outcome of the last polled point decided, so that a success
   followed by other points was lost and the mesh contracted. With
-  `opp_stobads`, a poll without a success moves to its best point when any
-  of its points is uncertain, not only when the last one is.
+  `opp_stobads`, a poll without a success moves to its best point when that
+  point improves on the incumbent and any of the poll's points is uncertain,
+  not only when the last one is.
 - **Search without a candidate.** A search that leaves no candidate, for
   instance under a `non_box_cons` that does not always give the same answer
   for a point, counts as a failed search, as in MATLAB BADS; the run stopped

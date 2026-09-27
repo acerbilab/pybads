@@ -2517,10 +2517,15 @@ class BADS:
         else:
             # StoBads: a success moves to the successful point, and with
             # opp_stobads an uncertain poll moves to the best polled point
+            # if that point improves on the incumbent
             if sto_poll == 1:
                 self._update_incumbent_(*sto_best)
                 is_poll_moved = True
-            elif self.options["opp_stobads"] and sto_poll == 0:
+            elif (
+                self.options["opp_stobads"]
+                and sto_poll == 0
+                and poll_best_improvement > 0
+            ):
                 self._update_incumbent_(
                     u_poll_best, y_poll_best, f_poll_best, f_sd_poll_best
                 )
