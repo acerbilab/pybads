@@ -2032,7 +2032,7 @@ class BADS:
             y_search = self.yval
             f_mu_search = self.fval
             f_sd_search = 0.0
-            search_dist = 0
+            search_dist = 0.0
 
         # TODO: CMA-ES like estimation of local covariance structure (unused)
         if (
