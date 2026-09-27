@@ -563,6 +563,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   evolution-strategy search keeps has as many offspring as MATLAB BADS gives
   it; each had those of the candidate ranked before it, and the best one a
   single offspring. Results change at default options.
+- **Ties in the search.** The evolution-strategy search ranks candidates of
+  equal acquisition value, and ES-wcm the training points of equal value, in
+  their order, as the stable sort of MATLAB BADS does; NumPy's default sort
+  ordered them otherwise.
 
 ## [1.1.0] - 2026-09-25
 

@@ -1,4 +1,5 @@
 import logging
+from types import SimpleNamespace
 
 import gpyreg as gpr
 import numpy as np
@@ -572,3 +573,61 @@ def test_es_wcm_takes_one_best_point_per_weight(monkeypatch):
     assert U_best.shape[0] == n_best == weights.size
     best = np.argsort(gp.y.ravel(), kind="stable")[:n_best]
     assert np.array_equal(U_best, gp.X[best])
+
+
+def test_es_wcm_ranks_tied_training_points_in_their_order(monkeypatch):
+    """ES-wcm ranks training points of equal value in their order in the
+    training set, as MATLAB's stable sort does, when it takes the best."""
+    bads, gp = _initial_state()
+    n = gp.X.shape[0]
+    y = np.random.default_rng(0).integers(0, 3, size=(n, 1)).astype(float)
+    calls = []
+    original_ucov = es_search_module.ucov
+
+    def ucov(U, u, w, *args, **kwargs):
+        calls.append(U.copy())
+        return original_ucov(U, u, w, *args, **kwargs)
+
+    monkeypatch.setattr(es_search_module, "ucov", ucov)
+    search_es = ESSearchWM(1, 1, bads.options, rng=bads.rng)
+    search_es._initialize_(
+        bads.u, SimpleNamespace(X=gp.X, y=y), bads.optim_state, True
+    )
+    (U_best,) = calls
+    # Python's sort is stable
+    order = sorted(range(n), key=lambda k: y[k, 0])
+    assert np.array_equal(U_best, gp.X[order[: U_best.shape[0]]])
+
+
+def test_es_search_ranks_tied_candidates_in_their_order(monkeypatch):
+    """The ES search ranks candidates of equal acquisition value in their
+    order in the pool, as MATLAB's stable sort does: it returns the first
+    of the best."""
+    bads, gp = _initial_state()
+    values = np.random.default_rng(0)
+    generations = []
+
+    def lcb(u, *args, **kwargs):
+        # Two values, so that most candidates tie
+        z = -(values.normal(size=(len(u), 1)) > 1.0).astype(float)
+        generations.append((u.copy(), z.ravel()))
+        return z, z, np.zeros_like(z)
+
+    monkeypatch.setattr(es_search_module, "acq_fcn_lcb", lcb)
+    mu = int(bads.options["n_search"] / bads.options["n_search_iter"])
+    search_es = ESSearchWM(mu, mu, bads.options, rng=bads.rng)
+    us, z = search_es(
+        bads.u,
+        None,
+        None,
+        bads.function_logger,
+        gp,
+        bads.optim_state,
+        True,
+        None,
+    )
+    U = np.vstack([u for u, _ in generations])
+    Z = np.concatenate([z for _, z in generations])
+    assert z == np.min(Z)
+    # np.argmin returns the first of the minima
+    assert np.array_equal(us, U[np.argmin(Z)])

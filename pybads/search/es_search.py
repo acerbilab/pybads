@@ -186,7 +186,7 @@ class ESSearch(ABC):
             N = np.minimum(us_candidates.shape[0], self.lamb)
 
             # Order candidates and select
-            z_idx = np.argsort(z_candidates)
+            z_idx = np.argsort(z_candidates, kind="stable")
             # New candidates among the best ntest, as in MATLAB's searchES:
             # the pool is not trimmed, and this generation's are its last rows
             ntest = np.minimum(u_new.shape[0], nold)
@@ -245,7 +245,7 @@ class ESSearchWM(ESSearch):
         weights = weights / np.sum(weights)
 
         # Compute best vectors
-        y_idx = np.argsort(Y)
+        y_idx = np.argsort(Y, kind="stable")
         idx_sel = (y_idx[0 : np.floor(mu).astype(int)]).flatten()
         Ubest = U[idx_sel].copy()
 
