@@ -2285,11 +2285,10 @@ class BADS:
                 ) / fs
             if np.all(np.isfinite(gamma_z)) and np.all(np.isreal(gamma_z)):
                 f_pi = 0.5 * erfc(-gamma_z / np.sqrt(2))
-                # sort descend
-                f_pi = np.sort(f_pi)[::-1]
-                p_less = np.prod(
-                    1 - f_pi[0 : np.minimum(self.D + 1, len(f_pi))]
-                )
+                # sort descend, over the points (f_pi is a column), and take
+                # the D largest, as MATLAB BADS
+                f_pi = np.sort(f_pi, axis=None)[::-1]
+                p_less = np.prod(1 - f_pi[: self.D])
             else:
                 p_less = 0
                 do_gp_calibration = True

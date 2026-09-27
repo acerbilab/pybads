@@ -577,6 +577,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   MATLAB BADS; a misplaced parenthesis rewarded a search whose point was
   worse than the incumbent 2.5 to hundreds of times more than MATLAB BADS
   does. Results change in noisy runs.
+- **Early stop of the poll.** The probability that no remaining poll point
+  improves, which decides whether the poll stops early, was computed over
+  the last D + 1 points of the poll set in their order, whatever their
+  probabilities of improvement; it is now computed over the D largest, as in
+  MATLAB BADS. At the default `tol_poi` the difference is rare.
 
 ## [1.1.0] - 2026-09-25
 

@@ -520,3 +520,51 @@ def test_acquisition_all_nan_chooses_at_random(monkeypatch, caplog):
         (index,) = [i for i in range(len(u)) if np.array_equal(u[i], x)]
         indices.append(index)
     assert max(indices) > 0
+
+
+def test_poll_stop_probability_takes_the_largest_probabilities(monkeypatch):
+    """The probability that no poll point improves, which decides whether
+    the poll stops, is the product of the complements of the D largest
+    probabilities of improvement of the points left, as in MATLAB BADS
+    (`bads.m:868-869`). With the predictions of the run's first poll step
+    patched so that its first point has a probability of improvement of
+    0.69 and the five others of 1e-9, it is 0.31 * (1 - 1e-9)**2, not about
+    1."""
+    from scipy.stats import norm
+
+    import pybads.bads.bads as bads_module
+
+    bads = _make_bads(max_fun_evals=30)
+    original_acq = bads_module.acq_fcn_lcb
+    original_stop = BADS._is_poll_stop_
+    patched = []
+    p_less = []
+
+    def acq(u, func_count, gp):
+        z, f_mu, fs = original_acq(u, func_count, gp)
+        poll = bads.optim_state["search_count"] == 0
+        if poll and not patched and len(u) == 2 * D:
+            # f_mu and fs such that gamma_z is norm.ppf of each probability
+            poi = np.full(f_mu.shape, 1e-9)
+            poi[0] = 0.69
+            fs = np.ones(f_mu.shape)
+            f_mu = (
+                bads.optim_state["f_target"]
+                - bads.sufficient_improvement
+                - norm.ppf(poi)
+            )
+            patched.append(True)
+        return z, f_mu, fs
+
+    def stop(self, certain_good_poll, do_gp_calibration, p, poll_count):
+        if patched and not p_less:
+            p_less.append(p)
+        return original_stop(
+            self, certain_good_poll, do_gp_calibration, p, poll_count
+        )
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", acq)
+    monkeypatch.setattr(BADS, "_is_poll_stop_", stop)
+    bads.optimize()
+    assert len(p_less) == 1
+    assert p_less[0] == pytest.approx(0.31 * (1 - 1e-9) ** 2, rel=1e-9)
