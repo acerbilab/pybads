@@ -109,6 +109,15 @@ order.
   seeded, so both stay until the first release after 1.1.0, whose tests
   are: drop them in the version-update PR that the feedstock's bot opens
   for that release, before it is merged.
+- [ ] **"What's new" at the next release.** `README.md` and
+  `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
+  every random draw of a run comes from one generator created from
+  `random_seed`, which 1.1.0's initial design did not follow (its
+  scrambling was seeded from the start). The list of the next release
+  replaces it, and says that `random_seed` now decides the initial design
+  (the doublecheck of wave 4 of the port review,
+  `experiments/port_review_20260925/verification/wave4.md`,
+  "Doublecheck").
 - [ ] **The target's copy of the GP at every step.**
   `_get_target_from_gp_` deep-copies the GP and recomputes its posterior
   under the best iteration's hyperparameters at every search and poll step
@@ -171,8 +180,10 @@ order.
   value is refused with a message. A port imports them after the function
   logger exists, keeps them out of the choice of the first incumbent, and
   needs a test that its GP holds them. `FunctionLogger.add`, which such a
-  port would call, keeps checks of its own on the value and its SD, and
-  what it records for a repeated point is settled with it (row W4-10).
+  port would call, keeps checks of its own on the value and its SD, records
+  a missing SD as 1 when the logger holds SDs and drops a given one when it
+  does not, and what it records for a repeated point is settled with it
+  (row W4-10).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -231,21 +242,18 @@ order.
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
   while fixing", with the details). Not fixed:
   - the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
-    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578`
-    applies `SearchAcqFcn`; only its mean is read, so nothing moves, but a
-    callable `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
+    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578` applies
+    `SearchAcqFcn`; only its mean is read, so nothing moves, but a callable
+    `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
     `# Returns z, dz,ymu,ys,fmu,fs,*fpi*` lists MATLAB's outputs; the port
     floors the ES search's `mu = n_search / n_search_iter`, where
-    `private/setupvars.m:186` does not; `n_search` and `search_method` are
-    not checked (an empty `search_method` fails at the first search), and a
-    `search_acq_fcn` that is not a pair fails when `BADS` is created with an
-    unrelated `IndexError` or `TypeError`, while a first element other than
-    `"acq_LCB"` fails only at the first search; `_search_step_`'s docstring
-    gives `search_dist` as an array and has the typo "thecurrent";
-  - the checks: a NumPy complex scalar passes the checks of `hedge_gamma`,
-    `hedge_beta`, `hedge_decay` and `improvement_quantile`, since NumPy
-    orders complex numbers, and a one-element array is accepted and stored
-    as an array; `tol_fun` is not checked (0 raises a bare
+    `private/setupvars.m:186` does not; `search_method` is not checked (an
+    empty one fails at the first search), and a `search_acq_fcn` that is not
+    a pair fails when `BADS` is created with an unrelated `IndexError` or
+    `TypeError`, while a first element other than `"acq_LCB"` fails only at
+    the first search; `_search_step_`'s docstring gives `search_dist` as an
+    array and has the typo "thecurrent";
+  - the checks: `tol_fun` is not checked (0 raises a bare
     `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
     evaluated, and a negative value is refused only through `hedge_beta`);
   - the function logger: `FunctionLogger.add` keeps checks of its own (a
@@ -255,14 +263,18 @@ order.
     average their times into its row, as the noise test did before W4-6, at
     the end of the run; `test_function_logger.py` calls
     `test_add_parameter_transform()` at module level;
-  - the rest: the description of `periodic_vars` does not say that the
-    option is refused, and `test_options.py` asserts its text;
-    `_get_gp_training_options`'s docstring gives the type `dic`, leaves out
-    `function_logger` and `second_fit` and lists `hyp_dict`, which it does
-    not read; `init_sobol` keeps two commented-out lines; comments,
+  - the rest: `_get_gp_training_options`'s docstring gives the type `dic`,
+    leaves out `function_logger` and `second_fit` and lists `hyp_dict`,
+    which it does not read; `init_sobol` keeps two commented-out lines; comments,
     strings and docstrings longer than 79 characters in
     `constraints_check.py`, `grid_functions.py`, `es_search.py` and
-    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`.
+    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`;
+    `test_get_gp_training_options_samplers` and `_opts_N` assign
+    `hyp_dict_none` and never use it; `bads.py` imports
+    `matplotlib.pyplot`, which nothing in the package uses; the docstring of
+    `BADS.optimize` renders with numpydoc's warning on an underline and a
+    docutils error ("Unexpected indentation"), and the References block of
+    `ESSearchHedge`'s docstring is malformed.
 - [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
   with `time.time()`, whose resolution on Windows before Python 3.13 is
   about 15.6 ms: for a fast target most evaluations time as 0, and the

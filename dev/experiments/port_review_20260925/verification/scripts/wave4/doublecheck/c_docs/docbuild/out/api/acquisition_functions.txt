@@ -1,0 +1,60 @@
+Acquisition Functions
+*********************
+
+pybads.acquisition_functions.acq_fcn_lcb.acq_fcn_lcb(xi, func_count: int, gp: GP, sqrt_beta=None)
+
+   Lower confidence bound (LCB) of the GP at the points "xi".
+
+   The acquisition function of the search and of the poll: the GP's
+   mean at each point less "sqrt_beta" times its standard deviation.
+
+   Parameters:
+      **xi** : np.ndarray
+         The points, of shape "(N, D)".
+
+      **func_count** : int
+         The number of function evaluations so far.
+
+      **gp** : gpyreg.GP
+         The Gaussian process.
+
+      **sqrt_beta** : None, callable or float, optional
+         The LCB parameter, the multiplier of the GP's standard
+         deviation. If "None", the schedule of Srinivas et al. (2010),
+         with an empirical correction; a callable is called as
+         "sqrt_beta(t, D)", with "t = func_count + 1", and returns a
+         positive finite real number; otherwise a positive finite real
+         number (a Python or NumPy scalar, or an array of one
+         element).
+
+   Returns:
+      **z** : np.ndarray
+         The lower confidence bound at "xi".
+
+      **f_mu** : np.ndarray
+         The GP's mean at "xi".
+
+      **f_s** : np.ndarray
+         The GP's standard deviation at "xi".
+
+   Raises:
+      ValueError
+         If "sqrt_beta" is none of the values above, or a callable
+         returns another value.
+
+pybads.acquisition_functions.acq_fcn_lcb.check_sqrt_beta(sqrt_beta, name='sqrt_beta')
+
+   Check the LCB parameter "sqrt_beta" of "acq_fcn_lcb".
+
+   Parameters:
+      **sqrt_beta** : object
+         The value to check: "None", a callable, or a positive finite
+         real number (a Python or NumPy scalar, or an array of one
+         element).
+
+      **name** : str, optional
+         What the error message calls "sqrt_beta".
+
+   Raises:
+      ValueError
+         If "sqrt_beta" is none of the values above.

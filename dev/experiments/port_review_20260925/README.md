@@ -13,7 +13,10 @@ against its own specification, in waves of fresh reviewers.
   wave 1, by `refresh_citations.py --base ab4dded`, from there to
   `fef6c14`, the revision of wave 2, by `--base 95da7f1`, to `8aecb6a`,
   the revision of wave 3, by `--base fef6c14`, and on by `--base
-  8aecb6a`; the claims keep the lines of `95da7f1`.
+  8aecb6a`; the claims keep the lines of `95da7f1`. The entries of wave 4's
+  rulings cite the code that wave 4's fix pass wrote with its lines at the
+  commit of the pass that they name (`efe5e95`, `b78f782`, `46af65a` and
+  others), as the sheet's header says.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -25,12 +28,14 @@ against its own specification, in waves of fresh reviewers.
 - `briefs/`: the prompts of waves 1 to 4 (reviewers and verifiers), with
   placeholders for the paths, for a session away from the orchestrator's
   machine (the plan's "Wave 1 pickup" to "Wave 4 pickup"), and
-  `briefs/wave3_doublecheck.md`, those of the doublecheck of wave 3.
+  `briefs/wave3_doublecheck.md` and `briefs/wave4_doublecheck.md`, those of
+  the doublechecks of waves 3 and 4.
 - `verification/wave<N>.md`: the ledger of a wave, and
   `verification/wave<N>_<slice>_verifier.md` the reports of its verifiers,
-  saved verbatim; `verification/wave3_doublecheck_<scope>.md`, the reports
-  of the four reviewers of wave 3's doublecheck (`B3`, `B4`, `docs`,
-  `records`), saved verbatim.
+  saved verbatim; `verification/wave3_doublecheck_<scope>.md` and
+  `verification/wave4_doublecheck_<scope>.md`, the reports of the four
+  reviewers of the doublechecks of waves 3 (`B3`, `B4`, `docs`, `records`)
+  and 4 (`B7`, `O`, `docs`, `records`), saved verbatim.
 - `matlab_side_defects.md`: what the review finds wrong or questionable in
   MATLAB BADS itself, with PyBADS's disposition.
 - `briefs/wave1_fix_common.md` to `briefs/wave3_fix_common.md`: the
@@ -126,8 +131,28 @@ changes the package, the gates, the chain that ran the last steps, the
 runs that each step changed, W4-30's check, the fixed designs of `edgesphere_D2`) are under
 `verification/scripts/wave4/orchestrator/`. As in wave 3, the shell
 scripts and the lists name the sandbox's paths and call one another from
-the scratch directory's `orch/`, so they record what ran rather than run
-from here; `chain_rest.sh` stopped at W4-6's failed suite, and W4-6's
-completion and gates were run by hand, with the same scripts. The pass's
-comparisons are in `verification/wave4_fixpass/`, and its last population
-is kept whole as the Linux reference `population_linux_wave4_20260927`.
+the scratch directory's `orch/`, and so do `cl.py`, `w430_edit.py` and
+`w41_fixed_designs.py`, so they record what ran rather than run from here;
+`chain_rest.sh` stopped at W4-6's failed suite, and W4-6's completion and
+gates were run by hand, with the same scripts. So were the gate of W4-1 on
+the `geometry` suite (`verification/wave4_fixpass/geometry_w4-1_vs_w4-21.md`)
+and the comparison of W4-6 with it (`geometry_w4-6_vs_w4-1.md`), and
+`geometry_edgesphere_D2_steps.txt` has no script. `cl.py` is a later
+version than the one that made W4-29's changelog edit, which lost the
+blank line before "### Fixed" that `fba29cd` restored: replayed on the
+parent's `CHANGELOG.md`, it keeps that line; `same_fields.py` compares
+`final.wall_s` too, as wave 3's copy does, although its docstring says
+that timings are left out; and `w430_init_stop.out` ran on fix agent C's
+branch, before W4-1 (at `81385ac` the `fsd` values are the same, the `fval`
+values not). The pass's comparisons are in `verification/wave4_fixpass/`,
+and its last population is kept whole as the Linux reference
+`population_linux_wave4_20260927`.
+
+The doublecheck of wave 4, after its merge, is recorded in
+`verification/wave4.md`, "Doublecheck", as wave 3's: its briefs in
+`briefs/wave4_doublecheck.md`, its reports in
+`verification/wave4_doublecheck_<scope>.md`, and the reviewers' scripts
+and outputs under `verification/scripts/wave4/doublecheck/<letter>_<scope>/`,
+without their copies of the tree at other commits and reviewer (c)'s
+pickled doctrees, with the orchestrator's fingerprints and checks under
+`verification/scripts/wave4/doublecheck/orchestrator/`.

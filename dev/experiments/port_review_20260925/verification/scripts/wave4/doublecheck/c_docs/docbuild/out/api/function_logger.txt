@@ -1,0 +1,119 @@
+"FunctionLogger"
+****************
+
+class pybads.function_logger.FunctionLogger(fun, D: int, noise_flag: bool, uncertainty_handling_level: int, cache_size: int = 500, variable_transformer: VariableTransformer = None)
+
+   Class that evaluates a function and caches its values.
+
+   Parameters:
+      **fun** : callable
+         The function to be logged. *fun* must take a vector input and
+         return a scalar value and, optionally, the (estimated) SD of
+         the returned value (if the function fun is stochastic).
+
+      **D** : int
+         The number of dimensions that the function takes as input.
+
+      **noise_flag** : bool
+         Whether the logger holds the standard deviations of the noise
+         that the function returns ("S").
+
+      **uncertainty_handling_level** : {0, 1, 2}
+         The uncertainty handling level which can be one of (0: none;
+         1: unknown noise level; 2: user-provided noise).
+
+      **cache_size** : int, optional
+         The initial size of caching table (default 500), number of
+         stored function values.
+
+      **variable_transformer** : VariableTransformer, optional
+         A VariableTransformer is required for linear and non-linear
+         transformation of the input space. By default None.
+
+   __call__(x: ndarray, record_duplicate_data: bool = True)
+
+      Evaluates the function "self.fun" at x and caches values.
+
+      Parameters:
+         **x** : np.ndarray
+            The point at which the function will be evaluated, in the
+            transformed space ("u"), of shape "(1, D)" or "(D,)". The
+            logger maps it back to the original space with its
+            "variable_transformer", if it has one, and evaluates the
+            function there; without one, the two spaces are the same.
+
+         **record_duplicate_data** : bool, optional (default True)
+            Flag to indicate whether the data is added to training
+            data.
+
+      Returns:
+         **fval** : float
+            The result of the evaluation.
+
+         **SD** : float
+            The (estimated) SD of the returned value.
+
+         **idx** : int
+            The index of the last updated entry.
+
+      Raises:
+         ValueError
+            Raise if the function value is not a finite real-valued
+            scalar.
+
+         ValueError
+            Raise if the (estimated) SD (second function output) is
+            not a finite, positive real-valued scalar.
+
+   add(x: ndarray, fval_orig: float, fsd: float = None, fun_eval_time=nan)
+
+      Add a previously evaluated function to the function cache.
+
+      Parameters:
+         **x** : np.ndarray
+            The point at which the function has been evaluated, in the
+            transformed space ("u"), of shape "(1, D)" or "(D,)". The
+            logger maps it back to the original space with its
+            "variable_transformer", if it has one, and records both;
+            without one, the two spaces are the same.
+
+         **fval_orig** : float
+            The result of the evaluation of the function.
+
+         **fsd** : float, optional
+            The (estimated) SD of the result, by default None. A
+            logger that holds SDs ("noise_flag") records a missing one
+            as 1; a logger that does not ignores a given one.
+
+         **fun_eval_time** : float
+            The duration of the time it took to evaluate the function,
+            by default np.nan.
+
+      Returns:
+         **fval** : float
+            The result of the evaluation.
+
+         **SD** : float or None
+            The SD recorded: 1 for a missing one, and None when the
+            logger holds no SDs.
+
+         **idx** : int
+            The index of the last updated entry.
+
+      Raises:
+         ValueError
+            Raise if the function value is not a finite real-valued
+            scalar.
+
+         ValueError
+            Raise if the (estimated) SD (second function output) is
+            not a finite, positive real-valued scalar.
+
+   finalize()
+
+      Remove unused caching entries.
+
+   reset_fun_eval_time()
+
+      Set every entry of "fun_eval_time" to NaN, keeping its length
+      that of the other arrays.

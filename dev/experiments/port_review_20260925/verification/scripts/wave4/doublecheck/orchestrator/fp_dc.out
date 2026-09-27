@@ -1,0 +1,14 @@
+8c8d6f8 chore: merge dev-next (the doublecheck of wave 3, #79) into dev-port-review-w4 | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+86512c9 fix: bin the candidates of contraints_check and split the ES search's first popula | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4b84a2d docs: the description of fsd says what a noisy run that output_fcn stops in its in | threads=1 | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+efe5e95 fix: the initial design is seeded from the run's generator, so that random_seed de | threads=1 | /home/user/pybads-fp/pybads/__init__.py 663b49edc9320c55
+e7bd01d fix: the noise test leaves the start's row of the log as it was, so that n_eff cou | threads=1 | /home/user/pybads-fp/pybads/__init__.py c91725823bc62b29
+46af65a fix: the GP's fit schedule counts its budget without the noise test, as it counts  | threads=1 | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb
+81385ac fix: wave 4 of the port review (the function logger, the initial design and the ut | threads=1 | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb
+8c8d6f8 chore: merge dev-next (the doublecheck of wave 3, #79) into dev-port-review-w4 | threads=default | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+86512c9 fix: bin the candidates of contraints_check and split the ES search's first popula | threads=default | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4b84a2d docs: the description of fsd says what a noisy run that output_fcn stops in its in | threads=default | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+efe5e95 fix: the initial design is seeded from the run's generator, so that random_seed de | threads=default | /home/user/pybads-fp/pybads/__init__.py 663b49edc9320c55
+e7bd01d fix: the noise test leaves the start's row of the log as it was, so that n_eff cou | threads=default | /home/user/pybads-fp/pybads/__init__.py c91725823bc62b29
+46af65a fix: the GP's fit schedule counts its budget without the noise test, as it counts  | threads=default | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb
+81385ac fix: wave 4 of the port review (the function logger, the initial design and the ut | threads=default | /home/user/pybads-fp/pybads/__init__.py 4146a986863602cb

@@ -1,0 +1,21 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-1                           ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not -1 (t = 6, n_vars = 2).
+0                            ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not 0 (t = 6, n_vars = 2).
+nan                          ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not nan (t = 6, n_vars = 2).
+inf                          ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not inf (t = 6, n_vars = 2).
+2.0                          accepted: z=np.float64(-2.0)
+np.float64(2.0)              accepted: z=np.float64(-2.0)
+np.int64(2)                  accepted: z=np.float64(-2.0)
+array([2.])                  accepted: z=np.float64(-2.0)
+array([[2.]])                accepted: z=np.float64(-2.0)
+[2.0]                        accepted: z=np.float64(-2.0)
+True                         ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not True (t = 6, n_vars = 2).
+np.True_                     ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not np.True_ (t = 6, n_vars = 2).
+'2'                          ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not '2' (t = 6, n_vars = 2).
+None                         ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not None (t = 6, n_vars = 2).
+(2+0j)                       ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not (2+0j) (t = 6, n_vars = 2).
+np.complex128(2+0j)          ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not np.complex128(2+0j) (t = 6, n_vars = 2).
+[1, 2]                       ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not [1, 2] (t = 6, n_vars = 2).
+Decimal('2')                 ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not Decimal('2') (t = 6, n_vars = 2).
+1e-300                       accepted: z=np.float64(-1e-300)

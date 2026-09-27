@@ -1,0 +1,14 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+max_iter=1, level 1          KeyError: 'yval_vec' [bads/optimize_result.py:122]
+max_fun_evals=38, level 1    ValueError: cannot convert float NaN to integer [bads/gaussian_process_train.py:1032]
+max_fun_evals=45, level 1    KeyError: 'yval_vec' [bads/optimize_result.py:122]
+max_iter=1, level 2          KeyError: 'yval_vec' [bads/optimize_result.py:122]
+max_fun_evals=38, level 2    ValueError: cannot convert float NaN to integer [bads/gaussian_process_train.py:1032]
+max_iter=2, level 1          KeyError: 'status' [bads/optimize_result.py:164]
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+max_iter=1, level 1          iterations=1 func_count=47 fval=-0.1687 fsd=0.1031 yval_vec size=10 ysd_vec size=None x=[-0.085   0.1934] status=0
+max_fun_evals=38, level 1    iterations=1 func_count=38 fval=0.1637 fsd=0.3108 yval_vec size=5 ysd_vec size=None x=[-0.085   0.1934] status=0
+max_fun_evals=45, level 1    iterations=1 func_count=45 fval=-0.1678 fsd=0.1122 yval_vec size=10 ysd_vec size=None x=[-0.085   0.1934] status=0
+max_iter=1, level 2          iterations=1 func_count=47 fval=-0.1687 fsd=0.1581 yval_vec size=10 ysd_vec size=10 x=[-0.085   0.1934] status=0
+max_fun_evals=38, level 2    iterations=1 func_count=38 fval=0.1637 fsd=0.2236 yval_vec size=5 ysd_vec size=5 x=[-0.085   0.1934] status=0
+max_iter=2, level 1          iterations=2 func_count=48 fval=-0.1355 fsd=0.0784 yval_vec size=10 ysd_vec size=None x=[0.0637 0.1289] status=0

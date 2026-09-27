@@ -962,6 +962,30 @@ Wave 3's records are the model: its worklog lines below and
   after its suite. The sheet, `matlab_side_defects.md`, the survey (its
   rows of `init_sobol`, `FunctionLogger.__call__` and `contraints_check`,
   and W4-2's correction of wave 2's note) and `dev/TODO.md` are updated.
+- [x] 2026-09-27: wave 4 doublechecked after its merge (PI), as waves 1
+  to 3, in a cloud session on a branch from `dev-next` at `81385ac`: four
+  fresh read-only Opus reviewers, of the fixes of B7, those of O and of the
+  other rows, the user-facing documentation, and the records, gates and
+  tooling, with the PI's questions on the pass, their reports saved with
+  `extract_report.py` and their scripts under
+  `verification/scripts/wave4/doublecheck/`; the suite at `81385ac` (613
+  tests) and the fingerprints of the pass's key commits on Linux, with one
+  BLAS thread and the default, which repeat `fp_all.out`. Every row
+  implements its ruling; W4-6's completion is right and complete; the flag
+  on `edgesphere_D2` is the design shared before W4-1; the fall of
+  `ellipsoid_D3_homo`'s fraction solved is within the spread of a flag
+  that any change redraws. Fixed, moving nothing: false statements of the
+  changelog (1.1.0's failures with the hedge's parameters, its design's
+  dependence on the start, the ES split, complex SDs, `init_sobol`'s
+  required `lb` and `ub`, W4-21's measure), docstrings and descriptions
+  (`fsd` when no final sample is taken, `FunctionLogger`, `rng`,
+  `periodic_vars`, `n_search_iter`, Fig. 1's caption), the ledger (W4-21's
+  counts, the fixed designs, the account of `e7bd01d`'s failure, the
+  concurrent runs), the sheet's citations, the new reference's README and
+  the review's README (`verification/wave4.md`, "Doublecheck"). Left to
+  the PI: the hedge's checks, which take one-element arrays and other
+  types that stop a run at its first search; large integers and an
+  `n_search_iter` above `n_search`; "What's new in PyBADS 1.1".
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
   Windows reference at the head of the last fix pass: the current one,

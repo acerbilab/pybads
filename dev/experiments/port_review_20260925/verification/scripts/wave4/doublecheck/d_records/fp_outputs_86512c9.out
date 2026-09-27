@@ -1,0 +1,8 @@
+/home/user/dc4/d_records/at_86512c9/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+False 0 {'calls': 104, 'output_differs': 8}
+False 1 {'calls': 104, 'output_differs': 8}
+False 2 {'calls': 104, 'output_differs': 8}
+True 0 {'calls': 53, 'output_differs': 0}
+True 1 {'calls': 61, 'output_differs': 0}
+True 2 {'calls': 53, 'output_differs': 0}
+/home/user/dc4/d_records/at_86512c9/pybads/__init__.py {'calls': 479, 'output_differs': 24}

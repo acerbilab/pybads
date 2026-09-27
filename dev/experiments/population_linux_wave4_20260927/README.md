@@ -58,11 +58,15 @@ suite: W4-21 (the rounding of `contraints_check`'s bins) 34, W4-1 (the
 initial design seeded from the run's generator) all 540, and W4-6 with
 its completion (the noise test out of the GP's fit schedule) the 390 runs
 of the 13 configurations without noise, which take the noise test; the
-other steps reach no run of it. Unflagged, the largest shifts are on the
-noisy 3-D ellipsoids: `ellipsoid_D3_homo` ends farther from its minimum
+other steps leave the fingerprint unchanged, and those between W4-21 and
+W4-1 have no population of their own (they lie within W4-1's comparison,
+where every run changed). Unflagged, the fraction solved moves most on the
+noisy 3-D configurations: `ellipsoid_D3_homo` ends farther from its minimum
 (paired log10 error ratio +0.39 [-0.10, +0.86]; solved 0.73 → 0.43, of
-which W4-21 moved 0.10 and W4-1 0.20) and `ellipsoid_D3_hetero` closer
-(-0.23 [-0.54, -0.07]; solved 0.10 → 0.23). The fraction solved over seeds
+which W4-21 moved 0.10 and W4-1 0.20), and `sphere_D3_hetero` (-0.21
+[-0.49, +0.00]; solved 0.40 → 0.60) and `ellipsoid_D3_hetero` (-0.23
+[-0.54, -0.07], the one interval that excludes 0; solved 0.10 → 0.23)
+closer. The fraction solved over seeds
 0-29 is a coarse measure on the noisy configurations (the W0-1
 investigation,
 [`port_review_20260925/w01_investigation/`](../port_review_20260925/w01_investigation/README.md)).

@@ -12,9 +12,9 @@ class FunctionLogger:
     ----------
     fun : callable
         The function to be logged.
-        `fun` must take a vector input and return a scalar value and,
-        optionally, the (estimated) SD of the returned value (if the
-        function fun is stochastic).
+        `fun` must take a vector input and return a scalar value, or, when
+        ``uncertainty_handling_level`` is 2, a tuple of the value and its
+        (estimated) SD.
     D : int
         The number of dimensions that the function takes as input.
     noise_flag : bool
@@ -90,10 +90,13 @@ class FunctionLogger:
         -------
         fval : float
             The result of the evaluation.
-        SD : float
-            The (estimated) SD of the returned value.
-        idx : int
-            The index of the last updated entry.
+        SD : float or None
+            The (estimated) SD that the function returned, None when the
+            logger takes none (``uncertainty_handling_level`` below 2).
+        idx : int or None
+            The index of the last updated entry, None when an evaluation
+            that is not recorded (``record_duplicate_data=False``) is of a
+            point that the log does not hold.
 
         Raises
         ------

@@ -1,0 +1,1 @@
+{"label": "sphere_band_D2", "mode": "asis", "seed": 0, "sobol_seeds": [5874934615388537135], "x": [1.9287109375, 1.93359375], "fval": 3.990288090053581, "fsd": 0.0, "true_error": 3.990288090053581, "func_count": 2, "iterations": 6, "message": "Optimization terminated: change in the function value less than options['tol_fun'].", "wall": 0.05416583499982153, "tol": 0.001}

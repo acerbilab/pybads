@@ -1,0 +1,16 @@
+forced 967 (no draw) == 86512c9 run: [True, True, True, True]
+efe5e95 run == wave-4 reference record: [True, True]
+--- over seeds 0-29
+wave3 ref (a14524d)          n=30 solved 0.73 median err 0.0684 quartiles 0.0317/0.145 mean fc 312.7
+W4-21 (forced 967)           n=30 solved 0.63 median err 0.0641 quartiles 0.0316/0.182 mean fc 313.9
+W4-1 (wave4 ref)             n=30 solved 0.43 median err 0.119 quartiles 0.0602/0.267 mean fc 303.4
+--- over seeds 0-23
+W4-21 (forced 967)           n=24 solved 0.58 median err 0.0831 quartiles 0.0279/0.196 mean fc 315.4
+W4-1 (wave4 ref)             n=24 solved 0.50 median err 0.0966 quartiles 0.0584/0.206 mean fc 298.0
+967 + W4-1's draw            n=24 solved 0.58 median err 0.0695 quartiles 0.0348/0.167 mean fc 297.1
+wave3 ref                    n=24 solved 0.71 median err 0.0721 quartiles 0.0313/0.162 mean fc 313.1
+W4-21 vs wave3                     median log10 ratio +0.000, signed-rank p 0.767, runs whose solved flag flips 3, changed 13
+W4-1 vs W4-21                      median log10 ratio +0.268, signed-rank p 0.129, runs whose solved flag flips 16, changed 30
+pass (wave4 vs wave3)              median log10 ratio +0.387, signed-rank p 0.088, runs whose solved flag flips 17, changed 30
+967+draw vs W4-21 (same design)    median log10 ratio +0.044, signed-rank p 0.565, runs whose solved flag flips 10, changed 24
+W4-1 vs 967+draw (design only)     median log10 ratio +0.011, signed-rank p 0.855, runs whose solved flag flips 10, changed 24

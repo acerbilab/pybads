@@ -20,8 +20,9 @@ def round_half_away(x):
 
     Returns
     -------
-    r : np.ndarray
-        The rounded values, as floats.
+    r : np.ndarray or np.float64
+        The rounded values, as floats: an array, or a NumPy float for a
+        scalar ``x``.
     """
     frac, r = np.modf(x)
     return r + np.sign(frac) * (np.abs(frac) >= 0.5)

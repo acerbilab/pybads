@@ -1,6 +1,9 @@
 """The inputs of `BADS` as MATLAB BADS checks them (`boundscheck.m`,
 `setupvars.m`): the bounds, the starting point and `non_box_cons`."""
 
+from decimal import Decimal
+from fractions import Fraction
+
 import numpy as np
 import pytest
 
@@ -559,6 +562,55 @@ def test_hedge_decay_from_zero_to_one_is_accepted(hedge_decay):
     assert bads.options["hedge_decay"] == hedge_decay
 
 
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("hedge_gamma", np.array([0.1])),
+        ("hedge_gamma", np.array([[0.1]])),
+        ("hedge_gamma", np.complex128(0.1 - 5j)),
+        ("hedge_gamma", Decimal("0.25")),
+        ("hedge_beta", np.array([[1.0]])),
+        ("hedge_beta", np.array([True])),
+        ("hedge_beta", np.complex128(1.0)),
+        ("hedge_beta", Fraction(1, 4)),
+        ("hedge_beta", 10**400),
+        ("hedge_decay", np.array([0.5])),
+        ("hedge_decay", np.array([True])),
+        ("hedge_decay", np.complex128(0.5 + 1j)),
+        ("improvement_quantile", np.array([0.3])),
+        ("improvement_quantile", np.complex128(0.3)),
+        ("improvement_quantile", Fraction(1, 3)),
+    ],
+)
+def test_real_valued_options_refuse_what_is_not_a_real_number(name, value):
+    """`hedge_gamma`, `hedge_beta`, `hedge_decay` and `improvement_quantile`
+    take a real number, a Python or NumPy integer or float that is not a
+    boolean: an array, of one element too, a NumPy complex number, which
+    NumPy orders, a `Decimal`, a `Fraction` or an integer too large for a
+    float is refused when `BADS` is created. Some of them passed the range
+    checks and stopped the run at its first search with an unrelated error
+    (a `hedge_decay` of `[0.5]`, a `hedge_gamma` of shape (1, 1))."""
+    with pytest.raises(ValueError, match=rf"{name}'\] needs to"):
+        _bads_with_options({name: value})
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("hedge_gamma", np.float32(0.25)),
+        ("hedge_gamma", np.int64(0)),
+        ("hedge_beta", 1),
+        ("hedge_beta", np.float64(0.5)),
+        ("hedge_decay", np.float16(0.5)),
+        ("improvement_quantile", np.float64(0.25)),
+    ],
+)
+def test_real_valued_options_are_stored_as_floats(name, value):
+    bads = _bads_with_options({name: value})
+    assert bads.options[name] == value
+    assert type(bads.options[name]) is float
+
+
 @pytest.mark.parametrize("tol_fun", [1e-3, 1e-6, 0.1])
 @pytest.mark.parametrize("D", [1, 2, 5, 20, 60])
 def test_hedge_beta_and_hedge_decay_defaults_are_accepted(D, tol_fun):
@@ -658,6 +710,60 @@ def test_n_search_iter_positive_integer_is_accepted(n_search_iter):
     assert type(bads.options["n_search_iter"]) is int
     result = bads.optimize()
     assert np.isfinite(result["fval"])
+
+
+@pytest.mark.parametrize(
+    "n_search_iter, n_search", [(4097, 4096), (2**70, 4096), (11, 10)]
+)
+def test_n_search_iter_above_n_search_is_refused(n_search_iter, n_search):
+    """An `n_search_iter` above `n_search`, which leaves each generation of
+    the ES search without a candidate (`n_search / n_search_iter` rounded
+    down), is refused when `BADS` is created; 1.1.0 stopped the run at its
+    first search with `IndexError`, and a Python integer beyond 64 bits
+    raised `TypeError` from `np.isfinite` in the check."""
+    with pytest.raises(
+        ValueError,
+        match=r"n_search_iter'\] needs to be a positive integer, at most "
+        r"options\['n_search'\]",
+    ):
+        _bads_with_options(
+            {"n_search_iter": n_search_iter, "n_search": n_search}
+        )
+
+
+@pytest.mark.parametrize(
+    "n_search", [0, -1, 2.5, np.nan, np.inf, True, "4096", np.array([4096])]
+)
+def test_n_search_not_a_positive_integer_is_refused(n_search):
+    """An `n_search`, the number of candidates of the ES search, that is not
+    a positive integer is refused when `BADS` is created; 1.1.0 stopped the
+    run at its first search (`IndexError` below 1, `TypeError` for a string,
+    `ValueError` for NaN) or ran with a fraction."""
+    with pytest.raises(
+        ValueError, match=r"n_search'\] needs to be a positive integer"
+    ):
+        _bads_with_options({"n_search": n_search})
+
+
+def test_n_search_iter_equal_to_n_search_runs():
+    """At `n_search_iter = n_search` each generation of the ES search draws
+    one candidate, and the run completes; a whole-number `n_search` is
+    stored as an integer."""
+    bads = _bads_with_options(
+        {"n_search": 10.0, "n_search_iter": 10, "max_fun_evals": 40}
+    )
+    assert bads.options["n_search"] == 10
+    assert type(bads.options["n_search"]) is int
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])
+
+
+def test_accelerate_mesh_steps_takes_an_integer_beyond_64_bits():
+    """A Python integer too large for NumPy's 64-bit integers is a positive
+    integer, which the check refused with `TypeError` from `np.isfinite`."""
+    bads = _bads_with_options({"accelerate_mesh_steps": 2**70})
+    assert bads.options["accelerate_mesh_steps"] == 2**70
+    assert type(bads.options["accelerate_mesh_steps"]) is int
 
 
 @pytest.mark.parametrize(

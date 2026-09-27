@@ -1,0 +1,22 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+(a) init_sobol advances rng by one integers(2**63) draw: mismatches 0
+(b) seed 42 start x0=4            : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start (-5,0,10)       : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start on plb          : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start below plb (-20) : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start on lb-ish (-99) : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start above pub (50)  : one draw=True global untouched=True first row=[0.977592 0.758512 0.626968]
+(b) seed 42 start random (None)   : one draw=True global untouched=True first row=[-0.309208  0.110036  0.58109 ]
+    seed 42: given starts equal to x0=4: {'x0=4': True, '(-5,0,10)': True, 'on plb': True, 'below plb (-20)': True, 'on lb-ish (-99)': True, 'above pub (50)': True, 'random (None)': False}
+(b) seed 43 start x0=4            : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start (-5,0,10)       : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start on plb          : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start below plb (-20) : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start on lb-ish (-99) : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start above pub (50)  : one draw=True global untouched=True first row=[ 0.588017 -0.822362 -0.377609]
+(b) seed 43 start random (None)   : one draw=True global untouched=True first row=[ 0.228788 -0.931471  0.508312]
+    seed 43: given starts equal to x0=4: {'x0=4': True, '(-5,0,10)': True, 'on plb': True, 'below plb (-20)': True, 'on lb-ish (-99)': True, 'above pub (50)': True, 'random (None)': False}
+(c) seeds 42 and 43 give different designs: True
+(d) level 1 repeat same design: True (32, 3) True True
+(e) grep uint64 in pybads/init_functions: none

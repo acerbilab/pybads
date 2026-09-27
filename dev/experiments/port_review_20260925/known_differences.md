@@ -65,7 +65,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B1-6. Periodic variables are not supported**
 - Python: `pybads/bads/bads.py:324-333` at `b78f782` (`BADS.__init__`: an empty `periodic_vars` is set to `None`, and any other value that is not `None` raises `ValueError`, before the random draw of `x0`, the first transform of the variables; `periodic_vars`, found while verifying wave 4, `b78f782`); `pybads/utils/period_check.py:4-6` (a stub that returns its input); `pybads/bads/gaussian_process_train.py:386` (TODO); `pybads/search/es_search.py:138` (TODO). The periodic branches of `udist`, `ucov`, `_variable_transformer_` and `_init_optim_state_` (`pybads/bads/bads.py:1002-1006`, `737-752`) are unreachable.
 - MATLAB: `bads.m:152` (`PeriodicVars`); `private/setupvars.m:49-57`, `107-116`; `utils/periodCheck.m`; `gpdef/gpdefBads.m:58-81`, `277-284`; `utils/udist.m`; `utils/ucov.m`; `gpml_fast/covPPERard_fast.m`.
-- What differs: MATLAB wraps periodic variables into their range and uses a periodic kernel. PyBADS refuses them. An empty `periodic_vars` names none on both sides (MATLAB's `isempty`, `private/setupvars.m:107-108`).
+- What differs: MATLAB wraps periodic variables into their range and uses a periodic kernel. PyBADS refuses them. An empty `periodic_vars` names none on both sides (MATLAB's `isempty`, `private/setupvars.m:107-110`).
 - Why: `pybads/bads/README.md` ("Support for periodic variables"); `dev/TODO.md`, "Porting gaps"; the error message and TODO comments above; the PI's ruling on `periodic_vars` (`verification/wave4.md`, "Found while verifying" and "Rulings"), which moved the refusal before the first transform, since a random `x0` reached `_variable_transformer_`'s periodic branch before it.
 - Kind: unported feature.
 - Slice: B1 (option); B7 (`period_check`).
@@ -103,7 +103,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B1.
 
 **KD-B1-11. With `non_box_cons`, a random start that violates the constraint is drawn again**
-- Python: `pybads/bads/bads.py`, `BADS.__init__`, the draw of a start that is not finite (since W2-11, `c3d7815`; lines 308-329).
+- Python: `pybads/bads/bads.py`, `BADS.__init__`, the draw of a start that is not finite (since W2-11, `c3d7815`; lines 324-345).
 - MATLAB: `private/setupvars.m:83-85` (one draw in the plausible box), `private/evalinitmesh.m:22-26` (the error).
 - What differs: when `x0` is not given or not finite, MATLAB draws one start in the plausible box and stops with an error when it violates `non_box_cons`. PyBADS draws again, up to 1000 draws in all, and then raises `ValueError` as before; a run whose first draw is feasible draws the same start as MATLAB would from the same numbers. A shared defect that PyBADS fixes (`matlab_side_defects.md`).
 - Why: the PI's ruling on W2-11 (`verification/wave2.md`, "Rulings").
@@ -153,7 +153,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2.
 
 **KD-B2-6. The budget counts the noise test, and the initial design keeps within it after its rounding**
-- Python: `pybads/bads/bads.py`, `_init_mesh_` (the design keeps its first points within `max_fun_evals` minus the evaluations made) and `_init_optimization_` (the reserve for the final samples floored at 0), since W2-27 (`381bf32`); lines 1071-1078, 1165-1178.
+- Python: `pybads/bads/bads.py`, `_init_mesh_` (the design keeps its first points within `max_fun_evals` minus the evaluations made) and `_init_optimization_` (the reserve for the final samples floored at 0), since W2-27 (`381bf32`); lines 1121-1128, 1216-1229.
 - MATLAB: `private/evalinitmesh.m:37-42` (the noise test), `98-104` (`Ninit = min(options.Ninit, MaxFunEvals - 1)`).
 - What differs: MATLAB caps the design at `MaxFunEvals - 1` without counting the noise test at `x0`, so a budget below the design takes one evaluation more than `MaxFunEvals`. PyBADS rounds the design up to a power of two (KD-B7-1) and then keeps its first points within the evaluations left, the noise test counted, so that only a run with `max_fun_evals=1` and the noise test exceeds `max_fun_evals`, by the noise test, as in MATLAB, and a noisy run's reserve for its final samples is never negative. At the default budgets the cap does not bind. The design's doubling when its size equals D is deliberate (KD-B7-1).
 - Why: the PI's ruling on W2-27 (`verification/wave2.md`, "Rulings"); the counting of the noise test is a shared defect that PyBADS fixes (`matlab_side_defects.md`); the PI's ruling on W4-3, keep (`verification/wave4.md`).
@@ -161,7 +161,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B2 (the cap); B7 (the design).
 
 **KD-B2-7. A move to an earlier iterate after the re-estimate moves the incumbent's location with its value**
-- Python: `pybads/bads/bads.py`, `optimize()`, the move after `_re_evaluate_history_` (since W2-25, `a9fbb97`: `_update_incumbent_` with the iterate's `u`, `yval`, `fval` and `fsd`; lines 1528-1545).
+- Python: `pybads/bads/bads.py`, `optimize()`, the move after `_re_evaluate_history_` (since W2-25, `a9fbb97`: `_update_incumbent_` with the iterate's `u`, `yval`, `fval` and `fsd`; lines 1589-1606).
 - MATLAB: `bads.m:1111-1118` (sets `u`, `yval`, `fval`, `fsd` and the target's hyperparameters, not `ubest`), `769` (`u = ubest` at the next iteration).
 - What differs: when the re-estimate of a noisy run finds an earlier iterate better by more than `TolFun`, MATLAB moves the incumbent's value to it and leaves `ubest` at the old incumbent, so that the next search's target is predicted at the old point and a poll that no successful search precedes runs around the old point while it is judged by the other iterate's value. PyBADS moves the incumbent, its location with its value. As in MATLAB, only the target's hyperparameters move with it, and the working GP stays. A shared defect that PyBADS fixes (`matlab_side_defects.md`).
 - Why: the PI's ruling on W2-25, option (b) (`verification/wave2.md`, "Rulings"); the port's own TODO at `c7c88ab` ("TODO in Matlab is not done").
@@ -285,7 +285,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B4.
 
 **KD-B4-6. `improvement_quantile`, `accelerate_mesh_steps` and `n_search_iter` are checked when `BADS` is created**
-- Python: `pybads/bads/bads.py:812-839` (`_init_optim_state_`, beside the warning for a quantile above 0.5): the checks of W3-31 (`ec1b2d0`) and W3-39 (`5d711bf`), and that of W4-25 (`36e8b70`).
+- Python: `pybads/bads/bads.py:812-839` (`_init_optim_state_`, beside the warning for a quantile above 0.5): the checks of W3-31 (`ec1b2d0`) and W3-39 (`5d711bf`); and at `36e8b70` lines 847-865, that of W4-25.
 - MATLAB: `bads.m:1269-1271` (`EvalImprovement`); `bads.m:976-979`, `private/setupvars.m:179-182`; `private/setupoptions.m:26`, `search/searchES.m:125` (`Nsearchiter`, unchecked).
 - What differs: MATLAB refuses a quantile outside (0, 1) when it first evaluates an improvement, and lets NaN through, to NaN improvements; PyBADS refuses both when `BADS` is created. For `accelerate_mesh_steps`, MATLAB has no check: 0, a negative value and a finite value that is not an integer stop its run at the accelerated mesh reduction (`iterList` starts empty), and `Inf` runs without the reduction, since `iter > Inf` never holds. PyBADS refuses every value that is not a positive integer, `inf` included, and converts a whole-number float; its message names `accelerate_mesh=False`, the switch that turns the reduction off, as MATLAB's `AccelerateMesh` does (the PI's ruling after the doublecheck of wave 3). The stop on a value below 1 is a shared defect that PyBADS fixes (`matlab_side_defects.md`). `n_search_iter`, unchecked on both sides before, is refused when it is not a positive integer, and a whole-number float is converted, as for `accelerate_mesh_steps`.
 - Why: the PI's rulings on W3-31 and W3-39 (`verification/wave3.md`, "Rulings" and "After the gates") and on W4-25 (`verification/wave4.md`).
@@ -445,7 +445,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 **KD-B7-1. The initial design is a scrambled Sobol set from `scipy.stats.qmc.Sobol` with a power-of-two number of points, seeded from the run's generator**
 - Python, at `efe5e95`: `pybads/init_functions/init_sobol.py:16-54` (docstring), `56-61` (`seed = get_rng(rng).integers(2**63)`, since W4-1), `66-73` (`Sobol(D, seed=seed).random_base2(m)`, `m = ceil(log2(fun_eval_start))`, raised by one when `2**m` equals D; the comment cites Owen (2020) on keeping Sobol sets to powers of two); `pybads/bads/bads.py:1214-1223` (the call in `_init_mesh_`).
 - MATLAB: `private/evalinitmesh.m:98-104` (`Ninit` points); `init/initSobol.m:9-16` (`seed = mod(prod(uint64(num2str(u0(1:min(10,end))))),MaxSeed)+1`, a skip index into the unscrambled sequence of `i4_sobol_generate(nvars,Ninit,seed)`); `init/private/i4_sobol*.m`, `i4_bit_*.m`.
-- What differs: the generator (scipy's scrambled Sobol, where the seed seeds the scrambling); its seed, one draw of `bads.rng`, so that `random_seed` decides the design whatever the start, where MATLAB's design depends on the start alone (KD-B1-1); and the size, `2**ceil(log2(fun_eval_start))` points instead of `Ninit`, twice as many when that number equals D (claim C2). What MATLAB's seed is for a start inside the plausible box needs MATLAB (`matlab_side_defects.md`, "Questions that need MATLAB").
+- What differs: the generator (scipy's scrambled Sobol, where the seed seeds the scrambling); its seed, one draw of `bads.rng`, so that `random_seed` decides the design whatever `x0` is given (a random `x0` is drawn from `bads.rng` before it), where MATLAB derives its design from the start alone, with no random draw (KD-B1-1); and the size, `2**ceil(log2(fun_eval_start))` points instead of `Ninit`, twice as many when that number equals D (claim C2). What MATLAB's seed is for a start inside the plausible box needs MATLAB (`matlab_side_defects.md`, "Questions that need MATLAB").
 - Why: the PI's rulings on W4-1, option (a), and W4-3, keep (`verification/wave4.md`); the docstring and the Owen comment; `AGENTS.md`, Architecture and the bullet on randomness.
 - Kind: substituted library (and deliberate changes of the design's seed and size).
 - Slice: B7.
@@ -467,7 +467,7 @@ Kinds: deliberate change | unported feature | removed feature | substituted libr
 - Slice: B7.
 
 **KD-B7-4. The log of evaluations grows when it is full; MATLAB's is a ring of `CacheSize` rows**
-- Python: `pybads/function_logger/function_logger.py:309-321` (`_expand_arrays`: the arrays grow by half when full); the description of `cache_size`, the initial size (`advanced_bads_options.ini`, W4-12 `f1247d0`).
+- Python: `pybads/function_logger/function_logger.py:303-340` (`_expand_arrays`: the arrays grow by half when full); the description of `cache_size`, the initial size (`advanced_bads_options.ini`, W4-12 `f1247d0`).
 - MATLAB: `private/funlogger.m:120-121` (the row index wraps at `CacheSize`, 1e4 by default).
 - What differs: past `CacheSize` logged evaluations MATLAB overwrites its oldest rows, and PyBADS keeps every row. The two agree up to 9999 logged evaluations. MATLAB's ring never writes its last row, which it then reads (`matlab_side_defects.md`).
 - Why: the PI's ruling on W4-12 (`verification/wave4.md`); the docstring of `cache_size`.

@@ -1,0 +1,54 @@
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- hedge
+hedge_gamma=0.75                                       create: ValueError: options['hedge_gamma'] needs to lie between 0 and 1 / n, n the number of search methods in options[' [bads/bads.py:886]
+hedge_gamma=1.25                                       create: ValueError: options['hedge_gamma'] needs to lie between 0 and 1 / n, n the number of search methods in options[' [bads/bads.py:886]
+hedge_gamma=-0.5                                       create: ValueError: options['hedge_gamma'] needs to lie between 0 and 1 / n, n the number of search methods in options[' [bads/bads.py:886]
+hedge_gamma='0.1'                                      create: ValueError: options['hedge_gamma'] needs to lie between 0 and 1 / n, n the number of search methods in options[' [bads/bads.py:886]
+hedge_gamma=True                                       create: ValueError: options['hedge_gamma'] needs to lie between 0 and 1 / n, n the number of search methods in options[' [bads/bads.py:886]
+hedge_beta=-1.0                                        create: ValueError: options['hedge_beta'] needs to be a finite number greater than or equal to 0, not -1.0; its default  [bads/bads.py:906]
+hedge_beta=-1000.0                                     create: ValueError: options['hedge_beta'] needs to be a finite number greater than or equal to 0, not -1000.0; its defau [bads/bads.py:906]
+hedge_beta=inf                                         create: ValueError: options['hedge_beta'] needs to be a finite number greater than or equal to 0, not inf; its default i [bads/bads.py:906]
+hedge_beta=nan                                         create: ValueError: options['hedge_beta'] needs to be a finite number greater than or equal to 0, not nan; its default i [bads/bads.py:906]
+hedge_beta='1'                                         create: ValueError: options['hedge_beta'] needs to be a finite number greater than or equal to 0, not '1'; its default i [bads/bads.py:906]
+hedge_decay=-0.5                                       create: ValueError: options['hedge_decay'] needs to lie between 0 and 1, not -0.5. [bads/bads.py:924]
+hedge_decay=2.0                                        create: ValueError: options['hedge_decay'] needs to lie between 0 and 1, not 2.0. [bads/bads.py:924]
+hedge_decay=10000000000.0                              create: ValueError: options['hedge_decay'] needs to lie between 0 and 1, not 10000000000.0. [bads/bads.py:924]
+hedge_decay=nan                                        create: ValueError: options['hedge_decay'] needs to lie between 0 and 1, not nan. [bads/bads.py:924]
+-- nsi
+n_search_iter=0                                        create: ValueError: options['n_search_iter'] needs to be a positive integer, not 0. [bads/bads.py:866]
+n_search_iter=-1                                       create: ValueError: options['n_search_iter'] needs to be a positive integer, not -1. [bads/bads.py:866]
+n_search_iter=-2.5                                     create: ValueError: options['n_search_iter'] needs to be a positive integer, not -2.5. [bads/bads.py:866]
+n_search_iter=0.5                                      create: ValueError: options['n_search_iter'] needs to be a positive integer, not 0.5. [bads/bads.py:866]
+n_search_iter=2.0                                      completed: func_count=55 fval=4.47e-07 iterations=7
+n_search_iter=2.5                                      create: ValueError: options['n_search_iter'] needs to be a positive integer, not 2.5. [bads/bads.py:866]
+n_search_iter=inf                                      create: ValueError: options['n_search_iter'] needs to be a positive integer, not inf. [bads/bads.py:866]
+n_search_iter=nan                                      create: ValueError: options['n_search_iter'] needs to be a positive integer, not nan. [bads/bads.py:866]
+n_search_iter=1e-300                                   create: ValueError: options['n_search_iter'] needs to be a positive integer, not 1e-300. [bads/bads.py:866]
+n_search_iter=True                                     create: ValueError: options['n_search_iter'] needs to be a positive integer, not True. [bads/bads.py:866]
+n_search_iter=False                                    create: ValueError: options['n_search_iter'] needs to be a positive integer, not False. [bads/bads.py:866]
+n_search_iter='2'                                      create: ValueError: options['n_search_iter'] needs to be a positive integer, not '2'. [bads/bads.py:866]
+n_search_iter=np.int64(3)                              completed: func_count=55 fval=1.02e-06 iterations=7
+-- sqrt_beta
+search_acq_fcn=('acq_LCB', 2.0)                        completed: func_count=55 fval=4.26e-08 iterations=7
+search_acq_fcn=('acq_LCB', np.float64(0.0))            create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', np.float64(-1.0))           create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', array([-1.]))               create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', np.True_)                   create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', np.complex128(2+0j))        create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', np.float64(nan))            create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', np.float64(inf))            create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', '2')                        create: ValueError: options['search_acq_fcn'][1] (sqrt_beta) needs to be None (the default schedule), a callable sqrt_be [acquisition_functions/acq_fcn_lcb.py:96]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not -1.0 (t = 11, n [acquisition_functions/acq_fcn_lcb.py:55]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not nan (t = 11, n_ [acquisition_functions/acq_fcn_lcb.py:55]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not array([1., 2.]) [acquisition_functions/acq_fcn_lcb.py:55]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   optimize: ValueError: acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive finite real number, not '2' (t = 11, n_ [acquisition_functions/acq_fcn_lcb.py:55]
+search_acq_fcn=('acq_LCB', <function <lambda> at 0x7   completed: func_count=55 fval=4.26e-08 iterations=7
+-- periodic
+periodic_vars=[]                                       completed: func_count=55 fval=4.47e-07 iterations=7
+periodic_vars=[], random x0                            completed: func_count=55 fval=2.62e-06 iterations=7
+periodic_vars=array([], dtype=float64)                 completed: func_count=55 fval=4.47e-07 iterations=7
+periodic_vars=array([], dtype=float64), random x0      completed: func_count=55 fval=2.62e-06 iterations=7
+periodic_vars=[0]                                      create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:331]
+periodic_vars=[0], random x0                           create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:331]
+periodic_vars=[5]                                      create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:331]
+periodic_vars=[5], random x0                           create: ValueError: Periodic variables are not yet supported. Please set periodic_vars to None. [bads/bads.py:331]

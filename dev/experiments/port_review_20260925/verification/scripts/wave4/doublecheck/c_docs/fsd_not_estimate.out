@@ -1,0 +1,7 @@
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+max_fun_evals=1, uh=True                     iterations=0 func_count=1 fsd=1.0 yval_vec=None status=0 msg='Optimization terminated: reached maximum number of function '
+max_fun_evals=1, uh=True, noise_size=2.5     iterations=0 func_count=1 fsd=2.5 yval_vec=None status=0 msg='Optimization terminated: reached maximum number of function '
+max_fun_evals=33, uh=True                    iterations=1 func_count=33 fsd=1.0 yval_vec=None status=0 msg='Optimization terminated: reached maximum number of function '
+max_fun_evals=33, uh=True, noise_size=2.5    iterations=1 func_count=33 fsd=2.5 yval_vec=None status=0 msg='Optimization terminated: reached maximum number of function '
+max_fun_evals=34, uh=True, noise_size=2.5    iterations=1 func_count=34 fsd=0.5007623750026677 yval_vec=[1.06599201 0.06446726] status=0 msg='Optimization terminated: reached maximum number of function '
+output_fcn init stop, noise_size=2.5         iterations=0 func_count=33 fsd=2.5 yval_vec=[0.06446726] status=0 msg="Optimization terminated by options['output_fcn']."
