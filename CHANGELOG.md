@@ -694,6 +694,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   number of variables, and a start on or below a plausible lower bound gave
   a design that could differ between x86 and arm64 machines. Results change
   at default options.
+- **Noise test in the schedule of the GP's fits.** The noise test, the
+  second evaluation of the starting point when `uncertainty_handling` is
+  left empty, no longer counts in the schedule of the hyperparameter fits of
+  the Gaussian process, whose number of starting points follows the fraction
+  of the budget used after the initial design; in 1.1.0 the schedule ran one
+  evaluation ahead. The noise test still counts in `max_fun_evals` and
+  `func_count`. Results change at default options.
 
 ## [1.1.0] - 2026-09-25
 

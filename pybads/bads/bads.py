@@ -1148,7 +1148,7 @@ class BADS:
             the evaluation of the starting point.
         """
         # Evaluate starting point and initial mesh, determine if function is noisy
-        self.yval, self.fsd, _ = self.function_logger(self.u)
+        self.yval, self.fsd, idx_start = self.function_logger(self.u)
         if self.fsd is None:
             self.fsd = np.nan
         self.fval = self.yval
@@ -1159,13 +1159,20 @@ class BADS:
             # Test whether the function is noisy, only when the option is
             # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
-            # Its time stays out of the target's time, as MATLAB BADS calls
-            # the target directly for it (evalinitmesh.m:41)
-            total_fun_eval_time = self.function_logger.total_fun_eval_time
-            yval_bis, _, _ = self.function_logger(
+            # Its time stays out of the target's time, and the start's row of
+            # the log (its count of evaluations and its time) stays as it
+            # was, as MATLAB BADS calls the target directly for it
+            # (evalinitmesh.m:41)
+            function_logger = self.function_logger
+            total_fun_eval_time = function_logger.total_fun_eval_time
+            n_evals = function_logger.n_evals[idx_start].copy()
+            fun_eval_time = function_logger.fun_eval_time[idx_start].copy()
+            yval_bis, _, _ = function_logger(
                 self.u, record_duplicate_data=False
             )
-            self.function_logger.total_fun_eval_time = total_fun_eval_time
+            function_logger.total_fun_eval_time = total_fun_eval_time
+            function_logger.n_evals[idx_start] = n_evals
+            function_logger.fun_eval_time[idx_start] = fun_eval_time
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
                 self.logging_action.append("Uncertainty test")
