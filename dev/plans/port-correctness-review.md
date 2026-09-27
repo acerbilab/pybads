@@ -477,6 +477,75 @@ cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
    suite after every cherry-pick (fix agents run only their own test
    files), and CI checked after every push that touches `pybads/`.
 
+## Wave 4 pickup
+
+For the session that starts wave 4, the last of the review: slice B7 on
+both tracks and slice O, the third reader, in a cloud sandbox as waves 1 to
+3 ran; the steps of "Wave 3 pickup" with wave 4's names (PI, 2026-09-27).
+Wave 3's records are the model: its worklog lines below and
+`verification/wave3.md`, "Rulings" and "Fix pass".
+
+1. **The revision under review**: `0d866e8`, `dev-next` after wave 3's
+   fix pass (#77), which changed code that slice O reads (the hedge's
+   reward, W3-6; `poll_mads_2n`'s docstring after W3-24's revert) and B7's
+   neighbours (W3-1's `contraints_check`, W3-14's `force_to_grid`); the
+   reviewers read the fixed code. The table "Reference revisions" gains `0d866e8`, the sheet's
+   citations are carried with `refresh_citations.py --base 8aecb6a`, and
+   the entries of wave 3's rulings are read against it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w4`, the venv as
+   `AGENTS.md` says, and the review worktree at `0d866e8`.
+   `dev/scripts/fingerprint.py` at `0d866e8` with gpyreg 1.3.3 and one
+   BLAS thread (`OMP_NUM_THREADS=1` and its kin) prints `360971bf1f0ba6cb`
+   in the Linux reference's environment
+   (`population_linux_wave3_20260927`: Python 3.11.15, NumPy 2.4.6, SciPy
+   1.17.1); another hash means that the reference does not pair by seed.
+3. **The briefs**, `briefs/wave4_*.md`, made from wave 3's: B7's two
+   tracks, O's brief, which combines them (re-derive, then compare with
+   MATLAB), and the verifier's. O's code was reviewed as B3 and B4 in wave
+   3, so its brief names wave 3's rulings (W3-24 reverted, W3-6, W3-25)
+   and the sheet's entries, which it does not report again.
+4. **Kept from the reviewers** (`briefs/wave4_kept_B7.md` and
+   `wave4_kept_O.md`): the open rows of the survey's candidate table in B7
+   and O, among them `init_sobol`'s seed from the integer parts of `u0`,
+   with the doublecheck of wave 2's note that a start on a lower bound
+   with the plausible bounds omitted gives `u0 = -1` (`verification/wave2.md`,
+   "Doublecheck"); the items of `prep_report.md`'s "Seen in passing" that
+   belong to them; and what waves 0 to 3 left to them under "Found while
+   verifying" and "Found while fixing". Whether MATLAB's `uint64` product
+   saturates is settled from MATLAB's documented integer arithmetic, since
+   no step runs MATLAB.
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 4's names: three
+   reviewers (B7 internal, B7 comparison, O), the reports
+   `reviews/B7_<track>.md` and `reviews/O_third.md` (the track names of
+   `M_comparison.md` and `S_internal.md`), the scripts under
+   `verification/scripts/wave4/`, one verifier per slice
+   (`verification/wave4_<slice>_verifier.md`), the ledger
+   `verification/wave4.md` from W4-1, and the branch `dev-port-review-w4`,
+   pushed at the close for the PI's triage.
+6. **The fix pass**: `verification/wave3.md`, "Fix pass", is the procedure,
+   against the Linux reference `experiments/population_linux_wave3_20260927/`:
+   the whole fast suite and the fingerprint after every cherry-pick (fix
+   agents run only their own test files), CI checked after every push that
+   touches `pybads/`, each row that moves results gated by the default
+   suite against the step before, and the head's population as the new
+   Linux reference; then a pull request to `dev-next`. Three lessons of
+   wave 3's pass:
+   - the fingerprint's runs are small, so it misses changes that reach
+     only 6-D, 10-D, noisy or long runs: the batch that moves nothing is
+     gated by the default suite against the reference too, and every run
+     that moves is attributed to its commit before the batch counts as
+     moving nothing;
+   - conflicts of tests appended at the end of a file are resolved by
+     keeping both sides in full where their common base is empty
+     (`verification/scripts/wave3/orchestrator/resolve_appends.py`); a
+     union merge driver drops lines;
+   - a change aimed at one geometry needs a suite that reaches it (wave 3
+     added `geometry` to `benchmark_targets.py`), and a flagged worsening
+     of a departure from MATLAB comes back to the PI.
+
+   The plan's "Close" item follows wave 4 in a session of its own.
+
 ## Worklog
 
 - [x] 2026-09-25: design discussed and decided with the PI (decisions
@@ -765,6 +834,10 @@ cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
   head's runs equal W3-29's; they are the new Linux reference,
   `population_linux_wave3_20260927`, whose comparison with the previous one
   flags nothing.
+- [x] 2026-09-27: wave 3 merged: #77 squash-merged into `dev-next` as
+  `0d866e8` (PI), after the full matrix passed on its head (Ubuntu,
+  Windows and macOS, Python 3.10 to 3.12), the first run of wave 3's tests
+  off Linux. "Wave 4 pickup" written for the session that starts wave 4.
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
