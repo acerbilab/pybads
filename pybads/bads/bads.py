@@ -888,6 +888,43 @@ class BADS:
                 "the number of search methods in options['search_method'] "
                 f"({n_search_methods}), not {hedge_gamma!r}."
             )
+        # hedge_beta, the inverse temperature of the hedge's softmax, is a
+        # finite number at least 0 (0 is a uniform choice): below 0 the hedge
+        # favors the search of lower gain, and at inf or NaN (or far below 0,
+        # where the softmax overflows) its probabilities and gains are NaN,
+        # so that every choice is at random; MATLAB BADS does not check it
+        # (searchHedge.m:45)
+        hedge_beta = self.options["hedge_beta"]
+        try:
+            in_range = not isinstance(hedge_beta, (bool, np.bool_)) and bool(
+                0 <= hedge_beta < np.inf
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_beta'] needs to be a finite number greater "
+                f"than or equal to 0, not {hedge_beta!r}; its default is "
+                "1e-3 / options['tol_fun']."
+            )
+        # hedge_decay, the decay of the hedge's gains at each update, lies in
+        # [0, 1] (1 is no decay): above 1 the gains grow until they overflow
+        # and every later choice is at random, and below 0 they alternate in
+        # sign; MATLAB BADS does not check it (acqPortfolio.m:69)
+        hedge_decay = self.options["hedge_decay"]
+        try:
+            in_range = not isinstance(hedge_decay, (bool, np.bool_)) and bool(
+                0 <= hedge_decay <= 1
+            )
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
+            raise ValueError(
+                "options['hedge_decay'] needs to lie between 0 and 1, not "
+                f"{hedge_decay!r}."
+            )
         # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
         # call, is checked here too, before any evaluation
         check_sqrt_beta(

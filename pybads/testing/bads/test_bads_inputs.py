@@ -471,6 +471,104 @@ def test_hedge_gamma_from_zero_to_one_over_n_is_accepted(
     assert bads.options["hedge_gamma"] == hedge_gamma
 
 
+def _bads_with_options(options, D=2):
+    return BADS(
+        _sphere,
+        np.full(D, 0.5),
+        -5 * np.ones(D),
+        5 * np.ones(D),
+        -3 * np.ones(D),
+        3 * np.ones(D),
+        options={**OPTIONS, **options},
+    )
+
+
+@pytest.mark.parametrize(
+    "hedge_beta",
+    [
+        -1.0,
+        -1e-12,
+        -1000.0,
+        np.nan,
+        np.inf,
+        -np.inf,
+        True,
+        "1",
+        1 + 0j,
+        np.array([1.0, 2.0]),
+    ],
+)
+def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+    """A `hedge_beta` that is not a finite number at least 0 is refused when
+    `BADS` is created: below 0 the hedge favors the search of lower gain,
+    and at inf or NaN its probabilities and gains are NaN, so that every
+    choice is at random; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError,
+        match=r"hedge_beta'\] needs to be a finite number greater than or "
+        r"equal to 0",
+    ):
+        _bads_with_options({"hedge_beta": hedge_beta})
+
+
+def test_hedge_beta_refusal_names_its_default():
+    """A negative `tol_fun` makes the default `hedge_beta`, `1e-3 / tol_fun`,
+    negative, and the refusal names that default."""
+    with pytest.raises(
+        ValueError,
+        match=r"not -1\.0; its default is 1e-3 / options\['tol_fun'\]",
+    ):
+        _bads_with_options({"tol_fun": -1e-3})
+
+
+@pytest.mark.parametrize("hedge_beta", [0, 0.0, 1, 1e3, np.float64(0.5)])
+def test_hedge_beta_finite_number_at_least_zero_is_accepted(hedge_beta):
+    bads = _bads_with_options({"hedge_beta": hedge_beta})
+    assert bads.options["hedge_beta"] == hedge_beta
+
+
+@pytest.mark.parametrize(
+    "hedge_decay",
+    [
+        -0.1,
+        -1e-12,
+        1 + 1e-12,
+        2.0,
+        50.0,
+        np.nan,
+        np.inf,
+        True,
+        "0.5",
+        0.5 + 0j,
+        np.array([0.5, 0.6]),
+    ],
+)
+def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+    """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+    above 1 the hedge's gains grow until they overflow, and below 0 they
+    alternate in sign; MATLAB BADS runs with them."""
+    with pytest.raises(
+        ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+    ):
+        _bads_with_options({"hedge_decay": hedge_decay})
+
+
+@pytest.mark.parametrize("hedge_decay", [0, 0.5, 1, 1.0, np.float64(0.9)])
+def test_hedge_decay_from_zero_to_one_is_accepted(hedge_decay):
+    bads = _bads_with_options({"hedge_decay": hedge_decay})
+    assert bads.options["hedge_decay"] == hedge_decay
+
+
+@pytest.mark.parametrize("tol_fun", [1e-3, 1e-6, 0.1])
+@pytest.mark.parametrize("D", [1, 2, 5, 20, 60])
+def test_hedge_beta_and_hedge_decay_defaults_are_accepted(D, tol_fun):
+    """The defaults, `hedge_beta = 1e-3 / tol_fun` and `hedge_decay =
+    0.1 ** (1 / (2 * D))`, are accepted at every `D`."""
+    bads = _bads_with_options({"tol_fun": tol_fun}, D)
+    assert bads.options["hedge_beta"] == 1e-3 / tol_fun
+    assert bads.options["hedge_decay"] == 0.1 ** (1 / (2 * D))
+
+
 @pytest.mark.parametrize(
     "sqrt_beta",
     [0, -1.0, np.nan, np.inf, "acq_schedule", np.array([1.0, 2.0]), True],

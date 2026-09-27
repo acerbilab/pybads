@@ -69,7 +69,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   part is zero, raises `ValueError`, where 1.1.0 accepted a NumPy complex
   value.
 - `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
-  number of searches in `search_method` (1/2 at default).
+  number of searches in `search_method` (1/2 at default), for a `hedge_beta`
+  that is not a finite number at least 0, which the default `1e-3 / tol_fun`
+  is not when `tol_fun` is negative, and for a `hedge_decay` outside [0, 1].
 - `BADS` raises `ValueError` for an `n_search_iter` that is not a positive
   integer.
 
@@ -176,12 +178,18 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   values or a string.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
-- **`hedge_gamma`.** `BADS` raises `ValueError` for a `hedge_gamma` that is
-  not a number from 0 to 1/n, n the number of searches in `search_method`
-  (1/2 at default). 1.1.0, like MATLAB BADS, ran with any value: above 1/n
-  the search hedge favored the search of lower gain, and above 1/(n − 1) it
-  gave some searches a negative probability, so that they were never chosen.
-
+- **Search hedge parameters.** `BADS` raises `ValueError` for a
+  `hedge_gamma` that is not a number from 0 to 1/n, n the number of searches
+  in `search_method` (1/2 at default), a `hedge_beta` that is not a finite
+  number at least 0, and a `hedge_decay` outside [0, 1]. 1.1.0, like MATLAB
+  BADS, ran with any value: a `hedge_gamma` above 1/n made the search hedge
+  favor the search of lower gain, and above 1/(n − 1) gave some searches a
+  negative probability, so that they were never chosen; a negative
+  `hedge_beta` inverted the hedge too, and an infinite or NaN one made every
+  choice random; a `hedge_decay` above 1 made the searches' gains grow until
+  they overflowed, after which every choice was random, and a negative one
+  made them alternate in sign. Since the default `hedge_beta` is `1e-3 /
+  tol_fun`, a negative `tol_fun` is refused through it.
 ### Fixed
 
 - **User-specified noise.** With `specify_target_noise=True`, the Gaussian
