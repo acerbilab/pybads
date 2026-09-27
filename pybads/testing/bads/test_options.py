@@ -48,6 +48,23 @@ def test_max_fun_evals_whole_number_is_an_integer(max_fun_evals):
     assert type(bads.options["max_fun_evals"]) is int
 
 
+@pytest.mark.parametrize(
+    "max_fun_evals, stored",
+    [(2**63 - 1, 2**63 - 1), (2**70, np.inf), (1e308, np.inf)],
+    ids=["int64 max", "2**70", "1e308"],
+)
+def test_max_fun_evals_beyond_64_bits_stands_for_inf(max_fun_evals, stored):
+    """A whole number too large for NumPy's 64-bit integers, which the run's
+    NumPy arithmetic does not take, is no budget: it stands for inf. A
+    Python integer that large raised `TypeError` from `np.isfinite` in the
+    check, and 1e308 was converted to such an integer, which stopped the run
+    with `OverflowError`."""
+    bads = _make_bads(max_fun_evals=max_fun_evals, max_iter=2)
+    assert bads.options["max_fun_evals"] == stored
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])
+
+
 def test_max_fun_evals_can_be_infinite():
     """MATLAB BADS's check accepts an infinite budget too."""
     bads = _make_bads(max_fun_evals=np.inf)

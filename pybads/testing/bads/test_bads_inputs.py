@@ -713,6 +713,60 @@ def test_n_search_iter_positive_integer_is_accepted(n_search_iter):
 
 
 @pytest.mark.parametrize(
+    "n_search_iter, n_search", [(4097, 4096), (2**70, 4096), (11, 10)]
+)
+def test_n_search_iter_above_n_search_is_refused(n_search_iter, n_search):
+    """An `n_search_iter` above `n_search`, which leaves each generation of
+    the ES search without a candidate (`n_search / n_search_iter` rounded
+    down), is refused when `BADS` is created; 1.1.0 stopped the run at its
+    first search with `IndexError`, and a Python integer beyond 64 bits
+    raised `TypeError` from `np.isfinite` in the check."""
+    with pytest.raises(
+        ValueError,
+        match=r"n_search_iter'\] needs to be a positive integer, at most "
+        r"options\['n_search'\]",
+    ):
+        _bads_with_options(
+            {"n_search_iter": n_search_iter, "n_search": n_search}
+        )
+
+
+@pytest.mark.parametrize(
+    "n_search", [0, -1, 2.5, np.nan, np.inf, True, "4096", np.array([4096])]
+)
+def test_n_search_not_a_positive_integer_is_refused(n_search):
+    """An `n_search`, the number of candidates of the ES search, that is not
+    a positive integer is refused when `BADS` is created; 1.1.0 stopped the
+    run at its first search (`IndexError` below 1, `TypeError` for a string,
+    `ValueError` for NaN) or ran with a fraction."""
+    with pytest.raises(
+        ValueError, match=r"n_search'\] needs to be a positive integer"
+    ):
+        _bads_with_options({"n_search": n_search})
+
+
+def test_n_search_iter_equal_to_n_search_runs():
+    """At `n_search_iter = n_search` each generation of the ES search draws
+    one candidate, and the run completes; a whole-number `n_search` is
+    stored as an integer."""
+    bads = _bads_with_options(
+        {"n_search": 10.0, "n_search_iter": 10, "max_fun_evals": 40}
+    )
+    assert bads.options["n_search"] == 10
+    assert type(bads.options["n_search"]) is int
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])
+
+
+def test_accelerate_mesh_steps_takes_an_integer_beyond_64_bits():
+    """A Python integer too large for NumPy's 64-bit integers is a positive
+    integer, which the check refused with `TypeError` from `np.isfinite`."""
+    bads = _bads_with_options({"accelerate_mesh_steps": 2**70})
+    assert bads.options["accelerate_mesh_steps"] == 2**70
+    assert type(bads.options["accelerate_mesh_steps"]) is int
+
+
+@pytest.mark.parametrize(
     "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
 )
 @pytest.mark.parametrize("periodic_vars", [[1], [5]], ids=["index", "out"])

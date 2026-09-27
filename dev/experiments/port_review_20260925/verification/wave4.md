@@ -838,11 +838,21 @@ recommendations:
   there and a callable may return one.
 - Large integers: the checks of `max_fun_evals`, `accelerate_mesh_steps`
   and `n_search_iter` test for an integer before `np.isfinite`, so that a
-  positive integer of any size is taken; `n_search` is checked as a
+  positive integer of any size is taken. A `max_fun_evals` beyond NumPy's
+  64-bit integers, which the check refused with `TypeError` and which
+  `_init_mesh_`'s `np.minimum` does not take (a `max_fun_evals` of `1e308`
+  was converted to such an integer and stopped the run with
+  `OverflowError`), stands for `inf`, a budget that large being none (the
+  orchestrator's choice within the ruling). `n_search` is checked as a
   positive integer, and an `n_search_iter` above it is refused with W4-25's
   `ValueError`, since it leaves the search no candidate (in MATLAB BADS the
   population's size is then a fraction below 1, which `randn` at
   `searchES.m:117` does not take, by reading). An `n_search_iter`
   that does not divide `n_search` keeps its rounded-down generations.
 - "What's new in PyBADS 1.1": left to the next release, which rewrites the
-  list, with a line in `dev/TODO.md`'s release item.
+  list, with an item of `dev/TODO.md` for it.
+
+The two commits that follow these rulings, the real-number checks
+(`339e90e`) and the integer checks with `n_search`, keep the fingerprint
+`4146a986863602cb` (Linux, one BLAS thread), each with its tests, which
+fail at its parent, and its changelog wording.

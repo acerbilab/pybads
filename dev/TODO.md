@@ -109,6 +109,15 @@ order.
   seeded, so both stay until the first release after 1.1.0, whose tests
   are: drop them in the version-update PR that the feedstock's bot opens
   for that release, before it is merged.
+- [ ] **"What's new" at the next release.** `README.md` and
+  `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
+  every random draw of a run comes from one generator created from
+  `random_seed`, which 1.1.0's initial design did not follow (its
+  scrambling was seeded from the start). The list of the next release
+  replaces it, and says that `random_seed` now decides the initial design
+  (the doublecheck of wave 4 of the port review,
+  `experiments/port_review_20260925/verification/wave4.md`,
+  "Doublecheck").
 - [ ] **The target's copy of the GP at every step.**
   `_get_target_from_gp_` deep-copies the GP and recomputes its posterior
   under the best iteration's hyperparameters at every search and poll step
@@ -233,22 +242,18 @@ order.
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
   while fixing", with the details). Not fixed:
   - the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
-    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578`
-    applies `SearchAcqFcn`; only its mean is read, so nothing moves, but a
-    callable `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
+    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578` applies
+    `SearchAcqFcn`; only its mean is read, so nothing moves, but a callable
+    `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
     `# Returns z, dz,ymu,ys,fmu,fs,*fpi*` lists MATLAB's outputs; the port
     floors the ES search's `mu = n_search / n_search_iter`, where
-    `private/setupvars.m:186` does not; `n_search` and `search_method` are
-    not checked (an empty `search_method` fails at the first search), and a
-    `search_acq_fcn` that is not a pair fails when `BADS` is created with an
-    unrelated `IndexError` or `TypeError`, while a first element other than
-    `"acq_LCB"` fails only at the first search; `_search_step_`'s docstring
-    gives `search_dist` as an array and has the typo "thecurrent";
-  - the checks: a Python integer of 2**63 or more raises `TypeError` from
-    `np.isfinite` in the checks of `max_fun_evals`, `accelerate_mesh_steps`
-    and `n_search_iter`, and an `n_search_iter` above `n_search` leaves the
-    ES search no candidate (the doublecheck of wave 4, "Doublecheck" in the
-    same ledger); `tol_fun` is not checked (0 raises a bare
+    `private/setupvars.m:186` does not; `search_method` is not checked (an
+    empty one fails at the first search), and a `search_acq_fcn` that is not
+    a pair fails when `BADS` is created with an unrelated `IndexError` or
+    `TypeError`, while a first element other than `"acq_LCB"` fails only at
+    the first search; `_search_step_`'s docstring gives `search_dist` as an
+    array and has the typo "thecurrent";
+  - the checks: `tol_fun` is not checked (0 raises a bare
     `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
     evaluated, and a negative value is refused only through `hedge_beta`);
   - the function logger: `FunctionLogger.add` keeps checks of its own (a

@@ -1,5 +1,6 @@
 import copy
 import logging
+import math
 import os
 import sys
 
@@ -30,19 +31,34 @@ from .optimize_result import OptimizeResult
 from .options import Options
 
 
-def _as_real_number(value):
-    """Return ``value`` as a float if it is a real number, a Python or NumPy
-    integer or float that is not a boolean, and None otherwise: for a
-    string, a complex number, an array (of one element too), a ``Decimal``
-    or a ``Fraction``, or an integer too large for a float."""
-    if isinstance(value, (bool, np.bool_)) or not isinstance(
+def _is_real(value):
+    """Whether ``value`` is a Python or NumPy integer or float that is not a
+    boolean."""
+    return not isinstance(value, (bool, np.bool_)) and isinstance(
         value, (int, float, np.integer, np.floating)
-    ):
+    )
+
+
+def _as_real_number(value):
+    """Return ``value`` as a float if it is a real number (``_is_real``),
+    and None otherwise: for a string, a complex number, an array (of one
+    element too), a ``Decimal`` or a ``Fraction``, or an integer too large
+    for a float."""
+    if not _is_real(value):
         return None
     try:
         return float(value)
     except OverflowError:
         return None
+
+
+def _is_whole_number(value):
+    """Whether ``value``, a real number (``_is_real``), is a whole number: an
+    integer of any size, or a finite float without a fraction. It does not
+    call ``np.isfinite``, which refuses a Python integer beyond 64 bits."""
+    if isinstance(value, (int, np.integer)):
+        return True
+    return math.isfinite(value) and float(value).is_integer()
 
 
 # The levels of the BADS logger's messages above the iteration lines (INFO),
@@ -815,23 +831,22 @@ class BADS:
         # The checks of MATLAB BADS's setupoptions.m: max_fun_evals is a
         # positive integer (or inf); a whole-number float is converted
         max_fun_evals = self.options["max_fun_evals"]
-        if (
-            isinstance(max_fun_evals, (bool, np.bool_))
-            or not isinstance(
-                max_fun_evals, (int, float, np.integer, np.floating)
-            )
-            or not max_fun_evals > 0
-            or (
-                np.isfinite(max_fun_evals)
-                and not float(max_fun_evals).is_integer()
-            )
+        if not (
+            _is_real(max_fun_evals)
+            and max_fun_evals > 0
+            and (_is_whole_number(max_fun_evals) or max_fun_evals == np.inf)
         ):
             raise ValueError(
                 "options['max_fun_evals'] needs to be a positive integer, "
                 f"not {max_fun_evals!r}."
             )
-        if np.isfinite(max_fun_evals):
-            self.options["max_fun_evals"] = int(max_fun_evals)
+        if _is_whole_number(max_fun_evals):
+            # A budget beyond NumPy's 64-bit integers, which the run's NumPy
+            # arithmetic does not take, is no budget: it stands for inf
+            max_fun_evals = int(max_fun_evals)
+            if max_fun_evals > np.iinfo(np.int64).max:
+                max_fun_evals = np.inf
+            self.options["max_fun_evals"] = max_fun_evals
         # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
         # it evaluates an improvement (bads.m:1269-1271). It and the hedge's
         # three options below take a real number (_as_real_number), which
@@ -849,14 +864,10 @@ class BADS:
         # back, which below 1 is not recorded yet (MATLAB BADS fails there
         # too, bads.m:976-979); a whole-number float is converted
         accelerate_mesh_steps = self.options["accelerate_mesh_steps"]
-        if (
-            isinstance(accelerate_mesh_steps, (bool, np.bool_))
-            or not isinstance(
-                accelerate_mesh_steps, (int, float, np.integer, np.floating)
-            )
-            or not np.isfinite(accelerate_mesh_steps)
-            or not accelerate_mesh_steps >= 1
-            or not float(accelerate_mesh_steps).is_integer()
+        if not (
+            _is_real(accelerate_mesh_steps)
+            and _is_whole_number(accelerate_mesh_steps)
+            and accelerate_mesh_steps >= 1
         ):
             raise ValueError(
                 "options['accelerate_mesh_steps'] needs to be a positive "
@@ -865,23 +876,32 @@ class BADS:
                 "reduction of the mesh off."
             )
         self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
-        # n_search_iter, the number of generations of the ES search, is a
-        # positive integer: the search draws n_search / n_search_iter
-        # candidates in each (MATLAB BADS does not check it, and loops over
-        # 1:Nsearchiter, searchES.m:125); a whole-number float is converted
-        n_search_iter = self.options["n_search_iter"]
-        if (
-            isinstance(n_search_iter, (bool, np.bool_))
-            or not isinstance(
-                n_search_iter, (int, float, np.integer, np.floating)
-            )
-            or not np.isfinite(n_search_iter)
-            or not n_search_iter >= 1
-            or not float(n_search_iter).is_integer()
+        # n_search, the number of candidates of the ES search, and
+        # n_search_iter, the number of its generations, are positive
+        # integers, and n_search_iter is at most n_search: each generation
+        # draws n_search / n_search_iter candidates, rounded down, so that
+        # above n_search the search has none (MATLAB BADS checks neither; it
+        # loops over 1:Nsearchiter, searchES.m:125, and draws a population of
+        # Nsearch / Nsearchiter points); a whole-number float is converted
+        n_search = self.options["n_search"]
+        if not (
+            _is_real(n_search) and _is_whole_number(n_search) and n_search >= 1
         ):
             raise ValueError(
-                "options['n_search_iter'] needs to be a positive integer, "
-                f"not {n_search_iter!r}."
+                "options['n_search'] needs to be a positive integer, "
+                f"not {n_search!r}."
+            )
+        self.options["n_search"] = int(n_search)
+        n_search_iter = self.options["n_search_iter"]
+        if not (
+            _is_real(n_search_iter)
+            and _is_whole_number(n_search_iter)
+            and 1 <= n_search_iter <= self.options["n_search"]
+        ):
+            raise ValueError(
+                "options['n_search_iter'] needs to be a positive integer, at "
+                "most options['n_search'] "
+                f"({self.options['n_search']}), not {n_search_iter!r}."
             )
         self.options["n_search_iter"] = int(n_search_iter)
         # hedge_gamma, the smallest probability of each search method, lies
