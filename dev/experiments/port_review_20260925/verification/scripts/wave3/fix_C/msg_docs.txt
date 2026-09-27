@@ -1,0 +1,25 @@
+docs: the comments on the order of contraints_check and on the unweighted scatter of ES-wcm (W3-2, W3-3)
+
+W3-2: the comment of contraints_check said that it removes the
+duplicates "and preserve[s] the initial order". The duplicates step
+does, but the removal of the evaluated vectors that follows returns the
+rows in np.unique's order, sorted by their rounded coordinates, which
+is the order of MATLAB's setdiff(u1, u2, 'rows') (utils/uCheck.m:25):
+the verifier found the same order on 200 of 200 random sets. The
+comment now says so.
+
+W3-3: the comments of ES-wcm ("Compute weighted covariance matrix wrt
+u0") and of ucov ("For broadcasting weighted sum") called the
+covariance weighted. ucov sums each weight times the whole scatter,
+which is the scatter times the sum of the weights, one for ES-wcm's,
+as MATLAB's utils/ucov.m:19 does; by the PI's ruling (a) MATLAB's
+arithmetic stays, and the comments now say that the weights do not
+weight the scatter. black joins the line that the old inline comment
+had split.
+
+Test: none, comments only.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

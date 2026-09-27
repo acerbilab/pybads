@@ -147,8 +147,10 @@ two stages:
    candidates by LCB (`acquisition_functions/acq_fcn_lcb.py`) and returns
    the best one.
 2. **POLL** (`_poll_step_`, `poll/poll_mads_2n.py`): runs at the end of each
-   round of up to `search_n_try` searches. It evaluates the 2D LTMADS
-   directions in LCB order and stops early when the GP's probability of
+   round of up to `search_n_try` searches. It evaluates 2D directions in
+   LCB order, the signed coordinate directions at default (`poll_mads_2n`
+   draws an LTMADS basis under MATLAB BADS's bound, which is 1 at every
+   default state), and stops early when the GP's probability of
    improvement drops below `tol_poi`. The mesh
    (`poll_mesh_multiplier ** mesh_size_integer`) grows after a successful
    poll and shrinks after a failed one. An iteration is a round of
@@ -177,10 +179,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
-  `["len_scale"]` and `["effective_radius"]`, set in
-  `gaussian_process_train.py`, drive the poll basis and the ES-ell search.
-  `poll_mads_2n` returns directions divided by `poll_scale`, and
-  `_poll_step_` multiplies them back.
+  `["len_scale"]` and `["effective_radius"]` are set in
+  `gaussian_process_train.py`. `poll_scale` shapes the ES-ell search and
+  not the poll: `poll_mads_2n` returns directions divided by it, and
+  `_poll_step_` multiplies them back, as MATLAB BADS does. `len_scale`
+  scales the distances of `udist` (the neighbours of the local training
+  set, the length of a search's step), and `effective_radius` the radius
+  of the training set.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -206,9 +211,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a
-  search by string comparison (`ESSearchCMA` is unreachable), LCB is called
-  directly at the search and poll call sites, and the initial design is
-  selected by `init_fun == "init_sobol"`. A new search method is an
+  search by string comparison, LCB is called directly at the search and
+  poll call sites, and the initial design is selected by
+  `init_fun == "init_sobol"`. A new search method is an
   `ESSearch` subclass, an `elif` in the hedge, and an entry in the
   `search_method` option.
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0

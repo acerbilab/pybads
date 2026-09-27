@@ -1,0 +1,5 @@
+The three runs of the geometry suite that crashed at W3-24 (869a033), run again from a worktree at 869a033 with W3-40's change of gaussian_process_train.py applied (the prior of the length scales kept when the distances have no spread); tolerance 1e-3.
+
+sphere_band_D2 seed 13: ran to 96 evaluations, error 9.811699534192282e-08
+sphere_band_D2 seed 23: ran to 148 evaluations, error 3.1319157622988813e-10
+sphere_band_D3 seed 15: ran to 37 evaluations, error 1.176577594183386e-05

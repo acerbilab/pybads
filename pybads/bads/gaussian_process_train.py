@@ -369,7 +369,9 @@ def local_gp_fitting(
         )
         dist = dist.flatten()
         dist = dist[dist != 0]
-        if dist.size > 0:
+        # Distances without spread (two distinct points) keep the previous
+        # prior, whose sigma would be 0, as MATLAB's gpdefBads.m computes it
+        if dist.size > 0 and np.max(dist) > np.min(dist):
             uu = 0.5 * np.log(np.max(dist))
             ll = 0.5 * np.log(np.min(dist))
 

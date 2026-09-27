@@ -1,5 +1,4 @@
 import logging
-import sys
 from abc import ABC, abstractclassmethod
 from typing import Callable
 
@@ -46,7 +45,6 @@ class ESSearch(ABC):
         self.search_acq_fcn = options_dict["search_acq_fcn"]
         self.es_beta = options_dict["es_beta"]
         self.logger = logging.getLogger("BADS")
-        logging.basicConfig(stream=sys.stdout, format="%(message)s")
 
     def _get_selection_idx_mask_(self, mu, lamb):
         """
@@ -67,11 +65,9 @@ class ESSearch(ABC):
         strt_point = np.maximum(0, lastnonzero - int(delta.item()) + 1).item()
         w[strt_point : lastnonzero + 1] = w[strt_point : lastnonzero + 1] - 1
 
-        # Create selection mask
-        cw = np.cumsum(w) - w + 1
-        idx = np.zeros(np.max(cw) + 1, dtype=int)
-        idx[cw] = 1
-        select_mask = np.cumsum(idx[0:-1])
+        # Create selection mask: parent k, 0-based, repeated w[k] times, which
+        # is MATLAB's 1-based selectmask minus one
+        select_mask = np.repeat(np.arange(len(w)), w)
 
         return select_mask
 
@@ -167,14 +163,17 @@ class ESSearch(ABC):
 
             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
 
-            # if something went wrong with the acquisition function, random search is performed
-            if z_new is None or z_new.size == 0:
-                z_candidates = self.rng.random(u_new.shape[0])
+            # No candidate left in this generation: it adds none, and the
+            # candidates of the earlier generations are kept, as in MATLAB
+            if u_new.shape[0] == 0:
                 self.logger.warning(
-                    "bads:es_search: Something went wrong with the acquisition function, random search is performed"
+                    f"bads:es_search: No candidate left in generation {i + 1} "
+                    "of the search, once the points already evaluated or "
+                    "violating the constraints are removed"
                 )
 
-            nold = us.shape[0]
+            # Candidates kept before this generation (none before the first)
+            nold = us.shape[0] if i > 0 else 0
             if i == 0:
                 us_candidates = u_new.copy()
                 z_candidates = z_new.copy()
@@ -187,9 +186,13 @@ class ESSearch(ABC):
             N = np.minimum(us_candidates.shape[0], self.lamb)
 
             # Order candidates and select
-            z_idx = np.argsort(z_candidates)
+            z_idx = np.argsort(z_candidates, kind="stable")
+            # New candidates among the best ntest, as in MATLAB's searchES:
+            # the pool is not trimmed, and this generation's are its last rows
             ntest = np.minimum(u_new.shape[0], nold)
-            n_new = np.sum(z_idx[0 : ntest + 1] > nold)
+            n_new = np.sum(
+                z_idx[0:ntest] >= us_candidates.shape[0] - u_new.shape[0]
+            )
             z = z_candidates[z_idx[0:N]]
             us = us_candidates[z_idx[0:N]]  # zlist in Matlab is not used
 
@@ -197,9 +200,10 @@ class ESSearch(ABC):
                 break  # no candidate left to reproduce
 
             if i < self.n_search_iter - 1:
-                frac = n_new / ntest
-                # Update scale parameter
-                if i > 0:
+                # Update scale parameter, unless this generation added no
+                # candidate (MATLAB's fraction is then 0/0)
+                if i > 0 and ntest > 0:
+                    frac = n_new / ntest
                     self.scale = self.scale * np.exp(
                         self.es_beta * (frac - 0.2)
                     )
@@ -225,7 +229,6 @@ class ESSearch(ABC):
 class ESSearchWM(ESSearch):
     def __init__(self, mu, lamb, options_dict, rng=None):
         super().__init__(mu, lamb, options_dict, rng)
-        self.active_flag = False
         self.frac = 0.5
 
     # Ovveride abstract method
@@ -236,18 +239,19 @@ class ESSearchWM(ESSearch):
         U = gp.X
         Y = gp.y.flatten()
         # Compute vector weights
-        nvars = U.shape[1]
         mu = self.frac * U.shape[0]
 
         weights = np.log(mu + 0.5) - np.log(np.arange(1, np.floor(mu + 1)))
         weights = weights / np.sum(weights)
 
         # Compute best vectors
-        y_idx = np.argsort(Y)
-        idx_sel = (y_idx[0 : np.floor(mu + 1).astype(int)]).flatten()
+        y_idx = np.argsort(Y, kind="stable")
+        idx_sel = (y_idx[0 : np.floor(mu).astype(int)]).flatten()
         Ubest = U[idx_sel].copy()
 
-        # Compute weighted covariance matrix wrt u0
+        # Compute the covariance matrix wrt u0: the unweighted scatter of the
+        # best vectors, since the weights, which sum to one, do not weight
+        # it, as in MATLAB's ucov.m
         C = ucov(
             Ubest,
             u,
@@ -257,12 +261,6 @@ class ESSearchWM(ESSearch):
             optim_state["scale"],
             optim_state["periodic_vars"],
         )
-        if self.active_flag:
-            U_worst = U[y_idx[-1 : -1 : (len(y_idx) - np.floor(mu) + 1)]]
-            negC = ucov(U_worst, u, weights, optim_state)
-            negmueff = np.sum(1.0 / weights**2)
-            negcov = 0.25 * negmueff / ((nvars + 2) ** 1.5 + 2 * negmueff)
-            C = C - negcov * negC
 
         # Rescale covariance matrix according to mean vector length
         eig_values, E = scipy.linalg.eigh(C)
@@ -278,16 +276,6 @@ class ESSearchWM(ESSearch):
 
     def get_jitter(self, optim_state):
         return optim_state["mesh_size"]
-
-
-class ESSearchCMA(ESSearchWM):
-    def __init__(self, mu, lamb, options_dict, rng=None):
-        super().__init__(mu, lamb, options_dict, rng)
-        self.active_flag = True
-        self.frac = 0.25
-
-    def get_jitter(self, optim_state):
-        return optim_state["search_mesh_size"]
 
 
 class ESSearchELL(ESSearch):
@@ -322,9 +310,10 @@ def ucov(U, u, w, ub, lb, scale, periodic_vars=None):
     u_shift = U_tmp - u_tmp
 
     if w.size != 0:
-        weights = w.reshape(
-            -1, *([1] * u_shift.ndim)
-        )  # For broadcasting weighted sum
+        # Each weight times the whole scatter, summed: the scatter times the
+        # sum of the weights (one for ES-wcm's), not weighted, as in MATLAB's
+        # ucov.m
+        weights = w.reshape(-1, *([1] * u_shift.ndim))
         C = np.matmul(u_shift.transpose(), weights * u_shift)
         C = np.sum(C, axis=0)
     else:

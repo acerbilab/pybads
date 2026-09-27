@@ -35,43 +35,6 @@ order.
   so it needs the population comparison. To settle: whether gpyreg's path
   follows MATLAB's, whether PyBADS should skip it with target noise as
   MATLAB does, and what it saves in time.
-- [ ] **Previously evaluated points evaluated again.** `contraints_check`
-  (`pybads/function_logger/constraints_check.py`, "Remove previously
-  evaluated vectors") keeps the first occurrences of `np.unique` over the
-  candidates stacked above the evaluated points. Those always fall among
-  the candidates, so a candidate that repeats an evaluated point is kept.
-  MATLAB's `utils/uCheck.m` removes such points with `setdiff`. Without a
-  target noise SD, `FunctionLogger` records the repeat as a new row, and
-  it becomes a duplicate training input of the GP. At low noise a
-  duplicate can make the training covariance singular, but duplicates
-  explain none of the four `LinAlgError` crashes behind
-  `plans/gp-update-guards.md` (the survey's section "Crashes on unguarded
-  GP updates"): one failing call held three exact duplicate pairs, but
-  removing most sets of three of its rows lets it succeed, and the other
-  three held none. On Linux at `8fc1dff`
-  (gpyreg 1.3.3), one exact repeat was evaluated in `ellipsoid_D10` seed
-  7, and one in `sphere_D3_homo` seed 0; none in `ellipsoid_D3` seed 20.
-  With a target noise SD, repeats are common: 227 in seeds 0-89 of
-  `ellipsoid_D3_hetero` at `1c8c71d` (Linux), in 58 of the 90 runs, each
-  merged into a row of the log (until `032dfcb`, 188 of them into another
-  point's row), and the noise-variance fix of `020d6a8` tripled them
-  (seeds 0-19: 17 at `685da15`, 53 at `1c8c71d`). Dropping them, as MATLAB
-  does, needs two more changes that MATLAB has: the ES search must return
-  an empty set when no candidate is left, and the search step must accept
-  one (survey, candidate table); without them runs stop with `IndexError`
-  or `UnboundLocalError`. With the three changes on `8afbe16`, the median
-  error of `ellipsoid_D3_hetero` over 90 seeds falls from 0.46 to 0.33
-  (`no_repeats.patch` in
-  [experiments/population_ellipsoid_hetero_linux_20260925/](experiments/population_ellipsoid_hetero_linux_20260925/README.md)).
-  To settle:
-  - count the repeats over the default suite;
-  - fix the removal, as MATLAB does it. That moves results, so it is gated
-    by the population comparison against the current reference of the
-    platform (`README.md`), and the seeded tests are re-checked over their
-    seeds.
-
-  The survey's subsection "Found while fixing the tests" also records the
-  defect.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
@@ -112,9 +75,11 @@ order.
   runs worse, and the lower bound of the noise hyperparameter never moves,
   since no fit fails. The runs remain worse than before `020d6a8` (p =
   0.0008), now along the two steep axes. Still open:
-  - the evaluated points that `contraints_check` keeps (the item above):
-    dropping them, as MATLAB does, lowered the median from 0.46 to 0.33 on
-    top of `8afbe16`, not yet measured with the length bound;
+  - the evaluated points that `contraints_check` kept: W3-1 (`149d528`, the
+    port review's wave 3) removes them, as MATLAB does; over seeds 0-29 of
+    this configuration its 100 repeats (of 8800 evaluations, in 17 runs)
+    are gone, and the median error moved from 0.43 to 0.36, unflagged
+    (`experiments/port_review_20260925/verification/wave3_fixpass/`);
   - a run of MATLAB BADS on this problem, which would show whether correct
     noise handling alone gives such runs;
   - the bounds of the GP mean, which the port fixes by the initial design
@@ -141,23 +106,25 @@ order.
   seeded, so both stay until the first release after 1.1.0, whose tests
   are: drop them in the version-update PR that the feedstock's bot opens
   for that release, before it is merged.
-- [ ] **Follow-ups of the GP-update guards**
-  ([plans/gp-update-guards.md](plans/gp-update-guards.md)). Each has a row
-  in the survey's candidate table, marked "at `676083d`" or "at
-  `a83bd51`":
-  - the target's posterior, recomputed under the best iteration's
-    hyperparameters, where MATLAB reuses the current posterior. That gives
-    other targets at default options, and it is why that call can fail;
-  - the refit forced after a failed rebuild, which ignores
-    `min_refit_time`, where MATLAB refits through `gppredcheck`;
-  - after a failed rebuild, the search still ranks its candidates by the
-    previous GP, where MATLAB takes the first candidate;
-  - under `stobads`, a NaN estimate counts as uncertain, not as a failure.
-
-  No failure of the guarded calls occurs in the default suite under gpyreg
-  1.3.3 (484,773 calls on Linux), so only the tests
-  (`test_gp_update_failures.py`) and the stress run of
-  `dev/scripts/gp_update_failures.py --inject` reach these paths.
+- [ ] **The target's copy of the GP at every step.**
+  `_get_target_from_gp_` deep-copies the GP and recomputes its posterior
+  under the best iteration's hyperparameters at every search and poll step
+  (the port review's sheet, KD-B4-2), and at default options nothing reads
+  the search's target (the port review's wave 3, "Found while verifying").
+  It costs time, and it is the path on which the call can raise
+  `LinAlgError`. To settle: compute the search's target only when an
+  option reads it, and reuse the posterior when the best iteration's
+  hyperparameters are the current ones; a change must leave the
+  fingerprint of `dev/scripts/fingerprint.py` unchanged, or take the
+  population comparison.
+- [ ] **Zero predictive SDs at uncertainty level 0.** In deterministic runs
+  the predictive SD of the GP is often exactly 0, and the poll's check of
+  an unreliable GP reads it (the port review's wave 3, W3-28 and "Found
+  while verifying"). Its cause, perhaps the latent variance clamped at 0
+  after rounding in gpyreg's `predict`, and whether MATLAB's `mygp` gives
+  it as often, are not established. To settle: count the zero SDs over the
+  default suite, trace them in gpyreg, and compare with MATLAB's prediction
+  of the same GP.
 - [ ] **Bug hunt and verification against MATLAB BADS.** In progress:
   [plans/port-correctness-review.md](plans/port-correctness-review.md), one
   branch per wave (`dev-port-review-w<N>`), each merged into `dev-next`. A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
@@ -166,8 +133,7 @@ order.
   table (only partly looked at, never compared with MATLAB), and a finding
   of its section on the tests: the seed of the initial Sobol design, which
   ignores all but the integer part of `u0` (whether MATLAB's `uint64`
-  product saturates needs MATLAB itself). The previously evaluated points
-  that `contraints_check` keeps have an item of their own above.
+  product saturates needs MATLAB itself).
   PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
   `randn2` and the draws that reproduce MATLAB's random stream) come with
   it, for the comparisons that need MATLAB's own numbers.
@@ -205,9 +171,12 @@ order.
   whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
   while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
   log of zero and a variance with no degrees of freedom (wave 2's
-  verifiers, `verification/wave2.md`, "Found while verifying"). Slice B6,
-  whose wave has passed: decide the priors and bounds of such a GP, in
-  PyBADS or in gpyreg, with a test on the thin band.
+  verifiers, `verification/wave2.md`, "Found while verifying"). On two
+  distinct points, the empirical prior of the length scales had a sigma of
+  0, which gpyreg refuses; since W3-40 (wave 3's fix pass,
+  `verification/wave3.md`) a rebuild keeps the previous prior there.
+  Slice B6, whose wave has passed: decide the priors and bounds of such a
+  GP, in PyBADS or in gpyreg, with a test on the thin band.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of all five predate the port
   review, whose fix passes change their numbers, and some of their

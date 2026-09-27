@@ -1,0 +1,91 @@
+{
+ "label": "timing_D5",
+ "seed": 0,
+ "problem": "timing",
+ "D": 5,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  0.2385875105765759,
+  0.11326743047709963,
+  0.8708784707436845,
+  0.11268092562980794,
+  0.032689290875449105
+ ],
+ "f_min": 3839.1732706078164,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 2500,
+  "random_seed": 0
+ },
+ "effective_options": {
+  "max_fun_evals": 2500,
+  "max_iter": 1000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 6,
+  "n_train_min": 50,
+  "n_train_max": 100,
+  "random_seed": 0,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   0.09030557805672287,
+   0.03087189059588126,
+   0.7014583052856324,
+   0.1373743157309945,
+   0.010000000000582078
+  ],
+  "fval": 3839.1732707147144,
+  "fsd": 0.0,
+  "true_error": 1.0689791452023201e-07,
+  "func_count": 206,
+  "iterations": 12,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 12.78998284699992,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "a14524d",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev35+g8aecb6a80",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/h_a14524d/pybads",
+   "git": {
+    "sha": "a14524d",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.4.dev10+gd96d0d9f7",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-27T09:43:18+0000",
+  "finished": "2026-09-27T09:43:32+0000"
+ }
+}

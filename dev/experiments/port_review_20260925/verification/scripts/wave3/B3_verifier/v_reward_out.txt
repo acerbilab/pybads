@@ -1,0 +1,11 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+gamma=-3: port er/sigma=0.1620  MATLAB er/sigma=0.0004  ratio=424.01
+gamma=-2: port er/sigma=0.4048  MATLAB er/sigma=0.0085  ratio=47.67
+gamma=-1: port er/sigma=0.6605  MATLAB er/sigma=0.0833  ratio=7.93
+gamma=+0: port er/sigma=1.0000  MATLAB er/sigma=0.3989  ratio=2.51
+gamma=+1: port er/sigma=1.6605  MATLAB er/sigma=1.0833  ratio=1.53
+gamma=+2: port er/sigma=2.4048  MATLAB er/sigma=2.0085  ratio=1.20
+level-1 run: 60 hedge updates, 60 through the SD>0 branch
+  gamma quartiles [-0.29, -0.19, -0.04, 0.09, 0.16]
+  port/MATLAB reward ratio quartiles [2.24, 2.36, 2.59, 2.94, 3.21]

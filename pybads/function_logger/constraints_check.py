@@ -26,20 +26,26 @@ def contraints_check(
         idx = np.any(U > ub, axis=1) | np.any(U < lb, axis=1)
         U_new = U[~idx].copy()
 
-    # Remove duplicate vectors and preserve the initial order
+    # Remove duplicate vectors, keeping the first of each (the removal of the
+    # evaluated vectors below returns them sorted, as MATLAB's setdiff does)
     _, idx_sort = np.unique(U_new, axis=0, return_index=True)
     U_new = U_new[np.sort(idx_sort), :]
 
-    # Remove previously evaluated vectors (within tol_mesh)
+    # Remove previously evaluated vectors (within tol_mesh): keep the first
+    # vector of each bin that holds no evaluated vector, the bins sorted, as
+    # MATLAB's setdiff(u1, u2, 'rows')
     if U_new.size > 0:
         tol = tol_mesh / 2.0
         u1 = np.round(U_new / tol)
         X_max_idx = function_logger.X_max_idx
         u2 = np.round(function_logger.X[: X_max_idx + 1] / tol)
         tmp_u = np.vstack((u1, u2))
-        _, idx_sort = np.unique(tmp_u, axis=0, return_index=True)
-        # u1_idx = np.sort(idx_sort[idx_sort < len(u1)])
-        u1_idx = idx_sort[idx_sort < len(u1)]
+        _, idx_sort, idx_bin = np.unique(
+            tmp_u, axis=0, return_index=True, return_inverse=True
+        )
+        evaluated = np.zeros(len(idx_sort), dtype=bool)
+        evaluated[np.ravel(idx_bin)[len(u1) :]] = True
+        u1_idx = idx_sort[(idx_sort < len(u1)) & ~evaluated]
         U_new = U_new[u1_idx]
 
     if non_box_cons is not None:

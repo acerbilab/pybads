@@ -3,11 +3,12 @@
 For every citation `pybads/<path>.py:<N>` (and the bare `:<N>` tokens that
 follow it on the same or the next lines of the same entry, and the bare
 backticked line numbers, `<N>` or `<N>-<M>` in backticks, that follow it on
-its own line), take the commit at which the document's citations were
-checked (`--base <commit>`; without it, the commit that last touched that
-line of the document, from git blame), where the citation is presumed
-right, and carry line N of the cited file from that commit to the working
-tree through `git diff`. A citation whose line moved unchanged
+its own line, of at most five digits, so that a commit hash made of digits
+alone is not read as one), take the commit at which the document's
+citations were checked (`--base <commit>`; without it, the commit that last
+touched that line of the document, from git blame), where the citation is
+presumed right, and carry line N of the cited file from that commit to the
+working tree through `git diff`. A citation whose line moved unchanged
 is rewritten; one whose line was itself changed or removed is reported for
 a reading by hand. Citations of MATLAB files and of other documents are left
 alone, and so is a bare `:<N>` that follows the name of such a file, whether
@@ -140,7 +141,7 @@ token = re.compile(
     r"|(?P<matlab>[\w/]+\.m)\b(?::\d+(?:-\d+)?)?"
     r"|(?P<other>[\w/.]+\.(?:py|md|ini))\b(?P<oline>:\d+(?:-\d+)?)?"
     r"|(?<![\w/.])`?:(?P<c>\d+)(?:-(?P<d>\d+))?"
-    r"|(?<=`)(?P<e>\d+)(?:-(?P<f>\d+))?(?=`)"
+    r"|(?<=`)(?P<e>[1-9]\d{0,4})(?:-(?P<f>[1-9]\d{0,4}))?(?=`)"
 )
 
 current = None

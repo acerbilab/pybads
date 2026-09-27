@@ -121,17 +121,30 @@ class ESSearchHedge:
     def update_hedge(self, u_search, fval_old, f, fs, gp: GP, mesh_size):
         """
         Update the probability of improvement which will be used for updating the weight of the hedge strategy
-        """
 
+        An empty search set (``u_search`` is ``None``) is a failed search:
+        every gain decays, with no reward and no point scored.
+        """
+        if u_search is None:
+            # MATLAB BADS scores the previous search's point here, and gives
+            # the chosen search a reward of 0 and the others none
+            self.g *= self.decay
+            return
+
+        # Every search is scored at the search point, taken as a row, as
+        # MATLAB BADS's u(min(iHedge,end),:) takes its single row
+        u_rows = np.atleast_2d(u_search)
         for i_hedge in range(self.n_funs):
-            u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()
+            i_row = np.minimum(i_hedge, len(u_rows) - 1)
+            u_hedge = u_rows[i_row : i_row + 1].copy()
 
             if i_hedge == self.chosen_hedge:
                 f_hedge = f
                 fs_hedge = fs
             elif self.gamma == 0:
                 f_hedge, fs_hedge = gp.predict(u_hedge)
-                fs_hedge = np.sqrt(fs_hedge)
+                f_hedge = f_hedge.item()
+                fs_hedge = np.sqrt(fs_hedge).item()
             else:
                 f_hedge = 0
                 fs_hedge = 1
@@ -151,7 +164,7 @@ class ESSearchHedge:
                 # Expected reward
                 er = fs_hedge * (
                     gamma_z * fpi
-                    + np.exp(-0.5 * (gamma_z**2) / np.sqrt(2 * np.pi))
+                    + np.exp(-0.5 * (gamma_z**2)) / np.sqrt(2 * np.pi)
                 )
             else:
                 er = 0

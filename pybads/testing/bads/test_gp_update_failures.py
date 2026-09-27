@@ -519,15 +519,20 @@ def test_local_fit_success_clears_markers(captured):
 # --- _get_target_from_gp_ ------------------------------------------------
 
 
-def _nan_prediction_for_target(monkeypatch):
-    """Makes `GP.predict` return NaN when called by `_get_target_from_gp_`."""
+def _non_finite_prediction_for_target(monkeypatch, mean, variance):
+    """Makes `GP.predict` return ``mean`` and ``variance`` when called by
+    `_get_target_from_gp_`; None keeps the GP's own value."""
     original = gpr.GP.predict
 
     def predict(gp, x_star, *args, **kwargs):
         frames = _pybads_frames(sys._getframe(1))
         if frames and frames[0] == "_get_target_from_gp_":
-            nan = np.full((np.atleast_2d(x_star).shape[0], 1), np.nan)
-            return nan, nan.copy()
+            mu, s2 = original(gp, x_star, *args, **kwargs)
+            if mean is not None:
+                mu = np.full_like(mu, mean)
+            if variance is not None:
+                s2 = np.full_like(s2, variance)
+            return mu, s2
         return original(gp, x_star, *args, **kwargs)
 
     monkeypatch.setattr(gpr.GP, "predict", predict)
@@ -556,25 +561,38 @@ def test_target_failure_predicts_from_current_gp(captured, inject):
 
 
 @pytest.mark.parametrize(
-    "fail_hyperparameters", [False, True], ids=["nan", "failure_then_nan"]
+    "mean, variance",
+    [(np.nan, np.nan), (None, np.nan), (None, np.inf)],
+    ids=["nan", "nan_variance", "infinite_variance"],
+)
+@pytest.mark.parametrize(
+    "fail_hyperparameters",
+    [False, True],
+    ids=["prediction", "failure_then_prediction"],
 )
 def test_target_fallback_to_incumbent(
-    captured, inject, monkeypatch, fail_hyperparameters
+    captured, inject, monkeypatch, fail_hyperparameters, mean, variance
 ):
     """A prediction that is not finite falls back to the incumbent's `fval`
-    and `fsd`, in a form the call sites' `.item()` accepts."""
+    and `fsd`, in a form the call sites' `.item()` accepts, and the target
+    is computed from them: finite, also when only the variance is not."""
     level, c = captured
     bads = c.bads
     gp = copy.deepcopy(c.add["gp"])
     if fail_hyperparameters:
         inject(lambda call: call.site == "_get_target_from_gp_")
-    _nan_prediction_for_target(monkeypatch)
+    _non_finite_prediction_for_target(monkeypatch, mean, variance)
     f_target_mu, f_target_s, f_target = bads._get_target_from_gp_(
         bads.u_best, gp, gp.get_hyperparameters(as_array=True)
     )
-    assert f_target_mu.item() == bads.optim_state["fval"]
-    assert f_target_s == bads.optim_state["fsd"]
-    f_target.item()
+    optim_state = bads.optim_state
+    assert f_target_mu.item() == optim_state["fval"]
+    assert f_target_s == optim_state["fsd"]
+    assert np.isfinite(f_target.item())
+    expected = optim_state["fval"] - optim_state["sd_level"] * np.sqrt(
+        optim_state["fsd"] ** 2 + bads.options["tol_fun"] ** 2
+    )
+    assert f_target.item() == pytest.approx(expected, rel=1e-12)
 
 
 # --- the markers in the search and the poll --------------------------------

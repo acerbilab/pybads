@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+ucov(PyBADS) == S^T S: True
+ucov(MATLAB transcription) == S^T S: True
+weighted sum_i w_i s_i s_i^T == S^T S: False
+captured 20 search states (rosenbrock D=3, seed 0)
+(n_train, MATLAB rows floor(mu), PyBADS rows floor(mu+1)) at first 4 states: [(11, 5, 6), (12, 6, 7), (13, 6, 7), (14, 7, 8)]
+rel. Frobenius diff of normalized search covariance, PyBADS vs MATLAB: min 0.021 median 0.109 max 0.395
+rel. diff if the weights were applied (MATLAB rows): min 0.127 median 0.330 max 0.463
+port == transcription with floor(mu)+1 rows: True

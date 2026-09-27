@@ -1,0 +1,40 @@
+fix: an ES generation emptied by the constraint check adds no candidate, and the search keeps the earlier ones (W3-9)
+
+When contraints_check removed every candidate of a later generation of
+the ES search (a non_box_cons that rejects them all, such as a thin
+band), the fallback meant for a failed acquisition replaced the pooled
+acquisition values with rng.random(0), an empty array, so the pool had
+no value left, and the search returned an empty set: a search that
+failed although the first generation had candidates. It also logged
+"Something went wrong with the acquisition function, random search is
+performed", although the acquisition had not failed and no random
+search ran; the fallback was reached only by an empty generation, since
+acq_fcn_lcb never returns None, and a NaN acquisition, the failure the
+warning names, is not caught. MATLAB's searchES appends the empty
+generation to its pool and keeps zold, so it returns the best earlier
+candidate (search/searchES.m:168-182).
+
+The fallback is removed: an empty generation adds nothing to the pool,
+which is sorted and selected as before, so the earlier candidates are
+kept, and no random number is drawn for it. The warning now says what
+happened: "No candidate left in generation <k> of the search, once the
+points already evaluated or violating the constraints are removed". A
+generation that adds no candidate leaves the ES scale unchanged, where
+MATLAB's fraction of new candidates is 0/0 and its scale NaN (from
+n_search_iter = 3); a later generation is then reproduced from the
+kept candidates at that scale, as MATLAB reproduces them. An emptied
+first generation still returns an empty set, as before and as MATLAB.
+
+Test: test_empty_search.py::
+test_es_search_keeps_the_candidates_of_an_emptied_generation[2, 3]: a
+constraint that rejects the second generation only, at n_search_iter 2
+and 3; the ES returns the candidate of lowest LCB among the generations
+it evaluated, logs the new warning, and keeps its scale. Both fail at
+the parent, which returns an empty set ([2]: assert (0, 3) == (3,)) and
+stops at the emptied generation ([3]: assert 2 == 3, len([1365, 0])),
+and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

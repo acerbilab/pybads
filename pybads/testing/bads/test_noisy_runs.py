@@ -468,3 +468,41 @@ def test_re_estimation_moves_the_incumbent_with_its_value(monkeypatch):
     )
     bads.optimize()
     assert any(move["elsewhere"] and move["polled"] for move in moves)
+
+
+@pytest.mark.parametrize("target_noise", [False, True])
+def test_re_estimation_keeps_optim_state_in_step(target_noise):
+    """The re-estimation at the end of an iteration gives the incumbent new
+    values also when it does not move it, and `optim_state`'s `yval`, `fval`
+    and `fsd`, which the output function receives, take them too: at each
+    poll the output function sees the incumbent's values."""
+    run = {}
+    polls = []
+
+    def output_fcn(x, optim_state, state):
+        if state == "iter":
+            bads = run["bads"]
+            polls.append(
+                np.array_equal(
+                    [optim_state[k] for k in ("yval", "fval", "fsd")],
+                    [bads.yval, bads.fval, bads.fsd],
+                    equal_nan=True,
+                )
+            )
+        return False
+
+    fun = (
+        _noisy_sphere_with_estimated_sd(0)
+        if target_noise
+        else _noisy_sphere(0)
+    )
+    run["bads"] = _make_bads(
+        fun,
+        specify_target_noise=target_noise,
+        max_fun_evals=150,
+        random_seed=1,
+        output_fcn=output_fcn,
+    )
+    run["bads"].optimize()
+    assert len(polls) > 5
+    assert all(polls)

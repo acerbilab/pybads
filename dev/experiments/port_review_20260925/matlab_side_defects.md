@@ -58,6 +58,39 @@ Nothing here was run in MATLAB.
   noisy runs in the verifier's check). PyBADS: the incumbent moves with its
   value (`a9fbb97`; KD-B2-7).
 
+- **With `HedgeGamma` 0, the search hedge fails at its first update**
+  (W3-7, `verification/wave3.md`). `acq/acqPortfolio.m:40` scores every
+  search at the same point, the search point taken as a row, its evident
+  intent, and `:47` then predicts with `gpstructnew`, which is undefined
+  there (its assignment was commented out before `d4fead5`), so a run with
+  `HedgeGamma = 0` stops at its first search. Off by default (0.125).
+  PyBADS failed too, earlier, by slicing the point's coordinates; it now
+  scores each search at the search point (`4d357e4`).
+- **A non-finite target prediction gives a NaN target** (W3-23).
+  `bads.m:1310-1311` replace a non-finite prediction of the target by the
+  incumbent's `fval` and `fsd`, but `1321` computes the target from the
+  non-finite variance, so that the target is NaN (or `-Inf` for an infinite
+  variance), and the poll then treats the GP as unreliable. In MATLAB this
+  follows a failed rebuild, whose `post` is empty. PyBADS did the same, where
+  gpyreg's predictions are non-finite only on overflow; it now computes the
+  target from the incumbent's SD (`dac062e`).
+- **`AccelerateMeshSteps` below 1 stops the run** (W3-39, from the
+  doublecheck of wave 2). `bads.m:976-979` compare the incumbent with
+  `iterList.fval(iter - AccelerateMeshSteps)`, and `iterList` starts empty
+  (`private/setupvars.m:179-182`), so a value of 0 or less reads an
+  iteration not recorded yet at the first failed poll. Off by default (3).
+  PyBADS failed too, with `TypeError`; it now refuses a value that is not a
+  positive integer when `BADS` is created (`5d711bf`).
+- **The prior of the length scales on two points has a zero width**
+  (W3-40, found by W3-24's gate). `gpdef/gpdefBads.m:240-251` centre the
+  empirical prior of the log length scales between the logs of the
+  largest and the smallest pairwise distance of the training set, with
+  half their difference as its SD, which is 0 when the local GP holds two
+  distinct points; what the fit then does with a zero-variance prior is
+  not known without MATLAB. PyBADS computed the same, and gpyreg 1.3.3
+  refuses it with `ValueError`, which stopped the run; it now keeps the
+  previous prior (`a14524d`; KD-B6-2).
+
 ## Shared design observations (PyBADS keeps MATLAB's behavior)
 
 - **The calibration test for three or more points tests normality only**
@@ -98,3 +131,60 @@ Nothing here was run in MATLAB.
   run at `x0`. PyBADS keeps the criterion, and the documentation of
   `non_box_cons` says that such a region can end the run early and
   suggests a reparametrization (`bdaef58`).
+- **The covariance of ES-wcm is the unweighted scatter of the best points**
+  (W3-3). `utils/ucov.m:19` sums the weighted copies of the scatter matrix
+  of the best points about the incumbent, and the weights sum to one, so
+  the result is the unweighted scatter, where the comments ("weighted
+  covariance matrix"), the log weights and the name point to the weighted
+  sum of the outer products. Weighting would change the normalized search
+  covariance by 13-46% (median 33%) over 20 GP states; the final values of
+  10 seeds on two problems did not move beyond their spread. PyBADS keeps
+  the unweighted scatter, and its comments say so (`7e09887`).
+- **At uncertainty level 0 the poll's GP does not take the poll's
+  evaluations** (W3-26). Only a noisy run adds the poll's points to the GP
+  (`bads.m:908-916`), so in a deterministic run, after an improving poll
+  point, the target is predicted at `upollbest` (`841`), where the GP has
+  no data (observed 4.155, predicted 86.41; observed 26.35, predicted
+  11.44), and the LCB and the probabilities of improvement of the remaining
+  poll points ignore the poll's observations. A GP that holds the points changed 1 of
+  9 runs. PyBADS keeps MATLAB's behaviour.
+- **The poll's basis is bounded by the inverse of LTMADS's ratio, so the
+  poll steps along the coordinates** (W3-24). `poll/pollMADS2N.m:7` sets
+  `Nmax = max(1, round(SearchMeshSize/MeshSize))`, the ratio of the search
+  mesh to the poll mesh, which is below 1 at every default state (the
+  locked search mesh is `2^(2k-10)` at the poll mesh `2^k`): `Nmax` is 1,
+  the entries below the diagonal are 0, and the basis is a signed
+  permutation of the identity, so that the poll is a coordinate search, as
+  the user documents of both describe it. LTMADS (Audet and Dennis, 2006),
+  whose basis the code draws, bounds it by the ratio of the poll size to
+  the mesh size, and its tilted directions are dense in the limit. PyBADS
+  tried LTMADS's bound, with the directions in units of the search mesh
+  size (`869a033`), and reverted it (`b03a320`) after its gate: on
+  PyBADS's benchmark the deterministic problems ended with higher errors,
+  far below their tolerances (`ellipsoid_D6` flagged), a thin feasible band
+  at D = 3 was solved in 23 of 30 runs instead of 30, and nonsmooth ridges
+  along the diagonal, the case that the tilted directions address, did
+  not improve (`verification/wave3.md`, "Fix pass"). PyBADS keeps MATLAB's
+  poll.
+
+## Defects that PyBADS does not share
+
+- **An empty search set moves to a stale point, or stops the run** (W3-11,
+  `verification/wave3.md`). `bads.m:667-725`, `1257-1279`: a search set is
+  empty when `uCheck` removes every candidate, as violating the constraint
+  or already evaluated. At `ImprovementQuantile` > 0.5 in a noisy run, the
+  empty set counts as an incremental search and moves the incumbent to the
+  previous search's point `usearch`, with its `fval` and an SD of 0; when
+  the run's first search set is empty, `usearch` is undefined and the run
+  stops with an error.
+  PyBADS: an empty set is a failed search on every path (W0-15, `0c56d86`),
+  and the hedge's gains decay as MATLAB's (`4388e6d`; KD-B3-5).
+- **The scale of the ES search becomes NaN after a generation without
+  candidates** (found while verifying wave 3, B3 verifier, by reading).
+  `search/searchES.m:170-193` updates the scale by the fraction of new
+  candidates among the best, `nnew/ntest`, which is 0/0 when `uCheck`
+  removed every candidate of the generation; from `SearchNiter` 3 (the
+  default is 2) the scale is then NaN, and `uCheck`'s projection, whose
+  `min` and `max` ignore NaN, sends every later candidate of the search to
+  the corner `UBsearch`. PyBADS keeps the scale after such a generation
+  (`a77d95d`; KD-B3-6).

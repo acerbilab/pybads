@@ -6,17 +6,54 @@ from pybads.rng import get_rng
 
 def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size, rng=None):
     """
-    Practical Implementation of the MADS POLL method -- LTMADS [1].
+    Draw the poll basis of MATLAB BADS's ``pollMADS2N``, and its negation.
 
-    It retrieves random basis vectors which are dense refining directions in the hypertangent cone. The methods is the core method of the MADS framework for the theoretical convergence guarantees towards the Clarke's local stationary point.
+    The basis has the shape of LTMADS's [1]: up to a permutation of the
+    coordinates, the transpose of a lower-triangular integer matrix whose
+    diagonal entries are ``n_max`` or ``-n_max`` and whose entries below
+    the diagonal are drawn uniformly from ``-n_max + 1, ..., n_max - 1``.
+    With its negation, it gives ``2D`` directions that positively span the
+    space, which the poll takes in units of ``mesh_size``. As in MATLAB
+    BADS (``pollMADS2N.m:7``), the bound is ``n_max = max(1,
+    round(search_mesh_size / mesh_size))``. The search mesh is finer than
+    the poll mesh at every default state, so ``n_max`` is 1 and the basis
+    is a signed permutation of the identity: the poll steps along one
+    coordinate at a time. LTMADS bounds the basis by the inverse ratio, the
+    poll size over the mesh size; PyBADS keeps MATLAB BADS's poll, which
+    LTMADS's directions made worse on PyBADS's benchmark (the port review's
+    wave 3, W3-24). A new basis is drawn at each poll.
+
+    The basis is divided by ``poll_scale``, which counteracts the poll's
+    multiplication of the directions by ``poll_scale``.
 
     The random draws come from ``rng``, a ``numpy.random.Generator``; if
     ``None``, a generator is derived from NumPy's global random state
     (``pybads.rng.get_rng``).
 
+    Parameters
+    ----------
+    dim_x : int
+        The number of variables ``D``.
+    poll_scale : np.ndarray
+        The poll's scale of each variable, of shape ``(1, D)``.
+    search_mesh_size : float
+        The size of the search mesh.
+    mesh_size : float
+        The size of the poll mesh.
+    rng : numpy.random.Generator, optional
+        The generator of the random draws.
+
+    Returns
+    -------
+    B_new : np.ndarray
+        The basis and its negation, divided by ``poll_scale``, of shape
+        ``(2D, D)``.
+
     References
-        ----------
-        [1] Audet, Charles, Kwassi Joseph Dzahini, Michael Kokkolaras, and Sébastien Le Digabel. ‘Stochastic Mesh Adaptive Direct Search for Blackbox Optimization Using Probabilistic Estimates’. Computational Optimization and Applications 79, no. 1 (May 2021): 1–34. https://doi.org/10.1007/s10589-020-00249-0.
+    ----------
+    .. [1] Audet, C., & Dennis, J. E., Jr. (2006). Mesh adaptive direct
+       search algorithms for constrained optimization. SIAM Journal on
+       Optimization, 17(1), 188-217. https://doi.org/10.1137/040603371
     """
     rng = get_rng(rng)
     n_max = np.maximum(1, np.round(search_mesh_size / mesh_size))
@@ -30,7 +67,8 @@ def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size, rng=None):
     diag = n_max * 2 * (rng.integers(1, 3, dim_x) - 1.5)
     D = D + np.eye(dim_x) * diag
 
-    # Random permutation of rows and columns and then transpose
+    # Random permutation of the rows and then transpose (MATLAB BADS also
+    # permutes the columns, which only reorders the directions)
     D = np.transpose(rng.permutation(D))
 
     # Counteract subsequent multiplication by pollscale

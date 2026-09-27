@@ -1,0 +1,5 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+root logger level: 30 | geterr before: {'divide': 'warn', 'over': 'warn', 'under': 'ignore', 'invalid': 'warn'}
+geterr after: {'divide': 'ignore', 'over': 'warn', 'under': 'ignore', 'invalid': 'warn'}
+user 1/0 after the run warns: False

@@ -1,0 +1,9 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+mu= 2048 lam= 2048: len MATLAB 2048, port 2049; port == [0] + MATLAB(1-based)[:-0]? True; offspring of parents 0..5 (first ll): MATLAB [17, 12, 10, 9, 8, 7] port [1, 17, 12, 10, 9, 8]; sum MATLAB 1-based 1381012, port 1381012, correct 0-based 1378964
+mu=  100 lam= 2048: len MATLAB 2048, port 2049; port == [0] + MATLAB(1-based)[:-0]? True; offspring of parents 0..5 (first ll): MATLAB [23, 16, 13, 12, 11, 10] port [1, 23, 16, 13, 12, 11]; sum MATLAB 1-based 922750, port 922750, correct 0-based 920702
+mu=    7 lam=   20: len MATLAB 20, port 21; port == [0] + MATLAB(1-based)[:-0]? True; offspring of parents 0..5 (first ll): MATLAB [3, 2, 2] port [1, 3, 2, 1]; sum MATLAB 1-based 131, port 131, correct 0-based 111
+mu=    1 lam=    5: len MATLAB 5, port 6; port == [0] + MATLAB(1-based)[:-0]? True; offspring of parents 0..5 (first ll): MATLAB [1] port [1]; sum MATLAB 1-based 11, port 11, correct 0-based 6
+mu=    3 lam=    3: len MATLAB 3, port 4; port == [0] + MATLAB(1-based)[:-0]? True; offspring of parents 0..5 (first ll): MATLAB [1, 1, 1] port [1, 1, 1]; sum MATLAB 1-based 6, port 6, correct 0-based 3
+ES-wcm: 100 paired searches; fixed mask lower best LCB in 0.79, port lower in 0.17, ties 0.04; median (fixed - port) -1.7; median |port| 29.8
+ES-ell: 100 paired searches; fixed mask lower best LCB in 0.73, port lower in 0.19, ties 0.08; median (fixed - port) -0.349; median |port| 8.59

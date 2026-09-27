@@ -1,0 +1,12 @@
+E           assert False
+E            +  where False = <function array_equal at 0x7ff6d990e830>(array([-1.62304688, -0.02929688, -0.54492188]), array([ 0.37695312, -0.02929688, -0.54492188]))
+E            +    where <function array_equal at 0x7ff6d990e830> = np.array_equal
+E            +    and   array([ 0.37695312, -0.02929688, -0.54492188]) = <built-in method ravel of numpy.ndarray object at 0x7ff6cdbbd110>()
+E            +      where <built-in method ravel of numpy.ndarray object at 0x7ff6cdbbd110> = array([ 0.37695312, -0.02929688, -0.54492188]).ravel
+            if "Acquisition function failed" in record.getMessage()
+E       AssertionError: assert 0 >= 54
+E        +  where 0 = len([])
+E        +  and   54 = len([('poll', array([[-1.62304688, -0.02929688, -0.54492188],\n       [-0.62304688, -1.02929688, -0.54492188],\n       [-0.6...88])), ('poll', array([[ 0.37695312, -0.02929688, -0.54492188]]), array([ 0.37695312, -0.02929688, -0.54492188])), ...])
+FAILED pybads/testing/bads/test_run_control.py::test_acquisition_skips_nan - ...
+FAILED pybads/testing/bads/test_run_control.py::test_acquisition_all_nan_chooses_at_random
+2 failed, 32 deselected in 2.60s

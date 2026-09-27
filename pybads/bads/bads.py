@@ -809,6 +809,33 @@ class BADS:
             )
         if np.isfinite(max_fun_evals):
             self.options["max_fun_evals"] = int(max_fun_evals)
+        # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
+        # it evaluates an improvement (bads.m:1269-1271)
+        improvement_quantile = self.options["improvement_quantile"]
+        if not 0 < improvement_quantile < 1:
+            raise ValueError(
+                "options['improvement_quantile'] needs to be greater than 0 "
+                f"and less than 1, not {improvement_quantile!r}."
+            )
+        # accelerate_mesh_steps is a positive integer: the accelerated mesh
+        # reduction reads the iterate accelerate_mesh_steps iterations
+        # back, which below 1 is not recorded yet (MATLAB BADS fails there
+        # too, bads.m:976-979); a whole-number float is converted
+        accelerate_mesh_steps = self.options["accelerate_mesh_steps"]
+        if (
+            isinstance(accelerate_mesh_steps, (bool, np.bool_))
+            or not isinstance(
+                accelerate_mesh_steps, (int, float, np.integer, np.floating)
+            )
+            or not np.isfinite(accelerate_mesh_steps)
+            or not accelerate_mesh_steps >= 1
+            or not float(accelerate_mesh_steps).is_integer()
+        ):
+            raise ValueError(
+                "options['accelerate_mesh_steps'] needs to be a positive "
+                f"integer, not {accelerate_mesh_steps!r}."
+            )
+        self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "
@@ -1159,6 +1186,7 @@ class BADS:
         """
         gp = None
         self.reset_gp = False
+        self.poll_moved = False
         hyp_dict = {}
 
         # Evaluate starting point and initial mesh,
@@ -1436,6 +1464,12 @@ class BADS:
                 ):
                     is_finished = True
 
+            # A poll that moved the incumbent asks for a rebuild of the local
+            # GP at the end of every pass, until a poll that does not move,
+            # as MATLAB BADS empties the posterior (bads.m:1049)
+            if self.poll_moved:
+                self.reset_gp = True
+
             # Finalize the iteration
 
             # TODO: Iteration plot
@@ -1530,6 +1564,10 @@ class BADS:
                 self.yval = self.iteration_history.get("yval")[poll_iteration]
                 self.fval = self.iteration_history.get("fval")[poll_iteration]
                 self.fsd = self.iteration_history.get("fsd")[poll_iteration]
+                # optim_state keeps the incumbent's values in step
+                self.optim_state["yval"] = self.yval
+                self.optim_state["fval"] = self.fval
+                self.optim_state["fsd"] = self.fsd
                 self.best_gp_hyp = self.iteration_history.get("gp_hyp_full")[
                     poll_iteration
                 ]
@@ -1754,9 +1792,11 @@ class BADS:
                 refit_flag,
                 rng=self.rng,
             )
-            # The rebuild answers a move of the incumbent once, as in MATLAB
-            # BADS it fills the posterior that the move emptied (a failed
-            # rebuild is marked for the next step)
+            # The rebuild answers a move of the incumbent, as in MATLAB BADS
+            # it fills the posterior that the move emptied: once after a
+            # search's move, and at every pass after a poll's move, until a
+            # poll that does not move (a failed rebuild is marked for the
+            # next step)
             self.reset_gp = False
 
             if refit_flag:
@@ -1824,17 +1864,14 @@ class BADS:
             z, f_mu, _ = acq_fcn_lcb(
                 u_search_set, self.function_logger.func_count, gp
             )
-            # Evaluate best candidate point in original coordinates
-            index_acq = np.argmin(z)
+            # Evaluate best candidate point in original coordinates (a NaN
+            # value is skipped, as by MATLAB's min)
+            index_acq = None if np.all(np.isnan(z)) else np.nanargmin(z)
 
             # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's not even unsupported in Matlab
 
-            # Randomly choose index if something went wrong
-            if (
-                index_acq is None
-                or index_acq.size < 1
-                or np.any(~np.isfinite(index_acq))
-            ):
+            # Randomly choose index if something went wrong (every value NaN)
+            if index_acq is None:
                 self.logger.warning(
                     "bads:optimize: Acquisition function failed"
                 )
@@ -1927,7 +1964,7 @@ class BADS:
             u_search = None
             y_search = self.yval
             f_mu_search = self.fval
-            f_sd_search = 0
+            f_sd_search = 0.0
             search_dist = 0
 
         # TODO: CMA-ES like estimation of local covariance structure (unused)
@@ -1976,7 +2013,12 @@ class BADS:
                 is_search_improved = sto_success == 1
                 is_search_success = is_search_improved
 
-        # An empty search set is a failed search, as in MATLAB BADS
+        # An empty search set is a failed search. MATLAB BADS gives the same
+        # status at improvement_quantile <= 0.5 (the default) or without
+        # noise, and decays the hedge's gains as below; but at a larger
+        # quantile in a noisy run it moves the incumbent to the previous
+        # search's point, and it stops with an error when the run's first
+        # search set is empty. PyBADS does neither.
         if u_search is None:
             is_search_improved = is_search_success = False
 
@@ -2015,8 +2057,9 @@ class BADS:
 
         # Update portfolio acquisition function (not supported)
 
-        # Update search portfolio (needs improvement)
-        if self.search_es_hedge is not None and u_search_set.size > 0:
+        # Update search portfolio (needs improvement); after an empty search
+        # set every gain decays, with no reward, as in MATLAB BADS
+        if self.search_es_hedge is not None:
             self.search_es_hedge.update_hedge(
                 u_search,
                 fval_old,
@@ -2196,16 +2239,10 @@ class BADS:
                     self.non_box_cons,
                 )
 
-                # Add new poll points to polling set
-                if u_poll is None:
-                    u_poll = u_poll_new.copy()
-                else:
-                    u_poll = np.vstack(u_poll, u_poll_new)
-
-                if B is None:
-                    B = B_new.copy()
-                else:
-                    B = np.vstack((B, B_new))
+                # The polling set and its basis, filled once: B is never
+                # emptied, so the basis is not refilled
+                u_poll = u_poll_new.copy()
+                B = B_new.copy()
 
             # Cannot refill poll vector set, stop polling
             if u_poll is None or u_poll.size == 0:
@@ -2276,35 +2313,33 @@ class BADS:
             z, f_mu, fs = acq_fcn_lcb(
                 u_poll, self.function_logger.func_count, gp
             )
-            # Evaluate best candidate point in original coordinates
-            index_acq = np.argmin(z)
+            # Evaluate best candidate point in original coordinates (a NaN
+            # value is skipped, as by MATLAB's min)
+            index_acq = None if np.all(np.isnan(z)) else np.nanargmin(z)
 
             # In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
 
-            # Randomly choose index if something went wrong
-            if (
-                index_acq is None
-                or index_acq.size < 1
-                or np.any(~np.isfinite(index_acq))
-            ):
+            # Randomly choose index if something went wrong (every value NaN)
+            if index_acq is None:
                 self.logger.warning(
                     "bads:optimize: Acquisition function failed"
                 )
                 index_acq = self.rng.integers(0, len(u_poll))
-            if logging.getLogger().level > logging.DEBUG:
-                np.seterr(divide="ignore")
-            gamma_z = (
-                self.optim_state["f_target"]
-                - self.sufficient_improvement
-                - f_mu
-            ) / fs
+            # A zero predictive SD makes gamma_z infinite or NaN, which marks
+            # the GP as unreliable below: NumPy's warnings are silenced for
+            # this division only
+            with np.errstate(divide="ignore", invalid="ignore"):
+                gamma_z = (
+                    self.optim_state["f_target"]
+                    - self.sufficient_improvement
+                    - f_mu
+                ) / fs
             if np.all(np.isfinite(gamma_z)) and np.all(np.isreal(gamma_z)):
                 f_pi = 0.5 * erfc(-gamma_z / np.sqrt(2))
-                # sort descend
-                f_pi = np.sort(f_pi)[::-1]
-                p_less = np.prod(
-                    1 - f_pi[0 : np.minimum(self.D + 1, len(f_pi))]
-                )
+                # sort descend, over the points (f_pi is a column), and take
+                # the D largest, as MATLAB BADS
+                f_pi = np.sort(f_pi, axis=None)[::-1]
+                p_less = np.prod(1 - f_pi[: self.D])
             else:
                 p_less = 0
                 do_gp_calibration = True
@@ -2462,9 +2497,6 @@ class BADS:
                 f_sd_base = self.iteration_history.get("fsd")[
                     iter - self.options["accelerate_mesh_steps"]
                 ]
-                u_base = self.iteration_history.get("u")[
-                    iter - self.options["accelerate_mesh_steps"]
-                ]
                 self.f_q_historic_improvement = self._eval_improvement_(
                     f_base,
                     self.fval,
@@ -2472,9 +2504,7 @@ class BADS:
                     self.fsd,
                     self.options["improvement_quantile"],
                 )
-                if (
-                    self.f_q_historic_improvement < self.options["tol_fun"]
-                ):  # or np.all(u_base.flatten() == self.u.flatten()):
+                if self.f_q_historic_improvement < self.options["tol_fun"]:
                     self.mesh_size_integer -= 1
                     self.logger.debug(
                         "bads: The optimization is stalling, further decrease of the mesh size"
@@ -2518,7 +2548,7 @@ class BADS:
         # The display counts iterations from 1, as MATLAB BADS does
         self._display_function_log_(self.optim_state["iter"] + 1, poll_string)
 
-        self.reset_gp = is_poll_moved
+        self.poll_moved = is_poll_moved
 
         return u_poll_best, f_poll_best, y_poll_best, f_sd_poll_best, gp
 
@@ -2655,24 +2685,31 @@ class BADS:
         )
 
     def _get_target_from_gp_(self, u, gp: GP, hyp_best):
-        """A private method that retrieve the prediction of the gp at the input ``u``.
-            If the target function is stochastic then set the optimization target ``f_target`` slightly below the mean prediction.
+        """A private method that retrieves the prediction of the GP at the
+        input ``u`` and sets the optimization target ``f_target`` slightly
+        below the mean prediction, in a noisy run and whenever
+        ``uncertain_incumbent`` is on (the default); a prediction that is
+        not finite is replaced by the incumbent's ``fval`` and ``fsd``.
+        Otherwise the target is the incumbent's ``fval`` less ``tol_fun``.
 
         Parameters
         ----------
-            u : np.array
-                input point u
-            gp : GP
-            hyp_best : np.ndarray
-                Hyperparameter used by the GP in the prediction
+        u : np.ndarray
+            The input point, the incumbent.
+        gp : GP
+            The GP.
+        hyp_best : np.ndarray
+            The hyperparameters under which the GP predicts.
 
-        Returns:
-            f_target_mu :
-                GP prediction, it corresponds to the mean values.
-            f_target_s :
-                GP variance/noise at point u.
-            f_target : optimization target, it is slighly below the GP prediction when the target function is stochastic.
-
+        Returns
+        -------
+        f_target_mu : np.ndarray
+            The GP's mean prediction at ``u``, of shape ``(1, 1)``.
+        f_target_s : np.ndarray or float
+            The GP's predictive standard deviation at ``u`` (the incumbent's
+            ``fsd`` when the prediction is not finite).
+        f_target : np.ndarray
+            The optimization target, of shape ``(1, 1)``.
         """
         # Corresponds to Matlab: updateTarget
         if (
@@ -2703,6 +2740,9 @@ class BADS:
                     np.asarray(self.optim_state["fval"], dtype=float)
                 )
                 f_target_s = self.optim_state["fsd"]
+                # The target's formula takes the incumbent's variance too,
+                # where MATLAB BADS keeps the prediction's (bads.m:1321)
+                fs2 = f_target_s**2
 
             # f_target: Set optimization target slightly below the current incumbent
             if self.options["alternative_incumbent"]:
@@ -2717,9 +2757,12 @@ class BADS:
                     "sd_level"
                 ] * np.sqrt(fs2 + self.options["tol_fun"] ** 2)
         else:
-            f_target = self.optim_state["fval"] - self.options["tol_fun"]
-            f_target_mu = self.optim_state["fval"]
-            f_target_s = 0
+            # Arrays of the prediction's shapes: the callers call `.item()`
+            f_target_mu = np.atleast_2d(
+                np.asarray(self.optim_state["fval"], dtype=float)
+            )
+            f_target_s = np.zeros(1)
+            f_target = f_target_mu - self.options["tol_fun"]
 
         return f_target_mu, f_target_s, f_target
 

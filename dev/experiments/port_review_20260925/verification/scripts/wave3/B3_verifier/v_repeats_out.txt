@@ -1,0 +1,16 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+bound-opt D=1 seed=0               cc=PyBADS fval=1 evals=25 repeats: search 9/16, poll 0/5, init 0/3
+bound-opt D=1 seed=0               cc=MATLAB fval=1 evals=25 repeats: search 0/16, poll 0/5, init 0/3
+bound-opt D=1 seed=1               cc=PyBADS fval=1 evals=25 repeats: search 9/16, poll 0/5, init 0/3
+bound-opt D=1 seed=1               cc=MATLAB fval=1 evals=25 repeats: search 0/16, poll 0/5, init 0/3
+bound-opt D=2 seed=0               cc=PyBADS fval=2 evals=49 repeats: search 20/29, poll 0/14, init 0/5
+bound-opt D=2 seed=0               cc=MATLAB fval=2 evals=49 repeats: search 0/29, poll 0/14, init 0/5
+bound-opt D=2 seed=1               cc=PyBADS fval=2 evals=49 repeats: search 21/29, poll 0/14, init 0/5
+bound-opt D=2 seed=1               cc=MATLAB fval=2 evals=49 repeats: search 0/29, poll 0/14, init 0/5
+sphere D=1 seed=0                  cc=PyBADS fval=2.65209e-09 evals=30 repeats: search 0/15, poll 0/11, init 0/3
+sphere D=3 seed=0                  cc=PyBADS fval=4.98731e-07 evals=77 repeats: search 0/29, poll 0/42, init 0/5
+sphere D=1 seed=1                  cc=PyBADS fval=0 evals=30 repeats: search 0/15, poll 0/11, init 0/3
+sphere D=3 seed=1                  cc=PyBADS fval=4.76399e-07 evals=77 repeats: search 0/29, poll 0/42, init 0/5
+hetero ellipsoid D=3 L2 seed=0     cc=PyBADS fval=-0.260998 evals=200 repeats: search 0/108, poll 0/49, init 0/33
+hetero ellipsoid D=3 L2 seed=0     cc=MATLAB fval=-0.260998 evals=200 repeats: search 0/108, poll 0/49, init 0/33

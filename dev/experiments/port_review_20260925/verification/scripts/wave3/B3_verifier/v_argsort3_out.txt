@@ -1,0 +1,11 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+first tie at rank fraction 0.201; tied adjacent pairs 1 of 4096; most common tied value is the max z: False; tied z 0.0272413, median z 0.0766616
+first tie at rank fraction 0.022; tied adjacent pairs 10 of 2048; most common tied value is the max z: False; tied z 0.000625675, median z 0.0111762
+first tie at rank fraction 0.010; tied adjacent pairs 37 of 4096; most common tied value is the max z: False; tied z 0.00505454, median z 0.00916518
+first tie at rank fraction 0.066; tied adjacent pairs 2 of 4096; most common tied value is the max z: False; tied z 0.00520033, median z 0.0369935
+first tie at rank fraction 0.312; tied adjacent pairs 2 of 2048; most common tied value is the max z: False; tied z 0.0135397, median z 0.0230102
+first tie at rank fraction 0.026; tied adjacent pairs 10 of 4096; most common tied value is the max z: False; tied z 0.00140626, median z 0.0185466
+first tie at rank fraction 0.025; tied adjacent pairs 8 of 2048; most common tied value is the max z: False; tied z 0.0041166, median z 0.00562316
+first tie at rank fraction 0.008; tied adjacent pairs 63 of 4096; most common tied value is the max z: False; tied z 0.000326221, median z 0.00461132
+calls with ties: 32; first tie in the top 1%: 21; median first-tie rank fraction 0.006

@@ -1,0 +1,7 @@
+E       assert np.float64(0.9999999960000001) == 0.30999999938 ± 3.1e-10
+E
+E         comparison failed
+E         Obtained: 0.9999999960000001
+E         Expected: 0.30999999938 ± 3.1e-10
+FAILED pybads/testing/bads/test_run_control.py::test_poll_stop_probability_takes_the_largest_probabilities
+1 failed, 34 deselected in 1.60s

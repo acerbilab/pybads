@@ -3,6 +3,7 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 (`"init"`), after each poll (`"iter"`) and at the end (`"done"`), and stops
 the run when it returns a true value; `iterations` counts from 1."""
 
+import logging
 import threading
 
 import numpy as np
@@ -434,3 +435,200 @@ def test_result_keeps_the_callables_by_reference():
     assert result["fun"] is target
     assert result["fun"].__self__ is locked
     assert result["non_box_cons"] is locked
+
+
+def test_run_with_certain_incumbent():
+    """With `uncertain_incumbent=False`, a deterministic target's
+    optimization target is the incumbent's value less `tol_fun`, as in
+    MATLAB BADS (`UpdateTarget` in `bads.m`), in the form the search and
+    the poll store with `.item()`, and the run completes."""
+    bads = _make_bads(uncertain_incumbent=False, max_fun_evals=60)
+    result = bads.optimize()
+    optim_state = bads.optim_state
+    assert optim_state["uncertainty_handling_level"] == 0
+    assert result["iterations"] > 1
+    assert result["fval"] < _sphere(np.ones(D) * 4)
+    assert (
+        optim_state["f_target"]
+        == optim_state["f_target_mu"] - bads.options["tol_fun"]
+    )
+    assert np.all(optim_state["f_target_s"] == 0)
+
+
+def _acquisition_run(monkeypatch, nan_mask):
+    """A run whose acquisition values at the search and the poll are NaN
+    where `nan_mask(n)` is true, `n` the number of candidates. It returns
+    the events in their order: each acquisition's site and candidates, and
+    each evaluation's point."""
+    import pybads.bads.bads as bads_module
+    from pybads.function_logger import FunctionLogger
+
+    events = []
+    bads = _make_bads(max_fun_evals=60)
+    original_acq = bads_module.acq_fcn_lcb
+    original_call = FunctionLogger.__call__
+
+    def acq(u, func_count, gp):
+        z, f_mu, fs = original_acq(u, func_count, gp)
+        z = np.array(z, dtype=float)
+        z[nan_mask(len(z))] = np.nan
+        # The poll runs after the round of searches, which resets the count
+        site = "search" if bads.optim_state["search_count"] > 0 else "poll"
+        events.append((site, u.copy()))
+        return z, f_mu, fs
+
+    def call(self, x, *args, **kwargs):
+        events.append(("eval", np.array(x, dtype=float).ravel()))
+        return original_call(self, x, *args, **kwargs)
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", acq)
+    monkeypatch.setattr(FunctionLogger, "__call__", call)
+    bads.optimize()
+    return [
+        (site, u, x)
+        for (site, u), (kind, x) in zip(events, events[1:])
+        if site != "eval" and kind == "eval"
+    ]
+
+
+def test_acquisition_skips_nan(monkeypatch):
+    """A NaN acquisition value is skipped, as by MATLAB BADS's `min`: with
+    every value NaN but the last, the poll evaluates its last candidate (the
+    search has one candidate, the best of its ES search)."""
+    chosen = _acquisition_run(monkeypatch, lambda n: np.arange(n) < n - 1)
+    for _, u, x in chosen:
+        assert np.array_equal(x, u[-1].ravel())
+    assert {site for site, u, _ in chosen if len(u) > 1} == {"poll"}
+
+
+def test_acquisition_all_nan_chooses_at_random(monkeypatch, caplog):
+    """When every acquisition value is NaN, the search and the poll choose
+    a candidate at random, with a warning, and the run goes on."""
+    with caplog.at_level(logging.WARNING, logger="BADS"):
+        chosen = _acquisition_run(
+            monkeypatch, lambda n: np.ones(n, dtype=bool)
+        )
+    warnings = [
+        record
+        for record in caplog.records
+        if "Acquisition function failed" in record.getMessage()
+    ]
+    assert len(warnings) >= len(chosen) > 0
+    assert {site for site, _, _ in chosen} == {"search", "poll"}
+    indices = []
+    for _, u, x in chosen:
+        (index,) = [i for i in range(len(u)) if np.array_equal(u[i], x)]
+        indices.append(index)
+    assert max(indices) > 0
+
+
+def test_poll_stop_probability_takes_the_largest_probabilities(monkeypatch):
+    """The probability that no poll point improves, which decides whether
+    the poll stops, is the product of the complements of the D largest
+    probabilities of improvement of the points left, as in MATLAB BADS
+    (`bads.m:868-869`). With the predictions of the run's first poll step
+    patched so that its first point has a probability of improvement of
+    0.69 and the five others of 1e-9, it is 0.31 * (1 - 1e-9)**2, not about
+    1."""
+    from scipy.stats import norm
+
+    import pybads.bads.bads as bads_module
+
+    bads = _make_bads(max_fun_evals=30)
+    original_acq = bads_module.acq_fcn_lcb
+    original_stop = BADS._is_poll_stop_
+    patched = []
+    p_less = []
+
+    def acq(u, func_count, gp):
+        z, f_mu, fs = original_acq(u, func_count, gp)
+        poll = bads.optim_state["search_count"] == 0
+        if poll and not patched and len(u) == 2 * D:
+            # f_mu and fs such that gamma_z is norm.ppf of each probability
+            poi = np.full(f_mu.shape, 1e-9)
+            poi[0] = 0.69
+            fs = np.ones(f_mu.shape)
+            f_mu = (
+                bads.optim_state["f_target"]
+                - bads.sufficient_improvement
+                - norm.ppf(poi)
+            )
+            patched.append(True)
+        return z, f_mu, fs
+
+    def stop(self, certain_good_poll, do_gp_calibration, p, poll_count):
+        if patched and not p_less:
+            p_less.append(p)
+        return original_stop(
+            self, certain_good_poll, do_gp_calibration, p, poll_count
+        )
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", acq)
+    monkeypatch.setattr(BADS, "_is_poll_stop_", stop)
+    bads.optimize()
+    assert len(p_less) == 1
+    assert p_less[0] == pytest.approx(0.31 * (1 - 1e-9) ** 2, rel=1e-9)
+
+
+def test_rebuilds_of_the_local_gp_after_a_move(monkeypatch):
+    """A move of the incumbent asks for a rebuild of the local GP, as MATLAB
+    BADS empties the posterior: after a poll that moves the incumbent, each
+    search of the next rounds rebuilds it, until a poll that does not move
+    (`bads.m:1049`, at the end of every pass); otherwise the first search of
+    a round rebuilds it, as the poll does at its first step, and a later
+    search only after a search that moved the incumbent, or for a refit. On
+    Rosenbrock's function some polls move (on the sphere, none)."""
+    import pybads.bads.bads as bads_module
+
+    def rosenbrock(x):
+        x = np.ravel(x)
+        return float(
+            np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
+        )
+
+    original_fitting = bads_module.local_gp_fitting
+    steps = []
+    refits = []
+
+    def fitting(*args, **kwargs):
+        refits.append(args[6])  # refit_flag
+        return original_fitting(*args, **kwargs)
+
+    def step(original, kind):
+        def wrapper(self, gp):
+            first = self.optim_state["search_count"] == 0
+            u_best, n_fits = self.u_best.copy(), len(refits)
+            out = original(self, gp)
+            moved = not np.array_equal(u_best, self.u_best)
+            steps.append((kind, first, moved, refits[n_fits:]))
+            return out
+
+        return wrapper
+
+    monkeypatch.setattr(bads_module, "local_gp_fitting", fitting)
+    monkeypatch.setattr(
+        BADS, "_search_step_", step(BADS._search_step_, "search")
+    )
+    monkeypatch.setattr(BADS, "_poll_step_", step(BADS._poll_step_, "poll"))
+    _make_bads(rosenbrock, max_fun_evals=100).optimize()
+
+    # The searches that only a poll's move asks to rebuild the local GP, and
+    # those that nothing asks to
+    after_poll_move, unasked = 0, 0
+    poll_moved = None
+    search_moved = False
+    for kind, first, moved, step_refits in steps:
+        if kind == "poll":
+            poll_moved = moved
+        elif poll_moved is not None:
+            if first or search_moved or poll_moved:
+                assert len(step_refits) == 1
+            else:
+                assert all(step_refits)  # a refit only
+            if not first and not search_moved and not any(step_refits):
+                if poll_moved:
+                    after_poll_move += 1
+                else:
+                    unasked += 1
+        search_moved = kind == "search" and moved
+    assert after_poll_move > 0 and unasked > 0

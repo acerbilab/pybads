@@ -1306,3 +1306,38 @@ def test_poll_scale_follows_length_scales_when_unbounded():
         np.clip(ll, bads.optim_state["search_mesh_size"], 2.0),
         rtol=1e-12,
     )
+
+
+@pytest.mark.parametrize("refit_flag", [False, True])
+def test_rebuild_on_two_points_keeps_length_scale_prior(refit_flag):
+    """A rebuild of the local GP on two distinct points, whose one pairwise
+    distance gives the empirical prior of the length scales no spread,
+    keeps the previous prior, where its sigma would be 0 and gpyreg refuses
+    it (MATLAB's gpdefBads.m computes a zero sigma too)."""
+    bads, gp = _initialized_bads()
+    previous = gp.get_priors()["covariance_log_lengthscale"]
+    logger = bads.function_logger
+    # Keep the log's first two distinct points only
+    rows = np.sort(
+        np.unique(logger.X[: logger.Xn + 1], axis=0, return_index=True)[1][:2]
+    )
+    logger.X[:2] = logger.X[rows]
+    logger.Y[:2] = logger.Y[rows]
+    logger.X_flag[:2] = True
+    logger.Xn = logger.X_max_idx = 1
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        refit_flag,
+        rng=bads.rng,
+    )
+    assert gp.X.shape[0] == 2
+    kind, (mu, sigma) = gp.get_priors()["covariance_log_lengthscale"]
+    assert kind == "gaussian"
+    assert np.array_equal(mu, previous[1][0])
+    assert np.array_equal(sigma, previous[1][1])
+    assert np.all(np.isfinite(gp.predict(np.zeros((1, 2)))[0]))

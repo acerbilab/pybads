@@ -1,0 +1,20 @@
+Repeated evaluations over seeds 0-29 of each configuration, before W3-1 (c276d79) and at W3-1 (149d528), from worktrees at those commits (count_repeats.py): a repeat is a duplicate row of the function log, or, with specify_target_noise, an evaluation merged into an existing row, the final samples left out.
+
+== c276d79
+edgesphere_D2: repeats 137 of 1411 evaluations, in 29 of 30 runs
+edgesphere_D4: repeats 0 of 2838 evaluations, in 0 of 30 runs
+edgesphere_D3_homo: repeats 94 of 6840 evaluations, in 28 of 30 runs
+ridge_D2: repeats 3 of 5355 evaluations, in 1 of 30 runs
+ridge_D4: repeats 6 of 10748 evaluations, in 5 of 30 runs
+sphere_band_D2: repeats 0 of 60 evaluations, in 0 of 30 runs
+sphere_band_D3: repeats 13 of 1762 evaluations, in 13 of 30 runs
+ellipsoid_D3_hetero: repeats 100 of 8800 evaluations, in 17 of 30 runs
+== 149d528
+edgesphere_D2: repeats 0 of 1411 evaluations, in 0 of 30 runs
+edgesphere_D4: repeats 0 of 2860 evaluations, in 0 of 30 runs
+edgesphere_D3_homo: repeats 0 of 7065 evaluations, in 0 of 30 runs
+ridge_D2: repeats 0 of 5361 evaluations, in 0 of 30 runs
+ridge_D4: repeats 0 of 10740 evaluations, in 0 of 30 runs
+sphere_band_D2: repeats 0 of 60 evaluations, in 0 of 30 runs
+sphere_band_D3: repeats 0 of 1731 evaluations, in 0 of 30 runs
+ellipsoid_D3_hetero: repeats 0 of 8743 evaluations, in 0 of 30 runs
