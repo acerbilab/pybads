@@ -3,6 +3,7 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 (`"init"`), after each poll (`"iter"`) and at the end (`"done"`), and stops
 the run when it returns a true value; `iterations` counts from 1."""
 
+import logging
 import threading
 
 import numpy as np
@@ -452,3 +453,70 @@ def test_run_with_certain_incumbent():
         == optim_state["f_target_mu"] - bads.options["tol_fun"]
     )
     assert np.all(optim_state["f_target_s"] == 0)
+
+
+def _acquisition_run(monkeypatch, nan_mask):
+    """A run whose acquisition values at the search and the poll are NaN
+    where `nan_mask(n)` is true, `n` the number of candidates. It returns
+    the events in their order: each acquisition's site and candidates, and
+    each evaluation's point."""
+    import pybads.bads.bads as bads_module
+    from pybads.function_logger import FunctionLogger
+
+    events = []
+    bads = _make_bads(max_fun_evals=60)
+    original_acq = bads_module.acq_fcn_lcb
+    original_call = FunctionLogger.__call__
+
+    def acq(u, func_count, gp):
+        z, f_mu, fs = original_acq(u, func_count, gp)
+        z = np.array(z, dtype=float)
+        z[nan_mask(len(z))] = np.nan
+        # The poll runs after the round of searches, which resets the count
+        site = "search" if bads.optim_state["search_count"] > 0 else "poll"
+        events.append((site, u.copy()))
+        return z, f_mu, fs
+
+    def call(self, x, *args, **kwargs):
+        events.append(("eval", np.array(x, dtype=float).ravel()))
+        return original_call(self, x, *args, **kwargs)
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", acq)
+    monkeypatch.setattr(FunctionLogger, "__call__", call)
+    bads.optimize()
+    return [
+        (site, u, x)
+        for (site, u), (kind, x) in zip(events, events[1:])
+        if site != "eval" and kind == "eval"
+    ]
+
+
+def test_acquisition_skips_nan(monkeypatch):
+    """A NaN acquisition value is skipped, as by MATLAB BADS's `min`: with
+    every value NaN but the last, the poll evaluates its last candidate (the
+    search has one candidate, the best of its ES search)."""
+    chosen = _acquisition_run(monkeypatch, lambda n: np.arange(n) < n - 1)
+    for _, u, x in chosen:
+        assert np.array_equal(x, u[-1].ravel())
+    assert {site for site, u, _ in chosen if len(u) > 1} == {"poll"}
+
+
+def test_acquisition_all_nan_chooses_at_random(monkeypatch, caplog):
+    """When every acquisition value is NaN, the search and the poll choose
+    a candidate at random, with a warning, and the run goes on."""
+    with caplog.at_level(logging.WARNING, logger="BADS"):
+        chosen = _acquisition_run(
+            monkeypatch, lambda n: np.ones(n, dtype=bool)
+        )
+    warnings = [
+        record
+        for record in caplog.records
+        if "Acquisition function failed" in record.getMessage()
+    ]
+    assert len(warnings) >= len(chosen) > 0
+    assert {site for site, _, _ in chosen} == {"search", "poll"}
+    indices = []
+    for _, u, x in chosen:
+        (index,) = [i for i in range(len(u)) if np.array_equal(u[i], x)]
+        indices.append(index)
+    assert max(indices) > 0

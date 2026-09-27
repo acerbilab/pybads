@@ -552,6 +552,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   by zero for the rest of the process, unless the root logger was at DEBUG,
   so that a division by zero in the user's code no longer warned after it; a
   run now leaves `np.geterr()` as it found it.
+- **NaN acquisition values.** The search and the poll evaluated the first
+  candidate whose acquisition value was NaN, where MATLAB BADS skips NaN;
+  they now skip it, and choose a candidate at random, with a warning, when
+  every value is NaN.
 
 ## [1.1.0] - 2026-09-25
 

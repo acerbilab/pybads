@@ -1813,17 +1813,14 @@ class BADS:
             z, f_mu, _ = acq_fcn_lcb(
                 u_search_set, self.function_logger.func_count, gp
             )
-            # Evaluate best candidate point in original coordinates
-            index_acq = np.argmin(z)
+            # Evaluate best candidate point in original coordinates (a NaN
+            # value is skipped, as by MATLAB's min)
+            index_acq = None if np.all(np.isnan(z)) else np.nanargmin(z)
 
             # TODO: In future handle acquisition portfolio (Acquisition Hedge), it's not even unsupported in Matlab
 
-            # Randomly choose index if something went wrong
-            if (
-                index_acq is None
-                or index_acq.size < 1
-                or np.any(~np.isfinite(index_acq))
-            ):
+            # Randomly choose index if something went wrong (every value NaN)
+            if index_acq is None:
                 self.logger.warning(
                     "bads:optimize: Acquisition function failed"
                 )
@@ -2265,17 +2262,14 @@ class BADS:
             z, f_mu, fs = acq_fcn_lcb(
                 u_poll, self.function_logger.func_count, gp
             )
-            # Evaluate best candidate point in original coordinates
-            index_acq = np.argmin(z)
+            # Evaluate best candidate point in original coordinates (a NaN
+            # value is skipped, as by MATLAB's min)
+            index_acq = None if np.all(np.isnan(z)) else np.nanargmin(z)
 
             # In future handle acquisition portfolio (Acquisition Hedge), it's even unsupported in Matlab
 
-            # Randomly choose index if something went wrong
-            if (
-                index_acq is None
-                or index_acq.size < 1
-                or np.any(~np.isfinite(index_acq))
-            ):
+            # Randomly choose index if something went wrong (every value NaN)
+            if index_acq is None:
                 self.logger.warning(
                     "bads:optimize: Acquisition function failed"
                 )
