@@ -1,0 +1,12 @@
+pybads /tmp/claude-0/-home-user-pybads/cec8ef42-ff6e-5789-9637-a276f362470b/scratchpad/dc/b_B4/at_5d711bf/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+band along x1, seed 0: ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A ; rebuilds on two distinct points before 0
+band along x1, seed 1: ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A ; rebuilds on two distinct points before 0
+band along x1, seed 2: ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A ; rebuilds on two distinct points before 0
+band along x1, seed 3: ValueError: The prior of covariance_log_lengthscale has a sigma that is zero or negative. A ; rebuilds on two distinct points before 0
+pybads /tmp/claude-0/-home-user-pybads/cec8ef42-ff6e-5789-9637-a276f362470b/scratchpad/dc/b_B4/at_a14524d/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+band along x1, seed 0: 49 evaluations, fval 8.81e-07; rebuilds on two distinct points 1 [(2, 2)]
+band along x1, seed 1: 51 evaluations, fval 9.11e-07; rebuilds on two distinct points 1 [(2, 2)]
+band along x1, seed 2: 40 evaluations, fval 1.17e-06; rebuilds on two distinct points 1 [(2, 2)]
+band along x1, seed 3: 44 evaluations, fval 5.38e-07; rebuilds on two distinct points 1 [(2, 2)]

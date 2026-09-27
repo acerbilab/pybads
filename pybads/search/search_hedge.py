@@ -20,7 +20,7 @@ class ESSearchHedge:
     options_dict : dict
         Options for the hedge search
     non_box_cons: callable function
-        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+        A given non-bound constraints function. e.g : lambda x: np.sum(x**2, axis=1) > 1
     rng : numpy.random.Generator, optional
         Generator of the random draws of the hedge and of the searches it
         runs. If ``None``, a generator is derived from NumPy's global random
@@ -120,7 +120,8 @@ class ESSearchHedge:
 
     def update_hedge(self, u_search, fval_old, f, fs, gp: GP, mesh_size):
         """
-        Update the probability of improvement which will be used for updating the weight of the hedge strategy
+        Update the gains of the hedge's searches with the expected reward of
+        the search point, which set the probabilities of the next choice.
 
         An empty search set (``u_search`` is ``None``) is a failed search:
         every gain decays, with no reward and no point scored.

@@ -487,9 +487,13 @@ Wave 3's records are the model: its worklog lines below and
 
 1. **The revision under review**: `0d866e8`, `dev-next` after wave 3's
    fix pass (#77), which changed code that slice O reads (the hedge's
-   reward, W3-6; `poll_mads_2n`'s docstring after W3-24's revert) and B7's
-   neighbours (W3-1's `contraints_check`, W3-14's `force_to_grid`); the
-   reviewers read the fixed code. The table "Reference revisions" gains `0d866e8`, the sheet's
+   reward and update, W3-6, W3-7 and W3-11; `acq_fcn_lcb`'s `sqrt_beta`,
+   W3-10; the range of `improvement_quantile`, W3-31; the historic
+   improvement of the accelerated mesh reduction, W3-36 and W3-39; the ES
+   search that takes `poll_scale`, W3-4, W3-5, W3-8, W3-9 and W3-15;
+   `poll_mads_2n`'s docstring after W3-24's revert) and B7's neighbours
+   (W3-1's `contraints_check`, W3-14's `force_to_grid`); the reviewers
+   read the fixed code. The table "Reference revisions" gains `0d866e8`, the sheet's
    citations are carried with `refresh_citations.py --base 8aecb6a`, and
    the entries of wave 3's rulings are read against it.
 2. **Setup**: step 1 of "Wave 1 pickup", with
@@ -503,8 +507,9 @@ Wave 3's records are the model: its worklog lines below and
 3. **The briefs**, `briefs/wave4_*.md`, made from wave 3's: B7's two
    tracks, O's brief, which combines them (re-derive, then compare with
    MATLAB), and the verifier's. O's code was reviewed as B3 and B4 in wave
-   3, so its brief names wave 3's rulings (W3-24 reverted, W3-6, W3-25)
-   and the sheet's entries, which it does not report again.
+   3, so its brief names wave 3's rulings (W3-24 reverted, W3-6, W3-7,
+   W3-10, W3-11, W3-25, W3-31) and the sheet's entries, which it does not
+   report again.
 4. **Kept from the reviewers** (`briefs/wave4_kept_B7.md` and
    `wave4_kept_O.md`): the open rows of the survey's candidate table in B7
    and O, among them `init_sobol`'s seed from the integer parts of `u0`,
@@ -529,7 +534,12 @@ Wave 3's records are the model: its worklog lines below and
    agents run only their own test files), CI checked after every push that
    touches `pybads/`, each row that moves results gated by the default
    suite against the step before, and the head's population as the new
-   Linux reference; then a pull request to `dev-next`. Three lessons of
+   Linux reference; then a pull request to `dev-next`. Its first row is the
+   rounding of `contraints_check`'s bins, which the PI ruled after wave
+   3's doublecheck (`verification/wave3.md`, "Doublecheck"): fixed as
+   MATLAB BADS rounds, with the split of the ES search's first population,
+   and gated alone by the `default` and `geometry` suites against
+   `population_linux_wave3_20260927`. Three lessons of
    wave 3's pass:
    - the fingerprint's runs are small, so it misses changes that reach
      only 6-D, 10-D, noisy or long runs: the batch that moves nothing is
@@ -790,8 +800,8 @@ Wave 3's records are the model: its worklog lines below and
   naming a scratch directory (B4 comparison). The B3 internal reviewer's
   closing message quotes its report's title, so a new extraction from its
   transcript must name the candidate. The ledger `verification/wave3.md`, rows W3-1 to W3-38,
-  closes the 11 open survey rows of B3 and B4 (three of them fixed by wave
-  0 without the survey saying so). The reviewers found the preparatory
+  closes the 11 open survey rows of B3 and B4 (four of them, three ledger
+  rows, fixed by wave 0 without the survey saying so). The reviewers found the preparatory
   agent's (e), `p_less` (W3-19); its (a) is W2-16's fix, which holds as
   MATLAB's (W3-16), as W2-29's does (W3-37). One finding, W3-29, finds
   that W1-2's premise missed a line of `bads.m` (MATLAB's rebuilds persist
@@ -900,9 +910,35 @@ Wave 3's records are the model: its worklog lines below and
   was to remove it; W4-14 (a): the reserved final samples taken at the
   incumbent when a noisy run ends in its first iteration. Every other
   proposal accepted as written. The fix pass is not started.
+- [x] 2026-09-27: wave 3 doublechecked after its merge (PI), as waves 1
+  and 2, in a cloud session on a branch from `dev-next` at `ed82ec0`: four
+  fresh read-only Opus reviewers, of the fixes of B3, those of B4, the
+  user-facing documentation, and the records, gates and tooling, their
+  reports saved with `extract_report.py` and their scripts under
+  `verification/scripts/wave3/doublecheck/`; the suite at `0d866e8` (457
+  tests), the fingerprints of the pass's key commits on Linux, which
+  repeat `fp_all.out`, and on Windows (PI), where W3-15 moves the hash.
+  Every row implements its ruling. Found: `contraints_check` rounds its
+  bins half to even, where `uCheck.m` rounds halves away from zero, and
+  a fix moves results (to the PI, with `acq_hedge=True`, which stops a
+  run, and `accelerate_mesh_steps=inf`, which W3-39 refuses and MATLAB
+  runs with); fixed: an `improvement_quantile` that is not a number
+  raises W3-31's `ValueError`, false statements of the changelog (1.1.0's
+  failures under W3-31 and W3-39, the ES scale, the hedge's reward,
+  batch 1's count), docstrings and descriptions, the sheet (five entries
+  for wave 3's deliberate differences, which slice O reads), the ledger
+  (a row for W3-40, W3-29's reach within 200 evaluations, numbers),
+  `TODO.md` (two items of B1 and B2 that the pass fixed; a line for B3's
+  and B4's minor items), and "Wave 4 pickup", which named only W3-6 of
+  what wave 3 changed in O's code (`verification/wave3.md`,
+  "Doublecheck"). PI, on what was left: the rounding goes to wave 4's fix
+  pass as its first row ("Wave 4 pickup", step 6); `acq_hedge=True` is
+  refused when `BADS` is created, and the refusal of
+  `accelerate_mesh_steps=inf` names `accelerate_mesh=False`, both under
+  the same fingerprint.
 - [ ] Wave 4's fix pass.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
   Windows reference at the head of the last fix pass: the current one,
-  `population_gpfixes_20260925`, predates waves 0 to 2, and every fix pass
+  `population_gpfixes_20260925`, predates waves 0 to 3, and every fix pass
   moves results again.

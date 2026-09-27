@@ -4,35 +4,37 @@ import numpy as np
 
 def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
     """
-    Lower Confidence Bound (LCB) acquisition function.
-    It retrieves the point at the lower confidence bound of the GP surrogate model.
+    Lower confidence bound (LCB) of the GP at the points ``xi``.
+
+    The acquisition function of the search: the GP's mean at each point less
+    ``sqrt_beta`` times its standard deviation.
 
     Parameters
-    ==========
-    xi: np.ndarray
-        Input points
-    func_count: int
-        Number of function evaluations
-    gp: GP
-        Gaussian process
-    sqrt_beta: None, callable or float
-        LCB parameter, the multiplier of the GP's SD. If ``None``, the
-        schedule of Srinivas et al. (2010), with an empirical correction; a
-        callable is called as ``sqrt_beta(t, n_vars)``, with
+    ----------
+    xi : np.ndarray
+        The points, of shape ``(N, D)``.
+    func_count : int
+        The number of function evaluations so far.
+    gp : gpyreg.GP
+        The Gaussian process.
+    sqrt_beta : None, callable or float, optional
+        The LCB parameter, the multiplier of the GP's standard deviation. If
+        ``None``, the schedule of Srinivas et al. (2010), with an empirical
+        correction; a callable is called as ``sqrt_beta(t, D)``, with
         ``t = func_count + 1``; otherwise a positive finite real number (a
         Python or NumPy scalar, or an array of one element).
 
     Returns
-    ==========
-    z: lower confidence bound
-        Lower confidence bound at xi.
-    f_mu: GP prediction at xi
-        GP mean at xi.
-    f_s: GP standard deviation
-        GP standard deviation at xi.
+    -------
+    z : np.ndarray
+        The lower confidence bound at ``xi``.
+    f_mu : np.ndarray
+        The GP's mean at ``xi``.
+    f_s : np.ndarray
+        The GP's standard deviation at ``xi``.
 
     Raises
-    ==========
+    ------
     ValueError
         If ``sqrt_beta`` is none of the values above.
     """

@@ -20,8 +20,9 @@ def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size, rng=None):
     is a signed permutation of the identity: the poll steps along one
     coordinate at a time. LTMADS bounds the basis by the inverse ratio, the
     poll size over the mesh size; PyBADS keeps MATLAB BADS's poll, which
-    LTMADS's directions made worse on PyBADS's benchmark (the port review's
-    wave 3, W3-24). A new basis is drawn at each poll.
+    LTMADS's directions made worse on PyBADS's benchmark
+    (``dev/experiments/port_review_20260925/verification/wave3.md``,
+    W3-24). A new basis is drawn at each poll.
 
     The basis is divided by ``poll_scale``, which counteracts the poll's
     multiplication of the directions by ``poll_scale``.
@@ -35,7 +36,7 @@ def poll_mads_2n(dim_x, poll_scale, search_mesh_size, mesh_size, rng=None):
     dim_x : int
         The number of variables ``D``.
     poll_scale : np.ndarray
-        The poll's scale of each variable, of shape ``(1, D)``.
+        The poll's scale of each variable, of shape ``(D,)`` or ``(1, D)``.
     search_mesh_size : float
         The size of the search mesh.
     mesh_size : float

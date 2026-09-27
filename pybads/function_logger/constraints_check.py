@@ -16,7 +16,14 @@ def contraints_check(
     non_box_cons: Callable = None,
 ):
     """
-    Return a new incumbent that satisfies the boundaries. Projection is applied in case of constraint violations
+    Return the candidates ``U`` that the search or the poll may evaluate.
+
+    The candidates outside the bounds ``lb`` and ``ub`` are projected onto
+    them (``proj=True``) or removed, and duplicates are removed. The
+    candidates are then binned on a grid of ``tol_mesh / 2``: the first of
+    each bin is kept, unless the bin holds a point already evaluated, and
+    the bins come out sorted, as from MATLAB BADS's ``uCheck``. Last, the
+    candidates that violate ``non_box_cons`` are removed.
     """
 
     if proj:
@@ -33,7 +40,9 @@ def contraints_check(
 
     # Remove previously evaluated vectors (within tol_mesh): keep the first
     # vector of each bin that holds no evaluated vector, the bins sorted, as
-    # MATLAB's setdiff(u1, u2, 'rows')
+    # MATLAB's setdiff(u1, u2, 'rows'). np.round takes a half to the even
+    # integer, where uCheck.m's round takes it away from zero, so the bins
+    # differ from MATLAB's once the search mesh is finer than tol_mesh / 2
     if U_new.size > 0:
         tol = tol_mesh / 2.0
         u1 = np.round(U_new / tol)

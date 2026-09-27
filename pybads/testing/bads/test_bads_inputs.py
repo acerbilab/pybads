@@ -319,14 +319,17 @@ def _bads_with_improvement_quantile(improvement_quantile):
     )
 
 
-@pytest.mark.parametrize("improvement_quantile", [0, 1, -0.2, 1.5, np.nan])
+@pytest.mark.parametrize(
+    "improvement_quantile",
+    [0, 1, -0.2, 1.5, np.nan, True, "0.3", 0.3 + 0j, np.array([0.3, 0.4])],
+)
 def test_improvement_quantile_outside_zero_one_is_refused(
     improvement_quantile,
 ):
-    """An `improvement_quantile` that is not greater than 0 and less than 1,
-    whose improvements are NaN or infinite, is refused when `BADS` is
-    created; MATLAB BADS refuses it when it evaluates an improvement
-    (`EvalImprovement` in `bads.m`)."""
+    """An `improvement_quantile` that is not a number greater than 0 and
+    less than 1, whose improvements are NaN or infinite, is refused with
+    `ValueError` when `BADS` is created; MATLAB BADS refuses it when it
+    evaluates an improvement (`EvalImprovement` in `bads.m`)."""
     with pytest.raises(
         ValueError,
         match=r"improvement_quantile'\] needs to be greater than 0 and less",
@@ -369,6 +372,35 @@ def test_accelerate_mesh_steps_not_a_positive_integer_is_refused(
         match=r"accelerate_mesh_steps'\] needs to be a positive integer",
     ):
         _bads_with_accelerate_mesh_steps(accelerate_mesh_steps)
+
+
+def test_accelerate_mesh_steps_refusal_names_accelerate_mesh():
+    """`inf`, which MATLAB BADS and 1.1.0 ran without the accelerated
+    reduction of the mesh, is refused, and the message names the switch
+    that turns the reduction off, `accelerate_mesh=False`."""
+    with pytest.raises(
+        ValueError, match=r"options\['accelerate_mesh'\] = False turns"
+    ):
+        _bads_with_accelerate_mesh_steps(np.inf)
+
+
+def test_acq_hedge_true_is_refused():
+    """`acq_hedge=True`, MATLAB BADS's acquisition hedge, which PyBADS does
+    not implement and MATLAB BADS labels unsupported, is refused when
+    `BADS` is created; a run with it stopped with `UnboundLocalError` at
+    its first improving search."""
+    with pytest.raises(
+        ValueError, match=r"options\['acq_hedge'\] should be False"
+    ):
+        BADS(
+            _quadratic,
+            np.array([0.5, 0.0]),
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "acq_hedge": True},
+        )
 
 
 @pytest.mark.parametrize("accelerate_mesh_steps", [1, 3, 3.0, np.int64(2)])

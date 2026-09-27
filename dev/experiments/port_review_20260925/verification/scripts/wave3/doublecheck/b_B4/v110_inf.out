@@ -1,0 +1,10 @@
+pybads /home/user/pybads-v1.1.0/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+inf: completed, 55 evaluations, fval 8.69e-07, iterations 6
+1000000000.0: completed, 55 evaluations, fval 8.69e-07, iterations 6
+3: completed, 55 evaluations, fval 7.59e-07, iterations 6
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+inf: ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not inf.
+1000000000.0: completed, 55 evaluations, fval 3.37e-06, iterations 7
+3: completed, 55 evaluations, fval 7.27e-07, iterations 7
