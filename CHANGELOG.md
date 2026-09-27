@@ -190,6 +190,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   they overflowed, after which every choice was random, and a negative one
   made them alternate in sign. Since the default `hedge_beta` is `1e-3 /
   tol_fun`, a negative `tol_fun` is refused through it.
+
 ### Fixed
 
 - **User-specified noise.** With `specify_target_noise=True`, the Gaussian
@@ -206,11 +207,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Repeated points with user-specified noise.** With
   `specify_target_noise=True`, a point evaluated again was merged with the
   first earlier evaluation that shared any one of its coordinates, usually
-  that of another point, whose value and noise it then changed. It is now
-  merged with its own earlier evaluation. On the 3-D ellipsoid above, run
-  over 90 seeds on Linux, where 54 runs made such a merge, the median error
-  falls from 0.58 to 0.48, and the number of runs with an error of 1 or
-  more from 31 to 20.
+  that of another point, whose value and noise it then changed.
+  `FunctionLogger` now merges it with its own earlier evaluation, and a run
+  no longer evaluates a point again (see "Points evaluated again"), so that
+  no run of `BADS` merges one. On the 3-D ellipsoid above, run over 90 seeds
+  on Linux, where 54 runs made such a merge, the fix of the merge alone
+  lowered the median error from 0.58 to 0.48, and the number of runs with an
+  error of 1 or more from 31 to 20.
 - **Prior of the GP mean.** At each rebuild of the local Gaussian process,
   the prior over its constant mean is centred at the 90th percentile of the
   training targets, with a width set by their spread, as in MATLAB BADS.
