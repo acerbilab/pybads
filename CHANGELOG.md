@@ -249,7 +249,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   instance under a `non_box_cons` that does not always give the same answer
   for a point, counts as a failed search, as in MATLAB BADS; the run
   stopped with `UnboundLocalError` or `IndexError`. The search hedge's gains
-  then decay, as after any failed search and as in MATLAB BADS.
+  then decay, as after any failed search and as in MATLAB BADS. When a later
+  generation of the evolution-strategy search leaves no candidate, the
+  search evaluates the best candidate of the earlier generations, as in
+  MATLAB BADS, and its warning says that the generation left no candidate,
+  where it said that a random search was performed.
 - **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
   starting point is not evaluated a second time to test for noise, as in
   MATLAB BADS; the test ran unless uncertainty handling was on, and a

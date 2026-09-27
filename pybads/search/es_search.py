@@ -167,11 +167,13 @@ class ESSearch(ABC):
 
             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
 
-            # if something went wrong with the acquisition function, random search is performed
-            if z_new is None or z_new.size == 0:
-                z_candidates = self.rng.random(u_new.shape[0])
+            # No candidate left in this generation: it adds none, and the
+            # candidates of the earlier generations are kept, as in MATLAB
+            if u_new.shape[0] == 0:
                 self.logger.warning(
-                    "bads:es_search: Something went wrong with the acquisition function, random search is performed"
+                    f"bads:es_search: No candidate left in generation {i + 1} "
+                    "of the search, once the points already evaluated or "
+                    "violating the constraints are removed"
                 )
 
             nold = us.shape[0]
@@ -197,9 +199,10 @@ class ESSearch(ABC):
                 break  # no candidate left to reproduce
 
             if i < self.n_search_iter - 1:
-                frac = n_new / ntest
-                # Update scale parameter
-                if i > 0:
+                # Update scale parameter, unless this generation added no
+                # candidate (MATLAB's fraction is then 0/0)
+                if i > 0 and ntest > 0:
+                    frac = n_new / ntest
                     self.scale = self.scale * np.exp(
                         self.es_beta * (frac - 0.2)
                     )
