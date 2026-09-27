@@ -257,6 +257,8 @@ def test_finalize():
     assert f_logger.Y.shape[0] == 10
     assert f_logger.X_flag.shape[0] == 10
     assert f_logger.fun_eval_time.shape[0] == 10
+    assert f_logger.n_evals.shape[0] == 10
+    assert np.all(f_logger.n_evals[f_logger.X_flag] == 1)
 
     # noise level 2
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
@@ -267,6 +269,32 @@ def test_finalize():
     assert f_logger.S[0] == fsd
     assert f_logger.Y_orig[0] == fval
     assert f_logger.S.shape[0] == 10
+
+
+def test_finalize_then_call_keeps_arrays_equal_in_length():
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0, cache_size=3)
+    for i in range(4):
+        f_logger(x * i)
+    f_logger.finalize()
+    f_logger(x * 4)
+    n_rows = f_logger.X.shape[0]
+    assert f_logger.n_evals.shape[0] == n_rows
+    assert f_logger.fun_eval_time.shape[0] == n_rows
+    assert np.all(f_logger.n_evals[f_logger.X_flag] == 1)
+
+
+def test_reset_fun_eval_time_after_growth():
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0, cache_size=3)
+    for i in range(6):
+        f_logger(x * i)
+    assert f_logger.X.shape[0] > 3
+    f_logger.reset_fun_eval_time()
+    assert f_logger.fun_eval_time.shape == (f_logger.X.shape[0], 1)
+    assert np.all(np.isnan(f_logger.fun_eval_time))
+    f_logger(x * 6)
+    assert f_logger.fun_eval_time.shape[0] == f_logger.X.shape[0]
 
 
 def test_call_parameter_transform_no_constraints():

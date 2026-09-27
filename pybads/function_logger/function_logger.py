@@ -289,9 +289,14 @@ class FunctionLogger:
             self.S = self.S[: self.Xn + 1]
         self.X_flag = self.X_flag[: self.Xn + 1]
         self.fun_eval_time = self.fun_eval_time[: self.Xn + 1]
+        self.n_evals = self.n_evals[: self.Xn + 1]
 
     def reset_fun_eval_time(self):
-        self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
+        """
+        Set every entry of ``fun_eval_time`` to NaN, keeping its length that
+        of the other arrays.
+        """
+        self.fun_eval_time = np.full([self.X.shape[0], 1], np.nan)
 
     def _expand_arrays(self, resize_amount: int = None):
         """

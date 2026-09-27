@@ -640,6 +640,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `TypeError` or NumPy's own errors for some of them (an SD of `None` or in
   a list), said that the target had failed for a value of several elements,
   and accepted a NumPy complex value.
+- **`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other
+  arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long
+  as the others, where 1.1.0 left them of unequal lengths.
 
 ## [1.1.0] - 2026-09-25
 
