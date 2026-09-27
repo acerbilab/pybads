@@ -641,6 +641,27 @@ orchestrator's machine holds is the check scripts of wave 0's agents
   `experiments/population_linux_wave2_20260926/`. The rerun of two example
   notebooks whose saved outputs the pass made stale is a `TODO.md` line, for
   the release.
+- [x] 2026-09-26: wave 2 merged: #76, with W2-4 and its flagged worsening,
+  squash-merged into `dev-next` as `8aecb6a` (PI). On the orchestrator's
+  machine at `8aecb6a`, the suite passes (380 tests), and the fingerprint
+  with the gpyreg 1.3.3 clone is `6825faa249798851` with the default BLAS
+  threads and `8d8552d1f5bee1e6` with one.
+- [x] 2026-09-27: wave 2 doublechecked after its merge (PI), as wave 1: four
+  fresh read-only Opus reviewers, of the fixes of B1, those of B2 with
+  W2-16, W2-29 and W2-25, the user-facing documentation, and the records,
+  gates and tooling, and the suite and the fingerprints on Windows, which
+  repeat Linux's pattern. Every fix implements its ruling. Found and fixed
+  on `dev-next`: an `f_vals` without a finite value, refused by W2-7 (it
+  stands for `None`); false statements of the changelog (a run never above
+  `max_fun_evals`; a noisy count of `fef6c14` given as 1.1.0's), of
+  `AGENTS.md`, of docstrings and descriptions, of example 2, of the sheet
+  and of the records; the fingerprint's dependence on the number of BLAS
+  threads, which `AGENTS.md` states. Left to wave 3's ledger, a row for
+  `accelerate_mesh_steps=0` (B4); to wave 4, the Sobol seed at `u0 = -1`
+  (B7); the rest to `TODO.md` (`verification/wave2.md`, "Doublecheck").
 - [ ] Waves 3 and 4.
 - [ ] Close: the consolidated ledger, the catalogue in
-  `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.
+  `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
+  Windows reference at the head of the last fix pass: the current one,
+  `population_gpfixes_20260925`, predates waves 0 to 2, and every fix pass
+  moves results again.

@@ -300,9 +300,11 @@ linear one underflows, so that no fit that succeeds today changes. The items of
 
 Done (2026-09-26). How it runs (PI,
 2026-09-26): the fixes go on `dev-port-review-w1`, and one pull request
-into `dev-next` carries wave 1's records and fixes once the pass is done;
-each fix is made by an agent in a git worktree of its own, one commit per
-row, and the orchestrator reviews each diff and cherry-picks it; the
+into `dev-next` carries wave 1's records and fixes once the pass is done
+(#74, squash-merged as `fef6c14`; the commits these records cite stay
+reachable from `refs/pull/74/head`, `ca3410c`); each fix is made by an
+agent in a git worktree of its own, one commit per row, and the
+orchestrator reviews each diff and cherry-picks it; the
 gpyreg side of W1-25 and W1-24 goes to `acerbilab/gpyreg` on a branch of
 its own, from this session. The records of wave 1 were
 rebased onto `dev-next` at `e004c79`, which carries wave 0 and its fix pass

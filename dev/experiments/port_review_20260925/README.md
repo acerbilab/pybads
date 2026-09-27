@@ -28,8 +28,9 @@ against its own specification, in waves of fresh reviewers.
   saved verbatim.
 - `matlab_side_defects.md`: what the review finds wrong or questionable in
   MATLAB BADS itself, with PyBADS's disposition.
-- `briefs/wave1_fix_common.md`: the brief of the fix agents of wave 1's fix
-  pass; `fixes/`: their reports, saved verbatim.
+- `briefs/wave1_fix_common.md` and `briefs/wave2_fix_common.md`: the
+  briefs of the fix agents of the fix passes of waves 1 and 2; `fixes/`:
+  their reports, saved verbatim.
 - `extract_report.py`: saves a reviewer's final message verbatim from its
   transcript (copied from PyVBMC's review).
 - `refresh_citations.py`: carries the `pybads/...:<line>` citations of a
@@ -57,10 +58,11 @@ check under `verification/scripts/wave2/orchestrator/`, formatted by the
 pre-commit hooks in the same way. `reviews/B1_comparison_history.md` is the
 B1 comparison reviewer's re-dating of its report on the complete history,
 saved verbatim beside the report. The fix agents of wave 2's fix pass (A to
-F, the letters of `fixes/`) have theirs under
+G, the letters of `fixes/`) have theirs under
 `verification/scripts/wave2/fix_<agent>/`, without their copies of a
 parent's tree, and the orchestrator's scripts of the pass (the
-cherry-picks, the changelog lines, the fingerprint at every commit, the
-comparisons of populations run by run) are with its check. The pass's
+cherry-picks, the changelog lines, the fingerprint at the commits from
+`353ad51` to `8510ca8`, the comparisons of populations run by run) are with
+its check. The pass's
 comparisons are in `verification/wave2_fixpass/`, and its last population
 is kept whole as the Linux reference `population_linux_wave2_20260926`.

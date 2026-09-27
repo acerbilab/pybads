@@ -139,10 +139,16 @@ def test_fun_values_is_not_supported():
 
 
 def test_f_vals_is_not_supported():
-    """`f_vals`, PyBADS's own, filled a cache that nothing reads and stopped
-    the run at its first display line."""
-    with pytest.raises(ValueError, match="f_vals'] is not supported"):
-        _make_bads(f_vals=[48.0])
+    """`f_vals`, PyBADS's own, filled a cache that nothing reads, and a
+    finite value in it stopped 1.1.0's run, at its first display line or,
+    with several values, when `BADS` was created; it is refused. A value
+    without a finite element stands for the default `None`, as an empty or
+    one-element one did in 1.1.0."""
+    for f_vals in ([48.0], [np.nan, 48.0], ["a"]):
+        with pytest.raises(ValueError, match="f_vals'] is not supported"):
+            _make_bads(f_vals=f_vals)
+    for f_vals in ([], [np.nan], [np.inf], np.full(2, np.nan)):
+        assert not _make_bads(f_vals=f_vals).optim_state["cache_active"]
 
 
 def test_descriptions_are_whole_comment_lines():
