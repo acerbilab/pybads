@@ -584,9 +584,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   their order, as the stable sort of MATLAB BADS does; NumPy's default sort
   ordered them otherwise.
 - **Points evaluated again.** The initial design, the search and the poll no
-  longer evaluate again a point already evaluated, as in MATLAB BADS: with a
-  minimum on a bound, about half of the evaluations of a run at D = 1 or 2
-  repeated earlier ones, and noisy runs repeated points in the poll.
+  longer evaluate again a point already evaluated, as in MATLAB BADS. Over
+  30 seeded runs each, a 2-D sphere with its minimum on a bound repeated 137
+  of its 1411 evaluations, and a 3-D ellipsoid with target noise 100 of
+  8800; neither repeats any now. Results change at default options.
 - **Search hedge in noisy runs.** In a run with noise, the search hedge,
   which chooses between the ES-wcm and ES-ell searches, rewards a search
   with its expected improvement, with the standard normal density as in
