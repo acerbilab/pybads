@@ -132,6 +132,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   search.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
+- **The poll's directions.** The poll steps along random LTMADS directions
+  (Audet and Dennis, 2006), drawn anew at each poll, in units of the search
+  mesh size, so that its points lie on the search mesh; it stepped along one
+  coordinate at a time. This departs from MATLAB BADS, whose poll bounds its
+  directions by the inverse ratio of the mesh sizes and so always steps
+  along the coordinates. Results change at default options.
 
 ### Fixed
 
