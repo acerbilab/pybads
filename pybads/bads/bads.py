@@ -817,6 +817,25 @@ class BADS:
                 "options['improvement_quantile'] needs to be greater than 0 "
                 f"and less than 1, not {improvement_quantile!r}."
             )
+        # accelerate_mesh_steps is a positive integer: the accelerated mesh
+        # reduction reads the iterate accelerate_mesh_steps iterations
+        # back, which below 1 is not recorded yet (MATLAB BADS fails there
+        # too, bads.m:976-979); a whole-number float is converted
+        accelerate_mesh_steps = self.options["accelerate_mesh_steps"]
+        if (
+            isinstance(accelerate_mesh_steps, (bool, np.bool_))
+            or not isinstance(
+                accelerate_mesh_steps, (int, float, np.integer, np.floating)
+            )
+            or not np.isfinite(accelerate_mesh_steps)
+            or not accelerate_mesh_steps >= 1
+            or not float(accelerate_mesh_steps).is_integer()
+        ):
+            raise ValueError(
+                "options['accelerate_mesh_steps'] needs to be a positive "
+                f"integer, not {accelerate_mesh_steps!r}."
+            )
+        self.options["accelerate_mesh_steps"] = int(accelerate_mesh_steps)
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "

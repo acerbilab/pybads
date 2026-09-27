@@ -340,3 +340,43 @@ def test_improvement_quantile_inside_zero_one_is_accepted(
 ):
     bads = _bads_with_improvement_quantile(improvement_quantile)
     assert bads.options["improvement_quantile"] == improvement_quantile
+
+
+def _bads_with_accelerate_mesh_steps(accelerate_mesh_steps):
+    return BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={**OPTIONS, "accelerate_mesh_steps": accelerate_mesh_steps},
+    )
+
+
+@pytest.mark.parametrize(
+    "accelerate_mesh_steps", [0, -1, 2.5, np.nan, np.inf, True, "3"]
+)
+def test_accelerate_mesh_steps_not_a_positive_integer_is_refused(
+    accelerate_mesh_steps,
+):
+    """An `accelerate_mesh_steps` that is not a positive integer is refused
+    when `BADS` is created: below 1, the accelerated mesh reduction read an
+    iteration not recorded yet and the run stopped with `TypeError` at its
+    first failed poll, as MATLAB BADS stops."""
+    with pytest.raises(
+        ValueError,
+        match=r"accelerate_mesh_steps'\] needs to be a positive integer",
+    ):
+        _bads_with_accelerate_mesh_steps(accelerate_mesh_steps)
+
+
+@pytest.mark.parametrize("accelerate_mesh_steps", [1, 3, 3.0, np.int64(2)])
+def test_accelerate_mesh_steps_positive_integer_is_accepted(
+    accelerate_mesh_steps,
+):
+    bads = _bads_with_accelerate_mesh_steps(accelerate_mesh_steps)
+    assert bads.options["accelerate_mesh_steps"] == accelerate_mesh_steps
+    assert type(bads.options["accelerate_mesh_steps"]) is int
+    result = bads.optimize()
+    assert np.isfinite(result["fval"])
