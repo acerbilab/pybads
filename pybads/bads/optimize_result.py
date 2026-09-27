@@ -71,6 +71,10 @@ class OptimizeResult(dict):
               ``BADS`` is created is not counted.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
+              The second evaluation of the starting point that tests the
+              target for noise (with ``uncertainty_handling`` left empty)
+              counts as the optimizer's time, since the function time leaves
+              it out, as in MATLAB BADS.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
         - version: str
