@@ -104,7 +104,7 @@ contributions 0.049 and 0.050, against 0.018 and 0.034 before).
 The repeats that the row fix concerns exist because `contraints_check`
 keeps a candidate that repeats an evaluated point, where MATLAB's
 `uCheck.m` drops it (`dev/TODO.md`, "Previously evaluated points
-evaluated again"). With the correct noise they are more frequent: seeds
+evaluated again", an item that W3-1 of the port review closed). With the correct noise they are more frequent: seeds
 0-19 make 17 repeats at `685da15` and 53 at `1c8c71d`.
 `row_fix_mean_prior_no_repeats/` holds seeds 0-89 at `8afbe16` with
 `no_repeats.patch`: `contraints_check` drops such candidates, as MATLAB's

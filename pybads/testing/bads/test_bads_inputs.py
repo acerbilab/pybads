@@ -319,14 +319,17 @@ def _bads_with_improvement_quantile(improvement_quantile):
     )
 
 
-@pytest.mark.parametrize("improvement_quantile", [0, 1, -0.2, 1.5, np.nan])
+@pytest.mark.parametrize(
+    "improvement_quantile",
+    [0, 1, -0.2, 1.5, np.nan, True, "0.3", 0.3 + 0j, np.array([0.3, 0.4])],
+)
 def test_improvement_quantile_outside_zero_one_is_refused(
     improvement_quantile,
 ):
-    """An `improvement_quantile` that is not greater than 0 and less than 1,
-    whose improvements are NaN or infinite, is refused when `BADS` is
-    created; MATLAB BADS refuses it when it evaluates an improvement
-    (`EvalImprovement` in `bads.m`)."""
+    """An `improvement_quantile` that is not a number greater than 0 and
+    less than 1, whose improvements are NaN or infinite, is refused with
+    `ValueError` when `BADS` is created; MATLAB BADS refuses it when it
+    evaluates an improvement (`EvalImprovement` in `bads.m`)."""
     with pytest.raises(
         ValueError,
         match=r"improvement_quantile'\] needs to be greater than 0 and less",

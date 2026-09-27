@@ -1,0 +1,7 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+root handlers at start [] level 30
+root handlers after ESSearchWM() []
+root handlers after BADS() [<StreamHandler <stdout> (NOTSET)>]
+geterr before {'divide': 'warn', 'over': 'warn', 'under': 'ignore', 'invalid': 'warn'}
+geterr after  {'divide': 'warn', 'over': 'warn', 'under': 'ignore', 'invalid': 'warn'}

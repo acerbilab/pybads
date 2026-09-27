@@ -1,0 +1,5 @@
+offspring of parents 0-5: [17, 12, 10, 9, 8, 7] ; old shifted mask would give [1, 17, 12, 10, 9, 8]
+mask mismatches over (mu, lambda) grid: 0
+quantized LCB, n_search_iter 2: same point and scale as searchES.m in 8/8
+quantized LCB, n_search_iter 3: same point and scale as searchES.m in 8/8
+quantized LCB, n_search_iter 4: same point and scale as searchES.m in 8/8

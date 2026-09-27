@@ -80,7 +80,9 @@ Nothing here was run in MATLAB.
   (`private/setupvars.m:179-182`), so a value of 0 or less reads an
   iteration not recorded yet at the first failed poll. Off by default (3).
   PyBADS failed too, with `TypeError`; it now refuses a value that is not a
-  positive integer when `BADS` is created (`5d711bf`).
+  positive integer when `BADS` is created (`5d711bf`), `inf` included,
+  with which MATLAB runs without the accelerated reduction (`iter > Inf`
+  never holds; KD-B4-6).
 - **The prior of the length scales on two points has a zero width**
   (W3-40, found by W3-24's gate). `gpdef/gpdefBads.m:240-251` centre the
   empirical prior of the log length scales between the logs of the
@@ -183,7 +185,7 @@ Nothing here was run in MATLAB.
   candidates** (found while verifying wave 3, B3 verifier, by reading).
   `search/searchES.m:170-193` updates the scale by the fraction of new
   candidates among the best, `nnew/ntest`, which is 0/0 when `uCheck`
-  removed every candidate of the generation; from `SearchNiter` 3 (the
+  removed every candidate of the generation; from `Nsearchiter` 3 (the
   default is 2) the scale is then NaN, and `uCheck`'s projection, whose
   `min` and `max` ignore NaN, sends every later candidate of the search to
   the corner `UBsearch`. PyBADS keeps the scale after such a generation

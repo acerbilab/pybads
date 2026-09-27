@@ -1,0 +1,9 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+update_hedge against acqPortfolio 'upd' on 600 states (gamma 0.125, 0, 0.3): worst relative difference 0.00e+00
+empty set (gamma 0.125): worst absolute difference from MATLAB's update at the stale point 0.00e+00
+empty set at gamma 0: port gains [2.0438762071738843, 0.6812920690579614], MATLAB's intent at a stale point [2.0438762071738843, 3.6812920679956713]
+gamma +0.0: old reward/sigma 1, MATLAB's 0.398942, ratio 2.51
+gamma -1.0: old reward/sigma 0.660509, MATLAB's 0.0833155, ratio 7.93
+gamma -3.0: old reward/sigma 0.162038, MATLAB's 0.000382154, ratio 424
+gamma +2.0: old reward/sigma 2.40478, MATLAB's 2.00849, ratio 1.2

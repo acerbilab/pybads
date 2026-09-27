@@ -1,0 +1,52 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- improvement_quantile
+                         0.5 (float): accepted -> 0.5 (float)
+                        0.25 (float): accepted -> 0.25 (float)
+                       1e-06 (float): accepted -> 1e-06 (float)
+options['improvement_quantile'] is greater than 0.5. This might produce unpredictable behavior. Set options['improvement_quantile'] < 0.5 for conservative improvement.
+                         0.9 (float): accepted -> 0.9 (float)
+             np.float64(0.3) (float64): accepted -> np.float64(0.3) (float64)
+             np.float32(0.3) (float32): accepted -> np.float32(0.3) (float32)
+                array([0.3]) (ndarray): accepted -> array([0.3]) (ndarray)
+                  array(0.3) (ndarray): accepted -> array(0.3) (ndarray)
+                           0 (int): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not 0.
+                           1 (int): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not 1.
+                        -0.2 (float): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not -0.2.
+                         1.5 (float): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not 1.5.
+                         nan (float): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not nan.
+                         inf (float): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not inf.
+                        True (bool): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not True.
+                       False (bool): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not False.
+                    np.True_ (bool): ValueError: options['improvement_quantile'] needs to be greater than 0 and less than 1, not np.True_.
+                        None (NoneType): accepted -> 0.5 (float)
+                       '0.3' (str): TypeError: '<' not supported between instances of 'int' and 'str'
+                         '3' (str): TypeError: '<' not supported between instances of 'int' and 'str'
+                      (1+0j) (complex): TypeError: '<' not supported between instances of 'int' and 'complex'
+                    (0.3+0j) (complex): TypeError: '<' not supported between instances of 'int' and 'complex'
+           array([0.3, 0.4]) (ndarray): ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all(
+--- accelerate_mesh_steps
+                           3 (int): accepted -> 3 (int)
+                           1 (int): accepted -> 1 (int)
+                          10 (int): accepted -> 10 (int)
+                         3.0 (float): accepted -> 3 (int)
+                 np.int64(3) (int64): accepted -> 3 (int)
+                 np.int32(2) (int32): accepted -> 2 (int)
+             np.float64(3.0) (float64): accepted -> 3 (int)
+                 np.uint8(4) (uint8): accepted -> 4 (int)
+                           0 (int): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 0.
+                          -1 (int): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not -1.
+                         2.5 (float): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 2.5.
+                         0.0 (float): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 0.0.
+                         inf (float): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not inf.
+                         nan (float): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not nan.
+                        True (bool): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not True.
+                       False (bool): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not False.
+                    np.True_ (bool): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not np.True_.
+                        None (NoneType): accepted -> 3 (int)
+                         '3' (str): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not '3'.
+                    array(3) (ndarray): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not array(3).
+                  array([3]) (ndarray): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not array([3]).
+                      (3+0j) (complex): ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not (3+0j).
+1000000000000000000000000000000 (int): TypeError: ufunc 'isfinite' not supported for the input types, and the inputs could not be safely coe
+                      1e+300 (float): accepted -> 1000000000000000052504760255204420248704468581108159154915854115511802457988908195786371375080447864043704443832883878176942523235360430575644792184786706982848387200926575803737830233794788090059368953234970799945081119038967640880074652742780142494579258788820056842838115669472196386865459400540160 (int)

@@ -812,7 +812,12 @@ class BADS:
         # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
         # it evaluates an improvement (bads.m:1269-1271)
         improvement_quantile = self.options["improvement_quantile"]
-        if not 0 < improvement_quantile < 1:
+        try:
+            in_range = bool(0 < improvement_quantile < 1)
+        except (TypeError, ValueError):
+            # a string, a complex number or an array of several values
+            in_range = False
+        if not in_range:
             raise ValueError(
                 "options['improvement_quantile'] needs to be greater than 0 "
                 f"and less than 1, not {improvement_quantile!r}."
@@ -2153,7 +2158,8 @@ class BADS:
 
     def _poll_step_(self, gp: GP):
         """
-        A private method that performs poll step using the LTMADS poll direction method.
+        A private method that performs the poll step, along the directions of
+        ``poll_mads_2n`` (the signed coordinate directions at default).
         It also evaluates and update the incumbent and the poll parameters (like the ``mesh_size_integer``) according to the found improvement.
 
         Returns
@@ -2165,7 +2171,7 @@ class BADS:
         y_poll_best : float
             Function value at the best poll point.
         f_sd_poll_best : float
-            Estimated GP variance at the best poll point.
+            Estimated GP standard deviation at the best poll point.
         gp : gpyreg.gaussian_process.GP
         """
 
@@ -2704,10 +2710,13 @@ class BADS:
         Returns
         -------
         f_target_mu : np.ndarray
-            The GP's mean prediction at ``u``, of shape ``(1, 1)``.
+            The GP's mean prediction at ``u``, of shape ``(1, 1)`` (the
+            incumbent's ``fval`` when the prediction is not finite, and when
+            no prediction is made).
         f_target_s : np.ndarray or float
             The GP's predictive standard deviation at ``u`` (the incumbent's
-            ``fsd`` when the prediction is not finite).
+            ``fsd`` when the prediction is not finite, and ``np.zeros(1)``
+            when no prediction is made).
         f_target : np.ndarray
             The optimization target, of shape ``(1, 1)``.
         """

@@ -1,0 +1,10 @@
+pybads /home/user/pybads-v1.1.0/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+accelerate_mesh_steps=0: at optimize(): IndexError: index 1 is out of bounds for axis 0 with size 1 (iter 1, func_count 21; ['run:43', 'optimize:1317', '_poll_step_:2243'])
+accelerate_mesh_steps=-1: at optimize(): TypeError: 'NoneType' object is not subscriptable (iter 0, func_count 9; ['run:43', 'optimize:1317', '_poll_step_:2243'])
+accelerate_mesh_steps=3.0: at optimize(): IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices (iter 4, func_count 45; ['run:43', 'optimize:1317', '_poll_step_:2243'])
+accelerate_mesh_steps=2.5: at optimize(): IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices (iter 3, func_count 37; ['run:43', 'optimize:1317', '_poll_step_:2243'])
+accelerate_mesh_steps=inf: ran; fval 3.32e-06, x [-0.0008 -0.0016], func_count 62, iterations 7
+accelerate_mesh_steps=True: ran; fval 8.21e-07, x [0.0009 0.0002], func_count 62, iterations 7
+accelerate_mesh_steps=1000.0: ran; fval 3.32e-06, x [-0.0008 -0.0016], func_count 62, iterations 7
+accelerate_mesh_steps=1: ran; fval 8.21e-07, x [0.0009 0.0002], func_count 62, iterations 7

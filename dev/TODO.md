@@ -195,11 +195,10 @@ order.
   while fixing" and "Doublecheck", with the details). Not fixed:
   - the options: `Options.descriptions` has no entry for an advanced
     option that the user set, so `str(options)` prints `(None)` for it;
-    `hedge_gamma`'s description is its section's header; the checks
-    `stobads is None` and `specify_target_noise is None` cannot fire since
-    W2-19; `test_options.ini` and `test_options2.ini` ship in the wheel and
-    nothing reads them; a 0-d array for `max_fun_evals` or a boolean option
-    is refused, where 1.1.0 took it;
+    the checks `stobads is None` and `specify_target_noise is None` cannot
+    fire since W2-19; `test_options.ini` and `test_options2.ini` ship in
+    the wheel and nothing reads them; a 0-d array for `max_fun_evals` or a
+    boolean option is refused, where 1.1.0 took it;
   - the display: `optim_state["cache_active"]` is always False since W2-7,
     so the cache branches of the display cannot run; the reports of the log
     transform and of periodic variables are logged at INFO, so that
@@ -213,18 +212,46 @@ order.
     is put on the mesh (KD-B1-9); the test of fixed variables leaves `x0`
     out (KD-B1-7);
   - the run's control: the noise test's time is averaged into the start's
-    row of `fun_eval_time`; after a re-estimate that moves nothing,
-    `optim_state`'s `yval`, `fval` and `fsd` keep older values; a noisy run
-    whose design leaves fewer evaluations than `noise_final_samples` ends
-    in its first iteration without taking the samples it reserved, so that
-    `yval_vec` is `None` when it reserved none and the incumbent's
-    observation otherwise, and the test of that reserve does not reach its
-    floor at 0; the docstring of `test_iterations_count_from_one` says "8th"
-    where the run reports 7;
+    row of `fun_eval_time`; a noisy run whose design leaves fewer
+    evaluations than `noise_final_samples` ends in its first iteration
+    without taking the samples it reserved, so that `yval_vec` is `None`
+    when it reserved none and the incumbent's observation otherwise, and
+    the test of that reserve does not reach its floor at 0; the docstring
+    of `test_iterations_count_from_one` says "8th" where the run reports 7;
   - `VariableTransformer` used directly: a scalar `apply_log_t` raises
     `AttributeError`, a 1-D bound `IndexError`, and a NumPy scalar hard
     bound with the plausible bounds omitted fails; the `else` branches of
     its four bounds cannot run.
+- [ ] **Minor items of slices B3 and B4 of the port review**, whose wave has
+  passed (`experiments/port_review_20260925/verification/wave3.md`, "Found
+  while fixing" and "Doublecheck", with the details). Not fixed:
+  - for the PI, from the doublecheck: `contraints_check` bins the
+    candidates and the evaluated points with `np.round`, which takes a
+    half to the even integer, where `uCheck.m`'s `round` takes it away from
+    zero, so that once the search mesh is finer than `tol_mesh / 2` (from
+    the poll mesh `2^-6` at default) other candidates are merged and
+    removed than in MATLAB BADS, within `tol_mesh / 2`; the ES search
+    splits its first population with the same rounding, which differs from
+    MATLAB's when `n_search / n_search_iter` is odd (not at default). Either
+    change moves results. `acq_hedge=True` stops a run with
+    `UnboundLocalError` at its first improving search (KD-B3-3), where
+    refusing it when `BADS` is created would say that it is not supported;
+    `accelerate_mesh_steps=inf`, which MATLAB BADS and 1.1.0 run without the
+    accelerated reduction of the mesh, is refused (KD-B4-6);
+  - the search: `n_search_iter` below 1 is not refused (0 stops the run at
+    its first search with `ZeroDivisionError`, 0.5 with `TypeError`); the
+    empty set's `search_dist = 0` is an `int`, read only by
+    `_update_search_stats_`; the warning for a generation of the ES search
+    that no candidate is left in is logged at WARNING, a few times per run
+    on a thin band; `grid_functions.py` imports matplotlib's `axis` and
+    `constraints_check.py` imports `Value`, unused, and `force_to_grid`
+    has no docstring;
+  - the poll: the main loop discards the GP that `_poll_step_` returns,
+    which works because the GP functions change it in place;
+    `poll_mads_2n.py` imports `GP` unused;
+  - the final estimate of a noisy run sets `u`, `yval`, `fval` and `fsd` on
+    the object but not in `optim_state`, so that `output_fcn`'s `"done"`
+    call receives the last iteration's values with the final `x`.
 - [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
   with `time.time()`, whose resolution on Windows before Python 3.13 is
   about 15.6 ms: for a fast target most evaluations time as 0, and the

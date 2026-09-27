@@ -8,7 +8,8 @@ at `ab4dded`. 18 configurations of the `default` suite of
 budget (500 D) and ending on BADS's own termination criteria, every random
 draw through the run's `numpy.random.Generator`, with gpyreg 1.3.3. Its
 package code is that of `dev-port-review-w3` at `a14524d`: the previous
-reference's (`8510ca8`, wave 2's) with wave 3's fix pass
+reference's (`8510ca8`, wave 2's), with wave 2's W2-45 to W2-47, which
+reach no run of this suite (`8aecb6a`), and wave 3's fix pass
 ([`port_review_20260925/verification/wave3.md`](../port_review_20260925/verification/wave3.md),
 "Fix pass"), the doublecheck of wave 2 merged from `dev-next` (`68d4516`),
 and without W3-24, which the PI reverted after its gate (`b03a320`). Every
@@ -17,8 +18,8 @@ pass's step W3-29 (`0b7add3`): the later commits, the merge (an `f_vals`
 without a finite value, and docstrings), the revert, W3-39 (a check of
 `accelerate_mesh_steps` when `BADS` is created) and W3-40 (the prior of the
 length scales on two points), reach no run of this suite, and the
-fingerprint of `dev/scripts/fingerprint.py` is `360971bf1f0ba6cb` at all of
-them. It replaces
+fingerprint of `dev/scripts/fingerprint.py` is `360971bf1f0ba6cb` (Linux,
+gpyreg 1.3.3 from the clone, one BLAS thread) at all of them. It replaces
 [`population_linux_wave2_20260926`](../population_linux_wave2_20260926/README.md)
 (`8510ca8`'s runs).
 
