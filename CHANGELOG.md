@@ -51,7 +51,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the plausible box.
 - A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or
   complex, which 1.1.0 accepted as a NumPy scalar or a one-element array,
-  raises `ValueError` at the first search.
+  raises `ValueError` when `BADS` is created, and a callable `sqrt_beta`
+  whose value is not a positive finite number raises `ValueError` at the
+  search.
 - `BADS` raises `ValueError` for an `improvement_quantile` that is not a
   number greater than 0 and less than 1.
 - `BADS` raises `ValueError` for an `accelerate_mesh_steps` that is not a
@@ -158,9 +160,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **LCB parameter of the search.** The second element of `search_acq_fcn`,
   the `sqrt_beta` of the search's lower confidence bound, can be a plain
   number such as `2.0`, which stopped the run with `AttributeError`. It is
-  `None` (the default schedule), a callable `sqrt_beta(t, D)` or a positive
-  finite number, and any other value raises `ValueError` at the first
-  search.
+  `None` (the default schedule), a callable `sqrt_beta(t, D)` that returns a
+  positive finite number, or a positive finite number. `BADS` raises
+  `ValueError` for any other value when it is created, before any
+  evaluation, and the search raises `ValueError` when the callable returns
+  another value; 1.1.0 ran with a callable that returned −1 or NaN, and
+  stopped with an unrelated error when it returned an array of several
+  values or a string.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
 - **`hedge_gamma`.** `BADS` raises `ValueError` for a `hedge_gamma` that is

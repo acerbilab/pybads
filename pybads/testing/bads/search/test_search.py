@@ -437,6 +437,43 @@ def test_lcb_refuses_other_values_of_sqrt_beta(sqrt_beta):
         acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), sqrt_beta)
 
 
+@pytest.mark.parametrize(
+    "value",
+    [-1.0, 0, np.nan, np.inf, np.array([1.0, 2.0]), "1.5", None, True],
+    ids=[
+        "negative",
+        "zero",
+        "nan",
+        "inf",
+        "2 elements",
+        "string",
+        "None",
+        "bool",
+    ],
+)
+def test_lcb_refuses_a_callable_sqrt_beta_of_another_value(value):
+    """A callable `sqrt_beta` returns a positive finite real number: any
+    other value is refused at the call, with the arguments it was called
+    with."""
+    with pytest.raises(
+        ValueError,
+        match=r"sqrt_beta\(t, n_vars\) needs to return a positive finite "
+        r"real number, not .* \(t = 10, n_vars = 3\)",
+    ):
+        acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), lambda t, n_vars: value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [1.5, np.float64(1.5), np.array(1.5), np.array([1.5])],
+    ids=["float", "np.float64", "0-d", "1-element"],
+)
+def test_lcb_accepts_a_callable_sqrt_beta_of_a_positive_number(value):
+    xi = np.zeros((2, 3))
+    z, _, _ = acq_fcn_lcb(xi, 9, _FixedGP(), lambda t, n_vars: value)
+    assert np.array_equal(z, np.array([[-2.0], [1.25]]))
+
+
 def test_force_to_grid_rounds_halves_away_from_zero():
     """`force_to_grid` rounds as MATLAB's `round` in `force2grid.m` does:
     halves away from zero, where `np.round` takes them to the even

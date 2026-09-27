@@ -469,3 +469,55 @@ def test_hedge_gamma_from_zero_to_one_over_n_is_accepted(
 ):
     bads = _bads_with_hedge_gamma(hedge_gamma, n_search_methods)
     assert bads.options["hedge_gamma"] == hedge_gamma
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [0, -1.0, np.nan, np.inf, "acq_schedule", np.array([1.0, 2.0]), True],
+    ids=["zero", "negative", "nan", "inf", "name", "2 elements", "bool"],
+)
+def test_search_sqrt_beta_refused_before_any_evaluation(sqrt_beta):
+    """A `sqrt_beta` of `search_acq_fcn` that is not None, a callable or a
+    positive finite real number, which the search's LCB refuses, is refused
+    when `BADS` is created, before the target is evaluated."""
+    calls = []
+
+    def target(x):
+        calls.append(x)
+        return _quadratic(x)
+
+    with pytest.raises(
+        ValueError,
+        match=r"options\['search_acq_fcn'\]\[1\] \(sqrt_beta\) needs to be "
+        r"None \(the default schedule\), a callable",
+    ):
+        BADS(
+            target,
+            np.array([0.5, 0.0]),
+            -5 * np.ones(2),
+            5 * np.ones(2),
+            -3 * np.ones(2),
+            3 * np.ones(2),
+            options={**OPTIONS, "search_acq_fcn": ("acq_LCB", sqrt_beta)},
+        )
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "sqrt_beta",
+    [None, 2.0, np.float64(0.5), np.array([1.0]), lambda t, n_vars: -1.0],
+    ids=["None", "float", "np.float64", "1-element", "callable"],
+)
+def test_search_sqrt_beta_accepted(sqrt_beta):
+    """None, a positive finite real number and a callable are accepted when
+    `BADS` is created; a callable's value is checked at each call."""
+    bads = BADS(
+        _quadratic,
+        np.array([0.5, 0.0]),
+        -5 * np.ones(2),
+        5 * np.ones(2),
+        -3 * np.ones(2),
+        3 * np.ones(2),
+        options={**OPTIONS, "search_acq_fcn": ("acq_LCB", sqrt_beta)},
+    )
+    assert bads.options["search_acq_fcn"][1] is sqrt_beta

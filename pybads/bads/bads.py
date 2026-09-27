@@ -9,7 +9,7 @@ from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
 from scipy.stats import chi2, shapiro
 
-from pybads.acquisition_functions import acq_fcn_lcb
+from pybads.acquisition_functions import acq_fcn_lcb, check_sqrt_beta
 from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.init_functions import init_sobol
 from pybads.poll import poll_mads_2n
@@ -864,6 +864,12 @@ class BADS:
                 "the number of search methods in options['search_method'] "
                 f"({n_search_methods}), not {hedge_gamma!r}."
             )
+        # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
+        # call, is checked here too, before any evaluation
+        check_sqrt_beta(
+            self.options["search_acq_fcn"][1],
+            "options['search_acq_fcn'][1] (sqrt_beta)",
+        )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
                 "options['improvement_quantile'] is greater than 0.5. This "
