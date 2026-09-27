@@ -22,11 +22,13 @@ def init_sobol(
 
     The design has ``2**ceil(log2(fun_eval_start))`` points, twice as many
     when that number equals the dimension ``D``, scaled to the plausible box.
+    Its scrambling is seeded by one draw of ``rng``, so that the generator
+    decides the design, whatever the starting point.
 
     Parameters
     ----------
     u0 : np.ndarray
-        The starting point, of shape ``(D,)``.
+        The starting point, of shape ``(D,)``, of which only the size is read.
     lb : np.ndarray
         The lower bounds (unused).
     ub : np.ndarray
@@ -39,9 +41,7 @@ def init_sobol(
         The number of points asked of the design, which is rounded up as
         above.
     rng : numpy.random.Generator, optional
-        Draws the seed of the Sobol sequence when ``u0`` is not all finite;
-        otherwise the seed derives from the integer parts of the first 11
-        coordinates of ``u0``. If ``None``, a
+        The generator that draws the seed of the scrambling. If ``None``, a
         generator is derived from NumPy's global random state
         (``pybads.rng.get_rng``).
 
@@ -53,19 +53,12 @@ def init_sobol(
         The number of points of the design.
     """
 
-    max_seed = 997
-    if np.all(np.isfinite(u0)):
-        # Seed depends on u0
-        str_seed = u0[0 : np.minimum(11, len(u0))].astype(np.uint64)
-        if str_seed.ndim == 1:
-            str_seed = np.array2string(str_seed)[1:-1]
-        else:
-            str_seed = np.array2string(str_seed)[2:-2]
-        str_seed = np.array([ord(ch) for ch in str_seed])
-        seed = np.prod(str_seed)
-        seed = np.mod(seed, max_seed) + 1
-    else:
-        seed = get_rng(rng).integers(1, max_seed + 1)
+    # The seed of the scrambling is one draw of the run's generator, so that
+    # the generator advances by one draw whatever scipy's Sobol draws from
+    # the generator it seeds. MATLAB BADS derives a skip index into the
+    # unscrambled sequence from the digits of u0 instead (initSobol.m:9-15),
+    # so that its design depends on the start alone
+    seed = get_rng(rng).integers(2**63)
 
     # Sobol’ sequences are a quadrature rule and they lose their balance properties
     # if one uses a sample size that is not a power of 2, or skips the first point,

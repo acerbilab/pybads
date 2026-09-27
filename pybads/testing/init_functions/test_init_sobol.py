@@ -25,3 +25,22 @@ def test_init_sobol_returns_number_of_points(D, fun_eval_start, n_points):
     u_init, n_samples = _design(D, fun_eval_start)
     assert u_init.shape == (n_points, D)
     assert n_samples == n_points
+
+
+def test_init_sobol_design_follows_the_generator_not_the_start():
+    """The generator decides the design, and the start does not: starts
+    inside the plausible box and on its bounds give one design for one
+    seed, and two seeds give two designs."""
+    D = 3
+    starts = [
+        np.zeros(D),
+        np.array([0.5, -0.25, 0.75]),
+        -np.ones(D),
+        np.array([1.0, 0.3, -1.0]),
+    ]
+    design, _ = _design(D, D, u0=starts[0], rng=0)
+    for u0 in starts[1:]:
+        assert np.array_equal(_design(D, D, u0=u0, rng=0)[0], design)
+    other, _ = _design(D, D, u0=starts[0], rng=1)
+    assert not np.array_equal(other, design)
+    assert np.all((other >= -1) & (other <= 1))

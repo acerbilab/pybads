@@ -247,10 +247,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   Nothing that is deep-copied holds the generator (the `OptimizeResult`,
   what `IterationHistory` records, the GP and its `temporary_data`), and
   neither does `optim_state`: a copy would be a second generator in the same
-  state. The Sobol design takes its seed from `u0`, not from the generator:
-  from the integer part of each of its first 11 coordinates, so every start
-  point inside the plausible box gives the same design for a given `D`,
-  whatever the seed (a candidate defect, in the survey).
+  state. The scrambling of the Sobol design is seeded by one draw of the
+  generator in `init_sobol`, so that the seed decides the design, whatever
+  the start; MATLAB BADS's design depends on the start alone.
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.

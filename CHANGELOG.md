@@ -686,6 +686,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names
   no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0
   refused it.
+- **Initial design.** The scrambling of the initial Sobol design is seeded
+  from the run's generator, so that `random_seed` decides the design, as it
+  decides every other random draw of a run; MATLAB BADS's design depends on
+  the start alone. In 1.1.0 the design depended on neither the seed nor the
+  start: every start inside the plausible box gave one design for each
+  number of variables, and a start on or below a plausible lower bound gave
+  a design that could differ between x86 and arm64 machines. Results change
+  at default options.
 
 ## [1.1.0] - 2026-09-25
 
