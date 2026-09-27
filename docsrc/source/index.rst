@@ -50,7 +50,7 @@ PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/ab
     :align: center
     :alt: Fig 1: BADS procedure
 
-Fig 1: BADS procedure
+Fig 1: BADS procedure. The poll's steps are equal in the normalized coordinates in which BADS works, where the plausible box spans [-1, 1] in every variable, and scale with the plausible box in the original coordinates, drawn here.
 
 See `here <https://github.com/lacerbi/optimviz>`__ for a visualization of several optimizers at work, including BADS.
 
