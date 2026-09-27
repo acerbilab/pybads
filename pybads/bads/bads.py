@@ -2189,10 +2189,7 @@ class BADS:
                     rng=self.rng,
                 )
 
-                # GP- based vector scaling (poll_scale broadcast). The basis
-                # is in units of the poll size, its entries multiples of
-                # 1 / n_max, so that the points lie on the search mesh, as in
-                # LTMADS (see poll_mads_2n)
+                # GP- based vector scaling (poll_scale broadcast)
                 vv = (
                     B_new * self.optim_state["mesh_size"]
                 ) * gp.temporary_data[
