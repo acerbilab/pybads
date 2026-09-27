@@ -77,8 +77,11 @@ class FunctionLogger:
         Parameters
         ----------
         x : np.ndarray
-            The point at which the function will be evaluated. The shape of x
-            should be (1, D) or (D,).
+            The point at which the function will be evaluated, in the
+            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The
+            logger maps it back to the original space with its
+            ``variable_transformer``, if it has one, and evaluates the
+            function there; without one, the two spaces are the same.
 
         record_duplicate_data : bool, optional (default True)
             Flag to indicate whether the data is added to training data.
@@ -199,13 +202,17 @@ class FunctionLogger:
         Parameters
         ----------
         x : np.ndarray
-            The point at which the function has been evaluated. The shape of x
-            should be (1, D) or (D,).
+            The point at which the function has been evaluated, in the
+            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The
+            logger maps it back to the original space with its
+            ``variable_transformer``, if it has one, and records both; without
+            one, the two spaces are the same.
         fval_orig : float
             The result of the evaluation of the function.
         fsd : float, optional
-            The (estimated) SD of the returned value (if heteroskedastic noise
-            handling is on) of the evaluation of the function, by default None.
+            The (estimated) SD of the result, by default None. A logger that
+            holds SDs (``noise_flag``) records a missing one as 1; a logger
+            that does not ignores a given one.
         fun_eval_time : float
             The duration of the time it took to evaluate the function,
             by default np.nan.
@@ -214,8 +221,9 @@ class FunctionLogger:
         -------
         fval : float
             The result of the evaluation.
-        SD : float
-            The (estimated) SD of the returned value.
+        SD : float or None
+            The SD recorded: 1 for a missing one, and None when the logger
+            holds no SDs.
         idx : int
             The index of the last updated entry.
 
