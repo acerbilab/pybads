@@ -723,6 +723,12 @@ cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
   that W1-2's premise missed a line of `bads.m` (MATLAB's rebuilds persist
   after a poll move), and the changelog says otherwise. The sweep after
   the wave was clean (only `__pycache__`, removed).
+- [x] 2026-09-27: wave 3 triaged (PI; the rulings in
+  `verification/wave3.md`). W3-24 (b), after a clarification: the poll
+  draws LTMADS directions, a departure from MATLAB, whose `pollMADS2N.m`
+  inverts the ratio that bounds its basis, so that its poll is a
+  coordinate poll; gated last in the pass, and back to the PI on a flagged
+  worsening. Every other proposal accepted as written.
 - [ ] Wave 4.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`.

@@ -209,31 +209,138 @@ is proposed here.
   training set, equal in practice (B3-C, a B2 item): for the docstrings
   and descriptions of the fix pass.
 
-## Rulings (PI, from 2026-09-27)
+## Rulings (PI, 2026-09-27)
 
-The triage is under way; the rows not named here await the PI's ruling,
-and the fix pass starts once every row is ruled (`wave2.md`, "Fix pass",
-is the procedure).
+The orchestrator proposed a disposition for every row, following its
+verifier's recommendation unless the row says why not; where the verifier
+left the design open (W3-11, W3-33), the row gives the proposal and its
+reason. The PI ruled W3-24 (b), after a clarification of what the row
+means, and accepted every other proposal as written. As in waves 0 to 2, a
+fix is one commit per row on the wave's branch, with a test that fails at
+`8aecb6a` and passes at the commit, and a changelog line in every commit a
+user can notice; a stricter interface also has an "Upgrading from" line.
+The fix pass follows `wave2.md`, "Fix pass", with the whole fast suite run
+after every cherry-pick, since the fix agents run only their own test
+files, and CI checked after every push that touches `pybads/`.
 
-- **W3-24 (PI: (b)).** The poll draws LTMADS directions, a departure from
-  MATLAB. BADS's meshes already follow LTMADS's relation between the poll
-  size and the mesh size (the locked search mesh is `2^(2k-10)` at the
-  poll mesh `2^k`), and `pollMADS2N.m:7` inverts the ratio that bounds the
-  basis. So `poll_mads_2n` takes the bound `n_max = max(1,
-  round(mesh_size / search_mesh_size))`, `2^(10-k)` at default, and the
-  poll vectors are the basis times `mesh_size / n_max` (the search mesh
-  size at default): the diagonal step keeps the length `mesh_size`, the
-  lower-triangular entries tilt the directions, and the poll points lie on
-  the search mesh. This is the variant that B4-I measured
-  (`scripts/wave3/B4_internal/check12_ltmads_variant.py`). The division by
-  `poll_scale` and the multiplication back stay (W3-25), and a new basis is
-  drawn at each poll as now (LTMADS itself keeps one direction per mesh
-  index; not adopted). With it: the docstring of `poll_mads_2n`, the
-  poll's description in `README.md` and `docsrc/source/index.rst` ("steps
-  in one direction at a time"), `test_poll_mads.py`, a sheet entry, an
-  entry in `matlab_side_defects.md` (the inverted ratio), and a changelog
-  line under "Changed". Gate: a population comparison at default, as the
-  last step of the pass so that it measures this change alone, with a
-  check on nonsmooth targets whose descent direction is diagonal (B4-I's
-  ridges, over more seeds) and on W2-37's thin band; if the comparison
-  flags a worsening, the row comes back to the PI, as W2-25's rule was.
+**Fix, moving nothing** (each under the fingerprint):
+
+- W3-7: `update_hedge` scores each strategy at the search point taken as a
+  row, MATLAB's intent; an entry in `matlab_side_defects.md` (MATLAB's
+  undefined `gpstructnew`); a test with `hedge_gamma = 0`. With it the
+  description of `hedge_gamma`, which is its section's header.
+- W3-8: the fraction of new candidates counted as MATLAB counts it, with a
+  guard for `ntest == 0`; a test with `n_search_iter = 4`.
+- W3-9: an emptied ES generation is skipped and the earlier candidates
+  kept; the warning reworded to say what happened (a NaN acquisition is
+  not caught today); a test with a thin band. Before W3-1.
+- W3-10: `sqrt_beta` is a positive finite number or a callable, and
+  anything else is refused with a message; the docstring's SD. An
+  "Upgrading from" line if a value that ran before is refused.
+- W3-11: an empty search set updates the hedge as a failed search (every
+  gain decays, as in MATLAB); MATLAB's move to a stale point at
+  `improvement_quantile` > 0.5 and its error on a first empty search go on
+  the sheet as differences PyBADS keeps; the comment at `bads.py:1956`
+  corrected; W3-18's `0.0` in the same commit.
+- W3-13: `ESSearchCMA` removed; KD-B3-1 and `AGENTS.md` updated.
+- W3-14: `force_to_grid` rounds halves away from zero, as MATLAB; if the
+  fingerprint moves, the row takes a population comparison instead.
+- W3-20: `_get_target_from_gp_` returns arrays with
+  `uncertain_incumbent=False`; a test.
+- W3-22: `np.errstate` around `gamma_z`, and no global `np.seterr`;
+  `test_seeded_run_leaves_global_state_untouched` extended to
+  `np.geterr()`.
+- W3-23: the fallback's target from `f_target_s**2`; the test asserts a
+  finite target; an entry in `matlab_side_defects.md`.
+- W3-27: `nanargmin` with a guard for an all-NaN set, at the search and the
+  poll.
+- W3-31: an `improvement_quantile` outside (0, 1) refused when `BADS` is
+  created (a stricter interface: a changelog entry and an "Upgrading from"
+  line).
+- W3-33: the re-estimate keeps `optim_state`'s `yval`, `fval` and `fsd` in
+  step with the incumbent's.
+- W3-34: the unreachable refill of the poll basis removed; W3-36: `u_base`
+  removed.
+- `ESSearch.__init__` no longer calls `logging.basicConfig` ("Found while
+  verifying").
+- The records and descriptions: the comment of `contraints_check` on its
+  order (W3-2); the comments of `ucov` and ES-wcm, which call the scatter
+  weighted (W3-3); `AGENTS.md` on `poll_scale` and the description of
+  `gp_rescale_poll` (W3-25); the description of `tol_poi` (W3-28); the
+  description of `sloppy_improvement` (its floor at `tol_fun`) and the
+  docstring of `_get_target_from_gp_` ("Found while verifying").
+
+**Fix, moving results**, in this order, each ending in a population
+comparison on Linux against the end of the step before, the first against
+`population_linux_wave2_20260926`, whose environment this sandbox has (the
+fingerprint at `8aecb6a` is its `dc11118754b18b47`); the fingerprint
+recorded at every commit:
+
+1. The ES search: W3-4 (`floor(mu)` best points), W3-5 (the selection mask,
+   and `test_search_selection_mask`'s golden sum), W3-15 (stable sorts),
+   one comparison of the batch, its steps compared one by one if it is
+   flagged.
+2. W3-1: `contraints_check` removes the points already evaluated, as
+   `uCheck.m`; `test_incumbent_constraint_check` corrected; after W3-9. The
+   default suite, and a suite that reaches the search's repeats, with an
+   optimum on a bound; the seeded tests checked over their seeds with
+   `dev/scripts/tolerance_sweep.py` if one fails (`dev/TODO.md`'s item
+   closes with it).
+3. W3-6: the hedge's expected reward with φ(γ); KD-B3-3 corrected. The
+   default suite, whose five noisy configurations it reaches.
+4. W3-19: `p_less` over the D largest probabilities, sorted; a unit test.
+5. W3-29 (a): after a poll that moves the incumbent, the search rebuilds
+   the local GP at each pass until a poll that does not move, as MATLAB;
+   the changelog's "Rebuilds of the local GP", the comment at
+   `bads.py:1734-1736` and W1-2's row in `verification/wave1.md` corrected.
+   Long runs reach it; if the default suite does not, a note says so.
+6. W3-14, if its fingerprint moves (above).
+7. W3-24 (PI: (b)). The poll draws LTMADS directions, a departure from
+   MATLAB. BADS's meshes already follow LTMADS's relation between the poll
+   size and the mesh size (the locked search mesh is `2^(2k-10)` at the
+   poll mesh `2^k`), and `pollMADS2N.m:7` inverts the ratio that bounds the
+   basis. So `poll_mads_2n` takes the bound `n_max = max(1,
+   round(mesh_size / search_mesh_size))`, `2^(10-k)` at default, and the
+   poll vectors are the basis times `mesh_size / n_max` (the search mesh
+   size at default): the diagonal step keeps the length `mesh_size`, the
+   lower-triangular entries tilt the directions, and the poll points lie on
+   the search mesh. This is the variant that B4-I measured
+   (`scripts/wave3/B4_internal/check12_ltmads_variant.py`). The division by
+   `poll_scale` and the multiplication back stay (W3-25), and a new basis is
+   drawn at each poll as now (LTMADS itself keeps one direction per mesh
+   index; not adopted). With it: the docstring of `poll_mads_2n`, the
+   poll's description in `README.md` and `docsrc/source/index.rst` ("steps
+   in one direction at a time"), `test_poll_mads.py`, a sheet entry, an
+   entry in `matlab_side_defects.md` (the inverted ratio), and a changelog
+   line under "Changed". Gate: a population comparison at default, as the
+   last step of the pass so that it measures this change alone, with a
+   check on nonsmooth targets whose descent direction is diagonal (B4-I's
+   ridges, over more seeds) and on W2-37's thin band; if the comparison
+   flags a worsening, the row comes back to the PI, as W2-25's rule was.
+
+**Keep, and record:**
+
+- W3-3 (a): MATLAB's unweighted scatter stays, as a shared observation in
+  `matlab_side_defects.md`.
+- W3-12: the search ranks by the restored GP after a failed rebuild;
+  KD-B5-2 extended.
+- W3-21 (a): the target's posterior recomputed under `hyp_best` stays;
+  KD-B4-2 settles it (MATLAB's hybrid is no prediction under one set of
+  hyperparameters).
+- W3-26: the level-0 poll's GP without the poll's points, as MATLAB, a
+  shared observation in `matlab_side_defects.md`.
+- W3-28: MATLAB's stop on an unreliable GP (its description above).
+- W3-30: on the sheet, beside KD-B5-2.
+- W3-35: `period_check`'s return, until periodic variables are ported
+  (KD-B1-6).
+- W3-16, W3-17, W3-37: no longer hold; W3-11, W3-32 and W3-38 close the
+  survey's rows that wave 0 fixed.
+- The survey's 11 rows of these slices are closed by this ledger; MATLAB's
+  0/0 in the ES scale at `n_search_iter` ≥ 3 ("Found while verifying")
+  goes in `matlab_side_defects.md`.
+
+**Out of this pass:** the copy of the GP and the recomputed posterior of
+`_get_target_from_gp_` at every search step, whose target nothing reads at
+default (time only), and the cause of the frequent zero predictive SDs at
+level 0: `dev/TODO.md` lines. The first-iteration note of the B3 brief
+needs no change.
