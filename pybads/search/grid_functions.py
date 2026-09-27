@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib.pyplot import axis
 from scipy.spatial.distance import cdist
 
+from pybads.rounding import round_half_away
 from pybads.variable_transformer import VariableTransformer
 
 
@@ -9,10 +10,8 @@ def force_to_grid(x, search_mesh_size, tol=None):
     if tol is None:
         tol = search_mesh_size
 
-    # MATLAB's round (force2grid.m), which takes halves away from zero, where
-    # np.round takes them to the even integer
-    frac, r = np.modf(x / tol)
-    return tol * (r + np.sign(frac) * (np.abs(frac) >= 0.5))
+    # MATLAB's round (force2grid.m), which takes halves away from zero
+    return tol * round_half_away(x / tol)
 
 
 def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):

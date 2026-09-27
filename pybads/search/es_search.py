@@ -10,6 +10,7 @@ from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.function_logger import FunctionLogger
 from pybads.function_logger.constraints_check import contraints_check
 from pybads.rng import get_rng
+from pybads.rounding import round_half_away
 
 from .grid_functions import force_to_grid
 
@@ -30,8 +31,11 @@ class ESSearch(ABC):
         self.w = (
             options_dict["poll_mesh_multiplier"] ** self.vec
         )  # helps with the stability
+        # MATLAB's round (searchES.m), which takes halves away from zero
         self.ns = np.diff(
-            np.round(np.linspace(0, self.mu, np.size(self.w) + 1)).astype(int)
+            round_half_away(
+                np.linspace(0, self.mu, np.size(self.w) + 1)
+            ).astype(int)
         )
 
         self.vec = np.empty((0, 1), dtype="float")

@@ -579,9 +579,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   more, the scale of each generation of the evolution-strategy search
   follows the fraction of new candidates among the best, counted as in
   MATLAB BADS; PyBADS counted older candidates as new from the third
-  generation on, so that the scale grew faster than that of MATLAB BADS,
-  and from about the fifth generation grew where that of MATLAB BADS
-  shrinks. The default, 2, is not affected.
+  generation on, so that the scale grew faster than that of MATLAB BADS, and
+  from about the fifth generation grew where that of MATLAB BADS shrinks.
+  When a generation has an odd number of candidates (`n_search` over
+  `n_search_iter`, rounded down), the first generation draws the extra
+  candidate at the smaller of its two scales, as MATLAB BADS does, where
+  PyBADS drew it at the larger. The default `n_search_iter`, 2, is affected
+  by neither.
 - **Root logger.** Creating an evolution-strategy search
   (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
   root logger; `BADS` still configures it when it is created, if nothing
@@ -607,11 +611,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   their order, as the stable sort of MATLAB BADS does; NumPy's default sort
   ordered them otherwise.
 - **Points evaluated again.** The initial design, the search and the poll no
-  longer evaluate again a point already evaluated, as in MATLAB BADS. In
-  PyBADS's benchmark, with this release's other changes and before this
-  one, a 2-D sphere with its minimum on a bound repeated 137 of its 1411
-  evaluations over 30 seeded runs, and a 3-D ellipsoid with target noise 100
-  of 8800; neither repeats any after it. Results change at default options.
+  longer evaluate again a point already evaluated, as in MATLAB BADS. Two
+  points count as the same when they fall in the same cell of a grid of step
+  `tol_mesh / 2`, and a point on the boundary between two cells falls in the
+  one farther from zero, as MATLAB BADS rounds it. In PyBADS's benchmark,
+  with this release's other changes and before this one, a 2-D sphere with
+  its minimum on a bound repeated 137 of its 1411 evaluations over 30 seeded
+  runs, and a 3-D ellipsoid with target noise 100 of 8800; neither repeats
+  any after it. Results change at default options.
 - **Search hedge in noisy runs.** In a run with noise, the search hedge,
   which chooses between the ES-wcm and ES-ell searches, rewards a search
   with its expected improvement, with the standard normal density as in
