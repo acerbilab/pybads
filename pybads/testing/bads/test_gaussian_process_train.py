@@ -814,6 +814,63 @@ def test_rebuild_len_scale_is_mean_over_samples(monkeypatch):
     )
 
 
+def test_rebuild_geometry_is_weighted_over_samples(monkeypatch):
+    """With several hyperparameter samples, the poll scale and the
+    effective radius are those of MATLAB's gpupdate.m with equal weights
+    `hypweight`: the exponential of the weighted sum of the centred log
+    length scales, and one radius, from the weighted shape. (The refit
+    returns one sample today.)"""
+    import pybads.bads.gaussian_process_train as gpt_module
+
+    def two_sample_fit(gp, x_train, y_train, s2_train, hyp_gp, *args, **kw):
+        first = gp.hyperparameters_to_dict(hyp_gp)[-1]
+        second = {name: value.copy() for name, value in first.items()}
+        second["covariance_log_lengthscale"] += np.array([0.4, -0.3])
+        second["covariance_log_shape"] += 1.0
+        hyp = gp.hyperparameters_from_dict([first, second])
+        gp.set_hyperparameters(hyp, compute_posterior=False)
+        return gp, hyp, None, 1
+
+    monkeypatch.setattr(gpt_module, "_robust_gp_fit_", two_sample_fit)
+    bads, gp = _initialized_bads()
+    gp, _ = local_gp_fitting(
+        gp,
+        bads.u,
+        bads.function_logger,
+        bads.options,
+        bads.optim_state,
+        bads.iteration_history,
+        True,
+        rng=bads.rng,
+    )
+    samples = gp.get_hyperparameters()
+    assert len(samples) == 2
+    state = bads.optim_state
+
+    # gpupdate.m:294-299 and 313-317, with the bounds finite
+    hypweight = np.full(2, 1 / 2)
+    ll = (
+        bads.options["gp_rescale_poll"]
+        * np.array([s["covariance_log_lengthscale"] for s in samples]).T
+    )
+    ll = np.exp(np.sum(hypweight * (ll - np.mean(ll)), axis=1))
+    ll = np.minimum(
+        np.maximum(ll, state["search_mesh_size"]),
+        np.ravel((state["ub"] - state["lb"]) / state["scale"]),
+    )
+    alpha = np.array(
+        [np.exp(s["covariance_log_shape"]).item() for s in samples]
+    )
+    alpha = np.sum(hypweight * alpha)
+    radius = np.sqrt(alpha * (np.exp(1 / alpha) - 1))
+
+    np.testing.assert_allclose(gp.temporary_data["poll_scale"], ll, rtol=1e-12)
+    assert np.size(gp.temporary_data["effective_radius"]) == 1
+    np.testing.assert_allclose(
+        gp.temporary_data["effective_radius"], radius, rtol=1e-12
+    )
+
+
 # --- _robust_gp_fit_ ------------------------------------------------------
 
 
