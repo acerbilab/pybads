@@ -1,0 +1,44 @@
+fix: refuse a hedge_beta that is not a finite number at least 0 and a hedge_decay outside [0, 1] when BADS is created (W4-29)
+
+hedge_beta and hedge_decay were not checked, and every bad value failed
+silently, the run completing. The hedge chooses a search method with
+probabilities from softmax(hedge_beta * g), g the searches' gains, and
+multiplies the gains by hedge_decay at each update (search_hedge.py, as
+searchHedge.m:45 and acqPortfolio.m:69, which do not check them either;
+bads.m:289-290 gives the defaults, 1e-3/TolFun and 0.1^(1/(2*nvars))). A
+negative hedge_beta inverted the hedge, so that the search of lower gain
+was the likelier; at -1000 the softmax overflowed, and at inf or NaN it
+multiplied a zero, so that the probabilities and the gains were NaN and
+every choice was the uniform fallback. A hedge_decay above 1 made the
+gains grow geometrically until they overflowed, after which every choice
+was random; a negative one made them alternate in sign; NaN made them
+NaN from the first update.
+
+_init_optim_state_ now refuses, with ValueError, a hedge_beta that is not
+a finite number at least 0 and a hedge_decay that is not a number from 0
+to 1, beside the check of hedge_gamma and in its form: a bool, a string,
+a complex number, NaN and an array of several values are refused. 0
+stays accepted for both (a uniform choice, and a decay that keeps only
+the last reward), and so does a hedge_decay of 1 (no decay). The message
+for hedge_beta names its default, 1e-3 / options['tol_fun'], which a
+negative tol_fun makes negative. The defaults pass at every D: hedge_beta
+is 1 at the default tol_fun, and hedge_decay = 0.1**(1/(2*D)) lies in
+[0.1**0.5, 1). The descriptions of both options give their range.
+
+Tests (test_bads_inputs.py):
+test_hedge_beta_not_a_finite_number_at_least_zero_is_refused (-1,
+-1e-12, -1000, NaN, inf, -inf, True, "1", 1+0j and an array of two
+values), test_hedge_beta_refusal_names_its_default (tol_fun = -1e-3) and
+test_hedge_decay_outside_zero_one_is_refused (-0.1, -1e-12, 1 + 1e-12, 2,
+50, NaN, inf, True, "0.5", 0.5+0j and an array of two values), which
+fail at the parent in all 22 cases (no ValueError), and
+test_hedge_beta_finite_number_at_least_zero_is_accepted (0, 0.0, 1, 1e3
+and np.float64(0.5)), test_hedge_decay_from_zero_to_one_is_accepted (0,
+0.5, 1, 1.0 and np.float64(0.9)) and
+test_hedge_beta_and_hedge_decay_defaults_are_accepted (D = 1, 2, 5, 20
+and 60, tol_fun = 1e-3, 1e-6 and 0.1).
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
