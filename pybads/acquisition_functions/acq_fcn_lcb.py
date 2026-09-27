@@ -6,8 +6,8 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
     """
     Lower confidence bound (LCB) of the GP at the points ``xi``.
 
-    The acquisition function of the search: the GP's mean at each point less
-    ``sqrt_beta`` times its standard deviation.
+    The acquisition function of the search and of the poll: the GP's mean at
+    each point less ``sqrt_beta`` times its standard deviation.
 
     Parameters
     ----------
@@ -40,7 +40,6 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
     """
     # Returns z, dz,ymu,ys,fmu,fs,*fpi*
 
-    n = xi.shape[0]
     n_vars = xi.shape[1]
     t = func_count + 1
     if sqrt_beta is None:
