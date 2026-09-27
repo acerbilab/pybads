@@ -1,0 +1,9 @@
+final.wall_s: 210 runs; e.g. edgesphere_D2_seed22.json: '0.7082029760003934' -> '0.6898008980006125'
+final.fval: 176 runs; e.g. edgesphere_D2_seed22.json: '1.0000000443460826' -> '1.0000000011259735'
+final.true_error: 176 runs; e.g. edgesphere_D2_seed22.json: '4.434608258385708e-08' -> '1.1259735366309087e-09'
+final.x: 176 runs; e.g. edgesphere_D2_seed22.json: '[0.0, 3.91064453125]' -> '[0.0, 3.910400390625]'
+final.func_count: 166 runs; e.g. ridge_D4_seed8.json: '322' -> '327'
+final.iterations: 108 runs; e.g. ridge_D2_seed20.json: '16' -> '19'
+final.min_noise_var: 71 runs; e.g. sphere_band_D2_seed26.json: '0.0010001212740943627' -> '0.0009998582648623742'
+final.fsd: 29 runs; e.g. edgesphere_D3_homo_seed15.json: '0.12945296295687495' -> '0.2656933565605263'
+final.message: 21 runs; e.g. ridge_D2_seed20.json: 'Optimization terminated: change in the function value less t' -> "Optimization terminated: mesh size less than options['tol_me"

@@ -1,0 +1,3 @@
+30 runs changed; 28 end at other points
+edgesphere_D3_homo: 17 changed (15 at other points); median error 0.0121 -> 0.0116
+ridge_D2: 13 changed (13 at other points); median error 0.000153 -> 0.000218

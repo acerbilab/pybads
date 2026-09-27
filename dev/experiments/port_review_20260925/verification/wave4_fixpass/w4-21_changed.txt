@@ -1,0 +1,9 @@
+34 runs changed; 25 end at other points
+ellipsoid_D3_homo: 13 changed (9 at other points); median error 0.0684 -> 0.0641
+ellipsoid_D3_hetero: 10 changed (7 at other points); median error 0.425 -> 0.416
+rosenbrock_D2: 4 changed (4 at other points); median error 2.02e-06 -> 1.95e-06
+ellipsoid_D3: 2 changed (2 at other points); median error 2.34e-06 -> 3.15e-06
+ellipsoid_D3_unbounded: 2 changed (2 at other points); median error 1.7e-06 -> 1.7e-06
+multisensory_s1_D6_homo: 1 changed (0 at other points); median error 0.155 -> 0.155
+sphere_D3_hetero: 1 changed (0 at other points); median error 0.126 -> 0.126
+sphere_D3_homo: 1 changed (1 at other points); median error 0.00871 -> 0.00871

@@ -1,0 +1,1 @@
+`BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the number of searches in `search_method` (1/2 at default), for a `hedge_beta` that is not a finite number at least 0, which the default `1e-3 / tol_fun` is not when `tol_fun` is negative, and for a `hedge_decay` outside [0, 1].

@@ -117,3 +117,17 @@ outputs added past the `*.log` rule of `.gitignore`, and without the B7
 verifier's copy of v1.1.0's package, which the tag holds. The items of the
 records kept from wave 4's reviewers and given to its verifiers are quoted
 in `briefs/wave4_kept_B7.md` and `briefs/wave4_kept_O.md`.
+The fix agents of wave 4's fix pass (A to E, the letters of `fixes/`) have
+theirs under `verification/scripts/wave4/fix_<agent>/`, without their
+copies of a parent's tree, and the orchestrator's scripts of the pass (the
+cherry-picks and their conflicts, the changelog lines, whose texts are in
+`changelog_entries/`, the fingerprint at every commit of the branch that
+changes the package, the gates, the chain that ran the last steps, the
+runs that each step changed, W4-30's check, the fixed designs of `edgesphere_D2`) are under
+`verification/scripts/wave4/orchestrator/`. As in wave 3, the shell
+scripts and the lists name the sandbox's paths and call one another from
+the scratch directory's `orch/`, so they record what ran rather than run
+from here; `chain_rest.sh` stopped at W4-6's failed suite, and W4-6's
+completion and gates were run by hand, with the same scripts. The pass's
+comparisons are in `verification/wave4_fixpass/`, and its last population
+is kept whole as the Linux reference `population_linux_wave4_20260927`.

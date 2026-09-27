@@ -406,3 +406,168 @@ the merge of `dev-next` with #79, whose fingerprint is `360971bf1f0ba6cb`
 
 **Out of this pass:** nothing of this ledger. The plan's "Close" follows
 wave 4 in a session of its own.
+
+## Ruled during the fix pass
+
+Two rows from the fix agents' reports, ruled by the PI during the pass
+(2026-09-27), and the completion of W4-6, which its pick needed.
+
+| Id | Source | What | Classification | Default run | Dating | Survey | Disposition | Gate |
+|---|---|---|---|---|---|---|---|---|
+| W4-29 | fix agent A (`../fixes/A_W4-21_W4-17_W4-18_W4-19_W4-22_W4-24_W4-25_W4-27.md`, W4-18; "Found while verifying", O verifier) | `hedge_beta` and `hedge_decay` are not checked (`search_hedge.py`), and every bad value fails silently: a negative `hedge_beta` inverts the hedge, and -1000, `inf` or NaN make its probabilities and gains NaN, so that every choice is the uniform fallback; a `hedge_decay` above 1 makes the gains grow geometrically until they overflow (after about 1020 updates at 2), and every later choice is random, a negative one makes them alternate in sign, NaN makes them NaN (`scripts/wave4/fix_A/hedge_beta_decay.py`); MATLAB checks neither (`searchHedge.m:45-46`, `acqPortfolio.m:69`) | confirmed shared defect (missing checks) | no (the defaults, 1 and `0.1**(1/(2D))`, are in range) | Python `c7c88ab` | — | PI: refuse, when `BADS` is created, beside W4-18's check and in its form, a `hedge_beta` that is not a finite number at least 0 and a `hedge_decay` outside `[0, 1]`, the message for `hedge_beta` naming its default `1e-3 / tol_fun`; W4-18's changelog entry and "Upgrading from" line widened; with W4-18 in `matlab_side_defects.md` and KD-B3-8 | fingerprint; a test of the values refused and accepted |
+| W4-30 | fix agent C (`../fixes/C_W4-14_W4-15_W4-16_periodic_vars_W4-7_W4-20_W4-23_W4-26_W4-28.md`, W4-14, "Uncertain") | a noisy run that `output_fcn` stops at `"init"` ends before its first iteration and takes no final samples, so that its `fsd` is not an estimate: `noise_size` at level 1 (1.0 at default, or the option's value), the SD that the target returned at the incumbent at level 2 (`scripts/wave4/orchestrator/w430_init_stop.py`); W4-14's fix covers a run that ends within its first iteration, and MATLAB BADS takes none there either | design question | no | — | — | PI: keep (a stop that the user asks for before any iteration is honored at once, as in MATLAB BADS), and the description of `fsd` says what it then is, beside that of `yval_vec` | none |
+
+**W4-6's completion.** W4-6's pick (`e7bd01d`) failed
+`test_get_gp_training_options_small_budget` in all 8 of its cases (D = 2
+and 3, `max_fun_evals` 2 to 5). The fraction of the budget used after the
+initial design, from which the GP's fit schedule takes its number of
+starting points, is `(n_eff - eff_starting_points) / n_budget` with
+`n_budget = min(max_fun_evals, n_train_max) - eff_starting_points`: W4-6
+took the noise test out of `n_eff`, and `max_fun_evals` counts it (W2-27),
+so that a budget that `x0`, the noise test and the design use up read as
+unused (128 starting points instead of 8); before W4-6 the extra count in
+`n_eff` had cancelled it. The test states the intended behavior. The
+orchestrator proposed to the PI to complete W4-6 rather than revert it,
+and a fresh fix agent, E, did (`../fixes/E_W4-6_completion.md`):
+`_init_mesh_` records `optim_state["n_noise_test"]`, and the budget counts
+points, `min(max_fun_evals - n_noise_test, n_train_max)`. It moves no run
+at the default budget, where `n_train_max` (50 + 10 D) binds; the
+fingerprint's runs, at `max_fun_evals = 80`, which is `n_train_max` at
+D = 3, move, its three deterministic runs (at 81 all six are the same).
+`e7bd01d` had been pushed while its suite ran, so the branch's smoke run
+on it failed; from then on a pick was pushed only after its suite.
+
+## Fix pass
+
+Done (2026-09-27). As in waves 1 to 3: the fixes go on
+`dev-port-review-w4`, from the merge of `dev-next` with #79 (`8c8d6f8`,
+fingerprint `360971bf1f0ba6cb`); each is made by a fix agent, a fresh Opus
+agent with a git worktree of its own and the brief
+`../briefs/wave4_fix_common.md`, one commit per row with its regression
+test; the orchestrator reviews each diff, cherry-picks it, adds the
+changelog lines and runs the whole fast suite and the fingerprint after
+every pick. Four agents: A, the search, the hedge, the LCB and the checks
+of `contraints_check` (W4-21, W4-17, W4-18, W4-19, W4-22, W4-24, W4-25,
+W4-27); B, the function logger and the initial design (W4-4, W4-8, W4-9,
+W4-10, W4-12, W4-5's `AGENTS.md`, W4-1, W4-6); C, the final estimate, the
+poll and the GP's geometry (W4-14, W4-15, W4-16, `periodic_vars`, W4-7,
+W4-20, W4-23, W4-26, W4-28), from `39d5d0a`; D, W4-29, which the PI ruled
+on after A's report, from `6f673a2`; and E, the completion of W4-6, from
+`e7bd01d`. The orchestrator made W4-30, a docstring, and the changelog's
+reconciliation of W4-5 (`fba29cd`). The agents'
+reports are in `../fixes/`, their scripts in `scripts/wave4/fix_<agent>/`;
+the hashes they cite are those of their branches, and the fingerprints in
+their commit messages are those at their branches' commits.
+
+The fingerprint is that of `dev/scripts/fingerprint.py` at the commit on
+the branch (Linux, gpyreg 1.3.3 from the clone at `98ab5a4`, one BLAS
+thread), computed again by the orchestrator at every pick
+(`scripts/wave4/orchestrator/fp_all.out`). The populations are the
+`default` suite × seeds 0-29, each run from a worktree at its commit and
+compared with the one before, and for W4-21 and at the end the `geometry`
+suite (`8824c9e`); the comparisons are in `wave4_fixpass/`, the
+orchestrator's scripts in `scripts/wave4/orchestrator/`. Every population
+reads gpyreg from the clone at the tag `v1.3.3`.
+
+| Row | Commit | Fingerprint | Gate and outcome |
+|---|---|---|---|
+| W4-4 | `8daf7ad` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-8 | `5dd92b7` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-9 | `29a258a` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-10 | `4ea665a` | `360971bf1f0ba6cb` | none (docstrings) |
+| W4-12 | `f1247d0` | `360971bf1f0ba6cb` | none (a docstring and a description) |
+| W4-5 | `2dc5807` | `360971bf1f0ba6cb` | none (`AGENTS.md`); the changelog's two entries on repeats reconciled in `fba29cd` |
+| W4-21 | `86512c9` | `360971bf1f0ba6cb` | fingerprint unchanged, although 8 of the 104 calls of `contraints_check` in each deterministic run of it return other rows; the default suite against `population_linux_wave3_20260927`: no flag in 54 tests, 34 of 540 runs changed, 25 of them ending at other points (`ellipsoid_D3_homo` 13, `ellipsoid_D3_hetero` 10, `rosenbrock_D2` 4, `ellipsoid_D3` 2, `ellipsoid_D3_unbounded` 2, one each of `multisensory_s1_D6_homo`, `sphere_D3_hetero` and `sphere_D3_homo`), the median errors held or lower, the fraction solved of `ellipsoid_D3_homo` 0.73 → 0.63; the geometry suite against its baseline at `8c8d6f8`: no flag in 21 tests, 30 of 210 runs changed (`edgesphere_D3_homo` 17, `ridge_D2` 13), `ridge_D2`'s median error 1.5e-4 → 2.2e-4 (signed-rank p = 0.20) and its fraction solved 0.83 → 0.77, the thin bands unchanged (`w4-21_vs_reference.md`, `geometry_w4-21_vs_base.md`, `w4-21_changed.txt`) |
+| W4-17 | `2f15781` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-18 | `6e24519` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-19 | `36c9ec1` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-22 | `3b7e64c` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-24 | `4f535b8` | `360971bf1f0ba6cb` | none (docstrings) |
+| W4-25 | `36e8b70` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-27 | `6f673a2` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-14 | `b61a880` | `360971bf1f0ba6cb` | fingerprint unchanged (no default run reaches it); at D = 2 with `max_fun_evals=38`, 38 evaluations, 4 of them the final samples |
+| W4-15 | `6c36782` | `360971bf1f0ba6cb` | fingerprint unchanged; with `stobads=True`, the nine runs of the O verifier's `v_f1_selfmove.py` identical in every evaluation and result, six of them without their self-move and three rebuilds fewer each |
+| W4-16 | `fa5d842` | `360971bf1f0ba6cb` | fingerprint unchanged (one hyperparameter sample in every run) |
+| W4-7 | `e744ed9` | `360971bf1f0ba6cb` | none (a docstring) |
+| W4-20 | `5442a6c` | `360971bf1f0ba6cb` | none (the caption) |
+| W4-23 | `65e2434` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-26 | `684d2e0` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-28 | `ffaf424` | `360971bf1f0ba6cb` | fingerprint unchanged; the poll returns the GP it was given in 32 of 32 polls of the fingerprint's runs |
+| `periodic_vars` | `b78f782` | `360971bf1f0ba6cb` | fingerprint unchanged (picked as `39b647a`, its subject's tag then corrected to "found while verifying", as wave 3 tagged such a row; the same tree) |
+| W4-29 | `bd793f2` | `360971bf1f0ba6cb` | fingerprint unchanged |
+| W4-30 | `4b84a2d` | `360971bf1f0ba6cb` | none (a docstring) |
+| W4-1 | `efe5e95` | `663b49edc9320c55` | the suite passes, every seeded optimization test within its tolerance, with one more warning, scipy's `shapiro` on a zero range in `test_plateau_initial_design_runs`, whose constant target now gives such a design; the default suite against W4-21's step: no flag in 54 tests, every run changed, as each run's design now follows its seed; unflagged, the fraction solved moves on the noisy configurations, down on `ellipsoid_D3_homo` (0.63 → 0.43; paired log10 error ratio +0.27 [-0.22, +0.86]) and up on `sphere_D3_hetero` (0.40 → 0.60) and `ellipsoid_D3_hetero` (0.10 → 0.23), and by one run or none elsewhere (`w4-1_vs_w4-21.md`) |
+| W4-6 | `e7bd01d` | `c91725823bc62b29` | the suite fails `test_get_gp_training_options_small_budget` in all 8 of its cases ("W4-6's completion", above); pushed while its suite ran, so the branch's smoke run on it failed |
+| W4-6, completed | `46af65a` | `4146a986863602cb` | the default suite against W4-1's step: no flag in 54 tests; 390 runs changed, those of the 13 configurations without noise, which take the noise test, and the 5 noisy ones identical (`w4-6_vs_w4-1.md`). The geometry suite against W4-21's step, the net effect of W4-1 and W4-6 on it: `edgesphere_D2` flagged on its number of evaluations (KS 0.60, p Holm 5e-4; error p = 0.39), the rest unflagged; W4-1 alone gives the same flag, and W4-6 against W4-1 flags nothing (`geometry_w4-1_vs_w4-21.md`, `geometry_w4-6_vs_w4-1.md`). The flag measures the design that W4-1 stopped sharing: before it, every run of this configuration started from the design of seed 948, which `init_sobol` derived from any start inside the plausible box at D = 2, so its 30 runs took 46 to 49 evaluations (mean 47.0); with one design per seed they take 46 to 55 (mean 48.5), every run solved, the errors as low or lower. With W4-1's code and the seed forced to 948 the 30 runs equal W4-21's, and six other fixed designs cost 47.6 to 49.3 evaluations on average, each in a narrow band of its own: 948 was the cheapest of the seven (`geometry_edgesphere_D2_steps.txt`, `scripts/wave4/orchestrator/w41_fixed_designs.py` and `.out`). PI: W4-1 stays, a correctness fix that this gate can only measure; the flag is recorded. This population is the new Linux reference, `population_linux_wave4_20260927`, whose comparison with `population_linux_wave3_20260927`, the net change of the pass, flags nothing in 54 tests, and whose null check flags nothing in 36 |
+
+- **Choices within the rulings**, made by the orchestrator on the agents'
+  reports:
+  - W4-21's rounding, `round_half_away`, is a module of its own,
+    `pybads/rounding.py`: `constraints_check.py` cannot import from
+    `pybads.search`, which imports it.
+  - W4-19's shared check, `check_sqrt_beta`, is public in
+    `pybads.acquisition_functions.acq_fcn_lcb`, whose API page documents
+    the module's members.
+  - W4-1 draws the scrambling's seed from the run's generator as one
+    integer in `[0, 2**63)`, not by passing the generator to scipy, so that
+    the run's generator advances by one draw whatever scipy draws.
+  - `periodic_vars`'s commit is tagged "found while verifying", as wave 3
+    tagged such a row, where its agent had written "(W4, periodic_vars)".
+  - W4-6's completion records `optim_state["n_noise_test"]` in
+    `_init_mesh_`, where the noise test runs, rather than deriving it from
+    the log's counts.
+- The unflagged shifts of the pass, on the noisy 3-D ellipsoids:
+  `ellipsoid_D3_homo`'s fraction solved falls from 0.73 to 0.43 (W4-21
+  0.10, W4-1 0.20; paired log10 error ratio of the pass +0.39 [-0.10,
+  +0.86]) and `ellipsoid_D3_hetero`'s rises from 0.10 to 0.23 (-0.23
+  [-0.54, -0.07]); at 30 seeds the fraction solved is a coarse measure on
+  the noisy configurations (the W0-1 investigation).
+
+## Found while fixing
+
+Reported by the fix agents outside their rows (`../fixes/`), not fixed,
+and not verified beyond the check named. Two of them the PI ruled on
+during the pass, as W4-29 and W4-30 ("Ruled during the fix pass"); the
+rest are minor, in `dev/TODO.md`'s item of the minor items of B7 and O:
+
+- the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
+  point without `search_acq_fcn`'s `sqrt_beta` (`bads.py`, near the
+  search's improvement), where `bads.m:578` applies `SearchAcqFcn`; only its
+  `f_mu` is read, so nothing moves, but a callable `sqrt_beta` is not called
+  there (A); `acq_fcn_lcb`'s comment `# Returns z, dz,ymu,ys,fmu,fs,*fpi*`
+  lists MATLAB's outputs, not its own (A); the port floors the ES search's
+  `mu = n_search / n_search_iter` (`int(...)`), where
+  `private/setupvars.m:186` does not, and MATLAB's `randn` of a non-integer
+  size probably fails (A, unverified); `n_search` is not checked, nor is
+  `search_method` (an empty list fails at the first search with NumPy's
+  `ValueError`), and a `search_acq_fcn` that is not a pair fails when
+  `BADS` is created with an unrelated `IndexError` or `TypeError` (a bare
+  string with the `sqrt_beta` message, on its second character), while a
+  first element other than `"acq_LCB"` fails only at the first search (A);
+  `_search_step_`'s docstring gives `search_dist` as an array (a 1 × 1
+  array, or 0.0 for an empty set) and has the typo "thecurrent" (C);
+- the function logger: `FunctionLogger.add` keeps checks of its own (a
+  string value raises `TypeError`, a Python complex of zero imaginary part
+  passes `np.isreal` and fails while recorded, a one-element array is
+  refused), which the helpers of W4-8 could serve when `fun_values` is
+  ported (B); the final samples take the path that records nothing and
+  still add to the incumbent's `n_evals` and average their times into its
+  row, as the noise test did before W4-6, at the end of the run, where
+  `n_eff` is no longer read (B); `test_function_logger.py` calls
+  `test_add_parameter_transform()` at module level, at collection (B);
+- the checks: a NumPy complex scalar passes the checks of `hedge_gamma`,
+  `hedge_beta`, `hedge_decay` and `improvement_quantile`, since NumPy
+  orders complex numbers, and a one-element array is accepted and stored as
+  an array (D); `tol_fun` is not checked: 0 raises a bare
+  `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
+  evaluated, and a negative value is refused only through `hedge_beta` (D);
+  `_get_gp_training_options`'s docstring gives the type `dic`, leaves out
+  `function_logger` and `second_fit` and lists `hyp_dict`, which it does
+  not read (E);
+- the rest: the description of `periodic_vars`
+  (`advanced_bads_options.ini`) does not say that the option is refused,
+  and `test_options.py` asserts its text (C); `init_sobol` keeps two
+  commented-out lines (B); lines longer than 79 characters that black does
+  not wrap, in comments, strings and docstrings of `constraints_check.py`,
+  `grid_functions.py`, `es_search.py` and `init_sobol.py` (A, B); the
+  comment typo "Re-evalate" in `bads.py` (C).

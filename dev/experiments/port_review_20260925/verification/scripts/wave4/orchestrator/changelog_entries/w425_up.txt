@@ -1,0 +1,1 @@
+`BADS` raises `ValueError` for an `n_search_iter` that is not a positive integer.

@@ -1,0 +1,60 @@
+2f15781 fix: remove the unused n of acq_fcn_lcb, and say that the poll uses it too (W4-17)
+suite at 2f15781: 495 passed, 20 warnings in 142.19s (0:02:22)
+2f15781 fix: remove the unused n of acq_fcn_lcb, and say that the poll uses it too (W4-17) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok changed
+ok upgrading
+6e24519 fix: refuse a hedge_gamma outside [0, 1/n], n the number of search methods, when BADS is created (W4-18)
+suite at 6e24519: 512 passed, 20 warnings in 140.83s (0:02:20)
+6e24519 fix: refuse a hedge_gamma outside [0, 1/n], n the number of search methods, when B | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok replace_bullet
+ok replace_bullet
+36c9ec1 fix: check the sqrt_beta of search_acq_fcn when BADS is created, and a callable's value at each call (W4-19)
+suite at 36c9ec1: 536 passed, 20 warnings in 140.14s (0:02:20)
+36c9ec1 fix: check the sqrt_beta of search_acq_fcn when BADS is created, and a callable's  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+3b7e64c fix: remove three unused imports (W4-22)
+suite at 3b7e64c: 536 passed, 20 warnings in 140.84s (0:02:20)
+3b7e64c fix: remove three unused imports (W4-22) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+4f535b8 docs: write force_to_grid's docstring, and how round_half_away rounds exactly (W4-24)
+suite at 4f535b8: 536 passed, 20 warnings in 145.44s (0:02:25)
+4f535b8 docs: write force_to_grid's docstring, and how round_half_away rounds exactly (W4- | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok replace_bullet
+ok upgrading
+36e8b70 fix: refuse an n_search_iter that is not a positive integer when BADS is created (W4-25)
+suite at 36e8b70: 548 passed, 20 warnings in 145.09s (0:02:25)
+36e8b70 fix: refuse an n_search_iter that is not a positive integer when BADS is created ( | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok replace_bullet
+6f673a2 fix: log a generation of the ES search that leaves no candidate at DEBUG, not as a warning (W4-27)
+suite at 6f673a2: 548 passed, 20 warnings in 144.37s (0:02:24)
+6f673a2 fix: log a generation of the ES search that leaves no candidate at DEBUG, not as a | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok replace_bullet
+b61a880 fix: a noisy run that ends in its first iteration takes its reserved final samples, at the incumbent (W4-14)
+suite at b61a880: 549 passed, 20 warnings in 145.02s (0:02:25)
+b61a880 fix: a noisy run that ends in its first iteration takes its reserved final samples | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ok replace_bullet
+6c36782 fix: with opp_stobads, an uncertain poll moves only to a polled point that improves on the incumbent (W4-15)
+suite at 6c36782: 550 passed, 20 warnings in 147.06s (0:02:27)
+6c36782 fix: with opp_stobads, an uncertain poll moves only to a polled point that improve | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+fa5d842 fix: poll_scale and effective_radius over several hyperparameter samples, as MATLAB BADS weights them (W4-16)
+suite at fa5d842: 551 passed, 20 warnings in 147.00s (0:02:26)
+fa5d842 fix: poll_scale and effective_radius over several hyperparameter samples, as MATLA | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+e744ed9 docs: the description of overhead says that the noise test counts as the optimizer's time, as in MATLAB BADS (W4-7)
+suite at e744ed9: 551 passed, 20 warnings in 145.03s (0:02:25)
+e744ed9 docs: the description of overhead says that the noise test counts as the optimizer | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+5442a6c docs: Fig. 1's caption says that the poll's steps are equal in the normalized coordinates and scale with the plausible box in the original ones (W4-20)
+suite at 5442a6c: 551 passed, 20 warnings in 146.58s (0:02:26)
+5442a6c docs: Fig. 1's caption says that the poll's steps are equal in the normalized coor | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+65e2434 fix: an empty search set's search distance is the float 0.0, like its f_sd_search (W4-23)
+suite at 65e2434: 551 passed, 20 warnings in 154.96s (0:02:34)
+65e2434 fix: an empty search set's search distance is the float 0.0, like its f_sd_search  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+684d2e0 fix: the output function's "done" call receives the final estimate of a noisy run in optim_state (W4-26)
+suite at 684d2e0: 553 passed, 20 warnings in 151.67s (0:02:31)
+684d2e0 fix: the output function's "done" call receives the final estimate of a noisy run  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+ffaf424 fix: the main loop takes the GP that the poll returns, as it takes the search's (W4-28)
+suite at ffaf424: 553 passed, 20 warnings in 144.09s (0:02:24)
+ffaf424 fix: the main loop takes the GP that the poll returns, as it takes the search's (W | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+resolved appends in pybads/testing/bads/test_bads_inputs.py
+ok fixed
+39b647a fix: periodic_vars is refused before the variables are transformed, and an empty one is taken as None (W4, periodic_vars)
+suite at 39b647a: 561 passed, 20 warnings in 137.03s (0:02:17)
+39b647a fix: periodic_vars is refused before the variables are transformed, and an empty o | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+done

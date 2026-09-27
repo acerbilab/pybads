@@ -1,0 +1,6 @@
+ok replace_bullet
+ok replace_bullet
+86512c9 fix: bin the candidates of contraints_check and split the ES search's first population with MATLAB's round (W4-21)
+suite at 86512c9: 495 passed, 20 warnings in 132.71s (0:02:12)
+86512c9 fix: bin the candidates of contraints_check and split the ES search's first popula | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+done

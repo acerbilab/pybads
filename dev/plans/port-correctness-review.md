@@ -936,9 +936,34 @@ Wave 3's records are the model: its worklog lines below and
   refused when `BADS` is created, and the refusal of
   `accelerate_mesh_steps=inf` names `accelerate_mesh=False`, both under
   the same fingerprint.
-- [ ] Wave 4's fix pass.
+- [x] 2026-09-27: wave 4's fix pass, cloud session, on
+  `dev-port-review-w4` from the merge of `dev-next` with #79 (`8c8d6f8`).
+  Five fresh Opus fix agents in worktrees of their own (A, B, C; D for
+  W4-29 and E for W4-6's completion, both after the others reported),
+  their reports saved with `extract_report.py` and their scripts under
+  `verification/scripts/wave4/fix_<agent>/`; every pick cherry-picked with
+  its changelog lines, the whole suite and the fingerprint after each.
+  Every row of the rulings is fixed or recorded (`verification/wave4.md`,
+  "Fix pass"), and the PI ruled two more during the pass: W4-29 (the
+  hedge's `hedge_beta` and `hedge_decay` refused outside their ranges) and
+  W4-30 (a noisy run stopped at `"init"` takes no final samples, and
+  `fsd`'s description says what it reports). W4-6's pick failed a test of
+  the GP's fit schedule at small budgets, whose budget still counted the
+  noise test; a completion leaves it out, moving no default run. The gates:
+  W4-21 against `population_linux_wave3_20260927` and the geometry suite
+  (no flag; 34 and 30 runs changed), W4-1 against W4-21 (no flag; every run
+  changed), W4-6 against W4-1 (no flag); the geometry suite at the end
+  flags `edgesphere_D2`'s evaluations, which W4-1 alone gives and which
+  measure the design that every seed shared before it (PI: W4-1 stays).
+  The head's population is the new Linux reference,
+  `population_linux_wave4_20260927`, whose net change against wave 3's
+  flags nothing. `e7bd01d` was pushed before its suite passed, and the
+  branch's smoke run failed on it; from then on a pick was pushed only
+  after its suite. The sheet, `matlab_side_defects.md`, the survey (its
+  rows of `init_sobol`, `FunctionLogger.__call__` and `contraints_check`,
+  and W4-2's correction of wave 2's note) and `dev/TODO.md` are updated.
 - [ ] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
   Windows reference at the head of the last fix pass: the current one,
-  `population_gpfixes_20260925`, predates waves 0 to 3, and every fix pass
+  `population_gpfixes_20260925`, predates waves 0 to 4, and every fix pass
   moves results again.

@@ -1,0 +1,8 @@
+final.wall_s: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.6298984899995048' -> '1.3586249629988743'
+final.fval: 390 runs; e.g. sphere_nonbox_D3_seed4.json: '1.0000044686906018' -> '1.0000039768654458'
+final.true_error: 390 runs; e.g. sphere_nonbox_D3_seed4.json: '4.468690601777681e-06' -> '3.976865445842748e-06'
+final.x: 390 runs; e.g. sphere_nonbox_D3_seed4.json: '[0.7064983519667294, 0.7077161004708614, -0.0015711439191363' -> '[0.705962976673618, 0.7082507065497339, 0.001090460165869444'
+final.func_count: 342 runs; e.g. rosenbrock_D6_seed9.json: '365' -> '447'
+final.iterations: 249 runs; e.g. rosenbrock_D6_seed9.json: '16' -> '17'
+final.message: 17 runs; e.g. sphere_D10_seed25.json: "Optimization terminated: mesh size less than options['tol_me" -> 'Optimization terminated: change in the function value less t'
+final.min_noise_var: 15 runs; e.g. rosenbrock_D2_seed25.json: '2.6820841363332665e-07' -> '1.3533528323661276e-07'

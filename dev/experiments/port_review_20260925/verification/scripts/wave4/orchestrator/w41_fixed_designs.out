@@ -1,0 +1,11 @@
+/home/user/pybads/dev/scripts/runs/worktrees/h_efe5e95/pybads/__init__.py
+    old948: evaluations mean  47.0, range 46-49, distinct 4; error median 4.2e-08, max 4.9e-07
+  948+draw: evaluations mean  47.0, range 46-49, distinct 4; error median 1.2e-08, max 7.7e-08
+    fixed1: evaluations mean  49.3, range 47-53, distinct 4; error median 8.8e-09, max 8.2e-08
+    fixed2: evaluations mean  47.6, range 46-53, distinct 7; error median 4.4e-08, max 7.9e-07
+    fixed3: evaluations mean  47.6, range 46-53, distinct 5; error median 7.4e-09, max 4.9e-07
+  fixed500: evaluations mean  48.6, range 48-55, distinct 3; error median 1.1e-09, max 1.7e-07
+  fixed997: evaluations mean  48.9, range 48-49, distinct 2; error median 1.6e-08, max 4.1e-07
+fixed12345: evaluations mean  49.0, range 49-49, distinct 1; error median 1.1e-09, max 2.1e-07
+      W4-1: evaluations mean  48.5, range 46-55, distinct 7; error median 3.6e-08, max 2.1e-07
+old948 equals W4-21's run in 30 of 30 seeds (func_count and x)

@@ -128,20 +128,27 @@ reference's number of seeds.
   which flags the five configurations that the same fixes flag on Linux,
   all better, and the runs in which the prior of the GP mean falls outside
   the bounds of the mean and the log prior is NaN. It predates the fix
-  passes of waves 0 to 3 of the port review (`8aecb6a`, and
-  `dev-port-review-w3`), which move results: a gate on Windows after them
+  passes of waves 0 to 4 of the port review (`8aecb6a`, `0d866e8` and
+  `dev-port-review-w4`), which move results: a gate on Windows after them
   needs a new reference first.
 - [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
   — the previous reference on Windows (at `c044fea`, with the
   noise-variance fix of `020d6a8`), with its null check and its comparison
   with the one before, which flags nothing: the two configurations with
   target noise change, and the other 16 are identical run by run.
-- [experiments/population_linux_wave3_20260927/](experiments/population_linux_wave3_20260927/README.md)
+- [experiments/population_linux_wave4_20260927/](experiments/population_linux_wave4_20260927/README.md)
   — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at the package code of wave 3's fix pass of the
-  port review, `a14524d`, without W3-24, which the PI reverted), with its
-  null check and its comparison with the previous Linux reference, the
+  seeds, gpyreg 1.3.3, at the package code of wave 4's fix pass of the
+  port review, `46af65a`, where each seed has its own initial design), with
+  its null check and its comparison with the previous Linux reference, the
   net change of the pass, which flags nothing.
+- [experiments/population_linux_wave3_20260927/](experiments/population_linux_wave3_20260927/README.md)
+  — the previous reference population of the benchmark on Linux (default
+  suite, 30 seeds, gpyreg 1.3.3, at the package code of wave 3's fix pass
+  of the port review, `a14524d`, without W3-24, which the PI reverted), the
+  baseline of wave 4's fix pass, with its null check and its comparison
+  with the previous Linux reference, the net change of that pass, which
+  flags nothing.
 - [experiments/population_linux_wave2_20260926/](experiments/population_linux_wave2_20260926/README.md)
   — the previous reference population of the benchmark on Linux (default
   suite, 30 seeds, gpyreg 1.3.3, at the package code of wave 2's fix pass

@@ -1,0 +1,14 @@
+390 runs changed; 390 end at other points
+ackley_D6: 30 changed (30 at other points); median error 0.000177 -> 0.000174
+ellipsoid_D10: 30 changed (30 at other points); median error 5e-07 -> 7.5e-07
+ellipsoid_D3: 30 changed (30 at other points); median error 6.04e-07 -> 9.85e-07
+ellipsoid_D3_unbounded: 30 changed (30 at other points); median error 1.54e-06 -> 8.59e-07
+ellipsoid_D6: 30 changed (30 at other points); median error 9.35e-08 -> 7.07e-08
+multisensory_s1_D6: 30 changed (30 at other points); median error 2.29e-07 -> 2.35e-07
+rastrigin_D3: 30 changed (30 at other points); median error 2.98 -> 3.48
+rosenbrock_D2: 30 changed (30 at other points); median error 3.03e-06 -> 2.15e-06
+rosenbrock_D6: 30 changed (30 at other points); median error 1.89e-06 -> 3.3e-06
+sphere_D10: 30 changed (30 at other points); median error 1.09e-07 -> 1.05e-07
+sphere_D2: 30 changed (30 at other points); median error 1.38e-06 -> 2.01e-06
+sphere_nonbox_D3: 30 changed (30 at other points); median error 5.85e-06 -> 5.74e-06
+timing_D5: 30 changed (30 at other points); median error 1.42e-07 -> 1.9e-07
