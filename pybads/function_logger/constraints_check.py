@@ -26,7 +26,8 @@ def contraints_check(
         idx = np.any(U > ub, axis=1) | np.any(U < lb, axis=1)
         U_new = U[~idx].copy()
 
-    # Remove duplicate vectors and preserve the initial order
+    # Remove duplicate vectors, keeping the first of each (the removal of the
+    # evaluated vectors below returns them sorted, as MATLAB's setdiff does)
     _, idx_sort = np.unique(U_new, axis=0, return_index=True)
     U_new = U_new[np.sort(idx_sort), :]
 

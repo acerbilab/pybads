@@ -251,7 +251,9 @@ class ESSearchWM(ESSearch):
         idx_sel = (y_idx[0 : np.floor(mu + 1).astype(int)]).flatten()
         Ubest = U[idx_sel].copy()
 
-        # Compute weighted covariance matrix wrt u0
+        # Compute the covariance matrix wrt u0: the unweighted scatter of the
+        # best vectors, since the weights, which sum to one, do not weight
+        # it, as in MATLAB's ucov.m
         C = ucov(
             Ubest,
             u,
@@ -310,9 +312,10 @@ def ucov(U, u, w, ub, lb, scale, periodic_vars=None):
     u_shift = U_tmp - u_tmp
 
     if w.size != 0:
-        weights = w.reshape(
-            -1, *([1] * u_shift.ndim)
-        )  # For broadcasting weighted sum
+        # Each weight times the whole scatter, summed: the scatter times the
+        # sum of the weights (one for ES-wcm's), not weighted, as in MATLAB's
+        # ucov.m
+        weights = w.reshape(-1, *([1] * u_shift.ndim))
         C = np.matmul(u_shift.transpose(), weights * u_shift)
         C = np.sum(C, axis=0)
     else:
