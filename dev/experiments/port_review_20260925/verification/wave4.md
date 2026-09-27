@@ -81,6 +81,62 @@ the kept items.
 | W4-19 | O-K4; O verifier | a `sqrt_beta` that `acq_fcn_lcb` refuses (W3-10) is refused only at the first search, after the initial design and the first poll (12 evaluations at D = 3), since `BADS` does not look at `search_acq_fcn`; a callable's value is not checked: one returning -1 or NaN runs silently (NaN: `fval` 0.142 where the default schedule reaches 4e-6), one returning an array of 2 or a string stops with `IndexError` or `UFuncTypeError`. MATLAB checks at each call too, accepts any numeric scalar, catches the error at its callers and degrades silently | confirmed defect (the refusal is PyBADS's own) | no (`sqrt_beta` left to its default) | the check `599115b` (W3-10, in `0d866e8`); the callable's branch `c7c88ab` | — | fix: the same check on `search_acq_fcn[1]` when `BADS` is created, and a check of a callable's value at each call (a stricter interface for a callable that returns a non-positive or non-finite value: a changelog entry and an "Upgrading from" line) | fingerprint |
 | W4-20 | O-K5; O verifier | Fig. 1 (`docsrc/source/_static/bads-cartoon.png`, in `README.md` and `index.rst`), byte-identical to MATLAB's `docs/bads-cartoon.png`, draws the poll's steps about twice as long along x1 as along x2; the poll cancels `poll_scale` (W3-25), and its steps are ±Δ along one coordinate of `u` at default, anisotropic in the original coordinates only through the plausible box or the log transform, which the figure does not show; the text beside it ("steps in one direction at a time") is right | confirmed, inert (documentation, shared with MATLAB's README) | — | MATLAB's figure since `3332e3e` (2017-05-10), in PyBADS since `8bb3d59` (2023-02-06); the cancellation since MATLAB's first commit | — | keep the figure, with a clause in its caption: the steps are equal in the normalized coordinates and scale with the plausible box in the original ones | none |
 
+## From wave 3's doublecheck
+
+The doublecheck of wave 3 (`wave3.md`, "Doublecheck", and its reports
+`wave3_doublecheck_<scope>.md`), merged into `dev-next` as `6ceed6f` (#79)
+after this wave's ledger and into this branch at `8c8d6f8`, left one
+finding to this wave's fix pass, by the PI's ruling on what it left.
+
+| Id | Source | What | Classification | Default run | Dating | Survey | Proposed disposition | Gate |
+|---|---|---|---|---|---|---|---|---|
+| W4-21 | wave 3's doublecheck, `wave3_doublecheck_B3.md` F1 | `contraints_check` bins the candidates and the evaluated points on a grid of `tol_mesh / 2` with `np.round` (`function_logger/constraints_check.py:39`, `41` at `0d866e8`), which takes an exact half to the even integer, where `uCheck.m:22`, `24` use MATLAB's `round`, which takes it away from zero. At default `tol_mesh / 2` is 2^-20, and the search grid is 2^(2k-10) at the poll mesh 2^k, so from the poll mesh 2^-6 it is finer than the bin and a quarter of its coordinates fall on halves of a bin (a sixteenth one mesh later): the two roundings then merge other candidates into one bin, and remove other candidates as evaluated, within `tol_mesh / 2`. On random sets the port equals a transcription of `uCheck.m` in 3000 of 3000 on grids no finer than the bin and 1289 of 3000 on grids of 2^-21 to 2^-24 (`scripts/wave3/doublecheck/a_B3/c2_ucheck_random.out`); in seeded runs of at most 200 evaluations the ES search's check changes its output in 2 to 116 of 32 to 202 calls, and the point the search returns in 0 to 3 of 25 to 101 searches (`c3_ucheck_runs.out`, with its null check `c3b_null.out`), most of them merging other candidates and 1 of 116 removing other evaluated points (`c4_ucheck_breakdown.out`); whole runs evaluate other points in 5 of 9, with the same final states (`c14b_runs_mround.out`). The ES search splits its first population with the same rounding (`search/es_search.py:33-35`, `np.round(np.linspace(0, mu, len(w) + 1))`, against `searchES.m:111`), which differs only when `n_search / n_search_iter` is odd, never at default (4096 / 2): at `n_search_iter = 3` the port gives [682, 683] and MATLAB [683, 682] (`c11_ns.out`) | confirmed port discrepancy | yes, all levels, from the poll mesh 2^-6 (the split: no, `n_search_iter` with an odd quotient) | predates wave 3: W3-1's checks against `uCheck.m` used grids no finer than the bin; the same slip as W3-14's in `force_to_grid` | the `contraints_check` row, whose clause on the rounding #79 added | PI (wave 3's doublecheck, "Rulings on what was left"): fix, as MATLAB BADS rounds, with `force_to_grid`'s exact rule (`search/grid_functions.py:12-15`: `np.modf`, the integer part moved away from zero when the fraction is at least one half in magnitude; not `sign(q) * floor(abs(q) + 0.5)`, which takes 0.49999999999999994 to 1), in the bins and in the ES search's split, in one commit, with tests: candidates exactly half a bin from an evaluated point on both sides of zero and two candidates half a bin apart, against the transcription of `uCheck.m` (`scripts/wave3/doublecheck/a_B3/ucheck_ref.py`) with MATLAB's round, and the split at an odd `n_search / n_search_iter`. The changelog's "Points evaluated again" extended with what the gate measures; the comment above the bins, which #79 made say that `np.round` differs, rewritten; the survey's row closed; `dev/TODO.md`'s first sub-item of the minor items of B3 and B4 removed | the first population step of the pass, alone: the `default` suite × seeds 0-29 against `population_linux_wave3_20260927`, and the `geometry` suite × seeds 0-29 against a baseline of the `geometry` suite at the merge base (the runs of `0d866e8` equal those of `a14524d`, whose populations are not kept); the split's unit test is its gate, since no suite sets an `n_search_iter` that reaches it |
+
+What #79 already does of this ledger's rulings, and what is left of them:
+
+- **The sheet.** Of the three differences that O found recorded elsewhere,
+  #79 adds two: KD-B3-7 (W3-10's refusal of a `sqrt_beta` that is not
+  `None`, a callable or a positive finite number) and KD-B4-5 (W3-27's
+  random choice when every acquisition value is NaN). The entry for
+  `len_scale` at D = 1 (W1-17) is left to this pass, and KD-B3-7's Python
+  line ("at the first search") changes with W4-19.
+- **W4-17.** #79 rewrote `acq_fcn_lcb`'s docstring (its summary and
+  numpydoc sections) and `update_hedge`'s summary (the gains). Left: the
+  unused `n` of `acq_fcn_lcb`, and a read of the new wording.
+- **W4-18.** KD-B3-8 (new) records W3-7's scoring at `hedge_gamma = 0` as
+  a shared defect that PyBADS fixes; W4-18's range `[0, 1/n]` keeps 0, and
+  its entry in `matlab_side_defects.md` stands.
+- **W4-19.** #79 changed the description of `search_acq_fcn` to name
+  `sqrt_beta`'s values; W4-19 extends it.
+- **`_init_optim_state_`** holds three checks of #79, which move no
+  results: an `improvement_quantile` that is not a number raises W3-31's
+  `ValueError`; `acq_hedge=True` raises `ValueError` (KD-B3-3); and the
+  refusal of `accelerate_mesh_steps`, `inf` included, names
+  `accelerate_mesh=False` (KD-B4-6). W4-18's and W4-19's checks go beside
+  them.
+- **W4-20.** `wave3.md`'s "Found while fixing" (agent D) carries the note
+  that the figure's unequal steps come from the plausible box, W4-20's
+  reading; its caption clause stands.
+
+**Slice O and what its brief did not name.** O's brief, made from "Wave 4
+pickup" before #79 corrected it, named only W3-6, W3-24's revert and W3-25
+of what wave 3 changed in O's code, and lacked the sheet's entries that #79
+adds (KD-B3-7, KD-B3-8, KD-B4-4 to KD-B4-6). No row of this ledger repeats
+one of those entries: W4-18 and W4-19 extend KD-B3-8 and KD-B3-7. The
+fixes that the brief did not name were read all the same: W3-7, W3-10 and
+W3-11 by O (the Hedge's update against `acqPortfolio.m` over 200 random
+updates and 166 of four runs; `sqrt_beta`, W4-19) and by wave 3's
+doublecheck (the update of `acqPortfolio.m` over 600 states, the decay of
+an empty set over 200); W3-31 by O (the check of `improvement_quantile`
+when `BADS` is created, with MATLAB's at each call) and by the
+doublecheck, which fixed its check of a non-number; the accelerated mesh
+reduction (W3-36, W3-39) by O, which compared its call of the improvement
+with `bads.m:976-982` index for index, and by the doublecheck (the fixes of
+B4, W3-19 to W3-36, W3-39); and the ES search (W3-4, W3-5, W3-8, W3-9,
+W3-15) by the doublecheck's transcription of `searchES.m` and `ESupdate.m`
+(64 of 64 searches). The orchestrator's decision: no further look at
+W3-11, W3-31, W3-36 or W3-39.
+
 ## Notes on the reports
 
 - **Corrections by the verifiers.** B7: both reports' seeds hold, and the
@@ -318,6 +374,15 @@ fingerprint at `0d866e8` is its `360971bf1f0ba6cb`):
   that is not positive and finite, and W3-27's random choice when every
   acquisition value is NaN.
 - The survey's two rows of B7 are closed by this ledger; slice O had none.
+
+**After the doublecheck of wave 3 (PI, 2026-09-27).** W4-21 enters the
+pass as its first row, before W4-1, by the PI's ruling on what the
+doublecheck left, and the steps that move results are: 1. W4-21, the
+`default` suite against `population_linux_wave3_20260927` and the
+`geometry` suite against its baseline at the merge base; 2. W4-1, against
+W4-21's step; 3. W4-6, against W4-1's. The pass starts from `8c8d6f8`,
+the merge of `dev-next` with #79, whose fingerprint is `360971bf1f0ba6cb`
+(Linux, one BLAS thread), so that the Linux reference still pairs by seed.
 
 **Out of this pass:** nothing of this ledger. The plan's "Close" follows
 wave 4 in a session of its own.
