@@ -2686,6 +2686,9 @@ class BADS:
                     np.asarray(self.optim_state["fval"], dtype=float)
                 )
                 f_target_s = self.optim_state["fsd"]
+                # The target's formula takes the incumbent's variance too,
+                # where MATLAB BADS keeps the prediction's (bads.m:1321)
+                fs2 = f_target_s**2
 
             # f_target: Set optimization target slightly below the current incumbent
             if self.options["alternative_incumbent"]:
