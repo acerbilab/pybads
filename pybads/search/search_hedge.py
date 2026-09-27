@@ -121,7 +121,15 @@ class ESSearchHedge:
     def update_hedge(self, u_search, fval_old, f, fs, gp: GP, mesh_size):
         """
         Update the probability of improvement which will be used for updating the weight of the hedge strategy
+
+        An empty search set (``u_search`` is ``None``) is a failed search:
+        every gain decays, with no reward and no point scored.
         """
+        if u_search is None:
+            # MATLAB BADS scores the previous search's point here, and gives
+            # the chosen search a reward of 0 and the others none
+            self.g *= self.decay
+            return
 
         for i_hedge in range(self.n_funs):
             u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()

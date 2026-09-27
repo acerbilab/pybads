@@ -88,3 +88,36 @@ def test_es_search_without_candidates_returns_an_empty_set(monkeypatch):
     for us, z in returned:
         assert us.shape == (0, D)
     assert np.isfinite(result["fval"])
+
+
+def test_empty_search_set_decays_the_hedge_gains(monkeypatch):
+    """An empty search set updates the search hedge as a failed search: every
+    gain decays, with no reward, as MATLAB BADS's acqPortfolio gives its
+    chosen search a reward of 0."""
+    calls = {"n": 0}
+    gains = {}
+    original_hedge = ESSearchHedge.__call__
+    original_stats = BADS._update_search_stats_
+
+    def hedge(self, *args, **kwargs):
+        calls["n"] += 1
+        us, z = original_hedge(self, *args, **kwargs)
+        if calls["n"] == 3:
+            gains["before"] = self.g.copy()
+            return np.empty((0, D)), np.empty(0)
+        return us, z
+
+    def stats(self, search_status, search_dist):
+        if calls["n"] == 3 and "after" not in gains:
+            gains["after"] = self.search_es_hedge.g.copy()
+            gains["decay"] = self.search_es_hedge.decay
+        return original_stats(self, search_status, search_dist)
+
+    monkeypatch.setattr(ESSearchHedge, "__call__", hedge)
+    monkeypatch.setattr(BADS, "_update_search_stats_", stats)
+    result = _run()
+    assert calls["n"] > 3
+    assert np.all(np.isfinite(gains["before"]))
+    assert np.any(gains["before"] != 0)
+    assert np.array_equal(gains["after"], gains["decay"] * gains["before"])
+    assert np.isfinite(result["fval"])

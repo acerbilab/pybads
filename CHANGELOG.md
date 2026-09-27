@@ -234,7 +234,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Search without a candidate.** A search that leaves no candidate, for
   instance under a `non_box_cons` that does not always give the same answer
   for a point, counts as a failed search, as in MATLAB BADS; the run
-  stopped with `UnboundLocalError` or `IndexError`.
+  stopped with `UnboundLocalError` or `IndexError`. The search hedge's gains
+  then decay, as after any failed search and as in MATLAB BADS.
 - **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
   starting point is not evaluated a second time to test for noise, as in
   MATLAB BADS; the test ran unless uncertainty handling was on, and a

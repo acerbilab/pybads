@@ -1904,7 +1904,7 @@ class BADS:
             u_search = None
             y_search = self.yval
             f_mu_search = self.fval
-            f_sd_search = 0
+            f_sd_search = 0.0
             search_dist = 0
 
         # TODO: CMA-ES like estimation of local covariance structure (unused)
@@ -1953,7 +1953,12 @@ class BADS:
                 is_search_improved = sto_success == 1
                 is_search_success = is_search_improved
 
-        # An empty search set is a failed search, as in MATLAB BADS
+        # An empty search set is a failed search. MATLAB BADS gives the same
+        # status at improvement_quantile <= 0.5 (the default) or without
+        # noise, and decays the hedge's gains as below; but at a larger
+        # quantile in a noisy run it moves the incumbent to the previous
+        # search's point, and it stops with an error when the run's first
+        # search set is empty. PyBADS does neither.
         if u_search is None:
             is_search_improved = is_search_success = False
 
@@ -1992,8 +1997,9 @@ class BADS:
 
         # Update portfolio acquisition function (not supported)
 
-        # Update search portfolio (needs improvement)
-        if self.search_es_hedge is not None and u_search_set.size > 0:
+        # Update search portfolio (needs improvement); after an empty search
+        # set every gain decays, with no reward, as in MATLAB BADS
+        if self.search_es_hedge is not None:
             self.search_es_hedge.update_hedge(
                 u_search,
                 fval_old,
