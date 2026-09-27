@@ -1,0 +1,25 @@
+fix: the search and the poll skip a NaN acquisition value, and choose at random when every value is NaN (W3-27)
+
+The search and the poll chose their candidate by np.argmin of the
+acquisition values, which returns the first NaN, where MATLAB BADS's min
+skips NaN (bads.m:581, 853). The fallback that follows, "randomly choose
+index if something went wrong", tested for an empty or non-finite index,
+which np.argmin never returns, so it could not fire.
+
+Both sites now take np.nanargmin, and an index of None when every value is
+NaN, which the fallback now tests: it draws the index from self.rng, as
+written, with its warning. MATLAB's min returns the first index when every
+value is NaN, so its fallback cannot fire either; the ledger ruled the
+fallback live. A NaN acquisition needs a NaN prediction of the GP, which
+the reviews saw in no run.
+
+Tests: test_run_control.py::test_acquisition_skips_nan (every value NaN
+but the last; at the parent the poll evaluates its first candidate) and
+test_acquisition_all_nan_chooses_at_random (every value NaN: a warning at
+each choice, and the poll's candidates not always the first; at the
+parent no warning is logged, "assert 0 >= 54"), with the acquisition
+patched at both sites. Both fail at the parent and pass at this commit.
+
+Fingerprint: dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
