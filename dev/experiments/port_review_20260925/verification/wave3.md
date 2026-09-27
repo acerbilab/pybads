@@ -208,3 +208,32 @@ is proposed here.
   (B4-I); the search step counts the points of the log, MATLAB the GP's
   training set, equal in practice (B3-C, a B2 item): for the docstrings
   and descriptions of the fix pass.
+
+## Rulings (PI, from 2026-09-27)
+
+The triage is under way; the rows not named here await the PI's ruling,
+and the fix pass starts once every row is ruled (`wave2.md`, "Fix pass",
+is the procedure).
+
+- **W3-24 (PI: (b)).** The poll draws LTMADS directions, a departure from
+  MATLAB. BADS's meshes already follow LTMADS's relation between the poll
+  size and the mesh size (the locked search mesh is `2^(2k-10)` at the
+  poll mesh `2^k`), and `pollMADS2N.m:7` inverts the ratio that bounds the
+  basis. So `poll_mads_2n` takes the bound `n_max = max(1,
+  round(mesh_size / search_mesh_size))`, `2^(10-k)` at default, and the
+  poll vectors are the basis times `mesh_size / n_max` (the search mesh
+  size at default): the diagonal step keeps the length `mesh_size`, the
+  lower-triangular entries tilt the directions, and the poll points lie on
+  the search mesh. This is the variant that B4-I measured
+  (`scripts/wave3/B4_internal/check12_ltmads_variant.py`). The division by
+  `poll_scale` and the multiplication back stay (W3-25), and a new basis is
+  drawn at each poll as now (LTMADS itself keeps one direction per mesh
+  index; not adopted). With it: the docstring of `poll_mads_2n`, the
+  poll's description in `README.md` and `docsrc/source/index.rst` ("steps
+  in one direction at a time"), `test_poll_mads.py`, a sheet entry, an
+  entry in `matlab_side_defects.md` (the inverted ratio), and a changelog
+  line under "Changed". Gate: a population comparison at default, as the
+  last step of the pass so that it measures this change alone, with a
+  check on nonsmooth targets whose descent direction is diagonal (B4-I's
+  ridges, over more seeds) and on W2-37's thin band; if the comparison
+  flags a worsening, the row comes back to the PI, as W2-25's rule was.
