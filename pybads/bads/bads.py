@@ -640,19 +640,22 @@ class BADS:
             if not isinstance(y, np.ndarray) or y.shape not in [(2,), (2, 1)]:
                 raise ValueError(message)
 
-        # Gentle warning for infinite bounds, as in MATLAB BADS
-        # (setupvars.m), which accepts a variable bounded on one side only
+        # Gentle caution for infinite bounds, as in MATLAB BADS
+        # (setupvars.m:28-39), which accepts a variable bounded on one side
+        # only and prints it from "notify" on, as the other reports of the
+        # setup
         is_inf = np.isinf(np.concatenate([lower_bounds, upper_bounds]))
         ninfs = np.sum(is_inf)
         if ninfs > 0:
             if ninfs == 2 * D:
-                self.logger.warning(
-                    "Detected fully unconstrained optimization."
+                self.logger.log(
+                    _LOG_NOTIFY, "Detected fully unconstrained optimization."
                 )
             else:
-                self.logger.warning(
+                self.logger.log(
+                    _LOG_NOTIFY,
                     f"Detected {ninfs} infinite bound(s), in variables"
-                    f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}."
+                    f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}.",
                 )
 
         return (
@@ -780,10 +783,13 @@ class BADS:
                 """bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"""
             )
 
-        # Report variable transformation
+        # Report variable transformation, from "notify" on, as MATLAB BADS
+        # does (setupvars.m:118-120)
         if np.any(self.var_transf.apply_log_t):
-            self.logger.info(
-                f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}"
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) internally transformed to log "
+                f"coordinates: {np.argwhere(self.var_transf.apply_log_t)}",
             )
 
         # Put tol_mesh on space
@@ -806,8 +812,10 @@ class BADS:
                 raise ValueError(
                     "bads:InitOptimState:Periodic variables need to have finite lower and upper bounds."
                 )
-            self.logger.info(
-                f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}"
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) defined with periodic boundaries: "
+                f"{idx_periodic_vars}",
             )
         optim_state["periodic_vars"] = periodic_vars
 

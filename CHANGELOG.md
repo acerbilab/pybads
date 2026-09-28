@@ -555,7 +555,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only (`lb[i]` finite with `ub[i] = inf`, or `lb[i] = -inf` with `ub[i]`
   finite), as in MATLAB BADS: 1.1.0 refused both with `bads:HalfBounds`, any
   mix because its check looked at all the variables at once. The plausible
-  bound on an infinite side needs to be given. The warning for infinite
+  bound on an infinite side needs to be given. The caution for infinite
   bounds names the variables that have one.
 - **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
   `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
@@ -588,7 +588,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"full"`, PyBADS's own, the debug messages too; 1.1.0 showed everything
   for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
   On the `BADS` logger, the opening and the final messages are at levels 25
-  and 22, between INFO and WARNING.
+  and 22, between INFO and WARNING. The reports of the setup, the caution
+  for infinite bounds and the list of the variables transformed to log
+  coordinates, are shown from `"notify"` on (level 25), as MATLAB BADS
+  prints them; 1.1.0 showed the caution with `"off"` too.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
   no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
   them, that of `noise_size` among them, and give the description of an

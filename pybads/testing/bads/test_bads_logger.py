@@ -123,6 +123,41 @@ def test_display_levels(display, caplog):
         assert logging.getLogger("BADS").level == logging.DEBUG
 
 
+@pytest.mark.parametrize(
+    "display, shown",
+    [("off", False), ("notify", True), ("final", True), ("iter", True)],
+)
+def test_setup_reports_from_notify_on(display, shown, caplog):
+    """The reports of the setup, the caution for infinite bounds and the
+    variables transformed to log coordinates, are shown from "notify" on,
+    as MATLAB BADS prints them (`setupvars.m:28-39`, `118-120`), and not
+    with "off"."""
+    caplog.set_level(logging.DEBUG)
+    BADS(
+        _sphere,
+        np.array([1.0, 0.5]),
+        np.array([1e-3, -np.inf]),
+        np.array([1e3, np.inf]),
+        np.array([0.1, -1.0]),
+        np.array([10.0, 1.0]),
+        options={"display": display, "random_seed": 0},
+    )
+    reports = [
+        record
+        for record in caplog.records
+        if record.name == "BADS"
+        and (
+            "infinite bound" in record.getMessage()
+            or "log coordinates" in record.getMessage()
+        )
+    ]
+    if shown:
+        assert len(reports) == 2
+        assert {record.levelno for record in reports} == {25}
+    else:
+        assert reports == []
+
+
 def _poll_lines(monkeypatch, caplog, max_refit_checks=None, **options):
     """Run on the sphere with `display="iter"`, and return, for each poll,
     whether it refitted the GP, whether it was skipped, and its line.
