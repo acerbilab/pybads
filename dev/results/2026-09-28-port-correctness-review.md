@@ -329,6 +329,41 @@ locations, the evidence, the dating from both histories and the gate.
 Also in wave 4, without a row: `periodic_vars` refused before the first
 transform, and an empty value taken as `None` (`b78f782`, #80; KD-B1-6).
 
+## The catalogue of deliberate differences
+
+`pybads/bads/README.md` consolidates the 58 entries of the sheet of known
+differences (`experiments/port_review_20260925/known_differences.md`,
+which stays as the review left it) under their identifiers, citing PyBADS
+by module and function and dropping the review's history. At the close
+every entry was read again against `dev-next` and every MATLAB citation
+against `74919c0`: each still describes a deliberate difference, and the
+catalogue carries these corrections of the sheet:
+
+- #84 and #85, after wave 4: the target's prediction and the search's part
+  (KD-B4-2); `search_method` and `search_acq_fcn` refused when `BADS` is
+  created (KD-B3-1, KD-B3-2); `f_vals` read only by its check (KD-B1-4);
+  the rank-1 update measured and not adopted (KD-B5-1);
+- the rulings of wave 4's doublecheck: real numbers for
+  `improvement_quantile` and the hedge's options, one-element arrays for
+  `sqrt_beta`, integers of any size and a `max_fun_evals` beyond 64 bits
+  standing for `inf`, and `n_search` checked (KD-B1-3, KD-B3-7, KD-B3-8,
+  KD-B4-6);
+- errors that the sheet already had: KD-B1-9's test is in
+  `_init_optim_state_`, not `_init_mesh_`, and refuses a random start that
+  the mesh makes infeasible; MATLAB fits samples of the hyperparameters at
+  `gpSamples` above 1, not 0 (KD-B5-4); four options that KD-B1-4 lists
+  as read are read only by code that no run reaches; the MATLAB lines of
+  KD-B1-8 (`bads.m:1136`), KD-B2-5 and KD-B3-1 (`searchES.m:39-101`);
+  MATLAB BADS stops on an empty first search set at every quantile
+  (KD-B3-5), and its search's random fallback fires when its acquisition
+  raises (KD-B4-5).
+
+Three entries are new: KD-B1-12, a missing `x0` with only the hard bounds
+accepted (W2-9); KD-B1-13, the check of `tol_fun` (#84); KD-B3-9, the
+floor of the ES search's number of parents (the rulings of wave 4's
+doublecheck). KD-B4-3, LTMADS's directions, went with W3-24's revert. The
+gpyreg citations of KD-B5-6 and KD-B6-6 were not read again.
+
 ## Open ends
 
 **What `dev/TODO.md` holds.** Every row is fixed, kept or closed above but
@@ -390,6 +425,9 @@ docstrings and descriptions of the fix passes; the ones below hold at
 - W2-36's measurement of a noisy run's first incumbent, which its ruling
   allowed "as a separate step" if W2-25 moved the noisy runs (it did), was
   not taken.
+- Found at the close: `total_time` leaves out the creation of `BADS`,
+  where MATLAB BADS times from the start of `bads()` (`bads.m:144`,
+  `1186`).
 
 The item "Loose ends of the port review" of `dev/TODO.md` points here.
 

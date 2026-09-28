@@ -1078,6 +1078,34 @@ and its squash commit (for #84, `79697835`).
   `79697835` alike, `dca2b20df2743512` on Windows with the default number
   of BLAS threads and `093cb1d05a16d889` with one, so both references
   stand. The PI's open choices on the minor items stay in `TODO.md`.
-- [ ] Close: the consolidated ledger, the catalogue in
+- [x] 2026-09-28: the Close, cloud session, from "Close pickup", on
+  `dev-port-review-close` from `dev-next` at `3d31f3d` (#86), records and
+  documentation only; MATLAB BADS cloned at `74919c0` for its citations.
+  Three fresh reviewer agents extracted the rows of waves 2 to 4 from their
+  ledgers and a fourth read every entry of the sheet against `dev-next`
+  and its MATLAB citations; the orchestrator read waves 0 and 1 and found
+  every cited fix commit in its pull request's head. The consolidated
+  ledger, `results/2026-09-28-port-correctness-review.md`: 173 rows, 121
+  of which changed the code, 27 kept a behavior, 23 closed without a
+  change and 2 stay open (W0-12, W0-13); the net change on the benchmark,
+  on Windows from `population_wave4_20260928`'s README and on Linux from
+  the records of the two references
+  (`verification/close/linux_net_comparison.md`, the four flags that the
+  Windows README names); the open ends, among them observations that no
+  ruling took up, which a `TODO.md` item holds; and the MATLAB side as
+  `matlab_side_defects.md` holds it. The catalogue of deliberate
+  differences, `pybads/bads/README.md`, 61 entries: the sheet's 58, with
+  what #84, #85 and wave 4's doublecheck changed and errors the sheet
+  already had corrected, and three new (KD-B1-12, KD-B1-13, KD-B3-9). The
+  survey's candidate table marked closed, its two rows by design pointed at
+  their entries. `TODO.md`: the bug hunt's item closed; the oracles, the
+  notebooks and W1-25's measurement no longer wait; W2-25's lower fraction
+  solved joins W1-25's measurement. Notes on the records that describe the
+  code before #84: KD-B4-2, `wave3.md` (two places), the survey's row on
+  `_get_target_from_gp_`, and, in the review's README, the three scripts
+  of wave 2 that read `cache_active`, which since `8aecb6a` stop earlier,
+  at the refusal of `f_vals` and `fun_values`. The two "Minor items"
+  entries of `TODO.md`, the PI's open choices, stay as #84 left them.
+- [x] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
   steps are in "Close pickup" above.

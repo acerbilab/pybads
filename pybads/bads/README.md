@@ -43,9 +43,12 @@ MATLAB BADS has no seed option: it draws with `rand`, `randn`, `randi` and
 PyBADS creates one `numpy.random.Generator`, `bads.rng`, when `BADS` is
 created, from `random_seed`, passes it to every draw, and never draws from
 NumPy's global stream, except that `random_seed=None` seeds the generator
-from four draws of it. The result reports `random_seed`, not a state. No
-draw is meant to reproduce MATLAB's numbers; what is drawn, and from which
-distribution, follows MATLAB BADS.
+from four draws of it. The scrambling of the initial design draws from a
+generator that SciPy seeds with one integer drawn from `bads.rng`
+(KD-B7-1). The result reports `random_seed`, the option when it is an
+integer and `None` otherwise, not a state. No draw is meant to reproduce
+MATLAB's numbers; what is drawn, and from which distribution, follows
+MATLAB BADS.
 - PyBADS: `pybads/rng.py` (`get_rng`); `BADS.__init__` and `_init_rng_`
   (`pybads/bads/bads.py`); the draws of `poll_mads_2n`, `ESSearchHedge`,
   `ESSearch`, `init_sobol`, and the GP's fits and slice sampler in
@@ -80,20 +83,23 @@ used, where MATLAB BADS names `@searchHedge` (`bads.m:239`).
 The `.ini` values are expressions evaluated with `D` bound, and a user's
 value is taken verbatim: a string such as `"200*D"` stays a string, where
 MATLAB BADS evaluates `'200*nvars'` (for `max_fun_evals`, which must be a
-positive integer, it is refused). A user's `None` leaves the option at its
+positive integer of any size, it is refused; one beyond NumPy's 64-bit
+integers stands for `inf`). A user's `None` leaves the option at its
 default, as MATLAB's empty field does (`private/setupoptions.m:5-9`). The
 options whose default is `True` or `False`, and `uncertainty_handling`,
 take only booleans: MATLAB's `'on'`, `'off'`, `'yes'` and `'no'` are
 refused with `ValueError`. A misspelt option name raises, where MATLAB
 BADS ignores it.
 - PyBADS: `pybads/bads/options.py` (`Options`,
-  `Options.validate_boolean_options`); `BADS.__init__`.
+  `Options.validate_boolean_options`); `BADS.__init__`,
+  `BADS._init_optim_state_`.
 - MATLAB: `private/setupoptions.m:5-9`, `21-50`.
 - Settled by: W2-18, W2-19. Kind: deliberate change.
 
 **KD-B1-4. Options that exist on one side only.**
-- *MATLAB BADS only:* `OptimToolbox`, which chooses the optimizer of the
-  GP's hyperparameters (PyBADS's is gpyreg's, KD-B6-1); `Debug` and
+- *MATLAB BADS only:* `OptimToolbox`, which chooses `fmincon` or
+  `fminunc` against `minimizebnd` for the GP's hyperparameters (PyBADS's
+  optimizer is gpyreg's, KD-B6-1); `Debug` and
   `TrueMinX`, which only print or plot (`bads.m:161`, `188`, `189`).
 - *PyBADS only, and read:* `random_seed` (KD-B1-1); `stobads`,
   `opp_stobads` and `stobads_frame_size_scaling_power` (KD-S-1);
@@ -101,13 +107,15 @@ BADS ignores it.
   other name refused when `BADS` is created (W1-34); the options of the
   gpyreg-based GP layer, `gp_train_n_init`, `gp_train_n_init_final`,
   `gp_train_init_method`, `gp_tol_opt` (KD-B5-6), `hpd_frac`,
-  `gp_quadratic_mean_bound`, `tol_sd`, `use_slice_sampler`,
-  `gp_hyp_sampler`, `hyp_run_weight`, `fun_evals_per_iter` and
-  `noise_shaping`; `init_mesh_size_integer` (default 0, MATLAB's fixed
-  `MeshSizeInteger`); `hessian_update` and `hessian_method`, read only by a
-  branch that does nothing.
-- *PyBADS only, and refused:* `f_vals`, which could not work, is refused
-  when it holds a finite value, and one without, such as an empty list,
+  `use_slice_sampler`, `gp_hyp_sampler` and `noise_shaping`;
+  `init_mesh_size_integer` (default 0, MATLAB's fixed `MeshSizeInteger`).
+  `hyp_run_weight` and `fun_evals_per_iter` (a running covariance of the
+  hyperparameters that no run fills), `gp_quadratic_mean_bound` and
+  `tol_sd` (the `"negquad"` mean, which is refused), and `hessian_update`
+  and `hessian_method` (a branch that does nothing) are read only by code
+  that no run reaches.
+- *PyBADS only, and refused:* `f_vals`, read only by its check: one that
+  holds a finite value is refused, and one without, such as an empty list,
   stands for `None` (W2-7).
 - *On both sides, unported in PyBADS:* `fun_values` (MATLAB's `FunValues`,
   which imports earlier evaluations into the log and the GP,
@@ -172,8 +180,9 @@ There is no `rngstate` (KD-B1-1) and no `maxconstraint`. `iterations`
 counts from 1 as MATLAB's does, but a run that ends in its initialization
 reports 0, where MATLAB BADS reports 1. `fun` and `non_box_cons` are the
 objects passed, where MATLAB stores `func2str(fun)`. `yval_vec` is `None`
-for a deterministic run and with `noise_final_samples = 0`, where MATLAB
-BADS returns the incumbent's observation.
+for a deterministic run, with `noise_final_samples = 0`, and when the
+budget leaves no evaluation for the final samples, where MATLAB BADS
+returns the incumbent's observation (`bads.m:1136`).
 - PyBADS: `pybads/bads/optimize_result.py` (`OptimizeResult`);
   `BADS.optimize`.
 - MATLAB: `bads.m:1`, `423`, `1062-1083`, `1185-1194`;
@@ -185,8 +194,10 @@ BADS returns the incumbent's observation.
 PyBADS tests `non_box_cons` at the start a second time, after
 `force_to_grid`, and raises `ValueError` if the point on the mesh violates
 it; MATLAB BADS tests only the start as given and evaluates the point on
-the mesh.
-- PyBADS: `BADS._init_mesh_`.
+the mesh. A random start is put on the mesh before MATLAB's test, and
+after PyBADS's redraws (KD-B1-11), so that PyBADS refuses a random start
+that the mesh makes infeasible, without drawing again.
+- PyBADS: `BADS._init_optim_state_`; `BADS.__init__`.
 - MATLAB: `private/evalinitmesh.m:22-26`; `private/setupvars.m:84-87`,
   `101`.
 - Kind: deliberate change.
@@ -197,7 +208,8 @@ bound. MATLAB's absolute tolerance, 1e-6, refuses valid bounds from about
 1e10 (an upper bound from about 1e9 on a log scale) through rounding alone;
 PyBADS's tolerance is `1e-6 · max(1, |b|)`. A defect that PyBADS shared
 and fixes.
-- PyBADS: `VariableTransformer.__init__`
+- PyBADS: `VariableTransformer.__create_hypercube_trans__`, which
+  `VariableTransformer.__init__` calls
   (`pybads/variable_transformer/variables_transformer.py`).
 - MATLAB: `utils/transvars.m:30`, `169-178`.
 - Settled by: W2-5. Kind: deliberate change.
@@ -220,6 +232,17 @@ missing start.
 - PyBADS: `BADS.__init__`, `BADS._bounds_check_`.
 - MATLAB: `bads.m:331-342`.
 - Settled by: W2-9. Kind: deliberate change.
+
+**KD-B1-13. `tol_fun` is checked when `BADS` is created.**
+A `tol_fun` that is a real number must be positive and at most e^6, and a
+boolean is refused; MATLAB BADS does not check it. Above e^6 the bounds of
+the GP's log noise SD, `log(tol_fun) - 1` and 5, cross
+(`gpdef/gpdefBads.m:161`), which stopped a run at its first fit, and 0
+stopped it while the default of `hedge_beta`, `1e-3 / tol_fun`, was
+evaluated.
+- PyBADS: `BADS._check_tol_fun_`.
+- MATLAB: `bads.m:193`; `private/setupoptions.m:23`.
+- Settled by: #84. Kind: deliberate change.
 
 ### The main loop, termination and the final estimate (B2)
 
@@ -265,12 +288,17 @@ where MATLAB's becomes NaN. The NaN of past iterates stays in
 
 **KD-B2-5. The output function: a stop has a message of its own and is final, and the `"init"` call comes after a noisy run's setup.**
 A stop by `output_fcn` ends the run with the message "terminated by
-options['output_fcn']", where MATLAB BADS keeps the message of an earlier
-criterion, and a false return at `"init"` cannot reopen a run that ended
-there. The `"init"` call comes after the options of a noisy run are
-changed and the first GP is fitted, and MATLAB's before.
+options['output_fcn']", unless a termination criterion fires in the same
+iteration, whose message then stands, as on both sides; MATLAB BADS sets a
+message only when a criterion fires, so that a stop by its output function
+keeps the message of the initialization. A false return at `"init"`
+cannot reopen a run that ended there. The `"init"` call comes after the
+options of a noisy run are changed and the first GP is fitted, and
+MATLAB's before.
 - PyBADS: `BADS.optimize`, `BADS._init_optimization_`.
-- MATLAB: `bads.m:427`, `431-457`, `1062-1083`.
+- MATLAB: `bads.m:424` (the initialization's message), `426-428` (the
+  `'init'` call), `431-445`, `447-457`, `465-469` (a noisy run's setup, the
+  GP defined), `1037-1039` (the `'iter'` call), `1062-1085`.
 - Settled by: W2-33. Kind: deliberate change.
 
 **KD-B2-6. The budget counts the noise test, and the initial design keeps within it.**
@@ -332,11 +360,12 @@ MATLAB's `iterList` does.
 Only MATLAB's default set of searches exists: `ESSearchWM`, `searchES`'s
 method 1 (`'ES-wcm'`), and `ESSearchELL`, its method 2 (`'ES-ell'`). The
 other methods of `searchES` (`ES-eye`, `ES-cov`, `ES-cma+`) and the other
-search functions are absent, and any other name in `search_method` is
-refused.
+search functions are absent. A `search_method` that is not a non-empty
+list of pairs named `"ES-wcm"` or `"ES-ell"` is refused when `BADS` is
+created; MATLAB BADS checks nothing.
 - PyBADS: `pybads/search/search_hedge.py` (`ESSearchHedge`);
-  `pybads/search/es_search.py`.
-- MATLAB: `bads.m:239`; `search/searchES.m:3-12`, `39-70`;
+  `pybads/search/es_search.py`; `BADS._init_optim_state_`.
+- MATLAB: `bads.m:239`; `search/searchES.m:3-12`, `39-101`;
   `search/searchCMA.m`, `searchCombine.m`, `searchCrossover.m`,
   `searchGauss.m`, `searchGrid.m`, `searchMax.m`, `searchMaxAcq.m`,
   `searchNewton.m`, `searchOptim.m`, `searchWCM.m`, `search/private/`.
@@ -344,10 +373,11 @@ refused.
 
 **KD-B3-2. Only the lower confidence bound (LCB) exists as acquisition function.**
 `PollAcqFcn` and `SearchAcqFcn` can name other acquisition functions in
-MATLAB BADS; in PyBADS the poll always uses the LCB, and the search takes
-only `"acq_LCB"`. Both default to the LCB.
+MATLAB BADS; in PyBADS the poll always uses the LCB, with its default
+schedule, and a `search_acq_fcn` that is not a pair `("acq_LCB",
+sqrt_beta)` is refused when `BADS` is created. Both default to the LCB.
 - PyBADS: `pybads/acquisition_functions/acq_fcn_lcb.py`; `ESSearch`;
-  `BADS._search_step_`, `BADS._poll_step_`.
+  `BADS._init_optim_state_`, `BADS._search_step_`, `BADS._poll_step_`.
 - MATLAB: `bads.m:269-270`, `577-578`, `852`; `search/searchES.m:147`,
   `156-165`; `acq/acqNegEI.m`, `acqNegEQI.m`, `acqNegPI.m`,
   `acqNegSqEI.m`, `acqRnd.m`, `acq/private/`.
@@ -376,12 +406,15 @@ generally does not improve results.
 **KD-B3-5. An empty search set is a failed search on every path.**
 A search set is empty when every candidate violates `non_box_cons` or was
 already evaluated. PyBADS counts a failed search and decays the hedge's
-gains, as MATLAB BADS does at the default `ImprovementQuantile` (≤ 0.5)
-or without noise. At `ImprovementQuantile` > 0.5 in a noisy run, MATLAB
-BADS counts an incremental search and moves the incumbent to the previous
-search's point with an SD of 0, and when the run's first search set is
-empty it stops with an error; its hedge's update scores that stale point,
-with a reward of 0, and PyBADS's scores none, with the same gains.
+gains, as MATLAB BADS does after the run's first search at the default
+`ImprovementQuantile` (≤ 0.5) or without noise; there MATLAB's hedge
+update scores the previous search's point, with a reward of 0, and
+PyBADS's scores none, with the same gains. At `ImprovementQuantile` > 0.5
+in a noisy run, MATLAB BADS counts an incremental search and moves the
+incumbent to the previous search's point with an SD of 0. When the run's
+first search set is empty, that point is undefined and MATLAB BADS stops
+with an error, at every quantile (by reading: `bads.m:693`, `704`,
+`722`).
 - PyBADS: `BADS._search_step_`; `ESSearchHedge.update_hedge`.
 - MATLAB: `bads.m:667-725`, `1257-1282`; `acq/acqPortfolio.m:56-69`.
 - Settled by: W0-15, W3-11. Kind: deliberate change.
@@ -398,13 +431,13 @@ added a candidate.
 - Settled by: W3-8, W3-9. Kind: deliberate change.
 
 **KD-B3-7. The search's `sqrt_beta` is `None`, a callable or a positive finite number.**
-MATLAB's `acqLCB` takes an empty value (the schedule of Srinivas et al.),
-a function handle or a function's name, or any numeric scalar, zero,
-negative and non-finite values included, and uses a function's value
-unchecked. PyBADS takes `None`, a callable or a positive finite real
-number, and refuses anything else, a name included, when `BADS` is
-created; the search raises `ValueError` when a callable returns a value
-that is not a positive finite real number.
+MATLAB's `acqLCB` takes an empty value (the schedule of Srinivas et al.), a
+function handle or a function's name, or any numeric scalar, zero, negative
+and non-finite values included, and uses a function's value unchecked.
+PyBADS takes `None`, a callable or a positive finite real number (a
+one-element array included), and refuses anything else, a name included,
+when `BADS` is created; the search raises `ValueError` when a callable
+returns a value that is not a positive finite real number.
 - PyBADS: `pybads/acquisition_functions/acq_fcn_lcb.py`
   (`check_sqrt_beta`); `BADS._init_optim_state_`.
 - MATLAB: `acq/acqLCB.m:10-21`.
@@ -422,8 +455,9 @@ one makes its probabilities NaN; a `HedgeDecay` above 1 makes the gains
 grow until they overflow, and a negative one makes them alternate in sign.
 PyBADS refuses, when `BADS` is created, a `hedge_gamma` outside
 `[0, 1/n]`, a `hedge_beta` that is not a finite number at least 0, and a
-`hedge_decay` outside `[0, 1]`, each a real number. Defects that PyBADS
-shared and fixes.
+`hedge_decay` outside `[0, 1]`, and any of the three that is not a real
+number (a Python or NumPy integer or float, not a boolean). Defects that
+PyBADS shared and fixes.
 - PyBADS: `ESSearchHedge.update_hedge`; `BADS._init_optim_state_`.
 - MATLAB: `acq/acqPortfolio.m:40`, `47`, `69`; `search/searchHedge.m:45-46`.
 - Settled by: W3-7, W4-18, W4-29. Kind: deliberate change.
@@ -449,7 +483,8 @@ signed coordinate directions at every default state, since
 `pollMADS2N.m:7` bounds its lower-triangular entries by the ratio of the
 search mesh to the poll mesh, which is below 1; LTMADS's tilted
 directions, tried in the review, did worse on PyBADS's benchmark and were
-reverted.
+reverted. PyBADS does not permute the basis's columns as
+`pollMADS2N.m:17` does, which only reorders the directions.
 - PyBADS: `pybads/poll/poll_mads_2n.py`; `BADS._poll_step_`.
 - MATLAB: `bads.m:206`, `791-798`; `poll/pollMADS2N.m`; `poll/pollGPS2N.m`;
   `poll/private/pollBADS2N.m`, `pollBMADS2N.m`.
@@ -489,30 +524,30 @@ and fixes; no run has shown a non-finite prediction.
 
 **KD-B4-5. When every acquisition value is NaN, the search and the poll choose a candidate at random.**
 With some values NaN, both sides take the smallest of the others. With
-every value NaN, MATLAB's `min` returns the first candidate, and its
-fallback "randomly choose index" never fires; PyBADS takes a random
-candidate, drawn from `bads.rng`, with a warning. No such case has been
-observed.
+every value NaN, MATLAB's `min` returns the first candidate, so that its
+fallback "randomly choose index" fires only when the search's acquisition
+raises; PyBADS takes a random candidate, drawn from `bads.rng`, with a
+warning. No such case has been observed.
 - PyBADS: `BADS._search_step_`, `BADS._poll_step_`.
-- MATLAB: `bads.m:581`, `853`.
+- MATLAB: `bads.m:581-589`, `853-857`.
 - Settled by: W3-27. Kind: deliberate change.
 
 **KD-B4-6. `improvement_quantile`, `accelerate_mesh_steps`, `n_search_iter` and `n_search` are checked when `BADS` is created.**
 MATLAB BADS refuses an `ImprovementQuantile` outside (0, 1) when it first
-evaluates an improvement, and lets NaN through, to NaN improvements;
-PyBADS refuses both when `BADS` is created, and any value that is not a
-real number. MATLAB BADS does not check `AccelerateMeshSteps`: 0, a
-negative value or a non-integer stops its run at the first accelerated
-mesh reduction, and `Inf` runs without the reduction. PyBADS refuses every
-value that is not a positive integer, `inf` included, converts a
-whole-number float, and names `accelerate_mesh=False`, the switch that
-turns the reduction off, in its message. `n_search_iter` and `n_search`,
-unchecked in MATLAB BADS, must be positive integers, with `n_search_iter`
-at most `n_search`. The stop on an `AccelerateMeshSteps` below 1 is a
-defect that PyBADS shared and fixes.
+evaluates an improvement, and lets NaN through, to NaN improvements; PyBADS
+refuses both when `BADS` is created, and any value that is not a real
+number. MATLAB BADS does not check `AccelerateMeshSteps`: 0, a negative
+value or a non-integer stops its run at the first accelerated mesh
+reduction, and `Inf` runs without the reduction. PyBADS refuses every value
+that is not a positive integer, `inf` included, converts a whole-number
+float, and names `accelerate_mesh=False`, the switch that turns the
+reduction off, in its message. `n_search_iter` and `n_search`, unchecked in
+MATLAB BADS, must be positive integers, with `n_search_iter` at most
+`n_search`. The integers may be of any size. The stop on an
+`AccelerateMeshSteps` below 1 is a defect that PyBADS shared and fixes.
 - PyBADS: `BADS._init_optim_state_`.
-- MATLAB: `bads.m:976-979`, `1269-1271`; `private/setupvars.m:179-182`;
-  `private/setupoptions.m:26`; `search/searchES.m:125`.
+- MATLAB: `bads.m:976-979`, `1269-1271`; `private/setupvars.m:179-182`,
+  `185-188`; `private/setupoptions.m:26`; `search/searchES.m:125`.
 - Settled by: W3-31, W3-39, W4-25, and the rulings after the doublechecks
   of waves 3 and 4. Kind: deliberate change.
 
@@ -569,11 +604,11 @@ other `try` blocks (around the acquisition, `gppredcheck`, `acqLCB`,
 - Settled by: `dev/plans/gp-update-guards.md`. Kind: deliberate change.
 
 **KD-B5-4. The GP's hyperparameters are optimized, never sampled.**
-With `gpSamples > 0`, MATLAB BADS fits several samples of the
+With `gpSamples` above 1, MATLAB BADS fits several samples of the
 hyperparameters by SVGD; PyBADS ignores `gp_samples` and `gp_svd_iters`
 and keeps one set. At the default, 0, both optimize one set.
 - PyBADS: `pybads/bads/gaussian_process_train.py`.
-- MATLAB: `bads.m:254`; `private/gpupdate.m:411-414`;
+- MATLAB: `bads.m:254`; `private/gpupdate.m:281`, `411-414`;
   `utils/gpHyperSVGD.m`.
 - Kind: unported feature.
 
