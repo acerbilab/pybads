@@ -1,0 +1,28 @@
+diff --git a/pybads/bads/bads.py b/pybads/bads/bads.py
+index 03139d5..f9ad927 100644
+--- a/pybads/bads/bads.py
++++ b/pybads/bads/bads.py
+@@ -2159,6 +2159,23 @@ class BADS:
+             if self.options["opp_stobads"]:
+                 is_search_improved = sto_success > -1
+                 is_search_success = sto_success == 1
++                # Experiment (not for merge): the uncertain move of the
++                # search limited to a positive estimated improvement, as
++                # the poll's since W4-15
++                if (
++                    os.environ.get("PYBADS_EXP_OPP_STOBADS_POSITIVE") == "1"
++                    and sto_success == 0
++                ):
++                    is_search_improved = (
++                        self._eval_improvement_(
++                            self.fval,
++                            f_mu_search,
++                            self.fsd,
++                            f_sd_search,
++                            self.options["improvement_quantile"],
++                        )
++                        > 0
++                    )
+             else:
+                 is_search_improved = sto_success == 1
+                 is_search_success = is_search_improved
