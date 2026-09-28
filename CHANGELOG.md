@@ -540,12 +540,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   On the `BADS` logger, the opening and the final messages are at levels 25
   and 22, between INFO and WARNING.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
-  no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight
-  of them, that of `noise_size` among them. Every option on the options
-  page has a description, without the closing quote of MATLAB's that ended
-  many, and those of `max_iter` and `tol_stall_iters` say that an iteration
-  counts once it has begun. `search_n_try` is an integer. Those of
-  `tol_poi`, `sloppy_improvement` and `gp_rescale_poll` say that an
+  no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
+  them, that of `noise_size` among them, and give the description of an
+  advanced option that the user set, for which 1.1.0 printed `(None)`. Every
+  option on the options page has a description, without the closing quote of
+  MATLAB's that ended many, and those of `max_iter` and `tol_stall_iters` say
+  that an iteration counts once it has begun. `search_n_try` is an integer.
+  Those of `tol_poi`, `sloppy_improvement` and `gp_rescale_poll` say that an
   unreliable Gaussian process stops a good poll whatever `tol_poi`, that
   `sloppy_improvement` also floors the sufficient improvement at `tol_fun`,
   and that `gp_rescale_poll` shapes only the ES-ell search.

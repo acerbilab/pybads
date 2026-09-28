@@ -191,6 +191,23 @@ def test_descriptions_are_whole_comment_lines():
     )
 
 
+def test_user_options_keep_their_descriptions():
+    """An option that the user sets has the description of its file, the
+    basic one's and the advanced one's alike, which `str(options)` prints
+    beside its value."""
+    options = _make_bads(n_search=2**10, noise_size=2.0).options
+    defaults = _make_bads().options
+    for name in ("n_search", "noise_size"):
+        assert options.descriptions[name] == defaults.descriptions[name]
+        assert options.descriptions[name] != ""
+    lines = str(options).splitlines()
+    assert f"n_search: 1024 ({defaults.descriptions['n_search']}) " in lines
+    # useroptions, the set of the user's names, is not an option
+    assert [line for line in lines if "(None)" in line] == [
+        f"useroptions: {options['useroptions']} (None) "
+    ]
+
+
 def _default_options(D):
     """The default options of both option files, for `D` variables."""
     option_dir = get_pybads_option_dir_path()
