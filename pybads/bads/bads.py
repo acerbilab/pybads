@@ -4,7 +4,6 @@ import math
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
