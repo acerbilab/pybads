@@ -1078,7 +1078,11 @@ process. With the same seed, objective, inputs and options, a run gives the
 same result every time on the same computer, with the same versions of
 Python, NumPy, SciPy and gpyreg and the same number of threads for linear
 algebra; another computer, other versions or another number of threads can
-give a different result. The seed is read when the `BADS` object is created, and
+give a different result. On Apple Silicon Macs, two runs with the same seed
+make the same random draws but can end at slightly different points: with
+Apple's Accelerate as the linear algebra library of NumPy and SciPy (as in
+their wheels on PyPI), the last bits of a result depend on where its arrays
+lie in memory. The seed is read when the `BADS` object is created, and
 `optimize_result["random_seed"]` records it.
 
 If you leave `random_seed` unset, PyBADS derives the generator of the run
