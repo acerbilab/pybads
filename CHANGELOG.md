@@ -35,10 +35,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
   a deterministic one, without the final samples of a noisy run.
 - `BADS` raises `ValueError` for a `max_fun_evals` that is neither a
-  positive integer nor `inf`, such as `30.5` or the string `"200*D"`.
+  positive integer nor `inf`, such as `30.5`, the string `"200*D"` or a
+  NumPy array, `np.array(500)` included.
 - `uncertainty_handling` and the options whose default is `True` or
   `False`, except `plot`, take only booleans: `BADS` raises `ValueError` for
-  `0`, `1`, `"on"`, `"off"` or any other value. A user value of `None`
+  `0`, `1`, `"on"`, `"off"`, a NumPy array such as `np.array(True)`, or any
+  other value. A user value of `None`
   stands for the option's default: `nonlinear_scaling=None`, for instance,
   keeps the log transform on.
 - The result's `success` is False when a run ends on `max_fun_evals` or
@@ -76,8 +78,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
   that is not a finite number at least 0, and for a `hedge_decay` outside
   [0, 1], an array of one element or a complex number included.
-- `BADS` raises `ValueError` for a `tol_fun`, a Python or NumPy number, that
-  is not positive and at most e^6 (about 403), or that is a boolean, which
+- `BADS` raises `ValueError` for a `tol_fun` that is not a positive real
+  number at most e^6 (about 403), a boolean, a string, an array or a complex
+  number included, which
   1.1.0 ran when negative (-inf included) unless the default `hedge_beta` fell
   far below 0, and ran as 1 when `True`; and for a `search_method` that is not
   a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
@@ -232,8 +235,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the next search, where MATLAB BADS chooses a search at random; a string
   stopped it with `TypeError`.
 - **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
-  `ValueError` when it is created for a `tol_fun`, a Python or NumPy number,
-  that is not positive and at most e^6 (about 403), or that is a boolean.
+  `ValueError` when it is created for a `tol_fun` that is not a positive real
+  number (a Python or NumPy integer or float) at most e^6 (about 403): a
+  boolean, a string, an array, of one element or none, or a complex number
+  is refused, as for `improvement_quantile` and the hedge's options.
   1.1.0 stopped with `ZeroDivisionError` for 0 or `False`, at the default
   `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error at its first fit
   of the Gaussian process above e^6, where the bounds of the noise of the

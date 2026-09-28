@@ -1210,20 +1210,23 @@ class BADS:
         """
         Check the user's ``tol_fun``, before the advanced options are
         evaluated, the default of ``hedge_beta``, ``1e-3 / tol_fun``, among
-        them: a real number (``_is_real``) is positive and at most e^6, and
-        a boolean is refused. The GP's log noise SD is bounded below by
+        them: a real number (``_is_real``: a boolean, a string, an array or
+        a complex number is refused), positive and at most e^6, as
+        ``improvement_quantile`` and the hedge's options are real numbers.
+        The GP's log noise SD is bounded below by
         ``log(tol_fun) - 1`` and above by 5 (``_gp_hyp``, as MATLAB's
         ``gpdefBads.m``), bounds that cross above e^6, so that a larger
         ``tol_fun``, inf included, stopped the run at its first fit of the
         GP. 0 and False stopped with a bare ``ZeroDivisionError`` at the
         default of ``hedge_beta``, which refused a negative value or NaN but
         not -inf, and not beside a user's ``hedge_beta``. MATLAB BADS does
-        not check it. Other types are left as they were.
+        not check it.
         """
         tol_fun = self.options.get("tol_fun")
-        if isinstance(tol_fun, (bool, np.bool_)) or (
-            _is_real(tol_fun) and not 0 < tol_fun <= math.exp(6)
-        ):
+        if tol_fun is None:
+            # Not set by the user: the default of advanced_bads_options.ini
+            return
+        if not (_is_real(tol_fun) and 0 < tol_fun <= math.exp(6)):
             raise ValueError(
                 "options['tol_fun'] needs to be a positive number at most "
                 f"e^6 (about 403), not {tol_fun!r}."

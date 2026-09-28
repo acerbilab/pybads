@@ -596,14 +596,19 @@ def test_hedge_beta_refusal_names_its_default():
         False,
         True,
         np.True_,
+        "1e-3",
+        np.array(1e-3),
+        np.array([1e-3]),
+        1e-3 + 0j,
     ],
 )
 @pytest.mark.parametrize("hedge_beta", [None, 1.0])
 def test_tol_fun_not_a_positive_number_at_most_e6_is_refused(
     tol_fun, hedge_beta
 ):
-    """A `tol_fun` that is not a positive number at most e^6, or that is a
-    boolean, is refused when `BADS` is created, whatever `hedge_beta`: 0 and
+    """A `tol_fun` that is not a positive real number at most e^6 (a
+    boolean, a string, an array, of one element or none, or a complex number
+    included) is refused when `BADS` is created, whatever `hedge_beta`: 0 and
     False stopped with a bare `ZeroDivisionError` at the default `hedge_beta
     = 1e-3 / tol_fun`, which refused a negative value or NaN but not -inf,
     and not beside a user's `hedge_beta`; above e^6, where the bounds of the
