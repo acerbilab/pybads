@@ -227,8 +227,8 @@ order.
     gpyreg's `main` at `1893eff`;
   - the gradients of the rational-quadratic ARD and Matern kernels
     computing the factor common to all dimensions once, to the same bits,
-    on gpyreg's branch `claude/todo-discussion-up70ou`, to be proposed to
-    gpyreg's `main` by a pull request. The kernel takes 31 to 45 % of a
+    on gpyreg's branch `claude/todo-discussion-up70ou`, proposed to
+    gpyreg's `main` in acerbilab/gpyreg#60. The kernel takes 31 to 45 % of a
     PyBADS run in its own code, in the predictions at the ES search's
     candidates and in the hyperparameter fits; only the fits compute its
     gradient, and on `ellipsoid_D10` their kernel takes 6.0 s of a 23-s run
@@ -240,7 +240,7 @@ order.
     take 0.85 to 0.95 of their wall time with gpyreg at `1893eff` (median
     0.90, paired by seed, the two arms side by side on four cores), with
     records otherwise equal;
-  - on the same branch, pytest, pytest-rerunfailures and numdifftools,
+  - in the same pull request, pytest, pytest-rerunfailures and numdifftools,
     which only gpyreg's tests use, moved from gpyreg's runtime dependencies
     to a `test` extra, so that installing PyBADS does not install them.
     Moving PyBADS's minimum to that release makes false the "(gpyreg 1.3.3
