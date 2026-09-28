@@ -19,6 +19,12 @@ options, the final estimate and the iteration count, which change no field
 that `compare` reads) and by waves 0 to 4 of the port review with their fix
 passes and doublechecks (#72 to #81).
 
+The reference holds for #84 (`79697835`) too, which moves no default run:
+on Windows, the fingerprint of `dev/scripts/fingerprint.py` is the same at
+`a4dcd65` and `79697835`, `dca2b20df2743512` with the default number of
+BLAS threads and `093cb1d05a16d889` with one (gpyreg 1.3.3 clone), and on
+Linux it is `4146a986863602cb` at both (#84's description).
+
 ## Command and provenance
 
 From the main checkout's root, with a clean detached worktree at `a4dcd65`
