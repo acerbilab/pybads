@@ -9,14 +9,15 @@ the mesh, 32 points when the noise test finds noise.
 The initial design involves no BLAS work: the scrambling of the Sobol design
 is seeded by one draw of the run's generator, and the rest is elementwise
 arithmetic, so the points repeat exactly on every platform and every BLAS
-setting, and a change to them is a change to the code. A log-transformed
-variable is mapped back by ``np.exp`` from an offset and a scale computed by
-``np.log``, whose results can differ by an ulp or two between platforms
-(NumPy's SIMD loops, the C library). At the bounds used here, one ulp in
-each of those logs and in the ``exp`` moves a point by up to 11 ulps, two
-ulps by up to 18, so those variables are compared to 32 ulps, the others
-exactly; a change to the design moves a point by a step of the mesh, about
-1e-3 of its plausible range.
+setting: they move with the code, or with SciPy's ``Sobol`` or NumPy's
+generator, and with nothing else. A log-transformed variable is mapped
+back by ``np.exp`` from an offset and a scale computed by ``np.log``, whose
+results can differ by an ulp or two between platforms (NumPy's SIMD loops,
+the C library). At the bounds used here, one ulp in each of those logs and
+in the ``exp`` moves a point by up to 11 ulps, two ulps by up to 18, so
+those variables are compared to 32 ulps, the others exactly; a change to
+the design moves a point by at least a step of the mesh, of the order of
+1e13 ulps here.
 
 Each run stops at the first call of its output function (``"init"``), which
 BADS makes after the initialization and its first GP fit, before the first
