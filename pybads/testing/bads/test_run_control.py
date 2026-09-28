@@ -514,8 +514,8 @@ def _acquisition_run(monkeypatch, nan_mask):
     original_acq = bads_module.acq_fcn_lcb
     original_call = FunctionLogger.__call__
 
-    def acq(u, func_count, gp):
-        z, f_mu, fs = original_acq(u, func_count, gp)
+    def acq(u, func_count, gp, sqrt_beta=None):
+        z, f_mu, fs = original_acq(u, func_count, gp, sqrt_beta)
         z = np.array(z, dtype=float)
         z[nan_mask(len(z))] = np.nan
         # The poll runs after the round of searches, which resets the count
@@ -586,8 +586,8 @@ def test_poll_stop_probability_takes_the_largest_probabilities(monkeypatch):
     patched = []
     p_less = []
 
-    def acq(u, func_count, gp):
-        z, f_mu, fs = original_acq(u, func_count, gp)
+    def acq(u, func_count, gp, sqrt_beta=None):
+        z, f_mu, fs = original_acq(u, func_count, gp, sqrt_beta)
         poll = bads.optim_state["search_count"] == 0
         if poll and not patched and len(u) == 2 * D:
             # f_mu and fs such that gamma_z is norm.ppf of each probability

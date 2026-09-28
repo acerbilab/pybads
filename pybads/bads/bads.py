@@ -1893,8 +1893,10 @@ class BADS:
         ----------
         u_search : np.ndarray or None
             Candidate search point; None when the search set is empty.
-        search_dist : np.ndarray
-            Distance of the search point from thecurrent point.
+        search_dist : np.ndarray or float
+            Distance of the search point from the incumbent, each variable
+            measured in the GP's length scale (``udist``), as an array of
+            shape ``(1, 1)``; 0.0 when the search set is empty.
         f_mu_search : float
             Estimated mean function at the candidate search point.
         f_sd_search : float
@@ -1996,9 +1998,13 @@ class BADS:
         # The Acquisition Hedge policy is not yet supported (even in Matlab)
         index_acq = None
         if u_search_set.size > 0:
-            # Batch evaluation of acquisition function on search set
+            # Batch evaluation of the search's acquisition function on the
+            # search set, as MATLAB BADS does (bads.m:578)
             z, f_mu, _ = acq_fcn_lcb(
-                u_search_set, self.function_logger.func_count, gp
+                u_search_set,
+                self.function_logger.func_count,
+                gp,
+                self.options["search_acq_fcn"][1],
             )
             # Evaluate best candidate point in original coordinates (a NaN
             # value is skipped, as by MATLAB's min)

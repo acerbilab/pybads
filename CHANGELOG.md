@@ -181,17 +181,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in MATLAB BADS, only the value moved, so that the next poll could run
   around the old incumbent while it was judged by the other iterate's value.
   Noisy runs change.
-- **LCB parameter of the search.** The second element of `search_acq_fcn`,
-  the `sqrt_beta` of the search's lower confidence bound, can be a plain
-  number such as `2.0`, which stopped the run with `AttributeError`. It is
-  `None` (the default schedule), a callable `sqrt_beta(t, D)` that returns a
-  positive finite number, or a positive finite number. `BADS` raises
-  `ValueError` for any other value when it is created, before any
-  evaluation, and the search raises `ValueError` when the callable returns
-  another value; 1.1.0 ran with a callable that returned −1 or NaN, and
-  stopped with an unrelated error when it returned an array of several
-  values or a string. `pybads.acquisition_functions.check_sqrt_beta` makes
-  the same check.
+- **LCB parameter of the search.** The second element of `search_acq_fcn`, the
+  `sqrt_beta` of the search's lower confidence bound, can be a plain number
+  such as `2.0`, which stopped the run with `AttributeError`. It is `None`
+  (the default schedule), a callable `sqrt_beta(t, D)` that returns a positive
+  finite number, or a positive finite number. `BADS` raises `ValueError` for
+  any other value when it is created, before any evaluation, and the search
+  raises `ValueError` when the callable returns another value; 1.1.0 ran with
+  a callable that returned −1 or NaN, and stopped with an unrelated error when
+  it returned an array of several values or a string.
+  `pybads.acquisition_functions.check_sqrt_beta` makes the same check. The
+  search scores the point it chooses with that `sqrt_beta` too, as MATLAB BADS
+  does, where it took the default schedule there: only the point's mean is
+  read, so results do not change, and a callable `sqrt_beta` is called once
+  more at each search.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
 - **Search hedge parameters.** `BADS` raises `ValueError` for a

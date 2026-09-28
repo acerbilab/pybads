@@ -40,8 +40,6 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
         If ``sqrt_beta`` is none of the values above, or a callable returns
         another value.
     """
-    # Returns z, dz,ymu,ys,fmu,fs,*fpi*
-
     n_vars = xi.shape[1]
     t = func_count + 1
     if sqrt_beta is None:
