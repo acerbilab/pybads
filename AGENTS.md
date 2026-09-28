@@ -214,8 +214,11 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   search by string comparison, LCB is called directly at the search and
   poll call sites, and the initial design is selected by
   `init_fun == "init_sobol"`. A new search method is an
-  `ESSearch` subclass, an `elif` in the hedge, and an entry in the
-  `search_method` option.
+  `ESSearch` subclass, an `elif` in the hedge, its name among those that
+  the check of `search_method` in `_init_optim_state_` takes, and an entry
+  in the `search_method` option; a search acquisition function other than
+  the LCB, likewise, needs the check of `search_acq_fcn` there, and the
+  optimization target, which only the poll computes.
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0
   (deterministic), 1 (noise inferred) or 2 (`specify_target_noise`: the
   target returns exactly a `tuple` `(f, sd)`). In noisy runs the incumbent's
