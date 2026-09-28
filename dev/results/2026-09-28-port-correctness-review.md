@@ -292,7 +292,7 @@ histories and the gate.
 | W3-25 | B4 | `poll_scale` does not shape the poll vectors, which are divided by it and multiplied back | not a defect (MATLAB's design) | records corrected | `fd8641d` (#77) |
 | W3-26 | B4 | At level 0 the poll's GP does not take the poll's evaluations, as in MATLAB | design question, shared | kept; `matlab_side_defects.md` | — |
 | W3-27 | B4 | `np.argmin` returns a NaN acquisition value, where MATLAB's `min` skips NaN | confirmed, inert | fixed: `nanargmin`, and a random choice when every value is NaN (KD-B4-5) | `a1bf658` (#77) |
-| W3-28 | B4 | A zero predictive SD makes the GP unreliable and stops a good poll, as MATLAB's rule does | not a defect | kept; the description of `tol_poi` corrected | `fd8641d` (#77); `TODO.md`, "Zero predictive SDs at uncertainty level 0." |
+| W3-28 | B4 | A zero predictive SD makes the GP unreliable and stops a good poll, as MATLAB's rule does | not a defect | kept; the description of `tol_poi` corrected | `fd8641d` (#77); `TODO.md`, "Zero predictive SDs: how often MATLAB gives them." |
 | W3-29 | B4 | After a poll that moves the incumbent, MATLAB rebuilds at every search until a poll that does not move; PyBADS rebuilt once (W1-2's premise) | port discrepancy | fixed, moves results | `0b7add3` (#77) |
 | W3-30 | B4 | With `poll_training` off, the poll neither records a refit nor clears the flag of an unreliable GP | intentional, missing from the sheet | kept (KD-B5-9) | `97bfc99` (#77), the sheet |
 | W3-31 | B4 | An `improvement_quantile` outside (0, 1) gives NaN improvements, where MATLAB refuses it | port discrepancy | refused when `BADS` is created (KD-B4-6); any value that is not a real number since #79 and #81 | `ec1b2d0` (#77); `37cc649` (#79); `339e90e` (#81) |
@@ -405,7 +405,7 @@ items that a ruling left to later work are held by these items of
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
-| "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57) and W1-25's switch, which reach PyBADS through a release |
+| "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6) |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
 
 **The minor items.** "Found while fixing" of `verification/wave2.md` and
@@ -472,8 +472,9 @@ MATLAB computes, but for the priors of a GP on one point, an open item of
 `dev/TODO.md` ("The GP on a one-point training set.") that a comparison
 with MATLAB would inform; by the plan's rule no MATLAB run is written up. Two
 items of `dev/TODO.md` would use one: a run of MATLAB BADS on
-`ellipsoid_D3_hetero`, and MATLAB's prediction of a GP whose predictive SD
-PyBADS computes as 0.
+`ellipsoid_D3_hetero`, and how often MATLAB's own fits give a predictive
+SD of 0, which, traced on 2026-09-28, comes from the same clamp on both
+sides (`dev/results/2026-09-28-gp-health.md`).
 
 ## The MATLAB side
 

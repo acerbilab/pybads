@@ -59,9 +59,10 @@ python dev/scripts/gp_health.py summary $R/<arm>/health --pop $R/<arm>/pop
   NumPy 2.4.6, SciPy 1.17.1, one BLAS thread per run, four runs at a time.
 - The Sto-BADS arms ran with the GP-health counters
   (`dev/scripts/gp_health_hooks/sitecustomize.py` at `b276da0`), which
-  count each outcome of `_sto_success_improvement_` and change nothing (the
-  worktree's arm C with the knob off gave arm A's records on a test of two
-  seeds).
+  count each outcome of `_sto_success_improvement_` and change nothing:
+  the fix of W0-13, run without them on the 300 runs of arm C, gave arm
+  C's records (`dev/scripts/runs/stobads_20260928/run_gate.log`), and the
+  worktree's arm C with the knob off gave arm A's records on two seeds.
 - The files: `compare_<NEW>_vs_<REF>.md`, the comparisons (60 pairs a
   configuration; their Holm family is the 15 tests of one comparison);
   `summary_<arm>.md`, the counters' tables of a Sto-BADS arm, whose last
@@ -101,15 +102,28 @@ The flags (Holm, 15 tests a comparison):
 - D against A: the evaluations of all five, fewer; no error flag.
 
 The rule's decisions, summed over the five configurations (the counters;
-per configuration in `summary_<arm>.md`):
+per configuration in `summary_<arm>.md`). The shares of certain outcomes
+are over all the certain outcomes with an estimate: "SD 0" are those whose
+two SDs are both 0, which the rule decides by the sign of `mu` alone, all
+of them on the two noisy ellipsoids (41.5% of the search's certain
+outcomes of `ellipsoid_D3_homo` under A, 59.3% under B); "within 0.5 SD"
+those with a positive SD whose `abs(mu)` is under half of it.
 
-| arm | search: success, uncertain | uncertain with mu < 0 | certain within 0.5 SD | poll: success, uncertain | uncertain with mu < 0 | certain within 0.5 SD |
-| --- | --- | --- | --- | --- | --- | --- |
-| A | 19.6%, 3.7% | 58% | 68% | 5.2%, 1.2% | 64% | 41% |
-| B | 9.1%, 59.7% | 52% | 0% | 0.8%, 62.4% | 62% | 0% |
-| C | 19.0%, 3.8% | 60% | 68% | 5.2%, 1.1% | 68% | 41% |
-| D | 8.0%, 62.6% | 74% | 0% | 0.7%, 60.3% | 83% | 0% |
+| arm | search: success, uncertain | uncertain with mu < 0 | certain, SD 0 | certain within 0.5 SD | poll: success, uncertain | uncertain with mu < 0 | certain, SD 0 | certain within 0.5 SD |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 19.6%, 3.7% | 58% | 10% | 61% | 5.2%, 1.2% | 64% | 6% | 38% |
+| B | 9.1%, 59.7% | 52% | 44% | 0% | 0.8%, 62.4% | 62% | 19% | 0% |
+| C | 19.0%, 3.8% | 60% | 11% | 60% | 5.2%, 1.1% | 68% | 6% | 39% |
+| D | 8.0%, 62.6% | 74% | 48% | 0% | 0.7%, 60.3% | 83% | 19% | 0% |
 
-The termination messages barely differ between the arms (base 161 on
-`tol_fun`, 139 on the mesh size; A 144 and 156; B 142 and 158; C as the
-base).
+The counters pool the certain successes with the certain failures: they do
+not show how far from zero the successes alone are. The counters of
+`b276da0` left the certain outcomes with an SD of 0 out of the histogram;
+`summary_<arm>.md` counts them as the certain outcomes the histogram lacks,
+none of which had a missing estimate in two runs checked outcome by
+outcome (the doublecheck).
+
+The termination messages differ little in total (base 161 on `tol_fun`,
+139 on the mesh size; A 144 and 156; B 142 and 158; C as the base), but
+per configuration they can: on `sphere_D3_homo`, A stops on the mesh size
+in 33 of 60 runs, the base in 17.

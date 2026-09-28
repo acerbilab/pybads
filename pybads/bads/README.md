@@ -782,9 +782,11 @@ in deterministic runs, half on the 3-D ellipsoids, where the output
 variance exceeds the noise floor by far more than double precision holds;
 the bounds of both are MATLAB's. gpyreg's switch
 `raise_on_cholesky_failure`, off by default, gives MATLAB's behavior;
-measured at the head of the review, it made most refits on the ellipsoids
-fail and 10 of their runs end above the tolerance, and it stays off in
-PyBADS. `chol_attempts` is unread.
+measured at the head of the review, it made most refits on the 3-D
+ellipsoids fail, 10 runs of the deterministic ones end above the tolerance
+(none before) and 3 runs of `ellipsoid_D3_homo` stop at their start, for
+gains mostly below the tolerance, and it stays off in PyBADS.
+`chol_attempts` is unread.
 - PyBADS: gpyreg's `GP` (its training Cholesky factorization, and
   `predict`).
 - MATLAB: `bads.m:272`; `gpml_fast/infExact_fastrobust.m:36`, `77-80`;

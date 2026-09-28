@@ -64,16 +64,33 @@ handling. `sphere_band_D2`'s level is `None` there: its runs stop after 2
 evaluations, with no search or poll prediction, so the counters never
 read the level.
 
-## Known gap
+## Known gaps of the counters that wrote these files
 
-`_mults` of the counters at `b150b8a` tests `gp.posteriors` for truth,
-which fails when it holds more than one hyperparameter sample: 81 returns
-of `set_hyperparameters`, at most one per run, in 11 configurations
-(ackley_D6, ellipsoid_D10, ellipsoid_D3, ellipsoid_D3_unbounded,
-ellipsoid_D6, multisensory_s1_D6, rosenbrock_D6, ellipsoid_D3_homo,
-ridge_D2, ridge_D4, sphere_band_D3), are missing from the table of
-posteriors, each a hook error counted in the last table; tens of
-thousands of returns are counted. The runs are not affected. The commit
-that adds this directory fixes it; rerun with the fix, seeds 0, 10 and 11
-of `ridge_D2` count their missing return, with no hook error and the same
-records.
+The doublecheck of these records (a read-only review on 2026-09-28) found
+four defects of the counters at `b150b8a`, fixed in
+`dev/scripts/gp_health_hooks/sitecustomize.py` afterwards. None affects
+the runs, which equal the reference's.
+
+- `_mults` tested `gp.posteriors` for truth, which fails when it holds
+  more than one hyperparameter sample: 81 returns of
+  `set_hyperparameters`, in 60 runs (one to three each) of 11
+  configurations (ackley_D6, ellipsoid_D10, ellipsoid_D3,
+  ellipsoid_D3_unbounded, ellipsoid_D6, multisensory_s1_D6, rosenbrock_D6,
+  ellipsoid_D3_homo, ridge_D2, ridge_D4, sphere_band_D3), are missing from
+  the table of posteriors, each a hook error counted in the last table;
+  tens of thousands of returns are counted. Rerun with the fix, seeds 0,
+  10 and 11 of `ridge_D2` count their missing return, with no hook error
+  and the same records.
+- A `set_hyperparameters` that computes no posterior
+  (`compute_posterior=False`, as `local_gp_fitting`, `_robust_gp_fit_` and
+  the re-estimate call it) counted as a return with no inflated noise, so
+  the column "after set_hyperparameters" understated the share; the tables
+  now show a dash there for these counters, and no conclusion used it.
+- The zero-SD recomputation solved over the zero points only, whose
+  rounding differs from `predict`'s in a few points: on `ellipsoid_D3`,
+  seed 0, all 6 values counted as positive before the clamp are that
+  artefact, and the 1,528 of 33.7 million over all the runs are likely
+  the same.
+- The histogram of `|raw| / kss` wrote an exact 0 under the key `"0"`,
+  which a value between 1 and 10 times `kss` would share; none occurred,
+  and the tables read the key as an exact 0.

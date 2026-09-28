@@ -1,8 +1,8 @@
 ### Refits of the local GP (`_robust_gp_fit_`)
 
-A try is one `gp.fit`; it fails when a factorization of the objective fails ten times (`LinAlgError`). A refit whose every try fails keeps the best of its starts (exit flag -1). The run time is the population record's `wall_s` (`--pop`).
+A try is one `gp.fit`; it fails when a factorization of the objective raises (`LinAlgError`: after ten failures, or at the first under gpyreg's switch). A refit whose every try fails keeps the best of its starts (exit flag -1). The fits that raised include the initial fits of `init_and_train_gp`; the run time is the population record's `wall_s` (`--pop`).
 
-| configuration | level | runs | refits | ok at the first try | ok after retries | every try failed | failed tries | fit time in failed tries | failed tries / run time |
+| configuration | level | runs | refits | ok at the first try | ok after retries | every try failed | failed tries | fit time in fits that raised | fits that raised / run time |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | ackley_D1 | 0 | 30 | 159 | 100.0% | 0.0% | 0.0% | 0 | 0.0% | 0.0% |
 | ackley_D6 | 0 | 30 | 622 | 99.8% | 0.2% | 0.0% | 2 | 0.5% | 0.1% |
@@ -43,7 +43,7 @@ A try is one `gp.fit`; it fails when a factorization of the objective fails ten 
 
 ### Factorizations of the training covariance
 
-Inflated: the factorization failed at least once and succeeded with the noise multiplied by ten per failure; raised: it failed ten times. Low-noise repr.: the share of factorizations with the noise variance below 1e-6 (gpyreg's `L_chol = False`).
+Inflated: the factorization failed at least once and succeeded with the noise multiplied by ten per failure; raised: it failed ten times, or once under gpyreg's switch (`raise_on_cholesky_failure`). Low-noise repr.: the share of factorizations with the noise variance below 1e-6 (gpyreg's `L_chol = False`).
 
 | configuration | level | objective evaluations | inflated | raised | posteriors | inflated | raised | low-noise repr. |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -86,46 +86,46 @@ Inflated: the factorization failed at least once and succeeded with the noise mu
 
 ### Posteriors that keep an inflated noise
 
-The share of returns of each method whose posterior keeps a noise multiplier above one, and of the acquisition's calls on such a GP.
+The share of returns of each method whose posterior keeps a noise multiplier above one, and of the acquisition's calls on such a GP. A dash for set_hyperparameters: counters that did not count its returns without a posterior apart.
 
 | configuration | level | after fit | after update | after set_hyperparameters | largest multiplier (median over runs) | search predictions on one | poll predictions on one |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| ackley_D1 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| ackley_D6 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| edgesphere_D2 | 0 | 0.0% | 7.6% | 7.8% | 1e+01 | 8.1% | 7.6% |
-| edgesphere_D4 | 0 | 0.3% | 0.6% | 0.7% | 1e+00 | 0.7% | 0.6% |
-| ellipsoid_D10 | 0 | 20.0% | 34.0% | 34.2% | 1e+04 | 38.8% | 29.1% |
-| ellipsoid_D1_unbounded | 0 | 0.0% | 6.9% | 6.3% | 1e+00 | 6.9% | 7.0% |
-| ellipsoid_D3 | 0 | 45.9% | 62.6% | 45.2% | 1e+06 | 64.1% | 68.0% |
-| ellipsoid_D3_unbounded | 0 | 45.7% | 62.2% | 45.3% | 1e+06 | 64.1% | 66.2% |
-| ellipsoid_D6 | 0 | 36.2% | 46.6% | 43.1% | 1e+06 | 49.6% | 43.5% |
-| logsphere_D3 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| logsphere_D3_nopb | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| multisensory_s1_D6 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| rastrigin_D1 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| rastrigin_D3 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| ridge_D2 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| ridge_D4 | 0 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| rosenbrock_D2 | 0 | 33.5% | 52.0% | 43.8% | 1e+04 | 52.0% | 60.2% |
-| rosenbrock_D6 | 0 | 0.6% | 1.3% | 1.9% | 1e+00 | 1.2% | 2.5% |
-| sphere_D1 | 0 | 0.0% | 7.6% | 6.6% | 1e+00 | 7.2% | 8.4% |
-| sphere_D10 | 0 | 16.9% | 18.3% | 20.9% | 1e+02 | 19.9% | 21.4% |
-| sphere_D2 | 0 | 16.2% | 35.4% | 30.8% | 1e+01 | 36.3% | 40.0% |
-| sphere_D3_nopb | 0 | 26.9% | 53.0% | 45.0% | 1e+02 | 52.7% | 59.0% |
-| sphere_D3_x0lb | 0 | 28.4% | 42.7% | 38.7% | 1e+02 | 43.7% | 51.4% |
+| ackley_D1 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| ackley_D6 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| edgesphere_D2 | 0 | 0.0% | 7.6% | — | 1e+01 | 8.1% | 7.6% |
+| edgesphere_D4 | 0 | 0.3% | 0.6% | — | 1e+00 | 0.7% | 0.6% |
+| ellipsoid_D10 | 0 | 20.0% | 34.0% | — | 1e+04 | 38.8% | 29.1% |
+| ellipsoid_D1_unbounded | 0 | 0.0% | 6.9% | — | 1e+00 | 6.9% | 7.0% |
+| ellipsoid_D3 | 0 | 45.9% | 62.6% | — | 1e+06 | 64.1% | 68.0% |
+| ellipsoid_D3_unbounded | 0 | 45.7% | 62.2% | — | 1e+06 | 64.1% | 66.2% |
+| ellipsoid_D6 | 0 | 36.2% | 46.6% | — | 1e+06 | 49.6% | 43.5% |
+| logsphere_D3 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| logsphere_D3_nopb | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| multisensory_s1_D6 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| rastrigin_D1 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| rastrigin_D3 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| ridge_D2 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| ridge_D4 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| rosenbrock_D2 | 0 | 33.5% | 52.0% | — | 1e+04 | 52.0% | 60.2% |
+| rosenbrock_D6 | 0 | 0.6% | 1.3% | — | 1e+00 | 1.2% | 2.5% |
+| sphere_D1 | 0 | 0.0% | 7.6% | — | 1e+00 | 7.2% | 8.4% |
+| sphere_D10 | 0 | 16.9% | 18.3% | — | 1e+02 | 19.9% | 21.4% |
+| sphere_D2 | 0 | 16.2% | 35.4% | — | 1e+01 | 36.3% | 40.0% |
+| sphere_D3_nopb | 0 | 26.9% | 53.0% | — | 1e+02 | 52.7% | 59.0% |
+| sphere_D3_x0lb | 0 | 28.4% | 42.7% | — | 1e+02 | 43.7% | 51.4% |
 | sphere_band_D2 | None | 0.0% | — | — | 1e+00 | — | — |
-| sphere_band_D3 | 0 | 15.2% | 29.9% | 26.3% | 1e+01 | 30.3% | 34.0% |
-| sphere_nonbox_D3 | 0 | 27.2% | 47.9% | 40.0% | 1e+02 | 49.2% | 49.4% |
-| timing_D5 | 0 | 0.0% | 0.0% | 0.1% | 1e+00 | 0.0% | 0.1% |
-| edgesphere_D3_homo | 1 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| ellipsoid_D3_homo | 1 | 36.8% | 52.9% | 22.7% | 1e+04 | 48.0% | 38.1% |
-| logsphere_D3_homo | 1 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| multisensory_s1_D6_homo | 1 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| sphere_D1_homo | 1 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| sphere_D3_homo | 1 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| ellipsoid_D3_hetero | 2 | 57.9% | 67.2% | 28.7% | 1e+03 | 60.6% | 57.3% |
-| sphere_D1_hetero | 2 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
-| sphere_D3_hetero | 2 | 0.0% | 0.0% | 0.0% | 1e+00 | 0.0% | 0.0% |
+| sphere_band_D3 | 0 | 15.2% | 29.9% | — | 1e+01 | 30.3% | 34.0% |
+| sphere_nonbox_D3 | 0 | 27.2% | 47.9% | — | 1e+02 | 49.2% | 49.4% |
+| timing_D5 | 0 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.1% |
+| edgesphere_D3_homo | 1 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| ellipsoid_D3_homo | 1 | 36.8% | 52.9% | — | 1e+04 | 48.0% | 38.1% |
+| logsphere_D3_homo | 1 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| multisensory_s1_D6_homo | 1 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| sphere_D1_homo | 1 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| sphere_D3_homo | 1 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| ellipsoid_D3_hetero | 2 | 57.9% | 67.2% | — | 1e+03 | 60.6% | 57.3% |
+| sphere_D1_hetero | 2 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
+| sphere_D3_hetero | 2 | 0.0% | 0.0% | — | 1e+00 | 0.0% | 0.0% |
 
 ### Zero predictive SDs (latent variance returned as exactly 0)
 
@@ -215,18 +215,18 @@ A poll acquisition with a zero SD makes the poll's `gamma_z` infinite and marks 
 
 Level 0, 19130122 points.
 
-- floor(log10(|raw| / kss)): -16: 8417623, -15: 7400228, -14: 868906, -13: 331529, -12: 197465, -11: 110061, -10: 54634, -9: 28481, -8: 12923, -7: 5230, -6: 1828, -5: 554, -4: 184, -3: 47, -2: 37, 0: 1700392
+- floor(log10(|raw| / kss)): exact0: 1700392, -16: 8417623, -15: 7400228, -14: 868906, -13: 331529, -12: 197465, -11: 110061, -10: 54634, -9: 28481, -8: 12923, -7: 5230, -6: 1828, -5: 554, -4: 184, -3: 47, -2: 37
 - distance to the nearest training input (ell): 0: 16797, <1e-6: 90335, <1e-3: 14124807, <1e-1: 4893470, >=1e-1: 4713
 - floor(log10(kss / effective noise)): 12: 54885, 13: 2215840, 14: 15653198, 15: 785052, 16: 160832, 17: 177392, 18: 70865, 19: 12058
 
 Level 1, 9161531 points.
 
-- floor(log10(|raw| / kss)): -16: 1537813, -15: 6958684, -14: 423425, -13: 31889, -12: 7670, -11: 2624, -10: 840, -9: 147, -8: 33, -7: 3, 0: 198403
+- floor(log10(|raw| / kss)): exact0: 198403, -16: 1537813, -15: 6958684, -14: 423425, -13: 31889, -12: 7670, -11: 2624, -10: 840, -9: 147, -8: 33, -7: 3
 - distance to the nearest training input (ell): 0: 8775, <1e-6: 292217, <1e-3: 7166633, <1e-1: 1693760, >=1e-1: 146
 - floor(log10(kss / effective noise)): 12: 213619, 13: 5041459, 14: 3807409, 15: 40959, 16: 58085
 
 Level 2, 5452745 points.
 
-- floor(log10(|raw| / kss)): -16: 2241695, -15: 2690980, -14: 132464, -13: 32026, -12: 7773, -11: 1329, -10: 108, 0: 346370
+- floor(log10(|raw| / kss)): exact0: 346370, -16: 2241695, -15: 2690980, -14: 132464, -13: 32026, -12: 7773, -11: 1329, -10: 108
 - distance to the nearest training input (ell): 0: 6927, <1e-6: 458149, <1e-3: 4899195, <1e-1: 88474
 - floor(log10(kss / effective noise)): 12: 7, 13: 2292083, 14: 3087545, 15: 73110

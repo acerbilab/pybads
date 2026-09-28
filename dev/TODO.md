@@ -111,10 +111,10 @@ order.
 
   Still open: a run of MATLAB BADS on this problem, which would show
   whether correct noise handling alone gives such runs. Measured on
-  2026-09-28 and not the cause: its GP runs at an output variance near
-  1e15 times its noise variance, and most of its fits keep a noise that
-  gpyreg multiplied (KD-B6-6), but neither gpyreg's switch to MATLAB's rule
-  nor any variant of Sto-BADS makes its errors smaller
+  2026-09-28: its GP runs at an output variance near 1e15 times its noise
+  variance, and most of its fits keep a noise that gpyreg multiplied
+  (KD-B6-6); with gpyreg's switch to MATLAB's rule its errors are not
+  measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
@@ -158,6 +158,9 @@ order.
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
+  One stage is measured: the failed tries of the refits take 9% of the
+  deterministic runs' time over four suites, 42% of `ellipsoid_D3`'s
+  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)).
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench). A port of periodic variables also
   assigns `period_check`'s result at every call site, as MATLAB BADS does,

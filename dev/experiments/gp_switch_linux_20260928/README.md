@@ -70,7 +70,7 @@ arms under the counters).
 | ellipsoid_D3_unbounded | 30 | 150 → 188 | 0 → 4 | 0 | ×1.85 | evaluations |
 | ellipsoid_D6 | 30 | 347 → 404 | 0 → 0 | 0 | ×1.24 | evaluations |
 | ellipsoid_D10 | 30 | 668 → 714 | 0 → 0 | 0 | ×1.31 | evaluations |
-| ellipsoid_D3_homo | 30 | 312 → 266 | 17 → 6 of 27 | 3 | ×1.11 | evaluations; crashes |
+| ellipsoid_D3_homo | 30 | 308 → 266 on the 27 pairs | 15 → 6 on the 27 pairs | 3 | ×1.11 | evaluations; crashes |
 | ellipsoid_D3_hetero | 30 | 302 → 281 | 23 → 25 | 0 | ×1.06 | — |
 | sphere_D2 | 30 | 55 → 55 | 0 → 0 | 0 | ×1.07 | error, lower |
 | sphere_nonbox_D3 | 30 | 98 → 98 | 0 → 0 | 0 | ×1.17 | — (error lower) |
@@ -81,12 +81,13 @@ arms under the counters).
 | rosenbrock_D2 | 30 | 94 → 83 | 0 → 0 | 0 | ×0.81 | — |
 | rosenbrock_D6 | 18 | 415 → 415 | 5 → 4 | 0 | ×0.96 | — |
 | sphere_band_D3 | 28 | 57 → 56 | 0 → 0 | 0 | ×1.07 | — |
-| edgesphere_D4, ellipsoid_D1_unbounded, sphere_D1, logsphere_D3, logsphere_D3_nopb, timing_D5, multisensory_s1_D6, multisensory_s1_D6_homo, ridge_D4 | 1 to 19 | unchanged medians | unchanged | 0 | ×0.94 to ×1.05 | — |
+| edgesphere_D4, ellipsoid_D1_unbounded, sphere_D1, logsphere_D3, logsphere_D3_nopb, timing_D5, multisensory_s1_D6, multisensory_s1_D6_homo, ridge_D4 | 1 to 19 | medians within 2% | unchanged | 0 | ×0.94 to ×1.05 | — |
 
 The median paired log10 error ratios of the flagged errors ("on" over
 "off"): `sphere_D2` −0.96, `sphere_D3_nopb` −1.11, `sphere_D3_x0lb`
 −0.83; unflagged, `sphere_nonbox_D3` −0.50 and `ellipsoid_D3_homo` −0.38
-[−0.71, −0.15] on its 27 pairs. Every run of the spheres, in both arms,
+[−0.71, −0.15] on its 27 pairs, 2 of whose 3 stopped seeds end above the
+tolerance with the switch off. Every run of the spheres, in both arms,
 ends within its tolerance of 1e-3. The counters of "on"
 (`summary_on.md`): on `ellipsoid_D3`, 72% of the refits fail all ten tries
 (6.5% with the switch off) and the failed tries take 60% of the run time;

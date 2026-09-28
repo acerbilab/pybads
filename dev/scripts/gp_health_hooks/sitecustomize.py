@@ -16,24 +16,27 @@ them, which ``same_fields.py`` checks. What is counted:
 - ``chol``: each factorization of the training covariance
   (``__training_cholesky``), by the outermost public method of ``GP`` that
   led to it (``fit``, ``update``, ``set_hyperparameters``, ``predict``, or
-  ``direct:<PyBADS function>`` for PyBADS's direct calls of
-  ``_GP__gp_obj_fun``), its kind (``nlZ``: an evaluation of the objective;
+  ``direct:<PyBADS function>`` for PyBADS's calls outside those methods,
+  of ``_GP__gp_obj_fun`` or ``log_posterior``), its kind (``nlZ``: an evaluation of the objective;
   ``post``: a posterior; ``lowfactor``: the factor that ``predict``
   rebuilds in the low-noise representation) and its representation
   (``L_chol``): the calls, those that multiplied the noise by ten at least
   once, those that failed ten times and raised, and a histogram of the
   number of failed attempts.
 - ``posteriors``: after each outermost ``fit``, ``update`` and
-  ``set_hyperparameters`` that returned, by PyBADS caller, whether a
-  posterior keeps a noise multiplier above one (the inflated noise that
-  the hyperparameters do not show), with examples.
+  ``set_hyperparameters`` that returned with a posterior, by PyBADS caller,
+  whether a posterior keeps a noise multiplier above one (the inflated
+  noise that the hyperparameters do not show), with examples; a return
+  without one (``compute_posterior=False``) is counted under the method's
+  name followed by ``/no_posterior``.
 - ``predict``: by PyBADS caller chain, the level of uncertainty handling
   and ``add_noise``, the calls, the points, the points whose returned
   variance is exactly 0, and the calls on a GP whose posterior keeps an
   inflated noise.
 - ``zero_sd``: for the latent variances returned as exactly 0, the value
   before gpyreg's clamp at 0, recomputed from the first posterior as
-  ``predict`` computes it, relative to the prior variance ``kss``; the
+  ``predict`` computes it, over all the call's points, relative to the
+  prior variance ``kss`` (the key ``exact0`` for a value of exactly 0); the
   distance to the nearest training input in length scales; the ratio of the
   signal variance to the effective noise; examples with the mesh size.
 - ``log_prior``: the log prior's NaN and -inf values by outermost method,
@@ -48,15 +51,19 @@ them, which ``same_fields.py`` checks. What is counted:
   type: what PyBADS's guards catch; ``robust_fit``: the fits that
   ``_robust_gp_fit_`` makes, by its try index and outcome (a refit whose
   every try fails has ten failures and no ``ok``); ``fit_seconds``: the
-  wall time of the fits that returned and of those that raised.
+  wall time of the fits that returned and of those that raised, the
+  initial fits included.
 - ``stobads``: with ``stobads=True``, each outcome of
   ``BADS._sto_success_improvement_`` by the step that asked
   (``_search_step_`` or ``_poll_step_``): ``1`` (success), ``0``
   (uncertain), ``-1`` (certain failure or no estimate); the uncertain ones
   split by the sign of the estimated improvement ``mu = f_base - f_new``;
-  and a histogram of ``|mu| / epsilon`` over the certain outcomes (``1`` and
-  ``-1`` with an estimate), epsilon the SD of ``mu``. The wrapper is set on
-  the ``BADS`` class, once, when the run's ``BADS`` object is first found.
+  a histogram of ``|mu| / epsilon`` over the certain outcomes (``1`` and
+  ``-1``) with a positive epsilon, the SD of ``mu``; ``certain_eps0``, the
+  certain outcomes with a finite ``mu`` and an epsilon of 0 (the rule is
+  then the sign of ``mu``); and ``no_estimate``, those without a finite
+  ``mu`` or epsilon. The wrapper is set on the ``BADS`` class, once, when
+  the run's ``BADS`` object is first found.
 
 ``raised`` counts a factorization that raised, after ten attempts, or
 after one where the GP raises on a failed factorization; the last entry of
@@ -65,7 +72,10 @@ after one where the GP raises on a failed factorization; the last entry of
 One knob changes results, for experiments: with
 ``GP_FORCE_RAISE_ON_CHOLESKY_FAILURE=1``, every ``GP`` is constructed with
 ``raise_on_cholesky_failure=True`` (gpyreg after 1.3.3; an older gpyreg
-stops the process at startup), whatever the caller passes.
+stops the process at startup), whatever the caller passes. The records of
+``population.py`` do not show it, nor whether this directory was on
+``PYTHONPATH``: a population run with the knob says so in the name of its
+output directory and in its README.
 """
 
 import os
@@ -236,7 +246,11 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
                     rec[
                         "uncertain_mu_neg" if mu < 0 else "uncertain_mu_pos"
                     ] += 1
-                elif math.isfinite(mu) and math.isfinite(eps) and eps > 0:
+                elif not (math.isfinite(mu) and math.isfinite(eps)):
+                    rec["no_estimate"] += 1
+                elif eps == 0:
+                    rec["certain_eps0"] += 1
+                else:
                     z = abs(mu) / eps
                     b = (
                         "<0.25"
@@ -376,6 +390,14 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
             _after_training_counts(name, gp, caller)
 
     def _after_training_counts(name, gp, caller):
+        posteriors = getattr(gp, "posteriors", None)
+        if posteriors is None or any(
+            getattr(p, "alpha", None) is None for p in posteriors
+        ):
+            # compute_posterior=False: no posterior, nothing to inflate
+            _S["posteriors"][f"{name}/no_posterior|{caller}"]["returns"] += 1
+            _train_n(gp)
+            return
         m = _mults(gp)
         rec = _S["posteriors"][f"{name}|{caller}"]
         rec["returns"] += 1
@@ -431,12 +453,15 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
         p = gp.posteriors[0]
         cov_N, noise_N, _ = _blocks(gp)
         hyp = np.asarray(p.hyp, dtype=float)
-        xz = np.atleast_2d(np.asarray(x_star, dtype=float))[idx]
+        xs = np.atleast_2d(np.asarray(x_star, dtype=float))
+        xz = xs[idx]
         with np.errstate(all="ignore"):
-            kss = gp.covariance.compute(hyp[:cov_N], xz, compute_diag=True)[
+            # Over all the call's points, as predict solves them, so that
+            # the rounding is predict's; then the zero ones
+            kss = gp.covariance.compute(hyp[:cov_N], xs, compute_diag=True)[
                 :, 0
             ]
-            Ks = gp.covariance.compute(hyp[:cov_N], gp.X, xz)
+            Ks = gp.covariance.compute(hyp[:cov_N], gp.X, xs)
             if p.L_chol:
                 V = _gpmod._solve_triangular(p.L, p.sW * Ks, trans=1)
             else:
@@ -447,7 +472,8 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
                 finally:
                     _SUPPRESS[0] = False
                 V = _gpmod._solve_triangular(F, Ks, trans=1)
-            raw = kss - np.sum(V * V, 0)
+            raw = (kss - np.sum(V * V, 0))[idx]
+            kss = kss[idx]
             sn2 = gp.noise.compute(
                 hyp[cov_N : cov_N + noise_N], gp.X, gp.y, gp.s2
             )
@@ -473,7 +499,7 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
             else:
                 z["raw_positive"] += 1
             rel = abs(r) / float(kss[k]) if kss[k] > 0 else float("inf")
-            b = "0" if rel == 0 else str(int(math.floor(math.log10(rel))))
+            b = "exact0" if rel == 0 else str(int(math.floor(math.log10(rel))))
             z["raw_rel_log10_hist"][b] += 1
             dk = float(d[k])
             db = (

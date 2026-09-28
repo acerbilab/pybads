@@ -261,7 +261,7 @@ runs: 0.3 % (`ackley_D6`, `rosenbrock_D6`) to 2.5 %
   the extended posterior.
 - In the multiplier regime the posterior after an addition would carry
   the multiplier of the last full factorization, which bears on the
-  inflation of the GP noise that `dev/TODO.md` lists (W1-25).
+  inflation of the GP noise (W1-25, KD-B6-6 of `pybads/bads/README.md`).
 - Since the runs of the ellipsoids change, adopting it needs the
   population comparison.
 

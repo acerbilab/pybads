@@ -79,7 +79,12 @@ def per_run(h):
         sel = {k: v for k, v in po.items() if k.split("|")[0] == m}
         r[f"post_{m}"] = sum(v["returns"] for v in sel.values())
         r[f"post_{m}_inflated"] = sum(v["inflated"] for v in sel.values())
-    r["post_max_mult"] = max([v["max_mult"] for v in po.values()] or [1.0])
+    # Counters written before the returns without a posterior were counted
+    # apart (`/no_posterior`) mix them into set_hyperparameters's returns
+    r["post_separated"] = any("/no_posterior" in k for k in po)
+    r["post_max_mult"] = max(
+        [v.get("max_mult", 1.0) for v in po.values()] or [1.0]
+    )
     pr = h["predict"]
 
     def site(k):
@@ -137,8 +142,16 @@ def per_run(h):
         r[f"sto_{short}_uncertain"] = c.get("0", 0)
         r[f"sto_{short}_failure"] = c.get("-1", 0)
         r[f"sto_{short}_uncertain_neg"] = c.get("uncertain_mu_neg", 0)
-        r[f"sto_{short}_certain"] = sum(
-            v for k, v in c.items() if k.startswith("certain_z")
+        binned = sum(v for k, v in c.items() if k.startswith("certain_z"))
+        # The certain outcomes, with an estimate; counters written before
+        # `certain_eps0` and `no_estimate` existed left both out of the
+        # histogram, and the ones without an estimate were not seen there
+        no_estimate = c.get("no_estimate", 0)
+        r[f"sto_{short}_certain"] = (
+            c.get("1", 0) + c.get("-1", 0) - no_estimate
+        )
+        r[f"sto_{short}_certain_eps0"] = c.get(
+            "certain_eps0", r[f"sto_{short}_certain"] - binned
         )
         r[f"sto_{short}_certain_z_lt05"] = c.get("certain_z<0.25", 0) + c.get(
             "certain_z<0.5", 0
@@ -195,8 +208,8 @@ def tables(rows):
             "ok after retries",
             "every try failed",
             "failed tries",
-            "fit time in failed tries",
-            "failed tries / run time",
+            "fit time in fits that raised",
+            "fits that raised / run time",
         ],
         lambda rs: [
             len(rs),
@@ -215,9 +228,11 @@ def tables(rows):
             ),
         ],
         "A try is one `gp.fit`; it fails when a factorization of the "
-        "objective fails ten times (`LinAlgError`). A refit whose every try "
-        "fails keeps the best of its starts (exit flag -1). The run time "
-        "is the population record's `wall_s` (`--pop`).",
+        "objective raises (`LinAlgError`: after ten failures, or at the "
+        "first under gpyreg's switch). A refit whose every try fails keeps "
+        "the best of its starts (exit flag -1). The fits that raised "
+        "include the initial fits of `init_and_train_gp`; the run time is "
+        "the population record's `wall_s` (`--pop`).",
     )
     table(
         "Factorizations of the training covariance",
@@ -246,7 +261,9 @@ def tables(rows):
         ],
         "Inflated: the factorization failed at least once and succeeded "
         "with the noise multiplied by ten per failure; raised: it failed "
-        "ten times. Low-noise repr.: the share of factorizations with the "
+        "ten times, or once under gpyreg's switch "
+        "(`raise_on_cholesky_failure`). Low-noise repr.: the share of "
+        "factorizations with the "
         "noise variance below 1e-6 (gpyreg's `L_chol = False`).",
     )
     table(
@@ -262,9 +279,13 @@ def tables(rows):
         lambda rs: [
             _pct(S(rs, "post_fit_inflated"), S(rs, "post_fit")),
             _pct(S(rs, "post_update_inflated"), S(rs, "post_update")),
-            _pct(
-                S(rs, "post_set_hyperparameters_inflated"),
-                S(rs, "post_set_hyperparameters"),
+            (
+                _pct(
+                    S(rs, "post_set_hyperparameters_inflated"),
+                    S(rs, "post_set_hyperparameters"),
+                )
+                if all(r["post_separated"] for r in rs)
+                else "—"
             ),
             f"{_med([r['post_max_mult'] for r in rs]):.0e}",
             _pct(
@@ -273,7 +294,9 @@ def tables(rows):
             _pct(S(rs, "poll_acq_calls_inflated"), S(rs, "poll_acq_calls")),
         ],
         "The share of returns of each method whose posterior keeps a noise "
-        "multiplier above one, and of the acquisition's calls on such a GP.",
+        "multiplier above one, and of the acquisition's calls on such a GP. "
+        "A dash for set_hyperparameters: counters that did not count its "
+        "returns without a posterior apart.",
     )
     table(
         "Zero predictive SDs (latent variance returned as exactly 0)",
@@ -345,6 +368,10 @@ def tables(rows):
                     S(rs, f"sto_{short}_uncertain"),
                 ),
                 _pct(
+                    S(rs, f"sto_{short}_certain_eps0"),
+                    S(rs, f"sto_{short}_certain"),
+                ),
+                _pct(
                     S(rs, f"sto_{short}_certain_z_lt05"),
                     S(rs, f"sto_{short}_certain"),
                 ),
@@ -359,6 +386,7 @@ def tables(rows):
             "success",
             "uncertain",
             "uncertain with mu < 0",
+            "certain with SD 0",
             "certain with abs(mu) < 0.5 SD",
             "certain with abs(mu) < 1.96 SD",
         ]
@@ -369,9 +397,13 @@ def tables(rows):
             "Each call of `_sto_success_improvement_` at the search or the "
             "poll: success (1), uncertain (0), failure (-1, certain or no "
             "estimate); mu is the estimated improvement and SD its standard "
-            "deviation. With `opp_stobads` every uncertain outcome of the "
-            "search moves its incumbent; a certain outcome whose abs(mu) is "
-            "under 0.5 SD is right with a probability of at most about 69%.",
+            "deviation. The shares of certain outcomes are over the certain "
+            "outcomes with an estimate; one with an SD of 0 is decided by the "
+            "sign of mu alone. A certain outcome whose abs(mu) is under 0.5 "
+            "SD is right with a probability of at most about 69%. With "
+            "`opp_stobads`, an uncertain outcome moves the incumbent where "
+            "the estimated improvement is positive (the search did on every "
+            "uncertain outcome before W0-13's fix).",
         )
     return "\n".join(out)
 
@@ -398,11 +430,14 @@ def histograms(runs):
             ("dist_hist", "distance to the nearest training input (ell)"),
             ("snr_log10_hist", "floor(log10(kss / effective noise))"),
         ):
+            if k == "raw_rel_log10_hist" and "0" in agg[k]:
+                # Older counters wrote an exact 0 as "0"
+                agg[k]["exact0"] += agg[k].pop("0")
             items = sorted(
                 agg[k].items(),
                 key=lambda kv: (
                     float(kv[0].lstrip("<>="))
-                    if kv[0] not in ("-inf",)
+                    if kv[0] not in ("-inf", "exact0")
                     else -1e9
                 ),
             )
