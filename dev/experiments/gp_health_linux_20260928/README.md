@@ -39,8 +39,11 @@ done
   fresh process per run.
 - The files: `summary.md` (the tables, all four suites) and `runs.csv`
   (one row per run with the counts the tables sum). The per-run counter
-  files and the population records stay on the machine that ran them, under
-  the gitignored `dev/scripts/runs/gp_health_20260928/`.
+  files and the population records were not kept: they were written in a
+  cloud container that is gone. The command above regenerates them, seeded
+  as they were; a machine whose `fingerprint.py` prints
+  `4146a986863602cb` (gpyreg 1.3.3, one BLAS thread) pairs with them by
+  seed.
 
 ## The counters change nothing
 

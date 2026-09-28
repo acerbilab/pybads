@@ -40,8 +40,9 @@ python dev/scripts/population.py compare $R/off/<suite>/pop $R/on/<suite>/pop
 - The files: `compare_<suite>.md`, the comparison of each suite, "off" as
   REF and "on" as NEW; `summary_on.md` and `summary_off.md`, the counters'
   tables of each arm over the four suites.
-- The per-run records and counter files stay on the machine that ran
-  them, under the gitignored `dev/scripts/runs/gp_switch_20260928/`.
+- The per-run records and counter files were not kept: they were written
+  in a cloud container that is gone. The command above regenerates them,
+  seeded as they were, on a machine whose fingerprints are the ones above.
 
 ## "off" is gpyreg 1.3.3
 

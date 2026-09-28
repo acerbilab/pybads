@@ -61,14 +61,16 @@ python dev/scripts/gp_health.py summary $R/<arm>/health --pop $R/<arm>/pop
   (`dev/scripts/gp_health_hooks/sitecustomize.py` at `b276da0`), which
   count each outcome of `_sto_success_improvement_` and change nothing:
   the fix of W0-13, run without them on the 300 runs of arm C, gave arm
-  C's records (`dev/scripts/runs/stobads_20260928/run_gate.log`), and the
-  worktree's arm C with the knob off gave arm A's records on two seeds.
+  C's records (the gate of #88), and the worktree's arm C with the knob off
+  gave arm A's records on two seeds.
 - The files: `compare_<NEW>_vs_<REF>.md`, the comparisons (60 pairs a
   configuration; their Holm family is the 15 tests of one comparison);
   `summary_<arm>.md`, the counters' tables of a Sto-BADS arm, whose last
-  table is its decisions; `arm_C.diff`. The per-run records stay on the
-  machine that ran them, under the gitignored
-  `dev/scripts/runs/stobads_20260928/`.
+  table is its decisions; `arm_C.diff`. The per-run records and counter
+  files were not kept: they were written in a cloud container that is gone.
+  The commands above regenerate them, seeded as they were, on a machine
+  whose `fingerprint.py` prints `4146a986863602cb` (gpyreg 1.3.3, one BLAS
+  thread); the base's seeds 0-29 are in `population_linux_wave4_20260927`.
 
 ## Outcome
 
