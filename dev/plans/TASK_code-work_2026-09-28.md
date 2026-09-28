@@ -29,7 +29,8 @@ pushes and runs `/doublecheck` at the end.
   `7110bba` (5), `5ac25aa` (7), `28fef97` (8), `c0aeaf4` (9), `c246982` (docs: 1, 2, 3, 6, 11, ledger, TODO); 778 passed; fingerprint `4146a986863602cb` (1 thread and default)
 - [x] P5a Replay tool + initial-design pin (Opus; worktree) — branch `worktree-agent-a2cf7890c1a6cb6ec`, merge after P2; replay identical at HEAD, parts under Sandybridge / 4 threads
 - [~] P1b W2-36 measurement (Opus; heavy, ~25-45 min) — population compare, 5 noisy configs, 90 seeds
-- [~] P2 Stage timers + profiler (Opus) — fingerprint + suite; timing campaign on a quiet machine
+- [x] P2 Stage timers + profiler (Opus) — fingerprint + suite; timing campaign on a quiet machine
+  `cf371d4` (timers), `a4a423b` (profiler), results note; 811 passed; fingerprint `4146a986863602cb` (1 thread and default); `optimize()` body now in `_optimize_()`
 - [ ] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
 - [ ] P5b Self-generated oracles (Opus) — after P3
 - [ ] Records: `dev/TODO.md`, ledger "Open ends", `pybads/bads/README.md`, `CHANGELOG.md`, `AGENTS.md`/`dev/README.md` where tooling is added

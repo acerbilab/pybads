@@ -127,9 +127,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   machine that slowed down.
 - `profile_compare.py BASE NEW` pairs the runs of two campaigns by
   configuration, seed and mode, and prints the median ratios of the wall
-  time, the own time and each stage, a control stage that the change does
-  not reach (`--control`, `gp_init` by default: a ratio far from 1 is the
-  machine's speed, not the code's), whether each pair ran the same
+  time, the own time and each stage, a large control stage that the
+  change does not reach (`--control`, `search_es` by default: a ratio far
+  from 1 is the machine's speed, not the code's), whether each pair ran the
+  same
   trajectory, and the cProfile buckets with their times per call. A
   commit from before the stage timers is measured with these scripts,
   `population.py` and `benchmark_targets.py` copied into a worktree at
@@ -176,6 +177,13 @@ reference's number of seeds.
   measured beside every addition of a point: agreement, the noise
   multiplier it carries over, and a saving of at most 2.5 %, behind the
   decision to keep the full recomputation.
+- [The stage times of PyBADS's runs](results/2026-09-28-stage-times.md) —
+  the baseline campaign of the profiler, whose stage timers charge each
+  second of a run to one stage: on the `profile` suite, the ES search's
+  candidates take 17 to 65 % of the own time and the GP's fits 14 to 71 %,
+  the failed fits alone 49 % of `ellipsoid_D3`'s; the stages and the target
+  make `total_time` to 2e-5 s; the noise of the machine between two passes
+  of the same runs, and the choice of a control stage.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over

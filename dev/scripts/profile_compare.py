@@ -7,11 +7,14 @@ over the seeds of the ratio NEW / BASE of the wall time, the own time
 (``total_time`` less the target's evaluations) and each top-level stage,
 the ratio of a control stage, and whether each pair ran the same trajectory
 (the same returned point, value and number of evaluations). The control is
-a stage the change under test does not reach (``--control``, ``gp_init`` by
-default, one GP fit on the initial design): a control ratio far from 1
-means that the machine ran at another speed during that configuration, and
-its row measures nothing. A campaign of a PyBADS without stage timers has
-no stages: its rows compare the wall and own times alone.
+a large stage that the change under test does not reach (``--control``,
+``search_es`` by default, the ES search's candidates, for a change to the
+GP fits, the poll or the bookkeeping; ``gp_training`` for a change to the
+search): a control ratio far from 1 means that the machine ran at another
+speed during that configuration, and its row measures nothing. A small
+stage, such as ``gp_init`` (one fit), makes a noisy control. A campaign of
+a PyBADS without stage timers has no stages: its rows compare the wall and
+own times alone.
 
 For the cProfile runs present in both it prints the median seconds of each
 bucket, their ratio and the calls, and the median time per call of the
@@ -224,9 +227,9 @@ def main(argv=None):
     ap.add_argument("new", help="campaign directory of the change")
     ap.add_argument(
         "--control",
-        default="gp_init",
+        default="search_es",
         help="a stage the change does not reach: a top-level stage, a leaf"
-        " or a path (default gp_init)",
+        " or a path (default search_es)",
     )
     args = ap.parse_args(argv)
     base, new = load(args.base), load(args.new)
