@@ -648,7 +648,7 @@ def test_gp_mean_fun_refused(name):
 @pytest.mark.parametrize("value", ["ard", "foo"])
 def test_gp_cov_prior_refused(value):
     """`gp_cov_prior` accepts only `"iso"`, the default: MATLAB's `"ard"`
-    is not ported, and an unknown value is refused as MATLAB does, when
+    is not supported, and an unknown value is refused as MATLAB does, when
     `BADS` is created."""
     with pytest.raises(ValueError, match="'ard' is not supported"):
         _make_bads(gp_cov_prior=value)

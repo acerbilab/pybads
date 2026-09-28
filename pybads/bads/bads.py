@@ -1191,7 +1191,7 @@ class BADS:
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 
         # MATLAB's per-dimension empirical prior over the length scales,
-        # 'ard' (gpdefBads.m), is not ported
+        # 'ard' (gpdefBads.m), is not supported: the GP's prior is 'iso'
         if self.options.get("gp_cov_prior") != "iso":
             raise ValueError(
                 "options['gp_cov_prior'] should be 'iso' (an empirical prior "

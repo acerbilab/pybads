@@ -29,9 +29,9 @@ feature*.
 * Benchmark PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
 
-`dev/TODO.md` holds the other open work, among it the unported features
-below that have an item of their own: `gp_cov_prior="ard"` (KD-B6-7) and
-the prior evaluations of `fun_values` (KD-B1-4).
+`dev/TODO.md` holds the other open work, among it an unported feature
+below that has an item of its own: the prior evaluations of `fun_values`
+(KD-B1-4).
 
 ## Deliberate differences
 
@@ -149,9 +149,10 @@ of them in 1.1.0), are not options of PyBADS: setting one raises
 `ValueError`, as for any unknown name. Other options are read, but only by
 a branch that does nothing or refuses: `plot` (KD-B2-2), `restarts`
 (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3),
-`fitness_shaping` (KD-B5-5), `hessian_update` and `hessian_method`
-(KD-B1-4), a nonzero `warp_func` (KD-B6-4), `periodic_vars` (KD-B1-6), an
-`init_fun` other than `"init_sobol"` (KD-B7-2).
+`gp_cov_prior` (KD-B6-7), `fitness_shaping` (KD-B5-5), `hessian_update`
+and `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4),
+`periodic_vars` (KD-B1-6), an `init_fun` other than `"init_sobol"`
+(KD-B7-2).
 - Settled by: W1-33, W2-35; the PI's ruling at the close of the review
   (the removal of the leftovers). Kind: removed feature.
 
@@ -809,13 +810,15 @@ gains mostly below the tolerance, and it stays off in PyBADS.
 - Settled by: W1-25; the PI's ruling of 2026-09-28 after the measurement
   (`dev/results/2026-09-28-gp-health.md`). Kind: substituted library.
 
-**KD-B6-7. `gp_cov_prior="ard"` is not ported, and is refused.**
+**KD-B6-7. `gp_cov_prior="ard"` is not supported, and is refused.**
 MATLAB's `'ard'` sets an empirical prior of the length scales per
-dimension; PyBADS refuses any value but `"iso"` when `BADS` is created.
+dimension. PyBADS has only MATLAB's default, `'iso'`, one empirical prior
+shared by all the length scales, and refuses any other value when `BADS`
+is created.
 - PyBADS: `BADS._init_optim_state_`; `local_gp_fitting`.
 - MATLAB: `gpdef/gpdefBads.m:254-274`.
-- Settled by: W1-28; the port is an item of `dev/TODO.md`. Kind:
-  unported feature.
+- Settled by: W1-28; the PI's ruling of 2026-09-28 not to port `'ard'`,
+  which is off by default in MATLAB BADS. Kind: removed feature.
 
 **KD-B6-8. A fixed noise (`fit_lik=False`) is refused on both sides.**
 PyBADS refuses it when `BADS` is created, MATLAB BADS when it defines the

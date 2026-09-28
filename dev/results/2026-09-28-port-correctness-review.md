@@ -205,7 +205,7 @@ histories and the gate.
 | W1-25 | B6 | gpyreg's Cholesky retries multiply the noise and keep the multiplier in the posterior; MATLAB treats a failure as an error | port discrepancy (substituted library) | kept (KD-B6-6); gpyreg's switch (acerbilab/gpyreg#56) stays off in PyBADS after its measurements, the second at the head of the review (PI, 2026-09-28; `2026-09-28-gp-health.md`) | KD-B6-6 |
 | W1-26 | B6 | A plateau of the initial values stops the run in `_gp_hyp` (zero SD of the mean's prior) | port discrepancy; needs MATLAB (the rebuild case) | fixed: a positive fallback, and a rebuild keeps the previous prior (KD-B6-2) | `cd1831f` (#74) |
 | W1-27 | B6 | PyBADS fits a GP on the initial design, where MATLAB only defines it | port discrepancy | kept (PI), on the sheet (KD-B6-5) | — |
-| W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7) | `64616af` (#74); `TODO.md`, "`gp_cov_prior="ard"`." |
+| W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7); not to be ported (PI, 2026-09-28) | `64616af` (#74) |
 | W1-29 | B6 | The output scale's prior is centred with the SD of ddof 0 | port discrepancy, negligible | fixed | `1d03801` (#74) |
 | W1-30 | B6 | The noise's upper bound is a log SD of 5, as MATLAB's, whatever the target's scale | design question, shared with MATLAB | kept, with a warning above e^5 (KD-B6-9); `matlab_side_defects.md` | `54e6424` (#74) |
 | W1-31 | B6 | The effective radius is said not to match gpyreg's kernel | not a defect | a comment naming the convention | `2794e94` (#74) |
@@ -403,7 +403,6 @@ items that a ruling left to later work are held by these items of
 |---|---|
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
-| "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
 | "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |

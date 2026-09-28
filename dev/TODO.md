@@ -143,12 +143,6 @@ decided on; "the next release" below means it.
   where the poll discards it, and gives the initial design `optim_state`'s
   boolean mask of the periodic variables, where it passes the option, a
   list of indices (rows W3-35 and W4-11 of the port review).
-- [ ] **`gp_cov_prior="ard"`.** MATLAB's per-dimension empirical prior of
-  the GP length scales (`gpdef/gpdefBads.m:254-274`) is not ported; by the
-  ruling on row W1-28 of the port review
-  (`experiments/port_review_20260925/verification/wave1.md`), PyBADS
-  refuses the value with a message instead. A port needs its own population
-  comparison with the option set.
 - [ ] **Prior evaluations (`fun_values`).** MATLAB BADS imports
   evaluations made before the run into its log and its GP
   (`private/setupvars.m:126-167`, `private/funlogger.m`) and takes its

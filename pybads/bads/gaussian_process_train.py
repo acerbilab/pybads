@@ -356,32 +356,33 @@ def local_gp_fitting(
         # TODO: with gp_fixed_mean, MATLAB also sets the mean
         # hyperparameter to y_mean, under a delta prior.
 
-    # Update GP Covariance length scale
-    if options["gp_cov_prior"] == "iso":
-        dist = udist(
-            gp.X,
-            gp.X,
-            1,
-            optim_state["lb"],
-            optim_state["ub"],
-            optim_state["scale"],
-            optim_state["periodic_vars"],
+    # Update GP Covariance length scale: one empirical prior shared by all
+    # the length scales, MATLAB's 'iso' (gpdefBads.m), the only gp_cov_prior
+    # that BADS accepts
+    dist = udist(
+        gp.X,
+        gp.X,
+        1,
+        optim_state["lb"],
+        optim_state["ub"],
+        optim_state["scale"],
+        optim_state["periodic_vars"],
+    )
+    dist = dist.flatten()
+    dist = dist[dist != 0]
+    # Distances without spread (two distinct points) keep the previous
+    # prior, whose sigma would be 0, as MATLAB's gpdefBads.m computes it
+    if dist.size > 0 and np.max(dist) > np.min(dist):
+        uu = 0.5 * np.log(np.max(dist))
+        ll = 0.5 * np.log(np.min(dist))
+
+        cov_mu = 0.5 * (uu + ll)
+        cov_sigma = 0.5 * (uu - ll)
+
+        gp_priors["covariance_log_lengthscale"] = (
+            "gaussian",
+            (cov_mu, cov_sigma),
         )
-        dist = dist.flatten()
-        dist = dist[dist != 0]
-        # Distances without spread (two distinct points) keep the previous
-        # prior, whose sigma would be 0, as MATLAB's gpdefBads.m computes it
-        if dist.size > 0 and np.max(dist) > np.min(dist):
-            uu = 0.5 * np.log(np.max(dist))
-            ll = 0.5 * np.log(np.min(dist))
-
-            cov_mu = 0.5 * (uu + ll)
-            cov_sigma = 0.5 * (uu - ll)
-
-            gp_priors["covariance_log_lengthscale"] = (
-                "gaussian",
-                (cov_mu, cov_sigma),
-            )
 
     # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
 
