@@ -34,10 +34,10 @@ def init_and_train_gp(
     """
     Initialize and train the Gaussian process model.
 
-    A training set of one distinct point, which a feasible region too thin
-    for the initial design leaves, is not fitted: the GP takes the starting
-    hyperparameters (``_gp_hyp``), the values of MATLAB BADS's definition
-    of its GP, which MATLAB BADS keeps until its first refit
+    A training set of one distinct point, such as a feasible region too
+    thin for the initial design leaves, is not fitted: the GP takes the
+    starting hyperparameters (``_gp_hyp``), the values of MATLAB BADS's
+    definition of its GP, which MATLAB BADS keeps until its first refit
     (``gpdefBads.m``). On one point the priors alone would decide the
     fit's optimum.
 
