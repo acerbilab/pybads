@@ -9,11 +9,11 @@ Branch `claude/todo-discussion-ad0tsh` (on `dev-next` at `bec8a57a`).
 - [x] Baseline at `bec8a57a`: 767 passed (3 min 25 s); fingerprint `4146a986863602cb` (1 BLAS thread and default, this container)
 
 ## 1. Research and decisions (discuss with PI before implementing)
-- [~] Loose ends: proposal per item (fix / document / drop)
-- [~] Stage timers + profiler: design after PyVBMC's `profile_run.py`
-- [~] Golden replay: design after PyVBMC's `golden_replay.py`
-- [~] One-point GP: options for priors/bounds, PyBADS vs gpyreg
-- [ ] PI rulings recorded here
+- [x] Loose ends: proposal per item (fix / document / drop). Ledger corrections: item 3 is reached at default options with `non_box_cons`; item 5 returns an uninitialized row; item 6 is false (`transvars.m:65` clips too)
+- [x] Stage timers + profiler: exclusive stage stack, probe kept the fingerprint
+- [x] Golden replay: exact replay holds only on one machine/kernel/thread count (runs part at eval 24-39 under another OpenBLAS kernel), so a dev tool; PyVBMC's oracles are self-generated, not MATLAB's
+- [x] One-point GP: only the initial fit sees one point; its mean prior is centred at 0.5; six RuntimeWarnings reach users
+- [~] PI rulings recorded here (asked 2026-09-28)
 
 ## 2. Implementation
 - [ ] Loose ends (per rulings)
