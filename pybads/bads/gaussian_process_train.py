@@ -34,6 +34,13 @@ def init_and_train_gp(
     """
     Initialize and train the Gaussian process model.
 
+    A training set of one distinct point, which a feasible region too thin
+    for the initial design leaves, is not fitted: the GP takes the starting
+    hyperparameters (``_gp_hyp``), the values of MATLAB BADS's definition
+    of its GP, which MATLAB BADS keeps until its first refit
+    (``gpdefBads.m``). On one point the priors alone would decide the
+    fit's optimum.
+
     Parameters
     ==========
     hyp_dict : dict
@@ -59,7 +66,8 @@ def init_and_train_gp(
     timer : pybads.utils.timer.stage_timer.StageTimer, optional
         The run's stage timer, which times the fits as the stage
         ``"gp_fit"`` and each fit that raises ``LinAlgError`` as
-        ``"gp_fit_failed"`` under it. If ``None``, nothing is timed.
+        ``"gp_fit_failed"`` under it; a GP on one point, not fitted, opens
+        neither. If ``None``, nothing is timed.
 
     Returns
     =======
@@ -130,110 +138,130 @@ def init_and_train_gp(
     if hyp_dict["hyp"] is None:
         hyp_dict["hyp"] = hyp0.copy()
 
-    # Get GP training options.
-    gp_train = _get_gp_training_options(
-        optim_state,
-        iteration_history,
-        options,
-        hyp_dict,
-        gp_s_N,
-        function_logger,
-    )
-
-    # Build starting points
-    hyp0 = np.empty((0, np.size(hyp_dict["hyp"])))
-
-    if gp_train["init_N"] > 0 and optim_state["iter"] > 0:
-        # Be very careful with off-by-one errors compared to MATLAB in the
-        # range here.
-        for i in range(
-            math.ceil((np.size(iteration_history["gp"]) + 1) / 2) - 1,
-            np.size(iteration_history["gp"]),
-        ):
-            hyp0 = np.concatenate(
-                (
-                    hyp0,
-                    iteration_history["gp"][i].get_hyperparameters(
-                        as_array=True
-                    ),
-                )
-            )
-        N0 = hyp0.shape[0]
-        if N0 > gp_train["init_N"] / 2:
-            hyp0 = hyp0[
-                rng.choice(
-                    N0, math.ceil(gp_train["init_N"] / 2), replace=False
-                ),
-                :,
-            ]
-    hyp0 = np.concatenate((hyp0, np.array([hyp_dict["hyp"]])))
-    hyp0 = np.unique(hyp0, axis=0)
-
-    # In some cases the model can change so be careful.
-    if hyp0.shape[1] != np.size(gp.hyper_priors["mu"]):
-        hyp0 = None
-
-    # At most n_try fits, as many as a refit tries (`_robust_gp_fit_`)
-    n_try = 10
+    # On one distinct point, the GP takes the starting hyperparameters
+    # without a fit. A posterior that fails leaves the GP as it was (gpyreg's
+    # update), and the fit below takes over.
     fitted = False
-    training_failures = 0
-    with timer.stage("gp_fit"):
-        while not fitted:
-            try:
-                with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
-                    if training_failures == 0:
-                        _, _, _ = gp.fit(
-                            x_train,
-                            y_train,
-                            s2_train,
-                            hyp0=hyp0,
-                            options=gp_train,
-                            rng=rng,
-                        )
-                        fitted = True
-                    elif training_failures == 3:
-                        # At the third failure, retry from every
-                        # hyperparameter at zero (MATLAB BADS fits no GP at
-                        # initialization, so it has no such retry)
-                        new_hyp = np.zeros(shape=hyp0.shape)
-                        _, _, _ = gp.fit(
-                            x_train,
-                            y_train,
-                            s2_train,
-                            hyp0=new_hyp,
-                            options=gp_train,
-                            rng=rng,
-                        )
-                        hyp0 = new_hyp
-                        hyp_dict["hyp"] = hyp0
-                        fitted = True
-                    else:
-                        # Sample random from prior
-                        # In case the initial hyperparameters fails
-                        new_hyp = _get_random_samples_from_priors_(gp, rng)
-                        _, _, _ = gp.fit(
-                            x_train,
-                            y_train,
-                            s2_train,
-                            hyp0=new_hyp,
-                            options=gp_train,
-                            rng=rng,
-                        )
-                        hyp0 = new_hyp
-                        hyp_dict["hyp"] = hyp0
-                        fitted = True
+    if _has_one_distinct_point(x_train):
+        try:
+            gp.update(
+                X_new=x_train,
+                y_new=y_train,
+                s2_new=s2_train,
+                hyp=np.atleast_2d(hyp_dict["hyp"]),
+            )
+            fitted = True
+        except np.linalg.LinAlgError:
+            logger.warning(
+                "bads:gp: The posterior of the GP on its one training point "
+                "failed; the GP is fitted instead."
+            )
 
-            except np.linalg.LinAlgError as err:
-                training_failures += 1
-                logger.warning(
-                    f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
+    if not fitted:
+        # Get GP training options.
+        gp_train = _get_gp_training_options(
+            optim_state,
+            iteration_history,
+            options,
+            hyp_dict,
+            gp_s_N,
+            function_logger,
+        )
+
+        # Build starting points
+        hyp0 = np.empty((0, np.size(hyp_dict["hyp"])))
+
+        if gp_train["init_N"] > 0 and optim_state["iter"] > 0:
+            # Be very careful with off-by-one errors compared to MATLAB in
+            # the range here.
+            for i in range(
+                math.ceil((np.size(iteration_history["gp"]) + 1) / 2) - 1,
+                np.size(iteration_history["gp"]),
+            ):
+                hyp0 = np.concatenate(
+                    (
+                        hyp0,
+                        iteration_history["gp"][i].get_hyperparameters(
+                            as_array=True
+                        ),
+                    )
                 )
-                if training_failures == n_try:
-                    raise RuntimeError(
-                        f"bads:gp: The initial fit of the GP failed {n_try} "
-                        "times, from the starting hyperparameters, from draws "
-                        "of their priors and from zeros."
-                    ) from err
+            N0 = hyp0.shape[0]
+            if N0 > gp_train["init_N"] / 2:
+                hyp0 = hyp0[
+                    rng.choice(
+                        N0, math.ceil(gp_train["init_N"] / 2), replace=False
+                    ),
+                    :,
+                ]
+        hyp0 = np.concatenate((hyp0, np.array([hyp_dict["hyp"]])))
+        hyp0 = np.unique(hyp0, axis=0)
+
+        # In some cases the model can change so be careful.
+        if hyp0.shape[1] != np.size(gp.hyper_priors["mu"]):
+            hyp0 = None
+
+        # At most n_try fits, as many as a refit tries (`_robust_gp_fit_`)
+        n_try = 10
+        training_failures = 0
+        with timer.stage("gp_fit"):
+            while not fitted:
+                try:
+                    with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
+                        if training_failures == 0:
+                            _, _, _ = gp.fit(
+                                x_train,
+                                y_train,
+                                s2_train,
+                                hyp0=hyp0,
+                                options=gp_train,
+                                rng=rng,
+                            )
+                            fitted = True
+                        elif training_failures == 3:
+                            # At the third failure, retry from every
+                            # hyperparameter at zero (MATLAB BADS fits no GP
+                            # at initialization, so it has no such retry)
+                            new_hyp = np.zeros(shape=hyp0.shape)
+                            _, _, _ = gp.fit(
+                                x_train,
+                                y_train,
+                                s2_train,
+                                hyp0=new_hyp,
+                                options=gp_train,
+                                rng=rng,
+                            )
+                            hyp0 = new_hyp
+                            hyp_dict["hyp"] = hyp0
+                            fitted = True
+                        else:
+                            # Sample random from prior
+                            # In case the initial hyperparameters fails
+                            new_hyp = _get_random_samples_from_priors_(gp, rng)
+                            _, _, _ = gp.fit(
+                                x_train,
+                                y_train,
+                                s2_train,
+                                hyp0=new_hyp,
+                                options=gp_train,
+                                rng=rng,
+                            )
+                            hyp0 = new_hyp
+                            hyp_dict["hyp"] = hyp0
+                            fitted = True
+
+                except np.linalg.LinAlgError as err:
+                    training_failures += 1
+                    logger.warning(
+                        f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
+                    )
+                    if training_failures == n_try:
+                        raise RuntimeError(
+                            "bads:gp: The initial fit of the GP failed "
+                            f"{n_try} times, from the starting "
+                            "hyperparameters, from draws of their priors "
+                            "and from zeros."
+                        ) from err
     # end gp hyp. init
 
     # Update running average of GP hyperparameter covariance (coarse)
@@ -934,6 +962,12 @@ def _cov_identifier_to_covariance_function(identifier):
     return cov_f
 
 
+def _has_one_distinct_point(X: np.ndarray):
+    """Whether the training inputs ``X``, of shape ``(N, D)``, hold one
+    distinct point, however many rows repeat it."""
+    return np.unique(X, axis=0).shape[0] == 1
+
+
 def _gp_hyp(
     optim_state: dict,
     options: Options,
@@ -946,6 +980,19 @@ def _gp_hyp(
 ):
     """
     Define bounds, priors and samples for GP hyperparameters.
+
+    The starting hyperparameters come from gpyreg's recommendations for the
+    high-density training set, with the log shape of the rational-quadratic
+    kernel at 0, the log noise SD at the log of the run's noise size and
+    the constant mean at the median of the lowest ``ceil(hpd_frac * N)``
+    targets. On one distinct training point they are the values of MATLAB
+    BADS's definition of its GP (``gpdefBads.m``): the log length scales,
+    the log output scale and the log shape at 0, the noise and the mean as
+    above (the mean at the one target), and the mean's prior is centred at
+    the mean's start with the SD 1. gpyreg's recommendations, which replace
+    a single target by ``[0, 1]`` and take the log of the inputs' zero
+    width, with warnings, are not computed then. The bounds and the other
+    priors do not depend on the training set.
 
     Parameters
     ==========
@@ -984,31 +1031,37 @@ def _gp_hyp(
     hpd_X, hpd_y, _, _ = get_hpd(X, y, options["hpd_frac"])
     D = hpd_X.shape[1]
     # s2 = None
+    one_point = _has_one_distinct_point(X)
 
     ## Set GP hyperparameter defaults for BADS.
-    cov_bounds_info = gp.covariance.get_bounds_info(
-        hpd_X, hpd_y
-    )  # in BADS are all zeros
-    mean_bounds_info = gp.mean.get_bounds_info(hpd_X, hpd_y)
-    noise_bounds_info = gp.noise.get_bounds_info(hpd_X, hpd_y)
-    # Missing port: output warping hyperparameters not implemented
-    cov_x0 = cov_bounds_info["x0"]
-    if isinstance(
-        gp.covariance, gpr.gpyreg.covariance_functions.RationalQuadraticARD
-    ):
-        cov_x0[-1] = 0.0  # shape hyp.
+    if one_point:
+        # MATLAB's definition (gpdefBads.m:48, hyp.cov = zeros); the noise
+        # and the mean are set below
+        cov_x0 = np.zeros(gp.covariance.hyperparameter_count(D))
+        mean_x0 = np.zeros(gp.mean.hyperparameter_count(D))
+        noise_x0 = np.zeros(gp.noise.hyperparameter_count())
+    else:
+        cov_bounds_info = gp.covariance.get_bounds_info(hpd_X, hpd_y)
+        mean_bounds_info = gp.mean.get_bounds_info(hpd_X, hpd_y)
+        noise_bounds_info = gp.noise.get_bounds_info(hpd_X, hpd_y)
+        # Missing port: output warping hyperparameters not implemented
+        cov_x0 = cov_bounds_info["x0"]
+        if isinstance(
+            gp.covariance,
+            gpr.gpyreg.covariance_functions.RationalQuadraticARD,
+        ):
+            cov_x0[-1] = 0.0  # shape hyp.
+        mean_x0 = mean_bounds_info["x0"]
+        noise_x0 = noise_bounds_info["x0"]
 
-    mean_x0 = mean_bounds_info["x0"]
     # The constant mean starts at the median of the lowest
     # ceil(hpd_frac * N) targets, as in MATLAB's gpdefBads.m (ceil(0.8 N));
-    # its prior, below, stays centred on the high-density set, the lowest
-    # round(hpd_frac * N)
+    # its prior, below, is centred on the high-density set, the lowest
+    # round(hpd_frac * N), but on one distinct point
     mean_start = mean_x0.copy()
     if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         n_low = math.ceil(options["hpd_frac"] * y.size)
         mean_start[0] = np.median(np.sort(y, axis=None)[:n_low])
-
-    noise_x0 = noise_bounds_info["x0"]
 
     # Hyperparams over observation noise
     if options["fit_lik"]:
@@ -1085,12 +1138,18 @@ def _gp_hyp(
         pass
     elif isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         # The constant mean is unbounded, as in MATLAB's gpdefBads.m: its
-        # prior is re-centred at each rebuild. A single target, or targets
-        # with no spread, take the SD 1 (gpyreg refuses a zero SD)
-        sd = np.std(hpd_y) if len(hpd_y) > 1 else 0.0
-        if not sd > 0:
-            sd = 1.0
-        priors["mean_const"] = ("gaussian", (mean_x0, sd))
+        # prior is re-centred at each rebuild. Targets with no spread take
+        # the SD 1 (gpyreg refuses a zero SD), and so does one distinct
+        # point, whose prior is centred at its start, as MATLAB's
+        # definition has the SD 1 (gpdefBads.m:171)
+        if one_point:
+            centre, sd = mean_start, 1.0
+        else:
+            centre = mean_x0
+            sd = np.std(hpd_y) if len(hpd_y) > 1 else 0.0
+            if not sd > 0:
+                sd = 1.0
+        priors["mean_const"] = ("gaussian", (centre, sd))
         bounds["mean_const"] = (-np.inf, np.inf)
 
     elif isinstance(gp.mean, gpr.mean_functions.NegativeQuadratic):

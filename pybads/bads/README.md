@@ -773,13 +773,14 @@ entries of their own.
 When the range of the training targets is 0, MATLAB BADS gives the mean's
 prior a zero variance (`yrange.^2/4`) and centres the output scale's prior
 at `log(std(y)) = -Inf`; PyBADS keeps the previous width of the mean's
-prior and the previous centre of the output scale's, and at the initial
-fit gives the mean's prior the SD 1. When the pairwise distances of the
-training set have no spread (two distinct points), MATLAB's empirical
-prior of the length scales has a zero width, which gpyreg refuses; PyBADS
-keeps the previous prior. Otherwise the re-centred priors follow MATLAB
-BADS. What MATLAB's fit does with these zero-width priors is not known
-without MATLAB.
+prior and the previous centre of the output scale's, and at the
+initialization gives the mean's prior the SD 1, the width of MATLAB's
+definition, centred on one distinct point at its target (KD-B6-5). When
+the pairwise distances of the training set have no spread (two distinct
+points), MATLAB's empirical prior of the length scales has a zero width,
+which gpyreg refuses; PyBADS keeps the previous prior. Otherwise the
+re-centred priors follow MATLAB BADS. What MATLAB's fit does with these
+zero-width priors is not known without MATLAB.
 - PyBADS: `local_gp_fitting`, `_gp_hyp`.
 - MATLAB: `gpdef/gpdefBads.m:219-222`, `240-251`, `293-295`.
 - Settled by: W1-26, W3-40. Kind: deliberate change.
@@ -805,10 +806,20 @@ PyBADS fits the hyperparameters on the initial design under the priors of
 the definition; MATLAB BADS keeps the definition's values until its first
 rebuild. Both refit at the first rebuild, so the initial fit reaches a run
 as one start of that refit and as the hyperparameters of the first
-target's prediction.
-- PyBADS: `init_and_train_gp`; `BADS._init_optimization_`.
-- MATLAB: `bads.m:465-469`; `gpdef/gpdefBads.m:164-165`.
-- Settled by: W1-27. Kind: deliberate change.
+target's prediction. On one distinct point (a feasible region too thin for
+the initial design, `max_fun_evals=2` with the noise test,
+`fun_eval_start=0`), where the priors alone would decide the fit and
+gpyreg's recommendations warn, PyBADS does not fit either: the GP holds
+the definition's values, as MATLAB BADS's does, the log length scales,
+the log output scale and the log shape at 0, the log noise SD at the log
+of the noise size and the mean at the point's target. The mean's prior is
+centred at that target with the SD 1, where MATLAB's definition centres
+it at 0; both sides re-centre it at each rebuild, before any fit.
+- PyBADS: `init_and_train_gp`, `_gp_hyp`; `BADS._init_optimization_`.
+- MATLAB: `bads.m:465-469`; `gpdef/gpdefBads.m:48`, `147-154`, `164-173`,
+  `219-220`.
+- Settled by: W1-27; the PI's ruling of 2026-09-28 (one point). Kind:
+  deliberate change.
 
 **KD-B6-6. A failed Cholesky factorization multiplies the GP's noise.**
 gpyreg multiplies the noise by ten per failed attempt, up to ten attempts,
