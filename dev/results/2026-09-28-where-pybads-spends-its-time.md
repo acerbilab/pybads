@@ -137,7 +137,11 @@ cProfile at the head, seed 0:
 - **Removing evaluated candidates.** `contraints_check` removes the
   candidates already evaluated or infeasible. It takes 4.5 to 13 % of the
   run, nearly all of it called by the ES search, and most of that in
-  `np.unique` (its sort) over the candidates.
+  `np.unique` (its sort) over the candidates. A later change replaced its
+  two `np.unique` calls by one stable sort of the candidates' bins, which
+  returns the same candidates in the same order; the check then took 16
+  to 44 % of its former time over seeds 0-2 of the `default`, `oned`,
+  `bounds` and `geometry` suites on Linux.
 - **Deep copies.** They take 0.6 to 1.2 % of the base's run and 0.1 to
   0.5 % of the head's. Most of the target's saving comes from the
   posterior that it no longer recomputes, not from the copy.

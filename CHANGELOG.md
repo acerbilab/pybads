@@ -298,6 +298,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   saves a copy of the Gaussian process and the computation of a posterior,
   and results are unchanged. The target that `optim_state` holds, which
   `output_fcn` receives, is the last poll's.
+- **Cost of removing evaluated candidates.** The search and the poll remove
+  the candidates already evaluated, and repeated ones, with one stable sort
+  of their bins instead of two sorts by `np.unique`. Results are unchanged,
+  and runs take 4 to 24 % less time on the problems of PyBADS's benchmark.
 
 ### Fixed
 
