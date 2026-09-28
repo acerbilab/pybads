@@ -321,9 +321,6 @@ def test_add_parameter_transform():
     assert np.all(f_logger.Y_orig[0] == fval_orig)
 
 
-test_add_parameter_transform()
-
-
 def test_call_invalid_func_value():
     x = np.array([3, 4, 5])
     return_inf_function = lambda x: x * np.inf
