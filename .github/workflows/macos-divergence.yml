@@ -59,37 +59,27 @@ jobs:
           python -c "import scipy; scipy.show_config()"
           python -c "import threadpoolctl, pprint, numpy, scipy.linalg; pprint.pprint(threadpoolctl.threadpool_info())"
 
+      - name: Alignment of the inputs and outputs of the linear algebra
+        continue-on-error: true
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py align 300
+
+      - name: Alignment, one BLAS thread
+        continue-on-error: true
+        env:
+          VECLIB_MAXIMUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py align 300
+
       - name: Loop, default threads
         continue-on-error: true
         run: |
           cd ./pybads
           python -u dev/scripts/divergence_trace.py loop 60
-
-      - name: Loop, one BLAS thread
-        continue-on-error: true
-        env:
-          VECLIB_MAXIMUM_THREADS: "1"
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-        run: |
-          cd ./pybads
-          python -u dev/scripts/divergence_trace.py loop 60
-
-      - name: Trace, default threads
-        continue-on-error: true
-        run: |
-          cd ./pybads
-          python -u dev/scripts/divergence_trace.py trace 20 ../out/default
-
-      - name: Trace, one BLAS thread
-        continue-on-error: true
-        env:
-          VECLIB_MAXIMUM_THREADS: "1"
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-        run: |
-          cd ./pybads
-          python -u dev/scripts/divergence_trace.py trace 20 ../out/one_thread
 
       - uses: actions/upload-artifact@v7
         if: always()

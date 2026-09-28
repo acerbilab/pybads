@@ -399,6 +399,91 @@ def mode_trace(n, out_dir):
         pickle.dump({"diverged": m, "reference": ref_cap}, f)
 
 
+def _at_offset(arr, offset, order="F"):
+    """A copy of `arr` whose data start `offset` bytes past a 128-byte
+    boundary."""
+    buf = np.empty(arr.nbytes + 256, dtype=np.uint8)
+    start = (-buf.ctypes.data) % 128 + offset
+    out = np.ndarray(
+        arr.shape, dtype=arr.dtype, buffer=buf, offset=start, order=order
+    )
+    out[...] = arr
+    return out
+
+
+def mode_align(n_rep):
+    """The linear algebra of a GP fit, on fixed inputs, with the inputs at
+    each 8-byte offset from a 128-byte boundary, and repeated with the
+    allocator's state shifted before each call (which moves the arrays that
+    the call allocates): the number of distinct results, bit for bit."""
+    import scipy.linalg
+    from gpyreg.gaussian_process import _solve_triangular
+
+    rng = np.random.default_rng(0)
+    offsets = range(0, 128, 8)
+    print(
+        f"{'operation':<24} {'N':>3} {'a offsets':>9} {'b offsets':>9} "
+        f"{'repeats':>8}"
+    )
+    for N in (6, 11, 16, 25, 40, 64, 81):
+        X = rng.uniform(-1, 1, size=(N, D))
+        d2 = np.sum((X[:, None, :] - X[None, :, :]) ** 2, axis=-1)
+        K = np.exp(-0.5 * d2 / 0.3**2)
+        A = K / 1e-4
+        A.flat[:: N + 1] += 1.0
+        L = scipy.linalg.cholesky(A, check_finite=False)
+        b = rng.normal(size=(N, 1))
+        v = rng.normal(size=(N, 1))
+        ops = {
+            "trtrs (trans=1)": (
+                L,
+                b,
+                lambda a, y: _solve_triangular(a, y, trans=1),
+            ),
+            "trtrs (trans=0)": (
+                L,
+                b,
+                lambda a, y: _solve_triangular(a, y, trans=0),
+            ),
+            "potrf": (
+                np.asfortranarray(A),
+                None,
+                lambda a, y: scipy.linalg.cholesky(a, check_finite=False),
+            ),
+            "matmul NxN @ NxN": (K, A, lambda a, y: a @ y),
+            "matmul NxN @ Nx1": (K, v, lambda a, y: a @ y),
+            "matmul 1xN @ Nx1": (v.T.copy(), v, lambda a, y: a @ y),
+            "np.sum": (K, None, lambda a, y: np.sum(a)),
+        }
+        for name, (a0, b0, f) in ops.items():
+            order = "F" if a0.flags.f_contiguous else "C"
+            ra = {
+                f(_at_offset(a0, o, order), b0).tobytes()
+                if isinstance(f(a0, b0), np.ndarray)
+                else repr(f(_at_offset(a0, o, order), b0))
+                for o in offsets
+            }
+            rb = {"-"}
+            if b0 is not None:
+                ob = "F" if b0.flags.f_contiguous else "C"
+                rb = {
+                    np.asarray(f(a0, _at_offset(b0, o, ob))).tobytes()
+                    for o in offsets
+                }
+            rr = set()
+            junk = []
+            for j in range(n_rep):
+                junk.append(np.empty(int(rng.integers(1, 64))))
+                if len(junk) > 16:
+                    junk.pop(int(rng.integers(0, len(junk))))
+                rr.add(np.asarray(f(a0, b0)).tobytes())
+            nb = "-" if b0 is None else len(rb)
+            print(
+                f"{name:<24} {N:>3} {len(ra):>9} {nb:>9} {len(rr):>8}",
+                flush=True,
+            )
+
+
 def main():
     mode = sys.argv[1]
     n = int(sys.argv[2])
@@ -415,6 +500,8 @@ def main():
         mode_loop(n)
     elif mode == "trace":
         mode_trace(n, out_dir)
+    elif mode == "align":
+        mode_align(n)
     else:
         raise SystemExit(f"unknown mode {mode}")
 
