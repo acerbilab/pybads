@@ -1464,20 +1464,21 @@ class BADS:
 
     def optimize(self):
         """
-        Run the optimization on an initialized ``PyBADS`` object.
+        Run the optimization on an initialized ``BADS`` object.
 
-        BADS starts at X0 and finds a local minimum X of the
-        target function 'fun'.
+        BADS starts at ``x0`` and finds a local minimum ``x`` of the target
+        function ``fun``.
 
-        A history of the optimization problem can be found at the ``self.iteration_history`` variable of the ``PyBADS`` object.
+        A history of the optimization problem can be found in the
+        ``iteration_history`` attribute of the ``BADS`` object.
 
         Returns
-        ----------
-            optimize_result: OptimizeResult
-                Dictionary containing the result of the optimization. See the documentation of the ``OptimizeResult`` class for more details.
-                For example, retrieve the final solution with the following attributes:
-                    -  ``optimize_result.x``
-                    -  ``optimize_result.fval``
+        -------
+        optimize_result : OptimizeResult
+            Dictionary containing the result of the optimization. See the
+            documentation of the ``OptimizeResult`` class for more details.
+            For example, retrieve the final solution and its value with the
+            attributes ``optimize_result.x`` and ``optimize_result.fval``.
         """
         is_finished = False
         poll_iteration = -1
