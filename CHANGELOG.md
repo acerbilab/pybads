@@ -86,6 +86,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
 
+### Added
+
+- **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
+  coding agent to the parts of the documentation relevant to its task, and
+  the README says how to give it to an agent.
+
 ### Changed
 
 - **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
