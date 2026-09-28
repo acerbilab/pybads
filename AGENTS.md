@@ -251,10 +251,14 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   preallocates its arrays, and `X_flag` marks the filled rows. The log can
   open with evaluations made before the run (`precomputed_evaluations`,
   added through `FunctionLogger.add` in `BADS.__init__`), which
-  `func_count` leaves out: code that takes the log's rows for the run's own
-  evaluations (the first incumbent in `_init_mesh_`, `eff_starting_points`
-  and `n_eff` in `_get_gp_training_options`) leaves them out through the
-  counts `optim_state["precomputed_*"]`. A repeated point at level 2 is
+  `func_count` leaves out. Code that takes the log's rows for the run's own
+  evaluations leaves them out: `_init_mesh_` chooses the first incumbent
+  (and at level 2 its `fsd`) among the rows that the start and the initial
+  design returned (`_init_incumbent_row`) and counts `eff_starting_points`
+  from `func_count`, and `_get_gp_training_options` subtracts
+  `optim_state["precomputed_n_evals"]` from `n_eff`; new code that reads
+  `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same. A
+  repeated point at level 2 is
   merged into its row by precision weighting, which a run reaches only
   through those evaluations: `contraints_check` removes the candidates
   already evaluated, and the noise test and the final samples take

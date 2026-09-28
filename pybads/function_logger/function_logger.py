@@ -201,8 +201,8 @@ class FunctionLogger:
     ):
         """
         Add an evaluation of the function made elsewhere to the log, without
-        counting it in ``func_count``: ``BADS`` adds so the evaluations made
-        before its run (``precomputed_evaluations``).
+        counting it in ``func_count``: ``BADS`` adds the evaluations made
+        before its run (``precomputed_evaluations``) this way.
 
         The evaluation is recorded as one of the logger's own: at a point
         that the log holds, a logger that holds SDs merges it into the
@@ -219,13 +219,14 @@ class FunctionLogger:
             one, the two spaces are the same.
         fval_orig : float
             The result of the evaluation of the function, a finite real
-            scalar or an array of one.
+            scalar, or an array or a list of one element.
         fsd : float, optional
-            The (estimated) SD of the result, a finite positive real scalar
-            or an array of one. A logger that holds SDs (``noise_flag``)
-            requires it at uncertainty handling level 2, where the target
-            returns them, and records a missing one as 1 below it; a logger
-            that does not hold SDs ignores it. By default None.
+            The (estimated) SD of the result, a finite positive real scalar,
+            or an array or a list of one element. A logger that holds SDs
+            (``noise_flag``) requires it at uncertainty handling level 2,
+            where the target returns them, and records a missing one as 1
+            below it; a logger that does not hold SDs ignores it. By default
+            None.
         fun_eval_time : float
             The duration of the time it took to evaluate the function,
             by default np.nan.

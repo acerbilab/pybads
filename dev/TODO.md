@@ -101,7 +101,8 @@ decided on; "the next release" below means it.
   1.5" replaces it, and says that `random_seed` now decides the initial
   design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck"). At the same release, `skills/pybads/SKILL.md` and the
+  "Doublecheck") and that a run takes evaluations made before it
+  (`precomputed_evaluations`). At the same release, `skills/pybads/SKILL.md` and the
   FAQ (`docsrc/source/faq.md`), which name no release, name 1.5, as
   PyVBMC's skill and FAQ do. The published documentation follows `main`,
   so until that release the FAQ describes code that no release has, among

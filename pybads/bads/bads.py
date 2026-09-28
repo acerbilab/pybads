@@ -261,9 +261,9 @@ class BADS:
 
     precomputed_evaluations : tuple, optional, keyword-only
         Evaluations of ``fun`` made before the run, for instance by an
-        earlier run, as ``(X, y)``, or ``(X, y, y_sd)`` with
-        ``options['specify_target_noise']``, which requires ``y_sd``. ``X``
-        holds one point per row in the original space, of shape ``(N,
+        earlier run, as a tuple (or a list) ``(X, y)``, or ``(X, y, y_sd)``
+        with ``options['specify_target_noise']``, which requires ``y_sd``.
+        ``X`` holds one point per row in the original space, of shape ``(N,
         D)``, each within the hard bounds and satisfying ``non_box_cons``;
         ``y`` holds the values of ``fun`` at them and ``y_sd`` the SDs of
         their noise, both of shape ``(N,)``. The values are finite and the
@@ -271,7 +271,7 @@ class BADS:
         and with it the training set of its Gaussian process, but not its
         count of evaluations (``func_count``, which ``max_fun_evals``
         bounds), and the run starts from ``x0`` and its initial design
-        alone: none of the points is its first incumbent. Unless
+        alone: its first incumbent is the best of them. Unless
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
@@ -327,12 +327,13 @@ class BADS:
         a non-empty ``fun_values`` or ``periodic_vars``, or
         ``acq_hedge=True``, options that are not supported.
     ValueError
-        When ``precomputed_evaluations`` is not a tuple of two or three
-        arrays of the shapes above, of finite values and positive SDs, when
-        it has ``y_sd`` without ``options['specify_target_noise']`` or lacks
-        them with it, when one of its points lies outside the hard bounds or
-        violates ``non_box_cons``, or when a point given twice has two values
-        where a point is kept once.
+        When ``precomputed_evaluations`` is not a tuple (or a list) of two
+        or three arrays of the shapes above, of finite values and positive
+        SDs, when it has ``y_sd`` without
+        ``options['specify_target_noise']`` or lacks them with it, when one
+        of its points lies outside the hard bounds or violates
+        ``non_box_cons``, or when a point given twice has two different
+        values where a point is kept once.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -1351,8 +1352,9 @@ class BADS:
         level = self.optim_state["uncertainty_handling_level"]
         if level == 2 and y_sd is None:
             raise ValueError(
-                "With options['specify_target_noise'], precomputed_evaluations "
-                "must hold the noise SDs of the values: (X, y, y_sd)."
+                "With options['specify_target_noise'], "
+                "precomputed_evaluations must hold the noise SDs of the "
+                "values: (X, y, y_sd)."
             )
         if level < 2 and y_sd is not None:
             raise ValueError(

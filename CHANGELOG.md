@@ -100,15 +100,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ("Options without effect" below).
 - `FunctionLogger.add` raises `ValueError` for an evaluation without its
   noise SD in a logger at uncertainty handling level 2, which 1.1.0
-  recorded with an SD of 1, and for a value or an SD that is a string or
-  complex, where 1.1.0 raised `TypeError` or recorded it.
+  recorded with an SD of 1, for a value or an SD that is a string, where
+  1.1.0 raised `TypeError`, and for one of a complex type with a zero
+  imaginary part, which 1.1.0 recorded.
 
 ### Added
 
 - **Evaluations made before the run.** `BADS(...,
-  precomputed_evaluations=(X, y))` gives a run evaluations of the target
-  made before it, for instance by an earlier run (`(X, y, y_sd)` with
-  `specify_target_noise=True`), as MATLAB BADS's option `FunValues` does.
+  precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
+  `specify_target_noise=True`, gives a run evaluations of the target made
+  before it, for instance by an earlier run, as MATLAB BADS's option
+  `FunValues` does.
   They enter the run's log of evaluations and the training set of its
   Gaussian process, but do not count as evaluations of the run
   (`func_count`, which `max_fun_evals` bounds), and the run still starts
@@ -117,7 +119,6 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is `True`, two different values at one point. The result reports the
   number of evaluations given in `precomputed_observations`, and of their
   distinct points in `precomputed_locations`, when at least one was given.
-
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
@@ -247,6 +248,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   taken as that element, and a string or a complex value raises
   `ValueError`. At uncertainty handling level 2, where the target returns
   the SDs, it requires the SD, as PyVBMC's logger does.
+- **Evaluations that are not recorded.** An evaluation of the function
+  logger with `record_duplicate_data=False`, as the final samples of a
+  noisy run are, leaves the log as it is, as MATLAB BADS's log does: 1.1.0
+  added it to the count of evaluations of its point's row (`n_evals`) and
+  averaged its time into the row's.
 - **`f_vals`.** `BADS` refuses an `f_vals` that holds a finite value, with a
   message that the option is not supported; in 1.1.0 a run given one value
   stopped at its first display line, with `display="off"` too, and one given

@@ -324,7 +324,7 @@ KD-B3-3), both by the PI's rulings.
 | W4-2 | B7 | A start at or below -1 in `u` reaches an undefined cast to `uint64`, which x86 and arm64 resolve differently | defect | fixed with W4-1; wave 2's dating of the reach corrected | `efe5e95`, `3a8096b` (#80) |
 | W4-3 | B7 | The design doubles when its size equals D, with no recorded reason (W0-18) | design question | kept at every D (PI), where the proposal was to remove it (KD-B7-1) | `a84a3dd` (#80), the records |
 | W4-4 | B7 | `init_sobol` returns the exponent where its docstring says the number of samples, and its parameters are misdescribed | confirmed, inert | fixed; `lb` and `ub` required | `8daf7ad` (#80) |
-| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | the merge kept (KD-B7-3), records corrected | `2dc5807`, `fba29cd` (#80) |
+| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | the merge kept (KD-B7-3), records corrected | `2dc5807`, `fba29cd` (#80); reached again through `precomputed_evaluations` (KD-B1-15, KD-B7-3) |
 | W4-6 | B7 | The noise test, recorded nowhere, still adds 1 to the start's `n_evals` and its time to the start's row | defect (minor); the time inert | fixed, moves results; completed so that the fits' schedule leaves the test out of its budget | `e7bd01d`, `46af65a` (#80) |
 | W4-7 | B7 | The untimed noise test counts as the optimizer's time in `overhead`, as MATLAB's | shared defect, negligible | kept, as MATLAB's; the description of `overhead` says so; `matlab_side_defects.md` | `e744ed9` (#80) |
 | W4-8 | B7 | A malformed SD or a complex value does not raise the documented `ValueError` before the row is written | port discrepancy (minor) | fixed | `5dd92b7` (#80) |
@@ -414,7 +414,18 @@ items that a ruling left to later work are held by these items of
 The item "Prior evaluations (`fun_values`)." held W2-6, W4-10,
 `FunctionLogger.add`'s checks and the final samples' bookkeeping in the
 log until the port of the evaluations made before the run, the argument
-`precomputed_evaluations` (KD-B1-15), settled them.
+`precomputed_evaluations` (KD-B1-15), settled them. The PI ruled on the
+port (2026-09-28): PyVBMC's interface, a keyword argument of `BADS`,
+without PyVBMC's `initialization_cost`; the points that violate
+`non_box_cons` refused, as those outside the hard bounds are; and the
+result's `precomputed_observations` and `precomputed_locations`, as PyVBMC
+reports them. The port takes PyVBMC's other rules: the checks of the
+arrays, the SDs required exactly with `specify_target_noise`, and a point
+given twice without uncertainty handling kept once, its two values
+agreeing within four float64 spacings. `FunctionLogger.add` requires the
+SD at level 2, as PyVBMC's logger does, and an evaluation that the logger
+does not record leaves its rows as they are, as MATLAB's `funlogger`
+evaluates the final samples (`'single'`).
 
 **The minor items.** "Found while fixing" of `verification/wave2.md` and
 `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items of slices B1,

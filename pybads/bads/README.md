@@ -121,13 +121,13 @@ ignores it.
 - *PyBADS only, and refused:* `f_vals`, read only by its check: one that
   holds a finite value is refused, and one without, such as an empty list,
   stands for `None` (W2-7).
-- *On both sides, an argument in PyBADS:* `fun_values` (MATLAB's
-  `FunValues`, which imports earlier evaluations into the log and the GP,
-  `private/setupvars.m:126-167`): a non-empty value is refused (W2-6), and
-  `BADS` takes the evaluations as its argument `precomputed_evaluations`
-  (KD-B1-15).
-- Kind: removed feature (MATLAB's options); Python-only feature (the
-  others).
+- *On both sides, an option in MATLAB BADS and an argument in PyBADS:*
+  `fun_values` (MATLAB's `FunValues`, which imports earlier evaluations
+  into the log and the GP, `private/setupvars.m:126-167`): a non-empty
+  value is refused (W2-6), and `BADS` takes the evaluations as its
+  argument `precomputed_evaluations` (KD-B1-15).
+- Kind: removed feature (MATLAB's options); deliberate change (interface,
+  `fun_values`); Python-only feature (the others).
 
 **KD-B1-5. Options that are parsed and have no effect.**
 The options that no code of PyBADS reads are twelve, all named after
@@ -287,14 +287,16 @@ and takes the evaluations as the keyword argument
 into its log with the same count and the same first incumbent. It also
 refuses: SDs without `specify_target_noise` and their absence with it,
 which MATLAB does not check (an `S` without `SpecifyTargetNoise` makes its
-logger ask the target for two outputs, and the converse fails when it
-pads `S`); points outside the hard bounds or that violate `non_box_cons`,
-which MATLAB takes; and, without uncertainty handling, two values of one
-point, which is kept once where MATLAB adds a row per repeat. With
-uncertainty handling each repeat is an observation, a row at level 1 and
-merged into its point's row at level 2 (KD-B7-3). The schedule of the
-GP's fits, PyBADS's own (KD-B5-6), spans the run's evaluations and leaves
-the imported ones out. The result counts them in
+logger ask the target for two outputs, and the converse fails when it pads
+`S`); points outside the hard bounds or that violate `non_box_cons`, which
+MATLAB takes; and, unless `uncertainty_handling` is `True`, a point given
+twice with two different values. The check comes before the noise test, so
+that an `uncertainty_handling` left empty counts as none, and a point
+given twice with one value is kept once, where MATLAB adds a row per
+repeat. With uncertainty handling each repeat is an observation, a row at
+level 1 and merged into its point's row at level 2 (KD-B7-3). The schedule
+of the GP's fits, PyBADS's own (KD-B5-6), spans the run's evaluations and
+leaves the imported ones out. The result counts them in
 `precomputed_observations` and `precomputed_locations` (KD-B1-8).
 - PyBADS: `BADS.__init__`, `_import_precomputed_evaluations_` and
   `_init_mesh_` (`pybads/bads/bads.py`); `FunctionLogger.add`;
@@ -302,8 +304,9 @@ the imported ones out. The result counts them in
   `OptimizeResult`.
 - MATLAB: `private/setupvars.m:126-167`; `private/funlogger.m:30-85`;
   `private/evalinitmesh.m:120-123`.
-- Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28).
-  Kind: deliberate change (interface).
+- Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28), in
+  the review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
+  "Open ends"). Kind: deliberate change (interface).
 
 ### The main loop, termination and the final estimate (B2)
 
@@ -905,7 +908,8 @@ evaluated before it is evaluated and the noise test and the final samples
 record nothing.
 Returning the observation, as MATLAB does, was tested and not adopted. At
 levels 0 and 1 a repeat is a new row on both sides.
-- PyBADS: `FunctionLogger` (`pybads/function_logger/function_logger.py`).
+- PyBADS: `FunctionLogger` (`pybads/function_logger/function_logger.py`);
+  `BADS._import_precomputed_evaluations_`.
 - MATLAB: `private/funlogger.m:117-129`.
 - Settled by: W4-5;
   `dev/experiments/population_ellipsoid_hetero_linux_20260925/`. Kind:

@@ -692,10 +692,15 @@ row: the second evaluation of `x0` that
 [tests the objective for noise](#faq-should-i-tell-pybads-that-my-objective-is-noisy),
 and the final evaluations of a noisy run, which are in
 `optimize_result["yval_vec"]` (see [above](#faq-how-is-fval-computed)). So
-the log can have fewer rows than `optimize_result["func_count"]`. A run
-given evaluations made before it (the argument `precomputed_evaluations` of
-`BADS`) holds them in the first rows of its log, and does not count them in
-`func_count`.
+the log can have fewer rows than `optimize_result["func_count"]`.
+
+A run given evaluations made before it (the argument
+`precomputed_evaluations` of `BADS`) holds them in the first rows of its
+log, and does not count them in `func_count`. There a point can have more
+than one row: with `uncertainty_handling=True` and without
+`specify_target_noise`, each evaluation given has a row of its own, and,
+unless `specify_target_noise` is set, the start adds a row where it
+repeats a point given.
 
 The points at which the iterations ended, and their values, are
 
