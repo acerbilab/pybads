@@ -1011,7 +1011,8 @@ def _gp_hyp(
     ## Change default bounds and set priors over hyperparameters.
 
     bounds = gp.get_bounds()
-    # Increase minimum noise.
+    # Increase minimum noise. The bounds cross for a tol_fun above e^6,
+    # which BADS._check_tol_fun_ refuses
     bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
     # Set priors over hyperparameters

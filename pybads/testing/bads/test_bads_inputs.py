@@ -541,19 +541,48 @@ def test_hedge_beta_refusal_names_its_default():
 
 
 @pytest.mark.parametrize(
-    "tol_fun", [0, 0.0, -1e-3, np.float64(-1.0), np.nan, np.inf, -np.inf]
+    "tol_fun",
+    [
+        0,
+        0.0,
+        -1e-3,
+        np.float64(-1.0),
+        np.nan,
+        np.inf,
+        -np.inf,
+        410.0,
+        1e10,
+        False,
+        True,
+        np.True_,
+    ],
 )
 @pytest.mark.parametrize("hedge_beta", [None, 1.0])
-def test_tol_fun_not_a_positive_finite_number_is_refused(tol_fun, hedge_beta):
-    """A `tol_fun` that is not a positive finite number is refused when
-    `BADS` is created, whatever `hedge_beta`: 0 stopped with a bare
-    `ZeroDivisionError` at the default `hedge_beta = 1e-3 / tol_fun`, which
-    refused a negative value or NaN but not -inf, and not beside a user's
-    `hedge_beta`; inf stopped the run at its first fit of the GP."""
+def test_tol_fun_not_a_positive_number_at_most_e6_is_refused(
+    tol_fun, hedge_beta
+):
+    """A `tol_fun` that is not a positive number at most e^6, or that is a
+    boolean, is refused when `BADS` is created, whatever `hedge_beta`: 0 and
+    False stopped with a bare `ZeroDivisionError` at the default `hedge_beta
+    = 1e-3 / tol_fun`, which refused a negative value or NaN but not -inf,
+    and not beside a user's `hedge_beta`; above e^6, where the bounds of the
+    GP's noise cross, inf included, the run stopped at its first fit of the
+    GP."""
     with pytest.raises(
-        ValueError, match=r"tol_fun'\] needs to be a positive finite number"
+        ValueError,
+        match=r"tol_fun'\] needs to be a positive number at most e\^6",
     ):
         _bads_with_options({"tol_fun": tol_fun, "hedge_beta": hedge_beta})
+
+
+@pytest.mark.parametrize("tol_fun", [1e-12, 0.1, 400, np.exp(6)])
+def test_tol_fun_up_to_e6_runs(tol_fun):
+    """A `tol_fun` up to e^6 runs, the bounds of the GP's noise meeting at
+    e^6."""
+    result = _bads_with_options(
+        {"tol_fun": tol_fun, "max_fun_evals": 20}
+    ).optimize()
+    assert result["func_count"] <= 20
 
 
 @pytest.mark.parametrize(

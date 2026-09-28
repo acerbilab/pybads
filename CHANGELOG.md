@@ -76,13 +76,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
   that is not a finite number at least 0, and for a `hedge_decay` outside
   [0, 1], an array of one element or a complex number included.
-- `BADS` raises `ValueError` for a `tol_fun` that is not a positive finite
-  number, which 1.1.0 ran when negative (-inf included) unless the default
-  `hedge_beta` fell far below 0; and for a `search_method` that is not a
-  non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
+- `BADS` raises `ValueError` for a `tol_fun`, a Python or NumPy number, that
+  is not positive and at most e^6 (about 403), or that is a boolean, which
+  1.1.0 ran when negative (-inf included) unless the default `hedge_beta` fell
+  far below 0, and ran as 1 when `True`; and for a `search_method` that is not
+  a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
   `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`,
-  which stopped a 1.1.0 run at its first search, or at the first that chose
-  an unknown search.
+  which stopped a 1.1.0 run at its first search, or at the first that chose an
+  unknown search.
 - The returned `total_time` and `overhead` are timed with
   `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
   no longer inflated by evaluations timed as 0.
@@ -229,19 +230,21 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   stopped it with `TypeError`.
 - **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
   `ValueError` when it is created for a `tol_fun`, a Python or NumPy number,
-  that is not positive and finite. 1.1.0 stopped with `ZeroDivisionError` for
-  0, at the default `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error
-  at its first fit of the Gaussian process for inf, and for NaN in a
+  that is not positive and at most e^6 (about 403), or that is a boolean.
+  1.1.0 stopped with `ZeroDivisionError` for 0 or `False`, at the default
+  `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error at its first fit
+  of the Gaussian process above e^6, where the bounds of the noise of the
+  Gaussian process cross (as in MATLAB BADS), inf included, and for NaN in a
   deterministic run; it ran with a negative value, -inf included, unless the
   default `hedge_beta` fell far below 0, which stopped the run with
-  `IndexError` at a search. `BADS` also raises `ValueError` for a
-  `search_method` that is not a non-empty list of pairs (name, sum-rule
-  flag), each name `"ES-wcm"` or `"ES-ell"`, and for a `search_acq_fcn` that
-  is not a pair whose first element is `"acq_LCB"`, the only acquisition
-  function of the search; 1.1.0 stopped with an error at the first search,
-  or at the first that chose an unknown search. A NumPy array, or a NumPy
-  array of one element for a name, is taken as the searches take it, as in
-  1.1.0.
+  `IndexError` at a search, and with `True` as 1. `BADS` also raises
+  `ValueError` for a `search_method` that is not a non-empty list of pairs
+  (name, sum-rule flag), each name `"ES-wcm"` or `"ES-ell"`, and for a
+  `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`, the
+  only acquisition function of the search; 1.1.0 stopped with an error at the
+  first search, or at the first that chose an unknown search. A NumPy array,
+  or a NumPy array of one element for a name, is taken as the searches take
+  it, as in 1.1.0.
 - **Cost of the optimization target.** The search no longer computes the
   optimization target, which MATLAB BADS computes at every search, where only
   acquisition functions that PyBADS does not have read it; PyBADS's only one,
