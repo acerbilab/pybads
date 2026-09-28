@@ -108,9 +108,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the variable around them, so that the lower and the upper bound are the
   same point and a run moves across them, and the Gaussian process that
   models the objective is periodic along it. A periodic variable is never
-  taken to log coordinates. `BADS` raises `ValueError` for a
-  `periodic_vars` that is not a list of distinct indices, a boolean mask
-  included, or that names a variable with an infinite bound.
+  taken to log coordinates. An empty `periodic_vars`, such as `[]`, names
+  no periodic variable and stands for `None`, as in MATLAB BADS. `BADS`
+  raises `ValueError` for a `periodic_vars` that is not a list of distinct
+  indices, a boolean mask included, or that names a variable with an
+  infinite bound.
   [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html)
   and the
   [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)
@@ -867,9 +869,6 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other
   arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long
   as the others, where 1.1.0 left them of unequal lengths.
-- **Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names
-  no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0
-  refused it.
 - **Initial design.** The scrambling of the initial Sobol design is seeded
   from the run's generator, so that `random_seed` decides the design, as it
   decides every other random draw of a run; MATLAB BADS derives its design

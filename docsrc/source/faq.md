@@ -560,7 +560,9 @@ create the `BADS` object.
 
 The bounds of a periodic variable only mark where its period is cut, not a
 range of extreme values, so its plausible bounds are usually its hard bounds
-as well. For example, with an angle in radians as the second variable:
+as well, unlike those of other variables
+([How do I choose `plb` and `pub`?](#faq-how-do-i-choose-plb-and-pub)).
+For example, with an angle in radians as the second variable:
 
 ```python
 # x[0] is a position, x[1] an angle in radians
@@ -575,9 +577,9 @@ optimize_result = bads.optimize()
 ```
 
 The result gives a periodic variable within its period, between `lb` and
-`ub`. A minimum at `lb`, which is the same point as `ub`, can come out at `lb`, just
-above it or just below `ub`, so two runs can report nearly the same minimum
-at opposite ends of the period.
+`ub`. A minimum at `lb`, which is the same point as `ub`, can come out at
+`lb`, just above it or just below `ub`, so two runs can report nearly the
+same minimum at opposite ends of the period.
 
 PyBADS raises a `ValueError` for a periodic variable with an infinite bound,
 and for a `periodic_vars` that is not a list of distinct indices from 0 to

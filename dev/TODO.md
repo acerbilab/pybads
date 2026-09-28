@@ -176,7 +176,7 @@ decided on; "the next release" below means it.
   point and 2 of 30 runs of `sphere_nonbox_D3` on two, and the runs at
   D = 3 go on to converge.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
-  of `examples/`, and the saved outputs of all five predate the port
+  of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their
   messages: `pybads_example_2_nonbox_constraints.ipynb` shows the warning
   `bads:TooCloseBounds`, which W2-4 removed;
@@ -189,6 +189,9 @@ decided on; "the next release" below means it.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
   the passes have all landed (the review closed on 2026-09-28), so the
   rerun goes with the headless run of the examples before the release.
+  Example 6 (periodic variables) was run with gpyreg's development branch
+  (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
+  the others, with the released gpyreg.
 - [ ] **Loose ends of the port review.** Observations that the reports and
   the fix agents made outside their findings, which no ruling took up and
   which change no default run, are listed in the consolidated ledger
@@ -240,9 +243,11 @@ decided on; "the next release" below means it.
     built, and the tests of periodic variables fail under the CI pin. The
     changelog's entry "Requirements" and the line of "Upgrading from
     1.1.0" name the new minimum. The default suites do not reach the
-    periods, so the release's comparison also runs the `periodic` suite
-    against the "on" arm of
-    [experiments/periodic_linux_20260928/](experiments/periodic_linux_20260928/README.md);
+    periods, so the release's comparison also runs the `periodic` suite,
+    on Linux against the "on" arm of
+    [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md),
+    and on Windows, which has no reference of the suite, both arms of it
+    (with `--options '{"periodic_vars": null}'` for "off"), as there;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on

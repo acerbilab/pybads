@@ -162,31 +162,34 @@ generation of the ES search) and the poll propose is wrapped into
 `[lb, ub)`; the distances of `udist` and the ES-wcm covariance of `ucov`
 take a periodic difference the shorter way round; and the GP's kernel is
 periodic along the variable, with its period fixed. PyBADS differs in
-three ways:
-- `periodic_vars` takes indices from 0, as any Python index, where
-  `PeriodicVars` takes MATLAB's from 1; a boolean mask, a repeated index or
-  one out of range is refused.
-- gpyreg's ARD kernels take the periods (`periods`) and replace a periodic
-  squared difference `d**2` by the squared chord `(p/pi)**2 *
-  sin(pi*d/p)**2`, which matches `d**2` at short range: a periodic length
-  scale is in the units of the others, takes their prior and bounds, and
-  enters `len_scale` and `poll_scale` as they do. MATLAB's
-  `covPPERard_fast` maps the variable onto the unit circle,
-  `(sin(2*pi*x/p), cos(2*pi*x/p))`, so that its length scale is in
-  radians. `gpdefBads.m` shifts the centre of its prior by `-log(p)`, with
-  the `+ log(2*pi)` that would complete the change of units commented out,
-  which centres the length scale in the variable's units `2*pi` times
-  shorter than an ordinary one's. `gpupdate.m` then uses the length scale
-  in radians unconverted in `udist` and `pollscale`, where it is `pi` times
-  the length in the variable's units when the period is 2, as it is for a
-  variable whose plausible bounds are its hard bounds.
-- A point moved to the search grid, which can take a periodic coordinate
-  to its upper bound or past a bound, is wrapped again, so that a point on
-  the upper bound becomes the same point on the lower one, and the removal
-  of the points already evaluated finds it there. MATLAB BADS wraps only
-  before the grid, and projects a point past a bound onto it.
-- PyBADS: `BADS._check_periodic_vars_`, `_init_optim_state_`,
-  `_init_mesh_`, `_search_step_` and `_poll_step_`;
+three ways.
+
+`periodic_vars` takes indices from 0, as any Python index, where
+`PeriodicVars` takes MATLAB's from 1; a boolean mask, a repeated index or
+one out of range is refused.
+
+gpyreg's ARD kernels take the periods (`periods`) and replace a periodic
+squared difference `d**2` by the squared chord `(p/pi)**2 *
+sin(pi*d/p)**2`, which matches `d**2` at short range: a periodic length
+scale is in the units of the others, takes their prior and bounds, and
+enters `len_scale` and `poll_scale` as they do. MATLAB's `covPPERard_fast`
+maps the variable onto the unit circle, `(sin(2*pi*x/p), cos(2*pi*x/p))`,
+so that its length scale is in radians. `gpdefBads.m` shifts the centre of
+its prior by `-log(p)`, with the `+ log(2*pi)` that would complete the
+change of units commented out, which centres the length scale in the
+variable's units `2*pi` times shorter than an ordinary one's. `gpupdate.m`
+then uses the length scale in radians unconverted in `udist` and
+`pollscale`, where it is `pi` times the length in the variable's units
+when the period is 2, as it is for a variable whose plausible bounds are
+its hard bounds.
+
+A point moved to the search grid, which can take a periodic coordinate to
+its upper bound or past a bound, is wrapped again, so that a point on the
+upper bound becomes the same point on the lower one, and the removal of
+the points already evaluated finds it there. MATLAB BADS wraps only before
+the grid, and projects a point past a bound onto it.
+- PyBADS: `BADS._check_periodic_vars_`, `_variable_transformer_`,
+  `_init_optim_state_`, `_init_mesh_`, `_search_step_` and `_poll_step_`;
   `pybads/utils/period_check.py`; `udist`
   (`pybads/search/grid_functions.py`); `ucov` and `ESSearch.__call__`
   (`pybads/search/es_search.py`); `_gp_periods`
@@ -766,7 +769,8 @@ Every object of the GP layer (the hyperparameter vector, the priors, the
 bounds, the likelihood, the inference, the optimizer, the prediction) is
 gpyreg's where MATLAB BADS uses GPML 3.6 with its own fast replacements.
 The kernel is `RationalQuadraticARD`, MATLAB's default (`'rq'`, ARD), and
-cannot be changed (`gp_def_fcn` has no effect). gpyreg's
+cannot be changed (`gp_def_fcn` has no effect); it is periodic along the
+periodic variables (KD-B1-6). gpyreg's
 Gaussian priors take a mean and an SD, where GPML's `priorGauss` takes a
 variance. The starting points (KD-B5-6), the fit at initialization
 (KD-B6-5) and the handling of a failed factorization (KD-B6-6) have

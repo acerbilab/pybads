@@ -47,18 +47,20 @@ tolerances come from their errors over seeds 0-99 (the survey's section
 branch (904 tests, of which 133 are new).
 
 **The `periodic` suite, `periodic_vars` on and off.**
-[`experiments/periodic_linux_20260928/`](../experiments/periodic_linux_20260928/README.md)
-holds the runs, 30 seeds of six configurations in each arm, and a
-control. With `periodic_vars`, every run of the deterministic
-configurations is solved, where without it a run whose start lies across
-the bounds from the minimum stops on the bound (13 to 47% solved); the
-median error of the homoskedastic noisy configuration falls from 0.091
-to 0.024 (0.70 → 0.97 solved); and MATLAB's Example 5, solved either way, ends with a tenth of
-the error. The heteroskedastic noisy configuration's errors do not differ
-(p = 0.78), with more evaluations. With the minima in the middle of the
-period, where the bounds play no part, `periodic_vars` gives equal or
-smaller errors under both kinds of noise, so the handling of periodic
-variables does not worsen noisy runs.
+[`experiments/population_periodic_linux_20260928/`](../experiments/population_periodic_linux_20260928/README.md)
+holds the runs, 30 seeds of six configurations in each arm, and a control;
+its "on" arm is the reference of the suite on Linux. With `periodic_vars`,
+every run of the deterministic configurations is solved, where without it
+a run whose start lies across the bounds from the minimum stops on the
+bound (13 to 47% solved); the median error of the homoskedastic noisy
+configuration falls from 0.091 to 0.024 (0.70 → 0.97 solved); and
+MATLAB's Example 5, solved either way, ends with a tenth of the error. The
+heteroskedastic noisy configuration's errors do not differ (p = 0.78), with
+more evaluations. With the minima in the middle of the period, where
+reaching them crosses no bound, the errors with and without `periodic_vars`
+do not differ detectably under either kind of noise (paired signed-rank
+p = 0.97 and 0.34 at 30 seeds): no worsening of noisy runs by the handling
+of periodic variables is seen.
 
 ## Not done
 
@@ -67,5 +69,6 @@ variables does not worsen noisy runs.
   (KD-B1-6).
 - gpyreg has no release with `periods` yet. Its release gate, the
   comparison run with its clone, includes the `periodic` suite against
-  `periodic_linux_20260928`'s "on" arm, since the default suites do not
-  reach the kernel's periods.
+  `population_periodic_linux_20260928`'s "on" arm, since the default
+  suites do not reach the kernel's periods (`dev/TODO.md`, "gpyreg
+  releases after 1.3.3", which also asks for the suite on Windows).

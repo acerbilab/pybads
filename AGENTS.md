@@ -209,8 +209,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   (`_poll_step_`); a new source of candidates needs the same. `udist` and
   `ucov` take a periodic difference the shorter way round, and the GP's
   kernel takes the periods from `_gp_periods` (gpyreg's `periods`), only
-  in a run that has periodic variables, so that other runs build their
-  kernel as before.
+  in a run that has periodic variables: without them the kernel gets no
+  `periods`. The `default` suite does not reach any of this; the gate of
+  a change to it is the `periodic` suite against
+  `dev/experiments/population_periodic_linux_20260928`.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -235,8 +237,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   descriptions that say so; an option that no code reads and that MATLAB
   BADS does not have is removed rather than kept. The GP's kernel is a
   hard-coded rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] =
-  1`), periodic along the periodic variables, a few options are read only by code that no run reaches (KD-B1-4 in
-  `pybads/bads/README.md`), and
+  1`; periodic along the periodic variables), a few options are read only
+  by code that no run reaches (KD-B1-4 in `pybads/bads/README.md`), and
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a

@@ -1,4 +1,0 @@
-('centre', 'hetero', 'off') err median 0.137 solved 0.40 periodic part 0.0825 evals 377
-('centre', 'hetero', 'on') err median 0.114 solved 0.47 periodic part 0.0732 evals 384
-('centre', 'homo', 'off') err median 0.0539 solved 0.80 periodic part 0.0527 evals 346
-('centre', 'homo', 'on') err median 0.0198 solved 0.93 periodic part 0.0157 evals 263
