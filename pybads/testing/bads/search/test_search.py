@@ -19,7 +19,11 @@ from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.function_logger.constraints_check import _lexsort_rows
 from pybads.rounding import round_half_away
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
-from pybads.search.grid_functions import force_to_grid, udist
+from pybads.search.grid_functions import (
+    force_to_grid,
+    force_to_grid_periodic,
+    udist,
+)
 from pybads.search.search_hedge import ESSearchHedge
 
 
@@ -242,14 +246,16 @@ def test_udist_periodic_takes_the_shorter_way_round():
     )
 
 
-def test_ucov_periodic_shifts_the_shorter_way_round():
+@pytest.mark.parametrize("shape", [(1, 2), (2,)], ids=["row", "flat"])
+def test_ucov_periodic_shifts_the_shorter_way_round(shape):
     """`ucov` takes a periodic coordinate relative to the centre, the
     shorter way round its period, as MATLAB's ucov.m: points that lie close
     to the centre across the bounds give the covariance of the same points
-    unwrapped."""
+    unwrapped. The centre is a row or, as ES-wcm passes it, a flat
+    array."""
     lb = np.array([[-1.0, -4.0]])
     ub = np.array([[1.0, 4.0]])
-    u0 = np.array([[0.95, 0.5]])
+    u0 = np.array([0.95, 0.5]).reshape(shape)
     offsets = np.array([[0.1, 0.2], [-0.05, -0.3], [0.2, 0.1]])
     w = np.array([0.5, 0.3, 0.2])
     unwrapped = u0 + offsets
@@ -261,7 +267,118 @@ def test_ucov_periodic_shifts_the_shorter_way_round():
     C_plain = ucov(unwrapped, u0, w, ub, lb, 1)
     np.testing.assert_allclose(C_periodic, C_plain, rtol=1e-12, atol=1e-15)
     # The centre itself is left as it was
-    np.testing.assert_array_equal(u0, [[0.95, 0.5]])
+    np.testing.assert_array_equal(u0, np.reshape([0.95, 0.5], shape))
+
+
+def test_force_to_grid_periodic_without_periodic_variables():
+    """Without periodic variables, `force_to_grid_periodic` is
+    `force_to_grid`, bit for bit."""
+    rng = np.random.default_rng(0)
+    U = rng.uniform(-3, 3, size=(20, 3))
+    lb, ub = -np.ones((1, 3)), np.ones((1, 3))
+    for mask in (None, np.zeros((1, 3), dtype=bool)):
+        np.testing.assert_array_equal(
+            force_to_grid_periodic(U, 2.0**-4, lb, ub, mask),
+            force_to_grid(U, 2.0**-4),
+        )
+
+
+def test_force_to_grid_periodic_on_an_aligned_grid():
+    """Where the bounds lie on the grid, a periodic coordinate that the grid
+    takes to the upper bound comes out on the lower bound, the same point,
+    and every coordinate is on the grid; the other coordinates are as
+    `force_to_grid` puts them."""
+    step = 2.0**-3
+    lb, ub = np.array([[-1.0, -1.0]]), np.array([[1.0, 1.0]])
+    mask = np.array([[True, False]])
+    U = np.array([[1.0 - step / 4, 1.0 - step / 4], [1.3, 0.3], [-1.2, -0.2]])
+    out = force_to_grid_periodic(U, step, lb, ub, mask)
+    np.testing.assert_array_equal(out[:, 1], force_to_grid(U[:, 1], step))
+    np.testing.assert_allclose(out[:, 0], [-1.0, -0.75, 0.75], atol=1e-15)
+    assert np.all(out[:, 0] >= -1.0) and np.all(out[:, 0] < 1.0)
+    np.testing.assert_array_equal(out, force_to_grid(out, step))
+
+
+def test_force_to_grid_periodic_on_a_grid_not_aligned_with_the_period():
+    """Where the period is not a multiple of the grid step (a periodic
+    variable whose plausible bounds are narrower than its hard bounds), the
+    periodic coordinates still come out on the grid, as MATLAB BADS keeps
+    its candidates: near a bound, on the side the wrap gives them, or just
+    beyond the lower bound, which `contraints_check` projects onto the
+    grid."""
+    step = 2.0**-10
+    lb, ub = np.array([[-3.0]]), np.array([[9.566370614359172]])
+    mask = np.array([[True]])
+    rng = np.random.default_rng(1)
+    U = ub + rng.uniform(-3 * step, 3 * step, size=(2000, 1))
+    out = force_to_grid_periodic(U, step, lb, ub, mask)
+    np.testing.assert_array_equal(out, force_to_grid(out, step))
+    assert np.all(out >= lb - step) and np.all(out <= ub + step)
+
+
+def test_every_source_of_candidates_wraps_them(monkeypatch):
+    """The start, the initial design, the search set, each generation of the
+    ES search and the poll pass their points through
+    `force_to_grid_periodic` or `period_check`, with `optim_state`'s mask of
+    the periodic variables, and go on with the result: the array that
+    `contraints_check` receives is the one that the wrap returned."""
+    kept, wrapped, checked = [], {}, set()
+
+    def spy(original):
+        def wrap(u, *args):
+            out = np.array(original(u, *args), copy=True)
+            assert np.array_equal(np.ravel(args[-1]), [True, False])
+            kept.append(out)  # alive, so that its id is not reused
+            wrapped[id(out)] = sys._getframe(1).f_code.co_name
+            return out
+
+        return wrap
+
+    original_check = contraints_check
+
+    def spy_check(U, *args, **kwargs):
+        checked.add(id(U))
+        return original_check(U, *args, **kwargs)
+
+    for module in (bads_module, es_search_module):
+        monkeypatch.setattr(
+            module,
+            "force_to_grid_periodic",
+            spy(module.force_to_grid_periodic),
+        )
+        monkeypatch.setattr(module, "contraints_check", spy_check)
+    monkeypatch.setattr(
+        bads_module, "period_check", spy(bads_module.period_check)
+    )
+
+    def fun(x):
+        return 2 * (1 - np.cos(x[0] - 0.3)) + (x[1] - 0.5) ** 2
+
+    BADS(
+        fun,
+        np.array([5.5, -1.0]),
+        np.array([0.0, -5.0]),
+        np.array([2 * np.pi, 5.0]),
+        np.array([0.0, -2.0]),
+        np.array([2 * np.pi, 2.0]),
+        options={
+            "periodic_vars": [0],
+            "display": "off",
+            "random_seed": 0,
+            "max_fun_evals": 60,
+        },
+    ).optimize()
+    callers = set(wrapped.values())
+    assert {
+        "start_on_mesh",
+        "_init_mesh_",
+        "_search_step_",
+        "__call__",
+        "_poll_step_",
+    } <= callers
+    for key, caller in wrapped.items():
+        if caller != "start_on_mesh":
+            assert key in checked, caller
 
 
 def test_grid_search_neighbors():

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 from pybads.rounding import round_half_away
+from pybads.utils.period_check import period_check
 from pybads.variable_transformer import VariableTransformer
 
 
@@ -33,6 +34,48 @@ def force_to_grid(x, search_mesh_size, tol=None):
 
     # MATLAB's round (force2grid.m), which takes halves away from zero
     return tol * round_half_away(x / tol)
+
+
+def force_to_grid_periodic(u, search_mesh_size, lb, ub, periodic_vars):
+    """
+    Wrap the periodic coordinates of ``u`` into their period and put ``u`` on
+    the grid, as MATLAB BADS's ``periodCheck`` and ``force2grid`` do.
+
+    The grid can take a periodic coordinate to its upper bound, the same
+    point as its lower bound, or past a bound, so the periodic coordinates
+    are wrapped and put on the grid a second time: they stay on the grid,
+    and one that lands on the upper bound becomes the lower bound where the
+    grid holds it, so that a point already evaluated there is recognized.
+    A coordinate that the second step puts out of bounds is left to the
+    projection of ``contraints_check``.
+
+    Parameters
+    ----------
+    u : np.ndarray
+        The points, one per row.
+    search_mesh_size : float
+        The step of the grid.
+    lb, ub : np.ndarray
+        The bounds, of shape ``(1, D)`` or ``(D,)``, whose width is the period
+        of a periodic variable.
+    periodic_vars : np.ndarray or None
+        The boolean mask of the periodic variables, of shape ``(1, D)`` or
+        ``(D,)``, or ``None``.
+
+    Returns
+    -------
+    u_grid : np.ndarray
+        The points on the grid; without periodic variables,
+        ``force_to_grid(u, search_mesh_size)``.
+    """
+    u = force_to_grid(period_check(u, lb, ub, periodic_vars), search_mesh_size)
+    if periodic_vars is None or not np.any(periodic_vars):
+        return u
+    mask = np.ravel(periodic_vars).astype(bool)
+    u = period_check(u, lb, ub, periodic_vars)
+    rows = np.atleast_2d(u)
+    rows[:, mask] = force_to_grid(rows[:, mask], search_mesh_size)
+    return u
 
 
 def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):

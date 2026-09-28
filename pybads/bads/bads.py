@@ -15,7 +15,12 @@ from pybads.init_functions import init_sobol
 from pybads.poll import poll_mads_2n
 from pybads.rng import get_rng
 from pybads.search import ESSearchHedge
-from pybads.search.grid_functions import force_to_grid, grid_units, udist
+from pybads.search.grid_functions import (
+    force_to_grid,
+    force_to_grid_periodic,
+    grid_units,
+    udist,
+)
 from pybads.utils import period_check
 from pybads.utils.iteration_history import IterationHistory
 from pybads.utils.timer import Timer
@@ -718,6 +723,13 @@ class BADS:
         self.upper_bounds = self.var_transf.ub.copy()
         optim_state["lb"] = self.lower_bounds.copy()
         optim_state["ub"] = self.upper_bounds.copy()
+
+        # Periodic variables, a (1, D) mask; their bounds were checked finite
+        # by _check_periodic_vars_
+        periodic_vars = np.zeros((1, self.D), dtype=bool)
+        if self.options["periodic_vars"] is not None:
+            periodic_vars[:, self.options["periodic_vars"]] = True
+        optim_state["periodic_vars"] = periodic_vars
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
         optim_state["plb"] = self.plausible_lower_bounds.copy()
@@ -759,7 +771,14 @@ class BADS:
             u0[u0 > self.upper_bounds] = (
                 u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
             )
-            return u0
+            # A periodic coordinate on its upper bound is the same point as
+            # on its lower bound, where the candidates are wrapped
+            return period_check(
+                u0,
+                self.lower_bounds,
+                self.upper_bounds,
+                optim_state["periodic_vars"],
+            )
 
         def violates_non_box_cons(u0):
             return self.non_box_cons is not None and np.any(
@@ -840,18 +859,13 @@ class BADS:
             / np.log(self.options["poll_mesh_multiplier"])
         )
 
-        # Periodic variables, a mask; their bounds were checked finite by
-        # _check_periodic_vars_
-        idx_periodic_vars = self.options["periodic_vars"]
-        periodic_vars = np.zeros((1, self.D)).astype(bool)
-        if idx_periodic_vars is not None:
-            periodic_vars[:, idx_periodic_vars] = True
+        # Report the periodic variables
+        if self.options["periodic_vars"] is not None:
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) defined with periodic boundaries: "
-                f"{idx_periodic_vars}",
+                f"{self.options['periodic_vars']}",
             )
-        optim_state["periodic_vars"] = periodic_vars
 
         # Setup covariance information (unused)
 
@@ -1253,7 +1267,13 @@ class BADS:
             self.options["periodic_vars"] = None
             return
         indices = np.atleast_1d(np.asarray(value))
-        if indices.dtype.kind not in "iu" or indices.ndim != 1:
+        # A boolean among integers, which NumPy casts to 0 or 1, is refused
+        # as a mask is
+        has_bool = any(
+            isinstance(v, (bool, np.bool_))
+            for v in np.atleast_1d(np.asarray(value, dtype=object)).ravel()
+        )
+        if indices.dtype.kind not in "iu" or indices.ndim != 1 or has_bool:
             raise ValueError(
                 "options['periodic_vars'] should be a list of the indices of "
                 "the periodic variables, integers from 0 to D - 1 (a boolean "
@@ -1432,18 +1452,10 @@ class BADS:
                 )
                 if np.isfinite(n_left):
                     u1 = u1[: int(n_left)]
-                # Enforce periodicity, then force the points on the search
-                # grid, which can take a periodic coordinate to its upper
-                # bound or past a bound, and wrap them again
-                u1 = period_check(
+                # Enforce periodicity and force the points on the search grid
+                u1 = force_to_grid_periodic(
                     u1,
-                    self.lower_bounds,
-                    self.upper_bounds,
-                    self.optim_state["periodic_vars"],
-                )
-                u1 = force_to_grid(u1, self.optim_state["search_mesh_size"])
-                u1 = period_check(
-                    u1,
+                    self.optim_state["search_mesh_size"],
                     self.lower_bounds,
                     self.upper_bounds,
                     self.optim_state["periodic_vars"],
@@ -2163,20 +2175,10 @@ class BADS:
             self.optim_state,
         )
 
-        # Enforce periodicity, then force the candidate points on the search
-        # grid, which can take a periodic coordinate to its upper bound or
-        # past a bound, and wrap them again
-        u_search_set = period_check(
+        # Enforce periodicity and force the candidate points on search grid
+        u_search_set = force_to_grid_periodic(
             u_search_set,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.optim_state["periodic_vars"],
-        )
-        u_search_set = force_to_grid(
-            u_search_set, self.optim_state["search_mesh_size"]
-        )
-        u_search_set = period_check(
-            u_search_set,
+            self.optim_state["search_mesh_size"],
             self.lower_bounds,
             self.upper_bounds,
             self.optim_state["periodic_vars"],
@@ -2564,21 +2566,19 @@ class BADS:
                     "poll_scale"
                 ]  # scaling again using broadcast
 
-                # Add vector to current point, wrap the periodic coordinates
-                # (again after a move to the grid, as for the search)
-                u_poll_new = period_check(
-                    self.u + vv,
-                    self.lower_bounds,
-                    self.upper_bounds,
-                    self.optim_state["periodic_vars"],
-                )
-
+                # Add vector to current point, enforce periodicity, and fix
+                # to grid if asked
                 if self.options["force_poll_mesh"]:
-                    u_poll_new = force_to_grid(
-                        u_poll_new, self.optim_state["search_mesh_size"]
+                    u_poll_new = force_to_grid_periodic(
+                        self.u + vv,
+                        self.optim_state["search_mesh_size"],
+                        self.lower_bounds,
+                        self.upper_bounds,
+                        self.optim_state["periodic_vars"],
                     )
+                else:
                     u_poll_new = period_check(
-                        u_poll_new,
+                        self.u + vv,
                         self.lower_bounds,
                         self.upper_bounds,
                         self.optim_state["periodic_vars"],

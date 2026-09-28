@@ -32,13 +32,13 @@ def period_check(u, lb, ub, periodic_vars):
         return u
     mask = np.ravel(periodic_vars).astype(bool)
     lb_p = np.ravel(lb)[mask]
-    period = np.ravel(ub)[mask] - lb_p
+    ub_p = np.ravel(ub)[mask]
     u_wrapped = np.array(u, dtype=float, copy=True)
     # A view of the copy: a 1-D point is one row
     rows = np.atleast_2d(u_wrapped)
-    shift = np.mod(rows[:, mask] - lb_p, period)
-    # np.mod returns the period itself for a tiny negative difference,
-    # which is the point lb
-    shift[shift >= period] = 0.0
-    rows[:, mask] = lb_p + shift
+    wrapped = lb_p + np.mod(rows[:, mask] - lb_p, ub_p - lb_p)
+    # np.mod returns the period itself for a tiny negative difference, and
+    # lb + a shift within rounding of the period can round to ub: both are
+    # the point lb
+    rows[:, mask] = np.where(wrapped >= ub_p, lb_p, wrapped)
     return u_wrapped

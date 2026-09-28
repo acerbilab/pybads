@@ -1043,6 +1043,7 @@ def test_periodic_vars_takes_one_index(periodic_vars):
         ([-1], "outside 0 to D - 1 = 2"),
         ([1, 1], "more than once"),
         ([True], "list of the indices"),
+        ([0, True], "list of the indices"),
         (np.array([True, False, True]), "list of the indices"),
         ([0.0], "list of the indices"),
         ("1", "list of the indices"),
@@ -1053,6 +1054,7 @@ def test_periodic_vars_takes_one_index(periodic_vars):
         "negative",
         "repeated",
         "bool",
+        "int and bool",
         "mask",
         "float",
         "string",
@@ -1067,6 +1069,23 @@ def test_periodic_vars_refused(x0, periodic_vars, match):
     indices 0 and 1."""
     with pytest.raises(ValueError, match=match):
         _bads_with_periodic_vars(periodic_vars, x0)
+
+
+@pytest.mark.parametrize("x0_first", [2 * np.pi, 0.0], ids=["ub", "lb"])
+def test_start_on_a_periodic_bound_is_the_lower_bound(x0_first):
+    """A start on either bound of a periodic variable whose plausible bounds
+    are its hard bounds, where the grid holds both, is the same point: the
+    run starts from the lower bound, where the candidates are wrapped."""
+    bads = BADS(
+        _quadratic,
+        np.array([x0_first, 0.5]),
+        np.array([0.0, -5.0]),
+        np.array([2 * np.pi, 5.0]),
+        np.array([0.0, -2.0]),
+        np.array([2 * np.pi, 2.0]),
+        options={**OPTIONS, "periodic_vars": [0]},
+    )
+    assert bads.u[0] == bads.optim_state["lb"][0, 0]
 
 
 def test_periodic_vars_need_finite_bounds():

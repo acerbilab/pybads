@@ -39,14 +39,18 @@ def test_wraps_the_periodic_coordinates(u, expected):
     np.testing.assert_array_equal(u, u_before)
 
 
-def test_tiny_negative_offset_wraps_to_the_lower_bound():
-    """A coordinate just below the lower bound, where `np.mod` rounds to the
-    period itself, lands on the lower bound or just below the upper one,
-    within the bounds."""
-    u = np.array([[-1.0 - 1e-17, 0.0, -2.0 - 1e-16]])
-    wrapped = period_check(u, LB, UB, MASK)
-    assert np.all(wrapped[:, [0, 2]] >= LB[:, [0, 2]])
-    assert np.all(wrapped[:, [0, 2]] <= UB[:, [0, 2]])
+@pytest.mark.parametrize(
+    "lb, ub",
+    [(0.1, 2.3), (1.7260070718156868, 4.180697584676979)],
+    ids=["mod", "rounding"],
+)
+def test_just_below_the_lower_bound_wraps_below_the_upper_one(lb, ub):
+    """A coordinate one step of rounding below the lower bound comes out in
+    `[lb, ub)`: `np.mod` returns the period itself for it, or the sum of
+    `lb` and the shift rounds to `ub`, and both are the point `lb`."""
+    u = np.array([[np.nextafter(lb, -np.inf)]])
+    wrapped = period_check(u, np.array([[lb]]), np.array([[ub]]), [[True]])
+    assert lb <= wrapped[0, 0] < ub
 
 
 def test_one_dimensional_point_and_flat_mask():

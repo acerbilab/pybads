@@ -11,9 +11,8 @@ from pybads.function_logger import FunctionLogger
 from pybads.function_logger.constraints_check import contraints_check
 from pybads.rng import get_rng
 from pybads.rounding import round_half_away
-from pybads.utils.period_check import period_check
 
-from .grid_functions import force_to_grid
+from .grid_functions import force_to_grid, force_to_grid_periodic
 
 
 class ESSearch(ABC):
@@ -159,18 +158,11 @@ class ESSearch(ABC):
         z = np.empty((us_rows, 1))
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
-            # Enforce periodicity, then force the candidate points on the
-            # search grid, which can take a periodic coordinate to its upper
-            # bound or past a bound, and wrap them again
-            u_new = period_check(
+            # Enforce periodicity and force the candidate points on the
+            # search grid
+            u_new = force_to_grid_periodic(
                 u_new,
-                optim_state["lb"],
-                optim_state["ub"],
-                optim_state["periodic_vars"],
-            )
-            u_new = force_to_grid(u_new, self.search_mesh_size)
-            u_new = period_check(
-                u_new,
+                self.search_mesh_size,
                 optim_state["lb"],
                 optim_state["ub"],
                 optim_state["periodic_vars"],

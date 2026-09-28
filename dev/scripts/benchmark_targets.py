@@ -111,7 +111,8 @@ Command line (from the repository root)::
 
 ``--check`` verifies each target: ``f_true(x_min)`` equals ``f_min`` (to
 rounding), ``x_min`` lies inside the hard bounds (an analytic one inside the
-plausible box too) and satisfies the non-box constraint, a real-data target
+plausible box too) and satisfies the non-box constraint, a target with
+periodic variables repeats with their periods, a real-data target
 reproduces its pinned values, the target is finite and no point does better
 than ``f_min`` on random samples of the plausible box, of the neighbourhood
 of ``x_min`` and of the hard box, the start points are reproducible, inside
@@ -225,8 +226,9 @@ class Problem:
     pins: tuple = ()
     check_n: int = 20_000
     omit_plausible: bool = False
-    # True when the minimum lies on the hard bounds by construction, outside
-    # the plausible box (edgesphere)
+    # True when the minimum lies on the hard bounds by construction: outside
+    # the plausible box (edgesphere), or on the bounds of periodic variables,
+    # which are also their plausible bounds (periodic_rosenbrock)
     min_on_bound: bool = False
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
@@ -1256,6 +1258,12 @@ def check_problem(cfg, n=None):
         msgs.append("x_min outside the plausible box")
     if not prob.feasible(x_min)[0]:
         msgs.append("x_min violates the non-box constraint")
+    # a target with periodic variables repeats with their periods
+    for d in prob.options.get("periodic_vars") or []:
+        shifted = x_min.copy()
+        shifted[d] += prob.ub[d] - prob.lb[d]
+        if not _close(prob.f_true(shifted), f_at_min):
+            msgs.append(f"f_true is not periodic along variable {d}")
     # BADS's requirements on the bounds
     if not np.all(
         (prob.lb <= prob.plb) & (prob.plb < prob.pub) & (prob.pub <= prob.ub)
