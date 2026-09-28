@@ -121,8 +121,13 @@ under `docsrc/source/api/` and an entry in the toctree that owns it
 (`documentation.rst` for a headline page, `api/classes/classes.rst` or
 `api/functions/functions.rst` otherwise). The options page includes the two
 `.ini` files verbatim, so the comment above each option is its user
-documentation. Build with `make github` in `docsrc/` (`.\make.bat github`
-from cmd on Windows), which copies the result into `docs/`.
+documentation. The FAQ, `docsrc/source/faq.md`, quotes option names and
+defaults, messages, display labels and result fields, and nothing runs its
+snippets: a change to one of those updates it. `skills/pybads/SKILL.md`
+names its sections and questions by their titles, and the README and
+Examples 3 and 4 link its `faq-` labels, so renaming either means updating
+them. Build with `make github` in `docsrc/` (`.\make.bat github` from cmd
+on Windows), which copies the result into `docs/`.
 
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the

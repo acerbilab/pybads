@@ -101,6 +101,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **FAQ.** The documentation has a [page of frequently asked
+  questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
+  MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
+  several starts, make a run reproducible, monitor or stop a run with
+  `output_fcn`, what the log transform of positive variables does, what
+  differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
+  getting-started page, Examples 3 and 4 and the coding-agent skill point to
+  it in place of the MATLAB BADS wiki.
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.
