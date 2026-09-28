@@ -2967,7 +2967,8 @@ class BADS:
             if np.array_equal(hyp_best, gp.get_hyperparameters(as_array=True)):
                 # The GP's posterior is the one under `hyp_best` on its data,
                 # which a copy recomputed under them would give again, bit
-                # for bit: predict from it
+                # for bit, as long as every update recomputes it in full
+                # (`add_and_update_gp`): predict from it
                 f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
             else:
                 tmp_gp = copy.deepcopy(gp)
