@@ -214,8 +214,10 @@ is proposed here.
   KD-B1-6); the docstring of `_get_target_from_gp_` says that the target is
   shifted only for a stochastic function and calls `f_target_s` a variance
   (B4-I); the search step counts the points of the log, MATLAB the GP's
-  training set, equal in practice (B3-C, a B2 item): for the docstrings
-  and descriptions of the fix pass.
+  training set, equal in practice (B3-C, a B2 item) [2026-09-28: not
+  equal in practice; at default options they differ at one pass of runs
+  with `non_box_cons`, KD-B2-10 of `pybads/bads/README.md`]: for the
+  docstrings and descriptions of the fix pass.
 
 ## Rulings (PI, 2026-09-27)
 

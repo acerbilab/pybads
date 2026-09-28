@@ -272,7 +272,8 @@ the review's last wave.
   MATLAB can say). With W4-1's open question.
 - From the reports' answers, not findings: `VariableTransformer`'s inverse
   clips to the original bounds, where MATLAB's `transvars` does not, which
-  only absorbs rounding (B7-C); a MATLAB target returning `[f, sd]` without
+  only absorbs rounding (B7-C) [2026-09-28: MATLAB's clips too,
+  `utils/transvars.m:65`]; a MATLAB target returning `[f, sd]` without
   `SpecifyTargetNoise` runs with `sd` dropped, where PyBADS refuses the
   tuple (B7-C); the logger's `uncertainty_handling_level` keeps its
   construction value after the noise test raises the run's level, and

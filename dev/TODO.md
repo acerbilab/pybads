@@ -163,7 +163,15 @@ order.
   assigns `period_check`'s result at every call site, as MATLAB BADS does,
   where the poll discards it, and gives the initial design `optim_state`'s
   boolean mask of the periodic variables, where it passes the option, a
-  list of indices (rows W3-35 and W4-11 of the port review).
+  list of indices (rows W3-35 and W4-11 of the port review). The port
+  rewrites the periodic branches of `udist`
+  (`pybads/search/grid_functions.py`) and `ucov`
+  (`pybads/search/es_search.py`) from MATLAB's `utils/udist.m` and
+  `utils/ucov.m`: `udist`'s takes the row indices that `np.nonzero` gives
+  of the `(1, D)` mask for the variables', indexes the rows of its matrix
+  of summed squared distances by them and divides by the length scales
+  after summing, and `ucov`'s wraps the points without the shift it
+  computes (KD-B1-6).
 - [ ] **`gp_cov_prior="ard"`.** MATLAB's per-dimension empirical prior of
   the GP length scales (`gpdef/gpdefBads.m:254-274`) is not ported; by the
   ruling on row W1-28 of the port review
@@ -218,11 +226,17 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
   the passes have all landed (the review closed on 2026-09-28), so the
   rerun goes with the headless run of the examples before the release.
-- [ ] **Loose ends of the port review.** Observations that the reports and
-  the fix agents made outside their findings, which no ruling took up and
-  which change no default run, are listed in the consolidated ledger
+- [ ] **Loose ends of the port review.** The PI ruled on the observations
+  that the reports and the fix agents made outside their findings
+  (2026-09-28), and each is fixed, documented or dropped, as the
+  consolidated ledger records
   ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
-  "Open ends"). Each is fixed, documented, or dropped.
+  "Open ends"), but one: W2-36's measurement. A noisy run's first
+  incumbent is the raw minimum of its initial design, a biased order
+  statistic, for two iterations, on both sides (`bads.m:1097`); the ruling
+  on W2-36 kept MATLAB's behaviour and allowed its measurement as a
+  separate step if W2-25 moved the noisy runs, which it did (KD-B2-7 of
+  `pybads/bads/README.md`). The PI asked for it on 2026-09-28.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).

@@ -160,7 +160,9 @@ MATLAB BADS wraps a periodic variable into its range and uses a periodic
 kernel. PyBADS refuses any `periodic_vars` that names a variable, before
 its first transform of the variables; an empty one names none, as in
 MATLAB BADS. `period_check` is a stub, and the periodic branches of
-`udist`, `ucov` and the transform cannot be reached.
+`udist`, `ucov` and the transform cannot be reached; those of `udist` and
+`ucov` do not compute MATLAB's wrapped distances and shifted points
+either, and a port rewrites them (`dev/TODO.md`, "Porting gaps").
 - PyBADS: `BADS.__init__`; `pybads/utils/period_check.py`.
 - MATLAB: `bads.m:152`; `private/setupvars.m:49-57`, `107-116`;
   `utils/periodCheck.m`; `gpdef/gpdefBads.m:58-81`, `277-284`;
@@ -186,7 +188,10 @@ PyBADS returns a SciPy-style dict (`x`, `x0`, `fval`, `fsd`, `yval_vec`,
 the `BADS` object keeps the run's state. `status` is MATLAB's `exitflag`
 (0 at `max_fun_evals` or `max_iter`, or when `output_fcn` stops the run; 1
 on `tol_mesh`; 2 on the stall criterion), and `success` is `status > 0`.
-There is no `rngstate` (KD-B1-1) and no `maxconstraint`. `iterations`
+There is no `rngstate` (KD-B1-1) and no `maxconstraint`. `total_time`
+times `optimize()` and leaves out the creation of `BADS`, where MATLAB
+BADS times the whole call, its setup included (`bads.m:144`, `1186`), and
+`overhead` follows it on both sides. `iterations`
 counts from 1 as MATLAB's does, but a run that ends in its initialization
 reports 0, where MATLAB BADS reports 1. `fun` and `non_box_cons` are the
 objects passed, where MATLAB stores `func2str(fun)`. `yval_vec` is `None`
@@ -195,9 +200,10 @@ budget leaves no evaluation for the final samples, where MATLAB BADS
 returns the incumbent's observation (`bads.m:1136`).
 - PyBADS: `pybads/bads/optimize_result.py` (`OptimizeResult`);
   `BADS.optimize`.
-- MATLAB: `bads.m:1`, `423`, `1062-1083`, `1185-1194`;
+- MATLAB: `bads.m:1`, `144`, `423`, `1062-1083`, `1185-1194`;
   `private/bads_output.m`.
-- Settled by: W0-4, W2-12, W2-13, W2-14, W2-32. Kind: deliberate change
+- Settled by: W0-4, W2-12, W2-13, W2-14, W2-32; the PI's ruling on the
+  loose ends of the review (`total_time`). Kind: deliberate change
   (interface).
 
 **KD-B1-9. A given start that `non_box_cons` rejects once put on the mesh is refused.**
@@ -390,6 +396,24 @@ MATLAB's `iterList` does.
 - PyBADS: `BADS.optimize`.
 - MATLAB: `bads.m:1111-1118`, `1150-1165`.
 - Settled by: W3-33, W4-26. Kind: deliberate change.
+
+**KD-B2-10. A search runs once the log holds more than D points.**
+Each pass of the loop runs a search while the round has searches left and
+more than D points are counted: PyBADS counts the points of the function
+log, MATLAB BADS those of the GP's training set (`size(gpstruct.y,1) >
+nvars`). The round's first search rebuilds the GP from the log, on both
+sides, so that PyBADS counts the points that the search trains on, while
+MATLAB's test reads the GP before that rebuild. The two differ when a poll
+follows an initial design that leaves D points or fewer, as `non_box_cons`
+can: the poll's evaluations join the log and, at uncertainty level 0, not
+the GP (W3-26), so that at the next pass PyBADS runs a search that MATLAB
+BADS skips. With default options this happens at one pass of each run of
+`sphere_band_D3` over seeds 0-6, and of three of the seven runs of
+`sphere_nonbox_D3` (`dev/scripts/benchmark_targets.py`).
+- PyBADS: `BADS.optimize` (`do_search_step_flag`); `BADS._search_step_`.
+- MATLAB: `bads.m:516-517`, `522-536`.
+- Settled by: the PI's ruling on the loose ends of the review. Kind:
+  deliberate change.
 
 ### The search (B3)
 
@@ -909,8 +933,8 @@ the tuple has two elements.
 - PyBADS: `FunctionLogger.__call__`
   (`pybads/function_logger/function_logger.py`).
 - MATLAB: `private/funlogger.m:91`, `95-99`.
-- Settled by: the PI's ruling on the loose ends of the review ("Open
-  ends" of the consolidated ledger). Kind: deliberate change.
+- Settled by: the PI's ruling on the loose ends of the review. Kind:
+  deliberate change.
 
 ### Sto-BADS (S)
 
