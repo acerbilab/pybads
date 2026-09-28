@@ -222,7 +222,11 @@ class BADS:
         Apart from those draws, the run neither draws from nor seeds NumPy's
         global random state; a target that draws from it is not fixed by
         ``random_seed``. Draws from ``rng`` before ``optimize()`` change the
-        run.
+        run. On Apple Silicon Macs, two runs with the same seed make the same
+        draws but can end at slightly different points: with Apple's
+        Accelerate as the linear algebra library of NumPy and SciPy (as in
+        their wheels on PyPI), the last bits of a result depend on where its
+        arrays lie in memory.
 
     Raises
     ------

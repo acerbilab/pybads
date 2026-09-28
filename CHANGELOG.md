@@ -524,6 +524,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that it does, and a third is added. The module `pybads.testing.run_tests`,
   which failed on import, and six data files that no test read are no
   longer installed.
+- **Seeded runs on Apple Silicon.** The README and the documentation said
+  that a seeded run gives the same result every time on the same machine.
+  On Apple Silicon Macs, with Apple's Accelerate as the linear algebra
+  library of NumPy and SciPy (as in their wheels on PyPI), the last bits of
+  a result depend on where its arrays lie in memory, so two runs with the
+  same seed make the same random draws but can end at slightly different
+  points. The README, the documentation and the docstring of `BADS` say so,
+  and there the tests that compare two seeded runs compare the start and
+  the initial design, which the seed alone decides.
 - **Refits without poll training.** With `poll_training=False`, a poll
   after the first iteration skipped a refit of the Gaussian process that was
   due but counted it as made, which delayed the next refit of the search

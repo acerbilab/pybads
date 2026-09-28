@@ -107,6 +107,13 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the error of each run; `summary LOG` prints, per test, the largest and
   the median error, the evaluations and the ratio of the tolerance to the
   largest error. Seeds 0-99 take about 40 minutes.
+- `divergence_trace.py` repeats the optimization of an output-function
+  test of `test_run_control.py` in one process and finds where two runs of
+  one seed differ: `loop N` compares their evaluations, `trace N OUT_DIR`
+  the digests of every call and return of PyBADS, gpyreg and NumPy's and
+  SciPy's linear algebra, down to the first local variable that differs,
+  and `align N` counts the results of the linear algebra of a GP fit at
+  each alignment of its arrays. Its docstring gives the details.
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
@@ -164,6 +171,13 @@ reference's number of seeds.
   decision of the rule counted: no gain over BADS without Sto-BADS, and the
   rulings on W0-12 and W0-13. Its evidence:
   [experiments/stobads_linux_20260928/](experiments/stobads_linux_20260928/README.md).
+- [Seeded runs on macOS arm64](results/2026-09-28-macos-arm64-repeatability.md)
+  — two runs of one seed need not match bit for bit on macOS arm64, where
+  Accelerate's results depend on the alignment of the arrays: measured in
+  CI on three NumPy and SciPy stacks against Linux, the first difference
+  located in gpyreg's triangular solve; the output-function test rewritten
+  to check what the comparison stood for, and the seed tests comparing
+  there only what the seed decides.
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate
   takes its location with its value) against its revert, the five noisy

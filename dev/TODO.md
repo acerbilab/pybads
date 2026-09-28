@@ -1,7 +1,8 @@
 # PyBADS: open work
 
 Updated 2026-09-28. The list describes scope, not priority or execution
-order.
+order. The next release is 1.5.0 (tag `v1.5.0`), the version the PI has
+decided on; "the next release" below means it.
 
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
@@ -25,17 +26,6 @@ order.
   runs, so it needs the population comparison, and the target's reuse of
   the GP's own posterior (`_get_target_from_gp_`), which relies on
   posteriors computed in full, needs revisiting with it.
-- [ ] **A faster kernel gradient in gpyreg.** gpyreg's rational-quadratic
-  ARD kernel (`RationalQuadraticARD.compute`) takes 31 to 45 % of a
-  PyBADS run in its own code, in the predictions at the ES search's
-  candidates and in the hyperparameter fits
-  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
-  Its gradient recomputes `sf2 * M ** (-alpha - 1)` for each input
-  dimension; computed once before the loop, it gives bit-identical results
-  and halves the time of the kernel with its gradient at D = 6 and D = 10,
-  about a quarter of the fits' time on `ellipsoid_D10`. A change for
-  gpyreg; reaching PyBADS, it is a gpyreg release, which moves PyBADS's
-  minimum and CI pin after its gate.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
@@ -97,23 +87,6 @@ order.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-- [ ] **A test whose outcome varies on macOS arm64.**
-  `test_run_control.py::test_output_fcn_that_changes_nothing_leaves_the_run_unchanged`
-  runs the same seeded optimization twice in one process, the second with
-  an output function that alters only its copy of `optim_state`, and
-  requires the same result. In the CI of #90 it failed on `macos-latest`
-  with Python 3.10 (runner image `macos-26-arm64`, NumPy 2.2.6, SciPy
-  1.15.3, gpyreg 1.3.3): the two runs ended at different points. It passed
-  on the job's re-run, in the same job of #88 at the same package code and
-  versions, and on Linux and Windows. So on that platform something in a
-  run, or in a library it calls, does not repeat between two runs in one
-  process; no decision of `bads.py` reads the wall clock. A hypothesis, not
-  yet tested: results of Accelerate or NumPy that depend on the alignment
-  of the arrays, which the output function's deep copies of `optim_state`
-  shift. To settle on macOS arm64: run the test in a loop until it fails,
-  find the first computation at which the two runs differ, and fix it
-  there; if it lies in a library, the test is rewritten to compare only
-  what the platform repeats.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -124,15 +97,15 @@ order.
   `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
   every random draw of a run comes from one generator created from
   `random_seed`, which 1.1.0's initial design did not follow (its
-  scrambling was seeded from the start). The list of the next release
-  replaces it, and says that `random_seed` now decides the initial design
-  (the doublecheck of wave 4 of the port review,
+  scrambling was seeded from the start). The list "What's new in PyBADS
+  1.5" replaces it, and says that `random_seed` now decides the initial
+  design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck"). At the same release, `skills/pybads/SKILL.md` and the
-  FAQ (`docsrc/source/faq.md`), which name no release, name it, as
-  PyVBMC's skill and FAQ name 1.5. The published documentation follows
-  `main`, so until that release the FAQ describes code that no release
-  has, among it `output_fcn(x, optim_state, state)`, which 1.1.0 calls as
+  FAQ (`docsrc/source/faq.md`), which name no release, name 1.5, as
+  PyVBMC's skill and FAQ do. The published documentation follows `main`,
+  so until that release the FAQ describes code that no release has, among
+  it `output_fcn(x, optim_state, state)`, which 1.1.0 calls as
   `output_fcn(x, "init")`.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
@@ -155,7 +128,9 @@ order.
   (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
   reproduce MATLAB's random stream) give. The population comparison of
   `dev/scripts/population.py` checks distributions, not trajectories,
-  until then.
+  until then. A replay that compares trajectories bit for bit holds on
+  Linux and Windows but not on macOS arm64
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
@@ -258,17 +233,46 @@ order.
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has.
-  gpyreg's `main` holds, unreleased, the fix of the port review's W1-24
-  (the log prior of a prior far outside its bounds, acerbilab/gpyreg#57)
-  and W1-25's switch (acerbilab/gpyreg#56), which stays off in PyBADS
-  (KD-B6-6). At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's
-  records in all 1,080 runs of the `default`, `geometry`, `oned` and
-  `bounds` suites on Linux
-  ([experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md)):
-  a release of it moves nothing there; its gate also takes the Windows
-  comparison.
-- [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
-  pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
-  every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
-  them.
+  shows that it has no effect on PyBADS, or explains the one it has. A
+  move is a change for users: an entry in `CHANGELOG.md` and a line in its
+  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
+  (PI, 2026-09-28), which is to hold:
+  - the fix of the port review's W1-24 (the log prior of a prior far
+    outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
+    (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on
+    gpyreg's `main` at `1893eff`;
+  - the gradients of the rational-quadratic ARD and Matern kernels
+    computing the factor common to all dimensions once, to the same bits,
+    on gpyreg's `main` since acerbilab/gpyreg#60 (merge commit `280d8c0`).
+    The kernel takes 31 to 45 % of a PyBADS run in its own code, in the
+    predictions at the ES search's candidates and in the hyperparameter
+    fits; only the fits compute its gradient, and on `ellipsoid_D10` their
+    kernel takes 6.0 s of a 23-s run (Windows, gpyreg 1.3.3,
+    [results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+    On Linux with one BLAS thread, the kernel with its gradient takes a
+    third less time at D = 10 and 150 training points and a quarter less
+    at D = 6 and 110, and PyBADS's runs of `ellipsoid_D10`, seeds 0-5,
+    take 0.85 to 0.95 of their wall time with gpyreg at `1893eff` (median
+    0.90, paired by seed, the two arms side by side on four cores), with
+    records otherwise equal;
+  - pytest, pytest-rerunfailures and numdifftools, which only gpyreg's tests
+    use, in a `test` extra instead of gpyreg's runtime dependencies, also
+    since acerbilab/gpyreg#60, so that installing PyBADS does not install
+    them. Moving PyBADS's minimum to that release makes false the
+    "(gpyreg 1.3.3 still installs it)" of the entry "Requirements" of
+    `CHANGELOG.md`'s `Unreleased`, which changes with it.
+
+  At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's records in
+  all 1,080 runs of the `default`, `geometry`, `oned` and `bounds` suites
+  on Linux
+  ([experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md)).
+  With gpyreg at `280d8c0` (the tree of the last commit of
+  acerbilab/gpyreg#60, `1095742`) and PyBADS at `bec8a57a`,
+  `dev/scripts/fingerprint.py` gives 1.3.3's hash, `4146a986863602cb`
+  (Linux, NumPy 2.4.6, SciPy 1.17.1, one BLAS thread), as the kernel
+  change's bit identity implies. The release's own gate, the comparison
+  run with its clone, is therefore expected to flag nothing on Linux, and
+  takes the Windows comparison too. conda-forge's `gpyreg-feedstock` lists
+  the three test packages among its run requirements (`recipe/meta.yaml`),
+  and its bot merges its version-update PR once a CI that only imports
+  gpyreg passes: that PR has them dropped before it merges.

@@ -73,21 +73,39 @@ def test_output_fcn_calls():
     assert polled == list(range(n_polls))
 
 
-def test_output_fcn_that_changes_nothing_leaves_the_run_unchanged():
-    """An output function that never stops the run, and alters the copy of
-    `optim_state` it receives, gives the result of a run without one."""
+def test_output_fcn_alters_only_its_copy_of_optim_state():
+    """An output function that alters the `optim_state` it receives, one of
+    its arrays in place included, alters only its copy: each call receives
+    the run's own state, the run's state is intact at its end, and the run
+    ends on its budget, not on the mesh size of 0 that the output function
+    sets."""
+    received = []
 
     def meddle(x, optim_state, state):
+        received.append(
+            (
+                state,
+                optim_state["iter"],
+                optim_state["mesh_size"],
+                optim_state["lb"].copy(),
+            )
+        )
         optim_state["iter"] = 1000
         optim_state["mesh_size"] = 0.0
+        optim_state["lb"][...] = 0.0
         return False
 
-    plain = _make_bads().optimize()
-    with_fcn = _make_bads(output_fcn=meddle).optimize()
-    assert np.array_equal(with_fcn["x"], plain["x"])
-    assert with_fcn["fval"] == plain["fval"]
-    assert with_fcn["func_count"] == plain["func_count"]
-    assert with_fcn["iterations"] == plain["iterations"]
+    bads = _make_bads(output_fcn=meddle)
+    lb = bads.optim_state["lb"].copy()
+    result = bads.optimize()
+    polled = [it for state, it, _, _ in received if state == "iter"]
+    assert len(polled) >= 3
+    assert polled == list(range(len(polled)))
+    for _, _, mesh_size, lb_received in received:
+        assert mesh_size > 0
+        assert np.array_equal(lb_received, lb)
+    assert np.array_equal(bads.optim_state["lb"], lb)
+    assert result["func_count"] == 80
 
 
 def test_output_fcn_stops_run_at_init():
