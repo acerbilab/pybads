@@ -3,18 +3,6 @@
 Updated 2026-09-28. The list describes scope, not priority or execution
 order.
 
-- [ ] **W2-25 and the noisy configurations' fraction solved.** W2-25 (wave
-  2's fix pass: after the re-estimate, the incumbent moves with the value of
-  the iterate it takes) lowered the fraction solved of `ellipsoid_D3_homo`,
-  `ellipsoid_D3_hetero` and `sphere_D3_hetero` at 30 seeds, unflagged, a
-  coarse measure there
-  (`experiments/port_review_20260925/verification/wave2.md`, "Doublecheck").
-  Wave 2's doublecheck left it to the remeasure of W1-25, which, ruled on
-  2026-09-28 (gpyreg's switch stays off, KD-B6-6 of `pybads/bads/README.md`;
-  [results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)), did
-  not compare the runs with and without W2-25. To settle: the five noisy
-  configurations of the `default` suite at 60 to 90 seeds, at the head and
-  with W2-25 reverted.
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
   update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
