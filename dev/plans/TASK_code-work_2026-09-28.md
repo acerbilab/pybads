@@ -25,8 +25,8 @@ pushes and runs `/doublecheck` at the end.
 - One-point GP: skip the fit on one distinct point, MATLAB's starting values, mean prior at y1 (SD 1); two points unchanged; refit warnings on zero-spread inputs → gpyreg TODO
 
 ## Phases (sequential unless noted; one heavy process at a time)
-- [ ] P1 Loose ends 1-9, 11 (Opus; main checkout) — fingerprint + suite
-- [ ] P5a Replay tool + initial-design pin (Opus; worktree, parallel with P1)
+- [~] P1 Loose ends 1-9, 11 (Opus; main checkout) — fingerprint + suite
+- [~] P5a Replay tool + initial-design pin (Opus; worktree, parallel with P1)
 - [ ] P1b W2-36 measurement (Opus; heavy, ~25-45 min) — population compare, 5 noisy configs, 90 seeds
 - [ ] P2 Stage timers + profiler (Opus) — fingerprint + suite; timing campaign on a quiet machine
 - [ ] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
