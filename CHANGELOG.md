@@ -511,8 +511,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   bounds names the variables that have one.
 - **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
   `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
-  bound in every dimension, as the docstring says and MATLAB BADS does;
-  1.1.0 refused it when D > 1.
+  bound in every dimension, as the docstring says and MATLAB BADS does; 1.1.0
+  refused it when D > 1. Without `x0`, plausible bounds given as a list or a
+  Python scalar size the random start as NumPy arrays do, where 1.1.0 stopped
+  with `AttributeError`.
 - **Starting point of several rows.** `x0` is a single point: `BADS` refuses
   an `x0` of more than one row when it is created, as MATLAB BADS does.
   1.1.0 accepted it, estimated missing plausible bounds from its rows, and

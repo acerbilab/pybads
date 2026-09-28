@@ -196,6 +196,23 @@ def test_infinite_x0_is_drawn_at_random(x0):
 
 
 @pytest.mark.parametrize(
+    "plb, pub",
+    [([-1.0, -1.0], [1.0, 1.0]), (-1.0, 1.0), (-1, 1)],
+    ids=["lists", "float_scalars", "int_scalars"],
+)
+def test_missing_x0_takes_its_size_from_any_plausible_bounds(plb, pub):
+    """Without `x0`, plausible bounds given as a list or a Python scalar size
+    the random start as the same bounds given as NumPy arrays or scalars do,
+    and give the same start."""
+    as_numpy = (np.asarray(plb, dtype=float), np.asarray(pub, dtype=float))
+    bounds = (-2 * np.ones(np.size(plb)), 2 * np.ones(np.size(plb)))
+    bads = BADS(_sphere, None, *bounds, plb, pub, options=OPTIONS)
+    reference = BADS(_sphere, None, *bounds, *as_numpy, options=OPTIONS)
+    assert bads.D == np.size(plb)
+    np.testing.assert_array_equal(bads.x0, reference.x0)
+
+
+@pytest.mark.parametrize(
     "bounds",
     [(-np.ones(2), np.ones(2)), ()],
     ids=["with_bounds", "without_bounds"],

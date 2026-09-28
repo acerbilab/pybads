@@ -275,7 +275,9 @@ class BADS:
                  provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
                 )
             else:
-                x0 = np.full((plausible_lower_bounds.shape), np.nan)
+                # A random start of the plausible bounds' size, as in MATLAB
+                # BADS: a list or a Python scalar sizes it as an array does
+                x0 = np.full(np.shape(plausible_lower_bounds), np.nan)
 
         x0 = np.atleast_2d(x0)
         self.D = x0.shape[1]
