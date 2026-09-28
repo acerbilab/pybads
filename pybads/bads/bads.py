@@ -893,11 +893,6 @@ class BADS:
                 f"({self.options['n_search']}), not {n_search_iter!r}."
             )
         self.options["n_search_iter"] = int(n_search_iter)
-        # hedge_gamma, the smallest probability of each search method, lies
-        # in [0, 1 / n], n the number of search methods: the hedge chooses a
-        # method with the probabilities (1 - n * hedge_gamma) * softmax +
-        # hedge_gamma, which invert above 1 / n and turn negative above
-        # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
         # search_method is a non-empty list of pairs (name, sum-rule flag),
         # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell";
         # further elements are ignored. MATLAB BADS does not check it
@@ -918,6 +913,11 @@ class BADS:
                 "pairs (name, sum-rule flag), each name 'ES-wcm' or "
                 f"'ES-ell', not {search_method!r}."
             )
+        # hedge_gamma, the smallest probability of each search method, lies
+        # in [0, 1 / n], n the number of search methods: the hedge chooses a
+        # method with the probabilities (1 - n * hedge_gamma) * softmax +
+        # hedge_gamma, which invert above 1 / n and turn negative above
+        # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
         hedge_gamma = self.options["hedge_gamma"]
         n_search_methods = len(search_method)
         value = _as_real_number(hedge_gamma)
