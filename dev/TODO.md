@@ -202,9 +202,8 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
 - [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
-  while fixing" and "Doublecheck", with the details). The cleanup of
-  2026-09-28 (#84) fixed those that change no result and need no choice;
-  left, each a behaviour choice:
+  while fixing" and "Doublecheck", with the details). Left, each a
+  behaviour choice:
   - `test_options.ini` and `test_options2.ini` ship in the wheel and nothing
     reads them;
   - a 0-d array for `max_fun_evals` or a boolean option is refused, where
@@ -221,8 +220,7 @@ order.
     (KD-B1-9); the test of fixed variables leaves `x0` out (KD-B1-7).
 - [ ] **Minor items of slices B7 and O of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). The cleanup of 2026-09-28 (#84) fixed
-  those that change no result and need no choice; left:
+  while fixing", with the details). Left, each a behaviour choice:
   - the port floors the ES search's `mu = n_search / n_search_iter`, where
     `private/setupvars.m:186` does not (MATLAB's `randn` would refuse the
     fraction, by reading; wave 4's ruling keeps the rounded-down
@@ -231,11 +229,11 @@ order.
   - `FunctionLogger.add` keeps checks of its own, and the final samples
     still add to the incumbent's `n_evals` and average their times into its
     row: both with the port of `fun_values`;
-  - found in the cleanup: elements beyond the pair in `search_acq_fcn` or in
-    an entry of `search_method` are ignored, as in 1.1.0; some unused
-    advanced options (`warp_*`, `variational_sampler`) do not say so in
-    their descriptions; no module of PyBADS imports matplotlib any more,
-    which gpyreg still requires; `skills/pybads/SKILL.md` names no release.
+  - elements beyond the pair in `search_acq_fcn` or in an entry of
+    `search_method` are ignored, as in 1.1.0; some unused advanced options
+    (`warp_*`, `variational_sampler`) do not say so in their descriptions;
+    no module of PyBADS imports matplotlib, which `pyproject.toml` requires
+    and gpyreg imports; `skills/pybads/SKILL.md` names no release.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
