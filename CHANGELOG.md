@@ -656,7 +656,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   range of a hard bound, which 1.1.0 could refuse with `bads:StrictBounds`,
   are accepted. The warnings `bads:InitialPointsTooClosePB`,
   `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
-  `bads:StrictBoundsTooClose` are gone. Results change on problems with the
+  `bads:StrictBoundsTooClose` are gone, and BADS warns `bads:pbUnspecified`
+  when it takes the hard bounds for omitted plausible bounds, as MATLAB BADS
+  does, where 1.1.0 took them silently. Results change on problems with the
   plausible bounds omitted or near a hard bound, or with a start near a hard
   bound. On a 3-D sphere in log-scaled variables, bounded in [1e-3, 1e3]
   with a plausible box of [0.01, 100], which was shrunk to [1, 100], 73% of

@@ -90,6 +90,11 @@ def _is_named_pair(value, names):
 _LOG_NOTIFY = 25
 _LOG_FINAL = 22
 
+_PB_UNSPECIFIED = (
+    "bads:pbUnspecified: Plausible lower/upper bounds not specified. Using "
+    "hard upper/lower bounds instead."
+)
+
 # The search's acquisition functions (the first element of search_acq_fcn)
 # that read the optimization target, for which the search computes it.
 # MATLAB BADS computes it at every search (bads.m:539), where the functions
@@ -290,11 +295,17 @@ class BADS:
         # variable to keep track of logging actions
         self.logging_action = []
 
-        # Initialize variables and algorithm structures
+        # Initialize variables and algorithm structures. Missing plausible
+        # bounds are the hard bounds, with the warning bads:pbUnspecified
+        # once the logger is set up, as MATLAB BADS warns whenever it fills
+        # them (boundscheck.m:12-16)
+        pb_filled = False
         if plausible_lower_bounds is None and lower_bounds is not None:
             plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
+            pb_filled = True
         if plausible_upper_bounds is None and upper_bounds is not None:
             plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
+            pb_filled = True
 
         if x0 is None:
             if (
@@ -359,6 +370,14 @@ class BADS:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(_LOG_NOTIFY)
+        # A plausible bound still missing (its hard bound missing too) gets
+        # the warning in _bounds_check_
+        if (
+            pb_filled
+            and plausible_lower_bounds is not None
+            and plausible_upper_bounds is not None
+        ):
+            self.logger.warning(_PB_UNSPECIFIED)
 
         # Empty lb and ub are Infs
         if lower_bounds is None:
@@ -487,10 +506,7 @@ class BADS:
 
         # Hard bounds for the plausible bounds that are not specified
         if plausible_lower_bounds is None or plausible_upper_bounds is None:
-            self.logger.warning(
-                "bads:pbUnspecified: Plausible lower/upper bounds"
-                " not specified. Using hard upper/lower bounds instead."
-            )
+            self.logger.warning(_PB_UNSPECIFIED)
             if plausible_lower_bounds is None:
                 plausible_lower_bounds = np.copy(lower_bounds)
             if plausible_upper_bounds is None:
