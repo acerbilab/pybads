@@ -1062,6 +1062,17 @@ _GEOMETRY = [
     Config("sphere_band", 3, budget=500),
 ]
 
+# The thin band with noise, whose initial design leaves the GP one point,
+# `x0`, as it does without noise in the geometry suite: at uncertainty level
+# 1 and at level 2 (the target's noise), the gate of a change to the GP on
+# one point.
+_THINBAND = [
+    Config("sphere_band", 2, noise="homo", budget=500),
+    Config("sphere_band", 3, noise="homo", budget=500),
+    Config("sphere_band", 2, noise="hetero", budget=500),
+    Config("sphere_band", 3, noise="hetero", budget=500),
+]
+
 # The configurations whose time `profile_suite.py` measures: those of
 # `results/2026-09-28-where-pybads-spends-its-time.md` (three deterministic,
 # two with noise inferred, one with the target's noise), and
@@ -1083,6 +1094,7 @@ SUITES = {
     "oned": _ONED,
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
+    "thinband": _THINBAND,
     "profile": [c for c in _DEFAULT if c.label in _PROFILE],
 }
 

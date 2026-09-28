@@ -87,8 +87,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   `bounds` (plausible bounds omitted, a start on a hard bound, and
   `logsphere`: the setup's checks of the bounds and the start),
   `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
-  and W3-24 of the port review) and `profile` (the seven configurations
-  whose time `profile_suite.py` measures). `--list` prints the suites,
+  and W3-24 of the port review), `thinband` (`sphere_band` at D = 2 and 3
+  with inferred noise and with the target's noise, whose GP starts on one
+  point: the gate of a change to that GP) and `profile` (the seven
+  configurations whose time `profile_suite.py` measures). `--list` prints the suites,
   `--check` verifies each target's minimum, bounds and noise, and the
   pinned likelihood values of the real-data targets, and `--smoke` runs
   each configuration of a suite once, in a fresh process as a population
