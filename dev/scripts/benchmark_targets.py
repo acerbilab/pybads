@@ -1062,12 +1062,28 @@ _GEOMETRY = [
     Config("sphere_band", 3, budget=500),
 ]
 
+# The configurations whose time `profile_suite.py` measures: those of
+# `results/2026-09-28-where-pybads-spends-its-time.md` (three deterministic,
+# two with noise inferred, one with the target's noise), and
+# `ellipsoid_D3`, whose failed refits take 42 % of its time
+# (`results/2026-09-28-gp-health.md`).
+_PROFILE = (
+    "ellipsoid_D3",
+    "ellipsoid_D10",
+    "rosenbrock_D6",
+    "ackley_D6",
+    "multisensory_s1_D6_homo",
+    "ellipsoid_D3_homo",
+    "sphere_D3_hetero",
+)
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
     "oned": _ONED,
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
+    "profile": [c for c in _DEFAULT if c.label in _PROFILE],
 }
 
 

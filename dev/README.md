@@ -51,9 +51,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   maximum-likelihood fits to real data, `timing` and `multisensory_s1`)
   and the suites `smoke`, `default`, `oned` (the configurations at D = 1),
   `bounds` (plausible bounds omitted, a start on a hard bound, and
-  `logsphere`: the setup's checks of the bounds and the start) and
+  `logsphere`: the setup's checks of the bounds and the start),
   `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
-  and W3-24 of the port review). `--list` prints the suites,
+  and W3-24 of the port review) and `profile` (the seven configurations
+  whose time `profile_suite.py` measures). `--list` prints the suites,
   `--check` verifies each target's minimum, bounds and noise, and the
   pinned likelihood values of the real-data targets, and `--smoke` runs
   each configuration of a suite once, in a fresh process as a population
@@ -71,9 +72,9 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   real-data likelihood or its data changes.
 - `population.py` runs, summarizes and compares populations of seeded
   runs. `run --suite default --seeds 0-29 --out DIR` writes one JSON record
-  per run (result, error against the target's minimum, effective options,
-  provenance) and skips the runs already recorded, so it resumes after an
-  interruption. `summary DIR` writes `DIR/summary.md`. `compare REF NEW`
+  per run (result, error against the target's minimum, the run's stage
+  times, effective options, provenance) and skips the runs already
+  recorded, so it resumes after an interruption. `summary DIR` writes `DIR/summary.md`. `compare REF NEW`
   tests each configuration for a change in the error and in the number of
   evaluations, with one Holm correction over all the tests, prints effect
   sizes, and exits 1 on a flag; `compare REF --split` compares the even
@@ -107,6 +108,33 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the error of each run; `summary LOG` prints, per test, the largest and
   the median error, the evaluations and the ratio of the tolerance to the
   largest error. Seeds 0-99 take about 40 minutes.
+- `profile_run.py --config LABEL --seed N` runs one configuration as
+  `population.py` does and records where its time goes: the result, the
+  run's stage times (`optim_state["stage_times"]`: each second charged to
+  the innermost open stage, the target's evaluations to `target`) by
+  path, top-level stage and leaf, with their entries and the residual
+  `total_time` less the stages and the target, one row per iteration from
+  `iteration_history["timer"]`, and with `--cprofile` a cProfile of
+  `optimize()` and the cumulative times of a curated list of functions
+  (`BUCKETS`). The profiler slows the run, most where calls are many and
+  short: stage times come from the runs without it.
+- `profile_suite.py` runs `profile_run.py` over a suite (`profile` by
+  default) and seeds (`--seeds 0-2`), plain, under cProfile or both, one
+  run per process and one BLAS thread, resumable, and writes
+  `aggregate.json` and `aggregate.md` (medians over the seeds) in the
+  campaign directory, under `scripts/runs/profile/`. `--probe CONFIG`
+  times one configuration before and after the campaign, to show a
+  machine that slowed down.
+- `profile_compare.py BASE NEW` pairs the runs of two campaigns by
+  configuration, seed and mode, and prints the median ratios of the wall
+  time, the own time and each stage, a control stage that the change does
+  not reach (`--control`, `gp_init` by default: a ratio far from 1 is the
+  machine's speed, not the code's), whether each pair ran the same
+  trajectory, and the cProfile buckets with their times per call. A
+  commit from before the stage timers is measured with these scripts,
+  `population.py` and `benchmark_targets.py` copied into a worktree at
+  it: its runs have no stages, and the comparison takes their wall times
+  and buckets.
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.

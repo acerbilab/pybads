@@ -24,14 +24,17 @@ configuration's budget.
 Each run writes ``<label>_seed<seed>.json``: the configuration, the seed,
 the requested and the effective options, ``final`` (the returned point,
 ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``, ``func_count``,
-``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception`` and
-``min_noise_var``) and ``meta`` (the provenance: git state, versions, the
-source and commit of the imported gpyreg, thread variables, start and end
-times). ``min_noise_var`` is the smallest training noise variance ``sn2``
-over the GPs of ``iteration_history["gp"]`` and their hyperparameter
-samples: the quantity gpyreg compares with ``1e-6`` to choose its low-noise
-representation of the posterior (``gaussian_process.py``, where
-``__core_computation`` sets ``L_chol``).
+``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception``,
+``min_noise_var`` and ``stage_times``) and ``meta`` (the provenance: git
+state, versions, the source and commit of the imported gpyreg, thread
+variables, start and end times). ``min_noise_var`` is the smallest training
+noise variance ``sn2`` over the GPs of ``iteration_history["gp"]`` and their
+hyperparameter samples: the quantity gpyreg compares with ``1e-6`` to choose
+its low-noise representation of the posterior (``gaussian_process.py``,
+where ``__core_computation`` sets ``L_chol``). ``stage_times`` holds the
+run's ``optim_state["stage_times"]`` (the function ``stage_times``): the
+seconds of each stage by path and by top-level stage, and the entries of
+each stage; None for a run that raised.
 
 ``summary`` tabulates each configuration (median and interquartile range of
 ``true_error`` and ``func_count``, the fraction solved, the crash count) and
@@ -226,6 +229,43 @@ def min_noise_var(bads):
     return None if best == np.inf else best
 
 
+def top_level_seconds(paths):
+    """The seconds of each top-level stage, the stages nested in it
+    included, from the seconds by path of ``optim_state["stage_times"]``
+    (``"target"`` is a top-level key)."""
+    top = {}
+    for path, seconds in paths.items():
+        name = path.split("/", 1)[0]
+        top[name] = top.get(name, 0.0) + seconds
+    return top
+
+
+def stage_times(bads):
+    """The stage times that a run stores at its end,
+    ``optim_state["stage_times"]``, as a record keeps them.
+
+    ``paths`` holds the seconds of each stage by its path (as
+    ``search/gp_rebuild/gp_fit``), exclusive of the stages nested in it,
+    and ``"target"``, the target's evaluations: they add up to the run's
+    ``total_time``. ``calls`` holds the number of entries of each stage,
+    and ``top_level`` the seconds of each top-level stage with the stages
+    nested in it. None when the run stored none: it raised, or its PyBADS
+    has no stage timers.
+    """
+    try:
+        stored = bads.optim_state.get("stage_times")
+    except Exception:  # noqa: BLE001
+        return None
+    if not stored:
+        return None
+    paths = {str(k): float(v) for k, v in stored["seconds"].items()}
+    return {
+        "top_level": top_level_seconds(paths),
+        "paths": paths,
+        "calls": {str(k): int(v) for k, v in stored["calls"].items()},
+    }
+
+
 def _final(prob, bads, res, exc, wall):
     crashed = exc is not None
     out = {
@@ -240,6 +280,7 @@ def _final(prob, bads, res, exc, wall):
         "crashed": crashed,
         "exception": exc,
         "min_noise_var": None,
+        "stage_times": None,
     }
     if res is not None:
         x = np.asarray(res["x"], dtype=float).ravel()
@@ -263,6 +304,7 @@ def _final(prob, bads, res, exc, wall):
             out["min_noise_var"] = min_noise_var(bads)
         except Exception:  # noqa: BLE001  (keep the run; the field stays None)
             pass
+        out["stage_times"] = stage_times(bads)
     return out
 
 

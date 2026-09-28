@@ -65,6 +65,7 @@ def test_record_schema(tmp_path):
         "crashed",
         "exception",
         "min_noise_var",
+        "stage_times",
     }
     assert final["crashed"] is False and final["exception"] is None
     assert len(final["x"]) == 2 and final["func_count"] == 20
@@ -73,6 +74,13 @@ def test_record_schema(tmp_path):
     assert rec["x0"] == prob.x0.tolist()
     assert final["true_error"] >= 0 and final["wall_s"] > 0
     assert 0 < final["min_noise_var"] < np.inf
+    stages = final["stage_times"]
+    assert set(stages) == {"top_level", "paths", "calls"}
+    assert {"init", "gp_init", "loop", "target"} <= set(stages["top_level"])
+    assert sum(stages["top_level"].values()) == pytest.approx(
+        sum(stages["paths"].values())
+    )
+    assert set(stages["calls"]) == set(stages["paths"]) - {"target"}
     meta = rec["meta"]
     for key in (
         "git",
@@ -120,6 +128,7 @@ def test_crash_is_an_outcome(tmp_path):
     assert rec["final"]["crashed"] is True
     assert rec["final"]["exception"]["type"] == "ValueError"
     assert rec["final"]["true_error"] is None
+    assert rec["final"]["stage_times"] is None
     pop = pp.load_population(tmp_path)
     assert pop["sphere_D3_hetero"]["crashed"].tolist() == [True]
     assert np.isnan(pop["sphere_D3_hetero"]["true_error"][0])

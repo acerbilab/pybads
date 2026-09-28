@@ -152,12 +152,6 @@ order.
   reproduce MATLAB's random stream) give. The population comparison of
   `dev/scripts/population.py` checks distributions, not trajectories,
   until then.
-- [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
-  once PyBADS times its search, poll and GP-training stages separately:
-  today its timer covers only the whole run and the target's evaluations.
-  One stage is measured: the failed tries of the refits take 9% of the
-  deterministic runs' time over four suites, 42% of `ellipsoid_D3`'s
-  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)).
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench). A port of periodic variables also
   assigns `period_check`'s result at every call site, as MATLAB BADS does,
