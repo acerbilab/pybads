@@ -20,7 +20,7 @@ PyBADS requires no specific tuning and runs off-the-shelf like other Python opti
 
 ## What's new in PyBADS 1.1
 
-- **Reproducible runs.** Every random draw of a run comes from one NumPy random generator, created from the `random_seed` option, so a seeded run gives the same result every time on the same machine and leaves NumPy's global random state untouched (see [Quick start](#quick-start)).
+- **Reproducible runs.** Every random draw of a run comes from one NumPy random generator, created from the `random_seed` option, so a seeded run leaves NumPy's global random state untouched and gives the same result every time on the same machine, up to small differences on Apple Silicon Macs (see [Quick start](#quick-start)).
 - **More precise results with gpyreg 1.3.3.** PyBADS requires gpyreg 1.3.3, whose Gaussian process predictions are more accurate when the noise is very small; on several benchmark problems with deterministic targets, runs end closer to the minimum.
 - **A fix for user-specified noise.** A run with `specify_target_noise=True` no longer stops with a `ValueError` when a point is evaluated a second time.
 - **Requirements.** PyBADS needs Python 3.10 or newer; the test dependencies are an optional extra, `pybads[test]`.
@@ -108,7 +108,7 @@ The outputs are:
 
 For a full list and description of the entries of the ``optimize_result`` object, see the [OptimizeResult](https://acerbilab.github.io/pybads/api/classes/optimize_result.html) class documentation.
 
-For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; the seed is read when the object is created. For independent runs, leave `random_seed` unset or use different seeds. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately.
+For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; the seed is read when the object is created. On Apple Silicon Macs, two runs with the same seed make the same random draws but can end at slightly different points: with Apple's Accelerate as the linear algebra library of NumPy and SciPy (as in their wheels on PyPI), the last bits of a result depend on where its arrays lie in memory. For independent runs, leave `random_seed` unset or use different seeds. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately.
 
 ## Next steps
 
