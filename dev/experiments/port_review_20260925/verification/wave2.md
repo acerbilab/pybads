@@ -673,6 +673,9 @@ The hash of one commit depends on the number of BLAS threads, as
   cast.]
 - Kept as ruled, for the PI: W2-25 lowers the fraction solved of three of
   the five noisy configurations, unflagged at 30 seeds, which goes with the
-  revisit of W1-25 after all the fixes (`TODO.md`); W2-17, W2-27 and W2-45
+  revisit of W1-25 after all the fixes (`TODO.md`). [2026-09-28: at 90
+  seeds, against W2-25 reverted, no measurable effect on the noisy
+  configurations; the drops belong to the seeds of the gate
+  (`experiments/w225_linux_20260928/`).] W2-17, W2-27 and W2-45
   move results only on inputs that the benchmark does not reach, and are
   gated by the fingerprint and their tests.

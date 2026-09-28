@@ -164,6 +164,12 @@ reference's number of seeds.
   decision of the rule counted: no gain over BADS without Sto-BADS, and the
   rulings on W0-12 and W0-13. Its evidence:
   [experiments/stobads_linux_20260928/](experiments/stobads_linux_20260928/README.md).
+- [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
+  — row W2-25 of the port review (a noisy run's move to an earlier iterate
+  takes its location with its value) against its revert, the five noisy
+  configurations at 90 seeds on Linux: no measurable effect on their
+  errors, evaluations or fraction solved; the lower fraction solved of its
+  30-seed gate belongs to those seeds.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

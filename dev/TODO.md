@@ -3,18 +3,6 @@
 Updated 2026-09-28. The list describes scope, not priority or execution
 order.
 
-- [ ] **W2-25 and the noisy configurations' fraction solved.** W2-25 (wave
-  2's fix pass: after the re-estimate, the incumbent moves with the value of
-  the iterate it takes) lowered the fraction solved of `ellipsoid_D3_homo`,
-  `ellipsoid_D3_hetero` and `sphere_D3_hetero` at 30 seeds, unflagged, a
-  coarse measure there
-  (`experiments/port_review_20260925/verification/wave2.md`, "Doublecheck").
-  Wave 2's doublecheck left it to the remeasure of W1-25, which, ruled on
-  2026-09-28 (gpyreg's switch stays off, KD-B6-6 of `pybads/bads/README.md`;
-  [results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)), did
-  not compare the runs with and without W2-25. To settle: the five noisy
-  configurations of the `default` suite at 60 to 90 seeds, at the head and
-  with W2-25 reverted.
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
   update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
@@ -109,6 +97,23 @@ order.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
+- [ ] **A test whose outcome varies on macOS arm64.**
+  `test_run_control.py::test_output_fcn_that_changes_nothing_leaves_the_run_unchanged`
+  runs the same seeded optimization twice in one process, the second with
+  an output function that alters only its copy of `optim_state`, and
+  requires the same result. In the CI of #90 it failed on `macos-latest`
+  with Python 3.10 (runner image `macos-26-arm64`, NumPy 2.2.6, SciPy
+  1.15.3, gpyreg 1.3.3): the two runs ended at different points. It passed
+  on the job's re-run, in the same job of #88 at the same package code and
+  versions, and on Linux and Windows. So on that platform something in a
+  run, or in a library it calls, does not repeat between two runs in one
+  process; no decision of `bads.py` reads the wall clock. A hypothesis, not
+  yet tested: results of Accelerate or NumPy that depend on the alignment
+  of the arrays, which the output function's deep copies of `optim_state`
+  shift. To settle on macOS arm64: run the test in a loop until it fails,
+  find the first computation at which the two runs differ, and fix it
+  there; if it lies in a library, the test is rewritten to compare only
+  what the platform repeats.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all

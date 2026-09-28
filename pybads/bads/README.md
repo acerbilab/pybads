@@ -358,7 +358,9 @@ predicted there and a poll that no successful search precedes runs around
 the old point while it is judged by the other's value. PyBADS moves the
 incumbent, its location with its value. As in MATLAB BADS, the target's
 hyperparameters move with it and the working GP stays. A defect that
-PyBADS shared and fixes; it moves the noisy runs.
+PyBADS shared and fixes. It changes nearly every noisy run, but not their
+errors or fraction solved measurably (90 seeds against the move of the
+value alone, `dev/experiments/w225_linux_20260928/`).
 - PyBADS: `BADS.optimize` (the move after `_re_evaluate_history_`,
   through `_update_incumbent_`).
 - MATLAB: `bads.m:1111-1118`, `769`.
