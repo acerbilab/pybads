@@ -1,6 +1,7 @@
-"""The poll of Sto-BADS (`stobads=True`), after the rule of Sto-MADS: a poll
-succeeds if some polled point succeeds, and fails for certain only if every
-point does."""
+"""The poll and the search of Sto-BADS (`stobads=True`), after the rule of
+Sto-MADS: a poll succeeds if some polled point succeeds, and fails for
+certain only if every point does; with `opp_stobads`, an uncertain poll or
+search moves the incumbent only to a point that improves on it."""
 
 import numpy as np
 import pytest
@@ -163,3 +164,90 @@ def test_certain_failure_does_not_move(monkeypatch):
     poll = state["first"]
     assert poll["moves"] == []
     assert poll["mesh_after"] < poll["mesh_before"]
+
+
+def _scripted_first_search(monkeypatch, improvement):
+    """Make the Sto-BADS rule's first outcome in a search uncertain, with
+    the estimated improvement of the search point over the incumbent
+    replaced by `improvement` in that search, and record that search: the
+    estimate the rule received, the improvements asked for, and the
+    estimates the incumbent moved to."""
+    state = {"in_search": False, "first": None, "closed": False}
+    original_search = BADS._search_step_
+    original_rule = BADS._sto_success_improvement_
+    original_improvement = BADS._eval_improvement_
+    original_move = BADS._update_incumbent_
+
+    def scripting():
+        return (
+            state["in_search"]
+            and state["first"] is not None
+            and not state["closed"]
+        )
+
+    def search(self, gp):
+        state["in_search"] = True
+        try:
+            return original_search(self, gp)
+        finally:
+            state["in_search"] = False
+            if state["first"] is not None:
+                state["closed"] = True
+
+    def rule(self, f_base, f_new, *args):
+        if state["in_search"] and state["first"] is None:
+            state["first"] = {
+                "estimate": f_new,
+                "improvements": [],
+                "moves": [],
+            }
+            return 0
+        return original_rule(self, f_base, f_new, *args)
+
+    def improvement_of(self, *args):
+        z = original_improvement(self, *args)
+        if scripting():
+            z = np.array([improvement])
+            state["first"]["improvements"].append(improvement)
+        return z
+
+    def move(self, u_new, yval_new, fval_new, fsd_new):
+        if scripting():
+            state["first"]["moves"].append(fval_new)
+        return original_move(self, u_new, yval_new, fval_new, fsd_new)
+
+    monkeypatch.setattr(BADS, "_search_step_", search)
+    monkeypatch.setattr(BADS, "_sto_success_improvement_", rule)
+    monkeypatch.setattr(BADS, "_eval_improvement_", improvement_of)
+    monkeypatch.setattr(BADS, "_update_incumbent_", move)
+    return state
+
+
+@pytest.mark.parametrize(
+    "improvement, moves", [(0.5, True), (-1.0, False)], ids=["up", "down"]
+)
+def test_uncertain_search_moves_only_to_an_improvement(
+    monkeypatch, improvement, moves
+):
+    """An uncertain search outcome: with `opp_stobads`, the incumbent moves
+    to the search point only if its estimate improves on the incumbent, as
+    after an uncertain poll."""
+    state = _scripted_first_search(monkeypatch, improvement)
+    _run(opp_stobads=True)
+    search = state["first"]
+    assert search is not None
+    assert search["improvements"] == [improvement]
+    if moves:
+        assert len(search["moves"]) == 1
+        assert np.array_equal(search["moves"][0], search["estimate"])
+    else:
+        assert search["moves"] == []
+
+
+def test_uncertain_search_does_not_move_without_opp_stobads(monkeypatch):
+    state = _scripted_first_search(monkeypatch, 0.5)
+    _run(opp_stobads=False)
+    search = state["first"]
+    assert search is not None
+    assert search["improvements"] == []
+    assert search["moves"] == []

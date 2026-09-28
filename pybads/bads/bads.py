@@ -2156,12 +2156,20 @@ class BADS:
                 f_sd_search,
                 self.mesh_size,
             )
-            if self.options["opp_stobads"]:
-                is_search_improved = sto_success > -1
-                is_search_success = sto_success == 1
+            is_search_success = sto_success == 1
+            if self.options["opp_stobads"] and sto_success == 0:
+                # An uncertain outcome moves the incumbent only to a point
+                # that improves on it, as an uncertain poll does
+                search_improvement = self._eval_improvement_(
+                    self.fval,
+                    f_mu_search,
+                    self.fsd,
+                    f_sd_search,
+                    self.options["improvement_quantile"],
+                )
+                is_search_improved = bool(search_improvement > 0)
             else:
-                is_search_improved = sto_success == 1
-                is_search_success = is_search_improved
+                is_search_improved = is_search_success
 
         # An empty search set is a failed search. MATLAB BADS gives the same
         # status at improvement_quantile <= 0.5 (the default) or without
