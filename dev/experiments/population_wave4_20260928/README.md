@@ -82,9 +82,9 @@ it measures the net change of #71 and of the whole port review.
 | `multisensory_s1_D6_homo` | 0.20 → 0.15 | 668 → 580 | 0.96 → 0.97 | -0.02 [-0.15, +0.07] | evaluations |
 
 - The deterministic configurations end with an equal or smaller error, but
-  for the two spheres, whose errors grow while staying at least three
-  orders of magnitude below their tolerance (0.001). `ellipsoid_D10` takes 6% more
-  evaluations for a smaller error.
+  for the two spheres, whose median errors grow while staying more than
+  two orders of magnitude below their tolerance (0.001). `ellipsoid_D10`
+  takes 6% more evaluations for a smaller error.
 - The five configurations with noise stop earlier, with 12 to 28% fewer
   evaluations (`sphere_D3_hetero`, unflagged, 376 → 330), the direction
   that the gate of W0-1 first flagged

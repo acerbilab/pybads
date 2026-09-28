@@ -9,8 +9,8 @@ shown otherwise.
 The catalogue comes from the port correctness review of 2026-09-25 to
 09-28, which compared the port with MATLAB BADS line by line, slice by
 slice (`dev/results/2026-09-28-port-correctness-review.md`). Each entry
-keeps the identifier it had there (`KD-<slice>-<n>`; the slices are those of
-the review, B1 to B7, S and T), so that the review's ledgers, the survey and
+keeps the identifier it had there (`KD-<slice>-<n>`, with the slices of
+the review, B1 to B7 and S, and T for the tests), so that the review's ledgers, the survey and
 `dev/TODO.md` can cite it; the rulings it names are rows of those ledgers
 (`W<wave>-<n>`, in
 `dev/experiments/port_review_20260925/verification/wave<wave>.md`).
@@ -86,11 +86,15 @@ MATLAB BADS evaluates `'200*nvars'` (for `max_fun_evals`, which must be a
 positive integer of any size, it is refused; one beyond NumPy's 64-bit
 integers stands for `inf`). A user's `None` leaves the option at its
 default, as MATLAB's empty field does (`private/setupoptions.m:5-9`). The
-options whose default is `True` or `False`, and `uncertainty_handling`,
-take only booleans: MATLAB's `'on'`, `'off'`, `'yes'` and `'no'` are
-refused with `ValueError`. An option that takes a number or a boolean
-refuses a NumPy array, a 0-d one included, and takes a NumPy scalar. A
-misspelt option name raises, where MATLAB BADS ignores it.
+options whose default is `True` or `False`, but `plot`, and
+`uncertainty_handling`, take only booleans: MATLAB's `'on'`, `'off'`,
+`'yes'` and `'no'` are refused with `ValueError`. The options checked when
+`BADS` is created (the boolean options, `max_fun_evals`, `tol_fun`,
+`improvement_quantile`, `hedge_gamma`, `hedge_beta`, `hedge_decay`,
+`n_search`, `n_search_iter` and `accelerate_mesh_steps`) refuse a NumPy
+array, a 0-d one included, and take a NumPy scalar; the other numeric
+options are not checked. A misspelt option name raises, where MATLAB BADS
+ignores it.
 - PyBADS: `pybads/bads/options.py` (`Options`,
   `Options.validate_boolean_options`); `BADS.__init__`,
   `BADS._init_optim_state_`.
@@ -111,10 +115,10 @@ misspelt option name raises, where MATLAB BADS ignores it.
   `use_slice_sampler`, `gp_hyp_sampler` and `noise_shaping`;
   `init_mesh_size_integer` (default 0, MATLAB's fixed `MeshSizeInteger`).
   `hyp_run_weight` and `fun_evals_per_iter` (a running covariance of the
-  hyperparameters that no run fills), `gp_quadratic_mean_bound` and
-  `tol_sd` (the `"negquad"` mean, which is refused), and `hessian_update`
-  and `hessian_method` (a branch that does nothing) are read only by code
-  that no run reaches.
+  hyperparameters that no run fills), and `gp_quadratic_mean_bound` and
+  `tol_sd` (the `"negquad"` mean, which is refused), are read only by code
+  that no run reaches; `hessian_update` and `hessian_method`, only by a
+  branch of the search that does nothing.
 - *PyBADS only, and refused:* `f_vals`, read only by its check: one that
   holds a finite value is refused, and one without, such as an empty list,
   stands for `None` (W2-7).
@@ -129,25 +133,25 @@ misspelt option name raises, where MATLAB BADS ignores it.
 The options that no code of PyBADS reads are twelve, all named after
 MATLAB BADS's options and kept so that a user's setting is not an error;
 their descriptions say that they are unused:
-- *Read by neither side:* `skip_poll`, `search_improve_frac`, `gp_cluster`.
+- *Read by neither side:* `skip_poll`, `search_improve_frac`, `gp_cluster`,
+  `n_basis` (MATLAB reads `Nbasis` only in `poll/private/pollBMADS2N.m`,
+  which nothing calls).
 - *Hard-coded to MATLAB's default choice:* `poll_method` (KD-B4-1),
   `poll_acq_fcn` (KD-B3-2), `gp_def_fcn` (KD-B6-1), `gp_method` (always
   the nearest neighbours), `chol_attempts` (KD-B6-6).
-- *Read by MATLAB BADS only away from its defaults:* `n_basis`,
-  `gp_samples` and `gp_svd_iters` (KD-B5-4), `rotate_gp`.
+- *Read by MATLAB BADS only away from its defaults:* `gp_samples` and
+  `gp_svd_iters` (KD-B5-4), `rotate_gp`.
 
-The options that no code read and that MATLAB BADS does not have, PyVBMC's
-leftovers (`warp_*`, `variational_sampler`, `min_iter` and others, 65 of
-them in 1.1.0), are not options of PyBADS: setting one raises
-`ValueError`, as for any unknown name. Others are read and have no effect:
-- *Overridden:* `gp_cov_fun`, which `_init_optim_state_` sets to the
-  rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] = 1`).
-- *Read only by a branch that does nothing or refuses:* `plot` (KD-B2-2),
-  `restarts` (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge`
-  (KD-B3-3), `fitness_shaping` (KD-B5-5), `hessian_update` and
-  `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4),
-  `periodic_vars` (KD-B1-6), an `init_fun` other than `"init_sobol"`
-  (KD-B7-2).
+The options that no code read and that MATLAB BADS does not have,
+leftovers of PyVBMC and of the port (`variational_sampler`, `min_iter`,
+`gp_cov_fun`, the `warp_*` options other than `warp_func`, and others, 66
+of them in 1.1.0), are not options of PyBADS: setting one raises
+`ValueError`, as for any unknown name. Other options are read, but only by
+a branch that does nothing or refuses: `plot` (KD-B2-2), `restarts`
+(KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3),
+`fitness_shaping` (KD-B5-5), `hessian_update` and `hessian_method`
+(KD-B1-4), a nonzero `warp_func` (KD-B6-4), `periodic_vars` (KD-B1-6), an
+`init_fun` other than `"init_sobol"` (KD-B7-2).
 - Settled by: W1-33, W2-35; the PI's ruling at the close of the review
   (the removal of the leftovers). Kind: removed feature.
 
@@ -200,7 +204,8 @@ returns the incumbent's observation (`bads.m:1136`).
 PyBADS tests `non_box_cons` at a given start, and a second time after
 `force_to_grid`, and raises `ValueError` if the point on the mesh violates
 it; MATLAB BADS tests only the start as given and evaluates the point on
-the mesh. A random start is tested on the mesh on both sides (KD-B1-11).
+the mesh. PyBADS tests a random start as drawn and on the mesh, MATLAB
+BADS on the mesh (KD-B1-11).
 - PyBADS: `BADS.__init__`; `BADS._init_optim_state_`.
 - MATLAB: `private/evalinitmesh.m:22-26`; `private/setupvars.m:84-87`,
   `101`.
@@ -221,23 +226,24 @@ and fixes.
 **KD-B1-11. A random start that violates `non_box_cons` is drawn again.**
 When `x0` is missing or not finite, MATLAB BADS draws one start in the
 plausible box, puts it on the mesh, and stops with an error when that point
-violates `non_box_cons`. PyBADS draws again while the point on the mesh
-violates it, up to 1000 draws in all, and then raises the same error; a
-run whose first draw is feasible on the mesh starts where MATLAB's would
-from the same numbers. A defect that PyBADS shared and fixes.
+violates `non_box_cons`. PyBADS draws again while the point as drawn or
+the point on the mesh violates it, up to 1000 draws in all, and then raises
+the same error; a run whose first draw is feasible, as drawn and on the
+mesh, starts where MATLAB's would from the same numbers. A defect that
+PyBADS shared and fixes.
 - PyBADS: `BADS._init_optim_state_`.
 - MATLAB: `private/setupvars.m:83-85`, `101`;
   `private/evalinitmesh.m:22-26`.
 - Settled by: W2-11; the PI's ruling at the close of the review (the test
-  on the mesh). Kind: deliberate change.
+  as drawn and on the mesh). Kind: deliberate change.
 
 **KD-B1-12. A missing `x0` with only the hard bounds is accepted.**
 With `x0` missing and the plausible bounds omitted, MATLAB BADS refuses
-the problem (`bads.m:331-342`). PyBADS takes the hard bounds for the
+the problem (`bads.m:332-343`). PyBADS takes the hard bounds for the
 plausible bounds and draws the start in the plausible box, as it draws any
 missing start.
 - PyBADS: `BADS.__init__`, `BADS._bounds_check_`.
-- MATLAB: `bads.m:331-342`.
+- MATLAB: `bads.m:332-343`.
 - Settled by: W2-9. Kind: deliberate change.
 
 **KD-B1-13. `tol_fun` is checked when `BADS` is created.**
@@ -245,13 +251,27 @@ missing start.
 float) at most e^6: a boolean, a string, an array or a complex number is
 refused. MATLAB BADS does not check it. Above e^6 the bounds of
 the GP's log noise SD, `log(tol_fun) - 1` and 5, cross
-(`gpdef/gpdefBads.m:161`), which stopped a run at its first fit, and 0
-stopped it while the default of `hedge_beta`, `1e-3 / tol_fun`, was
-evaluated.
+(`gpdef/gpdefBads.m:161`); in PyBADS 1.1.0 such a value stopped a run at
+its first fit, and 0 stopped it with a `ZeroDivisionError` while the
+default of `hedge_beta`, `1e-3 / tol_fun`, was evaluated.
 - PyBADS: `BADS._check_tol_fun_`.
 - MATLAB: `bads.m:193`; `private/setupoptions.m:23`.
 - Settled by: #84; the PI's ruling at the close of the review (real
   numbers only). Kind: deliberate change.
+
+**KD-B1-14. MATLAB's extra arguments to the target and its other calling forms are not ported.**
+MATLAB BADS passes the arguments that follow `options` to the target,
+`fun(x, varargin{:})`, and `bads('defaults')`, `bads('all')`,
+`bads('test')` and `bads('version')` return its basic options, all its
+options, the results of its test problems and its version. PyBADS calls
+the target with `x` alone, so a target that needs more arguments is bound
+to them by the user (with `functools.partial`, for instance); its options
+are the two `.ini` files (KD-B1-2), its tests are pytest's (KD-T-1), and
+its version is the installed package's
+(`importlib.metadata.version("pybads")`).
+- PyBADS: `BADS.__init__`; `FunctionLogger`.
+- MATLAB: `bads.m:1`, `163-182`, `293-296`, `402-406`.
+- Kind: unported feature (interface).
 
 ### The main loop, termination and the final estimate (B2)
 
@@ -281,8 +301,9 @@ which only PyBADS has, the debug messages too. The reports of the setup
 from `"notify"` on, as MATLAB BADS prints them, and its warnings, such as
 `bads:pbUnspecified`, at every level, as MATLAB's `warning` shows whatever
 `Display` says. The content and format of the other lines may differ.
-- PyBADS: `BADS.__init__` and the display methods of `BADS`;
-  `pybads/bads/gaussian_process_train.py`.
+- PyBADS: `BADS.__init__`, `BADS._bounds_check_` and
+  `BADS._init_optim_state_` (the reports and warnings of the setup), and
+  the display methods of `BADS`; `pybads/bads/gaussian_process_train.py`.
 - MATLAB: `bads.m:311-328`; `private/setupvars.m:28-39`, `118-123`;
   `private/boundscheck.m:12-16`; `fprintf` throughout.
 - Settled by: W2-15; the PI's rulings at the close of the review (the
@@ -663,7 +684,8 @@ MATLAB's check reads a user's `NoiseSize`, although its own warning says
 that the option is ignored with `SpecifyTargetNoise`; PyBADS follows the
 warning, so that `noise_size=0`, which the warning proposes, does not make
 every refit a second fit.
-- PyBADS: `BADS._init_optim_state_`; `local_gp_fitting`.
+- PyBADS: `BADS._init_optimization_` (the setting), `BADS._init_optim_state_`
+  (the warning); `local_gp_fitting`.
 - MATLAB: `private/setupoptions.m:100-101`; `private/gpupdate.m:379-381`.
 - Settled by: the PI's ruling in #71. Kind: deliberate change.
 
@@ -694,7 +716,7 @@ Every object of the GP layer (the hyperparameter vector, the priors, the
 bounds, the likelihood, the inference, the optimizer, the prediction) is
 gpyreg's where MATLAB BADS uses GPML 3.6 with its own fast replacements.
 The kernel is `RationalQuadraticARD`, MATLAB's default (`'rq'`, ARD), and
-cannot be changed (`gp_cov_fun` and `gp_def_fcn` have no effect). gpyreg's
+cannot be changed (`gp_def_fcn` has no effect). gpyreg's
 Gaussian priors take a mean and an SD, where GPML's `priorGauss` takes a
 variance. The starting points (KD-B5-6), the fit at initialization
 (KD-B6-5) and the handling of a failed factorization (KD-B6-6) have
@@ -733,7 +755,7 @@ re-centres a Gaussian prior and keeps its width. Both default to off.
 MATLAB BADS refuses them with a message when it defines the GP; in PyBADS
 a nonzero `warp_func` fails at the first rebuild, without one.
 - PyBADS: `local_gp_fitting`, `_gp_hyp`; `advanced_bads_options.ini`
-  (`warp_*`).
+  (`warp_func`).
 - MATLAB: `bads.m:279-281`; `gpdef/gpdefBads.m:116-118`, `210-215`,
   `287-291`; `warp/`.
 - Kind: removed feature.
@@ -778,6 +800,17 @@ GP, with the same message.
 - PyBADS: `BADS._init_optim_state_`.
 - MATLAB: `bads.m:466`; `gpdef/gpdefBads.m:139-140`.
 - Settled by: W1-32. Kind: removed feature.
+
+**KD-B6-9. A `noise_size` above e^5 is warned about.**
+Both sides bound the GP's log noise SD above at 5, whatever the target's
+scale, so that a larger noise sits at the bound (a shared design
+observation of `dev/experiments/port_review_20260925/matlab_side_defects.md`).
+Without `specify_target_noise`, PyBADS warns when `BADS` is created with a
+`noise_size` above e^5, about 148, and proposes to rescale the target;
+MATLAB BADS does not warn.
+- PyBADS: `BADS._init_optim_state_`; `_gp_hyp`.
+- MATLAB: `gpdef/gpdefBads.m:161`.
+- Settled by: W1-30. Kind: Python-only feature.
 
 ### The function logger, the initial design and the utilities (B7)
 

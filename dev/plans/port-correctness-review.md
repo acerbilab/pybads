@@ -1,12 +1,13 @@
 # Plan: independent correctness review of PyBADS and its MATLAB port
 
-Started 2026-09-25. Owner of the item: `TODO.md`, "Bug hunt and
-verification against MATLAB BADS". This file holds the design, the reviewer
-brief, the working rules and the worklog. The records of the review (the
-known-differences sheet, the counterpart map, the reviewers' reports, the
-verification scripts and the per-wave ledgers) are kept under
-`experiments/port_review_20260925/`; the consolidated ledger goes to
-`results/<date>-port-correctness-review.md` at the close.
+Started 2026-09-25 as the plan of the item "Bug hunt and verification
+against MATLAB BADS" of `TODO.md`; closed 2026-09-28 by #87, which removed
+the item. This file holds the design, the reviewer brief, the working rules
+and the worklog. The records of the review (the known-differences sheet,
+the counterpart map, the reviewers' reports, the verification scripts and
+the per-wave ledgers) are kept under `experiments/port_review_20260925/`;
+the consolidated ledger, written at the close, is
+`results/2026-09-28-port-correctness-review.md`.
 
 The design follows PyVBMC's review of its own port
 (`../pyvbmc/dev/plans/port-correctness-review.md`, 2026-09-19 to 09-24),
@@ -1128,6 +1129,19 @@ and its squash commit (for #84, `79697835`).
   `dev/scripts/fingerprint.py` is `4146a986863602cb`, as before the fixes
   (Linux, Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1, gpyreg 1.3.3, with one
   BLAS thread and the default), and the suite passes (755 tests).
+- [x] 2026-09-28: #87's doublecheck, by four reviewers who had not done
+  the work, on the records, the catalogue and the fixes. It found
+  `gp_cov_fun` unread too, and without a MATLAB counterpart: 78 options
+  were unread, and 66 are removed. A random start is now tested as drawn
+  as well as on the mesh, since the draw is what the result reports as
+  `x0`. The rest were corrections of the records and the catalogue: counts
+  (31 survey rows closed, not 32; the outcome 121/28/22/2), stale
+  dispositions, the locations and wording of a dozen catalogue entries, two
+  entries that the catalogue lacked (KD-B1-14, MATLAB's extra arguments to
+  the target and its other calling forms; KD-B6-9, W1-30's warning), 63
+  entries in all, and a sub-item of `TODO.md` that W1-23 had fixed. The
+  fingerprint is `4146a986863602cb` again, in the setting of the line
+  above, and the suite passes (756 tests).
 - [x] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
   steps are in "Close pickup" above.

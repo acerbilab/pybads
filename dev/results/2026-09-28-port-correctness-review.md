@@ -8,8 +8,11 @@ Fresh reviewer agents read the package in seven slices, on two tracks
 (internal correctness, and a line-by-line comparison with MATLAB BADS),
 with a reviewer of the MATLAB commits since the port began (M), one of
 Sto-BADS (S) and a third reader of the improvement, the acquisition and the
-geometry (O); a fresh verifier checked every finding before it entered the
-ledger of its wave, and the PI ruled on each row before any fix. This note
+geometry (O); a fresh verifier checked the reviewers' findings before they
+entered the ledger of their wave, and the PI ruled on the rows before the
+wave's fix pass. Rows found while fixing or doublechecking were checked by
+the orchestrator or the doublecheck, and three rows of wave 0 were fixed by
+#71 before the wave. This note
 consolidates the five ledgers, `verification/wave0.md` to `wave4.md` under
 [`experiments/port_review_20260925/`](../experiments/port_review_20260925/README.md),
 which stay as written and hold the evidence, the dating from both
@@ -22,23 +25,27 @@ review settled are catalogued in
 The five ledgers hold 173 rows. 121 changed the code: a defect or a
 discrepancy fixed, most of them toward MATLAB BADS, or a value that failed
 obscurely refused with a message when `BADS` is created (W1-24's fix is in
-gpyreg, not yet released; W2-44, kept in wave 2, was fixed by W4-28). 27
-kept a behavior as it was: a deliberate difference from MATLAB BADS, in the
-catalogue, or a behavior that PyBADS shares with MATLAB BADS, in
-`matlab_side_defects.md`. 23 closed without a change of behavior: a record
-or a comment corrected, a finding that was not a defect, or one that an
-earlier fix had removed. Two stay open, W0-12 and W0-13, the design of
-Sto-BADS's success rule, off by default, which waits for a population with
-`stobads=True` (`dev/TODO.md`).
+gpyreg, not yet released; W2-44, kept in wave 2, was fixed by W4-28, and
+the options of W2-35 were removed by #87). 28 kept a behavior as it was,
+most of them a deliberate difference from MATLAB BADS, in the catalogue, or
+a behavior that PyBADS shares with MATLAB BADS, in
+`matlab_side_defects.md`. 22 closed without a change of behavior: a record,
+a comment or a description corrected, a finding that was not a defect, or
+one that an earlier fix had removed. Two stay open, W0-12 and W0-13, the
+design of Sto-BADS's success rule, off by default, which waits for a
+population with `stobads=True` (`dev/TODO.md`).
 
-The survey's candidate table has no open row: the review closed its 32
-open rows, 13 in wave 1, 6 in wave 2, 11 in wave 3 and 2 in wave 4. On the
-MATLAB side, the review found 13 defects that PyBADS shared and fixes, 9
-behaviors that both share and PyBADS keeps, 4 defects of MATLAB BADS that
-PyBADS does not share, and one question that only MATLAB can answer. On the
-benchmark, the deterministic configurations end with an equal or smaller
-error, but for two spheres, whose errors grow far below their tolerance,
-and the noisy configurations stop earlier ("Net effect on the benchmark").
+The survey's candidate table has no open row: the review closed its 31 open
+rows, which the ledgers count as 13 in wave 1, 6 in wave 2, 11 in wave 3
+and 2 in wave 4, the row on the `_save_gp_stats_` calls closed in waves 1
+and 2. On the MATLAB side, the review found 14 defects that PyBADS shared
+and fixes, 8 behaviors that both share and PyBADS keeps, 4 defects of
+MATLAB BADS that PyBADS does not share (one of them found by the
+measurement of the rank-1 update, after wave 4), and one question that only
+MATLAB can answer. On the benchmark, the deterministic configurations end
+with an equal or smaller error, but for two spheres, whose errors grow far
+below their tolerance, and the noisy configurations stop earlier ("Net
+effect on the benchmark").
 
 ## How the review ran
 
@@ -54,7 +61,8 @@ The findings of a slice's two reports are counted internal first; a row
 of a ledger can merge several findings, and the later rows of each wave
 were found while verifying, fixing or doublechecking. After wave 4, #84
 (`7969783`) fixed the minor items of the review that needed no choice of
-the PI, and moved no result. Wave 1's gpyreg side is in gpyreg:
+the PI, and moved no result, and #87 carries the PI's rulings on the rest
+("Open ends"). Wave 1's gpyreg side is in gpyreg:
 acerbilab/gpyreg#56 (W1-25's switch, off by default) and #57 (W1-24),
 merged into gpyreg's `main` and not released, and #58, a fix of the switch
 that wave 1's doublecheck found; PyBADS keeps gpyreg 1.3.3 as its minimum
@@ -95,38 +103,43 @@ flagged.
 | `multisensory_s1_D6_homo` | 0.20 → 0.15 | 668 → 580 | 0.96 → 0.97 | -0.02 [-0.15, +0.07] | evaluations |
 
 The deterministic configurations end with an equal or smaller error, but
-for the two spheres, whose errors grow while staying at least three orders
-of magnitude below their tolerance (0.001); `ellipsoid_D10` takes 6% more
-evaluations for a smaller error. The five configurations with noise stop
-earlier, with 12 to 28% fewer evaluations, as W0-1's gate first showed, and
-none of their error tests is flagged.
+for the two spheres, whose median errors grow while staying more than two
+orders of magnitude below their tolerance (0.001); `ellipsoid_D10` takes 6%
+more evaluations for a smaller error. The five configurations with noise
+stop earlier, with 12 to 28% fewer evaluations, as W0-1's gate first
+showed, and none of their error tests is flagged.
 
 **Linux, 30 seeds**
 ([`population_linux_wave4_20260927`](../experiments/population_linux_wave4_20260927/README.md)
 at `46af65a`, whose default runs are those of `dev-next` at `7969783`,
 against
 [`population_linux_gpfixes_20260925`](../experiments/population_linux_gpfixes_20260925/README.md)
-at `97b2c66`, `ab4dded`'s package code but for #67;
+at `97b2c66`, `ab4dded`'s package code but for #67, so that the difference
+includes #67 and #71;
 [`verification/close/linux_net_comparison.md`](../experiments/port_review_20260925/verification/close/linux_net_comparison.md),
 from the records): four configurations are flagged, in the directions of
 Windows. `ackley_D6`'s error falls (median 4.3e-4 → 1.7e-4, paired log10
 ratio -0.41 [-0.49, -0.27]), and so does `rosenbrock_D2`'s (1.9e-5 →
-2.2e-6); `ellipsoid_D10` takes more evaluations (median 624 → 668) and
-`ellipsoid_D3_homo` fewer (374 → 312). No run crashed in either population.
+2.1e-6); `ellipsoid_D10` takes more evaluations (median 624 → 668) and
+`ellipsoid_D3_homo` fewer (374 → 312), with a larger median error, unflagged
+(0.070 → 0.119, above its tolerance of 0.1; solved 0.67 → 0.43; paired
+log10 ratio +0.20 [+0.07, +0.50]). No run crashed in either population.
 
 ## The rows
 
-One table per wave, in the order of its ledger. *Slice* is the slice of
-the code (in wave 0: M, S, and C1 to C8, the claims of the sheet that did
-not check out); *Classification* is the verifier's, in the ledger's terms,
+One table per wave, in the order of its ledger. *Slice* is the slice of the
+code (in wave 0: M, S, and C1 to C8, the claims of the sheet that did not
+check out); *Classification* is the verifier's, in the ledger's terms,
 "inert" meaning that no run reaches the code or that it changes no result;
-*Disposition* is the PI's ruling, with what later work changed; *Fix or
-open item* gives the row's commit on its wave's branch with the pull
-request that carried it to `dev-next` (whose squash commit is in "How the
-review ran"), the `dev/TODO.md` item that holds the row, or "the sheet"
-where only `known_differences.md` changed. `KD-*` names an entry of the
-catalogue in `pybads/bads/README.md`; the ledger of each wave holds the
-locations, the evidence, the dating from both histories and the gate.
+rows found while fixing, which the ledgers do not classify, carry the
+orchestrator's classification; *Disposition* is the PI's ruling, with what
+later work changed; *Fix or open item* gives the row's commit on its wave's
+branch with the pull request that carried it to `dev-next` (whose squash
+commit is in "How the review ran"), or the `dev/TODO.md` item that holds
+the row; "—" or "the sheet" marks a row settled in the records alone.
+`KD-*` names an entry of the catalogue in `pybads/bads/README.md`; the
+ledger of each wave holds the locations, the evidence, the dating from both
+histories and the gate.
 
 ### Wave 0
 
@@ -144,7 +157,7 @@ locations, the evidence, the dating from both histories and the gate.
 | W0-10 | S | The Sto-BADS poll decides from the last evaluated point, so a success followed by another point is discarded | defect | fixed | `79c83a7` (#72) |
 | W0-11 | S | A NaN estimate counts as uncertain, so `opp_stobads` can move the incumbent to a point with a NaN value | defect | fixed: a non-finite estimate is a failure | `491596e` (#72) |
 | W0-12 | S | Sto-BADS's threshold takes the GP's SDs as epsilon, which do not shrink with the mesh as Sto-MADS requires | design question | open: decided after a population with `stobads=True` | `TODO.md`, "The uncertainty interval of Sto-BADS" |
-| W0-13 | S | `opp_stobads` moves the search incumbent on any uncertain outcome, to worse estimates too, and widens the search | design question | open, with W0-12; an uncertain poll moves only to an improving point since W4-15 | `TODO.md`, "The uncertainty interval of Sto-BADS" |
+| W0-13 | S | `opp_stobads` moves the search incumbent on any uncertain outcome, to worse estimates too, and widens the search | design question | open, with W0-12; since W4-15 an uncertain poll moves only to an improving point, and the search's move is not limited so | `TODO.md`, "The uncertainty interval of Sto-BADS" |
 | W0-14 | S | `BADS.__init__` takes an undocumented 8th positional parameter before `options`, so MATLAB's argument order drops every option | defect | fixed: `gamma_uncertain_interval` keyword-only, options in MATLAB's order | `34ed21e` (#72) |
 | W0-15 | S | An empty search set stops the run with `UnboundLocalError`, and an ES search left without candidates with `IndexError` | defect | fixed: a failed search on every path | `5d65c53` (#72) |
 | W0-16 | S | A successful poll appends the bound method `u_best.copy` to `u_success` | confirmed, inert | fixed | `d634e09` (#72) |
@@ -171,10 +184,10 @@ locations, the evidence, the dating from both histories and the gate.
 | W1-11 | B5 | The retry with the previous hyperparameters, which MATLAB lacks, cannot succeed without a refit | design question | fixed: the retry only after a refit (KD-B5-2) | `f65bc91` (#74) |
 | W1-12 | B5 | After each failed fit the noise's lower bound rises by the cumulative nudge, `noise_nudge[1]` is unread, and a fifth failure raises | port discrepancy | fixed, moves results | `776b70d` (#74) |
 | W1-13 | B5 | `_robust_gp_fit_` has no exit for a fit whose every try fails | port discrepancy | fixed: the best start, exit flag -1, as MATLAB | `446c443` (#74) |
-| W1-14 | B5 | The retry cuts outliers with NumPy's linear percentile, has no stop below D points, and exits with 0 | port discrepancy | fixed, moves results | `3ddc047` (#74) |
+| W1-14 | B5 | The retry cuts outliers with NumPy's linear percentile, has no stop below D points, and exits with 0 | port discrepancy (the percentile, the stop); confirmed, inert (the exit flag) | fixed, moves results | `3ddc047` (#74) |
 | W1-15 | B5 | A refit starts from gpyreg's design of prior draws, not from MATLAB's local runs | design question | kept, on the sheet (KD-B5-6) | — |
 | W1-16 | B5, B6 | The prior sampler exponentiates each prior's centre and SD, and a block without a prior raises | port discrepancy | fixed, moves results | `1c7200b` (#74) |
-| W1-17 | B5 | At D = 1 the training set's distances are in units of 1, as MATLAB's, not of the fitted length scale | shared defect (PI) | fixed: the fitted length scale at every D (KD-B5-10); `matlab_side_defects.md` | `cfacb98` (#74) |
+| W1-17 | B5 | At D = 1 the training set's distances are in units of 1, as MATLAB's, not of the fitted length scale | design question, PyBADS matches MATLAB | a defect shared with MATLAB (PI), fixed: the fitted length scale at every D (KD-B5-10); `matlab_side_defects.md` | `cfacb98` (#74) |
 | W1-18 | B5 | `len_scale += len_scale + ...` doubles the running sum | confirmed, inert | fixed: MATLAB's weighted sum | `3cae0e1` (#74) |
 | W1-19 | B5 | The `init_N` schedule divides 0 by 0 when the budget equals the initial design | defect (PyBADS only) | fixed | `e041de0` (#74) |
 | W1-20 | B5 | The retry loop of the initial fit has no cap | defect | fixed: ten tries, then `RuntimeError` | `b6a4fd5` (#74) |
@@ -187,11 +200,11 @@ locations, the evidence, the dating from both histories and the gate.
 | W1-27 | B6 | PyBADS fits a GP on the initial design, where MATLAB only defines it | port discrepancy | kept (PI), on the sheet (KD-B6-5) | — |
 | W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7) | `64616af` (#74); `TODO.md`, "`gp_cov_prior="ard"`." |
 | W1-29 | B6 | The output scale's prior is centred with the SD of ddof 0 | port discrepancy, negligible | fixed | `1d03801` (#74) |
-| W1-30 | B6 | The noise's upper bound is a log SD of 5, as MATLAB's, whatever the target's scale | design question, shared with MATLAB | kept, with a warning above e^5; `matlab_side_defects.md` | `54e6424` (#74) |
+| W1-30 | B6 | The noise's upper bound is a log SD of 5, as MATLAB's, whatever the target's scale | design question, shared with MATLAB | kept, with a warning above e^5 (KD-B6-9); `matlab_side_defects.md` | `54e6424` (#74) |
 | W1-31 | B6 | The effective radius is said not to match gpyreg's kernel | not a defect | a comment naming the convention | `2794e94` (#74) |
 | W1-32 | B6 | `fit_lik=False` stops the run; MATLAB refuses fixed noise too | confirmed, inert | refused when `BADS` is created, with MATLAB's message (KD-B6-8) | `238afad` (#74) |
-| W1-33 | B6 | `upper_gp_length_factor` sets bounds that the next lines overwrite | confirmed, inert | branch removed; the option among those without effect (KD-B1-5) | `0889426` (#74) |
-| W1-34 | B6 | 12 names of `gp_mean_fun` are accepted, 9 cannot be built, and `negquad` is wrong for a minimizer | defect | only `zero` and `const` accepted | `43138f2` (#74) |
+| W1-33 | B6 | `upper_gp_length_factor` sets bounds that the next lines overwrite | confirmed, inert | branch removed; the option removed by #87 (KD-B1-5) | `0889426` (#74); `b18382e` (#87) |
+| W1-34 | B6 | 12 names of `gp_mean_fun` are accepted, 9 cannot be built, and `negquad` is wrong for a minimizer | defect (the names); design question (`negquad`) | only `zero` and `const` accepted | `43138f2` (#74) |
 | W1-35 | B2 | W0-1's re-estimate crashes a noisy run whose rebuild fails (found while fixing) | defect | fixed: a past iterate gets NaN, the current keeps its estimate (KD-B2-4) | `463312f` (#74) |
 
 ### Wave 2
@@ -204,11 +217,11 @@ locations, the evidence, the dating from both histories and the gate.
 | W2-4 | B1 | `_bounds_check_` moves the plausible bounds and clamps `x0` into bounds 1e-3 inside the hard ones, which MATLAB never does | port discrepancy | fixed, moves results on the `bounds` suite (a worsening kept, reported to the PI); with N4, a start of ±inf | `a31a9be`, `a236eb7` (#76) |
 | W2-5 | B1 | The transform's self-test has an absolute tolerance, which refuses valid bounds of large magnitude, as MATLAB's | shared defect | fixed: a relative tolerance (KD-B1-10); `matlab_side_defects.md` | `a2b8d38` (#76) |
 | W2-6 | B1 | A non-empty `fun_values` stops `BADS()`: the option never worked | port discrepancy | refused with a message; the port left to `TODO.md` | `0ba1241` (#76); `TODO.md`, "Prior evaluations (`fun_values`)." |
-| W2-7 | B1 | `f_vals`, PyBADS's own, sets a display format that the display cannot fill | defect | refused with a message (KD-B1-4); one without a finite value stands for `None` since the doublecheck | `652b25c` (#76); `68d4516` |
+| W2-7 | B1 | `f_vals`, PyBADS's own, sets a display format that the display cannot fill | defect | refused with a message (KD-B1-4); one without a finite value stands for `None` since the doublecheck | `652b25c` (#76); `68d4516` (`dev-next`) |
 | W2-8 | B1 | A multi-row `x0` passes the checks and fails in `optimize()` | port discrepancy | refused, as MATLAB | `6250a3a`, `a1e8a93` (#76) |
 | W2-9 | B1 | `x0=None` with only hard bounds is accepted, where MATLAB and PyBADS's own "Raises" section refuse it | port discrepancy | kept accepting it (revised proposal); the "Raises" section corrected (KD-B1-12) | `9b172fc` (#76) |
-| W2-10 | B1 | The check of `non_box_cons`'s output accepts (N, k) and fails on a scalar; the docstring's example is MATLAB's syntax | port discrepancy; documentation | fixed: (N,) or (N, 1), anything else refused; the contract stated | `ab11b83` (#76) |
-| W2-11 | B1 | A random start that violates `non_box_cons` stops the run, as in MATLAB | shared defect | fixed: drawn again, up to 1000 draws (KD-B1-11); `matlab_side_defects.md` | `c3d7815` (#76) |
+| W2-10 | B1 | The check of `non_box_cons`'s output accepts (N, k) and fails on a scalar; the docstring's example is MATLAB's syntax | port discrepancy; confirmed defect (the docs) | fixed: (N,) or (N, 1), anything else refused; the contract stated | `ab11b83` (#76) |
+| W2-11 | B1 | A random start that violates `non_box_cons` stops the run, as in MATLAB | shared defect | fixed: drawn again, up to 1000 draws (KD-B1-11), tested on the mesh too since #87; `matlab_side_defects.md` | `c3d7815` (#76); `3a8db6c` (#87) |
 | W2-12 | B1 | `status` is among the result's keys and never set | defect | fixed: MATLAB's exit flag (KD-B1-8) | `d964576` (#76) |
 | W2-13 | B1 | `success` is `True` in every run | design question | `success` is `status > 0` | `877d63c` (#76) |
 | W2-14 | B1 | The result deep-copies `fun` and `non_box_cons`, so a callable holding a lock makes `optimize()` raise | defect | fixed: kept by reference | `1fb162e` (#76) |
@@ -220,7 +233,7 @@ locations, the evidence, the dating from both histories and the gate.
 | W2-20 | B1 | `overhead` leaves the final samples and the merged repeats out of the target's time | port discrepancy | fixed | `17e65ee` (#76) |
 | W2-21 | B1 | A random `x0` drawn in the original plausible box | no longer holds (W0-5) | none | — |
 | W2-22 | B1 | Option descriptions are cut at their first `=` or `:` | confirmed, inert | fixed | `93c86ee` (#76) |
-| W2-23 | B1 | Nine options have no description, and 36 end in MATLAB's closing quote | confirmed, inert | fixed | `2d4304c` (#76) |
+| W2-23 | B1 | Nine options have no description, and 36 end in MATLAB's closing quote | confirmed, inert | descriptions corrected | `2d4304c` (#76) |
 | W2-24 | B1 | `search_n_try` is a float | confirmed, inert | fixed | `2d4304c` (#76) |
 | W2-25 | B2 | After the re-estimate, a better earlier iterate gives the incumbent its value but not its location, as in MATLAB | shared defect | (b): the incumbent moves with its value, a departure from MATLAB (KD-B2-7); moves the noisy runs, unflagged; `matlab_side_defects.md` | `a9fbb97` (#76) |
 | W2-26 | B2 | The hyperparameters that the move sets reach only the next search's target, which nothing reads, as in MATLAB | confirmed, inert (shared) | kept | — |
@@ -230,9 +243,9 @@ locations, the evidence, the dating from both histories and the gate.
 | W2-30 | B2 | The current iterate keeps its estimate when its re-estimate fails, where MATLAB records NaN | intentional, missing from the sheet | kept (KD-B2-4) | `9f65d73` (#76), the sheet |
 | W2-31 | B2 | The display's action column shows a stale action | port discrepancy (display) | fixed | `765f13c` (#76) |
 | W2-32 | B2 | A run that ends in its initialization reports 0 iterations, MATLAB 1 | design question | kept 0 (KD-B1-8) | `9f65d73` (#76), the sheet |
-| W2-33 | B2 | The output function's stop message and final stop, and its `"init"` call after a noisy run's setup | intentional, missing from the sheet | kept (KD-B2-5) | `9f65d73` (#76), the sheet |
+| W2-33 | B2 | The output function's stop message and final stop, and its `"init"` call after a noisy run's setup | intentional, missing from the sheet; design question (the timing) | kept (KD-B2-5) | `9f65d73` (#76), the sheet |
 | W2-34 | B2 | With one final sample at level 1, `yval_vec` has shape (2, 1) | port discrepancy | fixed | `3476000` (#76) |
-| W2-35 | B2 | `min_iter` and `min_fun_evals` are read by nothing, and MATLAB has no such options | confirmed, inert | on the sheet among the options without effect (KD-B1-5) | `9f65d73` (#76), the sheet |
+| W2-35 | B2 | `min_iter` and `min_fun_evals` are read by nothing, and MATLAB has no such options | confirmed, inert | on the sheet among the options without effect; removed by #87 (KD-B1-5) | `9f65d73` (#76), the sheet; `b18382e` (#87) |
 | W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md` | — |
 | W2-37 | B2 | A feasible band thinner than the mesh can resolve ends the run at `x0` on the stall criterion | design question, shared; needs MATLAB | documented in `non_box_cons`'s description; no MATLAB run needed | `bdaef58` (#76); `TODO.md`, "The GP on a one-point training set." |
 | W2-38 | B2 | `IterationHistory` deep-copies every stored GP whenever it grows | confirmed, inert (time) | fixed | `500526b` (#76) |
@@ -259,7 +272,7 @@ locations, the evidence, the dating from both histories and the gate.
 | W3-7 | B3 | `hedge_gamma = 0` stops the run at the first search, on both sides at different places | shared defect | fixed: each search scored at the search point (KD-B3-8); `matlab_side_defects.md` | `4d357e4` (#77) |
 | W3-8 | B3 | The fraction of new candidates behind the ES scale's update is miscounted, from `n_search_iter` 3 | port discrepancy | fixed, with a guard for 0/0 (KD-B3-6) | `c788617` (#77) |
 | W3-9 | B3 | An ES generation emptied by the checks discards the earlier candidates with a false warning | port discrepancy | fixed: the generation skipped, the candidates kept (KD-B3-6); the message at DEBUG since W4-27 | `a77d95d` (#77); `6f673a2` (#80) |
-| W3-10 | B3 | `acq_fcn_lcb` refuses a plain number as `sqrt_beta`, and takes neither names nor non-finite values | port discrepancy | a positive finite number or a callable, anything else refused (KD-B3-7); checked when `BADS` is created since W4-19 | `599115b` (#77); `36c9ec1` (#80) |
+| W3-10 | B3 | `acq_fcn_lcb` refuses a plain number as `sqrt_beta`, and takes neither names nor non-finite values | port discrepancy | `None`, a positive finite number or a callable, anything else refused (KD-B3-7); checked when `BADS` is created since W4-19 | `599115b` (#77); `36c9ec1` (#80) |
 | W3-11 | B3 | An empty search set skips the hedge's update, where MATLAB decays the gains (and moves to a stale point, or stops) | design question | fixed: an empty set decays the gains; MATLAB's move and stop left out (KD-B3-5); `matlab_side_defects.md` | `4388e6d` (#77) |
 | W3-12 | B3 | After a failed rebuild the search ranks its candidates by the restored GP, where MATLAB's scores are all 0 | design question | kept (KD-B5-2) | — |
 | W3-13 | B3 | `ESSearchCMA` cannot run, and no option reaches it | confirmed, inert | removed (KD-B3-1) | `4865fad` (#77) |
@@ -280,7 +293,7 @@ locations, the evidence, the dating from both histories and the gate.
 | W3-28 | B4 | A zero predictive SD makes the GP unreliable and stops a good poll, as MATLAB's rule does | not a defect | kept; the description of `tol_poi` corrected | `fd8641d` (#77); `TODO.md`, "Zero predictive SDs at uncertainty level 0." |
 | W3-29 | B4 | After a poll that moves the incumbent, MATLAB rebuilds at every search until a poll that does not move; PyBADS rebuilt once (W1-2's premise) | port discrepancy | fixed, moves results | `0b7add3` (#77) |
 | W3-30 | B4 | With `poll_training` off, the poll neither records a refit nor clears the flag of an unreliable GP | intentional, missing from the sheet | kept (KD-B5-9) | `97bfc99` (#77), the sheet |
-| W3-31 | B4 | An `improvement_quantile` outside (0, 1) makes every improvement NaN | port discrepancy | refused when `BADS` is created (KD-B4-6); any value that is not a real number since #79 and #81 | `ec1b2d0` (#77); `37cc649` (#79); `339e90e` (#81) |
+| W3-31 | B4 | An `improvement_quantile` outside (0, 1) gives NaN improvements, where MATLAB refuses it | port discrepancy | refused when `BADS` is created (KD-B4-6); any value that is not a real number since #79 and #81 | `ec1b2d0` (#77); `37cc649` (#79); `339e90e` (#81) |
 | W3-32 | B4 | A successful poll appends a bound method | no longer holds (W0-16) | the survey's row corrected | — |
 | W3-33 | B4 | After a re-estimate that moves nothing, `optim_state` keeps older values | confirmed, inert | kept in step (KD-B2-9) | `43ee8ed` (#77) |
 | W3-34 | B4 | `np.vstack(u_poll, u_poll_new)` would raise in a branch that cannot run | confirmed, inert | the branch removed | `01ee524` (#77) |
@@ -288,8 +301,13 @@ locations, the evidence, the dating from both histories and the gate.
 | W3-36 | B4 | `u_base` is computed and never used | confirmed, inert | removed | `e4b3bca` (#77) |
 | W3-37 | B4 | The accelerated mesh reduction tested from the wrong iteration | no longer holds (W2-29) | none | — |
 | W3-38 | B4 | Under `stobads`, a NaN estimate counts as uncertain | no longer holds (W0-11) | the survey's row corrected | — |
-| W3-39 | B4 | An `accelerate_mesh_steps` below 1 stops the run, on both sides (from wave 2's doublecheck) | shared defect | refused unless a positive integer (KD-B4-6), `inf` too since #79; `matlab_side_defects.md` | `5d711bf` (#77); `d16cbba` (#79) |
+| W3-39 | B4 | An `accelerate_mesh_steps` below 1 stops the run, on both sides (from wave 2's doublecheck) | shared defect | refused unless a positive integer, `inf` included (KD-B4-6); the message names `accelerate_mesh=False` since #79; `matlab_side_defects.md` | `5d711bf` (#77); `d16cbba` (#79) |
 | W3-40 | B6 | A rebuild on two distinct points gives the length scales' prior a zero width, which gpyreg refuses (found by W3-24's gate) | shared defect | fixed: the previous prior kept (KD-B6-2); `matlab_side_defects.md` | `a14524d` (#77) |
+
+Also in wave 3, without a row: `ESSearch` no longer configures the root
+logger (`d0c7178`, #77), and `acq_hedge=True`, which stopped a run at its
+first improving search, is refused when `BADS` is created (`d16cbba`, #79;
+KD-B3-3), both by the PI's rulings.
 
 ### Wave 4
 
@@ -299,7 +317,7 @@ locations, the evidence, the dating from both histories and the gate.
 | W4-2 | B7 | A start at or below -1 in `u` reaches an undefined cast to `uint64`, which x86 and arm64 resolve differently | defect | fixed with W4-1; wave 2's dating of the reach corrected | `efe5e95`, `3a8096b` (#80) |
 | W4-3 | B7 | The design doubles when its size equals D, with no recorded reason (W0-18) | design question | kept at every D (PI), where the proposal was to remove it (KD-B7-1) | `a84a3dd` (#80), the records |
 | W4-4 | B7 | `init_sobol` returns the exponent where its docstring says the number of samples, and its parameters are misdescribed | confirmed, inert | fixed; `lb` and `ub` required | `8daf7ad` (#80) |
-| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | records corrected, the merge kept (KD-B7-3) | `2dc5807`, `fba29cd` (#80) |
+| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | the merge kept (KD-B7-3), records corrected | `2dc5807`, `fba29cd` (#80) |
 | W4-6 | B7 | The noise test, recorded nowhere, still adds 1 to the start's `n_evals` and its time to the start's row | defect (minor); the time inert | fixed, moves results; completed so that the fits' schedule leaves the test out of its budget | `e7bd01d`, `46af65a` (#80) |
 | W4-7 | B7 | The untimed noise test counts as the optimizer's time in `overhead`, as MATLAB's | shared defect, negligible | kept, as MATLAB's; the description of `overhead` says so; `matlab_side_defects.md` | `e744ed9` (#80) |
 | W4-8 | B7 | A malformed SD or a complex value does not raise the documented `ValueError` before the row is written | port discrepancy (minor) | fixed | `5dd92b7` (#80) |
@@ -318,10 +336,10 @@ locations, the evidence, the dating from both histories and the gate.
 | W4-21 | B3 | `contraints_check` and the ES search's first split round halves to even, where `uCheck.m` rounds them away from zero (wave 3's doublecheck) | port discrepancy | fixed as MATLAB rounds; moves results | `86512c9` (#80) |
 | W4-22 | B3, B4 | Three unused imports that pycln keeps | confirmed, inert | removed | `3b7e64c` (#80) |
 | W4-23 | B3 | The empty search set's `search_dist` is an `int` | confirmed, inert | `0.0` | `65e2434` (#80) |
-| W4-24 | B3 | `force_to_grid` has no docstring | documentation | docstring written | `4f535b8` (#80) |
+| W4-24 | B3 | `force_to_grid` has no docstring | confirmed, inert | docstring written | `4f535b8` (#80) |
 | W4-25 | B3 | `n_search_iter` is not checked, on either side: 0, 0.5 or -1 stop the run at its first search | shared defect (a missing check) | refused unless a positive integer (KD-B4-6); `n_search` and large integers checked by #81 | `36e8b70` (#80); `92a1d12` (#81) |
 | W4-26 | B2 | The noisy final estimate leaves `optim_state`'s values stale for the `"done"` call | confirmed, inert | `optim_state` kept in step (KD-B2-9) | `684d2e0` (#80) |
-| W4-27 | B3 | The ES search logs "No candidate left" at WARNING, several times a run on a thin band | a message | logged at DEBUG | `6f673a2` (#80) |
+| W4-27 | B3 | The ES search logs "No candidate left" at WARNING, several times a run on a thin band | confirmed, inert (a message) | logged at DEBUG | `6f673a2` (#80) |
 | W4-28 | B2 | The main loop discards the GP that `_poll_step_` returns | confirmed, inert (latent) | the return taken | `ffaf424` (#80) |
 | W4-29 | B3 | `hedge_beta` and `hedge_decay` are not checked, on either side (found while verifying) | shared defect (missing checks) | refused outside their ranges (KD-B3-8), ruled during the pass; a real number since #81 | `bd793f2` (#80); `339e90e` (#81) |
 | W4-30 | B2 | A noisy run stopped by `output_fcn` at `"init"` takes no final samples, and its `fsd` is not an estimate (found while fixing) | design question | kept, ruled during the pass; the description of `fsd` says what it is (KD-B2-8) | `4b84a2d` (#80) |
@@ -349,19 +367,21 @@ catalogue carries these corrections of the sheet:
   standing for `inf`, and `n_search` checked (KD-B1-3, KD-B3-7, KD-B3-8,
   KD-B4-6);
 - errors that the sheet already had: KD-B1-9's test is in
-  `_init_optim_state_`, not `_init_mesh_`, and refuses a random start that
-  the mesh makes infeasible; MATLAB fits samples of the hyperparameters at
-  `gpSamples` above 1, not 0 (KD-B5-4); four options that KD-B1-4 lists
-  as read are read only by code that no run reaches; the MATLAB lines of
-  KD-B1-8 (`bads.m:1136`), KD-B2-5 and KD-B3-1 (`searchES.m:39-101`);
-  MATLAB BADS stops on an empty first search set at every quantile
-  (KD-B3-5), and its search's random fallback fires when its acquisition
-  raises (KD-B4-5).
+  `_init_optim_state_`, not `_init_mesh_`; MATLAB fits samples of the
+  hyperparameters at `gpSamples` above 1, not 0 (KD-B5-4); four options
+  that KD-B1-4 lists as read are read only by code that no run reaches; the
+  MATLAB lines of KD-B1-8 (`bads.m:1136`), KD-B2-5 and KD-B3-1
+  (`searchES.m:39-101`); MATLAB BADS stops on an empty first search set at
+  every quantile (KD-B3-5), and its search's random fallback fires when its
+  acquisition raises (KD-B4-5).
 
-Three entries are new: KD-B1-12, a missing `x0` with only the hard bounds
+Five entries are new: KD-B1-12, a missing `x0` with only the hard bounds
 accepted (W2-9); KD-B1-13, the check of `tol_fun` (#84); KD-B3-9, the
 floor of the ES search's number of parents (the rulings of wave 4's
-doublecheck). KD-B4-3, LTMADS's directions, went with W3-24's revert. The
+doublecheck); and two that the doublecheck of the close found missing,
+KD-B1-14, MATLAB's extra arguments to the target and its other calling
+forms, and KD-B6-9, the warning of a `noise_size` above e^5 (W1-30).
+KD-B4-3, LTMADS's directions, went with W3-24's revert. The
 gpyreg citations of KD-B5-6 and KD-B6-6 were not read again.
 
 ## Open ends
@@ -382,7 +402,7 @@ items that a ruling left to later work are held by these items of
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
-| "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration |
+| "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
 | "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57) and W1-25's switch, which reach PyBADS through a release |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
 
@@ -402,9 +422,10 @@ ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
 | The floor of the ES search's `mu = n_search / n_search_iter`, kept by the rulings of wave 4's doublecheck | close as ruled | KD-B3-9 |
 | `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log | with the port of `fun_values` | `TODO.md`'s item of that port |
 | Elements beyond the pair in `search_acq_fcn` or in an entry of `search_method` are ignored | refuse them | refused (KD-B3-1, KD-B3-2) |
-| 76 advanced options read by no code (77 on a closer count: `diagnostics` too) | remove those without a MATLAB counterpart, keep and mark the MATLAB-named ones | 65 removed, 12 marked unused (KD-B1-5) |
+| 76 advanced options read by no code (78 on a closer count: `diagnostics` and `gp_cov_fun` too) | remove those without a MATLAB counterpart, keep and mark the MATLAB-named ones | 66 removed, 12 marked unused (KD-B1-5) |
 | No module of PyBADS imports matplotlib, which `pyproject.toml` requires and gpyreg imports | keep the requirement, with a comment | the comment |
 | `skills/pybads/SKILL.md` names no release | a step of the next release | `TODO.md`'s item on the release's "What's new" |
+| `test_transform_inverse_largeN` built `np.ones((10 ^ 6, D))`, 12 rows, since `^` is XOR (wave 2, "Notes on the reports") | build a million | `10**6` |
 
 **Noted, and ruled by no one.** The reports and the fix agents noted a few
 observations outside their findings, most of which the ledgers left to the
@@ -412,10 +433,6 @@ docstrings and descriptions of the fix passes; the ones below held at
 `dev-next` at the close, and no record took them up. None changes a
 default run.
 
-- A test that checked less than it appeared to:
-  `test_transform_inverse_largeN` built `np.ones((10 ^ 6, D))`, 12 rows,
-  since `^` is XOR (wave 2, "Notes on the reports"); #87 builds a million,
-  by the PI's ruling.
 - ES-ell ignores the sum-rule flag of an entry of `search_method`, which
   only ES-wcm reads (non-default); `udist`'s periodic branch indexes the
   distance matrix's rows by variable (unreachable, KD-B1-6); the search
@@ -449,7 +466,9 @@ it, in `matlab_side_defects.md`), with the negative seed that
 MATLAB's fit does with the zero-variance prior of a plateau (W1-26, the
 rebuild case), of a two-point training set (W3-40) and of a one-point
 training set (W2-37). PyBADS's disposition of each is decided whatever
-MATLAB computes, so by the plan's rule no MATLAB run is written up. Two
+MATLAB computes, but for the priors of a GP on one point, an open item of
+`dev/TODO.md` ("The GP on a one-point training set.") that a comparison
+with MATLAB would inform; by the plan's rule no MATLAB run is written up. Two
 items of `dev/TODO.md` would use one: a run of MATLAB BADS on
 `ellipsoid_D3_hetero`, and MATLAB's prediction of a GP whose predictive SD
 PyBADS computes as 0.
@@ -466,6 +485,7 @@ what PyBADS does; nothing there was run in MATLAB. Its items, as it stands:
 |---|---|---|---|
 | *Shared defects that PyBADS fixes* | | | |
 | With `PollTraining` off, the poll records a refit that it then cancels | `bads.m:822-823` | W1-8 | neither performs nor records it (KD-B5-9) |
+| A zero spread of the training targets gives a degenerate prior (needs MATLAB for what its fit then does) | `gpdef/gpdefBads.m:219-222`, `293-295` | W1-26 | a rebuild keeps the previous prior (KD-B6-2) |
 | At D = 1 the training set's distances are in units of 1, not of the fitted length scale | `private/gpupdate.m:285-292` | W1-17 | the fitted length scale at every D (KD-B5-10) |
 | The transform's self-test refuses valid bounds of large magnitude | `utils/transvars.m:30`, `169-178` | W2-5 | a relative tolerance (KD-B1-10) |
 | A random start that violates the non-box constraints stops the run | `private/setupvars.m:83-85`, `private/evalinitmesh.m:22-26` | W2-11 | drawn again, up to 1000 times (KD-B1-11) |
@@ -480,8 +500,7 @@ what PyBADS does; nothing there was run in MATLAB. Its items, as it stands:
 | `Nsearchiter` is not checked | `private/setupoptions.m:26`, `search/searchES.m:125` | W4-25 | refused unless a positive integer (KD-B4-6) |
 | *Shared design observations (PyBADS keeps MATLAB's behavior)* | | | |
 | The calibration test for three or more points tests normality only | `utils/gppredcheck.m:30` | W1-7 | as MATLAB |
-| The GP's noise is bounded above at a log SD of 5 | `gpdef/gpdefBads.m:161` | W1-30 | as MATLAB, with a warning |
-| A zero spread of the training targets gives a degenerate prior (needs MATLAB) | `gpdef/gpdefBads.m:219-222`, `293-295` | W1-26 | the previous prior kept (KD-B6-2) |
+| The GP's noise is bounded above at a log SD of 5 | `gpdef/gpdefBads.m:161` | W1-30 | as MATLAB, with a warning (KD-B6-9) |
 | A noisy run's first incumbent is the raw minimum of its initial design | `bads.m:1097` | W2-36 | as MATLAB |
 | A feasible region thinner than the mesh can resolve ends the run on its stall criterion (needs MATLAB for the GP on one point) | — | W2-37 | as MATLAB, documented |
 | The covariance of ES-wcm is the unweighted scatter of the best points | `utils/ucov.m:19` | W3-3 | as MATLAB, commented |
@@ -509,9 +528,11 @@ what PyBADS does; nothing there was run in MATLAB. Its items, as it stands:
   (`verification/`), the fix agents' reports (`fixes/`), the scripts of the
   agents of waves 1 to 4 (`verification/scripts/`), the comparisons of the
   fix passes (`verification/wave<N>_fixpass/`), the doublechecks of waves 3
-  and 4 (`verification/wave<N>_doublecheck_<scope>.md`), and the MATLAB
-  side (`matlab_side_defects.md`). The check scripts of wave 0 are kept on
-  the machine that ran them (`dev/scripts/runs/LOCAL.md`).
+  and 4 (`verification/wave<N>_doublecheck_<scope>.md`), the investigation
+  of W0-1 (`w01_investigation/`), the Linux comparison of the close
+  (`verification/close/`), and the MATLAB side (`matlab_side_defects.md`).
+  The check scripts of wave 0 are kept on the machine that ran them
+  (`dev/scripts/runs/LOCAL.md`).
 - The references of the benchmark that the fix passes left, one per wave on
   Linux (`experiments/population_linux_wave0_20260926/` to
   `population_linux_wave4_20260927/`), and on Windows the pre-review

@@ -104,20 +104,22 @@ order.
   observation of a repeated point, as MATLAB's `funlogger` does, makes the
   runs worse, and the lower bound of the noise hyperparameter never moves,
   since no fit fails. The runs remain worse than before `020d6a8` (p =
-  0.0008), now along the two steep axes. Still open:
-  - the evaluated points that `contraints_check` kept: W3-1 (`149d528`, the
-    port review's wave 3) removes them, as MATLAB does; over seeds 0-29 of
-    this configuration its 100 repeats (of 8800 evaluations, in 17 runs)
-    are gone, and the median error moved from 0.43 to 0.36, unflagged
+  0.0008), now along the two steep axes. The port review fixed two more
+  differences:
+  - the evaluated points that `contraints_check` kept: W3-1 (`149d528`,
+    wave 3) removes them, as MATLAB does; over seeds 0-29 of this
+    configuration its 100 repeats (of 8800 evaluations, in 17 runs) are
+    gone, and the median error moved from 0.43 to 0.36, unflagged
     (`experiments/port_review_20260925/verification/wave3_fixpass/`);
-  - a run of MATLAB BADS on this problem, which would show whether correct
-    noise handling alone gives such runs;
-  - the bounds of the GP mean, which the port fixes by the initial design
-    and MATLAB leaves infinite (a row of the survey's candidate table);
-    since `8afbe16` the prior of the mean can fall outside them, which
-    makes the log prior NaN in the fits of 67 runs of the Windows
-    population at `ab4dded`
+  - the bounds of the GP mean, which the port set from the initial design
+    and MATLAB leaves infinite; once `8afbe16` re-centred the prior of the
+    mean, it could fall outside them, which made the log prior NaN in the
+    fits of 67 runs of the Windows population at `ab4dded`
     ([experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)).
+    W1-23 (`172df00`, wave 1) leaves them infinite, as MATLAB does.
+
+  Still open: a run of MATLAB BADS on this problem, which would show
+  whether correct noise handling alone gives such runs.
 - [ ] **The uncertainty interval of Sto-BADS.** Rows W0-12 and W0-13 of the
   port review's ledger (`experiments/port_review_20260925/verification/wave0.md`):
   the success rule of `stobads=True` compares the estimated improvement
@@ -237,7 +239,10 @@ order.
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has.
+  shows that it has no effect on PyBADS, or explains the one it has. gpyreg's `main` holds, unreleased, the fix of the port review's W1-24
+  (the log prior of a prior far outside its bounds, acerbilab/gpyreg#57)
+  and W1-25's switch (acerbilab/gpyreg#56), which reach PyBADS through
+  such a release.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
