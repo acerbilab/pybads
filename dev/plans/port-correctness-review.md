@@ -1123,7 +1123,11 @@ and its squash commit (for #84, `79697835`).
   the floor of the ES search's `mu`, and the 0-d arrays, which stay refused;
   `FunctionLogger.add` and the final samples' bookkeeping go with the port
   of `fun_values`, and `SKILL.md`'s release with the next release. The two
-  "Minor items" entries leave `TODO.md`, and the catalogue follows.
+  "Minor items" entries leave `TODO.md`, and the catalogue follows. At the
+  package code of the last fix (`365cdd0`), the fingerprint of
+  `dev/scripts/fingerprint.py` is `4146a986863602cb`, as before the fixes
+  (Linux, Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1, gpyreg 1.3.3, with one
+  BLAS thread and the default), and the suite passes (755 tests).
 - [x] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
   steps are in "Close pickup" above.
