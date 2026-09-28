@@ -546,6 +546,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   starting point and the noise test use up) is not fitted, as in MATLAB
   BADS: until its first refit it holds MATLAB BADS's starting values, with
   its mean at the point's value, and its initialization prints no warning.
+  A refit on points that do not spread in every coordinate, as a narrow
+  band's first refit often is, still prints gpyreg's `RuntimeWarning`s
+  about a log of zero.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller
