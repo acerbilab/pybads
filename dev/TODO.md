@@ -105,6 +105,23 @@ order.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
+- [ ] **A test whose outcome varies on macOS arm64.**
+  `test_run_control.py::test_output_fcn_that_changes_nothing_leaves_the_run_unchanged`
+  runs the same seeded optimization twice in one process, the second with
+  an output function that alters only its copy of `optim_state`, and
+  requires the same result. In the CI of #90 it failed on `macos-latest`
+  with Python 3.10 (runner image `macos-26-arm64`, NumPy 2.2.6, SciPy
+  1.15.3, gpyreg 1.3.3): the two runs ended at different points. It passed
+  on the job's re-run, in the same job of #88 at the same package code and
+  versions, and on Linux and Windows. So on that platform something in a
+  run, or in a library it calls, does not repeat between two runs in one
+  process; no decision of `bads.py` reads the wall clock. A hypothesis, not
+  yet tested: results of Accelerate or NumPy that depend on the alignment
+  of the arrays, which the output function's deep copies of `optim_state`
+  shift. To settle on macOS arm64: run the test in a loop until it fails,
+  find the first computation at which the two runs differ, and fix it
+  there; if it lies in a library, the test is rewritten to compare only
+  what the platform repeats.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
