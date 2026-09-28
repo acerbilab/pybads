@@ -1370,7 +1370,13 @@ def add_and_update_gp(
             s2_new = np.atleast_2d(gp.s2.flat[idx_penalty])
 
     # The data go through `update`, so that a failure leaves the GP without
-    # them; the hyperparameters, given, keep the full recomputation.
+    # them; the hyperparameters, given, keep the full recomputation. This is
+    # deliberate: gpyreg's rank-1 path (no `hyp`), which MATLAB's gpupdate.m
+    # takes, saves at most a few percent of a run and, when a factorization
+    # needed gpyreg's noise multiplier, carries that multiplier over and
+    # moves results (dev/results/2026-09-28-where-pybads-spends-its-time.md).
+    # `_get_target_from_gp_` reuses the posterior on the premise that it is
+    # computed in full.
     try:
         gp.update(
             X_new=np.atleast_2d(x_new),

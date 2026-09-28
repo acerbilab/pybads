@@ -242,6 +242,18 @@ Nothing here was run in MATLAB.
   unwritten (the verifier, by reading). Reached past 9999 logged
   evaluations at the default `CacheSize` of 1e4. PyBADS's log grows
   instead (KD-B7-4).
+- **The rank-1 update takes a non-finite value before its penalty** (found
+  while measuring the rank-1 update, by reading;
+  [`dev/results/2026-09-28-where-pybads-spends-its-time.md`](../../results/2026-09-28-where-pybads-spends-its-time.md)).
+  `private/gpupdate.m:55` passes `ystar` to `update_posterior`, and only
+  at lines 69-78 replaces a non-finite `ystar` by the penalty, the largest
+  target of the training set, in `gpstruct.y`; `update_posterior` raises
+  nothing on a NaN, so the posterior would take the NaN while the training
+  set records the penalty. Unreachable at the defaults:
+  `private/funlogger.m:103-104` stops the run on a non-finite value, and
+  `FitnessShaping`, which could make one, is off. PyBADS replaces the value
+  before the update (`add_and_update_gp`), whose posterior it recomputes in
+  full, and its function logger refuses non-finite values too.
 
 ## Questions that need MATLAB
 

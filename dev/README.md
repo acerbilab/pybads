@@ -121,6 +121,14 @@ reference's number of seeds.
 
 ## Index
 
+- [Where PyBADS spends its time](results/2026-09-28-where-pybads-spends-its-time.md)
+  — the stages of PyBADS's own time on six configurations (the ES search's
+  candidates and the GP fits take nearly all of it, gpyreg's kernel 31 to
+  45 %), the saving of computing the optimization target without a copy
+  of the GP (1.6 to 3.7 %), and gpyreg's rank-1 update of the posterior
+  measured beside every addition of a point: agreement, the noise
+  multiplier it carries over, and a saving of at most 2.5 %, behind the
+  decision to keep the full recomputation.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

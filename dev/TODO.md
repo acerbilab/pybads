@@ -20,21 +20,46 @@ order.
   weigh a jitter scaled to the signal that the fit and the predictions
   share. Turning the switch on in PyBADS needs a gpyreg release and moves
   its minimum and CI pin.
-- [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
-  to the GP (`gpupdate(..., 'add', ...)`, `private/gpupdate.m`) by a rank-1
-  update of the posterior (`utils/update_posterior.m`), falls back to the
-  full recomputation when that fails, and skips the rank-1 update under
-  `SpecifyTargetNoise`. The port's `add_and_update_gp` recomputes every
-  posterior in full. gpyreg's `update` has a rank-1 path of its own (one
-  new point, no new hyperparameters, posteriors that hold their factors),
-  which PyBADS does not take, and which accepts a noise variance for the
-  new point. The guards of
-  [plans/gp-update-guards.md](plans/gp-update-guards.md) keep the full
-  recomputation (its Open Question 5) so that runs without a failure do
-  not move. Taking the rank-1 path would move results at default options,
-  so it needs the population comparison. To settle: whether gpyreg's path
-  follows MATLAB's, whether PyBADS should skip it with target noise as
-  MATLAB does, and what it saves in time.
+- [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
+  its terms change.** MATLAB BADS adds a point to the GP by a rank-1
+  update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
+  PyBADS's `add_and_update_gp` recomputes every posterior in full, and says
+  why at its call of `gp.update`. The measurement
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md))
+  settled the questions: gpyreg's rank-1 path agrees with the full
+  recomputation to rounding, target noise included (so there is no reason
+  to skip it under `specify_target_noise`, as MATLAB does); it would save
+  at most 2.5 % of PyBADS's own time, and is slower below about 60
+  training points; but on the ellipsoids 40 to 44 % of the additions meet a
+  GP whose factorization needed gpyreg's noise multiplier, where it
+  differs from the recomputation by up to 1e-2 of the targets' spread, and
+  by 0.21 when the multiplier it carries over differs from the one the
+  recomputation picks. The PI did not adopt it (2026-09-28). Revisit if the
+  training sets grow well beyond 200 points, if gpyreg's handling of the
+  multiplier changes (W1-25 above), or if a profile shows the update after
+  a new point taking a larger share. Adopting it moves the ellipsoids'
+  runs, so it needs the population comparison, and the target's reuse of
+  the GP's own posterior (`_get_target_from_gp_`), which relies on
+  posteriors computed in full, needs revisiting with it.
+- [ ] **A faster kernel gradient in gpyreg.** gpyreg's rational-quadratic
+  ARD kernel (`RationalQuadraticARD.compute`) takes 31 to 45 % of a
+  PyBADS run in its own code, in the predictions at the ES search's
+  candidates and in the hyperparameter fits
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+  Its gradient recomputes `sf2 * M ** (-alpha - 1)` for each input
+  dimension; computed once before the loop, it gives bit-identical results
+  and halves the time of the kernel with its gradient at D = 6 and D = 10,
+  about a quarter of the fits' time on `ellipsoid_D10`. A change for
+  gpyreg; reaching PyBADS, it is a gpyreg release, which moves PyBADS's
+  minimum and CI pin after its gate.
+- [ ] **The cost of `contraints_check`.** It takes 4.5 to 13 % of a run,
+  nearly all of it for the ES search's candidates and most of that in its
+  two `np.unique(..., axis=0)` calls, which remove duplicate candidates and
+  those already evaluated
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+  A faster way must return the same candidates in the same order (sorted
+  by bin, as MATLAB's `setdiff` does), so that the fingerprint of
+  `dev/scripts/fingerprint.py` stays the same.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
