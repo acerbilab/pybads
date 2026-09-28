@@ -586,6 +586,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   final samples, and with `specify_target_noise=True` of repeated
   evaluations, in the time of the target, as MATLAB BADS does; leaving them
   out overstated the overhead of noisy runs.
+- **Resolution of the timings.** The run and the target's evaluations are
+  timed with `time.perf_counter` instead of `time.time`, whose resolution is
+  about 15.6 ms on Windows before Python 3.13: with a fast target, most
+  evaluations were timed as 0, and the returned `overhead` of two
+  near-identical runs could differ by orders of magnitude. The returned
+  `total_time` and `overhead` change accordingly.
 - **Actions column of the display.** The Actions column of a poll's line
   shows what its iteration did, as in MATLAB BADS: "Train" after a refit of
   the Gaussian process, "Skip" after a skipped poll, "Train, skip" after
