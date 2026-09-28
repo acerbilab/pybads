@@ -207,10 +207,14 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   line. Options stay mutable: a noisy run rewrites several of them
   (`tol_stall_iters`, `n_train_min`, `n_train_max`, `max_fun_evals` and
   others) at the start of `optimize()`, so a `BADS` object runs once.
-- **Many options do nothing.** Some are PyVBMC or MATLAB leftovers that no
-  code reads (`warp_*`, `variational_sampler`, `poll_method`,
-  `poll_acq_fcn`, among others); `gp_cov_fun` is overridden by a hard-coded
-  rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] = 1`); and
+- **Some options do nothing.** Twelve are named after MATLAB BADS's
+  options and read by no code (`poll_method`, `poll_acq_fcn`, `gp_samples`,
+  among others), kept so that a user's setting is not an error, with
+  descriptions that say so; an option that no code reads and that MATLAB
+  BADS does not have is removed rather than kept. `gp_cov_fun` is
+  overridden by a hard-coded rational-quadratic ARD kernel
+  (`optim_state["gp_cov_fun"] = 1`), a few options are read only by code
+  that no run reaches (KD-B1-4 in `pybads/bads/README.md`), and
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a

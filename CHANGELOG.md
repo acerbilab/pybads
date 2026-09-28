@@ -94,6 +94,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `BADS` raises `ValueError` for an `n_search` that is not a positive
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
+- `BADS` raises `ValueError`, as for any unknown option, for the 65
+  options that had no effect in 1.1.0 and that MATLAB BADS does not have,
+  leftovers of PyVBMC such as `warp_every_iters`, `variational_sampler`,
+  `min_iter` and `diagnostics` ("Options without effect" below).
 
 ### Added
 
@@ -103,6 +107,33 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Options without effect.** The 65 advanced options that no code of PyBADS
+  read and that MATLAB BADS does not have, leftovers of PyVBMC, are removed,
+  and setting one raises `ValueError`, as for any unknown option:
+  `acq_hedge_iter_window`, `acqhedge_decay`, `active_sample_gp_update`,
+  `active_search_bound`, `bandwidth`, `box_search_frac`, `cov_sample_thresh`,
+  `diagnostics`, `double_gp`, `empirical_gp_prior`, `gp_length_prior_mean`,
+  `gp_length_prior_std`, `gp_sample_thin`, `gp_sample_widths`,
+  `gp_stochastic_step_size`, `gp_tol_optactive`, `gp_tol_optmcmc`,
+  `gp_tol_optmcmcactive`, `heavy_tail_search_frac`, `hessian_alternate`,
+  `hpd_search_frac`, `incremental_warp_delay`, `init_design`,
+  `integrate_gp_mean`, `k_warmup`, `kl_gauss`, `max_repeated_observations`,
+  `min_fun_evals`, `min_iter`, `mvn_search_frac`, `noise_shaping_factor`,
+  `noise_shaping_threshold`, `ns_search`, `nsgp_max`, `nsgp_maxmain`,
+  `nsgp_maxwarmup`, `out_warp_thresh_base`, `out_warp_thresh_mult`,
+  `out_warp_thresh_tol`, `rank_criterion`, `recompute_lcb_max`,
+  `repeated_acq_discount`, `sample_extra_vp_means`, `search_cache_frac`,
+  `separate_search_gp`, `sgd_step_size`, `stable_gp_samples`,
+  `stable_gp_sampling`, `stable_gp_vpk`, `temperature`, `tol_bound_x`,
+  `tol_cov_weight`, `tol_gp_noise`, `tol_gp_var`, `tol_gp_varmcmc`, `tol_skl`,
+  `tol_stable_warmup`, `upper_gp_length_factor`, `variational_sampler`,
+  `warp_cov_reg`, `warp_every_iters`, `warp_proto_corr_thresh`,
+  `warp_proto_scaling`, `warp_tol_reliability` and `weighted_hyp_cov`. The 12
+  options named after MATLAB BADS's that PyBADS does not use stay, so that
+  setting one is not an error, and their descriptions say that they are
+  unused: `poll_method`, `n_basis`, `skip_poll`, `search_improve_frac`,
+  `gp_samples`, `gp_def_fcn`, `gp_method`, `gp_cluster`, `rotate_gp`,
+  `poll_acq_fcn`, `chol_attempts` and `gp_svd_iters`.
 - **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
   and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
   matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,

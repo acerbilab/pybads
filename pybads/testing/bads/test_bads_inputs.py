@@ -1038,3 +1038,38 @@ def test_empty_periodic_vars_stands_for_none(x0, periodic_vars):
     )
     assert bads.options["periodic_vars"] is None
     assert not np.any(bads.optim_state["periodic_vars"])
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("variational_sampler", "malasample"),
+        ("warp_every_iters", 5),
+        ("min_iter", 2),
+        ("diagnostics", False),
+    ],
+)
+def test_options_of_pyvbmc_without_effect_are_unknown(name, value):
+    """The options that no code of PyBADS read and that MATLAB BADS does not
+    have, PyVBMC's leftovers, are not options of PyBADS: setting one raises
+    `ValueError`, as for any unknown name."""
+    with pytest.raises(ValueError, match=f"The option {name} does not exist"):
+        _bads_with_options({name: value})
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("gp_samples", 0),
+        ("gp_method", "nearest"),
+        ("chol_attempts", 0),
+        ("poll_method", "poll_mads_2n"),
+    ],
+)
+def test_options_of_matlab_without_effect_are_accepted(name, value):
+    """The options named after MATLAB BADS's that PyBADS does not use stay
+    options, so that setting one is not an error, and their descriptions
+    say that they are unused."""
+    bads = _bads_with_options({name: value})
+    assert bads.options[name] == value
+    assert "unused" in bads.options.descriptions[name]
