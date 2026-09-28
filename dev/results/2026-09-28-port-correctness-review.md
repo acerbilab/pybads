@@ -31,9 +31,11 @@ most of them a deliberate difference from MATLAB BADS, in the catalogue, or
 a behavior that PyBADS shares with MATLAB BADS, in
 `matlab_side_defects.md`. 22 closed without a change of behavior: a record,
 a comment or a description corrected, a finding that was not a defect, or
-one that an earlier fix had removed. Two stay open, W0-12 and W0-13, the
-design of Sto-BADS's success rule, off by default, which waits for a
-population with `stobads=True` (`dev/TODO.md`).
+one that an earlier fix had removed. Two stayed open at the close, W0-12
+and W0-13, the design of Sto-BADS's success rule, off by default, which
+waited for a population with `stobads=True`; it ran the same day
+(`dev/results/2026-09-28-stobads-rule.md`), and the PI ruled W0-12
+documented and W0-13 fixed.
 
 The survey's candidate table has no open row: the review closed its 31 open
 rows, which the ledgers count as 13 in wave 1, 6 in wave 2, 11 in wave 3
@@ -156,8 +158,8 @@ histories and the gate.
 | W0-9 | M | With `uncertainty_handling=True` and no target noise, `gp.s2` holds NaN, which gpyreg ignores | confirmed, inert | fixed: the logger holds noise SDs only when the target returns them | `90d1101` (#72) |
 | W0-10 | S | The Sto-BADS poll decides from the last evaluated point, so a success followed by another point is discarded | defect | fixed | `79c83a7` (#72) |
 | W0-11 | S | A NaN estimate counts as uncertain, so `opp_stobads` can move the incumbent to a point with a NaN value | defect | fixed: a non-finite estimate is a failure | `491596e` (#72) |
-| W0-12 | S | Sto-BADS's threshold takes the GP's SDs as epsilon, which do not shrink with the mesh as Sto-MADS requires | design question | open: decided after a population with `stobads=True` | `TODO.md`, "The uncertainty interval of Sto-BADS" |
-| W0-13 | S | `opp_stobads` moves the search incumbent on any uncertain outcome, to worse estimates too, and widens the search | design question | open, with W0-12; since W4-15 an uncertain poll moves only to an improving point, and the search's move is not limited so | `TODO.md`, "The uncertainty interval of Sto-BADS" |
+| W0-12 | S | Sto-BADS's threshold takes the GP's SDs as epsilon, which do not shrink with the mesh as Sto-MADS requires | design question | kept, documented: after the population with `stobads=True` (`2026-09-28-stobads-rule.md`), the description of `stobads_frame_size_scaling_power` says what its default does (PI, 2026-09-28) | the option's description; KD-S-1 |
+| W0-13 | S | `opp_stobads` moves the search incumbent on any uncertain outcome, to worse estimates too, and widens the search | design question | fixed (PI, 2026-09-28): an uncertain search, as an uncertain poll since W4-15, moves the incumbent only to a point that improves on it; gated by the population with `stobads=True` (`2026-09-28-stobads-rule.md`, arm C) | `_search_step_`; `test_stobads.py` |
 | W0-14 | S | `BADS.__init__` takes an undocumented 8th positional parameter before `options`, so MATLAB's argument order drops every option | defect | fixed: `gamma_uncertain_interval` keyword-only, options in MATLAB's order | `34ed21e` (#72) |
 | W0-15 | S | An empty search set stops the run with `UnboundLocalError`, and an ES search left without candidates with `IndexError` | defect | fixed: a failed search on every path | `5d65c53` (#72) |
 | W0-16 | S | A successful poll appends the bound method `u_best.copy` to `u_success` | confirmed, inert | fixed | `d634e09` (#72) |
@@ -195,7 +197,7 @@ histories and the gate.
 | W1-22 | B6 | The noise prior's new centre is computed at each rebuild and never written back | port discrepancy | fixed, moves results | `ee9d5d6` (#74) |
 | W1-23 | B6 | The constant mean is bounded all run by the initial design's range while its prior is re-centred, which pins the mean at a bound | port discrepancy | fixed: unbounded, as MATLAB; moves results | `172df00` (#74) |
 | W1-24 | B6 | gpyreg's normalization of a prior far outside its bounds underflows, and the log prior is infinite | defect (gpyreg's), reached through W1-23 | fixed in gpyreg, merged and not released; W1-23 closes PyBADS's route | acerbilab/gpyreg#57; `TODO.md`, "gpyreg releases after 1.3.3." |
-| W1-25 | B6 | gpyreg's Cholesky retries multiply the noise and keep the multiplier in the posterior; MATLAB treats a failure as an error | port discrepancy (substituted library) | kept (KD-B6-6); gpyreg's switch (acerbilab/gpyreg#56), off in PyBADS after its measurement | `TODO.md`, "gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes." |
+| W1-25 | B6 | gpyreg's Cholesky retries multiply the noise and keep the multiplier in the posterior; MATLAB treats a failure as an error | port discrepancy (substituted library) | kept (KD-B6-6); gpyreg's switch (acerbilab/gpyreg#56) stays off in PyBADS after its measurements, the second at the head of the review (PI, 2026-09-28; `2026-09-28-gp-health.md`) | KD-B6-6 |
 | W1-26 | B6 | A plateau of the initial values stops the run in `_gp_hyp` (zero SD of the mean's prior) | port discrepancy; needs MATLAB (the rebuild case) | fixed: a positive fallback, and a rebuild keeps the previous prior (KD-B6-2) | `cd1831f` (#74) |
 | W1-27 | B6 | PyBADS fits a GP on the initial design, where MATLAB only defines it | port discrepancy | kept (PI), on the sheet (KD-B6-5) | — |
 | W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7) | `64616af` (#74); `TODO.md`, "`gp_cov_prior="ard"`." |
@@ -387,16 +389,15 @@ gpyreg citations of KD-B5-6 and KD-B6-6 were not read again.
 
 ## Open ends
 
-**What `dev/TODO.md` holds.** Every row is fixed, kept or closed above but
-for W0-12 and W0-13, the design of Sto-BADS's success rule. The rows and
+**What `dev/TODO.md` holds.** Every row is fixed, kept or closed above,
+W0-12 and W0-13 since the population of 2026-09-28. The rows and
 items that a ruling left to later work are held by these items of
 `dev/TODO.md`:
 
 | `TODO.md` item | Rows and items |
 |---|---|
-| "gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes." | W1-25, and W2-25's lower fraction solved on three of the five noisy configurations, unflagged at 30 seeds, which wave 2's doublecheck left to the same measurement |
-| "The uncertainty interval of Sto-BADS." | W0-12, W0-13; W4-15's note on the search's move |
-| "Zero predictive SDs at uncertainty level 0." | W3-28 and wave 3's "Found while verifying" |
+| "W2-25 and the noisy configurations' fraction solved." | W2-25's lower fraction solved on three of the five noisy configurations, unflagged at 30 seeds, which wave 2's doublecheck left to W1-25's measurement, and which that measurement did not compare |
+| "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
 | "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |

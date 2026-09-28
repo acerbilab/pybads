@@ -110,6 +110,17 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
+- `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
+  does: the factorizations that fail and gpyreg's noise multiplier, the
+  posteriors that keep it, the refits and their failed tries, the zero
+  predictive SDs and their value before the clamp, the NaN log priors, the
+  smallest training sets, and the outcomes of the Sto-BADS rule. With the
+  directory first on `PYTHONPATH` and `GP_HEALTH_OUT` set, every run of
+  `population.py` writes its counters there, and changes nothing (its
+  docstring says how to check that); `GP_FORCE_RAISE_ON_CHOLESKY_FAILURE=1`
+  turns on gpyreg's `raise_on_cholesky_failure` in every GP, an experiment
+  that does change results. `gp_health.py summary DIR...` tabulates the
+  counters, one row per configuration.
 
 A population's raw output goes to `scripts/runs/population/<name>/`. A
 population that serves as a reference for later comparisons is copied
@@ -137,6 +148,22 @@ reference's number of seeds.
   measured beside every addition of a point: agreement, the noise
   multiplier it carries over, and a saving of at most 2.5 %, behind the
   decision to keep the full recomputation.
+- [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
+  the failed factorizations and gpyreg's noise multiplier, the zero
+  predictive SDs, the NaN log priors and the smallest training sets over
+  four suites at the close of the review, one cause behind the first two
+  (an output variance far above the noise floor, in MATLAB's bounds), and
+  gpyreg's switch to MATLAB's rule measured against it: kept off (PI,
+  2026-09-28). Its evidence:
+  [experiments/gp_health_linux_20260928/](experiments/gp_health_linux_20260928/README.md)
+  and
+  [experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md).
+- [Sto-BADS's success rule](results/2026-09-28-stobads-rule.md) — the
+  current rule, the rule without the mesh factor and the limit of the
+  uncertain moves, on the noisy configurations at 60 seeds, with every
+  decision of the rule counted: no gain over BADS without Sto-BADS, and the
+  rulings on W0-12 and W0-13. Its evidence:
+  [experiments/stobads_linux_20260928/](experiments/stobads_linux_20260928/README.md).
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

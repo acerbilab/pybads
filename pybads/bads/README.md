@@ -777,15 +777,20 @@ and keeps the multiplier in the posterior (`sn2_mult`), which
 `get_hyperparameters` does not show; MATLAB BADS (`CholAttempts = 0`)
 treats the failure as an error, restarts the fit with the noise's start
 nudged, and empties the posterior. It is reached at default options on
-some targets. gpyreg's switch `raise_on_cholesky_failure`, off by default,
-gives MATLAB's behavior; measured, it stays off in PyBADS, and
-`chol_attempts` is unread.
+some targets: at the end of the review, a fifth of the fits' factorizations
+in deterministic runs, half on the 3-D ellipsoids, where the output
+variance exceeds the noise floor by far more than double precision holds;
+the bounds of both are MATLAB's. gpyreg's switch
+`raise_on_cholesky_failure`, off by default, gives MATLAB's behavior;
+measured at the head of the review, it made most refits on the ellipsoids
+fail and 10 of their runs end above the tolerance, and it stays off in
+PyBADS. `chol_attempts` is unread.
 - PyBADS: gpyreg's `GP` (its training Cholesky factorization, and
   `predict`).
 - MATLAB: `bads.m:272`; `gpml_fast/infExact_fastrobust.m:36`, `77-80`;
   `utils/gpHyperOptimize.m:73-176`; `private/gpupdate.m:340-354`.
-- Settled by: W1-25; `dev/TODO.md` holds the revisit. Kind: substituted
-  library.
+- Settled by: W1-25; the PI's ruling of 2026-09-28 after the measurement
+  (`dev/results/2026-09-28-gp-health.md`). Kind: substituted library.
 
 **KD-B6-7. `gp_cov_prior="ard"` is not ported, and is refused.**
 MATLAB's `'ard'` sets an empirical prior of the length scales per
@@ -885,8 +890,12 @@ Sto-MADS (Audet, Dzahini, Kokkolaras and Le Digabel, 2021), replaces the
 improvement tests of the search and the poll; `opp_stobads` and
 `stobads_frame_size_scaling_power` tune it, and the keyword-only argument
 `gamma_uncertain_interval` of `BADS` sets its interval. It is off by
-default and switched off for a deterministic target. The design of its
-rule is open (`dev/TODO.md`, "The uncertainty interval of Sto-BADS").
+default and switched off for a deterministic target. Its rule was measured
+at the close of the review (`dev/results/2026-09-28-stobads-rule.md`):
+the mesh factor of its interval stays, and the description of
+`stobads_frame_size_scaling_power` says what it does (W0-12); an uncertain
+search, as an uncertain poll, moves the incumbent only to a point that
+improves on it (W0-13).
 - PyBADS: `BADS._sto_success_improvement_`, and the `stobads` branches of
   `BADS._search_step_` and `BADS._poll_step_`.
 - MATLAB: no counterpart.

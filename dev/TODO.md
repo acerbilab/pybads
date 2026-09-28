@@ -3,28 +3,18 @@
 Updated 2026-09-28. The list describes scope, not priority or execution
 order.
 
-- [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
-  gpyreg multiplies the noise by ten per failed Cholesky factorization, up
-  to 1e9, and the posterior keeps the multiplier, which the hyperparameters
-  do not show; MATLAB BADS treats the failure as an error. gpyreg's
-  `raise_on_cholesky_failure` (acerbilab/gpyreg#56, off by default) gives
-  MATLAB's behaviour; turned on at the end of wave 1's first batch it made
-  the deterministic ellipsoids take more evaluations and end with larger
-  errors (`dev/experiments/port_review_20260925/verification/wave1.md`,
-  "W1-25's measurement"). That measurement predates acerbilab/gpyreg#58:
-  with the switch on, a fit whose low-noise design points all failed
-  started its second optimization from one of them and raised, discarding
-  its first. Revisit once all of wave 1's fixes have landed
-  (PI, 2026-09-26), which they have, with those of the later waves (the
-  review closed on 2026-09-28): measure again at `dev-next`, count the
-  failed factorizations and fits per run and which retries leave a worse
-  GP, and weigh a jitter scaled to the signal that the fit and the
-  predictions share. The same measurement looks again at W2-25's lower
-  fraction solved on three of the five noisy configurations, unflagged at
-  30 seeds, which wave 2's doublecheck left to it
+- [ ] **W2-25 and the noisy configurations' fraction solved.** W2-25 (wave
+  2's fix pass: after the re-estimate, the incumbent moves with the value of
+  the iterate it takes) lowered the fraction solved of `ellipsoid_D3_homo`,
+  `ellipsoid_D3_hetero` and `sphere_D3_hetero` at 30 seeds, unflagged, a
+  coarse measure there
   (`experiments/port_review_20260925/verification/wave2.md`, "Doublecheck").
-  Turning the switch on in PyBADS needs a gpyreg release and moves its
-  minimum and CI pin.
+  Wave 2's doublecheck left it to the remeasure of W1-25, which, ruled on
+  2026-09-28 (gpyreg's switch stays off, KD-B6-6 of `pybads/bads/README.md`;
+  [results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)), did
+  not compare the runs with and without W2-25. To settle: the five noisy
+  configurations of the `default` suite at 60 to 90 seeds, at the head and
+  with W2-25 reverted.
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
   update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
@@ -41,7 +31,8 @@ order.
   by 0.21 when the multiplier it carries over differs from the one the
   recomputation picks. The PI did not adopt it (2026-09-28). Revisit if the
   training sets grow well beyond 200 points, if gpyreg's handling of the
-  multiplier changes (W1-25 above), or if a profile shows the update after
+  multiplier changes (KD-B6-6 of `pybads/bads/README.md`, kept as it is
+  by the PI on 2026-09-28), or if a profile shows the update after
   a new point taking a larger share. Adopting it moves the ellipsoids'
   runs, so it needs the population comparison, and the target's reuse of
   the GP's own posterior (`_get_target_from_gp_`), which relies on
@@ -119,23 +110,13 @@ order.
     W1-23 (`172df00`, wave 1) leaves them infinite, as MATLAB does.
 
   Still open: a run of MATLAB BADS on this problem, which would show
-  whether correct noise handling alone gives such runs.
-- [ ] **The uncertainty interval of Sto-BADS.** Rows W0-12 and W0-13 of the
-  port review's ledger (`experiments/port_review_20260925/verification/wave0.md`):
-  the success rule of `stobads=True` compares the estimated improvement
-  with `gamma * epsilon * mesh_size**2`, epsilon the GP's standard
-  deviations, which do not shrink with the mesh as the accuracy that
-  Sto-MADS requires of its estimates does, so that its "certain" outcomes
-  are nearly coin flips at small meshes; and `opp_stobads` moves the search
-  incumbent on any uncertain outcome, to worse estimates too, and widens
-  the search as after an incremental improvement. To decide (PI,
-  2026-09-26) after a population with `stobads=True` on the noisy
-  configurations of the default suite that compares the current rule, the
-  rule without the mesh factor (`stobads_frame_size_scaling_power = 0`)
-  and `opp_stobads` moves limited to a positive estimated improvement.
-  Since wave 4 (W4-15) an uncertain poll moves the incumbent only to a
-  point that improves on it; the search's move on an uncertain outcome is
-  not limited so.
+  whether correct noise handling alone gives such runs. Measured on
+  2026-09-28 and not the cause: its GP runs at an output variance near
+  1e15 times its noise variance, and most of its fits keep a noise that
+  gpyreg multiplied (KD-B6-6), but neither gpyreg's switch to MATLAB's rule
+  nor any variant of Sto-BADS makes its errors smaller
+  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
+  [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -152,14 +133,17 @@ order.
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
   names no release, names it, as PyVBMC's names 1.5.
-- [ ] **Zero predictive SDs at uncertainty level 0.** In deterministic runs
-  the predictive SD of the GP is often exactly 0, and the poll's check of
-  an unreliable GP reads it (the port review's wave 3, W3-28 and "Found
-  while verifying"). Its cause, perhaps the latent variance clamped at 0
-  after rounding in gpyreg's `predict`, and whether MATLAB's `mygp` gives
-  it as often, are not established. To settle: count the zero SDs over the
-  default suite, trace them in gpyreg, and compare with MATLAB's prediction
-  of the same GP.
+- [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
+  SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
+  over the four suites, up to 40% on some configurations, noisy ones
+  included, and each makes the poll's GP unreliable (W3-28). Counted and
+  traced on 2026-09-28
+  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)):
+  rounding, the latent variance `kss - v'v` cancelled below the rounding
+  of `kss` near the training inputs and clamped at 0, where the output
+  variance exceeds the noise by 1e12 or more, the same cause as KD-B6-6;
+  MATLAB's `mygp.m:187` clamps the same way. Open only: how often MATLAB's
+  own fits reach them, which needs MATLAB.
 - [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
   (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`). They were
   to follow the bug hunt, so as not to pin its defects, and the hunt is
@@ -214,7 +198,12 @@ order.
   0, which gpyreg refuses; since W3-40 (wave 3's fix pass,
   `verification/wave3.md`) a rebuild keeps the previous prior there.
   Slice B6, whose wave has passed: decide the priors and bounds of such a
-  GP, in PyBADS or in gpyreg, with a test on the thin band.
+  GP, in PyBADS or in gpyreg, with a test on the thin band. Measured on
+  2026-09-28 over the four suites
+  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)):
+  only non-box constraints reach it, every run of the thin bands on one
+  point and 2 of 30 runs of `sphere_nonbox_D3` on two, and the runs at
+  D = 3 go on to converge.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of all five predate the port
   review, whose fix passes change their numbers, and some of their
@@ -239,10 +228,16 @@ order.
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has. gpyreg's `main` holds, unreleased, the fix of the port review's W1-24
+  shows that it has no effect on PyBADS, or explains the one it has.
+  gpyreg's `main` holds, unreleased, the fix of the port review's W1-24
   (the log prior of a prior far outside its bounds, acerbilab/gpyreg#57)
-  and W1-25's switch (acerbilab/gpyreg#56), which reach PyBADS through
-  such a release.
+  and W1-25's switch (acerbilab/gpyreg#56), which stays off in PyBADS
+  (KD-B6-6). At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's
+  records in all 1,080 runs of the `default`, `geometry`, `oned` and
+  `bounds` suites on Linux
+  ([experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md)):
+  a release of it moves nothing there; its gate also takes the Windows
+  comparison.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
