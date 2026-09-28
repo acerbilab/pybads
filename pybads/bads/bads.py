@@ -304,9 +304,6 @@ class BADS:
             excluded_names=("plot",),
         )
 
-        if self.options["stobads"] is None or self.options["stobads"] == False:
-            self.options["stobads"] = False
-
         # set up the random generator of the run
         self._init_rng_()
 
@@ -636,9 +633,8 @@ class BADS:
         """
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
-        # Record starting points (original coordinates); f_vals, their
-        # function values, is not supported: a value without a finite
-        # element stands for None
+        # f_vals, the function values of the starting points, is not
+        # supported: a value without a finite element stands for None
         f_vals = self.options["f_vals"]
         if f_vals is not None:
             try:
@@ -650,19 +646,10 @@ class BADS:
                     "options['f_vals'] is not supported: leave it None (its "
                     "default)."
                 )
-        y_orig = np.full([self.x0.shape[0]], np.nan)
 
         optim_state = dict()
         optim_state["random_seed"] = self._random_seed
-        optim_state["cache"] = dict()
-        optim_state["cache"]["x_orig"] = self.x0
-        optim_state["cache"]["y_orig"] = y_orig
         optim_state["last_re_eval"] = -np.inf
-
-        # Does the starting cache contain function values?
-        optim_state["cache_active"] = np.any(
-            np.isfinite(optim_state.get("cache").get("y_orig"))
-        )
 
         # Grid parameters
         self.mesh_size_integer = self.options[
@@ -965,9 +952,6 @@ class BADS:
         optim_state["max_fun_evals"] = self.options.get("max_fun_evals")
 
         # Deal with user specified target noise
-        if self.options["specify_target_noise"] is None:
-            self.options["specify_target_noise"] = False
-
         if (
             self.options["specify_target_noise"]
             and self.options["uncertainty_handling"] is None
@@ -3075,34 +3059,25 @@ class BADS:
         """
         Private method to log the column headers for the iteration log.
         """
-        if self.optim_state["cache_active"]:
+        if self.optim_state["uncertainty_handling_level"] > 0:
             self.logger.info(
-                " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method       Actions"
+                " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions"
             )
         else:
-            if self.optim_state["uncertainty_handling_level"] > 0:
-                self.logger.info(
-                    " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions"
-                )
-            else:
-                self.logger.info(
-                    " Iteration    f-count         f(x)           MeshScale          Method             Actions"
-                )
+            self.logger.info(
+                " Iteration    f-count         f(x)           MeshScale          Method             Actions"
+            )
 
     def _setup_logging_display_format(self):
         """
         Private method to set up the display format for logging the iterations.
         """
-        if self.optim_state["cache_active"]:
-            display_format = " {:5.0f}     {:5.0f}/{:5.0f}   {:12.6f}  "
-            display_format += "{:12.6f}  {:12.6f}     {}       {}"
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+            display_format += "{:12.6g}    {:12.6g}      {:^20s}        {}"
         else:
-            if self.optim_state["uncertainty_handling_level"] > 0:
-                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
-                display_format += "{:12.6g}    {:12.6g}      {:^20s}        {}"
-            else:
-                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
-                display_format += "{:12.6g}     {:^20s}        {}"
+            display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+            display_format += "{:12.6g}     {:^20s}        {}"
 
         return display_format
 

@@ -165,7 +165,7 @@ def test_f_vals_is_not_supported():
         with pytest.raises(ValueError, match="f_vals'] is not supported"):
             _make_bads(f_vals=f_vals)
     for f_vals in ([], [np.nan], [np.inf], np.full(2, np.nan)):
-        assert not _make_bads(f_vals=f_vals).optim_state["cache_active"]
+        _make_bads(f_vals=f_vals)
 
 
 def test_descriptions_are_whole_comment_lines():
