@@ -247,7 +247,9 @@ decided on; "the next release" below means it.
     on Linux against the "on" arm of
     [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md),
     and on Windows, which has no reference of the suite, both arms of it
-    (with `--options '{"periodic_vars": null}'` for "off"), as there;
+    (with `--options '{"periodic_vars": null}'` for "off"), as there.
+    gpyreg's release notes list `periods` under "1.3.4 (unreleased)"; a new
+    feature may call for 1.4.0, the maintainers' choice;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on
