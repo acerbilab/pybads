@@ -39,7 +39,7 @@ pushes and runs `/doublecheck` at the end.
 
 ## Verification
 - [x] Test suite green; fingerprint unchanged where nothing may move; gates where results move — at `38491bf`: 913 passed, 18 skipped (platform-bound oracles); fingerprint `4146a986863602cb` (1 thread and default); pre-commit clean; dev tests 29 passed; replay of `bec8a57` against HEAD 8 of 8 identical
-- [~] `/doublecheck` (comprehensive)
+- [!] `/doublecheck` (comprehensive, 5 Opus reviewers): 3 must-fix (W2-36 adoption not recorded as open; oracle `--rebaseline` dead-ends off the generating machine; `profile_suite.py` relative `--out` loses runs), ~13 should-fix (BADS reference cycle via the stage timer; replay recorder fragility; oracle `--exact` silent skips, gpyreg key, option coupling; stale `BADS.optimize` pointers; changelog gaps; doc slips) — fixes pending the PI
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
