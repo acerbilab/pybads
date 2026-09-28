@@ -616,7 +616,7 @@ def test_target_under_the_gps_own_hyperparameters_reuses_its_posterior(
     tmp_gp = copy.deepcopy(gp)
     tmp_gp.set_hyperparameters(hyp_best)
     mu, s2 = tmp_gp.predict(np.atleast_2d(bads.u_best))
-    posteriors = _posterior_arrays(gp)
+    reference = copy.deepcopy(gp)
     copies = []
     original_deepcopy = copy.deepcopy
 
@@ -633,7 +633,7 @@ def test_target_under_the_gps_own_hyperparameters_reuses_its_posterior(
     assert "GP" not in copies
     assert f_target_mu.item() == mu.item()
     assert np.asarray(f_target_s).item() == np.sqrt(s2).item()
-    assert _same(_posterior_arrays(gp), posteriors)
+    _assert_same_gp(gp, reference)
 
 
 # --- the markers in the search and the poll --------------------------------
