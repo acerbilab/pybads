@@ -286,6 +286,14 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   training set. `test_gp_update_failures.py` injects the failures.
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
+- **Stage times.** `optimize` charges each second of a run to the
+  innermost open stage of a private `StageTimer`
+  (`pybads/utils/timer/stage_timer.py`), and the target's evaluations to
+  `target`, which together make `total_time`; `dev/scripts/profile_run.py`
+  reads their plain snapshots, `optim_state["stage_times"]` and
+  `iteration_history["timer"]`. The timer lives on the `BADS` object and
+  goes to the GP functions as `timer=`, as `rng` does, never into
+  `optim_state` or a GP's `temporary_data`, which are deep-copied.
 
 ## Numerical gates
 

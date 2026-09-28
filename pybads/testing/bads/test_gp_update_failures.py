@@ -675,6 +675,7 @@ def _probe(
         iteration_history,
         refit_flag,
         rng=None,
+        timer=None,
     ):
         if state["probing"] and refit_flag:
             state["refit_recorded"].append(
@@ -689,6 +690,7 @@ def _probe(
             iteration_history,
             refit_flag,
             rng=rng,
+            timer=timer,
         )
         if state["probing"]:
             state["calls"].append(refit_flag)
@@ -834,6 +836,7 @@ def test_poll_without_poll_training_records_no_refit(monkeypatch):
         iteration_history,
         refit_flag,
         rng=None,
+        timer=None,
     ):
         counts["made"] += bool(refit_flag)
         return original_local(
@@ -845,6 +848,7 @@ def test_poll_without_poll_training_records_no_refit(monkeypatch):
             iteration_history,
             refit_flag,
             rng=rng,
+            timer=timer,
         )
 
     def record(self):
@@ -1125,7 +1129,8 @@ def test_noisy_re_estimate_after_failed_rebuild(inject, monkeypatch):
     def evaluate(self, f_base, f_new, s_base, s_new, q):
         z = original_eval(self, f_base, f_new, s_base, s_new, q)
         # The choice of a better iterate, from the whole history
-        if sys._getframe(1).f_code.co_name == "optimize" and np.ndim(f_new):
+        caller = sys._getframe(1).f_code.co_name
+        if caller == "_optimize_" and np.ndim(f_new):
             boost = not state["boosted"] and z.size >= 4
             if boost:
                 # The 3rd iterate improves the most, so that the choice has

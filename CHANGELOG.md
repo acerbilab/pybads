@@ -104,6 +104,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.
+- **Stage times.** A `BADS` object's `iteration_history["timer"]` holds, at
+  the end of each iteration, the seconds that the run has spent so far in
+  each of its stages (the initial design, the searches, the polls, the fits
+  of the Gaussian process and the others) and in the target's evaluations,
+  and `optim_state["stage_times"]` holds the same for the whole run, which
+  adds up to `total_time`. They serve PyBADS's developer tools, and their
+  format can change in any release.
 
 ### Changed
 

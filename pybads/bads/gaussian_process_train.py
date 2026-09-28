@@ -13,6 +13,7 @@ from pybads.rng import get_rng
 from pybads.search.grid_functions import udist
 from pybads.stats import get_hpd
 from pybads.utils import IterationHistory
+from pybads.utils.timer.stage_timer import get_stage_timer
 
 from .options import Options
 
@@ -28,6 +29,7 @@ def init_and_train_gp(
     plb: np.ndarray,
     pub: np.ndarray,
     rng=None,
+    timer=None,
 ):
     """
     Initialize and train the Gaussian process model.
@@ -54,6 +56,10 @@ def init_and_train_gp(
         Generator of the random draws, passed on to ``gp.fit``. If ``None``,
         a generator is derived from NumPy's global random state
         (``pybads.rng.get_rng``).
+    timer : pybads.utils.timer.stage_timer.StageTimer, optional
+        The run's stage timer, which times the fits as the stage
+        ``"gp_fit"`` and each fit that raises ``LinAlgError`` as
+        ``"gp_fit_failed"`` under it. If ``None``, nothing is timed.
 
     Returns
     =======
@@ -75,6 +81,7 @@ def init_and_train_gp(
     """
 
     rng = get_rng(rng)
+    timer = get_stage_timer(timer)
 
     # Initialize hyp_dict if empty.
     if "hyp" not in hyp_dict:
@@ -170,61 +177,63 @@ def init_and_train_gp(
     n_try = 10
     fitted = False
     training_failures = 0
-    while not fitted:
-        try:
-            if training_failures == 0:
-                _, _, _ = gp.fit(
-                    x_train,
-                    y_train,
-                    s2_train,
-                    hyp0=hyp0,
-                    options=gp_train,
-                    rng=rng,
-                )
-                fitted = True
-            elif training_failures == 3:
-                # At the third failure, retry from every hyperparameter at
-                # zero (MATLAB BADS fits no GP at initialization, so it has
-                # no such retry)
-                new_hyp = np.zeros(shape=hyp0.shape)
-                _, _, _ = gp.fit(
-                    x_train,
-                    y_train,
-                    s2_train,
-                    hyp0=new_hyp,
-                    options=gp_train,
-                    rng=rng,
-                )
-                hyp0 = new_hyp
-                hyp_dict["hyp"] = hyp0
-                fitted = True
-            else:
-                # Sample random from prior
-                # In case the initial hyperparameters fails
-                new_hyp = _get_random_samples_from_priors_(gp, rng)
-                _, _, _ = gp.fit(
-                    x_train,
-                    y_train,
-                    s2_train,
-                    hyp0=new_hyp,
-                    options=gp_train,
-                    rng=rng,
-                )
-                hyp0 = new_hyp
-                hyp_dict["hyp"] = hyp0
-                fitted = True
+    with timer.stage("gp_fit"):
+        while not fitted:
+            try:
+                with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
+                    if training_failures == 0:
+                        _, _, _ = gp.fit(
+                            x_train,
+                            y_train,
+                            s2_train,
+                            hyp0=hyp0,
+                            options=gp_train,
+                            rng=rng,
+                        )
+                        fitted = True
+                    elif training_failures == 3:
+                        # At the third failure, retry from every
+                        # hyperparameter at zero (MATLAB BADS fits no GP at
+                        # initialization, so it has no such retry)
+                        new_hyp = np.zeros(shape=hyp0.shape)
+                        _, _, _ = gp.fit(
+                            x_train,
+                            y_train,
+                            s2_train,
+                            hyp0=new_hyp,
+                            options=gp_train,
+                            rng=rng,
+                        )
+                        hyp0 = new_hyp
+                        hyp_dict["hyp"] = hyp0
+                        fitted = True
+                    else:
+                        # Sample random from prior
+                        # In case the initial hyperparameters fails
+                        new_hyp = _get_random_samples_from_priors_(gp, rng)
+                        _, _, _ = gp.fit(
+                            x_train,
+                            y_train,
+                            s2_train,
+                            hyp0=new_hyp,
+                            options=gp_train,
+                            rng=rng,
+                        )
+                        hyp0 = new_hyp
+                        hyp_dict["hyp"] = hyp0
+                        fitted = True
 
-        except np.linalg.LinAlgError as err:
-            training_failures += 1
-            logger.warning(
-                f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
-            )
-            if training_failures == n_try:
-                raise RuntimeError(
-                    f"bads:gp: The initial fit of the GP failed {n_try} "
-                    "times, from the starting hyperparameters, from draws "
-                    "of their priors and from zeros."
-                ) from err
+            except np.linalg.LinAlgError as err:
+                training_failures += 1
+                logger.warning(
+                    f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
+                )
+                if training_failures == n_try:
+                    raise RuntimeError(
+                        f"bads:gp: The initial fit of the GP failed {n_try} "
+                        "times, from the starting hyperparameters, from draws "
+                        "of their priors and from zeros."
+                    ) from err
     # end gp hyp. init
 
     # Update running average of GP hyperparameter covariance (coarse)
@@ -256,6 +265,7 @@ def local_gp_fitting(
     iteration_history: IterationHistory,
     refit_flag,
     rng=None,
+    timer=None,
 ):
     """
     Local GP approximation on current point. It updates the priors hyper-parameters and re-fit the Gaussian Process
@@ -264,6 +274,9 @@ def local_gp_fitting(
     ``numpy.random.Generator``, which is passed on to ``gp.fit``; if ``None``,
     a generator is derived from NumPy's global random state
     (``pybads.rng.get_rng``).
+
+    ``timer``, the run's stage timer (``None`` times nothing), times the
+    refit as the stage ``"gp_fit"`` (``_robust_gp_fit_``).
 
     If the posterior on the new training set cannot be computed
     (``LinAlgError``) with the hyperparameters of a refit, it is computed
@@ -281,6 +294,7 @@ def local_gp_fitting(
     return, the refit's or the previous ones.
     """
     rng = get_rng(rng)
+    timer = get_stage_timer(timer)
 
     # The GP on entry, for the restore after a failed rebuild: a shallow
     # copy of its attributes, as gpyreg's own restore takes, and of
@@ -476,17 +490,19 @@ def local_gp_fitting(
             function_logger,
             second_fit=second_fit,
         )
-        gp, hyp_gp, res, exit_flag = _robust_gp_fit_(
-            gp,
-            gp.X,
-            gp.y,
-            gp.s2,
-            hyp_gp,
-            gp_train,
-            optim_state,
-            options,
-            rng,
-        )
+        with timer.stage("gp_fit"):
+            gp, hyp_gp, res, exit_flag = _robust_gp_fit_(
+                gp,
+                gp.X,
+                gp.y,
+                gp.s2,
+                hyp_gp,
+                gp_train,
+                optim_state,
+                options,
+                rng,
+                timer=timer,
+            )
     else:
         hyp_gp = old_hyp_gp
 
@@ -644,6 +660,7 @@ def _robust_gp_fit_(
     optim_state,
     options,
     rng=None,
+    timer=None,
 ):
     """A private method that compute fit the Gaussian Process.
     In the case it fails to fit the GP with new proposed parameters it sample a new one from the priors.
@@ -651,8 +668,13 @@ def _robust_gp_fit_(
     it returns the best of the starts ``hyp_gp``, with exit flag -1, as
     MATLAB's gpHyperOptimize.m; a fit, after retries too, has exit flag 1.
     The random draws come from ``rng`` (``pybads.rng.get_rng`` resolves ``None``).
+    ``timer``, the run's stage timer (``None`` times nothing), times each
+    try that raises ``LinAlgError`` as the stage ``"gp_fit_failed"``, the
+    preparation of the next try as ``"gp_fit_retry"`` and the choice of
+    hyperparameters when no try fits as ``"gp_fit_fallback"``.
     """
     rng = get_rng(rng)
+    timer = get_stage_timer(timer)
 
     noise_nudge = 0
 
@@ -672,9 +694,10 @@ def _robust_gp_fit_(
         if Y.shape[0] < X.shape[1]:
             break
         try:
-            new_hyp, _, res = tmp_gp.fit(
-                X, Y, s2, hyp0=new_hyp, options=gp_train, rng=rng
-            )
+            with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
+                new_hyp, _, res = tmp_gp.fit(
+                    X, Y, s2, hyp0=new_hyp, options=gp_train, rng=rng
+                )
             fitted = True
             break
         except np.linalg.LinAlgError:
@@ -682,109 +705,114 @@ def _robust_gp_fit_(
             logger.debug(
                 "bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
             )
-            if i_try > options["remove_points_after_tries"] - 1:
-                idx_drop_out = np.zeros(len(Y)).astype(bool)
-                # Remove closest pair sample
-                dist = cdist(X, X)
-                # Dist is symmetric thus we dont consider the lower triangular and the diagonal of the matrix
-                dist[np.tril_indices(dist.shape[0])] = np.inf
+            with timer.stage("gp_fit_retry"):
+                if i_try > options["remove_points_after_tries"] - 1:
+                    idx_drop_out = np.zeros(len(Y)).astype(bool)
+                    # Remove closest pair sample
+                    dist = cdist(X, X)
+                    # Dist is symmetric thus we dont consider the lower triangular and the diagonal of the matrix
+                    dist[np.tril_indices(dist.shape[0])] = np.inf
 
-                # Indices of the minimum elements
-                idx_min = np.unravel_index(
-                    np.argmin(dist, axis=None), dist.shape
+                    # Indices of the minimum elements
+                    idx_min = np.unravel_index(
+                        np.argmin(dist, axis=None), dist.shape
+                    )
+
+                    if Y[idx_min[0]] > Y[idx_min[1]]:
+                        idx_drop_out[idx_min[0]] = True
+                    else:
+                        idx_drop_out[idx_min[1]] = True
+
+                    # MATLAB's prctile1 is NumPy's "hazen"
+                    # (gpHyperOptimize.m:137)
+                    idx_drop_out = np.logical_or(
+                        idx_drop_out,
+                        (Y > np.percentile(Y, 95, method="hazen")).flatten(),
+                    )
+                    X = X[~idx_drop_out]
+                    Y = Y[~idx_drop_out]
+                    # Remove also user specified noise
+                    if s2 is not None and s2.size > 0:
+                        s2 = s2[~idx_drop_out]
+
+                # Retry with random sample prior
+                old_hyp_gp = (
+                    hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
                 )
-
-                if Y[idx_min[0]] > Y[idx_min[1]]:
-                    idx_drop_out[idx_min[0]] = True
+                if options["use_slice_sampler"]:
+                    # The sampler reads the data of the GP it is given: those
+                    # of the retry, which a failed fit does not leave in
+                    # `tmp_gp`
+                    tmp_gp.X, tmp_gp.y, tmp_gp.s2 = X, Y, s2
+                    # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
+                    if len(new_hyp) > 1:
+                        new_hyp = new_hyp[-1].copy()
+                    new_hyp = _get_samples_from_slice_sampler_(
+                        tmp_gp, new_hyp, optim_state, options, rng
+                    )
                 else:
-                    idx_drop_out[idx_min[1]] = True
+                    new_hyp = _get_random_samples_from_priors_(gp, rng)
+                if new_hyp is not None:
+                    new_hyp = 0.5 * (new_hyp + old_hyp_gp)
+                else:  # if the slice sampler fail, due to che Cholesky decomposition
+                    new_hyp = old_hyp_gp
 
-                # MATLAB's prctile1 is NumPy's "hazen" (gpHyperOptimize.m:137)
-                idx_drop_out = np.logical_or(
-                    idx_drop_out,
-                    (Y > np.percentile(Y, 95, method="hazen")).flatten(),
+                nudge = options["noise_nudge"]
+                if nudge is None or np.size(nudge) == 0:
+                    nudge = np.array([0, 0])
+                elif np.size(nudge) == 1:
+                    # Half of it for the bound, as MATLAB completes it
+                    # (gpHyperOptimize.m:7)
+                    nudge = np.ravel(nudge)[0] * np.array([1, 0.5])
+
+                # Try increase starting point of noise
+                noise_nudge = noise_nudge + nudge[0]
+
+                # Increase gp noise hyp lower bounds, by nudge[1] per failure
+                # from the bound at entry, which `gp` holds (MATLAB:
+                # gpHyperOptimize.m:163-164)
+                bounds = gp.get_bounds()
+                noise_bound = bounds["noise_log_scale"]
+                noise_bound = (
+                    noise_bound[0] + (i_try + 1) * nudge[1],
+                    noise_bound[1],
                 )
-                X = X[~idx_drop_out]
-                Y = Y[~idx_drop_out]
-                # Remove also user specified noise
-                if s2 is not None and s2.size > 0:
-                    s2 = s2[~idx_drop_out]
+                bounds["noise_log_scale"] = noise_bound
+                tmp_gp.set_bounds(bounds)
 
-            # Retry with random sample prior
-            old_hyp_gp = (
-                hyp_gp.copy() if len(hyp_gp) == 1 else hyp_gp[-1].copy()
-            )
-            if options["use_slice_sampler"]:
-                # The sampler reads the data of the GP it is given: those of
-                # the retry, which a failed fit does not leave in `tmp_gp`
-                tmp_gp.X, tmp_gp.y, tmp_gp.s2 = X, Y, s2
-                # if there are multiple hyp samples we take the last one due to the low_mean or high noise.
-                if len(new_hyp) > 1:
-                    new_hyp = new_hyp[-1].copy()
-                new_hyp = _get_samples_from_slice_sampler_(
-                    tmp_gp, new_hyp, optim_state, options, rng
+                # Try increase starting point of noise
+                new_hyp = tmp_gp.hyperparameters_to_dict(new_hyp)
+                new_hyp[0]["noise_log_scale"] = (
+                    new_hyp[0]["noise_log_scale"] + noise_nudge
                 )
-            else:
-                new_hyp = _get_random_samples_from_priors_(gp, rng)
-            if new_hyp is not None:
-                new_hyp = 0.5 * (new_hyp + old_hyp_gp)
-            else:  # if the slice sampler fail, due to che Cholesky decomposition
-                new_hyp = old_hyp_gp
-
-            nudge = options["noise_nudge"]
-            if nudge is None or np.size(nudge) == 0:
-                nudge = np.array([0, 0])
-            elif np.size(nudge) == 1:
-                # Half of it for the bound, as MATLAB completes it
-                # (gpHyperOptimize.m:7)
-                nudge = np.ravel(nudge)[0] * np.array([1, 0.5])
-
-            # Try increase starting point of noise
-            noise_nudge = noise_nudge + nudge[0]
-
-            # Increase gp noise hyp lower bounds, by nudge[1] per failure
-            # from the bound at entry, which `gp` holds (MATLAB:
-            # gpHyperOptimize.m:163-164)
-            bounds = gp.get_bounds()
-            noise_bound = bounds["noise_log_scale"]
-            noise_bound = (
-                noise_bound[0] + (i_try + 1) * nudge[1],
-                noise_bound[1],
-            )
-            bounds["noise_log_scale"] = noise_bound
-            tmp_gp.set_bounds(bounds)
-
-            # Try increase starting point of noise
-            new_hyp = tmp_gp.hyperparameters_to_dict(new_hyp)
-            new_hyp[0]["noise_log_scale"] = (
-                new_hyp[0]["noise_log_scale"] + noise_nudge
-            )
-            new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
-            # Into the bounds of the retry (MATLAB: gpHyperOptimize.m:167)
-            new_hyp = np.minimum(
-                np.maximum(new_hyp, tmp_gp.lower_bounds), tmp_gp.upper_bounds
-            )
-            tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
+                new_hyp = tmp_gp.hyperparameters_from_dict(new_hyp)
+                # Into the bounds of the retry (MATLAB: gpHyperOptimize.m:167)
+                new_hyp = np.minimum(
+                    np.maximum(new_hyp, tmp_gp.lower_bounds),
+                    tmp_gp.upper_bounds,
+                )
+                tmp_gp.set_hyperparameters(new_hyp, compute_posterior=False)
 
     if not fitted:
-        # Every try failed, or too few points remained: the best of the
-        # starts, taken into the bounds and ranked by the log posterior on
-        # the data at entry, which `gp` holds, as MATLAB
-        # (gpHyperOptimize.m:50-62, 197-200); a start that cannot be
-        # evaluated ranks last
-        starts = np.minimum(
-            np.maximum(np.atleast_2d(hyp_gp), gp.lower_bounds),
-            gp.upper_bounds,
-        )
-        nlp = np.full(starts.shape[0], np.inf)
-        for i, start in enumerate(starts):
-            try:
-                nlp[i] = -gp.log_posterior(start)
-            except np.linalg.LinAlgError:
-                pass
-        nlp[np.isnan(nlp)] = np.inf
-        new_hyp = starts[[np.argmin(nlp)]]
-        res = None
+        with timer.stage("gp_fit_fallback"):
+            # Every try failed, or too few points remained: the best of the
+            # starts, taken into the bounds and ranked by the log posterior on
+            # the data at entry, which `gp` holds, as MATLAB
+            # (gpHyperOptimize.m:50-62, 197-200); a start that cannot be
+            # evaluated ranks last
+            starts = np.minimum(
+                np.maximum(np.atleast_2d(hyp_gp), gp.lower_bounds),
+                gp.upper_bounds,
+            )
+            nlp = np.full(starts.shape[0], np.inf)
+            for i, start in enumerate(starts):
+                try:
+                    nlp[i] = -gp.log_posterior(start)
+                except np.linalg.LinAlgError:
+                    pass
+            nlp[np.isnan(nlp)] = np.inf
+            new_hyp = starts[[np.argmin(nlp)]]
+            res = None
     gp.set_hyperparameters(new_hyp, False)
     if not fitted or i_try > 0:
         # at least one failed, or none was made
