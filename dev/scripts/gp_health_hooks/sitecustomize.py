@@ -49,6 +49,14 @@ them, which ``same_fields.py`` checks. What is counted:
   ``_robust_gp_fit_`` makes, by its try index and outcome (a refit whose
   every try fails has ten failures and no ``ok``); ``fit_seconds``: the
   wall time of the fits that returned and of those that raised.
+- ``stobads``: with ``stobads=True``, each outcome of
+  ``BADS._sto_success_improvement_`` by the step that asked
+  (``_search_step_`` or ``_poll_step_``): ``1`` (success), ``0``
+  (uncertain), ``-1`` (certain failure or no estimate); the uncertain ones
+  split by the sign of the estimated improvement ``mu = f_base - f_new``;
+  and a histogram of ``|mu| / epsilon`` over the certain outcomes (``1`` and
+  ``-1`` with an estimate), epsilon the SD of ``mu``. The wrapper is set on
+  the ``BADS`` class, once, when the run's ``BADS`` object is first found.
 
 ``raised`` counts a factorization that raised, after ten attempts, or
 after one where the GP raises on a failed factorization; the last entry of
@@ -160,6 +168,7 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
             "min_distinct": None,
         },
         "robust_fit": _counter(),
+        "stobads": collections.defaultdict(_counter),
         "fit_seconds": {"ok": 0.0, "raised": 0.0},
         "level": None,
         "hook_errors": [],
@@ -205,7 +214,49 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
                 obj = f.f_locals.get("self")
                 if type(obj).__name__ == "BADS":
                     _BADS[0] = obj
+                    _wrap_sto(type(obj))
             f = f.f_back
+
+    def _wrap_sto(cls):
+        """Count the outcomes of the Sto-BADS rule (``stobads``)."""
+        orig = cls.__dict__.get("_sto_success_improvement_")
+        if orig is None or getattr(orig, "_gp_health", False):
+            return
+
+        def wrapper(self, f_base, f_new, s_base, s_new, frame_size):
+            res = orig(self, f_base, f_new, s_base, s_new, frame_size)
+            try:
+                site = sys._getframe(1).f_code.co_name
+                rec = _S["stobads"][site]
+                rec[str(res)] += 1
+                with np.errstate(all="ignore"):
+                    mu = float(np.ravel(f_base - f_new)[0])
+                    eps = float(np.ravel(np.sqrt(s_base**2 + s_new**2))[0])
+                if res == 0:
+                    rec[
+                        "uncertain_mu_neg" if mu < 0 else "uncertain_mu_pos"
+                    ] += 1
+                elif math.isfinite(mu) and math.isfinite(eps) and eps > 0:
+                    z = abs(mu) / eps
+                    b = (
+                        "<0.25"
+                        if z < 0.25
+                        else "<0.5"
+                        if z < 0.5
+                        else "<1"
+                        if z < 1
+                        else "<1.96"
+                        if z < 1.96
+                        else ">=1.96"
+                    )
+                    rec[f"certain_z{b}"] += 1
+            except Exception as e:  # noqa: BLE001
+                _hook_error("stobads", e)
+            return res
+
+        wrapper._gp_health = True
+        wrapper.__wrapped__ = orig
+        setattr(cls, "_sto_success_improvement_", wrapper)
 
     def _callers(frame, depth=4):
         pdir = _pybads_dir()
