@@ -4,7 +4,7 @@ Put this directory first on ``PYTHONPATH`` and set ``GP_HEALTH_OUT`` to a
 directory: every Python process then wraps gpyreg's ``GP`` at startup and,
 when it ran a ``population.py`` task, writes
 ``<label>_seed<seed>.json`` there at exit. Without ``GP_HEALTH_OUT`` it
-does nothing. It shadows any other ``sitecustomize`` (the one of the Linux
+counts nothing. It shadows any other ``sitecustomize`` (the one of the Linux
 reference's container, ``/usr/lib/python3.11/sitecustomize.py``, is
 empty).
 
@@ -49,9 +49,43 @@ them, which ``same_fields.py`` checks. What is counted:
   ``_robust_gp_fit_`` makes, by its try index and outcome (a refit whose
   every try fails has ten failures and no ``ok``); ``fit_seconds``: the
   wall time of the fits that returned and of those that raised.
+
+``raised`` counts a factorization that raised, after ten attempts, or
+after one where the GP raises on a failed factorization; the last entry of
+``fails_hist`` counts the same calls.
+
+One knob changes results, for experiments: with
+``GP_FORCE_RAISE_ON_CHOLESKY_FAILURE=1``, every ``GP`` is constructed with
+``raise_on_cholesky_failure=True`` (gpyreg after 1.3.3; an older gpyreg
+stops the process at startup), whatever the caller passes.
 """
 
 import os
+
+if os.environ.get("GP_FORCE_RAISE_ON_CHOLESKY_FAILURE") == "1":
+    import functools
+    import inspect
+
+    from gpyreg.gaussian_process import GP as _GP
+
+    if (
+        "raise_on_cholesky_failure"
+        not in inspect.signature(_GP.__init__).parameters
+    ):
+        # SystemExit, which site.py does not catch as it catches an
+        # exception of sitecustomize
+        raise SystemExit(
+            "GP_FORCE_RAISE_ON_CHOLESKY_FAILURE: this gpyreg's GP has no "
+            "raise_on_cholesky_failure"
+        )
+    _orig_gp_init = _GP.__init__
+
+    @functools.wraps(_orig_gp_init)
+    def _gp_init(self, *args, **kwargs):
+        kwargs["raise_on_cholesky_failure"] = True
+        _orig_gp_init(self, *args, **kwargs)
+
+    _GP.__init__ = _gp_init
 
 if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
     import atexit
@@ -509,9 +543,9 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
 
     _orig_tc = GP.__dict__["_GP__training_cholesky"].__func__
 
-    def _training_cholesky(K, sn2, L_chol, sn2_mult=1):
+    def _training_cholesky(K, sn2, L_chol, sn2_mult=1, *args, **kwargs):
         if _SUPPRESS[0]:
-            return _orig_tc(K, sn2, L_chol, sn2_mult)
+            return _orig_tc(K, sn2, L_chol, sn2_mult, *args, **kwargs)
         try:
             key = (
                 f"{_ctx_label()}|{_CORE[-1] if _CORE else 'other'}"
@@ -523,7 +557,7 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
         rec = _S["chol"][key]
         rec["calls"] += 1
         try:
-            L, sl, m = _orig_tc(K, sn2, L_chol, sn2_mult)
+            L, sl, m = _orig_tc(K, sn2, L_chol, sn2_mult, *args, **kwargs)
         except scipy.linalg.LinAlgError:
             rec["raised"] += 1
             rec["fails_hist"][10] += 1
