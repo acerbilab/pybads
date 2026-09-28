@@ -28,7 +28,7 @@ arm, at default options:
 | arm | the move after the re-estimate | code |
 | --- | --- | --- |
 | head | the incumbent takes the iterate's location with its value (`_update_incumbent_`), as since W2-25 (`a9fbb97`) | `58e7dd5`, `dev-next` with #88 |
-| reverted | `self.u`, `yval`, `fval` and `fsd` take the iterate's values; `u_best` and `optim_state["u"]` stay at the old incumbent, so that the next pass sets `self.u = self.u_best`, as MATLAB BADS does (`bads.m:1111-1118`, `769`) and PyBADS did before `a9fbb97` | `58e7dd5` with `revert_w2-25.diff`, the local branch `exp/w2-25-reverted` (`0cc795f`) |
+| reverted | `self.u`, `yval`, `fval` and `fsd` take the iterate's values; `u_best` and `optim_state["u"]` stay at the old incumbent, so that the next pass sets `self.u = self.u_best`, as MATLAB BADS does (`bads.m:1111-1118`, `769`) and PyBADS did before `a9fbb97` | `58e7dd5` with `revert_w2-25.diff`, committed as `0cc795f` on a local branch that was not pushed |
 
 The arms are what they claim:
 
@@ -49,7 +49,10 @@ The arms are what they claim:
 
 ```console
 R=dev/scripts/runs/w225_20260928
-W=dev/scripts/runs/worktrees/w225_reverted   # worktree of 0cc795f
+W=dev/scripts/runs/worktrees/w225_reverted
+git worktree add --detach $W 58e7dd5
+git -C $W apply <repository>/dev/experiments/w225_linux_20260928/revert_w2-25.diff
+git -C $W commit -am "exp: W2-25 reverted"   # the records name 0cc795f
 ONLY=sphere_D3_homo,ellipsoid_D3_homo,sphere_D3_hetero,ellipsoid_D3_hetero,multisensory_s1_D6_homo
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 export PYTHONPATH=<gpyreg clone at v1.3.3>
