@@ -1011,7 +1011,8 @@ def _gp_hyp(
     ## Change default bounds and set priors over hyperparameters.
 
     bounds = gp.get_bounds()
-    # Increase minimum noise.
+    # Increase minimum noise. The bounds cross for a tol_fun above e^6,
+    # which BADS._check_tol_fun_ refuses
     bounds["noise_log_scale"] = (np.log(options["tol_fun"]) - 1, 5)
 
     # Set priors over hyperparameters
@@ -1114,24 +1115,29 @@ def _get_gp_training_options(
     optim_state : dict
         Optimization state from the BADS instance we are calling this from.
     iteration_history : IterationHistory
-        Iteration history from the BADS instance we are calling this from.
+        Iteration history from the BADS instance we are calling this from,
+        in which ``init_N`` and ``ntrain`` are recorded at the current
+        iteration, once the run's iterations have begun.
     options : Options
         Options from the BADS instance we are calling this from.
-    hyp_dict : dict
-        Hyperparameter summary statistic dictionary.
+    hyp_dict : object
+        Not read.
     gp_s_N : int
         Number of samples for the GP fitting.
+    function_logger : FunctionLogger
+        Function logger from the BADS instance we are calling this from,
+        whose counts of evaluations per point, summed, give the number of
+        evaluations of the training set (``n_eff``).
+    second_fit : bool, optional
+        Whether the refit also starts from a second set of hyperparameters
+        (with ``double_refit``, or after a fit whose noise was too high or
+        whose mean was too low), which gives two optimization starts
+        (``opts_N``) instead of one. By default False.
 
     Returns
     =======
-    gp_train : dic
+    gp_train : dict
         A dictionary of GP training options.
-
-    Raises
-    ------
-    ValueError
-        Raised if the MCMC sampler for GP hyperparameters is unknown.
-
     """
     iteration = optim_state["iter"]
 

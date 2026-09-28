@@ -62,7 +62,8 @@ def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     """
     idx_periods = np.nonzero(periodic_vars)[0]
     if len(idx_periods) > 0:
-        # Can be improved by using cdist, but we have to be careful with the scaling and
+        # Can be improved by using cdist, but we have to be careful with the
+        # scaling and
         A = np.atleast_2d(U)
         B = np.atleast_2d(u2)
         A2 = np.sum(A**2, axis=-1)

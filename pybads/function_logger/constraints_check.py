@@ -28,7 +28,8 @@ def contraints_check(
     """
 
     if proj:
-        # Project vectors outside bounds on search mesh points closest to bounds
+        # Project vectors outside bounds on search mesh points closest to
+        # bounds
         U_new = np.maximum(np.minimum(U, ub), lb)
     else:
         idx = np.any(U > ub, axis=1) | np.any(U < lb, axis=1)
@@ -60,7 +61,8 @@ def contraints_check(
     if non_box_cons is not None:
         if function_logger is None:
             raise ValueError(
-                "contraints_check: function_logger not passed, non bondcons requires it."
+                "contraints_check: function_logger not passed, non bondcons "
+                "requires it."
             )
         X = function_logger.variable_transformer.inverse_transf(U_new)
         # one violation per point, of shape (N,) or (N, 1)

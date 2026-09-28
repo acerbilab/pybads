@@ -128,9 +128,13 @@ class Options(MutableMapping, dict):
 
         options_list = _read_config_file(options_path)
         for key, value, description in options_list:
-            if key not in self.get("useroptions") and key != "useroptions":
+            if key == "useroptions":
+                continue
+            # An option that the user set keeps the user's value, and takes
+            # its description from the file all the same
+            self.descriptions[key] = description
+            if key not in self.get("useroptions"):
                 self[key] = eval(value)
-                self.descriptions[key] = description
 
     def validate_option_names(self, options_paths: list):
         """

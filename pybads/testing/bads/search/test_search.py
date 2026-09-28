@@ -1,4 +1,5 @@
 import logging
+import sys
 from types import SimpleNamespace
 
 import gpyreg as gpr
@@ -275,6 +276,40 @@ def test_last_search_of_a_round_adds_no_point_to_the_gp(monkeypatch):
     assert any(s["count"] < n_try for s in evaluated)
     for s in evaluated:
         assert s["added"] == (s["count"] < n_try)
+
+
+def test_search_scores_its_point_with_the_search_sqrt_beta(monkeypatch):
+    """The search scores its chosen point with the LCB of `search_acq_fcn`,
+    its `sqrt_beta` included, as MATLAB BADS applies `SearchAcqFcn`
+    (`bads.m:578`)."""
+    received = []
+    original_lcb = bads_module.acq_fcn_lcb
+
+    def lcb(xi, func_count, gp, sqrt_beta=None):
+        if sys._getframe(1).f_code.co_name == "_search_step_":
+            received.append(sqrt_beta)
+        return original_lcb(xi, func_count, gp, sqrt_beta)
+
+    monkeypatch.setattr(bads_module, "acq_fcn_lcb", lcb)
+    D = 3
+    sqrt_beta = lambda t, n_vars: 2.0
+    bads = BADS(
+        rosenbrocks_fcn,
+        np.zeros((1, D)),
+        -20 * np.ones((1, D)),
+        20 * np.ones((1, D)),
+        -5 * np.ones((1, D)),
+        5 * np.ones((1, D)),
+        options={
+            "random_seed": 0,
+            "display": "off",
+            "max_fun_evals": 60,
+            "search_acq_fcn": ("acq_LCB", sqrt_beta),
+        },
+    )
+    bads.optimize()
+    assert len(received) > 0
+    assert all(value is sqrt_beta for value in received)
 
 
 def test_failed_searches_floor_the_search_factor():

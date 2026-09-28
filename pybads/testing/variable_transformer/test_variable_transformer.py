@@ -293,3 +293,78 @@ def test_integer_bounds_are_taken_as_floats(plausible):
         int_transformer.inverse_transf(u), float_transformer.inverse_transf(u)
     )
     assert all(getattr(int_transformer, name).dtype == float for name in names)
+
+
+@pytest.mark.parametrize(
+    "bounds",
+    [
+        (np.array([1.0, -10.0]), np.array([1000.0, 10.0])),
+        ([1.0, -10.0], [1000.0, 10.0]),
+    ],
+    ids=["1d_arrays", "lists"],
+)
+def test_bounds_of_d_elements_are_rows(bounds):
+    """Bounds of D elements given as 1-D arrays or lists give the transform
+    of the same bounds given as arrays of shape (1, D)."""
+    rows = [np.atleast_2d(np.asarray(b, dtype=float)) for b in bounds]
+    transformer = VariableTransformer(2, *bounds)
+    reference = VariableTransformer(2, *rows)
+    for name in ["lb", "ub", "plb", "pub", "orig_lb", "orig_ub"]:
+        assert getattr(transformer, name).shape == (1, 2)
+        np.testing.assert_array_equal(
+            getattr(transformer, name), getattr(reference, name)
+        )
+    x = np.array([[10.0, 3.0]])
+    np.testing.assert_array_equal(transformer(x), reference(x))
+
+
+@pytest.mark.parametrize(
+    "scalar", [np.float64, float, int], ids=["numpy", "float", "int"]
+)
+def test_scalar_bounds_are_replicated(scalar):
+    """Scalar bounds, NumPy's or Python's, stand for the same bound in each
+    dimension, the plausible bounds omitted too."""
+    transformer = VariableTransformer(D, scalar(1), scalar(1000))
+    reference = VariableTransformer(
+        D, np.ones((1, D)), np.full((1, D), 1000.0)
+    )
+    assert np.all(transformer.apply_log_t)
+    for name in ["lb", "ub", "plb", "pub", "orig_plb", "orig_pub"]:
+        np.testing.assert_array_equal(
+            getattr(transformer, name), getattr(reference, name)
+        )
+
+
+@pytest.mark.parametrize("apply_log_t", [True, False, np.nan])
+def test_scalar_apply_log_t_applies_to_every_variable(apply_log_t):
+    """A scalar `apply_log_t` applies to every variable, NaN leaving the
+    choice to the bounds, as the default does."""
+    bounds = (np.ones((1, D)), np.full((1, D), 1000.0))
+    transformer = VariableTransformer(D, *bounds, apply_log_t=apply_log_t)
+    expected = True if np.isnan(apply_log_t) else apply_log_t
+    assert transformer.apply_log_t.shape == (1, D)
+    assert np.all(transformer.apply_log_t == expected)
+
+
+@pytest.mark.parametrize(
+    "lower_bounds",
+    [np.zeros((1, D + 1)), np.zeros((D, 1)), np.zeros(D - 1)],
+    ids=["too_long", "column", "too_short"],
+)
+def test_bounds_of_another_size_are_refused(lower_bounds):
+    """A bound that is neither a scalar nor an array of D elements in a row
+    is refused with a message that names it."""
+    with pytest.raises(ValueError, match="lower_bounds needs to be"):
+        VariableTransformer(D, lower_bounds, np.ones((1, D)))
+
+
+@pytest.mark.parametrize(
+    "lower_bounds",
+    ["1", ["1", "2", "3"], [[1.0], [1.0, 2.0]], object()],
+    ids=["string", "strings", "ragged", "object"],
+)
+def test_bounds_that_are_not_numbers_are_refused(lower_bounds):
+    """A bound that is not a number, a string included, which NumPy would
+    convert, is refused with a message that names it."""
+    with pytest.raises(ValueError, match="lower_bounds needs to be a number"):
+        VariableTransformer(D, lower_bounds, np.full((1, D), 10.0))

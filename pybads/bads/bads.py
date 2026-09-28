@@ -4,7 +4,6 @@ import math
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
@@ -61,12 +60,44 @@ def _is_whole_number(value):
     return math.isfinite(value) and float(value).is_integer()
 
 
+def _name_among(value, names):
+    """The name among ``names`` that ``value`` is, compared as the searches
+    compare it (``value == name``): a string, a NumPy string or an array of
+    one; None for anything else, an array of several elements included."""
+    for name in names:
+        try:
+            if np.size(value) == 1 and bool(np.all(value == name)):
+                return name
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _is_named_pair(value, names):
+    """Whether ``value`` has at least two elements, the first of them a name
+    among ``names`` (``_name_among``), as a list or a tuple, or a NumPy
+    array, has them."""
+    try:
+        return len(value) >= 2 and _name_among(value[0], names) is not None
+    except (TypeError, KeyError, IndexError):
+        return False
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message (and the message of a
 # random starting point, at 25) from "notify" on, the final message from
 # "final" on
 _LOG_NOTIFY = 25
 _LOG_FINAL = 22
+
+# The search's acquisition functions (the first element of search_acq_fcn)
+# that read the optimization target, for which the search computes it.
+# MATLAB BADS computes it at every search (bads.m:539), where the functions
+# that read it are acqNegEI, acqNegPI, acqNegEQI and acqNegSqEI, and
+# acqNegEIMin and acqNegPIMin, whose target searchES.m also updates; none of
+# them is ported. The LCB, the only one that search_acq_fcn takes, does not
+# read it, and the poll computes its own
+_SEARCH_ACQ_FCNS_READING_TARGET = frozenset()
 
 
 class BADS:
@@ -275,7 +306,9 @@ class BADS:
                  provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
                 )
             else:
-                x0 = np.full((plausible_lower_bounds.shape), np.nan)
+                # A random start of the plausible bounds' size, as in MATLAB
+                # BADS: a list or a Python scalar sizes it as an array does
+                x0 = np.full(np.shape(plausible_lower_bounds), np.nan)
 
         x0 = np.atleast_2d(x0)
         self.D = x0.shape[1]
@@ -288,6 +321,7 @@ class BADS:
             evaluation_parameters={"D": self.D},
             user_options=options,
         )
+        self._check_tol_fun_()
         advanced_path = (
             pybads_path + "/option_configs/advanced_bads_options.ini"
         )
@@ -303,9 +337,6 @@ class BADS:
             extra_names=("uncertainty_handling",),
             excluded_names=("plot",),
         )
-
-        if self.options["stobads"] is None or self.options["stobads"] == False:
-            self.options["stobads"] = False
 
         # set up the random generator of the run
         self._init_rng_()
@@ -636,9 +667,8 @@ class BADS:
         """
         A private function to initialize the optim_state dict that contains information about BADS variables.
         """
-        # Record starting points (original coordinates); f_vals, their
-        # function values, is not supported: a value without a finite
-        # element stands for None
+        # f_vals, the function values of the starting points, is not
+        # supported: a value without a finite element stands for None
         f_vals = self.options["f_vals"]
         if f_vals is not None:
             try:
@@ -650,19 +680,10 @@ class BADS:
                     "options['f_vals'] is not supported: leave it None (its "
                     "default)."
                 )
-        y_orig = np.full([self.x0.shape[0]], np.nan)
 
         optim_state = dict()
         optim_state["random_seed"] = self._random_seed
-        optim_state["cache"] = dict()
-        optim_state["cache"]["x_orig"] = self.x0
-        optim_state["cache"]["y_orig"] = y_orig
         optim_state["last_re_eval"] = -np.inf
-
-        # Does the starting cache contain function values?
-        optim_state["cache_active"] = np.any(
-            np.isfinite(optim_state.get("cache").get("y_orig"))
-        )
 
         # Grid parameters
         self.mesh_size_integer = self.options[
@@ -904,13 +925,35 @@ class BADS:
                 f"({self.options['n_search']}), not {n_search_iter!r}."
             )
         self.options["n_search_iter"] = int(n_search_iter)
+        # search_method is a non-empty list of pairs (name, sum-rule flag),
+        # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell",
+        # as the hedge compares it (_is_named_pair: a NumPy array of pairs,
+        # or of names, runs too); further elements are ignored. MATLAB BADS
+        # does not check it
+        search_method = self.options["search_method"]
+        try:
+            methods = list(search_method)
+        except TypeError:
+            methods = []
+        if not (
+            len(methods) > 0
+            and all(
+                _is_named_pair(method, ("ES-wcm", "ES-ell"))
+                for method in methods
+            )
+        ):
+            raise ValueError(
+                "options['search_method'] needs to be a non-empty list of "
+                "pairs (name, sum-rule flag), each name 'ES-wcm' or "
+                f"'ES-ell', not {search_method!r}."
+            )
         # hedge_gamma, the smallest probability of each search method, lies
         # in [0, 1 / n], n the number of search methods: the hedge chooses a
         # method with the probabilities (1 - n * hedge_gamma) * softmax +
         # hedge_gamma, which invert above 1 / n and turn negative above
         # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
         hedge_gamma = self.options["hedge_gamma"]
-        n_search_methods = len(self.options["search_method"])
+        n_search_methods = len(search_method)
         value = _as_real_number(hedge_gamma)
         if value is None or not (0 <= value and n_search_methods * value <= 1):
             raise ValueError(
@@ -946,11 +989,20 @@ class BADS:
                 f"{hedge_decay!r}."
             )
         self.options["hedge_decay"] = value
-        # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
-        # call, is checked here too, before any evaluation
+        # search_acq_fcn is the pair ("acq_LCB", sqrt_beta), its name as the
+        # ES search compares it (_is_named_pair): the LCB is the search's
+        # only acquisition function (MATLAB BADS's others, which read the
+        # optimization target, are not ported); further elements are
+        # ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
+        # checked here too, before any evaluation
+        search_acq_fcn = self.options["search_acq_fcn"]
+        if not _is_named_pair(search_acq_fcn, ("acq_LCB",)):
+            raise ValueError(
+                "options['search_acq_fcn'] needs to be a pair ('acq_LCB', "
+                f"sqrt_beta), not {search_acq_fcn!r}."
+            )
         check_sqrt_beta(
-            self.options["search_acq_fcn"][1],
-            "options['search_acq_fcn'][1] (sqrt_beta)",
+            search_acq_fcn[1], "options['search_acq_fcn'][1] (sqrt_beta)"
         )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
@@ -965,9 +1017,6 @@ class BADS:
         optim_state["max_fun_evals"] = self.options.get("max_fun_evals")
 
         # Deal with user specified target noise
-        if self.options["specify_target_noise"] is None:
-            self.options["specify_target_noise"] = False
-
         if (
             self.options["specify_target_noise"]
             and self.options["uncertainty_handling"] is None
@@ -1117,6 +1166,29 @@ class BADS:
             )
 
         return optim_state
+
+    def _check_tol_fun_(self):
+        """
+        Check the user's ``tol_fun``, before the advanced options are
+        evaluated, the default of ``hedge_beta``, ``1e-3 / tol_fun``, among
+        them: a real number (``_is_real``) is positive and at most e^6, and
+        a boolean is refused. The GP's log noise SD is bounded below by
+        ``log(tol_fun) - 1`` and above by 5 (``_gp_hyp``, as MATLAB's
+        ``gpdefBads.m``), bounds that cross above e^6, so that a larger
+        ``tol_fun``, inf included, stopped the run at its first fit of the
+        GP. 0 and False stopped with a bare ``ZeroDivisionError`` at the
+        default of ``hedge_beta``, which refused a negative value or NaN but
+        not -inf, and not beside a user's ``hedge_beta``. MATLAB BADS does
+        not check it. Other types are left as they were.
+        """
+        tol_fun = self.options.get("tol_fun")
+        if isinstance(tol_fun, (bool, np.bool_)) or (
+            _is_real(tol_fun) and not 0 < tol_fun <= math.exp(6)
+        ):
+            raise ValueError(
+                "options['tol_fun'] needs to be a positive number at most "
+                f"e^6 (about 403), not {tol_fun!r}."
+            )
 
     def _variable_transformer_(self):
         """The transformation of the variables, from the bounds in the
@@ -1428,20 +1500,21 @@ class BADS:
 
     def optimize(self):
         """
-        Run the optimization on an initialized ``PyBADS`` object.
+        Run the optimization on an initialized ``BADS`` object.
 
-        BADS starts at X0 and finds a local minimum X of the
-        target function 'fun'.
+        BADS starts at ``x0`` and finds a local minimum ``x`` of the target
+        function ``fun``.
 
-        A history of the optimization problem can be found at the ``self.iteration_history`` variable of the ``PyBADS`` object.
+        A history of the optimization problem can be found in the
+        ``iteration_history`` attribute of the ``BADS`` object.
 
         Returns
-        ----------
-            optimize_result: OptimizeResult
-                Dictionary containing the result of the optimization. See the documentation of the ``OptimizeResult`` class for more details.
-                For example, retrieve the final solution with the following attributes:
-                    -  ``optimize_result.x``
-                    -  ``optimize_result.fval``
+        -------
+        optimize_result : OptimizeResult
+            Dictionary containing the result of the optimization. See the
+            documentation of the ``OptimizeResult`` class for more details.
+            For example, retrieve the final solution and its value with the
+            attributes ``optimize_result.x`` and ``optimize_result.fval``.
         """
         is_finished = False
         poll_iteration = -1
@@ -1800,7 +1873,7 @@ class BADS:
             # reserved; MATLAB BADS takes none then (bads.m:1138)
             final_idx = 0
 
-        # Re-evalate estimated function value and SD at final point
+        # Re-evaluate estimated function value and SD at final point
         if final_idx is not None and self.options["noise_final_samples"] > 0:
             # Estimate function value and standard deviation at final point.
             # Note that by default we do *not* use YVAL because it is biased
@@ -1907,8 +1980,10 @@ class BADS:
         ----------
         u_search : np.ndarray or None
             Candidate search point; None when the search set is empty.
-        search_dist : np.ndarray
-            Distance of the search point from thecurrent point.
+        search_dist : np.ndarray or float
+            Distance of the search point from the incumbent, each variable
+            measured in the GP's length scale (``udist``), as an array of
+            shape ``(1, 1)``; 0.0 when the search set is empty.
         f_mu_search : float
             Estimated mean function at the candidate search point.
         f_sd_search : float
@@ -1954,15 +2029,16 @@ class BADS:
             self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting
 
-        # Update Target from GP prediction
-        f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
-            self.u_best, gp, self.best_gp_hyp
-        )
-        self.optim_state["f_target_mu"] = f_target_mu.item()
-        self.optim_state["f_target_s"] = (
-            f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
-        )
-        self.optim_state["f_target"] = f_target.item()
+        # The optimization target, for a search acquisition function that
+        # reads it (_SEARCH_ACQ_FCNS_READING_TARGET, empty at present)
+        if (
+            _name_among(
+                self.options["search_acq_fcn"][0],
+                _SEARCH_ACQ_FCNS_READING_TARGET,
+            )
+            is not None
+        ):
+            self._update_target_(self.u_best, gp, self.best_gp_hyp)
 
         # Generate search set (normalized coordinate)
         self.optim_state["search_count"] += 1
@@ -2010,9 +2086,13 @@ class BADS:
         # The Acquisition Hedge policy is not yet supported (even in Matlab)
         index_acq = None
         if u_search_set.size > 0:
-            # Batch evaluation of acquisition function on search set
+            # Batch evaluation of the search's acquisition function on the
+            # search set, as MATLAB BADS does (bads.m:578)
             z, f_mu, _ = acq_fcn_lcb(
-                u_search_set, self.function_logger.func_count, gp
+                u_search_set,
+                self.function_logger.func_count,
+                gp,
+                self.options["search_acq_fcn"][1],
             )
             # Evaluate best candidate point in original coordinates (a NaN
             # value is skipped, as by MATLAB's min)
@@ -2450,14 +2530,7 @@ class BADS:
                     do_gp_calibration = True
 
             # Update Target from GP prediction
-            f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
-                u_poll_best, gp, gp_poll_hyp_best
-            )
-            self.optim_state["f_target_mu"] = f_target_mu.item()
-            self.optim_state["f_target_s"] = (
-                f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
-            )
-            self.optim_state["f_target"] = f_target.item()
+            self._update_target_(u_poll_best, gp, gp_poll_hyp_best)
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
@@ -2840,6 +2913,20 @@ class BADS:
             ]
         )
 
+    def _update_target_(self, u, gp: GP, hyp_best):
+        """A private method that stores in ``optim_state`` the optimization
+        target of ``_get_target_from_gp_`` at ``u``: ``f_target_mu``,
+        ``f_target_s`` and ``f_target``, as MATLAB's ``UpdateTarget``
+        does."""
+        f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
+            u, gp, hyp_best
+        )
+        self.optim_state["f_target_mu"] = f_target_mu.item()
+        self.optim_state["f_target_s"] = (
+            f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
+        )
+        self.optim_state["f_target"] = f_target.item()
+
     def _get_target_from_gp_(self, u, gp: GP, hyp_best):
         """A private method that retrieves the prediction of the GP at the
         input ``u`` and sets the optimization target ``f_target`` slightly
@@ -2855,7 +2942,9 @@ class BADS:
         gp : GP
             The GP.
         hyp_best : np.ndarray
-            The hyperparameters under which the GP predicts.
+            The hyperparameters under which the GP predicts: from a copy of
+            the GP whose posterior is recomputed under them, or from the GP
+            itself when they are its own.
 
         Returns
         -------
@@ -2875,18 +2964,27 @@ class BADS:
             self.optim_state["uncertainty_handling_level"] > 0
             or self.options["uncertain_incumbent"]
         ):
-            tmp_gp = copy.deepcopy(gp)
-            try:
-                tmp_gp.set_hyperparameters(hyp_best)
-                f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
-            except np.linalg.LinAlgError:
-                # The posterior under `hyp_best` cannot be computed: predict
-                # from the GP as it stands, whose posterior matches its data
-                # (MATLAB's UpdateTarget reuses the current posterior).
-                self.logger.debug(
-                    "bads:optimize: GP posterior under the best hyperparameters failed; target predicted from the current GP"
-                )
+            if np.array_equal(hyp_best, gp.get_hyperparameters(as_array=True)):
+                # The GP's posterior is the one under `hyp_best` on its data,
+                # which a copy recomputed under them would give again, bit
+                # for bit: predict from it
                 f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
+            else:
+                tmp_gp = copy.deepcopy(gp)
+                try:
+                    tmp_gp.set_hyperparameters(hyp_best)
+                    f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
+                except np.linalg.LinAlgError:
+                    # The posterior under `hyp_best` cannot be computed:
+                    # predict from the GP as it stands, whose posterior
+                    # matches its data (MATLAB's UpdateTarget reuses the
+                    # current posterior).
+                    self.logger.debug(
+                        "bads:optimize: GP posterior under the best "
+                        "hyperparameters failed; target predicted from the "
+                        "current GP"
+                    )
+                    f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
 
             f_target_s = np.sqrt(np.max(fs2, axis=0))
             if (
@@ -3075,34 +3173,25 @@ class BADS:
         """
         Private method to log the column headers for the iteration log.
         """
-        if self.optim_state["cache_active"]:
+        if self.optim_state["uncertainty_handling_level"] > 0:
             self.logger.info(
-                " Iteration f-count/f-cache     E[f(x)]     SD[f(x)]     MeshScale     Method       Actions"
+                " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions"
             )
         else:
-            if self.optim_state["uncertainty_handling_level"] > 0:
-                self.logger.info(
-                    " Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions"
-                )
-            else:
-                self.logger.info(
-                    " Iteration    f-count         f(x)           MeshScale          Method             Actions"
-                )
+            self.logger.info(
+                " Iteration    f-count         f(x)           MeshScale          Method             Actions"
+            )
 
     def _setup_logging_display_format(self):
         """
         Private method to set up the display format for logging the iterations.
         """
-        if self.optim_state["cache_active"]:
-            display_format = " {:5.0f}     {:5.0f}/{:5.0f}   {:12.6f}  "
-            display_format += "{:12.6f}  {:12.6f}     {}       {}"
+        if self.optim_state["uncertainty_handling_level"] > 0:
+            display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+            display_format += "{:12.6g}    {:12.6g}      {:^20s}        {}"
         else:
-            if self.optim_state["uncertainty_handling_level"] > 0:
-                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
-                display_format += "{:12.6g}    {:12.6g}      {:^20s}        {}"
-            else:
-                display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
-                display_format += "{:12.6g}     {:^20s}        {}"
+            display_format = " {:5.0f}       {:5.0f}    {:12.6g}    "
+            display_format += "{:12.6g}     {:^20s}        {}"
 
         return display_format
 

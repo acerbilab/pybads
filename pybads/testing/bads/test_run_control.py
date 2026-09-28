@@ -4,6 +4,7 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 the run when it returns a true value; `iterations` counts from 1."""
 
 import logging
+import sys
 import threading
 
 import numpy as np
@@ -118,7 +119,8 @@ def test_output_fcn_stops_run_after_a_poll():
 def test_iterations_count_from_one(max_iter):
     """A run that ends on `max_iter` reports `max_iter` iterations, as
     MATLAB BADS does. The budget leaves `max_iter` the first criterion to
-    end the run (this run, without it, ends on `tol_fun` at the 8th)."""
+    end the run: without it, this run ends on `tol_fun` after more
+    iterations than any `max_iter` here."""
     result = _make_bads(max_iter=max_iter, max_fun_evals=200).optimize()
     assert result["iterations"] == max_iter
     assert result["message"] == (
@@ -311,6 +313,19 @@ def test_initial_design_within_budget_of_noisy_run():
     assert bads.options["max_fun_evals"] <= 25
 
 
+def test_reserve_of_final_samples_is_floored_at_zero():
+    """A noisy run whose noise test takes it past `max_fun_evals`, at a
+    budget of 1, reserves no final samples, where the evaluations left are
+    -1, so that `max_fun_evals` does not grow; the run ends after its two
+    evaluations, as MATLAB BADS's does."""
+    bads = _small_budget_bads(2, 1, noisy=True)
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["func_count"] == 2
+    assert bads.options["noise_final_samples"] == 0
+    assert bads.options["max_fun_evals"] == 1
+
+
 def _box():
     return (
         np.ones(D) * 4,
@@ -469,6 +484,73 @@ def test_result_keeps_the_callables_by_reference():
     assert result["non_box_cons"] is locked
 
 
+def _noisy_sphere():
+    rng = np.random.default_rng(0)
+    return lambda x: _sphere(x) + rng.standard_normal()
+
+
+def _target_callers(monkeypatch):
+    """The names of the functions that update the optimization target, one
+    per update, as a run makes them."""
+    callers = []
+    original = BADS._update_target_
+
+    def update(self, *args, **kwargs):
+        callers.append(sys._getframe(1).f_code.co_name)
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(BADS, "_update_target_", update)
+    return callers
+
+
+_TARGET_RUNS = pytest.mark.parametrize(
+    "make_fun, options",
+    [
+        (lambda: _sphere, {}),
+        (_noisy_sphere, {"uncertainty_handling": True}),
+    ],
+    ids=["deterministic", "noisy"],
+)
+
+
+@_TARGET_RUNS
+def test_only_the_poll_updates_the_target(monkeypatch, make_fun, options):
+    """The optimization target is computed by the poll, which reads it, and
+    not by the search, whose acquisition function, the LCB, does not read it.
+    MATLAB BADS updates it at both (bads.m:539 and 841); at the search, only
+    acquisition functions that PyBADS does not have read it."""
+    callers = _target_callers(monkeypatch)
+    bads = _make_bads(make_fun(), max_fun_evals=60, **options)
+    bads.optimize()
+    assert len(bads.optim_state["search_stats"]["success"]) > 0
+    assert len(callers) > 0
+    assert set(callers) == {"_poll_step_"}
+
+
+@_TARGET_RUNS
+def test_search_updates_the_target_for_an_acquisition_that_reads_it(
+    monkeypatch, make_fun, options
+):
+    """A search acquisition function named in
+    `_SEARCH_ACQ_FCNS_READING_TARGET` has the search compute the target,
+    which MATLAB BADS's acqNegEI and acqNegPI read; with the LCB named there,
+    which does not read it, the run is the same as without."""
+    import pybads.bads.bads as bads_module
+
+    result = _make_bads(make_fun(), max_fun_evals=60, **options).optimize()
+    monkeypatch.setattr(
+        bads_module, "_SEARCH_ACQ_FCNS_READING_TARGET", frozenset({"acq_LCB"})
+    )
+    callers = _target_callers(monkeypatch)
+    result_reading = _make_bads(
+        make_fun(), max_fun_evals=60, **options
+    ).optimize()
+    assert {"_search_step_", "_poll_step_"} <= set(callers)
+    np.testing.assert_array_equal(result_reading["x"], result["x"])
+    assert result_reading["fval"] == result["fval"]
+    assert result_reading["func_count"] == result["func_count"]
+
+
 def test_run_with_certain_incumbent():
     """With `uncertain_incumbent=False`, a deterministic target's
     optimization target is the incumbent's value less `tol_fun`, as in
@@ -500,8 +582,8 @@ def _acquisition_run(monkeypatch, nan_mask):
     original_acq = bads_module.acq_fcn_lcb
     original_call = FunctionLogger.__call__
 
-    def acq(u, func_count, gp):
-        z, f_mu, fs = original_acq(u, func_count, gp)
+    def acq(u, func_count, gp, sqrt_beta=None):
+        z, f_mu, fs = original_acq(u, func_count, gp, sqrt_beta)
         z = np.array(z, dtype=float)
         z[nan_mask(len(z))] = np.nan
         # The poll runs after the round of searches, which resets the count
@@ -572,8 +654,8 @@ def test_poll_stop_probability_takes_the_largest_probabilities(monkeypatch):
     patched = []
     p_less = []
 
-    def acq(u, func_count, gp):
-        z, f_mu, fs = original_acq(u, func_count, gp)
+    def acq(u, func_count, gp, sqrt_beta=None):
+        z, f_mu, fs = original_acq(u, func_count, gp, sqrt_beta)
         poll = bads.optim_state["search_count"] == 0
         if poll and not patched and len(u) == 2 * D:
             # f_mu and fs such that gamma_z is norm.ppf of each probability
