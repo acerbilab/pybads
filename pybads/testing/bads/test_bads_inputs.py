@@ -532,13 +532,81 @@ def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
 
 
 def test_hedge_beta_refusal_names_its_default():
-    """A negative `tol_fun` makes the default `hedge_beta`, `1e-3 / tol_fun`,
-    negative, and the refusal names that default."""
+    """The refusal of `hedge_beta` names its default, `1e-3 / tol_fun`."""
     with pytest.raises(
         ValueError,
         match=r"not -1\.0; its default is 1e-3 / options\['tol_fun'\]",
     ):
-        _bads_with_options({"tol_fun": -1e-3})
+        _bads_with_options({"hedge_beta": -1.0})
+
+
+@pytest.mark.parametrize(
+    "tol_fun", [0, 0.0, -1e-3, np.float64(-1.0), np.nan, np.inf, -np.inf]
+)
+@pytest.mark.parametrize("hedge_beta", [None, 1.0])
+def test_tol_fun_not_a_positive_finite_number_is_refused(tol_fun, hedge_beta):
+    """A `tol_fun` that is not a positive finite number is refused when
+    `BADS` is created, whatever `hedge_beta`: 0 stopped with a bare
+    `ZeroDivisionError` at the default `hedge_beta = 1e-3 / tol_fun`, a
+    negative value or NaN was refused only through that default, and inf
+    stopped the run at its first fit of the GP."""
+    with pytest.raises(
+        ValueError, match=r"tol_fun'\] needs to be a positive finite number"
+    ):
+        _bads_with_options({"tol_fun": tol_fun, "hedge_beta": hedge_beta})
+
+
+@pytest.mark.parametrize(
+    "search_method",
+    [
+        [],
+        "ES-wcm",
+        [("ES-wcm",)],
+        [("ES-cma", 1)],
+        [("ES-wcm", 1), ("ES-foo", 1)],
+        [("ES-wcm", 1), "ES-ell"],
+        [(np.array(["ES-wcm"]), 1)],
+    ],
+    ids=[
+        "empty",
+        "string",
+        "no_flag",
+        "unknown",
+        "one_unknown",
+        "one_not_a_pair",
+        "array_name",
+    ],
+)
+def test_search_method_is_checked(search_method):
+    """`search_method` is a non-empty list of pairs (name, sum-rule flag),
+    each name "ES-wcm" or "ES-ell", checked when `BADS` is created; 1.1.0
+    stopped at the first search, or at the first that chose an unknown
+    name."""
+    with pytest.raises(ValueError, match=r"search_method'\] needs to be"):
+        _bads_with_options({"search_method": search_method})
+
+
+@pytest.mark.parametrize(
+    "search_method",
+    [[("ES-ell", 1)], [["ES-wcm", 0], ["ES-ell", 1]], (("ES-wcm", True),)],
+)
+def test_search_method_of_known_searches_is_accepted(search_method):
+    bads = _bads_with_options({"search_method": search_method})
+    assert bads.options["search_method"] == search_method
+
+
+@pytest.mark.parametrize(
+    "search_acq_fcn",
+    ["acq_LCB", ("acq_LCB",), ("acq_EI", None), [None, None], 2.0],
+    ids=["string", "one_element", "another_name", "no_name", "number"],
+)
+def test_search_acq_fcn_other_than_lcb_is_refused(search_acq_fcn):
+    """`search_acq_fcn` is the pair ("acq_LCB", sqrt_beta), checked when
+    `BADS` is created; 1.1.0 stopped at the first search, and PyBADS
+    stopped there too for another name, or with an unrelated error when
+    `BADS` was created for a value that is not a sequence of two."""
+    with pytest.raises(ValueError, match=r"search_acq_fcn'\] needs to be"):
+        _bads_with_options({"search_acq_fcn": search_acq_fcn})
 
 
 @pytest.mark.parametrize("hedge_beta", [0, 0.0, 1, 1e3, np.float64(0.5)])

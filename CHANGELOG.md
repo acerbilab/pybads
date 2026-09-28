@@ -74,9 +74,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   imaginary part is zero.
 - `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
-  that is not a finite number at least 0, which the default `1e-3 / tol_fun`
-  is not when `tol_fun` is negative, and for a `hedge_decay` outside [0, 1],
-  an array of one element or a complex number included.
+  that is not a finite number at least 0, and for a `hedge_decay` outside
+  [0, 1], an array of one element or a complex number included.
+- `BADS` raises `ValueError` for a `tol_fun` that is not a positive finite
+  number, which 1.1.0 ran when negative, and for a `search_method` that is
+  not a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"` or a
+  `search_acq_fcn` whose first element is not `"acq_LCB"`, which stopped a
+  1.1.0 run at its first search, or at the first that chose an unknown
+  search.
 - `BADS` raises `ValueError` for an `n_search` that is not a positive
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
@@ -211,8 +216,18 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   infinite or NaN `hedge_beta`, one far below 0, a NaN `hedge_decay`, or
   gains grown until they overflowed stopped the run with `IndexError` at
   the next search, where MATLAB BADS chooses a search at random; a string
-  stopped it with `TypeError`. Since the default `hedge_beta` is `1e-3 /
-  tol_fun`, a negative `tol_fun` is refused through it.
+  stopped it with `TypeError`.
+- **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
+  `ValueError` when it is created for a `tol_fun`, a Python or NumPy number,
+  that is not positive and finite: 1.1.0 stopped with `ZeroDivisionError` for
+  0, at the default `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error
+  at its first fit of the Gaussian process for inf, and ran with a negative
+  value. It also raises `ValueError` for a `search_method` that is not a
+  non-empty list of pairs (name, sum-rule flag), each name `"ES-wcm"` or
+  `"ES-ell"`, and for a `search_acq_fcn` that is not a pair whose first
+  element is `"acq_LCB"`, the only acquisition function of the search; 1.1.0
+  stopped with `IndexError` or `ValueError` at the first search, or at the
+  first that chose an unknown search.
 
 ### Fixed
 

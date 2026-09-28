@@ -290,6 +290,7 @@ class BADS:
             evaluation_parameters={"D": self.D},
             user_options=options,
         )
+        self._check_tol_fun_()
         advanced_path = (
             pybads_path + "/option_configs/advanced_bads_options.ini"
         )
@@ -898,8 +899,28 @@ class BADS:
         # method with the probabilities (1 - n * hedge_gamma) * softmax +
         # hedge_gamma, which invert above 1 / n and turn negative above
         # 1 / (n - 1); MATLAB BADS does not check it (searchHedge.m:46)
+        # search_method is a non-empty list of pairs (name, sum-rule flag),
+        # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell";
+        # further elements are ignored. MATLAB BADS does not check it
+        search_method = self.options["search_method"]
+        if not (
+            isinstance(search_method, (list, tuple))
+            and len(search_method) > 0
+            and all(
+                isinstance(method, (list, tuple))
+                and len(method) >= 2
+                and isinstance(method[0], str)
+                and method[0] in ("ES-wcm", "ES-ell")
+                for method in search_method
+            )
+        ):
+            raise ValueError(
+                "options['search_method'] needs to be a non-empty list of "
+                "pairs (name, sum-rule flag), each name 'ES-wcm' or "
+                f"'ES-ell', not {search_method!r}."
+            )
         hedge_gamma = self.options["hedge_gamma"]
-        n_search_methods = len(self.options["search_method"])
+        n_search_methods = len(search_method)
         value = _as_real_number(hedge_gamma)
         if value is None or not (0 <= value and n_search_methods * value <= 1):
             raise ValueError(
@@ -935,11 +956,24 @@ class BADS:
                 f"{hedge_decay!r}."
             )
         self.options["hedge_decay"] = value
-        # The sqrt_beta of the search's LCB, which acq_fcn_lcb checks at each
-        # call, is checked here too, before any evaluation
+        # search_acq_fcn is the pair ("acq_LCB", sqrt_beta): the LCB is the
+        # search's only acquisition function (MATLAB BADS's others, which
+        # read the optimization target, are not ported); further elements
+        # are ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call,
+        # is checked here too, before any evaluation
+        search_acq_fcn = self.options["search_acq_fcn"]
+        if not (
+            isinstance(search_acq_fcn, (list, tuple))
+            and len(search_acq_fcn) >= 2
+            and isinstance(search_acq_fcn[0], str)
+            and search_acq_fcn[0] == "acq_LCB"
+        ):
+            raise ValueError(
+                "options['search_acq_fcn'] needs to be a pair ('acq_LCB', "
+                f"sqrt_beta), not {search_acq_fcn!r}."
+            )
         check_sqrt_beta(
-            self.options["search_acq_fcn"][1],
-            "options['search_acq_fcn'][1] (sqrt_beta)",
+            search_acq_fcn[1], "options['search_acq_fcn'][1] (sqrt_beta)"
         )
         if self.options["improvement_quantile"] > 0.5:
             self.logger.warning(
@@ -1103,6 +1137,23 @@ class BADS:
             )
 
         return optim_state
+
+    def _check_tol_fun_(self):
+        """
+        Check the user's ``tol_fun``, before the advanced options, whose
+        defaults divide by it, are evaluated: a real number (``_is_real``)
+        is positive and finite. 0 stopped with a bare ``ZeroDivisionError``
+        at the default of ``hedge_beta``, a negative value or NaN was refused
+        only through that default, and inf stopped the run at its first fit
+        of the GP; MATLAB BADS does not check it. Other types are left as
+        they were.
+        """
+        tol_fun = self.options.get("tol_fun")
+        if _is_real(tol_fun) and not 0 < tol_fun < np.inf:
+            raise ValueError(
+                "options['tol_fun'] needs to be a positive finite number, "
+                f"not {tol_fun!r}."
+            )
 
     def _variable_transformer_(self):
         """The transformation of the variables, from the bounds in the
