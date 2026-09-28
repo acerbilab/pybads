@@ -1,12 +1,13 @@
 # Plan: independent correctness review of PyBADS and its MATLAB port
 
-Started 2026-09-25. Owner of the item: `TODO.md`, "Bug hunt and
-verification against MATLAB BADS". This file holds the design, the reviewer
-brief, the working rules and the worklog. The records of the review (the
-known-differences sheet, the counterpart map, the reviewers' reports, the
-verification scripts and the per-wave ledgers) are kept under
-`experiments/port_review_20260925/`; the consolidated ledger goes to
-`results/<date>-port-correctness-review.md` at the close.
+Started 2026-09-25 as the plan of the item "Bug hunt and verification
+against MATLAB BADS" of `TODO.md`; closed 2026-09-28 by #87, which removed
+the item. This file holds the design, the reviewer brief, the working rules
+and the worklog. The records of the review (the known-differences sheet,
+the counterpart map, the reviewers' reports, the verification scripts and
+the per-wave ledgers) are kept under `experiments/port_review_20260925/`;
+the consolidated ledger, written at the close, is
+`results/2026-09-28-port-correctness-review.md`.
 
 The design follows PyVBMC's review of its own port
 (`../pyvbmc/dev/plans/port-correctness-review.md`, 2026-09-19 to 09-24),
@@ -1078,6 +1079,69 @@ and its squash commit (for #84, `79697835`).
   `79697835` alike, `dca2b20df2743512` on Windows with the default number
   of BLAS threads and `093cb1d05a16d889` with one, so both references
   stand. The PI's open choices on the minor items stay in `TODO.md`.
-- [ ] Close: the consolidated ledger, the catalogue in
+- [x] 2026-09-28: the Close, cloud session, from "Close pickup", on
+  `dev-port-review-close` from `dev-next` at `3d31f3d` (#86), records and
+  documentation only; MATLAB BADS cloned at `74919c0` for its citations.
+  Three fresh reviewer agents extracted the rows of waves 2 to 4 from their
+  ledgers and a fourth read every entry of the sheet against `dev-next`
+  and its MATLAB citations; the orchestrator read waves 0 and 1 and found
+  every cited fix commit in its pull request's head. The consolidated
+  ledger, `results/2026-09-28-port-correctness-review.md`: 173 rows, 121
+  of which changed the code, 27 kept a behavior, 23 closed without a
+  change and 2 stay open (W0-12, W0-13); the net change on the benchmark,
+  on Windows from `population_wave4_20260928`'s README and on Linux from
+  the records of the two references
+  (`verification/close/linux_net_comparison.md`, the four flags that the
+  Windows README names); the open ends, among them observations that no
+  ruling took up, which a `TODO.md` item holds; and the MATLAB side as
+  `matlab_side_defects.md` holds it. The catalogue of deliberate
+  differences, `pybads/bads/README.md`, 61 entries: the sheet's 58, with
+  what #84, #85 and wave 4's doublecheck changed and errors the sheet
+  already had corrected, and three new (KD-B1-12, KD-B1-13, KD-B3-9). The
+  survey's candidate table marked closed, its two rows by design pointed at
+  their entries. `TODO.md`: the bug hunt's item closed; the oracles, the
+  notebooks and W1-25's measurement no longer wait; W2-25's lower fraction
+  solved joins W1-25's measurement. Notes on the records that describe the
+  code before #84: KD-B4-2, `wave3.md` (two places), the survey's row on
+  `_get_target_from_gp_`, and, in the review's README, the three scripts
+  of wave 2 that read `cache_active`, which since `8aecb6a` stop earlier,
+  at the refusal of `f_vals` and `fun_values`. The two "Minor items"
+  entries of `TODO.md`, the PI's open choices, stay as #84 left them.
+- [x] 2026-09-28: the PI's rulings on the minor items that #84 left, on
+  the orchestrator's recommendations, all accepted, carried by #87 with the
+  Close (the consolidated ledger, "Open ends", has the table). Fixed, one
+  commit each, with a test and a changelog line where a user can notice it:
+  the reports of the setup shown from `"notify"` on, `bads:pbUnspecified`
+  when the hard bounds stand for omitted plausible bounds, a random start
+  tested against `non_box_cons` on the mesh and drawn again there, entries
+  of `search_method` and `search_acq_fcn` with more than two elements
+  refused, a `tol_fun` that is not a real number refused, the 65 options
+  that nothing read and MATLAB BADS does not have removed and the 12
+  MATLAB-named ones marked unused (77 unread, not 76: `diagnostics` was
+  counted as read), `test_options.ini` and `test_options2.ini` removed, the
+  large-N transform test at a million points, and a comment on the
+  matplotlib requirement. Closed without a change: the fixed-variable test,
+  the floor of the ES search's `mu`, and the 0-d arrays, which stay refused;
+  `FunctionLogger.add` and the final samples' bookkeeping go with the port
+  of `fun_values`, and `SKILL.md`'s release with the next release. The two
+  "Minor items" entries leave `TODO.md`, and the catalogue follows. At the
+  package code of the last fix (`365cdd0`), the fingerprint of
+  `dev/scripts/fingerprint.py` is `4146a986863602cb`, as before the fixes
+  (Linux, Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1, gpyreg 1.3.3, with one
+  BLAS thread and the default), and the suite passes (755 tests).
+- [x] 2026-09-28: #87's doublecheck, by four reviewers who had not done
+  the work, on the records, the catalogue and the fixes. It found
+  `gp_cov_fun` unread too, and without a MATLAB counterpart: 78 options
+  were unread, and 66 are removed. A random start is now tested as drawn
+  as well as on the mesh, since the draw is what the result reports as
+  `x0`. The rest were corrections of the records and the catalogue: counts
+  (31 survey rows closed, not 32; the outcome 121/28/22/2), stale
+  dispositions, the locations and wording of a dozen catalogue entries, two
+  entries that the catalogue lacked, which the PI accepted (KD-B1-14,
+  MATLAB's extra arguments to the target and its other calling forms;
+  KD-B6-9, W1-30's warning), 63 entries in all, and a sub-item of `TODO.md` that W1-23 had fixed. The
+  fingerprint is `4146a986863602cb` again, in the setting of the line
+  above, and the suite passes (756 tests).
+- [x] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
   steps are in "Close pickup" above.

@@ -74,21 +74,26 @@ def _name_among(value, names):
 
 
 def _is_named_pair(value, names):
-    """Whether ``value`` has at least two elements, the first of them a name
-    among ``names`` (``_name_among``), as a list or a tuple, or a NumPy
-    array, has them."""
+    """Whether ``value`` has two elements, the first of them a name among
+    ``names`` (``_name_among``), as a list or a tuple, or a NumPy array,
+    has them."""
     try:
-        return len(value) >= 2 and _name_among(value[0], names) is not None
+        return len(value) == 2 and _name_among(value[0], names) is not None
     except (TypeError, KeyError, IndexError):
         return False
 
 
 # The levels of the BADS logger's messages above the iteration lines (INFO),
-# for MATLAB BADS's display levels: the opening message (and the message of a
-# random starting point, at 25) from "notify" on, the final message from
-# "final" on
+# for MATLAB BADS's display levels: the opening message, the reports of the
+# setup and the message of a random starting point from "notify" on, the
+# final message from "final" on
 _LOG_NOTIFY = 25
 _LOG_FINAL = 22
+
+_PB_UNSPECIFIED = (
+    "bads:pbUnspecified: Plausible lower/upper bounds not specified. Using "
+    "hard upper/lower bounds instead."
+)
 
 # The search's acquisition functions (the first element of search_acq_fcn)
 # that read the optimization target, for which the search computes it.
@@ -290,11 +295,17 @@ class BADS:
         # variable to keep track of logging actions
         self.logging_action = []
 
-        # Initialize variables and algorithm structures
+        # Initialize variables and algorithm structures. Missing plausible
+        # bounds are the hard bounds, with the warning bads:pbUnspecified
+        # once the logger is set up, as MATLAB BADS warns whenever it fills
+        # them (boundscheck.m:12-16)
+        pb_filled = False
         if plausible_lower_bounds is None and lower_bounds is not None:
             plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
+            pb_filled = True
         if plausible_upper_bounds is None and upper_bounds is not None:
             plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
+            pb_filled = True
 
         if x0 is None:
             if (
@@ -344,9 +355,9 @@ class BADS:
         # set up BADS logger, from the first three letters of the display
         # option, lower case, as in MATLAB BADS (bads.m): "off" and "none"
         # show the warnings only, "notify" (and any other value) also the
-        # opening message, "final" also the final message, "iter" and "all"
-        # also the iteration lines, and "full", PyBADS's own, the debug
-        # messages too
+        # opening message and the reports of the setup, "final" also the
+        # final message, "iter" and "all" also the iteration lines, and
+        # "full", PyBADS's own, the debug messages too
         self.logger = logging.getLogger("BADS")
         display = str(self.options.get("display"))[:3].lower()
         if display in ("off", "non"):
@@ -359,6 +370,14 @@ class BADS:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(_LOG_NOTIFY)
+        # A plausible bound still missing (its hard bound missing too) gets
+        # the warning in _bounds_check_
+        if (
+            pb_filled
+            and plausible_lower_bounds is not None
+            and plausible_upper_bounds is not None
+        ):
+            self.logger.warning(_PB_UNSPECIFIED)
 
         # Empty lb and ub are Infs
         if lower_bounds is None:
@@ -385,10 +404,10 @@ class BADS:
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
 
-        # Periodic variables are not supported yet: refused before the first
-        # transform of the variables, which a random x0 needs. An empty
-        # periodic_vars names none, as in MATLAB BADS (setupvars.m), and is
-        # taken as None
+        # Periodic variables are not supported yet: refused before
+        # _init_optim_state_ transforms the variables and draws a random x0.
+        # An empty periodic_vars names none, as in MATLAB BADS (setupvars.m),
+        # and is taken as None
         if np.size(self.options["periodic_vars"]) == 0:
             self.options["periodic_vars"] = None
         elif self.options["periodic_vars"] is not None:
@@ -396,32 +415,10 @@ class BADS:
                 "Periodic variables are not yet supported. Please set periodic_vars to None."
             )
 
-        # starting point
-        if not np.all(np.isfinite(self.x0)):
-            # Uniform in the transformed plausible box, as in MATLAB BADS
-            # (setupvars.m): log-uniform for a log-transformed variable. A
-            # start that violates non_box_cons is drawn again, up to 1000
-            # draws in all (MATLAB BADS refuses it, evalinitmesh.m)
-            var_transf = self._variable_transformer_()
-            for _ in range(1000):
-                u0 = self.rng.uniform(
-                    low=var_transf.plb,
-                    high=var_transf.pub,
-                    size=(1, self.D),
-                )
-                self.x0 = var_transf.inverse_transf(u0)
-                if non_box_cons is None or not np.any(
-                    non_box_cons(self.x0) > 0
-                ):
-                    break
-            self.logger.log(
-                25,
-                "Initial starting point is invalid or not provided."
-                + " Initial point randomly sampled uniformly from plausible box\n",
-            )
-
-        # evaluate  starting point non-bound constraint
-        if non_box_cons is not None:
+        # evaluate  starting point non-bound constraint (a missing or
+        # non-finite start is drawn in _init_optim_state_, where it is put on
+        # the mesh)
+        if non_box_cons is not None and np.all(np.isfinite(self.x0)):
             if non_box_cons(self.x0) > 0:
                 self.logger.error(
                     "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
@@ -487,10 +484,7 @@ class BADS:
 
         # Hard bounds for the plausible bounds that are not specified
         if plausible_lower_bounds is None or plausible_upper_bounds is None:
-            self.logger.warning(
-                "bads:pbUnspecified: Plausible lower/upper bounds"
-                " not specified. Using hard upper/lower bounds instead."
-            )
+            self.logger.warning(_PB_UNSPECIFIED)
             if plausible_lower_bounds is None:
                 plausible_lower_bounds = np.copy(lower_bounds)
             if plausible_upper_bounds is None:
@@ -600,8 +594,9 @@ class BADS:
         # Check that all X0 are inside the bounds. As in MATLAB BADS
         # (boundscheck.m, setupvars.m), neither x0 nor the plausible bounds
         # are moved: a start on a hard bound or outside the plausible box
-        # stays where it is. A start that is not finite passes: __init__
-        # replaces it by a random point, as MATLAB BADS does (setupvars.m)
+        # stays where it is. A start that is not finite passes:
+        # _init_optim_state_ draws a random point in its place, as MATLAB
+        # BADS does (setupvars.m)
         if np.all(np.isfinite(x0)) and (
             np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds)
         ):
@@ -640,19 +635,22 @@ class BADS:
             if not isinstance(y, np.ndarray) or y.shape not in [(2,), (2, 1)]:
                 raise ValueError(message)
 
-        # Gentle warning for infinite bounds, as in MATLAB BADS
-        # (setupvars.m), which accepts a variable bounded on one side only
+        # Gentle caution for infinite bounds, as in MATLAB BADS
+        # (setupvars.m:28-39), which accepts a variable bounded on one side
+        # only and prints it from "notify" on, as the other reports of the
+        # setup
         is_inf = np.isinf(np.concatenate([lower_bounds, upper_bounds]))
         ninfs = np.sum(is_inf)
         if ninfs > 0:
             if ninfs == 2 * D:
-                self.logger.warning(
-                    "Detected fully unconstrained optimization."
+                self.logger.log(
+                    _LOG_NOTIFY, "Detected fully unconstrained optimization."
                 )
             else:
-                self.logger.warning(
+                self.logger.log(
+                    _LOG_NOTIFY,
                     f"Detected {ninfs} infinite bound(s), in variables"
-                    f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}."
+                    f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}.",
                 )
 
         return (
@@ -743,24 +741,63 @@ class BADS:
         )
         optim_state["ub_search"] = ub_search
 
-        # Starting point in grid coordinates, gridization
-        u0 = force_to_grid(
-            grid_units(self.x0, self.var_transf, optim_state["scale"]),
-            optim_state["search_mesh_size"],
-        )
+        def start_on_mesh():
+            # Starting point in grid coordinates, gridization
+            u0 = force_to_grid(
+                grid_units(self.x0, self.var_transf, optim_state["scale"]),
+                optim_state["search_mesh_size"],
+            )
+            # Adjust points that fall outside bounds due to gridization
+            u0[u0 < self.lower_bounds] = (
+                u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
+            )
+            u0[u0 > self.upper_bounds] = (
+                u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
+            )
+            return u0
 
-        # Adjust points that fall outside bounds due to gridization
-        u0[u0 < self.lower_bounds] = (
-            u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
-        )
-        u0[u0 > self.upper_bounds] = (
-            u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
-        )
+        def violates_non_box_cons(u0):
+            return self.non_box_cons is not None and np.any(
+                self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0
+            )
+
+        if not np.all(np.isfinite(self.x0)):
+            # A missing or non-finite start is drawn uniformly in the
+            # transformed plausible box and put on the mesh, as in MATLAB
+            # BADS (setupvars.m:83-85): log-uniform for a log-transformed
+            # variable. MATLAB BADS refuses a point on the mesh that violates
+            # non_box_cons (evalinitmesh.m:22-26); PyBADS draws again, up to
+            # 1000 draws in all, while the draw, which the result reports as
+            # x0, or its point on the mesh, the start evaluated, violates it
+            for _ in range(1000):
+                u_draw = self.rng.uniform(
+                    low=self.var_transf.plb,
+                    high=self.var_transf.pub,
+                    size=(1, self.D),
+                )
+                self.x0 = self.var_transf.inverse_transf(u_draw)
+                u0 = start_on_mesh()
+                if not violates_non_box_cons(
+                    u_draw
+                ) and not violates_non_box_cons(u0):
+                    break
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Initial starting point is invalid or not provided."
+                + " Initial point randomly sampled uniformly from plausible box\n",
+            )
+            if violates_non_box_cons(u_draw) or violates_non_box_cons(u0):
+                self.logger.error(
+                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                )
+                raise ValueError(
+                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                )
+        else:
+            u0 = start_on_mesh()
 
         # Check that the gridized points satisfies the non-bound constraints
-        if self.non_box_cons is not None and np.any(
-            self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0
-        ):
+        if violates_non_box_cons(u0):
             self.logger.error(
                 """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
             )
@@ -780,10 +817,13 @@ class BADS:
                 """bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"""
             )
 
-        # Report variable transformation
+        # Report variable transformation, from "notify" on, as MATLAB BADS
+        # does (setupvars.m:118-120)
         if np.any(self.var_transf.apply_log_t):
-            self.logger.info(
-                f"Variables (index) internally transformed to log coordinates: {np.argwhere(self.var_transf.apply_log_t)}"
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) internally transformed to log "
+                f"coordinates: {np.argwhere(self.var_transf.apply_log_t)}",
             )
 
         # Put tol_mesh on space
@@ -806,8 +846,10 @@ class BADS:
                 raise ValueError(
                     "bads:InitOptimState:Periodic variables need to have finite lower and upper bounds."
                 )
-            self.logger.info(
-                f"Variables (index) defined with periodic boundaries: {idx_periodic_vars}"
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) defined with periodic boundaries: "
+                f"{idx_periodic_vars}",
             )
         optim_state["periodic_vars"] = periodic_vars
 
@@ -928,8 +970,9 @@ class BADS:
         # search_method is a non-empty list of pairs (name, sum-rule flag),
         # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell",
         # as the hedge compares it (_is_named_pair: a NumPy array of pairs,
-        # or of names, runs too); further elements are ignored. MATLAB BADS
-        # does not check it
+        # or of names, runs too); an entry with more elements is refused, as
+        # a sign of another form, such as MATLAB's {@searchES, 1, 1}. MATLAB
+        # BADS does not check it
         search_method = self.options["search_method"]
         try:
             methods = list(search_method)
@@ -992,8 +1035,8 @@ class BADS:
         # search_acq_fcn is the pair ("acq_LCB", sqrt_beta), its name as the
         # ES search compares it (_is_named_pair): the LCB is the search's
         # only acquisition function (MATLAB BADS's others, which read the
-        # optimization target, are not ported); further elements are
-        # ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
+        # optimization target, are not ported), and more elements are
+        # refused. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
         # checked here too, before any evaluation
         search_acq_fcn = self.options["search_acq_fcn"]
         if not _is_named_pair(search_acq_fcn, ("acq_LCB",)):
@@ -1171,20 +1214,23 @@ class BADS:
         """
         Check the user's ``tol_fun``, before the advanced options are
         evaluated, the default of ``hedge_beta``, ``1e-3 / tol_fun``, among
-        them: a real number (``_is_real``) is positive and at most e^6, and
-        a boolean is refused. The GP's log noise SD is bounded below by
+        them: a real number (``_is_real``: a boolean, a string, an array or
+        a complex number is refused), positive and at most e^6, as
+        ``improvement_quantile`` and the hedge's options are real numbers.
+        The GP's log noise SD is bounded below by
         ``log(tol_fun) - 1`` and above by 5 (``_gp_hyp``, as MATLAB's
         ``gpdefBads.m``), bounds that cross above e^6, so that a larger
         ``tol_fun``, inf included, stopped the run at its first fit of the
         GP. 0 and False stopped with a bare ``ZeroDivisionError`` at the
         default of ``hedge_beta``, which refused a negative value or NaN but
         not -inf, and not beside a user's ``hedge_beta``. MATLAB BADS does
-        not check it. Other types are left as they were.
+        not check it.
         """
         tol_fun = self.options.get("tol_fun")
-        if isinstance(tol_fun, (bool, np.bool_)) or (
-            _is_real(tol_fun) and not 0 < tol_fun <= math.exp(6)
-        ):
+        if tol_fun is None:
+            # Not set by the user: the default of advanced_bads_options.ini
+            return
+        if not (_is_real(tol_fun) and 0 < tol_fun <= math.exp(6)):
             raise ValueError(
                 "options['tol_fun'] needs to be a positive number at most "
                 f"e^6 (about 403), not {tol_fun!r}."

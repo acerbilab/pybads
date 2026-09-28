@@ -184,7 +184,8 @@ def test_descriptions_are_whole_comment_lines():
         "empty one)"
     )
     assert descriptions["gp_samples"] == (
-        "Hyperparameters samples (0 = optimize)"
+        "Hyperparameter samples (unused: PyBADS optimizes one set of GP "
+        "hyperparameters, where MATLAB BADS samples them above 1)"
     )
     assert descriptions["stobads_frame_size_scaling_power"].startswith(
         "Power value of the Sto-BADS incumbent decision rule:  \\gamma"
@@ -227,7 +228,7 @@ def test_every_option_has_a_description():
     quote of MATLAB BADS's defaults."""
     options = _default_options(2)
     names = [name for name in options if name != "useroptions"]
-    assert len(names) > 150
+    assert len(names) > 100
     for name in names:
         description = options.descriptions[name]
         assert description != "", name

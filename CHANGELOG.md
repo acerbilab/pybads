@@ -35,12 +35,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
   a deterministic one, without the final samples of a noisy run.
 - `BADS` raises `ValueError` for a `max_fun_evals` that is neither a
-  positive integer nor `inf`, such as `30.5` or the string `"200*D"`.
+  positive integer nor `inf`, such as `30.5`, the string `"200*D"` or a
+  NumPy array, `np.array(500)` included.
 - `uncertainty_handling` and the options whose default is `True` or
   `False`, except `plot`, take only booleans: `BADS` raises `ValueError` for
-  `0`, `1`, `"on"`, `"off"` or any other value. A user value of `None`
-  stands for the option's default: `nonlinear_scaling=None`, for instance,
-  keeps the log transform on.
+  `0`, `1`, `"on"`, `"off"`, a NumPy array such as `np.array(True)`, or any
+  other value. A user value of `None` stands for the option's default:
+  `nonlinear_scaling=None`, for instance, keeps the log transform on.
 - The result's `success` is False when a run ends on `max_fun_evals` or
   `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
 - Without `specify_target_noise` and with `noise_final_samples=1`,
@@ -76,20 +77,27 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   number of searches in `search_method` (1/2 at default), for a `hedge_beta`
   that is not a finite number at least 0, and for a `hedge_decay` outside
   [0, 1], an array of one element or a complex number included.
-- `BADS` raises `ValueError` for a `tol_fun`, a Python or NumPy number, that
-  is not positive and at most e^6 (about 403), or that is a boolean, which
-  1.1.0 ran when negative (-inf included) unless the default `hedge_beta` fell
-  far below 0, and ran as 1 when `True`; and for a `search_method` that is not
-  a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
-  `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`,
-  which stopped a 1.1.0 run at its first search, or at the first that chose an
-  unknown search.
+- `BADS` raises `ValueError` for a `tol_fun` that is not a positive real
+  number at most e^6 (about 403), a boolean, a string, an array or a complex
+  number included, which 1.1.0 ran when negative (-inf included) unless the
+  default `hedge_beta` fell far below 0, and ran as 1 when `True`; for a
+  `search_method` that is not a non-empty list of pairs naming `"ES-wcm"` or
+  `"ES-ell"`, or a `search_acq_fcn` that is not a pair whose first element is
+  `"acq_LCB"`, which stopped a 1.1.0 run at its first search, or at the first
+  that chose an unknown search; and for an entry of `search_method`, or a
+  `search_acq_fcn`, with more than two elements, whose elements beyond the
+  pair 1.1.0 ignored.
 - The returned `total_time` and `overhead` are timed with
   `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
   no longer inflated by evaluations timed as 0.
 - `BADS` raises `ValueError` for an `n_search` that is not a positive
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
+- `BADS` raises `ValueError`, as for any unknown option, for the 66
+  options that had no effect in 1.1.0 and that MATLAB BADS does not have,
+  most of them leftovers of PyVBMC, such as `warp_every_iters`,
+  `variational_sampler`, `min_iter`, `diagnostics` and `gp_cov_fun`
+  ("Options without effect" below).
 
 ### Added
 
@@ -99,6 +107,34 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Options without effect.** The 66 advanced options that had no effect in
+  1.1.0 and that MATLAB BADS does not have, most of them leftovers of PyVBMC,
+  are removed, and setting one raises `ValueError`, as for any unknown option:
+  `acq_hedge_iter_window`, `acqhedge_decay`, `active_sample_gp_update`,
+  `active_search_bound`, `bandwidth`, `box_search_frac`, `cov_sample_thresh`,
+  `diagnostics`, `double_gp`, `empirical_gp_prior`, `gp_cov_fun` (the kernel
+  is always the rational-quadratic ARD one), `gp_length_prior_mean`,
+  `gp_length_prior_std`, `gp_sample_thin`, `gp_sample_widths`,
+  `gp_stochastic_step_size`, `gp_tol_optactive`, `gp_tol_optmcmc`,
+  `gp_tol_optmcmcactive`, `heavy_tail_search_frac`, `hessian_alternate`,
+  `hpd_search_frac`, `incremental_warp_delay`, `init_design`,
+  `integrate_gp_mean`, `k_warmup`, `kl_gauss`, `max_repeated_observations`,
+  `min_fun_evals`, `min_iter`, `mvn_search_frac`, `noise_shaping_factor`,
+  `noise_shaping_threshold`, `ns_search`, `nsgp_max`, `nsgp_maxmain`,
+  `nsgp_maxwarmup`, `out_warp_thresh_base`, `out_warp_thresh_mult`,
+  `out_warp_thresh_tol`, `rank_criterion`, `recompute_lcb_max`,
+  `repeated_acq_discount`, `sample_extra_vp_means`, `search_cache_frac`,
+  `separate_search_gp`, `sgd_step_size`, `stable_gp_samples`,
+  `stable_gp_sampling`, `stable_gp_vpk`, `temperature`, `tol_bound_x`,
+  `tol_cov_weight`, `tol_gp_noise`, `tol_gp_var`, `tol_gp_varmcmc`, `tol_skl`,
+  `tol_stable_warmup`, `upper_gp_length_factor`, `variational_sampler`,
+  `warp_cov_reg`, `warp_every_iters`, `warp_proto_corr_thresh`,
+  `warp_proto_scaling`, `warp_tol_reliability` and `weighted_hyp_cov`. The 12
+  options named after MATLAB BADS's that PyBADS does not use stay, so that
+  setting one is not an error, and their descriptions say that they are
+  unused: `poll_method`, `n_basis`, `skip_poll`, `search_improve_frac`,
+  `gp_samples`, `gp_def_fcn`, `gp_method`, `gp_cluster`, `rotate_gp`,
+  `poll_acq_fcn`, `chol_attempts` and `gp_svd_iters`.
 - **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
   and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
   matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
@@ -231,8 +267,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the next search, where MATLAB BADS chooses a search at random; a string
   stopped it with `TypeError`.
 - **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
-  `ValueError` when it is created for a `tol_fun`, a Python or NumPy number,
-  that is not positive and at most e^6 (about 403), or that is a boolean.
+  `ValueError` when it is created for a `tol_fun` that is not a positive real
+  number (a Python or NumPy integer or float) at most e^6 (about 403): a
+  boolean, a string, an array, of one element or none, or a complex number
+  is refused, as for `improvement_quantile` and the hedge's options.
   1.1.0 stopped with `ZeroDivisionError` for 0 or `False`, at the default
   `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error at its first fit
   of the Gaussian process above e^6, where the bounds of the noise of the
@@ -246,7 +284,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only acquisition function of the search; 1.1.0 stopped with an error at the
   first search, or at the first that chose an unknown search. A NumPy array,
   or a NumPy array of one element for a name, is taken as the searches take
-  it, as in 1.1.0.
+  it, as in 1.1.0. An entry of `search_method`, or a `search_acq_fcn`, with
+  more than two elements is refused too, where 1.1.0 ignored the elements
+  beyond the pair: MATLAB BADS's entries of `SearchMethod` have three.
 - **Cost of the optimization target.** The search no longer computes the
   optimization target, which MATLAB BADS computes at every search, where only
   acquisition functions that PyBADS does not have read it; PyBADS's only one,
@@ -404,10 +444,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   original space for a variable on a log scale (all its bounds positive, and
   `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
   which put most starting points in the upper decade of such a variable.
-  With `non_box_cons`, a random starting point that violates the constraints
-  is drawn again, up to 1000 draws in all, before `BADS` raises
-  `ValueError`, where 1.1.0 and MATLAB BADS raise at the first; a run whose
-  first draw satisfies the constraints is unchanged. 1.1.0 refused a start
+  With `non_box_cons`, a random starting point that violates the
+  constraints, as drawn or once it is put on the mesh, is drawn again, up to
+  1000 draws in all, before `BADS` raises `ValueError`, where 1.1.0 and
+  MATLAB BADS raise at the first. 1.1.0 refused a start
   with an element of `inf` or `-inf` when the hard bound on that side was
   finite.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the
@@ -555,7 +595,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only (`lb[i]` finite with `ub[i] = inf`, or `lb[i] = -inf` with `ub[i]`
   finite), as in MATLAB BADS: 1.1.0 refused both with `bads:HalfBounds`, any
   mix because its check looked at all the variables at once. The plausible
-  bound on an infinite side needs to be given. The warning for infinite
+  bound on an infinite side needs to be given. The caution for infinite
   bounds names the variables that have one.
 - **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
   `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
@@ -588,7 +628,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"full"`, PyBADS's own, the debug messages too; 1.1.0 showed everything
   for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
   On the `BADS` logger, the opening and the final messages are at levels 25
-  and 22, between INFO and WARNING.
+  and 22, between INFO and WARNING. The reports of the setup, the caution
+  for infinite bounds and the list of the variables transformed to log
+  coordinates, are shown from `"notify"` on (level 25), as MATLAB BADS
+  prints them; 1.1.0 showed the caution with `"off"` too.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
   no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
   them, that of `noise_size` among them, and give the description of an
@@ -653,7 +696,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   range of a hard bound, which 1.1.0 could refuse with `bads:StrictBounds`,
   are accepted. The warnings `bads:InitialPointsTooClosePB`,
   `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
-  `bads:StrictBoundsTooClose` are gone. Results change on problems with the
+  `bads:StrictBoundsTooClose` are gone, and BADS warns `bads:pbUnspecified`
+  when it takes the hard bounds for omitted plausible bounds, as MATLAB BADS
+  does, where 1.1.0 took them silently. Results change on problems with the
   plausible bounds omitted or near a hard bound, or with a start near a hard
   bound. On a 3-D sphere in log-scaled variables, bounded in [1e-3, 1e3]
   with a plausible box of [0.01, 100], which was shrunk to [1, 100], 73% of

@@ -203,7 +203,7 @@ def test_transform_inverse_largeN():
         lower_bounds=np.ones((1, D)) * -10,
         upper_bounds=np.ones((1, D)) * 10,
     )
-    X = np.ones((10 ^ 6, D)) * 0.4
+    X = np.ones((10**6, D)) * 0.4
     U = parameter_transformer(X)
     X2 = parameter_transformer.inverse_transf(U)
     assert np.all(np.isclose(X, X2, rtol=1e-12, atol=1e-14))

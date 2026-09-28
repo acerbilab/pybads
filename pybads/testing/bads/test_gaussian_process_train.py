@@ -186,7 +186,6 @@ def test_get_gp_training_options_samplers():
     bads.optim_state["n_noise_test"] = 1
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 1
-    bads.options["weighted_hyp_cov"] = False
 
     res1 = _get_gp_training_options(
         bads.optim_state,
@@ -213,7 +212,6 @@ def test_get_gp_training_options_opts_N():
     bads.optim_state["n_noise_test"] = 1
     bads.optim_state["ntrain"] = 10
     bads.optim_state["iter"] = 2
-    bads.options["weighted_hyp_cov"] = False
     hyp_dict = {"run_cov": np.eye(3)}
     bads.options["gpretrainthreshold"] = 10
 
