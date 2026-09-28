@@ -321,6 +321,12 @@ change that must move nothing shows the same hash of
 same gpyreg and the same number of BLAS threads: one thread
 (`OMP_NUM_THREADS=1` and its kin) and the default can give different
 hashes of the same commit, and a recorded hash names its setting.
+`dev/scripts/replay.py` compares two commits' runs step by step, on one
+machine and one BLAS setting, and reports the first evaluation and the
+earliest GP computation at which they part. The initial design, which
+involves no BLAS work, is pinned on every platform by
+`test_initial_design_pin.py`; a change that moves it on purpose
+regenerates the fixture in the same commit, as the test's docstring says.
 
 ## Tests and their traps
 

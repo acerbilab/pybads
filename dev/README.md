@@ -42,6 +42,40 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the same hash before and after, on one machine and with the same number
   of BLAS threads: BLAS, its thread count and platform differences can
   change the value.
+- `replay.py` records short seeded runs step by step and compares two
+  recordings exactly. `record` runs eight configurations of the benchmark
+  (`sphere_D2`, `ellipsoid_D3`, `rosenbrock_D6`, `sphere_D3` with both
+  noise kinds, `sphere_nonbox_D3`, `ellipsoid_D3_unbounded` and
+  `logsphere_D3`) at seed 0 and 50 D evaluations, each in a fresh process
+  with one BLAS thread and, on x86_64, OpenBLAS's Haswell kernels, in
+  about 30 s, and writes one trace per run under `scripts/runs/replay/`:
+  every call of the target with the state of the run's generator, every
+  search and poll step, every GP computation with its hyperparameters,
+  `iteration_history`, the result, and the platform key (CPU, libraries,
+  BLAS kernel and threads). `check BASE NEW` refuses two recordings whose
+  platform keys differ (unless `--force`) and reports, per run, identity
+  or the first divergence: the evaluation, its iteration and stage,
+  whether the generator's states agree there (a value moved) or not (a
+  branch changed), and the first step and the earliest GP computation
+  that differ; it exits 1 unless every run is identical. For a change that
+  must move nothing, record at the parent commit, with the `replay.py` of
+  a worktree at it, and at the change, on one machine, and check the two.
+  `--repeat 2` records each run twice in one process, and `check DIR`
+  compares the repeats: the instrument for a run that does not repeat
+  within one process (`TODO.md`, the item on macOS arm64). `report DIR`
+  tabulates a recording. The replay is exact only on one machine, one set
+  of versions, one BLAS kernel and one thread count. On Linux (NumPy
+  2.4.6, SciPy 1.17.1, gpyreg 1.3.3, 2026-09-28) a seeded run repeats
+  exactly, in one process and across processes. With another OpenBLAS
+  kernel (`--coretype Sandybridge`) the first GP fit of every run differs,
+  by 1e-15 to 1e-10, and the runs' points part after 15 to 40
+  evaluations, into different decisions (the values of `rosenbrock_D6`,
+  whose target rotates its input by a matrix product, differ from the
+  first evaluation). With four threads every run differs: seven of the
+  eight part after 22 to 50 evaluations, and `sphere_D3_homo` differs only
+  in its GP hyperparameters. So it is a developer tool, not a test: the
+  part of a run that involves no BLAS work, the initial design, is pinned
+  on every platform by `pybads/testing/bads/test_initial_design_pin.py`.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
@@ -110,6 +144,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
 - `test_population.py` checks the record schema, the reference minima of
   the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
+- `test_replay.py` checks the comparison of `replay.py` on synthetic
+  traces, its failure on a private name that the package no longer has,
+  and one short recording repeated in one process:
+  `python -m pytest dev/scripts/test_replay.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero
