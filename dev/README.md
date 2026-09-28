@@ -253,6 +253,14 @@ reference's number of seeds.
   90 seeds on Linux: no flag; the variant raises `sphere_D3_hetero`'s
   fraction solved from 0.50 to 0.61 and changes each other configuration's
   by at most one run.
+- [experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)
+  — the GP whose initial training set holds one point takes MATLAB BADS's
+  definition values without a fit (`73d517a`), against its parent, the
+  `geometry` and `thinband` suites at 30 seeds on Linux: no flag; exactly
+  the 144 runs that start on one point and go past it change, by no
+  consistent amount; their initialization prints no warning, and the
+  refits of `sphere_band_D3` print gpyreg's warnings on inputs without
+  spread in a coordinate in every run.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

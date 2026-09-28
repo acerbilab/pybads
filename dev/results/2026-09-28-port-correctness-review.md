@@ -254,7 +254,7 @@ histories and the gate.
 | W2-34 | B2 | With one final sample at level 1, `yval_vec` has shape (2, 1) | port discrepancy | fixed | `3476000` (#76) |
 | W2-35 | B2 | `min_iter` and `min_fun_evals` are read by nothing, and MATLAB has no such options | confirmed, inert | on the sheet among the options without effect; removed by #87 (KD-B1-5) | `9f65d73` (#76), the sheet; `b18382e` (#87) |
 | W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md`; at 90 seeds against the first incumbent's value from the initial GP, no flag; the variant raises `sphere_D3_hetero`'s fraction solved (0.50 → 0.61) and changes each other configuration's by at most one run ([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)) | — |
-| W2-37 | B2 | A feasible band thinner than the mesh can resolve ends the run at `x0` on the stall criterion | design question, shared; needs MATLAB | documented in `non_box_cons`'s description; no MATLAB run needed | `bdaef58` (#76); `TODO.md`, "The GP on a one-point training set." |
+| W2-37 | B2 | A feasible band thinner than the mesh can resolve ends the run at `x0` on the stall criterion | design question, shared; needs MATLAB | documented in `non_box_cons`'s description; no MATLAB run needed | `bdaef58` (#76); the GP on one point, `73d517a` (KD-B6-5; "Open ends") |
 | W2-38 | B2 | `IterationHistory` deep-copies every stored GP whenever it grows | confirmed, inert (time) | fixed | `500526b` (#76) |
 | W2-39 | B2 | The NaN estimates of past iterates whose re-estimate failed stay in `iteration_history` | confirmed, inert | kept; the documentation says so (KD-B2-4) | `763e21f` (#76) |
 | W2-40 | B2 | The survey's rows on the re-estimate (stored GPs changed in place; the restored GP's value; their geometry) | no longer hold (W0-1, W1-35) | the survey's rows corrected | — |
@@ -406,7 +406,7 @@ items that a ruling left to later work are held by these items of
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6); the periodic branches of `udist` and `ucov` (the loose ends, below) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
 | "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |
-| "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
+| "The GP on a one-point training set." (closed on 2026-09-28) | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying": by the PI's ruling of 2026-09-28, the initial GP on one distinct point takes MATLAB BADS's definition values without a fit, its mean's prior centred at the one target (`73d517a`, KD-B6-5; [`one_point_gp_linux_20260928`](../experiments/one_point_gp_linux_20260928/README.md)); the warnings of gpyreg's helpers in refits on inputs without spread are in "For gpyreg's maintainers." |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
@@ -483,9 +483,8 @@ it, in `matlab_side_defects.md`), with the negative seed that
 MATLAB's fit does with the zero-variance prior of a plateau (W1-26, the
 rebuild case), of a two-point training set (W3-40) and of a one-point
 training set (W2-37). PyBADS's disposition of each is decided whatever
-MATLAB computes, but for the priors of a GP on one point, an open item of
-`dev/TODO.md` ("The GP on a one-point training set.") that a comparison
-with MATLAB would inform; by the plan's rule no MATLAB run is written up. Two
+MATLAB computes, the GP on one point by the PI's ruling of 2026-09-28
+(KD-B6-5); by the plan's rule no MATLAB run is written up. Two
 items of `dev/TODO.md` would use one: a run of MATLAB BADS on
 `ellipsoid_D3_hetero`, and how often MATLAB's own fits give a predictive
 SD of 0, which, traced on 2026-09-28, comes from the same clamp on both

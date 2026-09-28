@@ -196,24 +196,6 @@ order.
   (row W4-10); so is the bookkeeping of the final samples, which still add
   to the incumbent's `n_evals` in the log and average their times into its
   row, after the run's last decision (PI, 2026-09-28).
-- [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
-  only `x0` feasible (the thin band of row W2-37 of the port review), the
-  GP is fitted on one point: gpyreg's bounds helper replaces the targets by
-  `[0, 1]`, so the mean's prior at the initial fit is centred at 0.5
-  whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
-  while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
-  log of zero and a variance with no degrees of freedom (wave 2's
-  verifiers, `verification/wave2.md`, "Found while verifying"). On two
-  distinct points, the empirical prior of the length scales had a sigma of
-  0, which gpyreg refuses; since W3-40 (wave 3's fix pass,
-  `verification/wave3.md`) a rebuild keeps the previous prior there.
-  Slice B6, whose wave has passed: decide the priors and bounds of such a
-  GP, in PyBADS or in gpyreg, with a test on the thin band. Measured on
-  2026-09-28 over the four suites
-  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)):
-  only non-box constraints reach it, every run of the thin bands on one
-  point and 2 of 30 runs of `sphere_nonbox_D3` on two, and the runs at
-  D = 3 go on to converge.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of all five predate the port
   review, whose fix passes change their numbers, and some of their
@@ -246,4 +228,26 @@ order.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs
-  them.
+  them. Its hyperparameter helpers, the `get_bounds_info` of its kernels,
+  means and noise, which `fit` calls even where the caller sets every
+  bound and prior (`gaussian_process.py:1762-1764`, and `555-557` through
+  the recommended bounds), are degenerate on inputs or targets without
+  spread (1.3.3). The kernels' helper takes the log of each column's
+  width and of its SD with `ddof=1` (`covariance_functions.py:476-480`),
+  which prints `RuntimeWarning`s (a log of zero; on one point also NumPy's
+  "Degrees of freedom <= 0" and an invalid division) on a column without
+  spread and on one point; the three replace a single target by `[0, 1]`
+  (`covariance_functions.py:472`, `mean_functions.py:491`,
+  `noise_functions.py:129`), which centres the constant mean's
+  recommendation at 0.5 whatever the target. PyBADS gives the GP on one
+  point MATLAB BADS's values without a fit (KD-B6-5), but its refits reach
+  the helpers: on inputs that a poll along one axis leaves without spread
+  in a coordinate (every run of `sphere_band_D3` at `73d517a`, whose first
+  refit takes `x0` and two poll points along the third axis, and 3 of 30
+  of `sphere_band_D2_hetero`), and on one point at D = 1, where the noise
+  test brings `func_count` to 2 > D (27 of 30 runs of a noisy band that
+  leaves only `x0` feasible)
+  ([experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)).
+  The helpers could centre on the one target for N <= 1 and keep the upper
+  bound of -inf of a column without spread, on which the recommended
+  bounds' refusal of such a column relies (`gaussian_process.py:586-620`).

@@ -31,7 +31,8 @@ pushes and runs `/doublecheck` at the end.
 - [x] P1b W2-36 measurement (Opus; worktree) — `fb830a4`; no flag in 15 tests; `sphere_D3_hetero` paired fraction solved 0.50 → 0.61 (McNemar p 0.03 after Holm over five); kept as MATLAB, adoption for the PI
 - [x] P2 Stage timers + profiler (Opus) — fingerprint + suite; timing campaign on a quiet machine
   `cf371d4` (timers), `a4a423b` (profiler), results note; 811 passed; fingerprint `4146a986863602cb` (1 thread and default); `optimize()` body now in `_optimize_()`
-- [ ] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
+- [x] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
+  `73d517a` (fix), `d9772a0` (`thinband` suite), records; 823 passed; fingerprint `4146a986863602cb` (1 thread and default); replay 8/8 identical; no flag, the 144 one-point runs change; refits on zero-spread inputs still warn (every `sphere_band_D3` run; a one-point refit at D = 1): gpyreg item
 - [ ] P5b Self-generated oracles (Opus) — after P3
 - [ ] Records: `dev/TODO.md`, ledger "Open ends", `pybads/bads/README.md`, `CHANGELOG.md`, `AGENTS.md`/`dev/README.md` where tooling is added
 
