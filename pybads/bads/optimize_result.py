@@ -73,6 +73,10 @@ class OptimizeResult(dict):
             - Termination message.
         - problem_type: str
             - Type of problem (unconstrained, bound constraints, non-box constraints).
+        - target_type: str
+            - ``"deterministic"``, ``"stochastic"`` for a noisy target
+              whose noise BADS infers, or ``"stochastic (specified
+              noise)"`` with ``specify_target_noise``.
         - total_time: float
             - Time taken by ``optimize()``, in seconds; the setup made when
               ``BADS`` is created is not counted.
@@ -84,6 +88,8 @@ class OptimizeResult(dict):
               it out, as in MATLAB BADS.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
+        - algorithm: str
+            - ``"Bayesian adaptive direct search"``.
         - version: str
             - Version of the optimizer.
 

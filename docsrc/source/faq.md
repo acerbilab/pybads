@@ -29,7 +29,9 @@ arguments of `BADS`:
 
 Give the starting point and each bound as a one-dimensional NumPy array of
 `D` elements, one per variable. A list, or an array of shape `(1, D)`, is
-taken too, and a scalar bound applies to every variable.
+taken too. A scalar bound applies to every variable when `x0` is given;
+with `x0=None`, PyBADS counts the variables from the plausible bounds (or,
+without them, from the hard bounds), so give those as arrays.
 
 ## Table of contents
 
@@ -92,10 +94,10 @@ taken too, and a scalar bound applies to every variable.
   - [On some problems, PyBADS seems to get stuck and stop too early. Is there a way to tune PyBADS to optimize towards a higher precision result or to have it optimize for longer?](#faq-on-some-problems-pybads-seems-to-get-stuck-and-stop-too-early-is-there-a-way-to-tune-pybads-to-optimize-towards-a-higher-precision-result-or-to-have-it-optimize-for-longer)
   - [On some problems, PyBADS seems to find a reasonably good solution, but then it takes a long time to converge, spending many iterations at very small values of `MeshScale`. Is there a way to tune PyBADS to stop earlier once it finds a decent solution?](#faq-on-some-problems-pybads-seems-to-find-a-reasonably-good-solution-but-then-it-takes-a-long-time-to-converge-spending-many-iterations-at-very-small-values-of-meshscale-is-there-a-way-to-tune-pybads-to-stop-earlier-once-it-finds-a-decent-solution)
 - [Miscellanea](#faq-miscellanea)
-  - [I used BADS in MATLAB. What is different in PyBADS?](#faq-i-used-bads-in-matlab-what-is-different-in-pybads)
-  - [I have run PyBADS on my problem. How do I run PyVBMC?](#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)
   - [This is interesting, but shouldn't we ideally compute full posterior distributions?](#faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions)
   - [Can PyBADS return an approximate posterior, e.g. by computing the Hessian at the optimum?](#faq-can-pybads-return-an-approximate-posterior-eg-by-computing-the-hessian-at-the-optimum)
+  - [I have run PyBADS on my problem. How do I run PyVBMC?](#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)
+  - [I used BADS in MATLAB. What is different in PyBADS?](#faq-i-used-bads-in-matlab-what-is-different-in-pybads)
   - [Are you planning to port BADS to other languages?](#faq-are-you-planning-to-port-bads-to-other-languages)
 
 (faq-general)=
@@ -117,7 +119,7 @@ If your objective function is fully analytical, PyBADS is most likely not suited
 ### The performance of BADS on the real model-fitting problems reported in the paper is remarkable. Did you cherry-pick the results?
 
 No, but we selected projects that we thought BADS would have been [suitable for](#faq-which-kind-of-problems-is-pybads-suited-for).
-The benchmark of the [paper](https://arxiv.org/abs/1705.04405) ran the MATLAB implementation of BADS, and some of its benchmarks have been replicated with PyBADS.
+The benchmark of the [paper](https://arxiv.org/abs/1705.04405) ran the MATLAB implementation of BADS, and some of its problems have been replicated with PyBADS.
 
 (faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem)=
 ### What do I do if PyBADS is not suited for my problem?
@@ -162,10 +164,10 @@ the [GitHub repository](https://github.com/acerbilab/pybads) for the source code
 (faq-which-external-packages-does-pybads-require)=
 ### Which external packages does PyBADS require?
 
-PyBADS runs on NumPy and SciPy, and builds its Gaussian process models with
-[gpyreg](https://github.com/acerbilab/gpyreg), the Gaussian process library
-of our lab, which in turn uses matplotlib. `pip` and `conda` install them
-together with PyBADS. PyBADS does not require MATLAB.
+PyBADS runs on NumPy, SciPy and matplotlib, and builds its Gaussian process
+models with [gpyreg](https://github.com/acerbilab/gpyreg), the Gaussian
+process library of our lab. `pip` and `conda` install them together with
+PyBADS. PyBADS does not require MATLAB.
 
 To run the [example notebooks](examples.rst) you also need Jupyter (see the
 [installation instructions](installation.rst)).
@@ -178,7 +180,7 @@ PyBADS requires Python 3.10 or newer.
 (faq-i-am-having-trouble-installing-pybads-can-you-help)=
 ### I am having trouble installing PyBADS. Can you help?
 
-Sure. The PyBADS installation should be pretty straightforward, so write me
+Sure. The PyBADS installation should be pretty straightforward, so tell us
 in detail which problem you are having in the
 [Discussions forum](https://github.com/orgs/acerbilab/discussions). Include
 your operating system, Python version, installation command and the full
@@ -197,11 +199,22 @@ For a typical model-fitting problem, `fun` is a function that computes the
 negative log likelihood of an input parameter vector `x`, for a given dataset
 and model.
 
-`fun` takes a one-dimensional NumPy array of shape `(D,)` and returns a
-finite real scalar. PyBADS evaluates one point per call; it does not pass
-batches of points. For example:
+`fun` takes a one-dimensional NumPy array of shape `(D,)`, a single point,
+and returns a finite real scalar: PyBADS evaluates one point per call. For
+example, to fit the mean and the log standard deviation of normally
+distributed data:
 
 ```python
+from scipy.stats import norm
+
+data = np.random.default_rng(0).normal(1.0, 2.0, size=100)
+
+
+def fun(x):
+    mu, log_sigma = x  # x has shape (2,)
+    return -np.sum(norm.logpdf(data, loc=mu, scale=np.exp(log_sigma)))
+
+
 bads = BADS(fun, x0, lb, ub, plb, pub)
 optimize_result = bads.optimize()
 x_min = optimize_result["x"]
@@ -246,9 +259,8 @@ def funwdata(x):
 
 where `data` has been defined before in the code. Now you can optimize
 `funwdata`, which takes a single input. The new function looks up `data`
-each time it is called; it does not embed a copy. Keep the data fixed while
-an optimization runs, since a change to it changes the objective under
-PyBADS's feet.
+each time it is called, so keep the data fixed while an optimization runs:
+a change to it changes the objective.
 
 Alternatively, you can use `functools.partial`:
 
@@ -259,7 +271,7 @@ funwdata = partial(fun, data=data)
 bads = BADS(funwdata, x0, lb, ub, plb, pub)
 ```
 
-which binds the `data` argument to the object passed, also without copying it.
+which binds the `data` argument to the object passed.
 
 `BADS` takes no extra arguments to pass on to the objective, unlike the
 MATLAB `bads` function, which passes those that follow `OPTIONS`.
@@ -312,11 +324,13 @@ x_best, fval_best = best["x"], best["fval"]
 
 Then compare the runs. If several of them reach nearly the same `fval`, you
 can be more confident about the solution; if they are scattered, see
-[this question](#faq-i-have-been-running-pybads-with-a-stochastic-objective-function-from-different-starting-points-and-i-get-different-results-each-time-what-can-i-do)
-for a noisy objective. For a noisy objective, `fval` is itself an estimate,
-with standard deviation `fsd`: runs whose values differ by less than a few
-`fsd` cannot be told apart, and evaluating their solutions several more times
-tells them apart.
+[this question](#faq-i-have-been-running-pybads-with-a-deterministic-objective-function-from-the-same-starting-point-but-i-get-different-results-each-time-is-something-wrong)
+for a deterministic objective and
+[this one](#faq-i-have-been-running-pybads-with-a-stochastic-objective-function-from-different-starting-points-and-i-get-different-results-each-time-what-can-i-do)
+for a noisy one. For a noisy objective, `fval` is itself an estimate, with
+standard deviation `fsd`: runs whose values differ by less than a few `fsd`
+cannot be told apart, but evaluating their solutions several more times can
+tell them apart.
 
 The runs are independent of each other, so you can also run them in
 parallel processes, for instance with `concurrent.futures.ProcessPoolExecutor`,
@@ -362,20 +376,20 @@ them if needed. We would still not recommend to set incredibly large bounds.
 
 Yes and no. You can specify that a variable is (partially) unconstrained by
 setting its hard bounds to `-np.inf` or `np.inf`; passing `None` for `lb` or
-`ub` leaves every variable unbounded on that side. Its plausible bounds must
-then be given, and finite.
+`ub` leaves every variable unbounded on that side. The plausible bounds of
+such a variable must then be given, and finite.
 
 However, we encourage users to always set finite, *empirically meaningful*
-hard bounds (see the previous question). Infinities are never empirically
+hard bounds (see [above](#faq-how-do-i-choose-lb-and-ub)). Infinities are never empirically
 meaningful, unless perhaps
 [if you are in a black hole](https://en.wikipedia.org/wiki/Cosmic_censorship_hypothesis).
 
 (faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)=
 ### Can I set `lb = ub` for some variable to fix it to a given value?
 
-No. PyBADS refuses a variable whose bounds are all equal with a `ValueError`
-(`bads:FixedVariables`); MATLAB BADS takes such a variable as fixed and
-optimizes the others.
+No. PyBADS refuses a variable whose lower and upper bounds are equal with a
+`ValueError`; MATLAB BADS takes a variable whose bounds are all equal as
+fixed and optimizes the others.
 
 As a workaround, optimize a function of the other variables that inserts the
 fixed value into the full parameter vector:
@@ -410,13 +424,14 @@ the minimum lies inside the *plausible box* they define with probability
 above 90%. The plausible box naturally represents a good region where to
 randomly draw starting points for the optimization (see
 [above](#faq-how-do-i-choose-the-starting-point-x0)). The plausible bounds
-must be finite and satisfy `lb <= plb < pub <= ub`. If you *really* have no
-idea about a plausible range, you can leave `plb` and `pub` out, and PyBADS
-uses the hard bounds in their place, with the warning
-`bads:pbUnspecified`, or set them equal to `lb` and `ub`, but this should
-not be the norm.
+must be finite and satisfy `lb <= plb < pub <= ub`.
 
-In the example above (see [previous question](#faq-how-do-i-choose-lb-and-ub)),
+If you *really* have no idea about a plausible range, you can set `plb` and
+`pub` equal to `lb` and `ub`, or leave them out, in which case PyBADS uses
+the hard bounds in their place, with the warning `bads:pbUnspecified`; but
+this should not be the norm.
+
+In the example above (see [this question](#faq-how-do-i-choose-lb-and-ub)),
 the plausible bounds for `sigma` (pointing motor noise) could go from a few
 pixels for `plb` to several cm for `pub`.
 
@@ -434,7 +449,7 @@ of its own:
 - it maps the plausible box to `[-1, 1]` in each variable, so that its
   steps, and the `MeshScale` of its [display](#faq-what-are-the-quantities-displayed-by-pybads-during-optimization),
   are relative to the plausible range of each variable;
-- it maps through a logarithm, before that, every variable whose bounds are
+- before that, it takes the logarithm of every variable whose bounds are
   all positive (an infinite upper bound counts as positive) and whose
   plausible range spans a factor of 10 or more (`pub / plb >= 10`). Its steps
   along such a variable are then proportional to the variable's value,
@@ -477,7 +492,11 @@ of which a good part is allowed: in the example above, a box within `-1` and
 steps of the optimization, such as a narrow band, can leave PyBADS unable to
 find allowed points around `x0`, and the run then ends early: reparameterize
 such a problem so that its feasible region is wide (the documentation of
-[`BADS`](api/classes/bads.rst) gives an example).
+[`BADS`](api/classes/bads.rst) gives an example). For the same reason,
+PyBADS does not support equality constraints, such as `x[0] + x[1] = 1`:
+write the problem in fewer variables, so that the constraint holds by
+construction (here, optimize over `x[0]` alone and set `x[1] = 1 - x[0]`
+inside the objective).
 
 Do **not** have `fun(x)` return `np.inf` or `np.nan` for invalid inputs.
 PyBADS would simply crash (see [this question](#faq-pybads-crashes-saying-that-the-returned-function-value-must-be-a-finite-real-valued-scalar-what-do-i-do)).
@@ -493,8 +512,8 @@ objective function nonsensical.
 No, PyBADS does not support integer constraints (that is, variables forced to
 be integers).
 
-In the meanwhile, as a simple fix, you could adopt the following hack if you
-have a single integer variable `m`:
+As a simple fix, you could adopt the following hack if you have a single
+integer variable `m`:
 
 - make the parameter `m` continuous for the purpose of optimization;
 - for a given parameter vector, evaluate separately the objective at
@@ -540,10 +559,13 @@ period, keep the plausible bounds on one period, and reduce the result to
 the period at the end. For an angle, of period `2 * np.pi`:
 
 ```python
+i_angle = 2  # index of the angle
+lb, ub = np.array(lb, dtype=float), np.array(ub, dtype=float)
+plb, pub = np.array(plb, dtype=float), np.array(pub, dtype=float)
 lb[i_angle], ub[i_angle] = -np.pi, 3 * np.pi
 plb[i_angle], pub[i_angle] = 0.0, 2 * np.pi
 # ... run the optimization, then
-x_min = optimize_result["x"]
+x_min = optimize_result["x"].copy()
 x_min[i_angle] = np.mod(x_min[i_angle], 2 * np.pi)
 ```
 
@@ -574,7 +596,8 @@ lists them all.
 `success` is `True` when the run ended on one of its convergence criteria:
 the mesh became smaller than `options["tol_mesh"]` (`status` 1), or the
 objective improved by less than `options["tol_fun"]` over the last
-iterations (`status` 2). It is `False` (`status` 0) when the run used up its
+`options["tol_stall_iters"]` iterations (`status` 2). It is `False`
+(`status` 0) when the run used up its
 budget of evaluations (`options["max_fun_evals"]`) or of iterations
 (`options["max_iter"]`), or an [output function](#faq-can-i-monitor-or-stop-a-run-while-it-is-running)
 stopped it. `message` says which. A run that used up its budget can still
@@ -616,7 +639,10 @@ For this reason, we chose a more conservative approach for estimating `fval`.
 `optimize_result["overhead"]` is the *fractional overhead*, defined as
 (*total running time* / *total function time* - 1). The total running time,
 `optimize_result["total_time"]`, is the time of `bads.optimize()`, in seconds;
-the function time is the time spent evaluating the objective. PyBADS's own
+the function time is the time spent evaluating the objective, except for the
+second evaluation of `x0` that
+[tests the objective for noise](#faq-should-i-tell-pybads-that-my-objective-is-noisy),
+which counts as PyBADS's own time. PyBADS's own
 work takes of the order of tens of milliseconds per function evaluation,
 depending on the problem and the computer.
 
@@ -636,11 +662,12 @@ After `bads.optimize()`, the `BADS` object keeps:
 
 - `bads.optim_state`, a dictionary with the state of the optimization;
 - `bads.iteration_history`, which records each iteration: among others the
-  point at which the iteration ended (`"x"`), its value (`"fval"` and
-  `"fsd"`), the mesh size (`"mesh_size"`), the number of evaluations so far
-  (`"func_count"`), and the Gaussian process model (`"gp"`), in PyBADS's
-  [internal coordinates](#faq-does-pybads-rescale-or-transform-my-variables);
-- `bads.function_logger`, which records every evaluation (see the
+  point at which the iteration ended, in your coordinates (`"x"`) and in
+  PyBADS's [internal coordinates](#faq-does-pybads-rescale-or-transform-my-variables)
+  (`"u"`), its value (`"fval"` and `"fsd"`), the mesh size (`"mesh_size"`),
+  the number of evaluations so far (`"func_count"`), and the Gaussian process
+  model (`"gp"`), which works in the internal coordinates;
+- `bads.function_logger`, the log of the evaluated points (see the
   [next question](#faq-is-it-possible-to-output-or-inspect-the-optimization-trajectory)).
 
 These attributes are useful for debugging, but we are not providing explicit
@@ -660,8 +687,14 @@ y = log.Y_orig[log.X_flag].ravel()  # observed function values
 ```
 
 Each row holds a distinct point, in the order in which PyBADS first
-evaluated it. The points at which the iterations ended, and their values,
-are
+evaluated it. An evaluation at a point that is already in the log adds no
+row: the second evaluation of `x0` that
+[tests the objective for noise](#faq-should-i-tell-pybads-that-my-objective-is-noisy),
+and the final evaluations of a noisy run, which are in
+`optimize_result["yval_vec"]` (see [above](#faq-how-is-fval-computed)). So
+the log can have fewer rows than `optimize_result["func_count"]`.
+
+The points at which the iterations ended, and their values, are
 
 ```python
 x_iter = np.vstack(bads.iteration_history["x"])
@@ -675,9 +708,9 @@ To record the trajectory while the run goes on, use an
 ### Can I monitor or stop a run while it is running?
 
 Yes, with an output function, passed as `options["output_fcn"]`. PyBADS
-calls it as `output_fcn(x, optim_state, state)` when the run starts
-(`state` is `"init"`), at the end of each iteration (`"iter"`) and when the
-run ends (`"done"`). `x` is the current best point, in your coordinates, and
+calls it as `output_fcn(x, optim_state, state)` once the initial points
+have been evaluated (`state` is `"init"`), at the end of each iteration
+(`"iter"`) and when the run ends (`"done"`). `x` is the current best point, in your coordinates, and
 `optim_state` a copy of the state of the optimization, with for instance
 `optim_state["fval"]`, `optim_state["fsd"]` and `optim_state["mesh_size"]`.
 When the function returns `True`, the run stops, and its result says so in
@@ -834,7 +867,7 @@ bads = BADS(fun, x0, lb, ub, plb, pub, options={"specify_target_noise": True})
 ```
 
 Without `specify_target_noise`, PyBADS refuses such a pair: the objective
-must return a single number. See below and
+must return a single number. See
 [Example 4](https://acerbilab.github.io/pybads/_examples/pybads_example_4_user_provided_noise.html)
 for further information.
 
@@ -866,8 +899,9 @@ traces of several optimization quantities:
   for the initial design; a `Successful search`, which improved on the
   incumbent sufficiently, or an `Incremental search`, which improved on it
   by less, with the search method in parentheses (`ES-wcm` or `ES-ell`); a
-  `Successful poll`; or `Refine grid`, a poll that found no improvement, after
-  which the mesh shrinks;
+  `Successful poll`; or `Refine grid`, a poll that found no sufficient
+  improvement (it can still move to a slightly better point), after which
+  the mesh shrinks;
 - additional actions, under `Actions`, such as the `Uncertainty test` of the
   objective's noise at `x0`, the evaluation of the `Initial points`, or
   re-training the Gaussian process (`Train`).
@@ -875,7 +909,10 @@ traces of several optimization quantities:
 If the objective function is [noisy](#faq-noisy-objective-function), instead
 of `f(x)` PyBADS will report the expected value `E[f(x)]` and its standard
 deviation `SD[f(x)]` at the incumbent, both estimated via the current
-Gaussian process model.
+Gaussian process model. The first lines of the display come before these
+estimates: there `E[f(x)]` is the value observed at the incumbent, and
+`SD[f(x)]` is `nan`, or a nominal value (`options["noise_size"]`, or the
+standard deviation that the objective returned).
 
 (faq-for-a-noisy-function-i-noticed-that-the-series-of-displayed-efx-values-is-not-monotonically-decreasing-should-i-worry)=
 ### For a noisy function, I noticed that the series of displayed `E[f(x)]` values is *not* monotonically decreasing. Should I worry?
@@ -899,8 +936,6 @@ process model, the uncertainty about the value at the incumbent will also
 change, sometimes substantially (e.g., if the estimated observation noise
 parameter has changed, or if the incumbent has moved to a new region). In
 most cases, such jumps are part of the normal behavior of the algorithm.
-In the first lines of the display, before PyBADS has built its first
-Gaussian process model, `SD[f(x)]` shows `nan`.
 
 (faq-sometimes-as-actions-during-optimization-i-read-train-failed-what-does-it-mean)=
 ### Sometimes as `Actions` during optimization I read `Train (failed)`. What does it mean?
@@ -919,13 +954,17 @@ perhaps there are other issues with the model.
 `options["display"]` sets how much PyBADS prints: `"iter"` (the default)
 prints a line per step, as described [above](#faq-what-are-the-quantities-displayed-by-pybads-during-optimization);
 `"final"` prints the opening and final messages; `"notify"` the opening
-messages alone; `"off"` nothing but warnings.
+messages alone; `"off"` nothing but warnings; `"full"` everything, debug
+messages included.
 
 PyBADS prints through Python's `logging` module, with a logger named
 `"BADS"`, and its warnings, such as `bads:pbUnspecified`, are log messages
-too, not Python warnings. If your program has not configured `logging`,
-PyBADS sends the messages to the standard output; otherwise, they go where
-your configuration sends them. To write them to a file instead:
+too, not Python warnings (the libraries it calls, such as NumPy and gpyreg,
+can still issue Python warnings of their own). Creating a `BADS` object
+calls `logging.basicConfig`, which sends the messages to the standard output
+unless your program has configured `logging` before; a `logging.basicConfig`
+call of your own after that takes effect only with `force=True`. To write
+PyBADS's messages to a file instead:
 
 ```python
 import logging
@@ -953,8 +992,11 @@ checking.
 ### PyBADS crashes saying that `The returned function value must be a finite real-valued scalar`. What do I do?
 
 This `ValueError` means that your objective function has returned `np.inf`,
-`np.nan`, or something that is not a real number, such as a complex number.
-You should check your code and understand why it returned such a value.
+`np.nan`, or something that is not a single real number, such as a complex
+number or an array of several elements. You should check your code and
+understand why it returned such a value. A pair `(f, sd)` gives this error
+too, unless you set `options["specify_target_noise"] = True` (see
+[this question](#faq-should-i-provide-an-estimate-of-the-noise-associated-with-each-evaluation)).
 
 `inf`s and `nan`s often arise because there are outcomes in your dataset
 (e.g., responses in a trial) to which the tested model assigns a probability
@@ -1031,11 +1073,12 @@ bads = BADS(fun, x0, lb, ub, plb, pub, options={"random_seed": 42})
 
 Every random draw of the run comes from one NumPy random generator created
 from this seed, `bads.rng`: the random starting point when `x0` is `None`,
-the initial design, the searches and the fits of the Gaussian process. With
-the same seed, objective, inputs and options, a run gives the same result
-every time on the same computer, with the same versions of Python, NumPy,
-SciPy and gpyreg; another computer or other versions can give a different
-result. The seed is read when the `BADS` object is created, and
+the initial design, the searches, the poll and the fits of the Gaussian
+process. With the same seed, objective, inputs and options, a run gives the
+same result every time on the same computer, with the same versions of
+Python, NumPy, SciPy and gpyreg and the same number of threads for linear
+algebra; another computer, other versions or another number of threads can
+give a different result. The seed is read when the `BADS` object is created, and
 `optimize_result["random_seed"]` records it.
 
 If you leave `random_seed` unset, PyBADS derives the generator of the run
@@ -1099,12 +1142,12 @@ dictionary that you pass to the algorithm:
   skipping it when it thinks that it is not worth continuing. This is a
   basic option of PyBADS.
 - Change `options["search_n_try"]`. Be careful that this is an advanced
-  option of PyBADS, and I do not recommend to change it unless you have to.
+  option of PyBADS, and we do not recommend to change it unless you have to.
   The default value is `max(D, floor(3 + D/2))`, where `D` is the
   dimensionality of the objective function. This quantity represents the
-  number of attempted searches (via local Bayesian optimization) per
-  iteration. You can try and increase it to force PyBADS to search for longer
-  in each iteration.
+  number of searches (via local Bayesian optimization) that PyBADS attempts
+  in each round of searches before a poll. You can try and increase it to
+  force PyBADS to search for longer in each iteration.
 
 (faq-on-some-problems-pybads-seems-to-find-a-reasonably-good-solution-but-then-it-takes-a-long-time-to-converge-spending-many-iterations-at-very-small-values-of-meshscale-is-there-a-way-to-tune-pybads-to-stop-earlier-once-it-finds-a-decent-solution)=
 ### On some problems, PyBADS seems to find a reasonably good solution, but then it takes a long time to converge, spending many iterations at very small values of `MeshScale`. Is there a way to tune PyBADS to stop earlier once it finds a decent solution?
@@ -1125,80 +1168,6 @@ which is still improving on the solution.
 
 (faq-miscellanea)=
 ## Miscellanea
-
-(faq-i-used-bads-in-matlab-what-is-different-in-pybads)=
-### I used BADS in MATLAB. What is different in PyBADS?
-
-PyBADS implements the same algorithm, with a Python interface:
-
-- You create a `BADS` object and run it,
-  `optimize_result = BADS(fun, x0, lb, ub, plb, pub, non_box_cons, options).optimize()`,
-  where MATLAB returns `[X,FVAL,EXITFLAG,OUTPUT] = bads(...)`. The result is
-  one dictionary, with `x`, `fval`, `status` (MATLAB's `EXITFLAG`),
-  `message`, `func_count` and more (see [above](#faq-what-does-optimize-return)).
-- The options are a dictionary. Their names are mostly the MATLAB names in
-  lower case, with underscores (`MaxFunEvals` becomes `max_fun_evals`,
-  `UncertaintyHandling` becomes `uncertainty_handling`), and their values are
-  Python values: numbers where MATLAB takes a string such as `'500*nvars'`,
-  and `True` or `False` where MATLAB takes `1`, `0`, `'on'` or `'off'`.
-  PyBADS refuses an option it does not know, or a value it does not take,
-  with a `ValueError`. The [options page](api/options/bads_options.rst)
-  lists them all.
-- The objective receives a one-dimensional array of shape `(D,)`, and
-  `non_box_cons` an array of shape `(N, D)`. Additional inputs of the
-  objective are [bound to it](#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads)
-  rather than passed to `BADS`.
-- Some features of MATLAB BADS are not (yet) available in PyBADS, which
-  refuses them with an error message: fixed variables (see
-  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)),
-  [periodic variables](#faq-does-pybads-support-periodic-variables-such-as-angles),
-  and function evaluations made before the run, passed as `fun_values`.
-- Runs of PyBADS and of MATLAB BADS do not match step by step, even with the
-  same seed. The
-  [catalogue of differences](https://github.com/acerbilab/pybads/blob/main/pybads/bads/README.md)
-  lists where PyBADS deliberately departs from MATLAB BADS, and why.
-
-(faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)=
-### I have run PyBADS on my problem. How do I run PyVBMC?
-
-[PyVBMC](https://acerbilab.github.io/pyvbmc/) computes an approximate
-posterior distribution over the parameters, and an estimate of the model
-evidence (see the [next question](#faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions)).
-Its interface is very similar to the one of PyBADS, and you may only need
-minor changes to run it on your problem. Note that:
-
-- Beware of the sign! The target of PyVBMC is a log density, that is the log
-  likelihood, or the log likelihood plus the log prior, whereas PyBADS
-  *minimizes* the negative log likelihood.
-- PyVBMC needs a prior over the parameters, which you pass with `prior=` or
-  add to the log likelihood.
-- The plausible bounds of PyVBMC should lie strictly inside its hard bounds,
-  whereas PyBADS takes plausible bounds equal to the hard ones.
-- PyVBMC does not support variables bounded on one side only.
-- The solution of PyBADS is a good starting point `x0` for PyVBMC.
-- PyVBMC supports noisy targets too, and works best when the target returns
-  an estimate of its noise.
-
-For example, with a uniform prior over the hard bounds:
-
-```python
-from pyvbmc import VBMC
-from scipy.stats import uniform
-
-
-def log_likelihood(x):
-    return -fun(x)  # fun is the negative log likelihood minimized by PyBADS
-
-
-prior = [uniform(loc=low, scale=high - low) for low, high in zip(lb, ub)]
-vbmc = VBMC(
-    log_likelihood, optimize_result["x"], lb, ub, plb, pub, prior=prior
-)
-vp, results = vbmc.optimize()
-```
-
-See the [PyVBMC documentation](https://acerbilab.github.io/pyvbmc/) for
-installation, priors and examples.
 
 (faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions)=
 ### This is interesting, but shouldn't we ideally compute full posterior distributions?
@@ -1226,7 +1195,88 @@ Instead, you should look into
 [Variational Bayesian Monte Carlo (PyVBMC)](https://acerbilab.github.io/pyvbmc/),
 a method that we developed specifically to compute approximate posterior
 distributions, and that can be used in synergy with PyBADS (see
-[above](#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)).
+[below](#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)).
+
+(faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)=
+### I have run PyBADS on my problem. How do I run PyVBMC?
+
+[PyVBMC](https://acerbilab.github.io/pyvbmc/) computes an approximate
+posterior distribution over the parameters, and an estimate of the model
+evidence (see [above](#faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions)).
+Its interface is very similar to the one of PyBADS, and you may only need
+minor changes to run it on your problem. Note that:
+
+- Beware of the sign! The target of PyVBMC is a log density, that is the log
+  likelihood, or the log likelihood plus the log prior, whereas PyBADS
+  *minimizes* the negative log likelihood.
+- PyVBMC needs a prior over the parameters, which you pass with `prior=` or
+  add to the log likelihood.
+- The plausible bounds of PyVBMC should lie strictly inside its hard bounds,
+  whereas PyBADS takes plausible bounds equal to the hard ones.
+- PyVBMC does not support variables bounded on one side only.
+- The solution of PyBADS is a good starting point `x0` for PyVBMC.
+- PyVBMC supports noisy targets too, and works best when the target returns
+  an estimate of its noise.
+
+For example, with a uniform prior over the hard bounds:
+
+```python
+from pyvbmc import VBMC
+from scipy.stats import uniform
+
+
+def log_likelihood(x):
+    return -fun(x)  # fun is the negative log likelihood minimized by PyBADS
+
+
+prior = [
+    uniform(loc=low, scale=high - low)
+    for low, high in zip(np.ravel(lb), np.ravel(ub))
+]
+vbmc = VBMC(
+    log_likelihood, optimize_result["x"], lb, ub, plb, pub, prior=prior
+)
+vp, results = vbmc.optimize()
+```
+
+See the [PyVBMC documentation](https://acerbilab.github.io/pyvbmc/) for
+installation, priors and examples.
+
+(faq-i-used-bads-in-matlab-what-is-different-in-pybads)=
+### I used BADS in MATLAB. What is different in PyBADS?
+
+PyBADS implements the same algorithm, with a Python interface:
+
+- You create a `BADS` object and run it,
+  `optimize_result = BADS(fun, x0, lb, ub, plb, pub, non_box_cons, options).optimize()`,
+  where MATLAB returns `[X,FVAL,EXITFLAG,OUTPUT] = bads(...)`. The result is
+  one dictionary, with `x`, `fval`, `status` (MATLAB's `EXITFLAG`),
+  `message`, `func_count` and more (see [above](#faq-what-does-optimize-return)).
+- The options are a dictionary. Their names are mostly the MATLAB names in
+  lower case, with underscores (`MaxFunEvals` becomes `max_fun_evals`,
+  `UncertaintyHandling` becomes `uncertainty_handling`), and their values are
+  Python values: numbers where MATLAB takes a string such as `'500*nvars'`,
+  and `True` or `False` where MATLAB takes `1`, `0`, `'on'` or `'off'`.
+  PyBADS refuses an option name it does not know with a `ValueError`, and
+  checks the values of many options; a value of the wrong kind, such as the
+  string `'200*D'` for `max_iter`, can instead fail with another error,
+  for some options only once the run has started. The
+  [options page](api/options/bads_options.rst) lists them all.
+- The objective receives a one-dimensional array of shape `(D,)`, and
+  `non_box_cons` an array of shape `(N, D)`. Additional inputs of the
+  objective are [bound to it](#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads)
+  rather than passed to `BADS`.
+- Some features of MATLAB BADS are not (yet) available in PyBADS, which
+  refuses them with an error message: fixed variables (see
+  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)),
+  [periodic variables](#faq-does-pybads-support-periodic-variables-such-as-angles),
+  and function evaluations made before the run, passed as `fun_values`. A
+  few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
+  but have no effect.
+- Runs of PyBADS and of MATLAB BADS do not match step by step, even with the
+  same seed. The
+  [catalogue of differences](https://github.com/acerbilab/pybads/blob/main/pybads/bads/README.md)
+  lists where PyBADS deliberately departs from MATLAB BADS, and why.
 
 (faq-are-you-planning-to-port-bads-to-other-languages)=
 ### Are you planning to port BADS to other languages?
