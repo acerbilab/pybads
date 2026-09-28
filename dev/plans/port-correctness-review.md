@@ -986,8 +986,14 @@ Wave 3's records are the model: its worklog lines below and
   the PI: the hedge's checks, which take one-element arrays and other
   types that stop a run at its first search; large integers and an
   `n_search_iter` above `n_search`; "What's new in PyBADS 1.1".
+- [x] 2026-09-28: a Windows reference at the head of the last fix pass,
+  `a4dcd65` (`dev/experiments/population_wave4_20260928/`, 100 seeds), and
+  the pre-review baseline at `ab4dded`
+  (`dev/experiments/population_prereview_20260927/`, 100 seeds), whose
+  comparison is the net change of the review on Windows: nine
+  configurations flagged, `ackley_D6` and `rosenbrock_D2` better, the
+  errors of `sphere_D2` and `sphere_D10` larger but far below their
+  tolerance, more evaluations on `ellipsoid_D10`, and fewer on four
+  configurations with noise.
 - [ ] Close: the consolidated ledger, the catalogue in
-  `pybads/bads/README.md`, the survey's rows closed, `TODO.md`, and a
-  Windows reference at the head of the last fix pass: the current one,
-  `population_gpfixes_20260925`, predates waves 0 to 4, and every fix pass
-  moves results again.
+  `pybads/bads/README.md`, the survey's rows closed and `TODO.md`.

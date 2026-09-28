@@ -121,16 +121,27 @@ reference's number of seeds.
 
 ## Index
 
-- [experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)
+- [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
-  30 seeds, gpyreg 1.3.3, at `ab4dded`: #67 and the three GP fixes of #66),
-  with its null check, its comparison with the previous Windows reference,
-  which flags the five configurations that the same fixes flag on Linux,
-  all better, and the runs in which the prior of the GP mean falls outside
-  the bounds of the mean and the log prior is NaN. It predates the fix
-  passes of waves 0 to 4 of the port review (`8aecb6a`, `0d866e8` and
-  `dev-port-review-w4`), which move results: a gate on Windows after them
-  needs a new reference first.
+  100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the
+  port review and its doublecheck), with its null check and its comparison
+  with the pre-review baseline, the net change of the whole review, which
+  flags nine configurations: two better, two spheres with slightly larger
+  errors far below their tolerance, `ellipsoid_D10` with more evaluations
+  for a smaller error, and four configurations with noise whose runs stop
+  earlier.
+- [experiments/population_prereview_20260927/](experiments/population_prereview_20260927/README.md)
+  — the pre-review baseline on Windows (default suite, 100 seeds, gpyreg
+  1.3.3, at `ab4dded`, before the port review's fixes), a fixed population
+  to compare any later version with on this platform, with its null check;
+  it extends `population_gpfixes_20260925` from 30 seeds to 100.
+- [experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)
+  — the previous reference population of the benchmark on Windows (default
+  suite, 30 seeds, gpyreg 1.3.3, at `ab4dded`: #67 and the three GP fixes
+  of #66), with its null check, its comparison with the previous Windows
+  reference, which flags the five configurations that the same fixes flag
+  on Linux, all better, and the runs in which the prior of the GP mean
+  falls outside the bounds of the mean and the log prior is NaN.
 - [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
   — the previous reference on Windows (at `c044fea`, with the
   noise-variance fix of `020d6a8`), with its null check and its comparison
