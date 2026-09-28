@@ -60,6 +60,29 @@ def _is_whole_number(value):
     return math.isfinite(value) and float(value).is_integer()
 
 
+def _name_among(value, names):
+    """The name among ``names`` that ``value`` is, compared as the searches
+    compare it (``value == name``): a string, a NumPy string or an array of
+    one; None for anything else, an array of several elements included."""
+    for name in names:
+        try:
+            if np.size(value) == 1 and bool(np.all(value == name)):
+                return name
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _is_named_pair(value, names):
+    """Whether ``value`` has at least two elements, the first of them a name
+    among ``names`` (``_name_among``), as a list or a tuple, or a NumPy
+    array, has them."""
+    try:
+        return len(value) >= 2 and _name_among(value[0], names) is not None
+    except (TypeError, KeyError, IndexError):
+        return False
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message (and the message of a
 # random starting point, at 25) from "notify" on, the final message from
@@ -903,18 +926,20 @@ class BADS:
             )
         self.options["n_search_iter"] = int(n_search_iter)
         # search_method is a non-empty list of pairs (name, sum-rule flag),
-        # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell";
-        # further elements are ignored. MATLAB BADS does not check it
+        # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell",
+        # as the hedge compares it (_is_named_pair: a NumPy array of pairs,
+        # or of names, runs too); further elements are ignored. MATLAB BADS
+        # does not check it
         search_method = self.options["search_method"]
+        try:
+            methods = list(search_method)
+        except TypeError:
+            methods = []
         if not (
-            isinstance(search_method, (list, tuple))
-            and len(search_method) > 0
+            len(methods) > 0
             and all(
-                isinstance(method, (list, tuple))
-                and len(method) >= 2
-                and isinstance(method[0], str)
-                and method[0] in ("ES-wcm", "ES-ell")
-                for method in search_method
+                _is_named_pair(method, ("ES-wcm", "ES-ell"))
+                for method in methods
             )
         ):
             raise ValueError(
@@ -964,18 +989,14 @@ class BADS:
                 f"{hedge_decay!r}."
             )
         self.options["hedge_decay"] = value
-        # search_acq_fcn is the pair ("acq_LCB", sqrt_beta): the LCB is the
-        # search's only acquisition function (MATLAB BADS's others, which
-        # read the optimization target, are not ported); further elements
-        # are ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call,
-        # is checked here too, before any evaluation
+        # search_acq_fcn is the pair ("acq_LCB", sqrt_beta), its name as the
+        # ES search compares it (_is_named_pair): the LCB is the search's
+        # only acquisition function (MATLAB BADS's others, which read the
+        # optimization target, are not ported); further elements are
+        # ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
+        # checked here too, before any evaluation
         search_acq_fcn = self.options["search_acq_fcn"]
-        if not (
-            isinstance(search_acq_fcn, (list, tuple))
-            and len(search_acq_fcn) >= 2
-            and isinstance(search_acq_fcn[0], str)
-            and search_acq_fcn[0] == "acq_LCB"
-        ):
+        if not _is_named_pair(search_acq_fcn, ("acq_LCB",)):
             raise ValueError(
                 "options['search_acq_fcn'] needs to be a pair ('acq_LCB', "
                 f"sqrt_beta), not {search_acq_fcn!r}."
@@ -2005,8 +2026,11 @@ class BADS:
         # The optimization target, for a search acquisition function that
         # reads it (_SEARCH_ACQ_FCNS_READING_TARGET, empty at present)
         if (
-            self.options["search_acq_fcn"][0]
-            in _SEARCH_ACQ_FCNS_READING_TARGET
+            _name_among(
+                self.options["search_acq_fcn"][0],
+                _SEARCH_ACQ_FCNS_READING_TARGET,
+            )
+            is not None
         ):
             self._update_target_(self.u_best, gp, self.best_gp_hyp)
 

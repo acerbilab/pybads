@@ -565,7 +565,7 @@ def test_tol_fun_not_a_positive_finite_number_is_refused(tol_fun, hedge_beta):
         [("ES-cma", 1)],
         [("ES-wcm", 1), ("ES-foo", 1)],
         [("ES-wcm", 1), "ES-ell"],
-        [(np.array(["ES-wcm"]), 1)],
+        [(np.array(["ES-wcm", "ES-ell"]), 1)],
     ],
     ids=[
         "empty",
@@ -574,7 +574,7 @@ def test_tol_fun_not_a_positive_finite_number_is_refused(tol_fun, hedge_beta):
         "unknown",
         "one_unknown",
         "one_not_a_pair",
-        "array_name",
+        "array_of_two_names",
     ],
 )
 def test_search_method_is_checked(search_method):
@@ -596,9 +596,70 @@ def test_search_method_of_known_searches_is_accepted(search_method):
 
 
 @pytest.mark.parametrize(
+    "name, value, as_list",
+    [
+        (
+            "search_method",
+            [(np.array(["ES-wcm"]), 1), ("ES-ell", 1)],
+            [("ES-wcm", 1), ("ES-ell", 1)],
+        ),
+        (
+            "search_method",
+            np.array([["ES-wcm", "1"], ["ES-ell", "1"]]),
+            [("ES-wcm", "1"), ("ES-ell", "1")],
+        ),
+        (
+            "search_method",
+            np.array([("ES-wcm", 1), ("ES-ell", 1)], dtype=object),
+            [("ES-wcm", 1), ("ES-ell", 1)],
+        ),
+        (
+            "search_acq_fcn",
+            np.array(["acq_LCB", None], dtype=object),
+            ("acq_LCB", None),
+        ),
+        ("search_acq_fcn", (np.array(["acq_LCB"]), None), ("acq_LCB", None)),
+    ],
+    ids=[
+        "array_name",
+        "string_array",
+        "object_array",
+        "acq_object_array",
+        "acq_array_name",
+    ],
+)
+def test_search_options_given_as_arrays_run_as_lists(name, value, as_list):
+    """A `search_method` or `search_acq_fcn` given as a NumPy array, or with
+    a NumPy array of one element for a name, which the searches compare as
+    they compare a string and 1.1.0 ran, runs as the same list does."""
+    bads = _bads_with_options({name: value, "max_fun_evals": 40})
+    result = bads.optimize()
+    reference = _bads_with_options({name: as_list, "max_fun_evals": 40})
+    reference_result = reference.optimize()
+    assert len(bads.optim_state["search_stats"]["success"]) > 0
+    np.testing.assert_array_equal(result["x"], reference_result["x"])
+    assert result["fval"] == reference_result["fval"]
+    assert result["func_count"] == reference_result["func_count"]
+
+
+@pytest.mark.parametrize(
     "search_acq_fcn",
-    ["acq_LCB", ("acq_LCB",), ("acq_EI", None), [None, None], 2.0],
-    ids=["string", "one_element", "another_name", "no_name", "number"],
+    [
+        "acq_LCB",
+        ("acq_LCB",),
+        ("acq_EI", None),
+        [None, None],
+        2.0,
+        (np.array(["acq_LCB", "acq_LCB"]), None),
+    ],
+    ids=[
+        "string",
+        "one_element",
+        "another_name",
+        "no_name",
+        "number",
+        "array_of_two_names",
+    ],
 )
 def test_search_acq_fcn_other_than_lcb_is_refused(search_acq_fcn):
     """`search_acq_fcn` is the pair ("acq_LCB", sqrt_beta), checked when

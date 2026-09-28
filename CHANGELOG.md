@@ -82,7 +82,7 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
   `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`,
   which stopped a 1.1.0 run at its first search, or at the first that chose
-  an unknown search (1.1.0 took a name given as a one-element NumPy array).
+  an unknown search.
 - The returned `total_time` and `overhead` are timed with
   `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
   no longer inflated by evaluations timed as 0.
@@ -238,9 +238,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `search_method` that is not a non-empty list of pairs (name, sum-rule
   flag), each name `"ES-wcm"` or `"ES-ell"`, and for a `search_acq_fcn` that
   is not a pair whose first element is `"acq_LCB"`, the only acquisition
-  function of the search. 1.1.0 stopped with `IndexError`, `TypeError` or
-  `ValueError` at the first search, or at the first that chose an unknown
-  search, and took a name given as a one-element NumPy array.
+  function of the search; 1.1.0 stopped with an error at the first search,
+  or at the first that chose an unknown search. A NumPy array, or a NumPy
+  array of one element for a name, is taken as the searches take it, as in
+  1.1.0.
 - **Cost of the optimization target.** The search no longer computes the
   optimization target, which MATLAB BADS computes at every search, where only
   acquisition functions that PyBADS does not have read it; PyBADS's only one,
