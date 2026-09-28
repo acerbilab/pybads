@@ -220,17 +220,6 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
   the passes have all landed (the review closed on 2026-09-28), so the
   rerun goes with the headless run of the examples before the release.
-- [ ] **Loose ends of the port review.** The PI ruled on the observations
-  that the reports and the fix agents made outside their findings
-  (2026-09-28), and each is fixed, documented or dropped, as the
-  consolidated ledger records
-  ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
-  "Open ends"), but one: W2-36's measurement. A noisy run's first
-  incumbent is the raw minimum of its initial design, a biased order
-  statistic, for two iterations, on both sides (`bads.m:1097`); the ruling
-  on W2-36 kept MATLAB's behaviour and allowed its measurement as a
-  separate step if W2-25 moved the noisy runs, which it did (KD-B2-7 of
-  `pybads/bads/README.md`). The PI asked for it on 2026-09-28.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).

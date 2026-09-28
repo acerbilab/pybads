@@ -206,6 +206,13 @@ reference's number of seeds.
   configurations at 90 seeds on Linux: no measurable effect on their
   errors, evaluations or fraction solved; the lower fraction solved of its
   30-seed gate belongs to those seeds.
+- [experiments/w236_linux_20260928/](experiments/w236_linux_20260928/README.md)
+  — row W2-36 of the port review (a noisy run's first incumbent is the raw
+  minimum of its initial design, as in MATLAB BADS) against the first
+  incumbent's value from the initial GP, the five noisy configurations at
+  90 seeds on Linux: no flag; the variant raises `sphere_D3_hetero`'s
+  fraction solved from 0.50 to 0.61 and changes each other configuration's
+  by at most one run.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the
