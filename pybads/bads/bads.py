@@ -415,32 +415,10 @@ class BADS:
                 "Periodic variables are not yet supported. Please set periodic_vars to None."
             )
 
-        # starting point
-        if not np.all(np.isfinite(self.x0)):
-            # Uniform in the transformed plausible box, as in MATLAB BADS
-            # (setupvars.m): log-uniform for a log-transformed variable. A
-            # start that violates non_box_cons is drawn again, up to 1000
-            # draws in all (MATLAB BADS refuses it, evalinitmesh.m)
-            var_transf = self._variable_transformer_()
-            for _ in range(1000):
-                u0 = self.rng.uniform(
-                    low=var_transf.plb,
-                    high=var_transf.pub,
-                    size=(1, self.D),
-                )
-                self.x0 = var_transf.inverse_transf(u0)
-                if non_box_cons is None or not np.any(
-                    non_box_cons(self.x0) > 0
-                ):
-                    break
-            self.logger.log(
-                25,
-                "Initial starting point is invalid or not provided."
-                + " Initial point randomly sampled uniformly from plausible box\n",
-            )
-
-        # evaluate  starting point non-bound constraint
-        if non_box_cons is not None:
+        # evaluate  starting point non-bound constraint (a missing or
+        # non-finite start is drawn in _init_optim_state_, where it is put on
+        # the mesh)
+        if non_box_cons is not None and np.all(np.isfinite(self.x0)):
             if non_box_cons(self.x0) > 0:
                 self.logger.error(
                     "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
@@ -762,24 +740,60 @@ class BADS:
         )
         optim_state["ub_search"] = ub_search
 
-        # Starting point in grid coordinates, gridization
-        u0 = force_to_grid(
-            grid_units(self.x0, self.var_transf, optim_state["scale"]),
-            optim_state["search_mesh_size"],
-        )
+        def start_on_mesh():
+            # Starting point in grid coordinates, gridization
+            u0 = force_to_grid(
+                grid_units(self.x0, self.var_transf, optim_state["scale"]),
+                optim_state["search_mesh_size"],
+            )
+            # Adjust points that fall outside bounds due to gridization
+            u0[u0 < self.lower_bounds] = (
+                u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
+            )
+            u0[u0 > self.upper_bounds] = (
+                u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
+            )
+            return u0
 
-        # Adjust points that fall outside bounds due to gridization
-        u0[u0 < self.lower_bounds] = (
-            u0[u0 < self.lower_bounds] + optim_state["search_mesh_size"]
-        )
-        u0[u0 > self.upper_bounds] = (
-            u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
-        )
+        def violates_non_box_cons(u0):
+            return self.non_box_cons is not None and np.any(
+                self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0
+            )
+
+        if not np.all(np.isfinite(self.x0)):
+            # A missing or non-finite start is drawn uniformly in the
+            # transformed plausible box and put on the mesh, as in MATLAB
+            # BADS (setupvars.m:83-85): log-uniform for a log-transformed
+            # variable. MATLAB BADS refuses a point on the mesh that violates
+            # non_box_cons (evalinitmesh.m:22-26); PyBADS draws again, up to
+            # 1000 draws in all
+            for _ in range(1000):
+                u_draw = self.rng.uniform(
+                    low=self.var_transf.plb,
+                    high=self.var_transf.pub,
+                    size=(1, self.D),
+                )
+                self.x0 = self.var_transf.inverse_transf(u_draw)
+                u0 = start_on_mesh()
+                if not violates_non_box_cons(u0):
+                    break
+            self.logger.log(
+                25,
+                "Initial starting point is invalid or not provided."
+                + " Initial point randomly sampled uniformly from plausible box\n",
+            )
+            if violates_non_box_cons(u0):
+                self.logger.error(
+                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                )
+                raise ValueError(
+                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                )
+        else:
+            u0 = start_on_mesh()
 
         # Check that the gridized points satisfies the non-bound constraints
-        if self.non_box_cons is not None and np.any(
-            self.non_box_cons(self.var_transf.inverse_transf(u0)) > 0
-        ):
+        if violates_non_box_cons(u0):
             self.logger.error(
                 """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
             )

@@ -405,9 +405,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
   which put most starting points in the upper decade of such a variable.
   With `non_box_cons`, a random starting point that violates the constraints
-  is drawn again, up to 1000 draws in all, before `BADS` raises
-  `ValueError`, where 1.1.0 and MATLAB BADS raise at the first; a run whose
-  first draw satisfies the constraints is unchanged. 1.1.0 refused a start
+  once it is put on the mesh, where they are tested, is drawn again, up to
+  1000 draws in all, before `BADS` raises `ValueError`, where 1.1.0 and
+  MATLAB BADS raise at the first; a run whose first draw satisfies the
+  constraints on the mesh is unchanged. 1.1.0 refused a start
   with an element of `inf` or `-inf` when the hard bound on that side was
   finite.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the

@@ -312,6 +312,47 @@ def test_random_x0_is_drawn_again_until_feasible(seed, first_draw_feasible):
     assert bads.rng.random() == rng.random()
 
 
+def _negative_on_mesh(x):
+    """Violated where the first coordinate is negative and on the initial
+    search mesh of the identity map of [-1, 1]^2, whose step is 2**-10: a
+    random draw is feasible as drawn, and the point on the mesh may not
+    be."""
+    x = np.atleast_2d(x)
+    on_mesh = np.isclose(
+        x[:, 0] * 2**10, np.round(x[:, 0] * 2**10), rtol=0, atol=1e-9
+    )
+    return (on_mesh & (x[:, 0] < 0)).astype(float)
+
+
+def test_random_x0_is_drawn_again_until_feasible_on_the_mesh():
+    """A missing `x0` is tested against `non_box_cons` once it is put on the
+    mesh, as MATLAB BADS tests its random start (`setupvars.m:83-85`,
+    `evalinitmesh.m:22-26`), and drawn again while that point violates it:
+    here the first draw is feasible as drawn and not on the mesh."""
+    seed = 2
+    rng = np.random.default_rng(seed)
+    draws = 0
+    while True:
+        u = rng.uniform(-1.0, 1.0, size=(1, 2))
+        draws += 1
+        if np.round(u[0, 0] * 2**10) / 2**10 >= 0:
+            break
+    assert draws > 1
+    bads = BADS(
+        _shifted_sphere,
+        None,
+        -2 * np.ones(2),
+        2 * np.ones(2),
+        -np.ones(2),
+        np.ones(2),
+        non_box_cons=_negative_on_mesh,
+        options={**OPTIONS, "random_seed": seed},
+    )
+    np.testing.assert_allclose(bads.x0, u, rtol=1e-12)
+    assert _negative_on_mesh(bads.optim_state["u"])[0] == 0
+    assert bads.rng.random() == rng.random()
+
+
 def test_random_x0_that_stays_infeasible_is_refused():
     """After 1000 draws that all violate `non_box_cons`, `BADS` raises."""
     with pytest.raises(ValueError, match="does not satisfy non-bound"):
