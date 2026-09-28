@@ -335,6 +335,8 @@ hashes of the same commit, and a recorded hash names its setting.
   the alignment of the arrays, so two runs of one seed need not match bit
   for bit, and a test that compares two runs exactly can fail without any
   unseeded draw (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
+  There a test compares two runs on what the seed alone decides, as
+  `_same` in `test_bads_seed.py` does, or checks its property directly.
   The tolerances of
   `test_bads_optimization.py` hold over a sweep of seeds, not only at the
   seed each test runs at: when a change that moves results fails one,

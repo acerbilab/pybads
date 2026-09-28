@@ -175,8 +175,9 @@ reference's number of seeds.
   — two runs of one seed need not match bit for bit on macOS arm64, where
   Accelerate's results depend on the alignment of the arrays: measured in
   CI on three NumPy and SciPy stacks against Linux, the first difference
-  located in gpyreg's triangular solve, and the output-function test
-  rewritten to check what the comparison stood for.
+  located in gpyreg's triangular solve; the output-function test rewritten
+  to check what the comparison stood for, and the seed tests comparing
+  there only what the seed decides.
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate
   takes its location with its value) against its revert, the five noisy

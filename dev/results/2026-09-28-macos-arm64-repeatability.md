@@ -84,7 +84,19 @@ so no stack of macOS arm64 is known to repeat. Nothing in PyBADS or gpyreg
 reads the clock, an object's identity or uninitialized memory in a way that
 changes a run: the traced runs repeat on Linux over every event.
 
-The test is now `test_output_fcn_alters_only_its_copy_of_optim_state`,
-which checks what the comparison of two runs stood for: the output
-function's changes, in place included, reach only its copy of
-`optim_state`, and the run ends on its budget.
+## What changed
+
+- The test is now `test_output_fcn_alters_only_its_copy_of_optim_state`,
+  which checks what the comparison of two runs stood for: the output
+  function's changes, in place included, reach only its copy of
+  `optim_state`, and the run ends on its budget.
+- The five tests of `test_bads_seed.py` that compare two seeded runs keep
+  their exact comparison of the whole log where runs repeat, and on macOS
+  arm64 compare the start and the initial design, the rows of the log
+  before the first Gaussian process (`optim_state["eff_starting_points"]`),
+  which the seed alone decides (the PI's choice, 2026-09-28, of three: that
+  comparison on every platform, or leaving the tests as they were).
+- The README, the documentation's index and the docstring of `BADS` say
+  that on Apple Silicon Macs two runs with the same seed can end at slightly
+  different points, where they said that a seeded run gives the same result
+  every time on the same machine.

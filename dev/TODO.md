@@ -98,19 +98,6 @@ decided on; "the next release" below means it.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-- [ ] **Seeded runs on macOS arm64.** On macOS arm64, where NumPy and
-  SciPy use Accelerate, results depend on the alignment of the arrays, so
-  two runs of one seed need not match bit for bit, in one process or in
-  two ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
-  Five tests of `test_bads_seed.py` (`test_seed_fixes_run`,
-  `test_seed_ignores_global_draws`, `test_seed_none_follows_global_seed`,
-  `test_seed_none_ignores_draws_after_construction`,
-  `test_seed_fixes_noisy_run`) compare the logs of two seeded runs exactly
-  and can fail there, as the output-function test of `test_run_control.py`
-  did before it was rewritten; `README.md` and `docsrc/source/index.rst`
-  say that a seeded run gives the same result every time on the same
-  machine. To decide: what those tests compare on that platform, and what
-  the documentation promises.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -149,8 +136,8 @@ decided on; "the next release" below means it.
   reproduce MATLAB's random stream) give. The population comparison of
   `dev/scripts/population.py` checks distributions, not trajectories,
   until then. A replay that compares trajectories bit for bit holds on
-  Linux and Windows but not on macOS arm64 (the item "Seeded runs on
-  macOS arm64").
+  Linux and Windows but not on macOS arm64
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
