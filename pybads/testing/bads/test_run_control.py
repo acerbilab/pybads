@@ -4,6 +4,7 @@ BADS has them: `output_fcn(x, optim_state, state)` is called at the start
 the run when it returns a true value; `iterations` counts from 1."""
 
 import logging
+import sys
 import threading
 
 import numpy as np
@@ -481,6 +482,39 @@ def test_result_keeps_the_callables_by_reference():
     assert result["fun"] is target
     assert result["fun"].__self__ is locked
     assert result["non_box_cons"] is locked
+
+
+def _noisy_sphere():
+    rng = np.random.default_rng(0)
+    return lambda x: _sphere(x) + rng.standard_normal()
+
+
+@pytest.mark.parametrize(
+    "make_fun, options",
+    [
+        (lambda: _sphere, {}),
+        (_noisy_sphere, {"uncertainty_handling": True}),
+    ],
+    ids=["deterministic", "noisy"],
+)
+def test_only_the_poll_updates_the_target(monkeypatch, make_fun, options):
+    """The optimization target is computed by the poll, which reads it, and
+    not by the search, whose acquisition function, the LCB, does not read it
+    (MATLAB BADS updates it at both, bads.m:539 and 841, for search
+    acquisition functions that PyBADS does not have)."""
+    callers = []
+    original = BADS._get_target_from_gp_
+
+    def target(self, *args, **kwargs):
+        callers.append(sys._getframe(1).f_code.co_name)
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(BADS, "_get_target_from_gp_", target)
+    bads = _make_bads(make_fun(), max_fun_evals=60, **options)
+    bads.optimize()
+    assert len(bads.optim_state["search_stats"]["success"]) > 0
+    assert len(callers) > 0
+    assert set(callers) == {"_poll_step_"}
 
 
 def test_run_with_certain_incumbent():

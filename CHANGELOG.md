@@ -228,6 +228,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   element is `"acq_LCB"`, the only acquisition function of the search; 1.1.0
   stopped with `IndexError` or `ValueError` at the first search, or at the
   first that chose an unknown search.
+- **Optimization target at the search.** The search no longer computes the
+  optimization target: MATLAB BADS computes it there for the search
+  acquisition functions that read it, and PyBADS's only one, the lower
+  confidence bound, does not. Each search saves a copy of the Gaussian
+  process and the computation of a posterior, and results are unchanged. The
+  target that `optim_state` holds, which `output_fcn` receives, is the last
+  poll's.
 
 ### Fixed
 

@@ -1993,15 +1993,10 @@ class BADS:
             self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting
 
-        # Update Target from GP prediction
-        f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
-            self.u_best, gp, self.best_gp_hyp
-        )
-        self.optim_state["f_target_mu"] = f_target_mu.item()
-        self.optim_state["f_target_s"] = (
-            f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
-        )
-        self.optim_state["f_target"] = f_target.item()
+        # MATLAB BADS updates the optimization target here (bads.m:539), for
+        # the search's acquisition functions that read it; the LCB, the only
+        # one that search_acq_fcn takes, does not, so the target is updated
+        # by the poll alone, before it reads it
 
         # Generate search set (normalized coordinate)
         self.optim_state["search_count"] += 1
