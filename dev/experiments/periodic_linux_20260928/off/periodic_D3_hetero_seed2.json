@@ -1,0 +1,91 @@
+{
+ "label": "periodic_D3_hetero",
+ "seed": 2,
+ "problem": "periodic",
+ "D": 3,
+ "noise": "hetero",
+ "unbounded": false,
+ "x0": [
+  5.879734385072162,
+  0.9214534309801722,
+  -0.6405358768451386
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "periodic_vars": null,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 2
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": true,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 2,
+  "display": "off",
+  "periodic_vars": null
+ },
+ "final": {
+  "x": [
+   2.0343701145838997,
+   0.49641056402967987,
+   0.45978546142578125
+  ],
+  "fval": 3.2752511139851523,
+  "fsd": 0.8589908385744182,
+  "true_error": 2.9459175293214517,
+  "func_count": 217,
+  "iterations": 15,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 4.598593685999731,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 2.840423009173321
+ },
+ "meta": {
+  "git": {
+   "sha": "66ef459c",
+   "dirty": true
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev55+g7c01d77e9",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "66ef459c",
+    "dirty": true
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "3f1a732",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T21:38:47+0000",
+  "finished": "2026-09-28T21:38:52+0000"
+ }
+}

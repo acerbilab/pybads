@@ -36,13 +36,13 @@ Envs: `/home/user/pybads/.venv`; gpyreg clones `/home/user/gpyreg` (work),
 
 ## C. Evidence
 - [x] C1 Periodic problems + `periodic` suite in [benchmark_targets.py](dev/scripts/benchmark_targets.py); [dev/README.md](dev/README.md) entry
-- [~] C2 Population, periodic on vs off (`--options '{"periodic_vars": null}'`), 30 seeds, Linux
-- [ ] C3 Results note in `dev/results/` + records in `dev/experiments/`
+- [x] C2 Population, periodic on vs off (`--options '{"periodic_vars": null}'`), 30 seeds, Linux
+- [x] C3 Results note in `dev/results/` + records in `dev/experiments/`
 
 ## D. Documentation (Opus sub-agent after B)
-- [~] D1 Option description ([advanced .ini](pybads/bads/option_configs/advanced_bads_options.ini)), `BADS` docstring
-- [~] D2 [FAQ](docsrc/source/faq.md): periodic answer, MATLAB-differences bullet
-- [~] D3 Example 6 notebook, generated script, docs toctree
+- [x] D1 Option description ([advanced .ini](pybads/bads/option_configs/advanced_bads_options.ini)), `BADS` docstring
+- [x] D2 [FAQ](docsrc/source/faq.md): periodic answer, MATLAB-differences bullet
+- [x] D3 Example 6 notebook, generated script, docs toctree
 - [x] D4 [CHANGELOG](CHANGELOG.md) (Added; Requirements/Upgrading for gpyreg); [catalogue](pybads/bads/README.md) KD-B1-6, KD-B1-5, open porting work
 - [x] D5 [TODO](dev/TODO.md) (porting gaps, gpyreg release, what's new), [ledger](dev/results/2026-09-28-port-correctness-review.md) (W3-35, W4-11, udist loose end), [AGENTS.md](AGENTS.md)
 
@@ -60,3 +60,8 @@ Envs: `/home/user/pybads/.venv`; gpyreg clones `/home/user/gpyreg` (work),
 - gpyreg minimum/pin and CHANGELOG "Requirements"/"Upgrading" line move at gpyreg's tag: recorded in [TODO](dev/TODO.md) "gpyreg releases after 1.3.3".
 - Examples toctree globs `_examples/*`: a new notebook needs no docs entry.
 - Tolerances of the two new tests in [test_bads_optimization.py](pybads/testing/bads/test_bads_optimization.py) are provisional until the seed sweep (B7).
+- gpyreg agent: 904 gpyreg tests pass; periods=None bit-identical (its hash over kernels/GP ops = main's). Open questions from it: version 1.3.4 vs 1.4.0; GP.__str__ does not show periods.
+- Fingerprint with gpyreg 3f1a732: `4146a986863602cb`; PyBADS suite 811 passed.
+- Sweep: test_periodic_opt max 1.6e-7 → 2e-6; test_noisy_periodic_opt max 1.28e-2 → 0.2.
+- Population (on vs off): deterministic 100% solved on (13-47% off); homo better; hetero errors equal (p=0.78), more evals; mid-period control: on ≥ off under noise. [experiments](dev/experiments/periodic_linux_20260928/README.md), [results](dev/results/2026-09-28-periodic-variables.md).
+- Docs agent: FAQ, .ini, Example 6 (seed 0: fval 8.9e-6, 185 evals), SKILL.md row; Makefile needs IPython (noted).

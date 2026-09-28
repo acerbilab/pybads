@@ -1,0 +1,103 @@
+{
+ "label": "periodic_D6",
+ "seed": 4,
+ "problem": "periodic",
+ "D": 6,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  5.677108273202518,
+  1.5116509829424885,
+  6.246004534984466,
+  3.184916498751818,
+  2.8813565337310765,
+  -3.983193382120752
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "periodic_vars": [
+   0,
+   1,
+   2
+  ],
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 4
+ },
+ "effective_options": {
+  "max_fun_evals": 3000,
+  "max_iter": 1200,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 7,
+  "n_train_min": 50,
+  "n_train_max": 110,
+  "random_seed": 4,
+  "display": "off",
+  "periodic_vars": [
+   0,
+   1,
+   2
+  ]
+ },
+ "final": {
+  "x": [
+   0.07704139503476881,
+   0.2330677580933509,
+   0.20882532961318345,
+   -1.197249976457897,
+   -0.9861532557624741,
+   -1.5282257853004921
+  ],
+  "fval": 1.0587232478017393e-08,
+  "fsd": 0.0,
+  "true_error": 1.0587232478017393e-08,
+  "func_count": 221,
+  "iterations": 13,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 4.277407619999849,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "66ef459c",
+   "dirty": true
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev55+g7c01d77e9",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "66ef459c",
+    "dirty": true
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "3f1a732",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T21:27:17+0000",
+  "finished": "2026-09-28T21:27:22+0000"
+ }
+}

@@ -239,7 +239,10 @@ decided on; "the next release" below means it.
     run with periodic variables stops with `TypeError` when its GP is
     built, and the tests of periodic variables fail under the CI pin. The
     changelog's entry "Requirements" and the line of "Upgrading from
-    1.1.0" name the new minimum;
+    1.1.0" name the new minimum. The default suites do not reach the
+    periods, so the release's comparison also runs the `periodic` suite
+    against the "on" arm of
+    [experiments/periodic_linux_20260928/](experiments/periodic_linux_20260928/README.md);
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on

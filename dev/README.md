@@ -181,6 +181,14 @@ reference's number of seeds.
   located in gpyreg's triangular solve; the output-function test rewritten
   to check what the comparison stood for, and the seed tests comparing
   there only what the seed decides.
+- [Periodic variables](results/2026-09-28-periodic-variables.md) — the
+  port of `periodic_vars` for 1.5: the PI's decisions (the length scale in
+  the units of the other variables, `periods` on gpyreg's ARD kernels),
+  runs without periodic variables unchanged, and the `periodic` suite with
+  and without the option on Linux, with a control under noise. Its
+  evidence, also the reference of the `periodic` suite on Linux (gpyreg at
+  `3f1a732`, before its release):
+  [experiments/periodic_linux_20260928/](experiments/periodic_linux_20260928/README.md).
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate
   takes its location with its value) against its revert, the five noisy

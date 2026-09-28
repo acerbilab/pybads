@@ -1,0 +1,4 @@
+periodic_D3_hetero   on  periodic part median 0.107 [0.0325, 0.188]  non-periodic median 0.0164 [0.0025, 0.0931]  evals 374
+periodic_D3_hetero   off periodic part median 0.082 [0.082, 0.082]  non-periodic median 0.0171 [0.00613, 0.0733]  evals 310
+periodic_D3_homo     on  periodic part median 0.0171 [0.0113, 0.0242]  non-periodic median 0.00312 [0.00117, 0.0168]  evals 359
+periodic_D3_homo     off periodic part median 0.082 [0.082, 0.082]  non-periodic median 0.00535 [0.000376, 0.0179]  evals 207
