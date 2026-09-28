@@ -101,7 +101,8 @@ decided on; "the next release" below means it.
   1.5" replaces it, and says that `random_seed` now decides the initial
   design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck"). At the same release, `skills/pybads/SKILL.md` and the
+  "Doublecheck"), and that periodic variables (`periodic_vars`, Example
+  6) are supported. At the same release, `skills/pybads/SKILL.md` and the
   FAQ (`docsrc/source/faq.md`), which name no release, name 1.5, as
   PyVBMC's skill and FAQ do. The published documentation follows `main`,
   so until that release the FAQ describes code that no release has, among
@@ -137,12 +138,9 @@ decided on; "the next release" below means it.
   One stage is measured: the failed tries of the refits take 9% of the
   deterministic runs' time over four suites, 42% of `ellipsoid_D3`'s
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)).
-- [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
-  variables, benchmarking on neurobench). A port of periodic variables also
-  assigns `period_check`'s result at every call site, as MATLAB BADS does,
-  where the poll discards it, and gives the initial design `optim_state`'s
-  boolean mask of the periodic variables, where it passes the option, a
-  list of indices (rows W3-35 and W4-11 of the port review).
+- [ ] **Benchmarking on neurobench**, the open porting work listed in
+  `pybads/bads/README.md`: PyBADS on cognitive and neural science models
+  ([neurobench](https://github.com/lacerbi/neurobench)).
 - [ ] **Prior evaluations (`fun_values`).** MATLAB BADS imports
   evaluations made before the run into its log and its GP
   (`private/setupvars.m:126-167`, `private/funlogger.m`) and takes its
@@ -231,6 +229,17 @@ decided on; "the next release" below means it.
   move is a change for users: an entry in `CHANGELOG.md` and a line in its
   "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
   (PI, 2026-09-28), which is to hold:
+  - `periods` on the ARD kernels (`SquaredExponential`, `Matern`,
+    `RationalQuadraticARD`), on gpyreg's branch
+    `claude/todo-discussion-q8c9im`, which PyBADS's `periodic_vars` needs:
+    `_gp_periods` passes them to the kernel of a run with periodic
+    variables, and a run without them builds its kernel as before, so the
+    comparison of this release is expected to flag nothing. The move is
+    therefore required for 1.5.0, not only allowed: under gpyreg 1.3.3 a
+    run with periodic variables stops with `TypeError` when its GP is
+    built, and the tests of periodic variables fail under the CI pin. The
+    changelog's entry "Requirements" and the line of "Upgrading from
+    1.1.0" name the new minimum;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on

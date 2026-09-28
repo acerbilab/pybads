@@ -25,7 +25,6 @@ feature*.
 
 ## Open porting work
 
-* Support for periodic variables (KD-B1-6).
 * Benchmark PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
 
@@ -150,24 +149,58 @@ of them in 1.1.0), are not options of PyBADS: setting one raises
 a branch that does nothing or refuses: `plot` (KD-B2-2), `restarts`
 (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3),
 `gp_cov_prior` (KD-B6-7), `fitness_shaping` (KD-B5-5), `hessian_update`
-and `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4),
-`periodic_vars` (KD-B1-6), an `init_fun` other than `"init_sobol"`
-(KD-B7-2).
+and `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4), an
+`init_fun` other than `"init_sobol"` (KD-B7-2).
 - Settled by: W1-33, W2-35; the PI's ruling at the close of the review
   (the removal of the leftovers). Kind: removed feature.
 
-**KD-B1-6. Periodic variables are not supported.**
-MATLAB BADS wraps a periodic variable into its range and uses a periodic
-kernel. PyBADS refuses any `periodic_vars` that names a variable, before
-its first transform of the variables; an empty one names none, as in
-MATLAB BADS. `period_check` is a stub, and the periodic branches of
-`udist`, `ucov` and the transform cannot be reached.
-- PyBADS: `BADS.__init__`; `pybads/utils/period_check.py`.
-- MATLAB: `bads.m:152`; `private/setupvars.m:49-57`, `107-116`;
-  `utils/periodCheck.m`; `gpdef/gpdefBads.m:58-81`, `277-284`;
-  `utils/udist.m`; `utils/ucov.m`; `gpml_fast/covPPERard_fast.m`.
-- Settled by: the ruling on `periodic_vars` in wave 4. Kind: unported
-  feature (open porting work, above).
+**KD-B1-6. Periodic variables: indices from 0, a kernel in the units of the others, and a second wrap after the grid.**
+As in MATLAB BADS, the hard bounds of a periodic variable, which must be
+finite, are its period, and the variable is never taken to log
+coordinates. Every point that the initial design, the search (each
+generation of the ES search) and the poll propose is wrapped into
+`[lb, ub)`; the distances of `udist` and the ES-wcm covariance of `ucov`
+take a periodic difference the shorter way round; and the GP's kernel is
+periodic along the variable, with its period fixed. PyBADS differs in
+three ways:
+- `periodic_vars` takes indices from 0, as any Python index, where
+  `PeriodicVars` takes MATLAB's from 1; a boolean mask, a repeated index or
+  one out of range is refused.
+- gpyreg's ARD kernels take the periods (`periods`) and replace a periodic
+  squared difference `d**2` by the squared chord `(p/pi)**2 *
+  sin(pi*d/p)**2`, which matches `d**2` at short range: a periodic length
+  scale is in the units of the others, takes their prior and bounds, and
+  enters `len_scale` and `poll_scale` as they do. MATLAB's
+  `covPPERard_fast` maps the variable onto the unit circle,
+  `(sin(2*pi*x/p), cos(2*pi*x/p))`, so that its length scale is in
+  radians. `gpdefBads.m` shifts the centre of its prior by `-log(p)`, with
+  the `+ log(2*pi)` that would complete the change of units commented out,
+  which centres the length scale in the variable's units `2*pi` times
+  shorter than an ordinary one's. `gpupdate.m` then uses the length scale
+  in radians unconverted in `udist` and `pollscale`, where it is `pi` times
+  the length in the variable's units when the period is 2, as it is for a
+  variable whose plausible bounds are its hard bounds.
+- A point moved to the search grid, which can take a periodic coordinate
+  to its upper bound or past a bound, is wrapped again, so that a point on
+  the upper bound becomes the same point on the lower one, and the removal
+  of the points already evaluated finds it there. MATLAB BADS wraps only
+  before the grid, and projects a point past a bound onto it.
+- PyBADS: `BADS._check_periodic_vars_`, `_init_optim_state_`,
+  `_init_mesh_`, `_search_step_` and `_poll_step_`;
+  `pybads/utils/period_check.py`; `udist`
+  (`pybads/search/grid_functions.py`); `ucov` and `ESSearch.__call__`
+  (`pybads/search/es_search.py`); `_gp_periods`
+  (`pybads/bads/gaussian_process_train.py`); gpyreg's
+  `SquaredExponential`, `Matern` and `RationalQuadraticARD` (`periods`).
+- MATLAB: `bads.m:152`, `552`, `807`; `private/setupvars.m:49-57`,
+  `107-116`; `private/evalinitmesh.m:106-107`; `search/searchES.m:127-128`;
+  `utils/periodCheck.m`; `utils/udist.m`; `utils/ucov.m`;
+  `gpdef/gpdefBads.m:58-81`, `277-284`; `private/gpupdate.m:284-308`;
+  `gpml_fast/covPPERard_fast.m`.
+- Settled by: the PI's rulings of 2026-09-28 (the port, for 1.5; the
+  length scale in the units of the other variables; `periods` on gpyreg's
+  ARD kernels); W3-35 and W4-11, the call sites of `period_check`. Kind:
+  deliberate change.
 
 **KD-B1-7. Fixed variables are refused.**
 A variable whose bounds are all equal makes PyBADS raise `ValueError`;

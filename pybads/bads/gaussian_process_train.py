@@ -95,9 +95,9 @@ def init_and_train_gp(
     # Pick the mean function
     mean_f = _meanfun_name_to_mean_function(optim_state["gp_mean_fun"])
 
-    # Pick the covariance function.
+    # Pick the covariance function, periodic along the periodic variables
     covariance_f = _cov_identifier_to_covariance_function(
-        optim_state["gp_cov_fun"]
+        optim_state["gp_cov_fun"], _gp_periods(optim_state)
     )
 
     # Pick the noise function.
@@ -384,7 +384,9 @@ def local_gp_fitting(
             (cov_mu, cov_sigma),
         )
 
-    # TODO Adjust prior length scales for periodic variables (mapped to unit circle)
+    # A periodic length scale is in the units of the others (_gp_periods),
+    # so it takes the same prior, where MATLAB's gpdefBads.m shifts it for
+    # its kernel on the unit circle
 
     # Empirical prior on covariance signal variance ((output scale), at the
     # log of the targets' SD normalized by N - 1, as MATLAB's std. A single
@@ -871,7 +873,30 @@ def _get_samples_from_slice_sampler_(
     return new_hyp
 
 
-def _cov_identifier_to_covariance_function(identifier):
+def _gp_periods(optim_state: dict):
+    """
+    The periods of the GP's kernel: along a periodic variable, the width of
+    its bounds in the transformed space, where the GP works, and ``inf``
+    along the others; ``None`` when no variable is periodic.
+
+    The kernel measures a periodic difference by its chord on a circle of
+    that circumference, which matches the difference at short range, so
+    that a periodic length scale is in the units of the others, and takes
+    the same prior and bounds. MATLAB BADS's kernel maps the variable onto
+    the unit circle instead, and shifts the prior of its length scale by
+    the log of the period (``gpdef/gpdefBads.m``; KD-B1-6 in
+    ``pybads/bads/README.md``).
+    """
+    periodic = np.ravel(optim_state["periodic_vars"]).astype(bool)
+    if not np.any(periodic):
+        return None
+    periods = np.full(periodic.size, np.inf)
+    width = np.ravel(optim_state["ub"]) - np.ravel(optim_state["lb"])
+    periods[periodic] = width[periodic] / optim_state["scale"]
+    return periods
+
+
+def _cov_identifier_to_covariance_function(identifier, periods=None):
     """
     Transforms a covariance function identifer to an instance of the
     corresponding covariance function.
@@ -882,6 +907,10 @@ def _cov_identifier_to_covariance_function(identifier):
         Either an integer, or a list such as [3, 3] where the first
         number is the identifier and the further numbers are parameters
         of the covariance function.
+    periods : np.ndarray, optional
+        The periods of the kernel along each variable, ``inf`` along one
+        that is not periodic (``_gp_periods``). If ``None`` (default), the
+        kernel is not periodic.
 
     Returns
     =======
@@ -893,14 +922,15 @@ def _cov_identifier_to_covariance_function(identifier):
     ValueError
         Raised when the covariance function identifier is unknown.
     """
+    kwargs = {} if periods is None else {"periods": periods}
     if identifier == 1:
-        cov_f = gpr.covariance_functions.RationalQuadraticARD()
+        cov_f = gpr.covariance_functions.RationalQuadraticARD(**kwargs)
     elif identifier == 2:
-        cov_f = gpr.covariance_functions.SquaredExponential()
+        cov_f = gpr.covariance_functions.SquaredExponential(**kwargs)
     elif identifier == 3:
-        cov_f = gpr.covariance_functions.Matern(5)
+        cov_f = gpr.covariance_functions.Matern(5, **kwargs)
     elif isinstance(identifier, list) and identifier[0] == 3:
-        cov_f = gpr.covariance_functions.Matern(identifier[1])
+        cov_f = gpr.covariance_functions.Matern(identifier[1], **kwargs)
     else:
         raise ValueError("Unknown covariance function")
 

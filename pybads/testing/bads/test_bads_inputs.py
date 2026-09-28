@@ -994,28 +994,104 @@ def test_accelerate_mesh_steps_takes_an_integer_beyond_64_bits():
     assert type(bads.options["accelerate_mesh_steps"]) is int
 
 
+def _bads_with_periodic_vars(periodic_vars, x0=None, lb=None, ub=None):
+    D = 3
+    lb = -5 * np.ones(D) if lb is None else lb
+    ub = 5 * np.ones(D) if ub is None else ub
+    return BADS(
+        _quadratic,
+        x0,
+        lb,
+        ub,
+        -3 * np.ones(D),
+        3 * np.ones(D),
+        options={**OPTIONS, "periodic_vars": periodic_vars},
+    )
+
+
 @pytest.mark.parametrize(
-    "x0", [np.array([0.5, 0.0]), None], ids=["x0", "random_x0"]
+    "x0", [np.array([0.5, 0.0, 1.0]), None], ids=["x0", "random_x0"]
 )
-@pytest.mark.parametrize("periodic_vars", [[1], [5]], ids=["index", "out"])
-def test_periodic_vars_is_refused(x0, periodic_vars):
-    """Periodic variables are not supported yet: a `periodic_vars` that
-    names a variable is refused with `ValueError` when `BADS` is created,
-    before the variables are transformed, also with a random `x0`, whose
-    draw transforms them, and for an index out of range, which raised
-    `IndexError` there."""
-    with pytest.raises(
-        ValueError, match="Periodic variables are not yet supported"
-    ):
-        BADS(
-            _quadratic,
-            x0,
-            -5 * np.ones(2),
-            5 * np.ones(2),
-            -3 * np.ones(2),
-            3 * np.ones(2),
-            options={**OPTIONS, "periodic_vars": periodic_vars},
-        )
+@pytest.mark.parametrize(
+    "periodic_vars",
+    [[2, 0], (0, 2), np.array([2, 0]), np.array([0, 2], dtype=np.uint8)],
+    ids=["list", "tuple", "array", "uint8"],
+)
+def test_periodic_vars_are_indices(x0, periodic_vars):
+    """`periodic_vars` takes the 0-based indices of the periodic variables,
+    in any order, and stores them sorted; `optim_state` holds their mask."""
+    bads = _bads_with_periodic_vars(periodic_vars, x0)
+    assert bads.options["periodic_vars"] == [0, 2]
+    assert all(type(i) is int for i in bads.options["periodic_vars"])
+    assert bads.optim_state["periodic_vars"].tolist() == [[True, False, True]]
+
+
+@pytest.mark.parametrize("periodic_vars", [1, np.int64(1)])
+def test_periodic_vars_takes_one_index(periodic_vars):
+    """A single index, a Python or NumPy integer, names one variable."""
+    bads = _bads_with_periodic_vars(periodic_vars)
+    assert bads.options["periodic_vars"] == [1]
+
+
+@pytest.mark.parametrize(
+    "x0", [np.array([0.5, 0.0, 1.0]), None], ids=["x0", "random_x0"]
+)
+@pytest.mark.parametrize(
+    "periodic_vars, match",
+    [
+        ([3], "outside 0 to D - 1 = 2"),
+        ([-1], "outside 0 to D - 1 = 2"),
+        ([1, 1], "more than once"),
+        ([True], "list of the indices"),
+        (np.array([True, False, True]), "list of the indices"),
+        ([0.0], "list of the indices"),
+        ("1", "list of the indices"),
+        ([[0, 1]], "list of the indices"),
+    ],
+    ids=[
+        "out",
+        "negative",
+        "repeated",
+        "bool",
+        "mask",
+        "float",
+        "string",
+        "2d",
+    ],
+)
+def test_periodic_vars_refused(x0, periodic_vars, match):
+    """A `periodic_vars` that is not a list of distinct indices from 0 to
+    `D - 1` is refused with `ValueError` when `BADS` is created, before the
+    variables are transformed, also with a random `x0`, whose draw
+    transforms them. A boolean mask is refused rather than read as the
+    indices 0 and 1."""
+    with pytest.raises(ValueError, match=match):
+        _bads_with_periodic_vars(periodic_vars, x0)
+
+
+def test_periodic_vars_need_finite_bounds():
+    """The hard bounds of a periodic variable set its period, and must be
+    finite, as in MATLAB BADS."""
+    lb = np.array([-5.0, -np.inf, -5.0])
+    with pytest.raises(ValueError, match=r"variables \[1\] .* not finite"):
+        _bads_with_periodic_vars([0, 1], np.array([0.5, 0.0, 1.0]), lb=lb)
+
+
+def test_periodic_vars_never_log_transformed():
+    """A periodic variable stays in linear coordinates, where its period is
+    the width of its bounds, even when its bounds would take it to log
+    coordinates, as in MATLAB BADS (`setupvars.m`)."""
+    D = 2
+    bads = BADS(
+        _quadratic,
+        np.array([2.0, 2.0]),
+        1e-3 * np.ones(D),
+        1e3 * np.ones(D),
+        1e-2 * np.ones(D),
+        1e2 * np.ones(D),
+        options={**OPTIONS, "periodic_vars": [1]},
+    )
+    assert bads.var_transf.apply_log_t.ravel().tolist() == [True, False]
 
 
 @pytest.mark.parametrize(

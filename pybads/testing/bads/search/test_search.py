@@ -19,7 +19,7 @@ from pybads.function_logger import FunctionLogger, contraints_check
 from pybads.function_logger.constraints_check import _lexsort_rows
 from pybads.rounding import round_half_away
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
-from pybads.search.grid_functions import force_to_grid
+from pybads.search.grid_functions import force_to_grid, udist
 from pybads.search.search_hedge import ESSearchHedge
 
 
@@ -197,6 +197,71 @@ def test_u_cov():
     w = np.array([0.4563, 0.2708, 0.1622, 0.0852, 0.0255])
     C = ucov(U, u0, w, ub, lb, 1)
     assert C.shape == (U.shape[1], U.shape[1])
+
+
+def _brute_udist(U, u2, len_scale, lb, ub, mask):
+    """Squared distances, the periodic differences the shorter way round,
+    one pair at a time."""
+    period = (ub - lb).ravel()
+    out = np.zeros((U.shape[0], u2.shape[0]))
+    for i, a in enumerate(U):
+        for j, b in enumerate(u2):
+            d = np.abs(a - b)
+            d[mask] = np.minimum(d[mask], period[mask] - d[mask])
+            out[i, j] = np.sum((d / len_scale) ** 2)
+    return out
+
+
+def test_udist_periodic_takes_the_shorter_way_round():
+    """Along a periodic variable `udist` takes each difference the shorter
+    way round the period, per coordinate, in units of the length scales,
+    as MATLAB's udist.m; the other coordinates are as without periodic
+    variables."""
+    rng = np.random.default_rng(0)
+    lb = np.array([[-1.0, -3.0, -2.0]])
+    ub = np.array([[1.0, 3.0, 2.0]])
+    mask = np.array([True, False, True])
+    U = rng.uniform(lb, ub, size=(7, 3))
+    u2 = rng.uniform(lb, ub, size=(4, 3))
+    len_scale = np.array([0.5, 2.0, 1.5])
+    dist = udist(U, u2, len_scale, lb, ub, 1.0, mask[None, :])
+    np.testing.assert_allclose(
+        dist, _brute_udist(U, u2, len_scale, lb, ub, mask), rtol=1e-12
+    )
+    # Two points close across the bounds are close
+    a = np.array([[-0.95, 0.0, 1.9]])
+    b = np.array([[0.95, 0.0, -1.9]])
+    np.testing.assert_allclose(
+        udist(a, b, 1, lb, ub, 1.0, mask[None, :]), [[0.1**2 + 0.2**2]]
+    )
+    # Without periodic variables, the plain squared distances
+    np.testing.assert_allclose(
+        udist(U, u2, len_scale, lb, ub, 1.0, np.zeros((1, 3), dtype=bool)),
+        _brute_udist(U, u2, len_scale, lb, ub, np.zeros(3, dtype=bool)),
+        rtol=1e-12,
+    )
+
+
+def test_ucov_periodic_shifts_the_shorter_way_round():
+    """`ucov` takes a periodic coordinate relative to the centre, the
+    shorter way round its period, as MATLAB's ucov.m: points that lie close
+    to the centre across the bounds give the covariance of the same points
+    unwrapped."""
+    lb = np.array([[-1.0, -4.0]])
+    ub = np.array([[1.0, 4.0]])
+    u0 = np.array([[0.95, 0.5]])
+    offsets = np.array([[0.1, 0.2], [-0.05, -0.3], [0.2, 0.1]])
+    w = np.array([0.5, 0.3, 0.2])
+    unwrapped = u0 + offsets
+    wrapped = unwrapped.copy()
+    wrapped[:, 0] = np.where(
+        wrapped[:, 0] >= 1.0, wrapped[:, 0] - 2.0, wrapped[:, 0]
+    )
+    C_periodic = ucov(wrapped, u0, w, ub, lb, 1, np.array([[True, False]]))
+    C_plain = ucov(unwrapped, u0, w, ub, lb, 1)
+    np.testing.assert_allclose(C_periodic, C_plain, rtol=1e-12, atol=1e-15)
+    # The centre itself is left as it was
+    np.testing.assert_array_equal(u0, [[0.95, 0.5]])
 
 
 def test_grid_search_neighbors():

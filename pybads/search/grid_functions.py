@@ -54,31 +54,44 @@ def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):
 
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     """
+    Squared distances between the rows of ``U`` and of ``u2``, in units of
+    ``len_scale``, as MATLAB BADS's ``udist``.
+
+    Along a periodic variable the difference is taken the shorter way round
+    its period, ``(ub - lb) / bound_scale``.
 
     Parameters
-    --------
+    ----------
+    U : np.ndarray
+        The points, of shape ``(N, D)``.
+    u2 : np.ndarray
+        The points, of shape ``(M, D)``, or one point of shape ``(D,)``.
+    len_scale : float or np.ndarray
+        The length scale, one for all the variables or one per variable.
+    lb, ub : np.ndarray
+        The bounds, of shape ``(1, D)`` or ``(D,)``, which set the period of
+        a periodic variable.
+    bound_scale : float
+        The scale of the grid (``optim_state["scale"]``).
+    periodic_vars : np.ndarray or None
+        The boolean mask of the periodic variables, of shape ``(1, D)`` or
+        ``(D,)``, or ``None``.
 
-    periodic_vars: bool array
+    Returns
+    -------
+    dist : np.ndarray
+        The squared distances, of shape ``(N, M)``.
     """
-    idx_periods = np.nonzero(periodic_vars)[0]
-    if len(idx_periods) > 0:
-        # Can be improved by using cdist, but we have to be careful with the
-        # scaling and
+    if periodic_vars is not None and np.any(periodic_vars):
+        mask = np.ravel(periodic_vars).astype(bool)
         A = np.atleast_2d(U)
         B = np.atleast_2d(u2)
-        A2 = np.sum(A**2, axis=-1)
-        B2 = np.sum(B**2, axis=-1)
-        diff = A2[:, None] - 2 * A @ B.T + B2[None, :]
-
-        w_s = (ub - lb) / bound_scale  # scaled width
-        diff[idx_periods] = np.minimum(
-            np.abs(diff[idx_periods]),
-            np.sum(np.atleast_2d(w_s) - np.abs(diff)[idx_periods], axis=-1)
-            ** 2,
-        )
-
-        diff = diff / (len_scale) ** 2
-        return diff
+        # The differences of every pair, shape (N, M, D)
+        diff = np.abs(A[:, None, :] - B[None, :, :])
+        period = (np.ravel(ub) - np.ravel(lb))[mask] / bound_scale
+        wrapped = np.mod(diff[:, :, mask], period)
+        diff[:, :, mask] = np.minimum(wrapped, period - wrapped)
+        return np.sum((diff / np.ravel(len_scale)) ** 2, axis=2)
 
     else:
         dist = cdist(

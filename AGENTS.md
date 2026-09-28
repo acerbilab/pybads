@@ -183,7 +183,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **Two coordinate spaces.** The algorithm runs in `u` space, where
   `VariableTransformer` maps the plausible box to `[-1, 1]^D` (with a log
   transform for a variable whose bounds are all positive and whose
-  `pub/plb >= 10`); the target and `non_box_cons` see the original space.
+  `pub/plb >= 10`, unless it is periodic); the target and `non_box_cons`
+  see the original space.
   After `_init_optim_state_`, `self.lower_bounds` and its siblings hold the
   transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
@@ -196,6 +197,17 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   scales the distances of `udist` (the neighbours of the local training
   set, the length of a search's step), and `effective_radius` the radius
   of the training set.
+- **Periodic variables** (`periodic_vars`, stored as a sorted list of
+  indices; `optim_state["periodic_vars"]` is their `(1, D)` mask) wrap
+  around their hard bounds, in `u` space. Code that proposes points wraps
+  them with `period_check` before and after `force_to_grid`: the initial
+  design (`_init_mesh_`), the search set (`_search_step_`), each
+  generation of the ES search (`ESSearch.__call__`) and the poll
+  (`_poll_step_`); a new source of candidates needs the same. `udist` and
+  `ucov` take a periodic difference the shorter way round, and the GP's
+  kernel takes the periods from `_gp_periods` (gpyreg's `periods`), only
+  in a run that has periodic variables, so that other runs build their
+  kernel as before.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -220,7 +232,7 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   descriptions that say so; an option that no code reads and that MATLAB
   BADS does not have is removed rather than kept. The GP's kernel is a
   hard-coded rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] =
-  1`), a few options are read only by code that no run reaches (KD-B1-4 in
+  1`), periodic along the periodic variables, a few options are read only by code that no run reaches (KD-B1-4 in
   `pybads/bads/README.md`), and
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.

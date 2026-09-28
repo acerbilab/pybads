@@ -304,7 +304,7 @@ histories and the gate.
 | W3-32 | B4 | A successful poll appends a bound method | no longer holds (W0-16) | the survey's row corrected | — |
 | W3-33 | B4 | After a re-estimate that moves nothing, `optim_state` keeps older values | confirmed, inert | kept in step (KD-B2-9) | `43ee8ed` (#77) |
 | W3-34 | B4 | `np.vstack(u_poll, u_poll_new)` would raise in a branch that cannot run | confirmed, inert | the branch removed | `01ee524` (#77) |
-| W3-35 | B4 | The poll discards `period_check`'s result | confirmed, inert | kept until periodic variables are ported | `TODO.md`, "Porting gaps" |
+| W3-35 | B4 | The poll discards `period_check`'s result | confirmed, inert | kept until periodic variables are ported; the port (PI, 2026-09-28, for 1.5) assigns it (KD-B1-6) | the port of periodic variables |
 | W3-36 | B4 | `u_base` is computed and never used | confirmed, inert | removed | `e4b3bca` (#77) |
 | W3-37 | B4 | The accelerated mesh reduction tested from the wrong iteration | no longer holds (W2-29) | none | — |
 | W3-38 | B4 | Under `stobads`, a NaN estimate counts as uncertain | no longer holds (W0-11) | the survey's row corrected | — |
@@ -330,7 +330,7 @@ KD-B3-3), both by the PI's rulings.
 | W4-8 | B7 | A malformed SD or a complex value does not raise the documented `ValueError` before the row is written | port discrepancy (minor) | fixed | `5dd92b7` (#80) |
 | W4-9 | B7 | `finalize` trims every array but `n_evals`, and `reset_fun_eval_time` has no caller | confirmed, inert | fixed | `29a258a` (#80) |
 | W4-10 | B7 | The logger's docstrings omit that `x` is in `u` space; `add`, which nothing calls, keeps checks of its own | confirmed, inert | docstrings corrected; `add` settled with the port of `fun_values` | `4ea665a` (#80); `TODO.md`, "Prior evaluations (`fun_values`)." |
-| W4-11 | B7 | The poll discards `period_check`'s result, and the design takes the option's indices where the others take a mask | confirmed, inert (as W3-35) | kept until periodic variables are ported | `TODO.md`, "Porting gaps" |
+| W4-11 | B7 | The poll discards `period_check`'s result, and the design takes the option's indices where the others take a mask | confirmed, inert (as W3-35) | kept until periodic variables are ported; the port gives every site the mask (KD-B1-6) | the port of periodic variables |
 | W4-12 | B7 | The log grows when full, where MATLAB's is a ring of `CacheSize` rows that never writes its last row | intentional difference, missing from the sheet | kept (KD-B7-4); the description of `cache_size` corrected; MATLAB's ring in `matlab_side_defects.md` | `f1247d0` (#80) |
 | W4-13 | B7 | The noise test's second value goes through the logger's checks, where MATLAB reads NaN as deterministic and infinity as noisy | port discrepancy (benign) | kept (KD-B7-5) | `a84a3dd` (#80), the sheet |
 | W4-14 | B7 | A noisy run that ends in its first iteration takes none of its reserved final samples, as MATLAB's, over more budgets | shared defect, widened by the design's size | fixed, option (a): the samples taken at the incumbent (KD-B2-8); `matlab_side_defects.md` | `b61a880` (#80) |
@@ -402,7 +402,6 @@ items that a ruling left to later work are held by these items of
 | `TODO.md` item | Rows and items |
 |---|---|
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
-| "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
 | "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
@@ -439,8 +438,9 @@ docstrings and descriptions of the fix passes; the ones below held at
 default run.
 
 - ES-ell ignores the sum-rule flag of an entry of `search_method`, which
-  only ES-wcm reads (non-default); `udist`'s periodic branch indexes the
-  distance matrix's rows by variable (unreachable, KD-B1-6); the search
+  only ES-wcm reads (non-default); `udist`'s periodic branch indexed the
+  distance matrix's rows by variable (unreachable then; the port of
+  periodic variables rewrote it, KD-B1-6); the search
   step counts the points of the log, where MATLAB counts the GP's training
   set, equal in practice (wave 3, "Found while verifying").
 - A 4-D ridge started on its valley stalls at `x0`, since the only descent

@@ -38,6 +38,19 @@ with ``z = x - c``:
                    plausible box ``[1e-2, 1e2]``, all positive with
                    ``pub / plb >= 10``, so that BADS works on it in log
                    coordinates
+``periodic``       ``sum(2 * (1 - cos(z_i)))`` over the first ``ceil(D/2)``
+                   variables, periodic (``periodic_vars``) on the hard
+                   bounds ``[0, 2 pi)``, which are also their plausible
+                   bounds, plus ``sum(z_j**2)`` over the others, on the
+                   shifted box; the minimum of each periodic variable lies
+                   within 0.3 of its bounds, on one side of them or the
+                   other, so that a run reaches it across the bounds
+``periodic_rosenbrock``  MATLAB BADS's ``bads_examples.m``, Example 5, at
+                   D = 4: Rosenbrock's function of ``x_1, x_2`` plus
+                   ``cos(pi x_3 / 2) + cos(pi x_4) + 2``, with ``x_3`` and
+                   ``x_4`` periodic (periods 4 and 2) on their hard and
+                   plausible bounds, not shifted; its minima lie on the
+                   bounds of the periodic variables, at ``(1, 1, +-2, +-1)``
 
 Every synthetic minimum is 0 except those of ``sphere_nonbox`` and
 ``edgesphere``. The shifted targets other than ``logsphere`` and
@@ -557,6 +570,79 @@ def _edgesphere(D, rng):
     )
 
 
+def _periodic(D, rng):
+    # The first ceil(D/2) variables are periodic on [0, 2 pi), their hard and
+    # plausible bounds, with their minima within 0.3 of the bounds; the
+    # others are shifted as in the other targets. 2 (1 - cos z) is z^2 to
+    # second order, as for a sphere.
+    lb, ub, plb, pub = _shifted_box(D)
+    h = (D + 1) // 2
+    lb[:h], plb[:h] = 0.0, 0.0
+    ub[:h], pub[:h] = 2 * np.pi, 2 * np.pi
+    c = _shift(rng, plb, pub)
+    c[:h] = np.mod(rng.uniform(-0.3, 0.3, size=h), 2 * np.pi)
+
+    def f_vec(X):
+        Z = np.atleast_2d(X) - c
+        return np.sum(2.0 * (1.0 - np.cos(Z[:, :h])), axis=1) + np.sum(
+            Z[:, h:] ** 2, axis=1
+        )
+
+    return Problem(
+        name="periodic",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=c.copy(),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": list(range(h))},
+        notes=(
+            "sum(2 (1 - cos z_i)) over ceil(D/2) periodic variables on "
+            "[0, 2 pi), minima within 0.3 of the bounds, + sum(z_j^2)"
+        ),
+    )
+
+
+def _periodic_rosenbrock(D, rng):
+    # MATLAB BADS's bads_examples.m, Example 5, as it is
+    if D != 4:
+        raise ValueError("periodic_rosenbrock is defined at D = 4")
+    lb = np.array([-10.0, -5.0, -2.0, -1.0])
+    ub = np.array([5.0, 10.0, 2.0, 1.0])
+    plb = np.array([-2.0, -2.0, -2.0, -1.0])
+    pub = np.array([2.0, 2.0, 2.0, 1.0])
+
+    def f_vec(X):
+        X = np.atleast_2d(X)
+        rosen = 100.0 * (X[:, 1] - X[:, 0] ** 2) ** 2 + (1.0 - X[:, 0]) ** 2
+        return (
+            rosen + np.cos(X[:, 2] * np.pi / 2) + np.cos(X[:, 3] * np.pi) + 2.0
+        )
+
+    return Problem(
+        name="periodic_rosenbrock",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=np.array([1.0, 1.0, -2.0, -1.0]),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": [2, 3]},
+        min_on_bound=True,
+        notes=(
+            "MATLAB BADS's Example 5: Rosenbrock(x_1, x_2) + cos(pi x_3 / 2)"
+            " + cos(pi x_4) + 2, x_3 and x_4 periodic"
+        ),
+    )
+
+
 def _ridge_of_z(Z):
     return 10.0 * np.sum(np.abs(np.diff(Z, axis=1)), axis=1) + np.abs(
         np.sum(Z, axis=1)
@@ -892,6 +978,8 @@ _REGISTRY = {
     "edgesphere": _edgesphere,
     "ridge": _ridge,
     "sphere_band": _sphere_band,
+    "periodic": _periodic,
+    "periodic_rosenbrock": _periodic_rosenbrock,
     "timing": _timing,
     "multisensory_s1": _multisensory_s1,
 }
@@ -1062,12 +1150,27 @@ _GEOMETRY = [
     Config("sphere_band", 3, budget=500),
 ]
 
+# The configurations with periodic variables (periodic_vars), which no other
+# suite has: minima across the bounds of the periodic variables, one to
+# three of them, with both noise kinds, and MATLAB BADS's Example 5. The
+# gate of a change to the handling of periodic variables; run with
+# --options '{"periodic_vars": null}', the same problems as bounded ones.
+_PERIODIC = [
+    Config("periodic", 2, budget=500),
+    Config("periodic", 4, budget=500),
+    Config("periodic", 6, budget=500),
+    Config("periodic", 3, noise="homo", budget=500),
+    Config("periodic", 3, noise="hetero", budget=500),
+    Config("periodic_rosenbrock", 4, budget=500),
+]
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
     "oned": _ONED,
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
+    "periodic": _PERIODIC,
 }
 
 

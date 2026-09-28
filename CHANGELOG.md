@@ -101,6 +101,16 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Periodic variables.** `periodic_vars` names the variables that are
+  periodic, such as angles, by their indices from 0 to D - 1, as MATLAB
+  BADS's `PeriodicVars` does from 1; 1.1.0 refused it. The hard bounds of
+  a periodic variable, which need to be finite, are its period: BADS wraps
+  the variable around them, so that the lower and the upper bound are the
+  same point and a run moves across them, and the Gaussian process that
+  models the objective is periodic along it. A periodic variable is never
+  taken to log coordinates. `BADS` raises `ValueError` for a
+  `periodic_vars` that is not a list of distinct indices, a boolean mask
+  included, or that names a variable with an infinite bound.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
