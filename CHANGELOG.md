@@ -77,11 +77,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that is not a finite number at least 0, and for a `hedge_decay` outside
   [0, 1], an array of one element or a complex number included.
 - `BADS` raises `ValueError` for a `tol_fun` that is not a positive finite
-  number, which 1.1.0 ran when negative, and for a `search_method` that is
-  not a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"` or a
-  `search_acq_fcn` whose first element is not `"acq_LCB"`, which stopped a
-  1.1.0 run at its first search, or at the first that chose an unknown
-  search.
+  number, which 1.1.0 ran when negative (-inf included) unless the default
+  `hedge_beta` fell far below 0; and for a `search_method` that is not a
+  non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
+  `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`,
+  which stopped a 1.1.0 run at its first search, or at the first that chose
+  an unknown search (1.1.0 took a name given as a one-element NumPy array).
+- The returned `total_time` and `overhead` are timed with
+  `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
+  no longer inflated by evaluations timed as 0.
 - `BADS` raises `ValueError` for an `n_search` that is not a positive
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
@@ -225,21 +229,25 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   stopped it with `TypeError`.
 - **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
   `ValueError` when it is created for a `tol_fun`, a Python or NumPy number,
-  that is not positive and finite: 1.1.0 stopped with `ZeroDivisionError` for
+  that is not positive and finite. 1.1.0 stopped with `ZeroDivisionError` for
   0, at the default `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error
-  at its first fit of the Gaussian process for inf, and ran with a negative
-  value. It also raises `ValueError` for a `search_method` that is not a
-  non-empty list of pairs (name, sum-rule flag), each name `"ES-wcm"` or
-  `"ES-ell"`, and for a `search_acq_fcn` that is not a pair whose first
-  element is `"acq_LCB"`, the only acquisition function of the search; 1.1.0
-  stopped with `IndexError` or `ValueError` at the first search, or at the
-  first that chose an unknown search.
+  at its first fit of the Gaussian process for inf, and for NaN in a
+  deterministic run; it ran with a negative value, -inf included, unless the
+  default `hedge_beta` fell far below 0, which stopped the run with
+  `IndexError` at a search. `BADS` also raises `ValueError` for a
+  `search_method` that is not a non-empty list of pairs (name, sum-rule
+  flag), each name `"ES-wcm"` or `"ES-ell"`, and for a `search_acq_fcn` that
+  is not a pair whose first element is `"acq_LCB"`, the only acquisition
+  function of the search. 1.1.0 stopped with `IndexError`, `TypeError` or
+  `ValueError` at the first search, or at the first that chose an unknown
+  search, and took a name given as a one-element NumPy array.
 - **Cost of the optimization target.** The search no longer computes the
-  optimization target: MATLAB BADS computes it there for the search
-  acquisition functions that read it, and PyBADS's only one, the lower
-  confidence bound, does not. The poll predicts the target from the Gaussian
-  process itself when the best iteration's hyperparameters are its own, as
-  they were at about two thirds of the poll's steps on PyBADS's benchmark,
+  optimization target, which MATLAB BADS computes at every search, where only
+  acquisition functions that PyBADS does not have read it; PyBADS's only one,
+  the lower confidence bound, does not. The poll predicts the target from the
+  Gaussian process itself when the best iteration's hyperparameters are its
+  own, as they were at two thirds of the poll's computations of the target
+  over the runs of PyBADS's default benchmark suite (fewer in some runs),
   instead of from a copy whose posterior it computed again under them. Each
   saves a copy of the Gaussian process and the computation of a posterior,
   and results are unchanged. The target that `optim_state` holds, which
@@ -659,10 +667,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `pybads.variable_transformer.VariableTransformer` takes bounds given as
   arrays of shape (D,), lists or scalars, NumPy's or Python's, a scalar
   standing for the same bound in each dimension, and a scalar `apply_log_t`,
-  which applies to every variable; 1.1.0 stopped with `IndexError` or
-  `AttributeError` on these, and on a NumPy scalar hard bound whose plausible
-  bound was omitted. A bound of another size raises `ValueError` that names
-  it. `BADS`, which gives it rows of D floats, is unchanged.
+  which applies to every variable. 1.1.0 stopped with `IndexError` on a 1-D
+  bound, `TypeError` on a list, `AttributeError` on a Python scalar or a
+  scalar `apply_log_t`, and `ValueError` on a NumPy scalar hard bound whose
+  plausible bound was omitted; NumPy scalars given for all four bounds
+  worked. A bound of another size raises `ValueError` that names it. `BADS`,
+  which gives it rows of D floats, is unchanged.
 - **No overflow warning beside a log-scaled variable.** A variable that is
   not on a log scale, with a bound above about 700 in magnitude, beside one
   that is, no longer gives a harmless `RuntimeWarning: overflow encountered

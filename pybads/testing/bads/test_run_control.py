@@ -516,9 +516,9 @@ _TARGET_RUNS = pytest.mark.parametrize(
 @_TARGET_RUNS
 def test_only_the_poll_updates_the_target(monkeypatch, make_fun, options):
     """The optimization target is computed by the poll, which reads it, and
-    not by the search, whose acquisition function, the LCB, does not read it
-    (MATLAB BADS updates it at both, bads.m:539 and 841, for search
-    acquisition functions that PyBADS does not have)."""
+    not by the search, whose acquisition function, the LCB, does not read it.
+    MATLAB BADS updates it at both (bads.m:539 and 841); at the search, only
+    acquisition functions that PyBADS does not have read it."""
     callers = _target_callers(monkeypatch)
     bads = _make_bads(make_fun(), max_fun_evals=60, **options)
     bads.optimize()
@@ -532,8 +532,8 @@ def test_search_updates_the_target_for_an_acquisition_that_reads_it(
     monkeypatch, make_fun, options
 ):
     """A search acquisition function named in
-    `_SEARCH_ACQ_FCNS_READING_TARGET` has the search compute the target, as
-    MATLAB BADS does for its acqNegEI and acqNegPI; with the LCB named there,
+    `_SEARCH_ACQ_FCNS_READING_TARGET` has the search compute the target,
+    which MATLAB BADS's acqNegEI and acqNegPI read; with the LCB named there,
     which does not read it, the run is the same as without."""
     import pybads.bads.bads as bads_module
 

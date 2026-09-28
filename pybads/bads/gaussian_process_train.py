@@ -1125,7 +1125,8 @@ def _get_gp_training_options(
         Number of samples for the GP fitting.
     function_logger : FunctionLogger
         Function logger from the BADS instance we are calling this from,
-        whose evaluation counts give the number of points evaluated.
+        whose counts of evaluations per point, summed, give the number of
+        evaluations of the training set (``n_eff``).
     second_fit : bool, optional
         Whether the refit also starts from a second set of hyperparameters
         (with ``double_refit``, or after a fit whose noise was too high or

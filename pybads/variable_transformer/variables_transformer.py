@@ -42,15 +42,16 @@ class VariableTransformer:
         (``pub/plb >= 10``), as it is to a variable whose entry is NaN.
 
     Each bound is an array of ``D`` elements, of shape ``(1, D)`` or
-    ``(D,)``, or a scalar, which stands for the same bound in each
-    dimension; bounds of integers are taken as floats.
+    ``(D,)``, or a scalar or an array of one element, which stands for the
+    same bound in each dimension; bounds of integers are taken as floats.
 
     Raises
     ------
     ValueError
-        When a bound is neither a scalar nor an array of ``D`` elements, when
-        the plausible bounds are not finite or the bounds are out of the
-        order above, or when the transform cannot be inverted at the bounds.
+        When a bound is neither a scalar nor an array of one or ``D``
+        elements, when the plausible bounds are not finite or the bounds are
+        out of the order above, or when the transform cannot be inverted at
+        the bounds.
     """
 
     def __init__(

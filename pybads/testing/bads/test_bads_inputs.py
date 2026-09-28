@@ -547,9 +547,9 @@ def test_hedge_beta_refusal_names_its_default():
 def test_tol_fun_not_a_positive_finite_number_is_refused(tol_fun, hedge_beta):
     """A `tol_fun` that is not a positive finite number is refused when
     `BADS` is created, whatever `hedge_beta`: 0 stopped with a bare
-    `ZeroDivisionError` at the default `hedge_beta = 1e-3 / tol_fun`, a
-    negative value or NaN was refused only through that default, and inf
-    stopped the run at its first fit of the GP."""
+    `ZeroDivisionError` at the default `hedge_beta = 1e-3 / tol_fun`, which
+    refused a negative value or NaN but not -inf, and not beside a user's
+    `hedge_beta`; inf stopped the run at its first fit of the GP."""
     with pytest.raises(
         ValueError, match=r"tol_fun'\] needs to be a positive finite number"
     ):

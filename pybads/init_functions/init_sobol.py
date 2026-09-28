@@ -16,7 +16,7 @@ def init_sobol(
     """
     Initialize the Sobol sequence.
     This method relies on the scipy.stats.qmc.Sobol class for generating the
-    Sobol sequence (Roy et. al 2023). You can find more information about the
+    Sobol sequence (Roy et al. 2023). You can find more information about the
     Sobol sequence in the documentation of the Sobol class.
 
     Roy et al., (2023). Quasi-Monte Carlo Methods in Python. Journal of Open

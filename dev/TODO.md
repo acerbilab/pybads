@@ -220,20 +220,25 @@ order.
     (KD-B1-9); the test of fixed variables leaves `x0` out (KD-B1-7).
 - [ ] **Minor items of slices B7 and O of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). Left, each a behaviour choice:
-  - the port floors the ES search's `mu = n_search / n_search_iter`, where
-    `private/setupvars.m:186` does not (MATLAB's `randn` would refuse the
-    fraction, by reading; wave 4's ruling keeps the rounded-down
-    generations): close as ruled, with "rounded down" in the description
-    of `n_search_iter`?
+  while fixing", with the details). Left, each with its choice:
+  - the port floors the ES search's `mu = n_search / n_search_iter`, as the
+    description of `n_search_iter` says, where `private/setupvars.m:186`
+    does not (MATLAB's `randn` would refuse the fraction, by reading); wave
+    4's ruling keeps the rounded-down generations: close as ruled?
   - `FunctionLogger.add` keeps checks of its own, and the final samples
     still add to the incumbent's `n_evals` and average their times into its
-    row: both with the port of `fun_values`;
+    row: settle both with the port of `fun_values`?
   - elements beyond the pair in `search_acq_fcn` or in an entry of
-    `search_method` are ignored, as in 1.1.0; some unused advanced options
-    (`warp_*`, `variational_sampler`) do not say so in their descriptions;
-    no module of PyBADS imports matplotlib, which `pyproject.toml` requires
-    and gpyreg imports; `skills/pybads/SKILL.md` names no release.
+    `search_method` are ignored, as in 1.1.0: refuse them?
+  - 76 advanced options are read by no module of PyBADS (most of them
+    PyVBMC's or MATLAB's leftovers, such as `warp_*` and
+    `variational_sampler`), and the descriptions of 68 of them do not say
+    so: mark them, or remove them, which makes a user's setting of one an
+    error?
+  - no module of PyBADS imports matplotlib, which `pyproject.toml` requires
+    and gpyreg imports: keep the requirement?
+  - `skills/pybads/SKILL.md` names no release: name it at the next release,
+    as PyVBMC's names 1.5.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).

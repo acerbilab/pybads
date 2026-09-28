@@ -68,10 +68,12 @@ _LOG_NOTIFY = 25
 _LOG_FINAL = 22
 
 # The search's acquisition functions (the first element of search_acq_fcn)
-# that read the optimization target, for which the search computes it as
-# MATLAB BADS does (bads.m:539): MATLAB's acqNegEI and acqNegPI (and
-# acqNegEQI and acqNegSqEI), none of them ported. The LCB, the only one that
-# search_acq_fcn takes, does not read it, and the poll computes its own
+# that read the optimization target, for which the search computes it.
+# MATLAB BADS computes it at every search (bads.m:539), where the functions
+# that read it are acqNegEI, acqNegPI, acqNegEQI and acqNegSqEI, and
+# acqNegEIMin and acqNegPIMin, whose target searchES.m also updates; none of
+# them is ported. The LCB, the only one that search_acq_fcn takes, does not
+# read it, and the poll computes its own
 _SEARCH_ACQ_FCNS_READING_TARGET = frozenset()
 
 
@@ -1146,13 +1148,13 @@ class BADS:
 
     def _check_tol_fun_(self):
         """
-        Check the user's ``tol_fun``, before the advanced options, whose
-        defaults divide by it, are evaluated: a real number (``_is_real``)
-        is positive and finite. 0 stopped with a bare ``ZeroDivisionError``
-        at the default of ``hedge_beta``, a negative value or NaN was refused
-        only through that default, and inf stopped the run at its first fit
-        of the GP; MATLAB BADS does not check it. Other types are left as
-        they were.
+        Check the user's ``tol_fun``, before the advanced options are
+        evaluated, the default of ``hedge_beta``, ``1e-3 / tol_fun``, among
+        them: a real number (``_is_real``) is positive and finite. 0 stopped
+        with a bare ``ZeroDivisionError`` at that default, which refused a
+        negative value or NaN but not -inf, and not beside a user's
+        ``hedge_beta``; inf stopped the run at its first fit of the GP.
+        MATLAB BADS does not check it. Other types are left as they were.
         """
         tol_fun = self.options.get("tol_fun")
         if _is_real(tol_fun) and not 0 < tol_fun < np.inf:
@@ -2948,7 +2950,9 @@ class BADS:
                     # matches its data (MATLAB's UpdateTarget reuses the
                     # current posterior).
                     self.logger.debug(
-                        "bads:optimize: GP posterior under the best hyperparameters failed; target predicted from the current GP"
+                        "bads:optimize: GP posterior under the best "
+                        "hyperparameters failed; target predicted from the "
+                        "current GP"
                     )
                     f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
 
