@@ -271,7 +271,8 @@ its version is the installed package's
 (`importlib.metadata.version("pybads")`).
 - PyBADS: `BADS.__init__`; `FunctionLogger`.
 - MATLAB: `bads.m:1`, `163-182`, `293-296`, `402-406`.
-- Kind: unported feature (interface).
+- Settled by: the PI's ruling at the close of the review. Kind: unported
+  feature (interface).
 
 ### The main loop, termination and the final estimate (B2)
 
@@ -810,7 +811,8 @@ Without `specify_target_noise`, PyBADS warns when `BADS` is created with a
 MATLAB BADS does not warn.
 - PyBADS: `BADS._init_optim_state_`; `_gp_hyp`.
 - MATLAB: `gpdef/gpdefBads.m:161`.
-- Settled by: W1-30. Kind: Python-only feature.
+- Settled by: W1-30; the PI's ruling at the close of the review (the
+  entry). Kind: Python-only feature.
 
 ### The function logger, the initial design and the utilities (B7)
 

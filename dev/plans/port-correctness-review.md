@@ -1137,9 +1137,9 @@ and its squash commit (for #84, `79697835`).
   `x0`. The rest were corrections of the records and the catalogue: counts
   (31 survey rows closed, not 32; the outcome 121/28/22/2), stale
   dispositions, the locations and wording of a dozen catalogue entries, two
-  entries that the catalogue lacked (KD-B1-14, MATLAB's extra arguments to
-  the target and its other calling forms; KD-B6-9, W1-30's warning), 63
-  entries in all, and a sub-item of `TODO.md` that W1-23 had fixed. The
+  entries that the catalogue lacked, which the PI accepted (KD-B1-14,
+  MATLAB's extra arguments to the target and its other calling forms;
+  KD-B6-9, W1-30's warning), 63 entries in all, and a sub-item of `TODO.md` that W1-23 had fixed. The
   fingerprint is `4146a986863602cb` again, in the setting of the line
   above, and the suite passes (756 tests).
 - [x] Close: the consolidated ledger, the catalogue in

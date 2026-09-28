@@ -378,9 +378,10 @@ catalogue carries these corrections of the sheet:
 Five entries are new: KD-B1-12, a missing `x0` with only the hard bounds
 accepted (W2-9); KD-B1-13, the check of `tol_fun` (#84); KD-B3-9, the
 floor of the ES search's number of parents (the rulings of wave 4's
-doublecheck); and two that the doublecheck of the close found missing,
-KD-B1-14, MATLAB's extra arguments to the target and its other calling
-forms, and KD-B6-9, the warning of a `noise_size` above e^5 (W1-30).
+doublecheck); and two that the doublecheck of the close found missing and
+the PI accepted, KD-B1-14, MATLAB's extra arguments to the target and its
+other calling forms, and KD-B6-9, the warning of a `noise_size` above e^5
+(W1-30).
 KD-B4-3, LTMADS's directions, went with W3-24's revert. The
 gpyreg citations of KD-B5-6 and KD-B6-6 were not read again.
 
