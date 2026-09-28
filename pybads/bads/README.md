@@ -294,14 +294,16 @@ twice with two different values. The check comes before the noise test, so
 that an `uncertainty_handling` left empty counts as none, and a point
 given twice with one value is kept once, where MATLAB adds a row per
 repeat. With uncertainty handling each repeat is an observation, a row at
-level 1 and merged into its point's row at level 2 (KD-B7-3). The schedule
-of the GP's fits, PyBADS's own (KD-B5-6), spans the run's evaluations and
-leaves the imported ones out. The result counts them in
-`precomputed_observations` and `precomputed_locations` (KD-B1-8).
+level 1 and merged into its point's row at level 2 (KD-B7-3). The GP takes
+them at its first rebuild, among the neighbours of the incumbent, as
+MATLAB's does: PyBADS's initial fit leaves them out (KD-B6-5), as does the
+schedule of the GP's fits, PyBADS's own (KD-B5-6), which spans the run's
+evaluations. The result counts them in `precomputed_observations` and
+`precomputed_locations` (KD-B1-8).
 - PyBADS: `BADS.__init__`, `_import_precomputed_evaluations_` and
   `_init_mesh_` (`pybads/bads/bads.py`); `FunctionLogger.add`;
-  `_get_gp_training_options` (`pybads/bads/gaussian_process_train.py`);
-  `OptimizeResult`.
+  `init_and_train_gp` and `_get_gp_training_options`
+  (`pybads/bads/gaussian_process_train.py`); `OptimizeResult`.
 - MATLAB: `private/setupvars.m:126-167`; `private/funlogger.m:30-85`;
   `private/evalinitmesh.m:120-123`.
 - Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28), in
@@ -811,10 +813,11 @@ a nonzero `warp_func` fails at the first rebuild, without one.
 - Kind: removed feature.
 
 **KD-B6-5. PyBADS fits a GP on the initial design; MATLAB BADS only defines it.**
-PyBADS fits the hyperparameters on the initial design under the priors of
-the definition; MATLAB BADS keeps the definition's values until its first
-rebuild. Both refit at the first rebuild, so the initial fit reaches a run
-as one start of that refit and as the hyperparameters of the first
+PyBADS fits the hyperparameters on the start and the initial design,
+without the evaluations made before the run (KD-B1-15), under the priors
+of the definition; MATLAB BADS keeps the definition's values until its
+first rebuild. Both refit at the first rebuild, so the initial fit reaches
+a run as one start of that refit and as the hyperparameters of the first
 target's prediction.
 - PyBADS: `init_and_train_gp`; `BADS._init_optimization_`.
 - MATLAB: `bads.m:465-469`; `gpdef/gpdefBads.m:164-165`.

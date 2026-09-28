@@ -134,8 +134,11 @@ def _precomputed_values_agree(first, second):
     within ``_PRECOMPUTED_DUPLICATE_ULPS`` spacings of float64 at the scale
     of the larger, and of 1 below it."""
     scale = max(1.0, abs(first), abs(second))
-    tolerance = _PRECOMPUTED_DUPLICATE_ULPS * np.spacing(scale)
-    return abs(first - second) <= tolerance
+    with np.errstate(over="ignore", invalid="ignore"):
+        spacing = np.spacing(scale)
+        if not np.isfinite(spacing):  # At the largest float64
+            spacing = scale - np.nextafter(scale, 0.0)
+        return abs(first - second) <= _PRECOMPUTED_DUPLICATE_ULPS * spacing
 
 
 # The levels of the BADS logger's messages above the iteration lines (INFO),
@@ -268,7 +271,8 @@ class BADS:
         ``y`` holds the values of ``fun`` at them and ``y_sd`` the SDs of
         their noise, both of shape ``(N,)``. The values are finite and the
         SDs positive. The evaluations enter the run's log of evaluations,
-        and with it the training set of its Gaussian process, but not its
+        and with it the training sets of its Gaussian process, which is
+        rebuilt around the incumbent from the first poll on, but not its
         count of evaluations (``func_count``, which ``max_fun_evals``
         bounds), and the run starts from ``x0`` and its initial design
         alone: its first incumbent is the best of them. Unless
@@ -1399,7 +1403,18 @@ class BADS:
                     )
                 )
 
-        U = self.var_transf(X[retained])
+        # A point far outside the plausible box of an unbounded variable can
+        # map beyond float64 in the transformed space
+        with np.errstate(over="ignore", invalid="ignore"):
+            U = self.var_transf(X[retained])
+        infinite = ~np.all(np.isfinite(U), axis=1)
+        if np.any(infinite):
+            raise ValueError(
+                "The points X of precomputed_evaluations must map to finite "
+                "coordinates of the optimization; rows "
+                f"{np.asarray(retained)[infinite].tolist()} lie too far "
+                "outside the plausible bounds."
+            )
         for u, row in zip(U, retained):
             self.function_logger.add(
                 u, y[row], None if y_sd is None else y_sd[row]
@@ -1494,10 +1509,12 @@ class BADS:
         self.fval = self.yval
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
-        # The row of the log of the first incumbent, chosen among the start
-        # and the initial design, as in MATLAB BADS (evalinitmesh.m:120-123):
+        # The rows of the log of the start and the initial design, among
+        # which the first incumbent is chosen, as in MATLAB BADS
+        # (evalinitmesh.m:120-123), and on which the first GP is trained:
         # the log may also hold evaluations made before the run
-        # (precomputed_evaluations), which are never chosen
+        # (precomputed_evaluations)
+        self._init_rows = np.array([idx_start])
         self._init_incumbent_row = idx_start
 
         if self.options["uncertainty_handling"] is None:
@@ -1609,9 +1626,9 @@ class BADS:
                     init_rows.append(idx)
 
                 # The first of the lowest values, in the order of the log
-                init_rows = np.unique(init_rows)
-                idx_yval = init_rows[
-                    np.argmin(self.function_logger.Y[init_rows])
+                self._init_rows = np.unique(init_rows)
+                idx_yval = self._init_rows[
+                    np.argmin(self.function_logger.Y[self._init_rows])
                 ]
                 self._init_incumbent_row = idx_yval
                 self.u = self.function_logger.X[idx_yval].copy()
@@ -1732,6 +1749,7 @@ class BADS:
             self.plausible_lower_bounds,
             self.plausible_upper_bounds,
             rng=self.rng,
+            rows=self._init_rows,
         )
 
         self.gp_stats = IterationHistory(

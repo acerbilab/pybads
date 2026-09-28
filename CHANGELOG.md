@@ -110,15 +110,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
   `specify_target_noise=True`, gives a run evaluations of the target made
   before it, for instance by an earlier run, as MATLAB BADS's option
-  `FunValues` does.
-  They enter the run's log of evaluations and the training set of its
-  Gaussian process, but do not count as evaluations of the run
-  (`func_count`, which `max_fun_evals` bounds), and the run still starts
-  from `x0` and its initial design. `BADS` refuses points outside the hard
-  bounds or that violate `non_box_cons`, and, unless `uncertainty_handling`
-  is `True`, two different values at one point. The result reports the
-  number of evaluations given in `precomputed_observations`, and of their
-  distinct points in `precomputed_locations`, when at least one was given.
+  `FunValues` does. They enter the run's log of evaluations and, around the
+  incumbent, the training set of its Gaussian process, but do not count as
+  evaluations of the run (`func_count`, which `max_fun_evals` bounds), and
+  the run still starts from `x0` and its initial design. `BADS` refuses
+  points outside the hard bounds or that violate `non_box_cons`, and, unless
+  `uncertainty_handling` is `True`, two different values at one point. The
+  result reports the number of evaluations given in
+  `precomputed_observations`, and of their distinct points in
+  `precomputed_locations`, when at least one was given.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run

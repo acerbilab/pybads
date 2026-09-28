@@ -92,12 +92,27 @@ def test_the_first_incumbent_is_never_an_evaluation_made_before():
 
 
 def test_the_gp_holds_the_evaluations_made_before():
+    """The first GP is fitted on the start and the initial design, however
+    many evaluations were given; they enter the GP at its first local
+    rebuild, among the neighbours of the incumbent (here all of them, fewer
+    than `n_train_min`)."""
     X, y = _evaluations()
     bads = _make_bads((X, y))
     gp, _, _, _ = bads._init_optimization_()
-    U = bads.var_transf(X)
-    for u in U:
+    assert gp.X.shape[0] == bads.optim_state["eff_starting_points"] == 5
+    assert np.all(gp.X == bads.function_logger.X[len(X) : len(X) + 5])
+
+    bads = _make_bads((X, y))
+    bads.optimize()
+    gp = bads.iteration_history["gp"][0]
+    for u in bads.var_transf(X):
         assert np.any(np.all(gp.X == u, axis=1))
+
+
+def test_the_first_fit_leaves_out_many_evaluations():
+    bads = _make_bads(_evaluations(n=1000), max_fun_evals=100)
+    gp, _, _, _ = bads._init_optimization_()
+    assert gp.X.shape[0] == 5
 
 
 def test_the_training_schedule_leaves_them_out(monkeypatch):
@@ -167,6 +182,19 @@ def test_a_point_given_twice_is_kept_once_without_noise():
     assert bads.optim_state["precomputed_observations"] == 6
     assert bads.optim_state["precomputed_locations"] == 4
     assert bads.optim_state["precomputed_n_evals"] == 4
+
+
+@pytest.mark.parametrize("big", [np.finfo(float).max, -np.finfo(float).max])
+def test_two_values_at_one_point_are_compared_up_to_the_largest_float(big):
+    """At the largest float64, whose spacing is infinite, the values are
+    compared within four spacings below it."""
+    X = np.zeros((2, D))
+    with pytest.raises(ValueError, match="Rows 0 and 1"):
+        _make_bads((X, np.array([big, 1.0])))
+    with pytest.raises(ValueError, match="Rows 0 and 1"):
+        _make_bads((X, np.array([big, -big])))
+    agreeing = np.array([big, np.nextafter(big, 0.0)])
+    assert _make_bads((X, agreeing)).function_logger.Xn == 0
 
 
 @pytest.mark.parametrize("uncertainty_handling", [None, False])
@@ -298,6 +326,38 @@ def test_refused_with_target_noise(y_sd, message):
     evaluations = (_X, _Y) if y_sd is None else (_X, _Y, y_sd)
     with pytest.raises(ValueError, match=message):
         _make_bads(evaluations, fun=_sphere_with_sd, specify_target_noise=True)
+
+
+def test_points_beyond_float64_in_the_transformed_space_are_refused():
+    """With infinite hard bounds, a point far outside a narrow plausible box
+    maps beyond float64."""
+    X = np.zeros((2, D))
+    X[1, 0] = 1e308
+    with pytest.raises(ValueError, match=r"finite coordinates.*rows \[1\]"):
+        BADS(
+            _sphere,
+            np.zeros(D),
+            -np.inf * np.ones(D),
+            np.inf * np.ones(D),
+            -0.01 * np.ones(D),
+            0.01 * np.ones(D),
+            options={"display": "off"},
+            precomputed_evaluations=(X, np.zeros(2)),
+        )
+
+
+def test_the_first_sd_with_target_noise_is_the_incumbent_s():
+    """With `specify_target_noise`, the run's first `fsd` is the SD of its
+    first incumbent, not of a lower evaluation given before the run."""
+    X = np.array([[0.01, 0.01, 0.01], [1.0, 1.0, 1.0]])
+    bads = _make_bads(
+        (X, np.array([3e-4, 3.0]), np.array([7.0, 7.0])),
+        fun=_sphere_with_sd,
+        specify_target_noise=True,
+    )
+    bads._init_optimization_()
+    assert bads._init_incumbent_row >= 2
+    assert bads.fsd == 0.5
 
 
 def test_points_that_violate_non_box_cons_are_refused():

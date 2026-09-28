@@ -28,6 +28,7 @@ def init_and_train_gp(
     plb: np.ndarray,
     pub: np.ndarray,
     rng=None,
+    rows=None,
 ):
     """
     Initialize and train the Gaussian process model.
@@ -54,6 +55,13 @@ def init_and_train_gp(
         Generator of the random draws, passed on to ``gp.fit``. If ``None``,
         a generator is derived from NumPy's global random state
         (``pybads.rng.get_rng``).
+    rows : ndarray, optional
+        The rows of the function log that the GP is trained on, in the
+        order of the log; if ``None``, every filled row. ``BADS`` trains the
+        first GP on the rows of the start and the initial design: the
+        evaluations made before the run (``precomputed_evaluations``), which
+        can be many, enter the GP at its first local rebuild, among the
+        neighbours of the incumbent.
 
     Returns
     =======
@@ -89,7 +97,9 @@ def init_and_train_gp(
         hyp_dict["run_cov"] = None
 
     # Get training dataset.
-    x_train, y_train, s2_train, t_train = _get_fevals_data(function_logger)
+    x_train, y_train, s2_train, t_train = _get_fevals_data(
+        function_logger, rows
+    )
     D = x_train.shape[1]
 
     # Pick the mean function
@@ -1259,14 +1269,17 @@ def get_grid_search_neighbors(
     return (U[sort_idx[0:ntrain]], Y[sort_idx[0:ntrain]], res_S)
 
 
-def _get_fevals_data(function_logger: FunctionLogger):
+def _get_fevals_data(function_logger: FunctionLogger, rows=None):
     """
-    Get all evaluated data.
+    Get the evaluated data of the function log.
 
     Parameters
     ==========
     function_logger : FunctionLogger
         Function logger from the BADS instance which we are calling this from.
+    rows : ndarray, optional
+        The rows of the log to get, filled ones; if ``None``, every filled
+        row.
 
     Returns
     =======
@@ -1281,14 +1294,16 @@ def _get_fevals_data(function_logger: FunctionLogger):
         data.
     """
 
-    x = function_logger.X[function_logger.X_flag, :]
-    y = function_logger.Y[function_logger.X_flag]
+    if rows is None:
+        rows = function_logger.X_flag
+    x = function_logger.X[rows, :]
+    y = function_logger.Y[rows]
     if function_logger.noise_flag:
-        s2 = function_logger.S[function_logger.X_flag] ** 2
+        s2 = function_logger.S[rows] ** 2
     else:
         s2 = None
 
-    evals_time = function_logger.fun_eval_time[function_logger.X_flag]
+    evals_time = function_logger.fun_eval_time[rows]
 
     return x, y, s2, evals_time
 

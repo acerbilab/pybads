@@ -409,9 +409,11 @@ class FunctionLogger:
             self.total_fun_eval_time += fun_eval_time
 
         # An evaluation that is not recorded, the noise test's and the final
-        # samples', leaves the log as it is, its time aside, as MATLAB's
-        # funlogger evaluates them ('single', funlogger.m:117-130): the row of
-        # its point keeps its count of evaluations and its time
+        # samples', leaves the log as it is, its time aside: the row of its
+        # point keeps its count of evaluations and its time. MATLAB's
+        # funlogger evaluates the final samples so ('single',
+        # funlogger.m:117-130), and MATLAB BADS calls the target directly for
+        # the noise test
         if not record_duplicate_data:
             duplicate_flag = np.all(self.X == x, axis=1)
             if np.any(duplicate_flag):

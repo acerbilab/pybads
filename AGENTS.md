@@ -250,19 +250,18 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
   preallocates its arrays, and `X_flag` marks the filled rows. The log can
   open with evaluations made before the run (`precomputed_evaluations`,
-  added through `FunctionLogger.add` in `BADS.__init__`), which
-  `func_count` leaves out. Code that takes the log's rows for the run's own
-  evaluations leaves them out: `_init_mesh_` chooses the first incumbent
-  (and at level 2 its `fsd`) among the rows that the start and the initial
-  design returned (`_init_incumbent_row`) and counts `eff_starting_points`
-  from `func_count`, and `_get_gp_training_options` subtracts
-  `optim_state["precomputed_n_evals"]` from `n_eff`; new code that reads
-  `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same. A
-  repeated point at level 2 is
-  merged into its row by precision weighting, which a run reaches only
-  through those evaluations: `contraints_check` removes the candidates
-  already evaluated, and the noise test and the final samples take
-  `record_duplicate_data=False`, which leaves the log as it is.
+  added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
+  leaves out. Code that takes the log's rows for the run's own evaluations
+  leaves them out: `_init_mesh_` chooses the first incumbent (and at level 2
+  its `fsd`) among the rows that the start and the initial design returned
+  (`_init_rows`), on which `init_and_train_gp` fits the first GP, and counts
+  `eff_starting_points` from `func_count`, and `_get_gp_training_options`
+  subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
+  reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
+  A repeated point at level 2 is merged into its row by precision weighting,
+  which a run reaches only through those evaluations: `contraints_check`
+  removes the candidates already evaluated, and the noise test and the final
+  samples take `record_duplicate_data=False`, which leaves the log as it is.
 - **Randomness goes through one `numpy.random.Generator`, `bads.rng`.**
   `BADS.__init__` creates it from `random_seed` (`pybads/rng.py: get_rng`)
   before its first draw, the random `x0`, and passes it as `rng` to
