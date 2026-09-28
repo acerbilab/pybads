@@ -95,11 +95,15 @@ evaluations differ from B's on three configurations, fewer on
   limit, the arm that takes fewer evaluations than the base on every
   configuration with no error flagged against it) is the alternative;
   either way it is a change of a non-default mode, whose users see
-  different results.
+  different results. **PI, 2026-09-28: document only**; the option's
+  description in `advanced_bads_options.ini` says it.
 - **W0-13.** Proposed: limit the search's uncertain move as the poll's
   (arm C's patch, as a fix with a test and a changelog line): it removes
   moves to estimated-worse points, costs nothing measurable under the
-  current rule, and matters under power 0.
+  current rule, and matters under power 0. **PI, 2026-09-28: fix it**;
+  fixed on this branch, in `_search_step_`, with the tests of
+  `test_stobads.py`, the changelog's "Sto-BADS poll and search" and
+  `opp_stobads`'s description.
 - **Scope.** Five noisy configurations at D ≤ 6 with the default noise
   handling; Sto-BADS may be meant for other regimes (heavier noise, larger
   budgets), which this population does not reach.
