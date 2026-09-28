@@ -15,7 +15,7 @@ trace per run under ``--out`` (default
 ``dev/scripts/runs/replay/<sha>_<time>/``): ``<label>_seed<seed>.npz`` and
 its ``.json`` sidecar. ``--repeat N`` records each run N times in the same
 process, the later ones as ``..._rep1`` and on. The default set takes about
-40 s. Before starting the children it pins the numerical platform: one BLAS
+30 s. Before starting the children it pins the numerical platform: one BLAS
 thread (``--threads``) and, on x86_64, OpenBLAS's Haswell kernels
 (``OPENBLAS_CORETYPE``, ``--coretype``), so that the kernels do not follow
 the CPU's own detection; ``--no-pin`` leaves the environment as the shell
@@ -59,9 +59,11 @@ has stops the recording with its name.
 pairs each repeat of DIR with the first recording of its run. It refuses
 (exit status 2) traces whose platform keys differ, unless ``--force``, and
 reports, per run, exact (bitwise) identity per stream (``evals``,
-``steps``, ``fits``, ``history``, ``result``) and
-otherwise the first divergence: the evaluation, its iteration and stage on
-each side, ``|dx|`` and ``|dy|`` there, whether the generator's states
+``steps``, ``fits``, ``history``, ``result``) and otherwise the first
+divergence: the evaluation, its iteration and stage on each side, ``|dx|``
+and ``|dy|`` there (and the first evaluation whose point differs, when the
+values part first: a target whose own arithmetic moved, as the rotation of
+``rosenbrock`` does with the BLAS kernel), whether the generator's states
 agree there (they agree when the same draws came before, so that a value
 moved; they differ when a draw was added or skipped, a changed branch), the
 first step that differs, the earliest GP computation whose hyperparameters
@@ -944,11 +946,15 @@ def first_eval_divergence(base, new):
             return {"k": n, "short": True, "n_base": na, "n_new": nb}
     else:
         k = int(bad[0])
+    # where the points part, when the values part first (a target whose
+    # own arithmetic moved, or a changed noise)
+    x_bad = np.flatnonzero(_row_differs(A["eval_x"], B["eval_x"], n))
     return {
         "k": k,
         "short": False,
         "n_base": na,
         "n_new": nb,
+        "k_x": int(x_bad[0]) if len(x_bad) else None,
         "iter": (int(A["eval_iter"][k]), int(B["eval_iter"][k])),
         "stage": (str(A["eval_stage"][k]), str(B["eval_stage"][k])),
         "dx": float(np.max(np.abs(A["eval_x"][k] - B["eval_x"][k]))),
@@ -1095,6 +1101,15 @@ def format_comparison(c):
             f"{name:34s} PARTED at evaluation {e['k']} ({it}, {stage}):"
             f" |dx| {e['dx']:.3g}, |dy| {e['dy']:.3g}; {rng}"
         )
+        if e["k_x"] != e["k"]:
+            lines.append(
+                " " * 36
+                + (
+                    "the points are identical in every common evaluation"
+                    if e["k_x"] is None
+                    else f"the points part at evaluation {e['k_x']}"
+                )
+            )
     f = c["fit_hyp"]
     if f is None:
         lines.append(

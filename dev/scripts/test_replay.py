@@ -133,7 +133,7 @@ def test_parted_at_a_known_evaluation(tmp_path, capsys):
         (1, 1),
     )
     assert e["dx"] == pytest.approx(1e-10, rel=1e-3) and e["dy"] == 0.0
-    assert e["rng_agree"] and e["rng_agree_before"]
+    assert e["rng_agree"] and e["rng_agree_before"] and e["k_x"] == k
     assert c["horizons"] == {1e-12: k, 1e-8: k + 1}
     assert c["fit_hyp"] is None and c["step"] is None
     assert rp.main(["check", str(base), str(new)]) == 1
@@ -166,6 +166,17 @@ def test_generator_states_alone(tmp_path):
     assert not c["identical"]
     assert c["eval"]["k"] == 5 and c["eval"]["dx"] == 0.0
     assert not c["eval"]["rng_agree"]
+
+
+def test_values_that_part_before_the_points(tmp_path, capsys):
+    def change(a, s):  # the target's own arithmetic moved
+        a["eval_y"][3] += 1e-10
+        a["eval_x"][9, 0] += 1.0
+
+    base, new, c = _pair(tmp_path, change)
+    assert (c["eval"]["k"], c["eval"]["k_x"], c["eval"]["dx"]) == (3, 9, 0.0)
+    rp.main(["check", str(base), str(new)])
+    assert "the points part at evaluation 9" in capsys.readouterr().out
 
 
 def test_earliest_gp_computation_that_differs(tmp_path, capsys):
