@@ -33,7 +33,8 @@ pushes and runs `/doublecheck` at the end.
   `cf371d4` (timers), `a4a423b` (profiler), results note; 811 passed; fingerprint `4146a986863602cb` (1 thread and default); `optimize()` body now in `_optimize_()`
 - [x] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
   `73d517a` (fix), `d9772a0` (`thinband` suite), records; 823 passed; fingerprint `4146a986863602cb` (1 thread and default); replay 8/8 identical; no flag, the 144 one-point runs change; refits on zero-spread inputs still warn (every `sphere_band_D3` run; a one-point refit at D = 1): gpyreg item
-- [ ] P5b Self-generated oracles (Opus) — after P3
+- [x] P5b Self-generated oracles (Opus) — after P3
+  `d75efa2` (6 states, 14 oracles, 580 KB), `d82c075` (generator), records; 913 passed; fingerprint `4146a986863602cb`; floors over threads 1/2/4, Haswell, Sandybridge; the 3 deterministic post-refit GPs (cond. 1e15-1e18) platform-bound; wheel `--pyargs` ok
 - [ ] Records: `dev/TODO.md`, ledger "Open ends", `pybads/bads/README.md`, `CHANGELOG.md`, `AGENTS.md`/`dev/README.md` where tooling is added
 
 ## Verification

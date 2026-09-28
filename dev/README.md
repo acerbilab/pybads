@@ -76,6 +76,32 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   in its GP hyperparameters. So it is a developer tool, not a test: the
   part of a run that involves no BLAS work, the initial design, is pinned
   on every platform by `pybads/testing/bads/test_initial_design_pin.py`.
+- `make_oracle_fixtures.py` writes and checks the oracles of
+  `pybads/testing/oracles/`: the states of six short seeded runs
+  (`_recipes.py`: deterministic at D = 2 and 3, with inferred noise, with
+  the target's noise, with log-transformed variables and with a non-box
+  constraint), taken at the start of a search or poll step and saved as
+  plain arrays and JSON, with the outputs of 14 oracles of PyBADS's
+  components computed from them: the GP's predictions, the LCB, the
+  variable transform, the grid functions, `contraints_check`, `_gp_hyp`,
+  the choice of the local training set, the ES search's set-up and
+  generations, the hedge, the improvement and Sto-BADS's outcome,
+  `poll_mads_2n`, and two platform-bound ones, a GP refit and an ES search
+  step. Where a component draws, its draws are prescribed: exact
+  arithmetic on PCG64's raw stream, the same everywhere. The tests
+  (`pytest pybads/testing/oracles`, about 3 s) recompute them on every
+  platform under the tolerances measured across BLAS threads and kernels
+  (the docstring of `_oracles.py`). `--check` does the same and exits 1 on
+  a failure; `--check --exact` compares bit for bit, the gate for a change
+  that must move nothing on the machine that generated the fixtures, with
+  one BLAS thread (the script's default); `--dump DIR` and `--check
+  --exact --against DIR` are that gate on any other machine; `--rebaseline
+  ORACLE --reason TEXT` replaces one oracle's references, for a change
+  that moves it on purpose, and records the reason and the commit in the
+  fixtures; `--write --reason TEXT` reruns the recipes, a new baseline.
+  The oracles gate a component's numbers on fixed inputs, not a run:
+  whole trajectories are `replay.py`'s, on one machine, and the
+  distribution of results the population comparison's.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere

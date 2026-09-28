@@ -144,22 +144,18 @@ order.
   variance exceeds the noise by 1e12 or more, the same cause as KD-B6-6;
   MATLAB's `mygp.m:187` clamps the same way. Open only: how often MATLAB's
   own fits reach them, which needs MATLAB.
-- [ ] **Numerical oracles**, after PyVBMC's (`pyvbmc/testing/oracles/`).
-  PyVBMC's oracles are snapshots of its own numerics, not MATLAB's: each
-  fixture is an algorithm state saved as arrays, with the outputs of each
-  stage computed from it, compared under tolerances measured across BLAS
-  settings, and regenerated one reference at a time on an intended
-  change; its MATLAB-comparison helpers
-  (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
-  reproduce MATLAB's random stream) have no caller. Snapshots of PyBADS's
-  stages (the variable transform, the poll's basis, the LCB, the ES
-  search's candidates, the GP's fit and predictions) would gate a change
-  that must move nothing on every platform, where
-  `dev/scripts/replay.py` compares runs step by step on one machine only
-  and `pybads/testing/bads/test_initial_design_pin.py` pins the initial
-  design. Oracles computed by MATLAB BADS, which would check the port's
-  numbers rather than their stability, need MATLAB and the BADS toolbox
-  to generate.
+- [ ] **Numerical oracles computed by MATLAB BADS.** The oracles of
+  `pybads/testing/oracles/` are PyBADS's own numbers on stored states: they
+  pin the numerics against change, not the port against MATLAB BADS.
+  Oracles computed by MATLAB BADS on the same states would check the pure
+  pieces that are not deliberate differences (`pybads/bads/README.md`):
+  `transvars.m`, `udist.m`, `force2grid.m`, `ucov.m`, the priors of
+  `gpdefBads.m` but the cases of KD-B6-2, `acqLCB.m` with `gppred.m` at
+  fixed hyperparameters, the ES search's weights, `searchHedge.m`'s update
+  and `pollMADS2N.m` with injected draws. The fixtures are the inputs such
+  a harness would take: plain arrays and JSON, with prescribed draws
+  (`ScriptedGenerator` in `_oracles.py`), which can be handed to MATLAB as
+  arrays. Generating the references needs MATLAB and the BADS toolbox.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench). A port of periodic variables also
   assigns `period_check`'s result at every call site, as MATLAB BADS does,

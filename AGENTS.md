@@ -335,6 +335,14 @@ earliest GP computation at which they part. The initial design, which
 involves no BLAS work, is pinned on every platform by
 `test_initial_design_pin.py`; a change that moves it on purpose
 regenerates the fixture in the same commit, as the test's docstring says.
+The oracles of `pybads/testing/oracles/` pin PyBADS's components on stored
+states, under tolerances measured across BLAS settings; a change that must
+move nothing also passes `dev/scripts/make_oracle_fixtures.py --check
+--exact` (on another machine than the one that generated the fixtures,
+against a `--dump` of the parent commit). Never loosen an oracle's
+tolerance or regenerate the fixtures to make a change pass: a change that
+moves an oracle on purpose replaces that oracle's references alone, in the
+same commit, with `--rebaseline ORACLE --reason TEXT`.
 
 ## Tests and their traps
 
