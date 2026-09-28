@@ -67,6 +67,13 @@ def _is_whole_number(value):
 _LOG_NOTIFY = 25
 _LOG_FINAL = 22
 
+# The search's acquisition functions (the first element of search_acq_fcn)
+# that read the optimization target, for which the search computes it as
+# MATLAB BADS does (bads.m:539): MATLAB's acqNegEI and acqNegPI (and
+# acqNegEQI and acqNegSqEI), none of them ported. The LCB, the only one that
+# search_acq_fcn takes, does not read it, and the poll computes its own
+_SEARCH_ACQ_FCNS_READING_TARGET = frozenset()
+
 
 class BADS:
     r"""
@@ -1993,10 +2000,13 @@ class BADS:
             self.gp_exit_flag = np.minimum(self.gp_exit_flag, gp_exit_flag)
         # End fitting
 
-        # MATLAB BADS updates the optimization target here (bads.m:539), for
-        # the search's acquisition functions that read it; the LCB, the only
-        # one that search_acq_fcn takes, does not, so the target is updated
-        # by the poll alone, before it reads it
+        # The optimization target, for a search acquisition function that
+        # reads it (_SEARCH_ACQ_FCNS_READING_TARGET, empty at present)
+        if (
+            self.options["search_acq_fcn"][0]
+            in _SEARCH_ACQ_FCNS_READING_TARGET
+        ):
+            self._update_target_(self.u_best, gp, self.best_gp_hyp)
 
         # Generate search set (normalized coordinate)
         self.optim_state["search_count"] += 1
@@ -2488,14 +2498,7 @@ class BADS:
                     do_gp_calibration = True
 
             # Update Target from GP prediction
-            f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
-                u_poll_best, gp, gp_poll_hyp_best
-            )
-            self.optim_state["f_target_mu"] = f_target_mu.item()
-            self.optim_state["f_target_s"] = (
-                f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
-            )
-            self.optim_state["f_target"] = f_target.item()
+            self._update_target_(u_poll_best, gp, gp_poll_hyp_best)
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
@@ -2877,6 +2880,20 @@ class BADS:
                 "gp",
             ]
         )
+
+    def _update_target_(self, u, gp: GP, hyp_best):
+        """A private method that stores in ``optim_state`` the optimization
+        target of ``_get_target_from_gp_`` at ``u``: ``f_target_mu``,
+        ``f_target_s`` and ``f_target``, as MATLAB's ``UpdateTarget``
+        does."""
+        f_target_mu, f_target_s, f_target = self._get_target_from_gp_(
+            u, gp, hyp_best
+        )
+        self.optim_state["f_target_mu"] = f_target_mu.item()
+        self.optim_state["f_target_s"] = (
+            f_target_s if np.isscalar(f_target_s) else f_target_s.copy()
+        )
+        self.optim_state["f_target"] = f_target.item()
 
     def _get_target_from_gp_(self, u, gp: GP, hyp_best):
         """A private method that retrieves the prediction of the GP at the

@@ -217,8 +217,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   `ESSearch` subclass, an `elif` in the hedge, its name among those that
   the check of `search_method` in `_init_optim_state_` takes, and an entry
   in the `search_method` option; a search acquisition function other than
-  the LCB, likewise, needs the check of `search_acq_fcn` there, and the
-  optimization target, which only the poll computes.
+  the LCB, likewise, needs the check of `search_acq_fcn` there and, if it
+  reads the optimization target, its name in
+  `_SEARCH_ACQ_FCNS_READING_TARGET` (`bads.py`), which has the search
+  compute the target; the poll computes its own.
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0
   (deterministic), 1 (noise inferred) or 2 (`specify_target_noise`: the
   target returns exactly a `tuple` `(f, sd)`). In noisy runs the incumbent's

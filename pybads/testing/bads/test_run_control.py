@@ -489,7 +489,21 @@ def _noisy_sphere():
     return lambda x: _sphere(x) + rng.standard_normal()
 
 
-@pytest.mark.parametrize(
+def _target_callers(monkeypatch):
+    """The names of the functions that update the optimization target, one
+    per update, as a run makes them."""
+    callers = []
+    original = BADS._update_target_
+
+    def update(self, *args, **kwargs):
+        callers.append(sys._getframe(1).f_code.co_name)
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(BADS, "_update_target_", update)
+    return callers
+
+
+_TARGET_RUNS = pytest.mark.parametrize(
     "make_fun, options",
     [
         (lambda: _sphere, {}),
@@ -497,24 +511,44 @@ def _noisy_sphere():
     ],
     ids=["deterministic", "noisy"],
 )
+
+
+@_TARGET_RUNS
 def test_only_the_poll_updates_the_target(monkeypatch, make_fun, options):
     """The optimization target is computed by the poll, which reads it, and
     not by the search, whose acquisition function, the LCB, does not read it
     (MATLAB BADS updates it at both, bads.m:539 and 841, for search
     acquisition functions that PyBADS does not have)."""
-    callers = []
-    original = BADS._get_target_from_gp_
-
-    def target(self, *args, **kwargs):
-        callers.append(sys._getframe(1).f_code.co_name)
-        return original(self, *args, **kwargs)
-
-    monkeypatch.setattr(BADS, "_get_target_from_gp_", target)
+    callers = _target_callers(monkeypatch)
     bads = _make_bads(make_fun(), max_fun_evals=60, **options)
     bads.optimize()
     assert len(bads.optim_state["search_stats"]["success"]) > 0
     assert len(callers) > 0
     assert set(callers) == {"_poll_step_"}
+
+
+@_TARGET_RUNS
+def test_search_updates_the_target_for_an_acquisition_that_reads_it(
+    monkeypatch, make_fun, options
+):
+    """A search acquisition function named in
+    `_SEARCH_ACQ_FCNS_READING_TARGET` has the search compute the target, as
+    MATLAB BADS does for its acqNegEI and acqNegPI; with the LCB named there,
+    which does not read it, the run is the same as without."""
+    import pybads.bads.bads as bads_module
+
+    result = _make_bads(make_fun(), max_fun_evals=60, **options).optimize()
+    monkeypatch.setattr(
+        bads_module, "_SEARCH_ACQ_FCNS_READING_TARGET", frozenset({"acq_LCB"})
+    )
+    callers = _target_callers(monkeypatch)
+    result_reading = _make_bads(
+        make_fun(), max_fun_evals=60, **options
+    ).optimize()
+    assert {"_search_step_", "_poll_step_"} <= set(callers)
+    np.testing.assert_array_equal(result_reading["x"], result["x"])
+    assert result_reading["fval"] == result["fval"]
+    assert result_reading["func_count"] == result["func_count"]
 
 
 def test_run_with_certain_incumbent():
