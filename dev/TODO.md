@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-27. The list describes scope, not priority or execution
+Updated 2026-09-28. The list describes scope, not priority or execution
 order.
 
 - [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
@@ -119,17 +119,6 @@ order.
   (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck").
-- [ ] **The target's copy of the GP at every step.**
-  `_get_target_from_gp_` deep-copies the GP and recomputes its posterior
-  under the best iteration's hyperparameters at every search and poll step
-  (the port review's sheet, KD-B4-2), and at default options nothing reads
-  the search's target (the port review's wave 3, "Found while verifying").
-  It costs time, and it is the path on which the call can raise
-  `LinAlgError`. To settle: compute the search's target only when an
-  option reads it, and reuse the posterior when the best iteration's
-  hyperparameters are the current ones; a change must leave the
-  fingerprint of `dev/scripts/fingerprint.py` unchanged, or take the
-  population comparison.
 - [ ] **Zero predictive SDs at uncertainty level 0.** In deterministic runs
   the predictive SD of the GP is often exactly 0, and the poll's check of
   an unreliable GP reads it (the port review's wave 3, W3-28 and "Found
@@ -213,78 +202,40 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
 - [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
-  while fixing" and "Doublecheck", with the details). Not fixed:
-  - the options: `Options.descriptions` has no entry for an advanced
-    option that the user set, so `str(options)` prints `(None)` for it;
-    the checks `stobads is None` and `specify_target_noise is None` cannot
-    fire since W2-19; `test_options.ini` and `test_options2.ini` ship in
-    the wheel and nothing reads them; a 0-d array for `max_fun_evals` or a
-    boolean option is refused, where 1.1.0 took it;
-  - the display: `optim_state["cache_active"]` is always False since W2-7,
-    so the cache branches of the display cannot run; the reports of the log
-    transform and of periodic variables are logged at INFO, so that
-    `"notify"` and `"final"` hide them, and the caution for infinite bounds
-    at WARNING, so that `"off"` shows it, where MATLAB BADS prints all three
-    from `"notify"` on (`setupvars.m:30`, `119`, `122`);
-  - the inputs: a missing `x0` with plausible bounds given as a list or a
-    Python scalar raises `AttributeError`; `__init__` fills missing
-    plausible bounds without `bads:pbUnspecified`, which MATLAB BADS logs
-    whenever it fills them; the redraw of a random start tests it before it
-    is put on the mesh (KD-B1-9); the test of fixed variables leaves `x0`
-    out (KD-B1-7);
-  - the run's control: the test of the reserve for the final samples does
-    not reach its floor at 0; the docstring of
-    `test_iterations_count_from_one` says "8th" where the run reports 7;
-  - `VariableTransformer` used directly: a scalar `apply_log_t` raises
-    `AttributeError`, a 1-D bound `IndexError`, and a NumPy scalar hard
-    bound with the plausible bounds omitted fails; the `else` branches of
-    its four bounds cannot run.
+  while fixing" and "Doublecheck", with the details). The cleanup of
+  2026-09-28 fixed those that change no result
+  and need no choice; left, each a behaviour choice:
+  - `test_options.ini` and `test_options2.ini` ship in the wheel and nothing
+    reads them;
+  - a 0-d array for `max_fun_evals` or a boolean option is refused, where
+    1.1.0 took it (and so are arrays for `improvement_quantile` and the
+    hedge's options, by ruling; `tol_fun`'s check leaves non-scalars
+    unchecked);
+  - the reports of the log transform and of periodic variables are logged
+    at INFO, so that `"notify"` and `"final"` hide them, and the caution for
+    infinite bounds at WARNING, so that `"off"` shows it, where MATLAB BADS
+    prints all three from `"notify"` on (`setupvars.m:30`, `119`, `122`);
+  - `__init__` fills missing plausible bounds without `bads:pbUnspecified`,
+    which MATLAB BADS logs whenever it fills them;
+  - the redraw of a random start tests it before it is put on the mesh
+    (KD-B1-9); the test of fixed variables leaves `x0` out (KD-B1-7).
 - [ ] **Minor items of slices B7 and O of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). Not fixed:
-  - the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
-    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578` applies
-    `SearchAcqFcn`; only its mean is read, so nothing moves, but a callable
-    `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
-    `# Returns z, dz,ymu,ys,fmu,fs,*fpi*` lists MATLAB's outputs; the port
-    floors the ES search's `mu = n_search / n_search_iter`, where
-    `private/setupvars.m:186` does not; `search_method` is not checked (an
-    empty one fails at the first search), and a `search_acq_fcn` that is not
-    a pair fails when `BADS` is created with an unrelated `IndexError` or
-    `TypeError`, while a first element other than `"acq_LCB"` fails only at
-    the first search; `_search_step_`'s docstring gives `search_dist` as an
-    array and has the typo "thecurrent";
-  - the checks: `tol_fun` is not checked (0 raises a bare
-    `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
-    evaluated, and a negative value is refused only through `hedge_beta`);
-  - the function logger: `FunctionLogger.add` keeps checks of its own (a
-    string value raises `TypeError`, a Python complex of zero imaginary part
-    passes `np.isreal` and fails while recorded, a one-element array is
-    refused); the final samples still add to the incumbent's `n_evals` and
-    average their times into its row, as the noise test did before W4-6, at
-    the end of the run; `test_function_logger.py` calls
-    `test_add_parameter_transform()` at module level;
-  - the rest: `_get_gp_training_options`'s docstring gives the type `dic`,
-    leaves out `function_logger` and `second_fit` and lists `hyp_dict`,
-    which it does not read; `init_sobol` keeps two commented-out lines; comments,
-    strings and docstrings longer than 79 characters in
-    `constraints_check.py`, `grid_functions.py`, `es_search.py` and
-    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`;
-    `test_get_gp_training_options_samplers` and `_opts_N` assign
-    `hyp_dict_none` and never use it; `bads.py` imports
-    `matplotlib.pyplot`, which nothing in the package uses; the docstring of
-    `BADS.optimize` renders with numpydoc's warning on an underline and a
-    docutils error ("Unexpected indentation"), and the References block of
-    `ESSearchHedge`'s docstring is malformed.
-- [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
-  with `time.time()`, whose resolution on Windows before Python 3.13 is
-  about 15.6 ms: for a fast target most evaluations time as 0, and the
-  returned `overhead` of two near-identical runs can differ by orders of
-  magnitude. `time.perf_counter` fixes it, and changes the returned
-  `overhead`, which needs a changelog line.
-- [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
-  `skills/pybads/SKILL.md` that points a coding agent to the parts of the
-  documentation relevant to its task, linked from the README.
+  while fixing", with the details). The cleanup of 2026-09-28 fixed those
+  that change no result and need no choice; left:
+  - the port floors the ES search's `mu = n_search / n_search_iter`, where
+    `private/setupvars.m:186` does not (MATLAB's `randn` would refuse the
+    fraction, by reading; wave 4's ruling keeps the rounded-down
+    generations): close as ruled, with "rounded down" in the description
+    of `n_search_iter`?
+  - `FunctionLogger.add` keeps checks of its own, and the final samples
+    still add to the incumbent's `n_evals` and average their times into its
+    row: both with the port of `fun_values`;
+  - found in the cleanup: elements beyond the pair in `search_acq_fcn` or in
+    an entry of `search_method` are ignored, as in 1.1.0; some unused
+    advanced options (`warp_*`, `variational_sampler`) do not say so in
+    their descriptions; no module of PyBADS imports matplotlib any more,
+    which gpyreg still requires; `skills/pybads/SKILL.md` names no release.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
