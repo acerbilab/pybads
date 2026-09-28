@@ -636,6 +636,8 @@ def test_tol_fun_up_to_e6_runs(tol_fun):
         [("ES-wcm", 1), ("ES-foo", 1)],
         [("ES-wcm", 1), "ES-ell"],
         [(np.array(["ES-wcm", "ES-ell"]), 1)],
+        [("ES-wcm", 1, 1), ("ES-ell", 1)],
+        np.array([["ES-wcm", 1, 1], ["ES-ell", 2, 1]], dtype=object),
     ],
     ids=[
         "empty",
@@ -645,13 +647,15 @@ def test_tol_fun_up_to_e6_runs(tol_fun):
         "one_unknown",
         "one_not_a_pair",
         "array_of_two_names",
+        "three_elements",
+        "array_of_triples",
     ],
 )
 def test_search_method_is_checked(search_method):
     """`search_method` is a non-empty list of pairs (name, sum-rule flag),
     each name "ES-wcm" or "ES-ell", checked when `BADS` is created; 1.1.0
     stopped at the first search, or at the first that chose an unknown
-    name."""
+    name, and ignored the elements of an entry beyond its pair."""
     with pytest.raises(ValueError, match=r"search_method'\] needs to be"):
         _bads_with_options({"search_method": search_method})
 
@@ -721,6 +725,7 @@ def test_search_options_given_as_arrays_run_as_lists(name, value, as_list):
         [None, None],
         2.0,
         (np.array(["acq_LCB", "acq_LCB"]), None),
+        ("acq_LCB", None, 1.0),
     ],
     ids=[
         "string",
@@ -729,13 +734,15 @@ def test_search_options_given_as_arrays_run_as_lists(name, value, as_list):
         "no_name",
         "number",
         "array_of_two_names",
+        "three_elements",
     ],
 )
 def test_search_acq_fcn_other_than_lcb_is_refused(search_acq_fcn):
     """`search_acq_fcn` is the pair ("acq_LCB", sqrt_beta), checked when
     `BADS` is created; 1.1.0 stopped at the first search, and PyBADS
     stopped there too for another name, or with an unrelated error when
-    `BADS` was created for a value that is not a sequence of two."""
+    `BADS` was created for a value that is not a sequence of two, and
+    ignored the elements beyond the pair."""
     with pytest.raises(ValueError, match=r"search_acq_fcn'\] needs to be"):
         _bads_with_options({"search_acq_fcn": search_acq_fcn})
 

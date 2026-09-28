@@ -74,11 +74,11 @@ def _name_among(value, names):
 
 
 def _is_named_pair(value, names):
-    """Whether ``value`` has at least two elements, the first of them a name
-    among ``names`` (``_name_among``), as a list or a tuple, or a NumPy
-    array, has them."""
+    """Whether ``value`` has two elements, the first of them a name among
+    ``names`` (``_name_among``), as a list or a tuple, or a NumPy array,
+    has them."""
     try:
-        return len(value) >= 2 and _name_among(value[0], names) is not None
+        return len(value) == 2 and _name_among(value[0], names) is not None
     except (TypeError, KeyError, IndexError):
         return False
 
@@ -966,8 +966,9 @@ class BADS:
         # search_method is a non-empty list of pairs (name, sum-rule flag),
         # each name a search that ESSearchHedge runs, "ES-wcm" or "ES-ell",
         # as the hedge compares it (_is_named_pair: a NumPy array of pairs,
-        # or of names, runs too); further elements are ignored. MATLAB BADS
-        # does not check it
+        # or of names, runs too); an entry with more elements is refused, as
+        # a sign of another form, such as MATLAB's {@searchES, 1, 1}. MATLAB
+        # BADS does not check it
         search_method = self.options["search_method"]
         try:
             methods = list(search_method)
@@ -1030,8 +1031,8 @@ class BADS:
         # search_acq_fcn is the pair ("acq_LCB", sqrt_beta), its name as the
         # ES search compares it (_is_named_pair): the LCB is the search's
         # only acquisition function (MATLAB BADS's others, which read the
-        # optimization target, are not ported); further elements are
-        # ignored. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
+        # optimization target, are not ported), and more elements are
+        # refused. Its sqrt_beta, which acq_fcn_lcb checks at each call, is
         # checked here too, before any evaluation
         search_acq_fcn = self.options["search_acq_fcn"]
         if not _is_named_pair(search_acq_fcn, ("acq_LCB",)):
