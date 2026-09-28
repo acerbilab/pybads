@@ -82,6 +82,7 @@ How-to
 
    installation
    quickstart
+   faq
    examples
    documentation
 

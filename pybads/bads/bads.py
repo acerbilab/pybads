@@ -822,12 +822,13 @@ class BADS:
             )
 
         # Report variable transformation, from "notify" on, as MATLAB BADS
-        # does (setupvars.m:118-120)
+        # does (setupvars.m:118-120), with the indices of the variables
         if np.any(self.var_transf.apply_log_t):
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) internally transformed to log "
-                f"coordinates: {np.argwhere(self.var_transf.apply_log_t)}",
+                "coordinates: "
+                f"{np.flatnonzero(self.var_transf.apply_log_t).tolist()}.",
             )
 
         # Put tol_mesh on space

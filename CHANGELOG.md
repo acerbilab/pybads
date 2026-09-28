@@ -101,6 +101,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **FAQ.** The documentation has a [page of frequently asked
+  questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
+  MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
+  several starts, make a run reproducible, monitor or stop a run with
+  `output_fcn`, what the log transform of positive variables does, what
+  differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
+  getting-started page and Examples 3 and 4 point to it in place of the
+  MATLAB BADS wiki.
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.
@@ -650,6 +658,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   for infinite bounds and the list of the variables transformed to log
   coordinates, are shown from `"notify"` on (level 25), as MATLAB BADS
   prints them; 1.1.0 showed the caution with `"off"` too.
+- **List of the log-transformed variables.** The report of the variables
+  that PyBADS transforms to log coordinates gives their indices, such as
+  `[0, 2]`, where 1.1.0 printed pairs of indices, `[[0 0] [0 2]]`.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
   no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
   them, that of `noise_size` among them, and give the description of an
