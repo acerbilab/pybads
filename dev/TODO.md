@@ -203,8 +203,8 @@ order.
 - [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
   while fixing" and "Doublecheck", with the details). The cleanup of
-  2026-09-28 fixed those that change no result
-  and need no choice; left, each a behaviour choice:
+  2026-09-28 (#84) fixed those that change no result and need no choice;
+  left, each a behaviour choice:
   - `test_options.ini` and `test_options2.ini` ship in the wheel and nothing
     reads them;
   - a 0-d array for `max_fun_evals` or a boolean option is refused, where
@@ -221,8 +221,8 @@ order.
     (KD-B1-9); the test of fixed variables leaves `x0` out (KD-B1-7).
 - [ ] **Minor items of slices B7 and O of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). The cleanup of 2026-09-28 fixed those
-  that change no result and need no choice; left:
+  while fixing", with the details). The cleanup of 2026-09-28 (#84) fixed
+  those that change no result and need no choice; left:
   - the port floors the ES search's `mu = n_search / n_search_iter`, where
     `private/setupvars.m:186` does not (MATLAB's `randn` would refuse the
     fraction, by reading; wave 4's ruling keeps the rounded-down
