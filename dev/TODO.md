@@ -217,33 +217,46 @@ order.
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has.
-  PyBADS's next release waits for gpyreg's next one (PI, 2026-09-28),
-  which holds, unreleased:
-  - on gpyreg's `main`, the fix of the port review's W1-24 (the log prior
-    of a prior far outside its bounds, acerbilab/gpyreg#57) and W1-25's
-    switch (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6);
-  - on gpyreg's branch `claude/todo-discussion-up70ou`, in no pull request
-    yet, two changes. The gradients of the rational-quadratic ARD and
-    Matern kernels compute the factor that does not depend on the
-    dimension once, to the same bits: the rational-quadratic kernel with
-    its gradient takes 6.57 → 3.77 ms at D = 10 and 250 inputs, and
-    PyBADS's runs of `ellipsoid_D10` take 0.90 of the wall time they take
-    with gpyreg at `1893eff` (the median paired ratio over seeds 0-5, 0.85
-    to 0.95; the records otherwise equal); the kernel takes 31 to 45 % of
-    a PyBADS run in its own code
-    ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
-    And pytest, pytest-rerunfailures and numdifftools, which only
-    gpyreg's tests use, move from its runtime dependencies to a `test`
-    extra, so that installing PyBADS no longer installs them.
+  shows that it has no effect on PyBADS, or explains the one it has. A
+  move is a change for users: an entry in `CHANGELOG.md` and a line in its
+  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
+  (PI, 2026-09-28), which is to hold:
+  - the fix of the port review's W1-24 (the log prior of a prior far
+    outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
+    (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on
+    gpyreg's `main` at `1893eff`;
+  - the gradients of the rational-quadratic ARD and Matern kernels
+    computing the factor common to all dimensions once, to the same bits,
+    on gpyreg's branch `claude/todo-discussion-up70ou`, to be proposed to
+    gpyreg's `main` by a pull request. The kernel takes 31 to 45 % of a
+    PyBADS run in its own code, in the predictions at the ES search's
+    candidates and in the hyperparameter fits; only the fits compute its
+    gradient, and on `ellipsoid_D10` their kernel takes 6.0 s of a 23-s run
+    (Windows, gpyreg 1.3.3,
+    [results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+    On Linux with one BLAS thread, the kernel with its gradient takes a
+    third less time at D = 10 and 150 training points and a quarter less
+    at D = 6 and 110, and PyBADS's runs of `ellipsoid_D10`, seeds 0-5,
+    take 0.85 to 0.95 of their wall time with gpyreg at `1893eff` (median
+    0.90, paired by seed, the two arms side by side on four cores), with
+    records otherwise equal;
+  - on the same branch, pytest, pytest-rerunfailures and numdifftools,
+    which only gpyreg's tests use, moved from gpyreg's runtime dependencies
+    to a `test` extra, so that installing PyBADS does not install them.
+    Moving PyBADS's minimum to that release makes false the "(gpyreg 1.3.3
+    still installs it)" of the entry "Requirements" of `CHANGELOG.md`'s
+    `Unreleased`, which changes with it.
 
   At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's records in
   all 1,080 runs of the `default`, `geometry`, `oned` and `bounds` suites
   on Linux
-  ([experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md)),
-  and the branch's head `951aae8` gives `dev/scripts/fingerprint.py` the
-  hash of 1.3.3, `4146a986863602cb` (Linux, NumPy 2.4.6, SciPy 1.17.1, one
-  BLAS thread): a release of them moves nothing there; its gate also takes
-  the Windows comparison. conda-forge's `gpyreg-feedstock` lists the three
-  test packages among its run requirements (`recipe/meta.yaml`), which the
-  version-update PR of that release drops.
+  ([experiments/gp_switch_linux_20260928/](experiments/gp_switch_linux_20260928/README.md)).
+  With the branch at `1095742` and PyBADS at `bec8a57a`,
+  `dev/scripts/fingerprint.py` gives 1.3.3's hash, `4146a986863602cb`
+  (Linux, NumPy 2.4.6, SciPy 1.17.1, one BLAS thread), as the kernel
+  change's bit identity implies. The release's own gate, the comparison
+  run with its clone, is therefore expected to flag nothing on Linux, and
+  takes the Windows comparison too. conda-forge's `gpyreg-feedstock` lists
+  the three test packages among its run requirements (`recipe/meta.yaml`),
+  and its bot merges its version-update PR once a CI that only imports
+  gpyreg passes: that PR has them dropped before it merges.
