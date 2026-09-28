@@ -6,7 +6,7 @@ Branch `claude/todo-discussion-ad0tsh` (on `dev-next` at `bec8a57a`).
 ## Prerequisites
 - [x] venv `.venv` with gpyreg v1.3.3 editable (`../gpyreg`) and PyBADS `.[dev]` (NumPy 2.4.6, SciPy 1.17.1, Python 3.11)
 - [x] Clones: `../gpyreg` (v1.3.3), `../acerbilab/pyvbmc` (`dev-next`), `../acerbilab/bads` (MATLAB)
-- [~] Baseline: test suite green, fingerprint hash recorded (1 BLAS thread and default)
+- [x] Baseline at `bec8a57a`: 767 passed (3 min 25 s); fingerprint `4146a986863602cb` (1 BLAS thread and default, this container)
 
 ## 1. Research and decisions (discuss with PI before implementing)
 - [~] Loose ends: proposal per item (fix / document / drop)
