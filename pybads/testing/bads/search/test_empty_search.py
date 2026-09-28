@@ -204,3 +204,39 @@ def test_es_search_keeps_the_candidates_of_an_emptied_generation(
         in record.getMessage()
     ]
     assert [record.levelno for record in records] == [logging.DEBUG]
+
+
+@pytest.mark.parametrize(
+    "search_class", [es_search_module.ESSearchWM, es_search_module.ESSearchELL]
+)
+def test_es_search_without_generations_returns_an_empty_set(
+    monkeypatch, search_class
+):
+    """An ES search built with `n_search_iter = 0`, which `BADS` refuses,
+    runs no generation, evaluates no acquisition and returns the empty set,
+    as MATLAB's searchES does."""
+    bads, gp = _initial_state()
+    evaluated = []
+
+    def lcb(u, *args, **kwargs):
+        evaluated.append(u)
+        raise AssertionError("no generation evaluates its candidates")
+
+    monkeypatch.setattr(es_search_module, "acq_fcn_lcb", lcb)
+    bads.options["n_search_iter"] = 0
+    search_es = search_class(
+        64, 64, bads.options, rng=np.random.default_rng(0)
+    )
+    us, z = search_es(
+        bads.u,
+        None,
+        None,
+        bads.function_logger,
+        gp,
+        bads.optim_state,
+        True,
+        None,
+    )
+    assert evaluated == []
+    assert us.shape == (0, D)
+    assert z.size == 0
