@@ -113,7 +113,10 @@ order.
   shift. To settle on macOS arm64: run the test in a loop until it fails,
   find the first computation at which the two runs differ, and fix it
   there; if it lies in a library, the test is rewritten to compare only
-  what the platform repeats.
+  what the platform repeats. `dev/scripts/replay.py` is the instrument
+  for the second step: `record --repeat N` records runs repeated in one
+  process, and `check DIR` reports the first evaluation, step and GP
+  computation at which a repeat parts from the first run.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -141,17 +144,22 @@ order.
   variance exceeds the noise by 1e12 or more, the same cause as KD-B6-6;
   MATLAB's `mygp.m:187` clamps the same way. Open only: how often MATLAB's
   own fits reach them, which needs MATLAB.
-- [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
-  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`). They were
-  to follow the bug hunt, so as not to pin its defects, and the hunt is
-  done ([the port correctness review](results/2026-09-28-port-correctness-review.md)):
-  nothing holds them back. The random draws go through one generator per
-  run (`bads.rng`), which replay needs. An oracle computed by MATLAB BADS
-  needs MATLAB's own numbers, which PyVBMC's MATLAB-comparison helpers
+- [ ] **Numerical oracles**, after PyVBMC's (`pyvbmc/testing/oracles/`).
+  PyVBMC's oracles are snapshots of its own numerics, not MATLAB's: each
+  fixture is an algorithm state saved as arrays, with the outputs of each
+  stage computed from it, compared under tolerances measured across BLAS
+  settings, and regenerated one reference at a time on an intended
+  change; its MATLAB-comparison helpers
   (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
-  reproduce MATLAB's random stream) give. The population comparison of
-  `dev/scripts/population.py` checks distributions, not trajectories,
-  until then.
+  reproduce MATLAB's random stream) have no caller. Snapshots of PyBADS's
+  stages (the variable transform, the poll's basis, the LCB, the ES
+  search's candidates, the GP's fit and predictions) would gate a change
+  that must move nothing on every platform, where
+  `dev/scripts/replay.py` compares runs step by step on one machine only
+  and `pybads/testing/bads/test_initial_design_pin.py` pins the initial
+  design. Oracles computed by MATLAB BADS, which would check the port's
+  numbers rather than their stability, need MATLAB and the BADS toolbox
+  to generate.
 - [ ] **Porting gaps** listed in `pybads/bads/README.md` (periodic
   variables, benchmarking on neurobench). A port of periodic variables also
   assigns `period_check`'s result at every call site, as MATLAB BADS does,
