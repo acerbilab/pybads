@@ -378,33 +378,44 @@ items that a ruling left to later work are held by these items of
 | "Zero predictive SDs at uncertainty level 0." | W3-28 and wave 3's "Found while verifying" |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
-| "Prior evaluations (`fun_values`)." | W2-6, W4-10, and `FunctionLogger.add`'s checks |
+| "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
-| "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck |
+| "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration |
 | "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57) and W1-25's switch, which reach PyBADS through a release |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
 
 **The minor items.** "Found while fixing" of `verification/wave2.md` and
 `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items of slices B1,
-B2, B7 and O. #84 fixed those that needed no choice of the PI, and those
-that need one are the two "Minor items" entries of `dev/TODO.md`, which
-hold them with their details; this ledger does not list them again. The
-first of the entries of B7 and O asks whether to close the floor of the ES
-search's `mu = n_search / n_search_iter`, which the rulings of wave 4's
-doublecheck already keep ("An `n_search_iter` that does not divide
-`n_search` keeps its rounded-down generations", `verification/wave4.md`);
-the entry stands until the PI closes it.
+B2, B7 and O. #84 fixed those that needed no choice of the PI. The PI
+ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
+
+| Item | Ruling | In #87 |
+|---|---|---|
+| `test_options.ini` and `test_options2.ini` ship in the wheel, and nothing reads them | remove them | removed |
+| A 0-d array for `max_fun_evals` or a boolean option is refused, where 1.1.0 took it; `tol_fun`'s check leaves other types through | keep refusing arrays, as for `improvement_quantile` and the hedge's options; refuse a `tol_fun` that is not a real number | `tol_fun` checked (KD-B1-13), the changelog's upgrading lines for all three |
+| The reports of the log transform and of periodic variables are logged at INFO, and the caution for infinite bounds at WARNING, where MATLAB BADS prints all three from `"notify"` on | as MATLAB BADS | all three at the level of the opening message (KD-B2-3) |
+| `__init__` fills missing plausible bounds without `bads:pbUnspecified` | warn, as MATLAB BADS | the warning (KD-B2-3) |
+| The redraw of a random start tests it before it is put on the mesh (KD-B1-9) | test it on the mesh | the draw moved to where the start is put on the mesh (KD-B1-11) |
+| The test of fixed variables leaves `x0` out (KD-B1-7) | no change: both sides refuse such a problem | KD-B1-7 says so |
+| The floor of the ES search's `mu = n_search / n_search_iter`, kept by the rulings of wave 4's doublecheck | close as ruled | KD-B3-9 |
+| `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log | with the port of `fun_values` | `TODO.md`'s item of that port |
+| Elements beyond the pair in `search_acq_fcn` or in an entry of `search_method` are ignored | refuse them | refused (KD-B3-1, KD-B3-2) |
+| 76 advanced options read by no code (77 on a closer count: `diagnostics` too) | remove those without a MATLAB counterpart, keep and mark the MATLAB-named ones | 65 removed, 12 marked unused (KD-B1-5) |
+| No module of PyBADS imports matplotlib, which `pyproject.toml` requires and gpyreg imports | keep the requirement, with a comment | the comment |
+| `skills/pybads/SKILL.md` names no release | a step of the next release | `TODO.md`'s item on the release's "What's new" |
 
 **Noted, and ruled by no one.** The reports and the fix agents noted a few
 observations outside their findings, most of which the ledgers left to the
-docstrings and descriptions of the fix passes; the ones below hold at
-`dev-next`, and no record took them up. None changes a default run.
+docstrings and descriptions of the fix passes; the ones below held at
+`dev-next` at the close, and no record took them up. None changes a
+default run.
 
-- A test that checks less than it appears to:
-  `test_transform_inverse_largeN` builds `np.ones((10 ^ 6, D))`, 12 rows,
-  since `^` is XOR (wave 2, "Notes on the reports").
+- A test that checked less than it appeared to:
+  `test_transform_inverse_largeN` built `np.ones((10 ^ 6, D))`, 12 rows,
+  since `^` is XOR (wave 2, "Notes on the reports"); #87 builds a million,
+  by the PI's ruling.
 - ES-ell ignores the sum-rule flag of an entry of `search_method`, which
   only ES-wcm reads (non-default); `udist`'s periodic branch indexes the
   distance matrix's rows by variable (unreachable, KD-B1-6); the search

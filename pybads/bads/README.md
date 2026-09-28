@@ -88,8 +88,9 @@ integers stands for `inf`). A user's `None` leaves the option at its
 default, as MATLAB's empty field does (`private/setupoptions.m:5-9`). The
 options whose default is `True` or `False`, and `uncertainty_handling`,
 take only booleans: MATLAB's `'on'`, `'off'`, `'yes'` and `'no'` are
-refused with `ValueError`. A misspelt option name raises, where MATLAB
-BADS ignores it.
+refused with `ValueError`. An option that takes a number or a boolean
+refuses a NumPy array, a 0-d one included, and takes a NumPy scalar. A
+misspelt option name raises, where MATLAB BADS ignores it.
 - PyBADS: `pybads/bads/options.py` (`Options`,
   `Options.validate_boolean_options`); `BADS.__init__`,
   `BADS._init_optim_state_`.
@@ -125,27 +126,30 @@ BADS ignores it.
   others).
 
 **KD-B1-5. Options that are parsed and have no effect.**
+The options that no code of PyBADS reads are twelve, all named after
+MATLAB BADS's options and kept so that a user's setting is not an error;
+their descriptions say that they are unused:
 - *Read by neither side:* `skip_poll`, `search_improve_frac`, `gp_cluster`.
 - *Hard-coded to MATLAB's default choice:* `poll_method` (KD-B4-1),
   `poll_acq_fcn` (KD-B3-2), `gp_def_fcn` (KD-B6-1), `gp_method` (always
   the nearest neighbours), `chol_attempts` (KD-B6-6).
 - *Read by MATLAB BADS only away from its defaults:* `n_basis`,
   `gp_samples` and `gp_svd_iters` (KD-B5-4), `rotate_gp`.
-- *Without a MATLAB counterpart (leftovers of PyVBMC or of the port):*
-  `gp_cov_fun`, which `_init_optim_state_` overrides
-  (`optim_state["gp_cov_fun"] = 1`), `upper_gp_length_factor` (W1-33),
-  `min_iter` and `min_fun_evals` (W2-35), and the options of PyVBMC's
-  variational machinery and warping, such as `variational_sampler`,
-  `warp_*`, `nsgp_*` and `acq_hedge_iter_window`.
+
+The options that no code read and that MATLAB BADS does not have, PyVBMC's
+leftovers (`warp_*`, `variational_sampler`, `min_iter` and others, 65 of
+them in 1.1.0), are not options of PyBADS: setting one raises
+`ValueError`, as for any unknown name. Others are read and have no effect:
+- *Overridden:* `gp_cov_fun`, which `_init_optim_state_` sets to the
+  rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] = 1`).
 - *Read only by a branch that does nothing or refuses:* `plot` (KD-B2-2),
   `restarts` (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge`
   (KD-B3-3), `fitness_shaping` (KD-B5-5), `hessian_update` and
   `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4),
   `periodic_vars` (KD-B1-6), an `init_fun` other than `"init_sobol"`
   (KD-B7-2).
-- This is not a list of every option that no code reads; `dev/TODO.md`
-  counts them.
-- Kind: removed feature; Python-only feature.
+- Settled by: W1-33, W2-35; the PI's ruling at the close of the review
+  (the removal of the leftovers). Kind: removed feature.
 
 **KD-B1-6. Periodic variables are not supported.**
 MATLAB BADS wraps a periodic variable into its range and uses a periodic
@@ -162,7 +166,9 @@ MATLAB BADS. `period_check` is a stub, and the periodic branches of
 
 **KD-B1-7. Fixed variables are refused.**
 A variable whose bounds are all equal makes PyBADS raise `ValueError`;
-MATLAB BADS fixes it and optimizes the others.
+MATLAB BADS fixes it and optimizes the others. MATLAB's test also asks
+that `x0` equal the bound, which PyBADS's leaves out: with all four bounds
+equal, any other `x0` lies outside them and is refused on both sides.
 - PyBADS: `BADS._bounds_check_`.
 - MATLAB: `private/boundscheck.m:39-40`; `bads.m:351-382`, `1480-1488`
   (`expandvars`); `private/fixedbads.m`.
@@ -190,14 +196,12 @@ returns the incumbent's observation (`bads.m:1136`).
 - Settled by: W0-4, W2-12, W2-13, W2-14, W2-32. Kind: deliberate change
   (interface).
 
-**KD-B1-9. A start that `non_box_cons` rejects once put on the mesh is refused.**
-PyBADS tests `non_box_cons` at the start a second time, after
+**KD-B1-9. A given start that `non_box_cons` rejects once put on the mesh is refused.**
+PyBADS tests `non_box_cons` at a given start, and a second time after
 `force_to_grid`, and raises `ValueError` if the point on the mesh violates
 it; MATLAB BADS tests only the start as given and evaluates the point on
-the mesh. A random start is put on the mesh before MATLAB's test, and
-after PyBADS's redraws (KD-B1-11), so that PyBADS refuses a random start
-that the mesh makes infeasible, without drawing again.
-- PyBADS: `BADS._init_optim_state_`; `BADS.__init__`.
+the mesh. A random start is tested on the mesh on both sides (KD-B1-11).
+- PyBADS: `BADS.__init__`; `BADS._init_optim_state_`.
 - MATLAB: `private/evalinitmesh.m:22-26`; `private/setupvars.m:84-87`,
   `101`.
 - Kind: deliberate change.
@@ -216,13 +220,16 @@ and fixes.
 
 **KD-B1-11. A random start that violates `non_box_cons` is drawn again.**
 When `x0` is missing or not finite, MATLAB BADS draws one start in the
-plausible box and stops with an error when it violates `non_box_cons`.
-PyBADS draws again, up to 1000 draws in all, and then raises the same
-error; a run whose first draw is feasible starts where MATLAB's would from
-the same numbers. A defect that PyBADS shared and fixes.
-- PyBADS: `BADS.__init__`.
-- MATLAB: `private/setupvars.m:83-85`; `private/evalinitmesh.m:22-26`.
-- Settled by: W2-11. Kind: deliberate change.
+plausible box, puts it on the mesh, and stops with an error when that point
+violates `non_box_cons`. PyBADS draws again while the point on the mesh
+violates it, up to 1000 draws in all, and then raises the same error; a
+run whose first draw is feasible on the mesh starts where MATLAB's would
+from the same numbers. A defect that PyBADS shared and fixes.
+- PyBADS: `BADS._init_optim_state_`.
+- MATLAB: `private/setupvars.m:83-85`, `101`;
+  `private/evalinitmesh.m:22-26`.
+- Settled by: W2-11; the PI's ruling at the close of the review (the test
+  on the mesh). Kind: deliberate change.
 
 **KD-B1-12. A missing `x0` with only the hard bounds is accepted.**
 With `x0` missing and the plausible bounds omitted, MATLAB BADS refuses
@@ -234,15 +241,17 @@ missing start.
 - Settled by: W2-9. Kind: deliberate change.
 
 **KD-B1-13. `tol_fun` is checked when `BADS` is created.**
-A `tol_fun` that is a real number must be positive and at most e^6, and a
-boolean is refused; MATLAB BADS does not check it. Above e^6 the bounds of
+`tol_fun` must be a positive real number (a Python or NumPy integer or
+float) at most e^6: a boolean, a string, an array or a complex number is
+refused. MATLAB BADS does not check it. Above e^6 the bounds of
 the GP's log noise SD, `log(tol_fun) - 1` and 5, cross
 (`gpdef/gpdefBads.m:161`), which stopped a run at its first fit, and 0
 stopped it while the default of `hedge_beta`, `1e-3 / tol_fun`, was
 evaluated.
 - PyBADS: `BADS._check_tol_fun_`.
 - MATLAB: `bads.m:193`; `private/setupoptions.m:23`.
-- Settled by: #84. Kind: deliberate change.
+- Settled by: #84; the PI's ruling at the close of the review (real
+  numbers only). Kind: deliberate change.
 
 ### The main loop, termination and the final estimate (B2)
 
@@ -267,13 +276,17 @@ calls run. The level follows MATLAB's reading of the first three letters,
 lower case: `"off"` and `"none"` show the warnings only, `"notify"` and
 any other value also the opening message, `"final"` also the final
 message, `"iter"` and `"all"` also the iteration lines, and `"full"`,
-which only PyBADS has, the debug messages too. This settles the mechanism;
-which message goes at which level is open (`dev/TODO.md`, the minor items
-of B1 and B2).
+which only PyBADS has, the debug messages too. The reports of the setup
+(the caution for infinite bounds, the variables on a log scale) are shown
+from `"notify"` on, as MATLAB BADS prints them, and its warnings, such as
+`bads:pbUnspecified`, at every level, as MATLAB's `warning` shows whatever
+`Display` says. The content and format of the other lines may differ.
 - PyBADS: `BADS.__init__` and the display methods of `BADS`;
   `pybads/bads/gaussian_process_train.py`.
-- MATLAB: `bads.m:311-328` and `fprintf` throughout.
-- Settled by: W2-15. Kind: deliberate change.
+- MATLAB: `bads.m:311-328`; `private/setupvars.m:28-39`, `118-123`;
+  `private/boundscheck.m:12-16`; `fprintf` throughout.
+- Settled by: W2-15; the PI's rulings at the close of the review (the
+  setup's reports, `bads:pbUnspecified`). Kind: deliberate change.
 
 **KD-B2-4. When the re-estimate of the current iterate fails, it keeps its estimate.**
 In a noisy run, each iterate is re-estimated from a copy of the working GP
@@ -361,8 +374,9 @@ Only MATLAB's default set of searches exists: `ESSearchWM`, `searchES`'s
 method 1 (`'ES-wcm'`), and `ESSearchELL`, its method 2 (`'ES-ell'`). The
 other methods of `searchES` (`ES-eye`, `ES-cov`, `ES-cma+`) and the other
 search functions are absent. A `search_method` that is not a non-empty
-list of pairs named `"ES-wcm"` or `"ES-ell"` is refused when `BADS` is
-created; MATLAB BADS checks nothing.
+list of pairs (name, sum-rule flag) named `"ES-wcm"` or `"ES-ell"` is
+refused when `BADS` is created, an entry with more elements included, such
+as MATLAB's triple `{@searchES, 1, 1}`; MATLAB BADS checks nothing.
 - PyBADS: `pybads/search/search_hedge.py` (`ESSearchHedge`);
   `pybads/search/es_search.py`; `BADS._init_optim_state_`.
 - MATLAB: `bads.m:239`; `search/searchES.m:3-12`, `39-101`;
@@ -375,7 +389,8 @@ created; MATLAB BADS checks nothing.
 `PollAcqFcn` and `SearchAcqFcn` can name other acquisition functions in
 MATLAB BADS; in PyBADS the poll always uses the LCB, with its default
 schedule, and a `search_acq_fcn` that is not a pair `("acq_LCB",
-sqrt_beta)` is refused when `BADS` is created. Both default to the LCB.
+sqrt_beta)`, with no further element, is refused when `BADS` is created.
+Both default to the LCB.
 - PyBADS: `pybads/acquisition_functions/acq_fcn_lcb.py`; `ESSearch`;
   `BADS._init_optim_state_`, `BADS._search_step_`, `BADS._poll_step_`.
 - MATLAB: `bads.m:269-270`, `577-578`, `852`; `search/searchES.m:147`,
@@ -471,9 +486,8 @@ take the fraction (by reading).
 - PyBADS: `ESSearchHedge.__init__` (`pybads/search/search_hedge.py`);
   `advanced_bads_options.ini` (`n_search_iter`).
 - MATLAB: `private/setupvars.m:186`; `search/searchES.m:117`.
-- Settled by: the rulings of wave 4's doublecheck; `dev/TODO.md`, the
-  minor items of B7 and O, asks whether to close it as ruled. Kind:
-  deliberate change.
+- Settled by: the rulings of wave 4's doublecheck, confirmed by the PI at
+  the close of the review. Kind: deliberate change.
 
 ### The poll, the mesh, the incumbent and the target (B4)
 

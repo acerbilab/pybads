@@ -1106,6 +1106,24 @@ and its squash commit (for #84, `79697835`).
   of wave 2 that read `cache_active`, which since `8aecb6a` stop earlier,
   at the refusal of `f_vals` and `fun_values`. The two "Minor items"
   entries of `TODO.md`, the PI's open choices, stay as #84 left them.
+- [x] 2026-09-28: the PI's rulings on the minor items that #84 left, on
+  the orchestrator's recommendations, all accepted, carried by #87 with the
+  Close (the consolidated ledger, "Open ends", has the table). Fixed, one
+  commit each, with a test and a changelog line where a user can notice it:
+  the reports of the setup shown from `"notify"` on, `bads:pbUnspecified`
+  when the hard bounds stand for omitted plausible bounds, a random start
+  tested against `non_box_cons` on the mesh and drawn again there, entries
+  of `search_method` and `search_acq_fcn` with more than two elements
+  refused, a `tol_fun` that is not a real number refused, the 65 options
+  that nothing read and MATLAB BADS does not have removed and the 12
+  MATLAB-named ones marked unused (77 unread, not 76: `diagnostics` was
+  counted as read), `test_options.ini` and `test_options2.ini` removed, the
+  large-N transform test at a million points, and a comment on the
+  matplotlib requirement. Closed without a change: the fixed-variable test,
+  the floor of the ES search's `mu`, and the 0-d arrays, which stay refused;
+  `FunctionLogger.add` and the final samples' bookkeeping go with the port
+  of `fun_values`, and `SKILL.md`'s release with the next release. The two
+  "Minor items" entries leave `TODO.md`, and the catalogue follows.
 - [x] Close: the consolidated ledger, the catalogue in
   `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
   steps are in "Close pickup" above.

@@ -148,7 +148,8 @@ order.
   replaces it, and says that `random_seed` now decides the initial design
   (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck").
+  "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
+  names no release, names it, as PyVBMC's names 1.5.
 - [ ] **Zero predictive SDs at uncertainty level 0.** In deterministic runs
   the predictive SD of the GP is often exactly 0, and the poll's check of
   an unreliable GP reads it (the port review's wave 3, W3-28 and "Found
@@ -196,7 +197,9 @@ order.
   port would call, keeps checks of its own on the value and its SD, records
   a missing SD as 1 when the logger holds SDs and drops a given one when it
   does not, and what it records for a repeated point is settled with it
-  (row W4-10).
+  (row W4-10); so is the bookkeeping of the final samples, which still add
+  to the incumbent's `n_evals` in the log and average their times into its
+  row, after the run's last decision (PI, 2026-09-28).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -224,52 +227,11 @@ order.
   (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
   the passes have all landed (the review closed on 2026-09-28), so the
   rerun goes with the headless run of the examples before the release.
-- [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
-  passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
-  while fixing" and "Doublecheck", with the details). Left, each a
-  behaviour choice:
-  - `test_options.ini` and `test_options2.ini` ship in the wheel and nothing
-    reads them;
-  - a 0-d array for `max_fun_evals` or a boolean option is refused, where
-    1.1.0 took it (and so are arrays for `improvement_quantile` and the
-    hedge's options, by ruling; `tol_fun`'s check leaves non-scalars
-    unchecked);
-  - the reports of the log transform and of periodic variables are logged
-    at INFO, so that `"notify"` and `"final"` hide them, and the caution for
-    infinite bounds at WARNING, so that `"off"` shows it, where MATLAB BADS
-    prints all three from `"notify"` on (`setupvars.m:30`, `119`, `122`);
-  - `__init__` fills missing plausible bounds without `bads:pbUnspecified`,
-    which MATLAB BADS logs whenever it fills them;
-  - the redraw of a random start tests it before it is put on the mesh
-    (KD-B1-9); the test of fixed variables leaves `x0` out (KD-B1-7).
-- [ ] **Minor items of slices B7 and O of the port review**, whose wave has
-  passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). Left, each with its choice:
-  - the port floors the ES search's `mu = n_search / n_search_iter`, as the
-    description of `n_search_iter` says, where `private/setupvars.m:186`
-    does not (MATLAB's `randn` would refuse the fraction, by reading); wave
-    4's ruling keeps the rounded-down generations: close as ruled?
-  - `FunctionLogger.add` keeps checks of its own, and the final samples
-    still add to the incumbent's `n_evals` and average their times into its
-    row: settle both with the port of `fun_values`?
-  - elements beyond the pair in `search_acq_fcn` or in an entry of
-    `search_method` are ignored, as in 1.1.0: refuse them?
-  - 76 advanced options are read by no module of PyBADS (most of them
-    PyVBMC's or MATLAB's leftovers, such as `warp_*` and
-    `variational_sampler`), and the descriptions of 68 of them do not say
-    so: mark them, or remove them, which makes a user's setting of one an
-    error?
-  - no module of PyBADS imports matplotlib, which `pyproject.toml` requires
-    and gpyreg imports: keep the requirement?
-  - `skills/pybads/SKILL.md` names no release: name it at the next release,
-    as PyVBMC's names 1.5.
 - [ ] **Loose ends of the port review.** Observations that the reports and
   the fix agents made outside their findings, which no ruling took up and
   which change no default run, are listed in the consolidated ledger
   ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
-  "Open ends"), among them a test that checks less than it appears to:
-  `test_transform_inverse_largeN` builds `np.ones((10 ^ 6, D))`, 12 rows,
-  since `^` is XOR. Each is fixed, documented, or dropped.
+  "Open ends"). Each is fixed, documented, or dropped.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
