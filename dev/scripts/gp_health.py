@@ -130,6 +130,24 @@ def per_run(h):
     r["train_small_distinct_1"] = t["small_distinct"].get("1", 0)
     r["train_small_distinct_2"] = t["small_distinct"].get("2", 0)
     r["hook_errors"] = len(h["hook_errors"])
+    sto = h.get("stobads", {})
+    for site, short in (("_search_step_", "search"), ("_poll_step_", "poll")):
+        c = sto.get(site, {})
+        r[f"sto_{short}_success"] = c.get("1", 0)
+        r[f"sto_{short}_uncertain"] = c.get("0", 0)
+        r[f"sto_{short}_failure"] = c.get("-1", 0)
+        r[f"sto_{short}_uncertain_neg"] = c.get("uncertain_mu_neg", 0)
+        r[f"sto_{short}_certain"] = sum(
+            v for k, v in c.items() if k.startswith("certain_z")
+        )
+        r[f"sto_{short}_certain_z_lt05"] = c.get("certain_z<0.25", 0) + c.get(
+            "certain_z<0.5", 0
+        )
+        r[f"sto_{short}_certain_z_lt196"] = (
+            r[f"sto_{short}_certain_z_lt05"]
+            + c.get("certain_z<1", 0)
+            + c.get("certain_z<1.96", 0)
+        )
     return r
 
 
@@ -306,6 +324,55 @@ def tables(rows):
             S(rs, "hook_errors"),
         ],
     )
+    if any(
+        r["sto_search_success"] + r["sto_search_uncertain"] > 0
+        or r["sto_poll_success"] + r["sto_poll_uncertain"] > 0
+        or r["sto_search_failure"] + r["sto_poll_failure"] > 0
+        for r in rows
+    ):
+
+        def sto_cells(rs, short):
+            n = sum(
+                S(rs, f"sto_{short}_{k}")
+                for k in ("success", "uncertain", "failure")
+            )
+            return [
+                int(n),
+                _pct(S(rs, f"sto_{short}_success"), n),
+                _pct(S(rs, f"sto_{short}_uncertain"), n),
+                _pct(
+                    S(rs, f"sto_{short}_uncertain_neg"),
+                    S(rs, f"sto_{short}_uncertain"),
+                ),
+                _pct(
+                    S(rs, f"sto_{short}_certain_z_lt05"),
+                    S(rs, f"sto_{short}_certain"),
+                ),
+                _pct(
+                    S(rs, f"sto_{short}_certain_z_lt196"),
+                    S(rs, f"sto_{short}_certain"),
+                ),
+            ]
+
+        header = [
+            "decisions",
+            "success",
+            "uncertain",
+            "uncertain with mu < 0",
+            "certain with abs(mu) < 0.5 SD",
+            "certain with abs(mu) < 1.96 SD",
+        ]
+        table(
+            "Sto-BADS decisions",
+            ["search " + c for c in header] + ["poll " + c for c in header],
+            lambda rs: sto_cells(rs, "search") + sto_cells(rs, "poll"),
+            "Each call of `_sto_success_improvement_` at the search or the "
+            "poll: success (1), uncertain (0), failure (-1, certain or no "
+            "estimate); mu is the estimated improvement and SD its standard "
+            "deviation. With `opp_stobads` every uncertain outcome of the "
+            "search moves its incumbent; a certain outcome whose abs(mu) is "
+            "under 0.5 SD is right with a probability of at most about 69%.",
+        )
     return "\n".join(out)
 
 
