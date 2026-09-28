@@ -35,11 +35,11 @@ pushes and runs `/doublecheck` at the end.
   `73d517a` (fix), `d9772a0` (`thinband` suite), records; 823 passed; fingerprint `4146a986863602cb` (1 thread and default); replay 8/8 identical; no flag, the 144 one-point runs change; refits on zero-spread inputs still warn (every `sphere_band_D3` run; a one-point refit at D = 1): gpyreg item
 - [x] P5b Self-generated oracles (Opus) — after P3
   `d75efa2` (6 states, 14 oracles, 580 KB), `d82c075` (generator), records; 913 passed; fingerprint `4146a986863602cb`; floors over threads 1/2/4, Haswell, Sandybridge; the 3 deterministic post-refit GPs (cond. 1e15-1e18) platform-bound; wheel `--pyargs` ok
-- [ ] Records: `dev/TODO.md`, ledger "Open ends", `pybads/bads/README.md`, `CHANGELOG.md`, `AGENTS.md`/`dev/README.md` where tooling is added
+- [x] Records: `dev/TODO.md`, ledger "Open ends", `pybads/bads/README.md`, `CHANGELOG.md`, `AGENTS.md`/`dev/README.md` where tooling is added
 
 ## Verification
-- [ ] Test suite green; fingerprint unchanged where nothing may move; gates where results move
-- [ ] `/doublecheck` (comprehensive)
+- [x] Test suite green; fingerprint unchanged where nothing may move; gates where results move — at `38491bf`: 913 passed, 18 skipped (platform-bound oracles); fingerprint `4146a986863602cb` (1 thread and default); pre-commit clean; dev tests 29 passed; replay of `bec8a57` against HEAD 8 of 8 identical
+- [~] `/doublecheck` (comprehensive)
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
