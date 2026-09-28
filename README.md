@@ -31,6 +31,11 @@ The [changelog](CHANGELOG.md) lists what changed since PyBADS 1.0.6, including w
 
 The full documentation is available at: https://acerbilab.github.io/pybads/
 
+For coding agents, the [PyBADS skill](skills/pybads/SKILL.md) points to the
+documentation relevant to each task. Give your agent that file, or copy the
+`skills/pybads` folder into its skill directory. To update a copied skill,
+copy the folder again from the PyBADS version you use.
+
 ## When should I use PyBADS?
 
 BADS is effective when:

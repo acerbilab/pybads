@@ -649,20 +649,25 @@ the fingerprints of `fp_all.out` recompute at the pass's key commits with
 one BLAS thread and with the default
 (`scripts/wave4/doublecheck/orchestrator/fp_dc.out`):
 
-| Commit | Step | Linux, one BLAS thread | Linux, default |
-|---|---|---|---|
-| `8c8d6f8` | the merge of `dev-next` with #79 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` |
-| `86512c9` | W4-21 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` |
-| `4b84a2d` | W4-30, the last commit before W4-1 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` |
-| `efe5e95` | W4-1 | `663b49edc9320c55` | `663b49edc9320c55` |
-| `e7bd01d` | W4-6 | `c91725823bc62b29` | `c91725823bc62b29` |
-| `46af65a` | W4-6's completion | `4146a986863602cb` | `4146a986863602cb` |
-| `81385ac` | `dev-next` after #80 | `4146a986863602cb` | `4146a986863602cb` |
+| Commit | Step | Linux, one BLAS thread | Linux, default | Windows, default | Windows, one BLAS thread |
+|---|---|---|---|---|---|
+| `8c8d6f8` | the merge of `dev-next` with #79 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` | `7779b81cecfb120a` | `ac49960f71e37c97` |
+| `86512c9` | W4-21 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` | `7779b81cecfb120a` | `ac49960f71e37c97` |
+| `4b84a2d` | W4-30, the last commit before W4-1 | `360971bf1f0ba6cb` | `360971bf1f0ba6cb` | `7779b81cecfb120a` | `ac49960f71e37c97` |
+| `efe5e95` | W4-1 | `663b49edc9320c55` | `663b49edc9320c55` | `8a7fe547f6fefaf1` | `83df53be9fc78011` |
+| `e7bd01d` | W4-6 | `c91725823bc62b29` | `c91725823bc62b29` | `db9dd70de1e2318c` | `ef154fcaab9f8e9d` |
+| `46af65a` | W4-6's completion | `4146a986863602cb` | `4146a986863602cb` | `dca2b20df2743512` | `093cb1d05a16d889` |
+| `81385ac` | `dev-next` after #80 | `4146a986863602cb` | `4146a986863602cb` | `dca2b20df2743512` | `093cb1d05a16d889` |
 
-The Windows fingerprints of the same commits, by
-`scripts/wave4/doublecheck/orchestrator/fp_windows.ps1`, are added after
-the merge; the commits before `46af65a` are on `origin/dev-port-review-w4`
-only, which stays until then.
+On Windows (Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, the gpyreg 1.3.3
+clone), by `scripts/wave4/doublecheck/orchestrator/fp_windows.ps1`
+(`windows_fp.out`), the fingerprints follow Linux's pattern at every step:
+from `8c8d6f8` to `4b84a2d` the hashes of wave 3's last commit, `0d866e8`,
+as on Linux; a new hash at each of W4-1, W4-6 and W4-6's completion; and
+the same at `46af65a` and `81385ac`. As in wave 3, the default number of
+BLAS threads and one thread give different hashes on Windows at every
+commit. The commits before `81385ac` are reachable from
+`refs/pull/80/head`, the head of #80.
 
 The PI's questions on the pass:
 

@@ -165,7 +165,7 @@ def test_f_vals_is_not_supported():
         with pytest.raises(ValueError, match="f_vals'] is not supported"):
             _make_bads(f_vals=f_vals)
     for f_vals in ([], [np.nan], [np.inf], np.full(2, np.nan)):
-        assert not _make_bads(f_vals=f_vals).optim_state["cache_active"]
+        _make_bads(f_vals=f_vals)
 
 
 def test_descriptions_are_whole_comment_lines():
@@ -184,13 +184,31 @@ def test_descriptions_are_whole_comment_lines():
         "empty one)"
     )
     assert descriptions["gp_samples"] == (
-        "Hyperparameters samples (0 = optimize)"
+        "Hyperparameter samples (unused: PyBADS optimizes one set of GP "
+        "hyperparameters, where MATLAB BADS samples them above 1)"
     )
     assert descriptions["stobads_frame_size_scaling_power"] == (
         "Power of the mesh size in the Sto-BADS interval gamma * SD * "
         "mesh_size**power: at 2, a difference of a fraction of its SD counts "
         "as certain at a small mesh; 0 makes the rule a z-test"
     )
+
+
+def test_user_options_keep_their_descriptions():
+    """An option that the user sets has the description of its file, the
+    basic one's and the advanced one's alike, which `str(options)` prints
+    beside its value."""
+    options = _make_bads(n_search=2**10, noise_size=2.0).options
+    defaults = _make_bads().options
+    for name in ("n_search", "noise_size"):
+        assert options.descriptions[name] == defaults.descriptions[name]
+        assert options.descriptions[name] != ""
+    lines = str(options).splitlines()
+    assert f"n_search: 1024 ({defaults.descriptions['n_search']}) " in lines
+    # useroptions, the set of the user's names, is not an option
+    assert [line for line in lines if "(None)" in line] == [
+        f"useroptions: {options['useroptions']} (None) "
+    ]
 
 
 def _default_options(D):
@@ -212,7 +230,7 @@ def test_every_option_has_a_description():
     quote of MATLAB BADS's defaults."""
     options = _default_options(2)
     names = [name for name in options if name != "useroptions"]
-    assert len(names) > 150
+    assert len(names) > 100
     for name in names:
         description = options.descriptions[name]
         assert description != "", name

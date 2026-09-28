@@ -1,5 +1,12 @@
 # Reference population on Windows after three fixes to the GP: the default suite, 30 seeds, gpyreg 1.3.3
 
+Replaced as the reference on Windows by
+[`population_wave4_20260928`](../population_wave4_20260928/README.md), at
+the package code after wave 4 of the port review. Its runs are seeds 0-29
+of [`population_prereview_20260927`](../population_prereview_20260927/README.md),
+the pre-review baseline at the same commit and 100 seeds (those of
+`sphere_D2` rerun there, equal but for the wall time).
+
 The reference on Windows for `dev/scripts/population.py compare` until a
 later reference replaces it (the one on Linux is
 [`population_linux_gpfixes_20260925`](../population_linux_gpfixes_20260925/README.md),

@@ -196,6 +196,23 @@ def test_infinite_x0_is_drawn_at_random(x0):
 
 
 @pytest.mark.parametrize(
+    "plb, pub",
+    [([-1.0, -1.0], [1.0, 1.0]), (-1.0, 1.0), (-1, 1)],
+    ids=["lists", "float_scalars", "int_scalars"],
+)
+def test_missing_x0_takes_its_size_from_any_plausible_bounds(plb, pub):
+    """Without `x0`, plausible bounds given as a list or a Python scalar size
+    the random start as the same bounds given as NumPy arrays or scalars do,
+    and give the same start."""
+    as_numpy = (np.asarray(plb, dtype=float), np.asarray(pub, dtype=float))
+    bounds = (-2 * np.ones(np.size(plb)), 2 * np.ones(np.size(plb)))
+    bads = BADS(_sphere, None, *bounds, plb, pub, options=OPTIONS)
+    reference = BADS(_sphere, None, *bounds, *as_numpy, options=OPTIONS)
+    assert bads.D == np.size(plb)
+    np.testing.assert_array_equal(bads.x0, reference.x0)
+
+
+@pytest.mark.parametrize(
     "bounds",
     [(-np.ones(2), np.ones(2)), ()],
     ids=["with_bounds", "without_bounds"],
@@ -292,6 +309,47 @@ def test_random_x0_is_drawn_again_until_feasible(seed, first_draw_feasible):
         options={**OPTIONS, "random_seed": seed},
     )
     np.testing.assert_allclose(bads.x0, u, rtol=1e-12)
+    assert bads.rng.random() == rng.random()
+
+
+def _negative_on_mesh(x):
+    """Violated where the first coordinate is negative and on the initial
+    search mesh of the identity map of [-1, 1]^2, whose step is 2**-10: a
+    random draw is feasible as drawn, and the point on the mesh may not
+    be."""
+    x = np.atleast_2d(x)
+    on_mesh = np.isclose(
+        x[:, 0] * 2**10, np.round(x[:, 0] * 2**10), rtol=0, atol=1e-9
+    )
+    return (on_mesh & (x[:, 0] < 0)).astype(float)
+
+
+def test_random_x0_is_drawn_again_until_feasible_on_the_mesh():
+    """A missing `x0` is tested against `non_box_cons` once it is put on the
+    mesh, as MATLAB BADS tests its random start (`setupvars.m:83-85`,
+    `evalinitmesh.m:22-26`), and drawn again while that point violates it:
+    here the first draw is feasible as drawn and not on the mesh."""
+    seed = 2
+    rng = np.random.default_rng(seed)
+    draws = 0
+    while True:
+        u = rng.uniform(-1.0, 1.0, size=(1, 2))
+        draws += 1
+        if np.round(u[0, 0] * 2**10) / 2**10 >= 0:
+            break
+    assert draws > 1
+    bads = BADS(
+        _shifted_sphere,
+        None,
+        -2 * np.ones(2),
+        2 * np.ones(2),
+        -np.ones(2),
+        np.ones(2),
+        non_box_cons=_negative_on_mesh,
+        options={**OPTIONS, "random_seed": seed},
+    )
+    np.testing.assert_allclose(bads.x0, u, rtol=1e-12)
+    assert _negative_on_mesh(bads.optim_state["u"])[0] == 0
     assert bads.rng.random() == rng.random()
 
 
@@ -515,13 +573,183 @@ def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
 
 
 def test_hedge_beta_refusal_names_its_default():
-    """A negative `tol_fun` makes the default `hedge_beta`, `1e-3 / tol_fun`,
-    negative, and the refusal names that default."""
+    """The refusal of `hedge_beta` names its default, `1e-3 / tol_fun`."""
     with pytest.raises(
         ValueError,
         match=r"not -1\.0; its default is 1e-3 / options\['tol_fun'\]",
     ):
-        _bads_with_options({"tol_fun": -1e-3})
+        _bads_with_options({"hedge_beta": -1.0})
+
+
+@pytest.mark.parametrize(
+    "tol_fun",
+    [
+        0,
+        0.0,
+        -1e-3,
+        np.float64(-1.0),
+        np.nan,
+        np.inf,
+        -np.inf,
+        410.0,
+        1e10,
+        False,
+        True,
+        np.True_,
+        "1e-3",
+        np.array(1e-3),
+        np.array([1e-3]),
+        1e-3 + 0j,
+    ],
+)
+@pytest.mark.parametrize("hedge_beta", [None, 1.0])
+def test_tol_fun_not_a_positive_number_at_most_e6_is_refused(
+    tol_fun, hedge_beta
+):
+    """A `tol_fun` that is not a positive real number at most e^6 (a
+    boolean, a string, an array, of one element or none, or a complex number
+    included) is refused when `BADS` is created, whatever `hedge_beta`: 0 and
+    False stopped with a bare `ZeroDivisionError` at the default `hedge_beta
+    = 1e-3 / tol_fun`, which refused a negative value or NaN but not -inf,
+    and not beside a user's `hedge_beta`; above e^6, where the bounds of the
+    GP's noise cross, inf included, the run stopped at its first fit of the
+    GP."""
+    with pytest.raises(
+        ValueError,
+        match=r"tol_fun'\] needs to be a positive number at most e\^6",
+    ):
+        _bads_with_options({"tol_fun": tol_fun, "hedge_beta": hedge_beta})
+
+
+@pytest.mark.parametrize("tol_fun", [1e-12, 0.1, 400, np.exp(6)])
+def test_tol_fun_up_to_e6_runs(tol_fun):
+    """A `tol_fun` up to e^6 runs, the bounds of the GP's noise meeting at
+    e^6."""
+    result = _bads_with_options(
+        {"tol_fun": tol_fun, "max_fun_evals": 20}
+    ).optimize()
+    assert result["func_count"] <= 20
+
+
+@pytest.mark.parametrize(
+    "search_method",
+    [
+        [],
+        "ES-wcm",
+        [("ES-wcm",)],
+        [("ES-cma", 1)],
+        [("ES-wcm", 1), ("ES-foo", 1)],
+        [("ES-wcm", 1), "ES-ell"],
+        [(np.array(["ES-wcm", "ES-ell"]), 1)],
+        [("ES-wcm", 1, 1), ("ES-ell", 1)],
+        np.array([["ES-wcm", 1, 1], ["ES-ell", 2, 1]], dtype=object),
+    ],
+    ids=[
+        "empty",
+        "string",
+        "no_flag",
+        "unknown",
+        "one_unknown",
+        "one_not_a_pair",
+        "array_of_two_names",
+        "three_elements",
+        "array_of_triples",
+    ],
+)
+def test_search_method_is_checked(search_method):
+    """`search_method` is a non-empty list of pairs (name, sum-rule flag),
+    each name "ES-wcm" or "ES-ell", checked when `BADS` is created; 1.1.0
+    stopped at the first search, or at the first that chose an unknown
+    name, and ignored the elements of an entry beyond its pair."""
+    with pytest.raises(ValueError, match=r"search_method'\] needs to be"):
+        _bads_with_options({"search_method": search_method})
+
+
+@pytest.mark.parametrize(
+    "search_method",
+    [[("ES-ell", 1)], [["ES-wcm", 0], ["ES-ell", 1]], (("ES-wcm", True),)],
+)
+def test_search_method_of_known_searches_is_accepted(search_method):
+    bads = _bads_with_options({"search_method": search_method})
+    assert bads.options["search_method"] == search_method
+
+
+@pytest.mark.parametrize(
+    "name, value, as_list",
+    [
+        (
+            "search_method",
+            [(np.array(["ES-wcm"]), 1), ("ES-ell", 1)],
+            [("ES-wcm", 1), ("ES-ell", 1)],
+        ),
+        (
+            "search_method",
+            np.array([["ES-wcm", "1"], ["ES-ell", "1"]]),
+            [("ES-wcm", "1"), ("ES-ell", "1")],
+        ),
+        (
+            "search_method",
+            np.array([("ES-wcm", 1), ("ES-ell", 1)], dtype=object),
+            [("ES-wcm", 1), ("ES-ell", 1)],
+        ),
+        (
+            "search_acq_fcn",
+            np.array(["acq_LCB", None], dtype=object),
+            ("acq_LCB", None),
+        ),
+        ("search_acq_fcn", (np.array(["acq_LCB"]), None), ("acq_LCB", None)),
+    ],
+    ids=[
+        "array_name",
+        "string_array",
+        "object_array",
+        "acq_object_array",
+        "acq_array_name",
+    ],
+)
+def test_search_options_given_as_arrays_run_as_lists(name, value, as_list):
+    """A `search_method` or `search_acq_fcn` given as a NumPy array, or with
+    a NumPy array of one element for a name, which the searches compare as
+    they compare a string and 1.1.0 ran, runs as the same list does."""
+    bads = _bads_with_options({name: value, "max_fun_evals": 40})
+    result = bads.optimize()
+    reference = _bads_with_options({name: as_list, "max_fun_evals": 40})
+    reference_result = reference.optimize()
+    assert len(bads.optim_state["search_stats"]["success"]) > 0
+    np.testing.assert_array_equal(result["x"], reference_result["x"])
+    assert result["fval"] == reference_result["fval"]
+    assert result["func_count"] == reference_result["func_count"]
+
+
+@pytest.mark.parametrize(
+    "search_acq_fcn",
+    [
+        "acq_LCB",
+        ("acq_LCB",),
+        ("acq_EI", None),
+        [None, None],
+        2.0,
+        (np.array(["acq_LCB", "acq_LCB"]), None),
+        ("acq_LCB", None, 1.0),
+    ],
+    ids=[
+        "string",
+        "one_element",
+        "another_name",
+        "no_name",
+        "number",
+        "array_of_two_names",
+        "three_elements",
+    ],
+)
+def test_search_acq_fcn_other_than_lcb_is_refused(search_acq_fcn):
+    """`search_acq_fcn` is the pair ("acq_LCB", sqrt_beta), checked when
+    `BADS` is created; 1.1.0 stopped at the first search, and PyBADS
+    stopped there too for another name, or with an unrelated error when
+    `BADS` was created for a value that is not a sequence of two, and
+    ignored the elements beyond the pair."""
+    with pytest.raises(ValueError, match=r"search_acq_fcn'\] needs to be"):
+        _bads_with_options({"search_acq_fcn": search_acq_fcn})
 
 
 @pytest.mark.parametrize("hedge_beta", [0, 0.0, 1, 1e3, np.float64(0.5)])
@@ -810,3 +1038,39 @@ def test_empty_periodic_vars_stands_for_none(x0, periodic_vars):
     )
     assert bads.options["periodic_vars"] is None
     assert not np.any(bads.optim_state["periodic_vars"])
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("variational_sampler", "malasample"),
+        ("warp_every_iters", 5),
+        ("min_iter", 2),
+        ("diagnostics", False),
+        ("gp_cov_fun", 1),
+    ],
+)
+def test_options_of_pyvbmc_without_effect_are_unknown(name, value):
+    """The options that no code of PyBADS read and that MATLAB BADS does not
+    have, most of them PyVBMC's leftovers, are not options of PyBADS:
+    setting one raises `ValueError`, as for any unknown name."""
+    with pytest.raises(ValueError, match=f"The option {name} does not exist"):
+        _bads_with_options({name: value})
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("gp_samples", 0),
+        ("gp_method", "nearest"),
+        ("chol_attempts", 0),
+        ("poll_method", "poll_mads_2n"),
+    ],
+)
+def test_options_of_matlab_without_effect_are_accepted(name, value):
+    """The options named after MATLAB BADS's that PyBADS does not use stay
+    options, so that setting one is not an error, and their descriptions
+    say that they are unused."""
+    bads = _bads_with_options({name: value})
+    assert bads.options[name] == value
+    assert "unused" in bads.options.descriptions[name]

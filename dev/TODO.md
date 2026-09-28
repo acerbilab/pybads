@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-27. The list describes scope, not priority or execution
+Updated 2026-09-28. The list describes scope, not priority or execution
 order.
 
 - [ ] **gpyreg's inflation of the GP noise (W1-25), after wave 1's fixes.**
@@ -15,26 +15,56 @@ order.
   with the switch on, a fit whose low-noise design points all failed
   started its second optimization from one of them and raised, discarding
   its first. Revisit once all of wave 1's fixes have landed
-  (PI, 2026-09-26): measure again at that head, count the failed
-  factorizations and fits per run and which retries leave a worse GP, and
-  weigh a jitter scaled to the signal that the fit and the predictions
-  share. Turning the switch on in PyBADS needs a gpyreg release and moves
-  its minimum and CI pin.
-- [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
-  to the GP (`gpupdate(..., 'add', ...)`, `private/gpupdate.m`) by a rank-1
-  update of the posterior (`utils/update_posterior.m`), falls back to the
-  full recomputation when that fails, and skips the rank-1 update under
-  `SpecifyTargetNoise`. The port's `add_and_update_gp` recomputes every
-  posterior in full. gpyreg's `update` has a rank-1 path of its own (one
-  new point, no new hyperparameters, posteriors that hold their factors),
-  which PyBADS does not take, and which accepts a noise variance for the
-  new point. The guards of
-  [plans/gp-update-guards.md](plans/gp-update-guards.md) keep the full
-  recomputation (its Open Question 5) so that runs without a failure do
-  not move. Taking the rank-1 path would move results at default options,
-  so it needs the population comparison. To settle: whether gpyreg's path
-  follows MATLAB's, whether PyBADS should skip it with target noise as
-  MATLAB does, and what it saves in time.
+  (PI, 2026-09-26), which they have, with those of the later waves (the
+  review closed on 2026-09-28): measure again at `dev-next`, count the
+  failed factorizations and fits per run and which retries leave a worse
+  GP, and weigh a jitter scaled to the signal that the fit and the
+  predictions share. The same measurement looks again at W2-25's lower
+  fraction solved on three of the five noisy configurations, unflagged at
+  30 seeds, which wave 2's doublecheck left to it
+  (`experiments/port_review_20260925/verification/wave2.md`, "Doublecheck").
+  Turning the switch on in PyBADS needs a gpyreg release and moves its
+  minimum and CI pin.
+- [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
+  its terms change.** MATLAB BADS adds a point to the GP by a rank-1
+  update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
+  PyBADS's `add_and_update_gp` recomputes every posterior in full, and says
+  why at its call of `gp.update`. The measurement
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md))
+  settled the questions: gpyreg's rank-1 path agrees with the full
+  recomputation to rounding, target noise included (so there is no reason
+  to skip it under `specify_target_noise`, as MATLAB does); it would save
+  at most 2.5 % of PyBADS's own time, and is slower below about 60
+  training points; but on the ellipsoids 40 to 44 % of the additions meet a
+  GP whose factorization needed gpyreg's noise multiplier, where it
+  differs from the recomputation by up to 1e-2 of the targets' spread, and
+  by 0.21 when the multiplier it carries over differs from the one the
+  recomputation picks. The PI did not adopt it (2026-09-28). Revisit if the
+  training sets grow well beyond 200 points, if gpyreg's handling of the
+  multiplier changes (W1-25 above), or if a profile shows the update after
+  a new point taking a larger share. Adopting it moves the ellipsoids'
+  runs, so it needs the population comparison, and the target's reuse of
+  the GP's own posterior (`_get_target_from_gp_`), which relies on
+  posteriors computed in full, needs revisiting with it.
+- [ ] **A faster kernel gradient in gpyreg.** gpyreg's rational-quadratic
+  ARD kernel (`RationalQuadraticARD.compute`) takes 31 to 45 % of a
+  PyBADS run in its own code, in the predictions at the ES search's
+  candidates and in the hyperparameter fits
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+  Its gradient recomputes `sf2 * M ** (-alpha - 1)` for each input
+  dimension; computed once before the loop, it gives bit-identical results
+  and halves the time of the kernel with its gradient at D = 6 and D = 10,
+  about a quarter of the fits' time on `ellipsoid_D10`. A change for
+  gpyreg; reaching PyBADS, it is a gpyreg release, which moves PyBADS's
+  minimum and CI pin after its gate.
+- [ ] **The cost of `contraints_check`.** It takes 4.5 to 13 % of a run,
+  nearly all of it for the ES search's candidates and most of that in its
+  two `np.unique(..., axis=0)` calls, which remove duplicate candidates and
+  those already evaluated
+  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
+  A faster way must return the same candidates in the same order (sorted
+  by bin, as MATLAB's `setdiff` does), so that the fingerprint of
+  `dev/scripts/fingerprint.py` stays the same.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by
@@ -74,19 +104,22 @@ order.
   observation of a repeated point, as MATLAB's `funlogger` does, makes the
   runs worse, and the lower bound of the noise hyperparameter never moves,
   since no fit fails. The runs remain worse than before `020d6a8` (p =
-  0.0008), now along the two steep axes. Still open:
-  - the evaluated points that `contraints_check` kept: W3-1 (`149d528`, the
-    port review's wave 3) removes them, as MATLAB does; over seeds 0-29 of
-    this configuration its 100 repeats (of 8800 evaluations, in 17 runs)
-    are gone, and the median error moved from 0.43 to 0.36, unflagged
+  0.0008), now along the two steep axes. The port review fixed two more
+  differences:
+  - the evaluated points that `contraints_check` kept: W3-1 (`149d528`,
+    wave 3) removes them, as MATLAB does; over seeds 0-29 of this
+    configuration its 100 repeats (of 8800 evaluations, in 17 runs) are
+    gone, and the median error moved from 0.43 to 0.36, unflagged
     (`experiments/port_review_20260925/verification/wave3_fixpass/`);
-  - a run of MATLAB BADS on this problem, which would show whether correct
-    noise handling alone gives such runs;
-  - the bounds of the GP mean, which the port fixes by the initial design
-    and MATLAB leaves infinite (a row of the survey's candidate table);
-    since `8afbe16` the prior of the mean can fall outside them, which
-    makes the log prior NaN in the fits of 67 runs of the Windows reference
+  - the bounds of the GP mean, which the port set from the initial design
+    and MATLAB leaves infinite; once `8afbe16` re-centred the prior of the
+    mean, it could fall outside them, which made the log prior NaN in the
+    fits of 67 runs of the Windows population at `ab4dded`
     ([experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)).
+    W1-23 (`172df00`, wave 1) leaves them infinite, as MATLAB does.
+
+  Still open: a run of MATLAB BADS on this problem, which would show
+  whether correct noise handling alone gives such runs.
 - [ ] **The uncertainty interval of Sto-BADS.** Rows W0-12 and W0-13 of the
   port review's ledger (`experiments/port_review_20260925/verification/wave0.md`):
   the success rule of `stobads=True` compares the estimated improvement
@@ -117,18 +150,8 @@ order.
   replaces it, and says that `random_seed` now decides the initial design
   (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck").
-- [ ] **The target's copy of the GP at every step.**
-  `_get_target_from_gp_` deep-copies the GP and recomputes its posterior
-  under the best iteration's hyperparameters at every search and poll step
-  (the port review's sheet, KD-B4-2), and at default options nothing reads
-  the search's target (the port review's wave 3, "Found while verifying").
-  It costs time, and it is the path on which the call can raise
-  `LinAlgError`. To settle: compute the search's target only when an
-  option reads it, and reuse the posterior when the best iteration's
-  hyperparameters are the current ones; a change must leave the
-  fingerprint of `dev/scripts/fingerprint.py` unchanged, or take the
-  population comparison.
+  "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
+  names no release, names it, as PyVBMC's names 1.5.
 - [ ] **Zero predictive SDs at uncertainty level 0.** In deterministic runs
   the predictive SD of the GP is often exactly 0, and the poll's check of
   an unreliable GP reads it (the port review's wave 3, W3-28 and "Found
@@ -137,24 +160,17 @@ order.
   it as often, are not established. To settle: count the zero SDs over the
   default suite, trace them in gpyreg, and compare with MATLAB's prediction
   of the same GP.
-- [ ] **Bug hunt and verification against MATLAB BADS.** In progress:
-  [plans/port-correctness-review.md](plans/port-correctness-review.md), one
-  branch per wave (`dev-port-review-w<N>`), each merged into `dev-next`. A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
-  settling the reach and effect of each candidate defect. The starting point
-  is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB), and a finding
-  of its section on the tests, the seed of the initial Sobol design, fixed
-  by wave 4 (W4-1); what MATLAB's own seed is, a question for MATLAB, is in
-  `experiments/port_review_20260925/matlab_side_defects.md`.
-  PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
-  `randn2` and the draws that reproduce MATLAB's random stream) come with
-  it, for the comparisons that need MATLAB's own numbers.
 - [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
-  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`), after the
-  bug hunt, so that they do not pin today's defects; the random draws go
-  through one generator per run (`bads.rng`), which replay needs. The
-  population comparison of `dev/scripts/population.py` checks
-  distributions, not trajectories, until then.
+  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`). They were
+  to follow the bug hunt, so as not to pin its defects, and the hunt is
+  done ([the port correctness review](results/2026-09-28-port-correctness-review.md)):
+  nothing holds them back. The random draws go through one generator per
+  run (`bads.rng`), which replay needs. An oracle computed by MATLAB BADS
+  needs MATLAB's own numbers, which PyVBMC's MATLAB-comparison helpers
+  (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
+  reproduce MATLAB's random stream) give. The population comparison of
+  `dev/scripts/population.py` checks distributions, not trajectories,
+  until then.
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
@@ -183,7 +199,9 @@ order.
   port would call, keeps checks of its own on the value and its SD, records
   a missing SD as 1 when the logger holds SDs and drops a given one when it
   does not, and what it records for a repeated point is settled with it
-  (row W4-10).
+  (row W4-10); so is the bookkeeping of the final samples, which still add
+  to the incumbent's `n_evals` in the log and average their times into its
+  row, after the run's last decision (PI, 2026-09-28).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -206,90 +224,25 @@ order.
   `tol_mesh` that speaks of the change in the function value, which wave 0
   corrected; `pybads_example_5_extended_usage.ipynb` a result with
   `'fsd': 0` and without `status` (W2-12, W2-13), from version
-  `0.8.3.dev21`. Rerun all five once the review's fix passes have landed,
-  with the headless run of the examples before the release, so that the
-  outputs are not regenerated at every pass
-  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
-- [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
-  passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
-  while fixing" and "Doublecheck", with the details). Not fixed:
-  - the options: `Options.descriptions` has no entry for an advanced
-    option that the user set, so `str(options)` prints `(None)` for it;
-    the checks `stobads is None` and `specify_target_noise is None` cannot
-    fire since W2-19; `test_options.ini` and `test_options2.ini` ship in
-    the wheel and nothing reads them; a 0-d array for `max_fun_evals` or a
-    boolean option is refused, where 1.1.0 took it;
-  - the display: `optim_state["cache_active"]` is always False since W2-7,
-    so the cache branches of the display cannot run; the reports of the log
-    transform and of periodic variables are logged at INFO, so that
-    `"notify"` and `"final"` hide them, and the caution for infinite bounds
-    at WARNING, so that `"off"` shows it, where MATLAB BADS prints all three
-    from `"notify"` on (`setupvars.m:30`, `119`, `122`);
-  - the inputs: a missing `x0` with plausible bounds given as a list or a
-    Python scalar raises `AttributeError`; `__init__` fills missing
-    plausible bounds without `bads:pbUnspecified`, which MATLAB BADS logs
-    whenever it fills them; the redraw of a random start tests it before it
-    is put on the mesh (KD-B1-9); the test of fixed variables leaves `x0`
-    out (KD-B1-7);
-  - the run's control: the test of the reserve for the final samples does
-    not reach its floor at 0; the docstring of
-    `test_iterations_count_from_one` says "8th" where the run reports 7;
-  - `VariableTransformer` used directly: a scalar `apply_log_t` raises
-    `AttributeError`, a 1-D bound `IndexError`, and a NumPy scalar hard
-    bound with the plausible bounds omitted fails; the `else` branches of
-    its four bounds cannot run.
-- [ ] **Minor items of slices B7 and O of the port review**, whose wave has
-  passed (`experiments/port_review_20260925/verification/wave4.md`, "Found
-  while fixing", with the details). Not fixed:
-  - the search: `_search_step_` calls `acq_fcn_lcb` on the chosen search
-    point without `search_acq_fcn`'s `sqrt_beta`, where `bads.m:578` applies
-    `SearchAcqFcn`; only its mean is read, so nothing moves, but a callable
-    `sqrt_beta` is not called there; `acq_fcn_lcb`'s comment
-    `# Returns z, dz,ymu,ys,fmu,fs,*fpi*` lists MATLAB's outputs; the port
-    floors the ES search's `mu = n_search / n_search_iter`, where
-    `private/setupvars.m:186` does not; `search_method` is not checked (an
-    empty one fails at the first search), and a `search_acq_fcn` that is not
-    a pair fails when `BADS` is created with an unrelated `IndexError` or
-    `TypeError`, while a first element other than `"acq_LCB"` fails only at
-    the first search; `_search_step_`'s docstring gives `search_dist` as an
-    array and has the typo "thecurrent";
-  - the checks: `tol_fun` is not checked (0 raises a bare
-    `ZeroDivisionError` while the `.ini` default of `hedge_beta` is
-    evaluated, and a negative value is refused only through `hedge_beta`);
-  - the function logger: `FunctionLogger.add` keeps checks of its own (a
-    string value raises `TypeError`, a Python complex of zero imaginary part
-    passes `np.isreal` and fails while recorded, a one-element array is
-    refused); the final samples still add to the incumbent's `n_evals` and
-    average their times into its row, as the noise test did before W4-6, at
-    the end of the run; `test_function_logger.py` calls
-    `test_add_parameter_transform()` at module level;
-  - the rest: `_get_gp_training_options`'s docstring gives the type `dic`,
-    leaves out `function_logger` and `second_fit` and lists `hyp_dict`,
-    which it does not read; `init_sobol` keeps two commented-out lines; comments,
-    strings and docstrings longer than 79 characters in
-    `constraints_check.py`, `grid_functions.py`, `es_search.py` and
-    `init_sobol.py`; the comment typo "Re-evalate" in `bads.py`;
-    `test_get_gp_training_options_samplers` and `_opts_N` assign
-    `hyp_dict_none` and never use it; `bads.py` imports
-    `matplotlib.pyplot`, which nothing in the package uses; the docstring of
-    `BADS.optimize` renders with numpydoc's warning on an underline and a
-    docutils error ("Unexpected indentation"), and the References block of
-    `ESSearchHedge`'s docstring is malformed.
-- [ ] **The resolution of `Timer`.** `pybads/utils/timer/timer.py` measures
-  with `time.time()`, whose resolution on Windows before Python 3.13 is
-  about 15.6 ms: for a fast target most evaluations time as 0, and the
-  returned `overhead` of two near-identical runs can differ by orders of
-  magnitude. `time.perf_counter` fixes it, and changes the returned
-  `overhead`, which needs a changelog line.
-- [ ] **Coding-agent skill**, after PyVBMC's (`skills/pyvbmc/SKILL.md`): a
-  `skills/pybads/SKILL.md` that points a coding agent to the parts of the
-  documentation relevant to its task, linked from the README.
+  `0.8.3.dev21`. The rerun of all five waited for the review's fix passes,
+  so that the outputs would not be regenerated at every pass
+  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
+  the passes have all landed (the review closed on 2026-09-28), so the
+  rerun goes with the headless run of the examples before the release.
+- [ ] **Loose ends of the port review.** Observations that the reports and
+  the fix agents made outside their findings, which no ruling took up and
+  which change no default run, are listed in the consolidated ledger
+  ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
+  "Open ends"). Each is fixed, documented, or dropped.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
   Each new release moves both, after the population comparison
   (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has.
+  shows that it has no effect on PyBADS, or explains the one it has. gpyreg's `main` holds, unreleased, the fix of the port review's W1-24
+  (the log prior of a prior far outside its bounds, acerbilab/gpyreg#57)
+  and W1-25's switch (acerbilab/gpyreg#56), which reach PyBADS through
+  such a release.
 - [ ] **For gpyreg's maintainers.** gpyreg lists pytest and
   pytest-rerunfailures among its runtime dependencies (`pyproject.toml`,
   every release from 1.0.4 to 1.3.3), so installing PyBADS still installs

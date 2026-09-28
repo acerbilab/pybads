@@ -121,16 +121,43 @@ reference's number of seeds.
 
 ## Index
 
-- [experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)
+- [The port correctness review](results/2026-09-28-port-correctness-review.md)
+  — the consolidated ledger of the independent review of PyBADS against
+  MATLAB BADS v1.1.3 (2026-09-25 to 09-28, five waves): its 173 rows, each
+  with its classification, the PI's disposition and its fix or `TODO.md`
+  item; the net change on the benchmark on Windows (100 seeds) and Linux
+  (30 seeds); the open ends; and the defects found on the MATLAB side. The
+  deliberate differences it settled are catalogued in
+  `pybads/bads/README.md`.
+- [Where PyBADS spends its time](results/2026-09-28-where-pybads-spends-its-time.md)
+  — the stages of PyBADS's own time on six configurations (the ES search's
+  candidates and the GP fits take nearly all of it, gpyreg's kernel 31 to
+  45 %), the saving of computing the optimization target without a copy
+  of the GP (1.6 to 3.7 %), and gpyreg's rank-1 update of the posterior
+  measured beside every addition of a point: agreement, the noise
+  multiplier it carries over, and a saving of at most 2.5 %, behind the
+  decision to keep the full recomputation.
+- [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
-  30 seeds, gpyreg 1.3.3, at `ab4dded`: #67 and the three GP fixes of #66),
-  with its null check, its comparison with the previous Windows reference,
-  which flags the five configurations that the same fixes flag on Linux,
-  all better, and the runs in which the prior of the GP mean falls outside
-  the bounds of the mean and the log prior is NaN. It predates the fix
-  passes of waves 0 to 4 of the port review (`8aecb6a`, `0d866e8` and
-  `dev-port-review-w4`), which move results: a gate on Windows after them
-  needs a new reference first.
+  100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the
+  port review and its doublecheck), with its null check and its comparison
+  with the pre-review baseline, the net change of the whole review, which
+  flags nine configurations: two better, two spheres with slightly larger
+  errors far below their tolerance, `ellipsoid_D10` with more evaluations
+  for a smaller error, and four configurations with noise whose runs stop
+  earlier.
+- [experiments/population_prereview_20260927/](experiments/population_prereview_20260927/README.md)
+  — the pre-review baseline on Windows (default suite, 100 seeds, gpyreg
+  1.3.3, at `ab4dded`, before the port review's fixes), a fixed population
+  to compare any later version with on this platform, with its null check;
+  it extends `population_gpfixes_20260925` from 30 seeds to 100.
+- [experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)
+  — the previous reference population of the benchmark on Windows (default
+  suite, 30 seeds, gpyreg 1.3.3, at `ab4dded`: #67 and the three GP fixes
+  of #66), with its null check, its comparison with the previous Windows
+  reference, which flags the five configurations that the same fixes flag
+  on Linux, all better, and the runs in which the prior of the GP mean
+  falls outside the bounds of the mean and the log prior is NaN.
 - [experiments/population_targetnoise_20260925/](experiments/population_targetnoise_20260925/README.md)
   — the previous reference on Windows (at `c044fea`, with the
   noise-variance fix of `020d6a8`), with its null check and its comparison
@@ -218,8 +245,9 @@ reference's number of seeds.
 - [plans/port-correctness-review.md](plans/port-correctness-review.md) —
   the independent correctness review of the port against MATLAB BADS
   v1.1.3, after PyVBMC's: slices, waves, the reviewer brief, the gates and
-  the worklog; its records (the known-differences sheet, the counterpart
-  map, the reviewers' reports) under `experiments/port_review_20260925/`.
+  the worklog, closed on 2026-09-28; its records (the known-differences
+  sheet, the counterpart map, the reviewers' reports, the per-wave ledgers)
+  under `experiments/port_review_20260925/`.
 - [plans/gp-update-guards.md](plans/gp-update-guards.md) — guards on the
   three GP calls that stopped benchmark runs with `LinAlgError`, after
   MATLAB BADS: a consistent GP handed on, a rebuild (and, after a failed
@@ -232,11 +260,11 @@ reference's number of seeds.
   assessment of gpyreg 1.3.3 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
-  read of the code (not verified), and the tests that checked less than
-  they appeared to, with their fixes, the seed sweep behind the tolerances
+  read of the code, and the tests that checked less than they appeared to,
+  with their fixes, the seed sweep behind the tolerances
   of the optimization tests, three candidate defects found on the way, the
   checks behind running each test once in CI and requiring NumPy 2, the
   fixes of five small defects of `bads.py` with their gates, and the
   reruns of the four crashing benchmark runs, whose failing calls share
-  degenerate GP hyperparameters. The starting point of the deferred bug
-  hunt in `TODO.md`.
+  degenerate GP hyperparameters. The starting point of the port
+  correctness review, which closed its candidate table.

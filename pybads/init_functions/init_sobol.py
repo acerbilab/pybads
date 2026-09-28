@@ -15,10 +15,12 @@ def init_sobol(
 ):
     """
     Initialize the Sobol sequence.
-    This method relies on the scipy.stats.qmc.Sobol class for generating the Sobol sequence (Roy et. al 2023).
-    You can find more information about the Sobol sequence in the documentation of the Sobol class.
+    This method relies on the scipy.stats.qmc.Sobol class for generating the
+    Sobol sequence (Roy et al. 2023). You can find more information about the
+    Sobol sequence in the documentation of the Sobol class.
 
-    Roy et al., (2023). Quasi-Monte Carlo Methods in Python. Journal of Open Source Software, 8(84), 5309, https://doi.org/10.21105/joss.05309
+    Roy et al., (2023). Quasi-Monte Carlo Methods in Python. Journal of Open
+    Source Software, 8(84), 5309, https://doi.org/10.21105/joss.05309
 
     The design has ``2**ceil(log2(fun_eval_start))`` points, twice as many
     when that number equals the dimension ``D``, scaled to the plausible box.
@@ -60,13 +62,12 @@ def init_sobol(
     # so that its design follows from the start alone, with no random draw
     seed = get_rng(rng).integers(2**63)
 
-    # Sobol’ sequences are a quadrature rule and they lose their balance properties
-    # if one uses a sample size that is not a power of 2, or skips the first point,
-    # or thins the sequence (Art B. Owen, “On dropping the first Sobol’ point.” arXiv:2008.08051, 2020.).
+    # Sobol’ sequences are a quadrature rule and they lose their balance
+    # properties if one uses a sample size that is not a power of 2, or skips
+    # the first point, or thins the sequence (Art B. Owen, “On dropping the
+    # first Sobol’ point.” arXiv:2008.08051, 2020.).
     sobol_sampler = Sobol(u0.size, seed=seed)
 
-    # n_samples = fun_eval_start
-    # samples = sobol_sampler.random(n_samples)
     m = int(np.ceil(np.log2(fun_eval_start)))
     if 2**m == u0.size:
         m += 1

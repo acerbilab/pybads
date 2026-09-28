@@ -17,6 +17,15 @@ Nothing here was run in MATLAB.
   for the minimum refit time counted from one that did not happen. Off by
   default. PyBADS: with `poll_training` off, the poll neither performs nor
   records the refit (`c9ebdc7`).
+- **A zero spread of the training targets gives a degenerate prior**
+  (W1-26, the rebuild case; needs MATLAB for what its fit then does).
+  `gpdef/gpdefBads.m:219-222` sets the variance of the mean's prior to
+  `yrange.^2/4` and `293-295` centres the output scale's prior at
+  `log(std(y))`, which are zero and `-Inf` when the local targets are equal
+  (a plateau); what the fit then does inside `gpHyperOptimize`'s `try` is
+  not known without MATLAB. PyBADS computed the same at a rebuild, which
+  gpyreg refuses; it now keeps the previous prior there (`cd1831f`;
+  KD-B6-2).
 - **At D = 1 the GP length scale used for the training set is 1**
   (W1-17). `private/gpupdate.m:285-292` takes the ARD length scales only
   when `gpstruct.ncovlen > 1`, the test meant to tell per-dimension length
@@ -146,13 +155,6 @@ Nothing here was run in MATLAB.
   prior outside its bounds; the fitted noise then sits at the bound. PyBADS
   keeps the bound and warns when `BADS` is created with such a
   `noise_size`.
-- **A zero spread of the training targets gives a degenerate prior**
-  (W1-26, the rebuild case; needs MATLAB). `gpdef/gpdefBads.m:219-222` sets
-  the variance of the mean's prior to `yrange.^2/4` and `293-295` centres
-  the output scale's prior at `log(std(y))`, which are zero and `-Inf` when
-  the local targets are equal (a plateau); what the fit then does inside
-  `gpHyperOptimize`'s `try` is not known without MATLAB. PyBADS keeps the
-  previous prior in that case (KD-B6-2).
 
 - **A noisy run's first incumbent is the raw minimum of its initial
   design** (W2-36). The re-estimate starts at `iter > 1` (`bads.m:1097`),
@@ -242,6 +244,18 @@ Nothing here was run in MATLAB.
   unwritten (the verifier, by reading). Reached past 9999 logged
   evaluations at the default `CacheSize` of 1e4. PyBADS's log grows
   instead (KD-B7-4).
+- **The rank-1 update takes a non-finite value before its penalty** (found
+  while measuring the rank-1 update, by reading;
+  [`dev/results/2026-09-28-where-pybads-spends-its-time.md`](../../results/2026-09-28-where-pybads-spends-its-time.md)).
+  `private/gpupdate.m:55` passes `ystar` to `update_posterior`, and only
+  at lines 69-78 replaces a non-finite `ystar` by the penalty, the largest
+  target of the training set, in `gpstruct.y`; `update_posterior` raises
+  nothing on a NaN, so the posterior would take the NaN while the training
+  set records the penalty. Unreachable at the defaults:
+  `private/funlogger.m:103-104` stops the run on a non-finite value, and
+  `FitnessShaping`, which could make one, is off. PyBADS replaces the value
+  before the update (`add_and_update_gp`), whose posterior it recomputes in
+  full, and its function logger refuses non-finite values too.
 
 ## Questions that need MATLAB
 

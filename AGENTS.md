@@ -28,11 +28,14 @@ PyVBMC's `ParameterTransformer`, although its documentation page is
 - `dev/` holds the developer notes, plans, results and tooling.
   `dev/README.md` says where each kind of record goes; `dev/TODO.md` lists
   the open work.
-- `dev/results/2026-09-23-codebase-survey.md` records the observed failures
-  and the candidate defects of the port, not yet verified against MATLAB
-  BADS. Check it before treating an oddity in the numerical code as
-  intended, and record a fix or a verdict in its entry.
-- `pybads/bads/README.md` lists the open porting work.
+- `pybads/bads/README.md` is the catalogue of the deliberate differences
+  between PyBADS and MATLAB BADS v1.1.3, with the open porting work.
+  `dev/results/2026-09-28-port-correctness-review.md`, the consolidated
+  ledger of the review that compared the port with MATLAB BADS, gives
+  every finding its verdict and its fix or `dev/TODO.md` item. Check both
+  before treating an oddity in the numerical code as intended or as a
+  defect; a change that adds or removes a deliberate difference updates
+  the catalogue.
 - `docsrc/` is the Sphinx source. `docs/` is its gitignored build output;
   the published site lives on the `gh-pages` branch.
 
@@ -204,18 +207,28 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   line. Options stay mutable: a noisy run rewrites several of them
   (`tol_stall_iters`, `n_train_min`, `n_train_max`, `max_fun_evals` and
   others) at the start of `optimize()`, so a `BADS` object runs once.
-- **Many options do nothing.** Some are PyVBMC or MATLAB leftovers that no
-  code reads (`warp_*`, `variational_sampler`, `poll_method`,
-  `poll_acq_fcn`, among others); `gp_cov_fun` is overridden by a hard-coded
-  rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] = 1`); and
+- **Some options do nothing.** Twelve are named after MATLAB BADS's
+  options and read by no code (`poll_method`, `poll_acq_fcn`, `gp_samples`,
+  among others), kept so that a user's setting is not an error, with
+  descriptions that say so; an option that no code reads and that MATLAB
+  BADS does not have is removed rather than kept. The GP's kernel is a
+  hard-coded rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] =
+  1`), a few options are read only by code that no run reaches (KD-B1-4 in
+  `pybads/bads/README.md`), and
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a
-  search by string comparison, LCB is called directly at the search and
-  poll call sites, and the initial design is selected by
+  search by string comparison, and `ESSearch.__call__` its acquisition
+  function (`"acq_LCB"` or an error), LCB is called directly at the search
+  and poll call sites, and the initial design is selected by
   `init_fun == "init_sobol"`. A new search method is an
-  `ESSearch` subclass, an `elif` in the hedge, and an entry in the
-  `search_method` option.
+  `ESSearch` subclass, an `elif` in the hedge, its name among those that
+  the check of `search_method` in `_init_optim_state_` takes, and an entry
+  in the `search_method` option; a search acquisition function other than
+  the LCB, likewise, needs the check of `search_acq_fcn` there and, if it
+  reads the optimization target, its name in
+  `_SEARCH_ACQ_FCNS_READING_TARGET` (`bads.py`), which has the search
+  compute the target; the poll computes its own.
 - **Noise.** `optim_state["uncertainty_handling_level"]` is 0
   (deterministic), 1 (noise inferred) or 2 (`specify_target_noise`: the
   target returns exactly a `tuple` `(f, sd)`). In noisy runs the incumbent's

@@ -123,6 +123,66 @@ def test_display_levels(display, caplog):
         assert logging.getLogger("BADS").level == logging.DEBUG
 
 
+@pytest.mark.parametrize(
+    "display, shown",
+    [("off", False), ("notify", True), ("final", True), ("iter", True)],
+)
+def test_setup_reports_from_notify_on(display, shown, caplog):
+    """The reports of the setup, the caution for infinite bounds and the
+    variables transformed to log coordinates, are shown from "notify" on,
+    as MATLAB BADS prints them (`setupvars.m:28-39`, `118-120`), and not
+    with "off"."""
+    caplog.set_level(logging.DEBUG)
+    BADS(
+        _sphere,
+        np.array([1.0, 0.5]),
+        np.array([1e-3, -np.inf]),
+        np.array([1e3, np.inf]),
+        np.array([0.1, -1.0]),
+        np.array([10.0, 1.0]),
+        options={"display": display, "random_seed": 0},
+    )
+    reports = [
+        record
+        for record in caplog.records
+        if record.name == "BADS"
+        and (
+            "infinite bound" in record.getMessage()
+            or "log coordinates" in record.getMessage()
+        )
+    ]
+    if shown:
+        assert len(reports) == 2
+        assert {record.levelno for record in reports} == {25}
+    else:
+        assert reports == []
+
+
+@pytest.mark.parametrize("omitted", [True, False], ids=["omitted", "given"])
+def test_plausible_bounds_omitted_warn(omitted, caplog):
+    """Plausible bounds that are omitted are the hard bounds, with the
+    warning `bads:pbUnspecified`, once, with `display="off"` too, as MATLAB
+    BADS warns whenever it fills them (`boundscheck.m:12-16`)."""
+    caplog.set_level(logging.DEBUG)
+    plausible = (None, None) if omitted else (-np.ones(D), np.ones(D))
+    BADS(
+        _sphere,
+        np.ones(D) * 0.5,
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        *plausible,
+        options={"display": "off", "random_seed": 0},
+    )
+    warnings = [
+        record
+        for record in caplog.records
+        if record.name == "BADS"
+        and "bads:pbUnspecified" in record.getMessage()
+    ]
+    assert len(warnings) == (1 if omitted else 0)
+    assert all(record.levelno == logging.WARNING for record in warnings)
+
+
 def _poll_lines(monkeypatch, caplog, max_refit_checks=None, **options):
     """Run on the sphere with `display="iter"`, and return, for each poll,
     whether it refitted the GP, whether it was skipped, and its line.

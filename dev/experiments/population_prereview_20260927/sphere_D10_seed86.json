@@ -1,0 +1,101 @@
+{
+ "label": "sphere_D10",
+ "seed": 86,
+ "problem": "sphere",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -0.8538530700712057,
+  1.8983448202342812,
+  -1.327154573166336,
+  -3.0689058193326,
+  0.8954427254610033,
+  2.90357799585993,
+  4.7940276170162335,
+  -3.980500609534423,
+  2.5146829228736465,
+  -3.753578598169045
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 86
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 86,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   2.3471322077307377,
+   0.1664906635448915,
+   -0.6450232975419112,
+   0.7426444427380829,
+   -2.344589777811734,
+   -2.2769237098361828,
+   1.3421737265582578,
+   1.6520221771304477,
+   0.7228322647915775,
+   1.7285706132554424
+  ],
+  "fval": 5.012071344160326e-08,
+  "fsd": 0.0,
+  "true_error": 5.012071344160326e-08,
+  "func_count": 459,
+  "iterations": 14,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 13.789790299953893,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "ab4ddedc",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\worktrees\\winref_ab4dded\\pybads",
+   "git": {
+    "sha": "ab4ddedc",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-27T22:59:33+0300",
+  "finished": "2026-09-27T22:59:48+0300"
+ }
+}

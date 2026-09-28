@@ -9,9 +9,10 @@ from .es_search import ESSearchELL, ESSearchWM
 
 class ESSearchHedge:
     """
-    It performs a hedging search, that chooses between different evolution strategies.
-    It tracks the record of cumulative improvements of all the search strategies according to the Hedge algorithm [1] (default).
-    It currently handles two different search strategies: ES-wcm and ES-ell.
+    It performs a hedging search, that chooses between different evolution
+    strategies. It tracks the record of cumulative improvements of all the
+    search strategies according to the Hedge algorithm [1]_ (default). It
+    currently handles two different search strategies: ES-wcm and ES-ell.
 
     Parameters
     ----------
@@ -19,18 +20,23 @@ class ESSearchHedge:
         Array of search strategies to use in the hedge search.
     options_dict : dict
         Options for the hedge search
-    non_box_cons: callable function
-        A given non-bound constraints function. e.g : lambda x: np.sum(x**2, axis=1) > 1
+    non_box_cons : callable
+        A given non-bound constraints function, for example
+        ``lambda x: np.sum(x**2, axis=1) > 1``.
     rng : numpy.random.Generator, optional
         Generator of the random draws of the hedge and of the searches it
         runs. If ``None``, a generator is derived from NumPy's global random
         state (``pybads.rng.get_rng``).
 
-    ----------
     References
-    [1]. Hoffman, M. D., Brochu, E., & de Freitas, N. (2011). Portfolio Allocation for Bayesian Optimization. In *UAI* (pp. 327-336). ([link](https://pdfs.semanticscholar.org/1a7f/d7b566697c9b69e64b27b68db4384314d925.pdf))
-    [2]. Hansen, N., Müller, S. D., & Koumoutsakos, P. (2003). Reducing the time complexity of the derandomized evolution strategy with covariance matrix adaptation (CMA-ES). *Evolutionary Computation*, **11**(1), 1-18. ([link](https://www.lri.fr/~hansen/evco_11_1_1_0.pdf))
-
+    ----------
+    .. [1] Hoffman, M. D., Brochu, E., & de Freitas, N. (2011). Portfolio
+       Allocation for Bayesian Optimization. In *UAI* (pp. 327-336).
+       https://pdfs.semanticscholar.org/1a7f/d7b566697c9b69e64b27b68db4384314d925.pdf
+    .. [2] Hansen, N., Müller, S. D., & Koumoutsakos, P. (2003). Reducing the
+       time complexity of the derandomized evolution strategy with
+       covariance matrix adaptation (CMA-ES). *Evolutionary Computation*,
+       11(1), 1-18. https://www.lri.fr/~hansen/evco_11_1_1_0.pdf
     """
 
     def __init__(

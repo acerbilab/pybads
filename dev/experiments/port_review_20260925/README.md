@@ -16,7 +16,10 @@ against its own specification, in waves of fresh reviewers.
   8aecb6a`; the claims keep the lines of `95da7f1`. The entries of wave 4's
   rulings cite the code that wave 4's fix pass wrote with its lines at the
   commit of the pass that they name (`efe5e95`, `b78f782`, `46af65a` and
-  others), as the sheet's header says.
+  others), as the sheet's header says. At the close its entries were
+  consolidated into the catalogue of deliberate differences,
+  `pybads/bads/README.md`, which cites the code by module and function and
+  is kept current with the package; the sheet stays as the review left it.
 - `counterpart_map.md`: every MATLAB file outside the bundled GPML library,
   with its Python counterpart, or "unported", and the slice that owns it.
 - `prep_report.md`: the preparatory agent's report: the corrections of the
@@ -38,6 +41,10 @@ against its own specification, in waves of fresh reviewers.
   and 4 (`B7`, `O`, `docs`, `records`), saved verbatim.
 - `matlab_side_defects.md`: what the review finds wrong or questionable in
   MATLAB BADS itself, with PyBADS's disposition.
+- `verification/close/linux_net_comparison.md`: the net change of the
+  review on Linux, compared at the close from the records of the Linux
+  references before and after it. The consolidated ledger of the review is
+  `dev/results/2026-09-28-port-correctness-review.md`.
 - `briefs/wave1_fix_common.md` to `briefs/wave3_fix_common.md`: the
   briefs of the fix agents of the fix passes of waves 1 to 3; `fixes/`:
   their reports, saved verbatim.
@@ -65,7 +72,15 @@ Those of wave 2, also in a cloud session, are under
 `verification/scripts/wave2/<slice>_<track>/` and
 `verification/scripts/wave2/<slice>_verifier/`, with the orchestrator's
 check under `verification/scripts/wave2/orchestrator/`, formatted by the
-pre-commit hooks in the same way. `reviews/B1_comparison_history.md` is the
+pre-commit hooks in the same way. Three of them,
+`B1_comparison/check_fvals.py`, `B1_verifier/v_runs.py` and
+`B2_comparison/fvals.py`, create `BADS` with a finite `f_vals` or a
+non-empty `fun_values` and print `optim_state["cache_active"]`: they run at
+`fef6c14`, the revision they were written for. From wave 2's fix pass
+(`8aecb6a`) on, `BADS` refuses both options when it is created (W2-6,
+W2-7), so that the first two stop there and `fvals.py` reports the
+refusals, and #84 (`7969783`) removed `cache_active`, which was always
+False once `f_vals` was refused. `reviews/B1_comparison_history.md` is the
 B1 comparison reviewer's re-dating of its report on the complete history,
 saved verbatim beside the report. The fix agents of wave 2's fix pass (A to
 G, the letters of `fixes/`) have theirs under
