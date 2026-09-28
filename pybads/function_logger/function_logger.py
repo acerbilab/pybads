@@ -64,7 +64,6 @@ class FunctionLogger:
         self.X_max_idx = -1  # Last filled entry in the cache memory.
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
-        self.y_max = float("-Inf")
         self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
         self.total_fun_eval_time = 0.0
 
@@ -458,6 +457,8 @@ class FunctionLogger:
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
                     self.n_evals[idx] += 1
+                    # The merged value can raise or lower the largest
+                    self.Y_max = np.amax(self.Y[self.X_flag])
                     return f_val, idx
 
             # Add the new point

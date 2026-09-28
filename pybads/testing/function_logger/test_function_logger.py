@@ -222,6 +222,22 @@ def test_record_duplicate_with_user_noise_merges_into_its_own_row():
     assert np.isclose(fval, f_logger.Y[1, 0])
 
 
+def test_record_duplicate_with_user_noise_updates_the_largest_value():
+    # Y_max follows a merge that raises the largest value and one that
+    # lowers it below another row's.
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x = np.array([3.0, 4.0, 5.0])
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    f_logger._record(x * 2, x * 2, 5.0, 1.0, 1)
+    assert f_logger.Y_max == 9.0
+    fval, _ = f_logger._record(x, x, 12.0, 1.0, 1)
+    assert fval > 9.0
+    assert f_logger.Y_max == fval == np.amax(f_logger.Y[f_logger.X_flag])
+    fval, _ = f_logger._record(x, x, 0.0, 0.1, 1)
+    assert fval < 5.0
+    assert f_logger.Y_max == 5.0
+
+
 def test_record_duplicate_adds_its_time_to_the_total():
     # Every evaluation counts in the target's time, as in MATLAB's
     # funlogger: a repeat merged into its row (level 2) and an evaluation
