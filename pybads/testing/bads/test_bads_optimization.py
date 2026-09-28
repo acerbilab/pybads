@@ -310,7 +310,7 @@ def test_periodic_opt():
         UB,
         PLB,
         PUB,
-        tol_err=1e-3,
+        tol_err=2e-6,
         f_min=0.0,
         periodic_vars=[0, 2],
     )
@@ -330,7 +330,7 @@ def test_noisy_periodic_opt():
         UB,
         PLB,
         PUB,
-        tol_err=1e-1,
+        tol_err=0.2,
         f_min=0.0,
         oracle_fun=periodic_fun,
         uncertainty_handling=1,

@@ -111,6 +111,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   taken to log coordinates. `BADS` raises `ValueError` for a
   `periodic_vars` that is not a list of distinct indices, a boolean mask
   included, or that names a variable with an infinite bound.
+  [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html)
+  and the
+  [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)
+  show how to set it up.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run

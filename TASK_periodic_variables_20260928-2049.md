@@ -16,13 +16,13 @@ gpyreg `claude/todo-discussion-q8c9im` (base `main` 280d8c0).
 Envs: `/home/user/pybads/.venv`; gpyreg clones `/home/user/gpyreg` (work),
 `/home/user/gpyreg-v1.3.3` (reference); MATLAB BADS `/home/user/acerbilab/bads`.
 
-## A. gpyreg kernel (Opus sub-agent, dispatched)
-- [~] A1 `periods=None` on `SquaredExponential`, `Matern`, `RationalQuadraticARD`: per periodic dim `(p/π)² sin²(πΔ/p)` replaces `Δ²`; `inf` = not periodic; all-inf ≡ None
-- [~] A2 `periods=None` path bit-identical (separate branch, no refactor of the old path)
-- [~] A3 Isotropic kernels refuse `periods`; `GP.quad` refuses a periodic kernel
-- [~] A4 Tests: periodicity, p→∞ limit, gradients vs numdifftools, validation, GP fit/predict, refusals
-- [~] A5 Docstrings, [release notes](../gpyreg/docsrc/source/release_notes.rst), gpyreg AGENTS.md
-- [~] A6 gpyreg suite + pre-commit clean; commit; push
+## A. gpyreg kernel (Opus sub-agent, done: gpyreg 3f1a732)
+- [x] A1 `periods=None` on `SquaredExponential`, `Matern`, `RationalQuadraticARD`: per periodic dim `(p/π)² sin²(πΔ/p)` replaces `Δ²`; `inf` = not periodic; all-inf ≡ None
+- [x] A2 `periods=None` path bit-identical (separate branch, no refactor of the old path)
+- [x] A3 Isotropic kernels refuse `periods`; `GP.quad` refuses a periodic kernel
+- [x] A4 Tests: periodicity, p→∞ limit, gradients vs numdifftools, validation, GP fit/predict, refusals
+- [x] A5 Docstrings, [release notes](../gpyreg/docsrc/source/release_notes.rst), gpyreg AGENTS.md
+- [x] A6 gpyreg suite + pre-commit clean; commit; push
 
 ## B. PyBADS core
 - [x] B1 [`BADS.__init__`](pybads/bads/bads.py): validate `periodic_vars` (0-based ints, unique, in range; bools refused) instead of refusing it
@@ -31,18 +31,18 @@ Envs: `/home/user/pybads/.venv`; gpyreg clones `/home/user/gpyreg` (work),
 - [x] B4 [`udist`](pybads/search/grid_functions.py): per-coordinate shortest way round
 - [x] B5 [`ucov`](pybads/search/es_search.py): fix the periodic shift
 - [x] B6 [GP](pybads/bads/gaussian_process_train.py): kernel `periods = (ub - lb)/scale` in u-space, only when periodic vars exist
-- [~] B7 Tests: unit (period_check, udist, ucov, validation, GP periods) + end-to-end runs
-- [ ] B8 Fingerprint `4146a986863602cb` unchanged with the gpyreg branch; full suite; pre-commit
+- [x] B7 Tests: unit (period_check, udist, ucov, validation, GP periods) + end-to-end runs
+- [x] B8 Fingerprint `4146a986863602cb` unchanged with the gpyreg branch; full suite; pre-commit
 
 ## C. Evidence
 - [x] C1 Periodic problems + `periodic` suite in [benchmark_targets.py](dev/scripts/benchmark_targets.py); [dev/README.md](dev/README.md) entry
-- [ ] C2 Population, periodic on vs off (`--options '{"periodic_vars": null}'`), 30 seeds, Linux
+- [~] C2 Population, periodic on vs off (`--options '{"periodic_vars": null}'`), 30 seeds, Linux
 - [ ] C3 Results note in `dev/results/` + records in `dev/experiments/`
 
 ## D. Documentation (Opus sub-agent after B)
-- [ ] D1 Option description ([advanced .ini](pybads/bads/option_configs/advanced_bads_options.ini)), `BADS` docstring
-- [ ] D2 [FAQ](docsrc/source/faq.md): periodic answer, MATLAB-differences bullet
-- [ ] D3 Example 6 notebook, generated script, docs toctree
+- [~] D1 Option description ([advanced .ini](pybads/bads/option_configs/advanced_bads_options.ini)), `BADS` docstring
+- [~] D2 [FAQ](docsrc/source/faq.md): periodic answer, MATLAB-differences bullet
+- [~] D3 Example 6 notebook, generated script, docs toctree
 - [x] D4 [CHANGELOG](CHANGELOG.md) (Added; Requirements/Upgrading for gpyreg); [catalogue](pybads/bads/README.md) KD-B1-6, KD-B1-5, open porting work
 - [x] D5 [TODO](dev/TODO.md) (porting gaps, gpyreg release, what's new), [ledger](dev/results/2026-09-28-port-correctness-review.md) (W3-35, W4-11, udist loose end), [AGENTS.md](AGENTS.md)
 
