@@ -1,0 +1,94 @@
+{
+ "label": "multisensory_s1_D6_homo",
+ "seed": 60,
+ "problem": "multisensory_s1",
+ "D": 6,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  4.330905034614377,
+  13.446782498469291,
+  35.26689185053271,
+  3.374338394069199,
+  20.47392169477453,
+  0.08890070074919772
+ ],
+ "f_min": 483.5133436051275,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 60
+ },
+ "effective_options": {
+  "max_fun_evals": 2990,
+  "max_iter": 1200,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 14,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 60,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   6.045055086618963,
+   4.710002727453687,
+   3.8532223995880375,
+   9.062008996317914,
+   10.2979093855383,
+   0.025835084244090856
+  ],
+  "fval": 484.2844784251638,
+  "fsd": 0.3199395492988231,
+  "true_error": 0.13414353548120062,
+  "func_count": 549,
+  "iterations": 23,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 13.756809690999944,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.7783542744823809
+ },
+ "meta": {
+  "git": {
+   "sha": "58e7dd5",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev48+g58e7dd547",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "58e7dd5",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.4.dev11+g1893effc9",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T16:58:40+0000",
+  "finished": "2026-09-28T16:58:54+0000"
+ }
+}

@@ -126,6 +126,11 @@ ratio -0.41 [-0.49, -0.27]), and so does `rosenbrock_D2`'s (1.9e-5 →
 `ellipsoid_D3_homo` fewer (374 → 312), with a larger median error, unflagged
 (0.070 → 0.119, above its tolerance of 0.1; solved 0.67 → 0.43; paired
 log10 ratio +0.20 [+0.07, +0.50]). No run crashed in either population.
+On these 30 seeds W2-25 accounts for most of `ellipsoid_D3_homo`'s drop in
+the fraction solved (0.60 with it reverted), and on seeds 30-89 it raises
+that fraction (0.63 → 0.70); over the 90 seeds it has no measurable
+effect on the noisy configurations
+([`w225_linux_20260928`](../experiments/w225_linux_20260928/README.md)).
 
 ## The rows
 
@@ -237,7 +242,7 @@ histories and the gate.
 | W2-22 | B1 | Option descriptions are cut at their first `=` or `:` | confirmed, inert | fixed | `93c86ee` (#76) |
 | W2-23 | B1 | Nine options have no description, and 36 end in MATLAB's closing quote | confirmed, inert | descriptions corrected | `2d4304c` (#76) |
 | W2-24 | B1 | `search_n_try` is a float | confirmed, inert | fixed | `2d4304c` (#76) |
-| W2-25 | B2 | After the re-estimate, a better earlier iterate gives the incumbent its value but not its location, as in MATLAB | shared defect | (b): the incumbent moves with its value, a departure from MATLAB (KD-B2-7); moves the noisy runs, unflagged; `matlab_side_defects.md` | `a9fbb97` (#76) |
+| W2-25 | B2 | After the re-estimate, a better earlier iterate gives the incumbent its value but not its location, as in MATLAB | shared defect | (b): the incumbent moves with its value, a departure from MATLAB (KD-B2-7); moves the noisy runs, unflagged; at 90 seeds against its revert, no measurable effect on their errors or fraction solved ([`w225_linux_20260928`](../experiments/w225_linux_20260928/README.md)); `matlab_side_defects.md` | `a9fbb97` (#76) |
 | W2-26 | B2 | The hyperparameters that the move sets reach only the next search's target, which nothing reads, as in MATLAB | confirmed, inert (shared) | kept | — |
 | W2-27 | B2 | The design is capped before its rounding up, so small budgets are exceeded, and the noise test is not counted, as in MATLAB | port discrepancy; shared defect (the noise test) | fixed: the cap after the rounding, the noise test counted, the reserve floored at 0 (KD-B2-6); `matlab_side_defects.md` | `381bf32`, `f6f7f74` (#76) |
 | W2-28 | B2 | `sloppy_improvement=False` stops every run at its first pass | port discrepancy | fixed | `f08b475` (#76) |
@@ -396,7 +401,6 @@ items that a ruling left to later work are held by these items of
 
 | `TODO.md` item | Rows and items |
 |---|---|
-| "W2-25 and the noisy configurations' fraction solved." | W2-25's lower fraction solved on three of the five noisy configurations, unflagged at 30 seeds, which wave 2's doublecheck left to W1-25's measurement, and which that measurement did not compare |
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
