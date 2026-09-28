@@ -1,8 +1,10 @@
 # Codebase survey: failures and candidate defects
 
 Findings from a read-through of the code at `273a5b7` and runs of the test
-suite. The systematic bug hunt and the verification against MATLAB BADS are
-deferred (`dev/TODO.md`); this record is their starting point.
+suite. This record was the starting point of the systematic bug hunt and
+the verification against MATLAB BADS, the port correctness review of
+2026-09-25 to 09-28, whose consolidated ledger is
+[`2026-09-28-port-correctness-review.md`](2026-09-28-port-correctness-review.md).
 
 Environment of the runs: Windows 11, Python 3.12.6, NumPy 2.5.3, SciPy
 1.18.1, gpyreg 1.3.1 installed editable from its checkout at `1dbbfc5`.
@@ -207,7 +209,11 @@ call. The stress run finishes all 180 runs (4,577 failed calls of
 
 Found by reading the code, without a check of reach or effect and without
 the MATLAB comparison. "Seen" means the code at the location reads as
-described; the rest are reports of the read not yet looked at.
+described; the rest are reports of the read not yet looked at. The port
+correctness review verified every row that was still open and closed it
+in the ledger of the wave of its slice; the status gives the outcome, with
+the ledger's row, the fix, or the entry of the catalogue of deliberate
+differences (`KD-*`, in `pybads/bads/README.md`).
 
 | Location | Candidate | Status |
 |---|---|---|
@@ -220,13 +226,13 @@ described; the rest are reports of the read not yet looked at.
 | `bads.py:2183` | appends the bound method `self.u_best.copy` instead of a copy | fixed in `0c56d86` (the port review's wave 0, W0-16; closed by wave 3, W3-32) |
 | `gaussian_process_train.py:1164` (at `676083d`, `add_and_update_gp`, line 1246) | the posterior update appends `sd_new` to `gp.s2`, where the initial fit stores `S**2` (`:1086`, at `676083d` line 1163) | fixed in `020d6a8` |
 | `gaussian_process_train.py`, `get_grid_search_neighbors` and `local_gp_fitting` (at `676083d`, lines 1134 and 272) | the rebuild of the local GP stores `function_logger.S`, standard deviations, in `gp.s2`, a variance: the slip of the row above, at every rebuild. Only `specify_target_noise` reads `s2`; with an explicit `uncertainty_handling=True` at level 1, `S` is never filled and `gp.s2` holds NaN, which the noise function ignores. MATLAB squares the standard deviations in `likGaussHe`; the effect is in the section "The seed sweep behind the tolerances" | fixed in `020d6a8` |
-| `bads.py`, `_get_target_from_gp_` (at `676083d`, line 2479) | recomputes the posterior of a copy of the GP under the best iteration's hyperparameters (`set_hyperparameters(hyp_best)`) to predict the target; MATLAB's `UpdateTarget` (`bads.m:1296-1302`) sets `gptemp.hyp = hyp` but keeps `gptemp.post`, which `gppred` passes on and `mygp` reuses (`mygp.m:123`), so MATLAB predicts from the current posterior with `hyp` in the mean and covariance functions, without refactorizing. The port's recomputation is why the call can fail, and it gives other targets at default options (`uncertain_incumbent`) | kept (the port review's wave 3, W3-21: the recomputation gives the prediction that MATLAB's code intends, where MATLAB's hybrid is no prediction under one set of hyperparameters; KD-B4-2) |
+| `bads.py`, `_get_target_from_gp_` (at `676083d`, line 2479) | recomputes the posterior of a copy of the GP under the best iteration's hyperparameters (`set_hyperparameters(hyp_best)`) to predict the target; MATLAB's `UpdateTarget` (`bads.m:1296-1302`) sets `gptemp.hyp = hyp` but keeps `gptemp.post`, which `gppred` passes on and `mygp` reuses (`mygp.m:123`), so MATLAB predicts from the current posterior with `hyp` in the mean and covariance functions, without refactorizing. The port's recomputation is why the call can fail, and it gives other targets at default options (`uncertain_incumbent`) | kept (the port review's wave 3, W3-21: the recomputation gives the prediction that MATLAB's code intends, where MATLAB's hybrid is no prediction under one set of hyperparameters; KD-B4-2); since #84 (`7969783`), when the best iteration's hyperparameters are the GP's own, it predicts from the GP's own posterior, which a recomputed copy would give again bit for bit, and it copies and recomputes only under other hyperparameters |
 | `bads.py`, `_get_target_from_gp_`, and MATLAB `UpdateTarget` | when the target prediction is not finite, both replace it by the incumbent's `fval` and `fsd` but compute the target from the failed variance, so the target is NaN, and the poll then treats the GP as unreliable. In MATLAB this follows a failed rebuild; in the port, a non-finite prediction from a consistent GP | fixed in `dac062e` (the port review's wave 3, W3-23: the target from the incumbent's SD; a shared defect, in `matlab_side_defects.md`) |
 | `gaussian_process_train.py`, `local_gp_fitting` (at `676083d`, lines 520-529) | after a failed posterior update, retries with the previous hyperparameters on the new training set, which MATLAB's `gpupdate` does not do (it clears the posterior); without a refit the retry repeats the failed computation. Kept so that runs where it succeeds do not move. With a refit, `temporary_data["poll_scale"]`, `["len_scale"]` and `["effective_radius"]` come from the refit's hyperparameters while the retry puts back the previous ones, so the poll basis and the ES-ell search use a geometry the GP does not hold (before the guards too) | fixed in `9ac1a47` and `f65bc91` (the port review's wave 1, W1-10 and W1-11: no retry without a refit) |
-| `gaussian_process_train.py`, `add_and_update_gp` (at `676083d`) | on a failed update the port leaves the point out of the GP until the next rebuild; MATLAB's `'add'` keeps it beside an empty posterior. It also recomputes every posterior in full, where MATLAB first tries a rank-1 update (skipped under `SpecifyTargetNoise`); `dev/TODO.md` | by design (`dev/plans/gp-update-guards.md`) |
+| `gaussian_process_train.py`, `add_and_update_gp` (at `676083d`) | on a failed update the port leaves the point out of the GP until the next rebuild; MATLAB's `'add'` keeps it beside an empty posterior. It also recomputes every posterior in full, where MATLAB first tries a rank-1 update (skipped under `SpecifyTargetNoise`); `dev/TODO.md` | by design (`dev/plans/gp-update-guards.md`; KD-B5-1); the rank-1 update measured and not adopted ([`2026-09-28-where-pybads-spends-its-time.md`](2026-09-28-where-pybads-spends-its-time.md); `dev/TODO.md`) |
 | `bads.py`, `_re_evaluate_history_` (at `676083d`, line 2618) | rebuilds the GPs stored in `IterationHistory` in place, so the recorded GPs change after the fact; after a failed rebuild it records the restored GP's `fval` and `fsd`, where MATLAB would record NaN | no longer holds (the port review's wave 2, W2-40): since `e004c79` (W0-1) the re-estimate rebuilds a copy of the working GP, and the stored GPs stay as recorded; since `fef6c14` (W1-35) a past iterate whose rebuild fails gets NaN, as in MATLAB, and the current iterate keeps its estimate, a deliberate difference (KD-B2-4) |
 | `bads.py`, `_poll_step_` with `stobads` (at `a83bd51`) | after a failed add in a noisy poll, `f_poll` is NaN and `_sto_success_improvement_` returns 0 (both of its comparisons are false); under `opp_stobads` (on by default) `sto_success > -1` then moves the poll to `u_poll_best`, never to the NaN point, and sets `reset_gp`: the NaN counts as uncertain, not as a failure. `stobads` is off by default | fixed in `0c56d86` (the port review's wave 0, W0-11: a non-finite estimate is a failure; closed by wave 3, W3-38) |
-| `gaussian_process_train.py`, `local_gp_fitting`, and `bads.py`, the forced refit (at `a83bd51`) | after a failed rebuild the port restores the GP of the entry (old data, priors, hyperparameters and geometry) and refits at the next rebuild whatever `min_refit_time`; MATLAB keeps the new data and the failed rebuild's hyperparameters and `pollscale` beside `post = []` (`gpupdate.m`), and refits only when `gppredcheck` finds its NaN predictions unreliable, after `MinRefitTime` (`bads.m:1242-1244`) | by design (`dev/plans/gp-update-guards.md`, Open Question 7) |
+| `gaussian_process_train.py`, `local_gp_fitting`, and `bads.py`, the forced refit (at `a83bd51`) | after a failed rebuild the port restores the GP of the entry (old data, priors, hyperparameters and geometry) and refits at the next rebuild whatever `min_refit_time`; MATLAB keeps the new data and the failed rebuild's hyperparameters and `pollscale` beside `post = []` (`gpupdate.m`), and refits only when `gppredcheck` finds its NaN predictions unreliable, after `MinRefitTime` (`bads.m:1242-1244`) | by design (`dev/plans/gp-update-guards.md`, Open Question 7; KD-B5-2); the retry with the previous hyperparameters only after a refit, and the geometry from the hyperparameters the GP holds, since `f65bc91` and `9ac1a47` (the port review's wave 1, W1-11 and W1-10) |
 | `bads.py`, `_search_step_` (at `a83bd51`) | after a failed rebuild, the search ranks its candidates by the LCB of the previous GP; MATLAB's `acqLCB` sums over the finite prediction samples, zero when none is, so MATLAB evaluates the first candidate. The poll treats such a GP as unreliable, as MATLAB does | kept (the port review's wave 3, W3-12: the search ranks its candidates by the restored GP, where MATLAB's rule picks an arbitrary far point; KD-B5-2) |
 | `gaussian_process_train.py`, `init_and_train_gp` (at `a83bd51`, lines 161-209) | retries a failing initial fit without bound (from the fifth attempt, from random samples of the priors), so a fit that keeps failing loops forever; initialization only | fixed in `b6a4fd5` (the port review's wave 1, W1-20: ten tries, then `RuntimeError`) |
 | `gaussian_process_train.py`, `_robust_gp_fit_`, and the forced refit (at `a83bd51`) | the refit forced after a failed rebuild sends a run that has met a failure into `_robust_gp_fit_`, whose fifth consecutive failed fit raises `ValueError` (section "Failed fits"); the stress run injects no failure into fits, so this is untested | fixed in `776b70d` and `446c443` (the port review's wave 1, W1-12 and W1-13: the bound rises by `noise_nudge[1]`, and a fit whose every try fails keeps its best start) |
@@ -502,7 +508,11 @@ candidate table:
   `uint64` class of its argument and saturates, as its integer arithmetic
   does by default, that seed is also the same for most start points, and
   the port differs in mechanism more than in effect; this is not checked in
-  MATLAB. Fixed in `efe5e95` (the port review's wave 4, W4-1): the
+  MATLAB. [Wave 4 of the port review (W4-1) read MATLAB's documentation of
+  `prod` on an integer array as returning a double, which does not
+  saturate: the seed of a start that is not an integer then depends on
+  MATLAB's `mod` beyond `flintmax`, a question for MATLAB, in
+  `experiments/port_review_20260925/matlab_side_defects.md`.] Fixed in `efe5e95` (the port review's wave 4, W4-1): the
   scrambling is seeded by one draw of the run's generator, so that
   `random_seed` decides the design, and the cast is gone.
 - `gaussian_process_train.py` imported its `logger` from `asyncio.log`

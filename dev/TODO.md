@@ -15,11 +15,16 @@ order.
   with the switch on, a fit whose low-noise design points all failed
   started its second optimization from one of them and raised, discarding
   its first. Revisit once all of wave 1's fixes have landed
-  (PI, 2026-09-26): measure again at that head, count the failed
-  factorizations and fits per run and which retries leave a worse GP, and
-  weigh a jitter scaled to the signal that the fit and the predictions
-  share. Turning the switch on in PyBADS needs a gpyreg release and moves
-  its minimum and CI pin.
+  (PI, 2026-09-26), which they have, with those of the later waves (the
+  review closed on 2026-09-28): measure again at `dev-next`, count the
+  failed factorizations and fits per run and which retries leave a worse
+  GP, and weigh a jitter scaled to the signal that the fit and the
+  predictions share. The same measurement looks again at W2-25's lower
+  fraction solved on three of the five noisy configurations, unflagged at
+  30 seeds, which wave 2's doublecheck left to it
+  (`experiments/port_review_20260925/verification/wave2.md`, "Doublecheck").
+  Turning the switch on in PyBADS needs a gpyreg release and moves its
+  minimum and CI pin.
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
   update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
@@ -152,24 +157,17 @@ order.
   it as often, are not established. To settle: count the zero SDs over the
   default suite, trace them in gpyreg, and compare with MATLAB's prediction
   of the same GP.
-- [ ] **Bug hunt and verification against MATLAB BADS.** In progress:
-  [plans/port-correctness-review.md](plans/port-correctness-review.md), one
-  branch per wave (`dev-port-review-w<N>`), each merged into `dev-next`. A systematic check of the port against the MATLAB reference (`acerbilab/bads`),
-  settling the reach and effect of each candidate defect. The starting point
-  is the [survey](results/2026-09-23-codebase-survey.md): its candidate
-  table (only partly looked at, never compared with MATLAB), and a finding
-  of its section on the tests, the seed of the initial Sobol design, fixed
-  by wave 4 (W4-1); what MATLAB's own seed is, a question for MATLAB, is in
-  `experiments/port_review_20260925/matlab_side_defects.md`.
-  PyVBMC's MATLAB-comparison helpers (`pyvbmc/testing/_compare_matlab.py`:
-  `randn2` and the draws that reproduce MATLAB's random stream) come with
-  it, for the comparisons that need MATLAB's own numbers.
 - [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
-  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`), after the
-  bug hunt, so that they do not pin today's defects; the random draws go
-  through one generator per run (`bads.rng`), which replay needs. The
-  population comparison of `dev/scripts/population.py` checks
-  distributions, not trajectories, until then.
+  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`). They were
+  to follow the bug hunt, so as not to pin its defects, and the hunt is
+  done ([the port correctness review](results/2026-09-28-port-correctness-review.md)):
+  nothing holds them back. The random draws go through one generator per
+  run (`bads.rng`), which replay needs. An oracle computed by MATLAB BADS
+  needs MATLAB's own numbers, which PyVBMC's MATLAB-comparison helpers
+  (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
+  reproduce MATLAB's random stream) give. The population comparison of
+  `dev/scripts/population.py` checks distributions, not trajectories,
+  until then.
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
@@ -221,10 +219,11 @@ order.
   `tol_mesh` that speaks of the change in the function value, which wave 0
   corrected; `pybads_example_5_extended_usage.ipynb` a result with
   `'fsd': 0` and without `status` (W2-12, W2-13), from version
-  `0.8.3.dev21`. Rerun all five once the review's fix passes have landed,
-  with the headless run of the examples before the release, so that the
-  outputs are not regenerated at every pass
-  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass").
+  `0.8.3.dev21`. The rerun of all five waited for the review's fix passes,
+  so that the outputs would not be regenerated at every pass
+  (`experiments/port_review_20260925/verification/wave2.md`, "Fix pass");
+  the passes have all landed (the review closed on 2026-09-28), so the
+  rerun goes with the headless run of the examples before the release.
 - [ ] **Minor items of slices B1 and B2 of the port review**, whose wave has
   passed (`experiments/port_review_20260925/verification/wave2.md`, "Found
   while fixing" and "Doublecheck", with the details). Left, each a
@@ -264,6 +263,13 @@ order.
     and gpyreg imports: keep the requirement?
   - `skills/pybads/SKILL.md` names no release: name it at the next release,
     as PyVBMC's names 1.5.
+- [ ] **Loose ends of the port review.** Observations that the reports and
+  the fix agents made outside their findings, which no ruling took up and
+  which change no default run, are listed in the consolidated ledger
+  ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
+  "Open ends"), among them a test that checks less than it appears to:
+  `test_transform_inverse_largeN` builds `np.ones((10 ^ 6, D))`, 12 rows,
+  since `^` is XOR. Each is fixed, documented, or dropped.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).

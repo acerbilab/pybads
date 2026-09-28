@@ -28,11 +28,14 @@ PyVBMC's `ParameterTransformer`, although its documentation page is
 - `dev/` holds the developer notes, plans, results and tooling.
   `dev/README.md` says where each kind of record goes; `dev/TODO.md` lists
   the open work.
-- `dev/results/2026-09-23-codebase-survey.md` records the observed failures
-  and the candidate defects of the port, not yet verified against MATLAB
-  BADS. Check it before treating an oddity in the numerical code as
-  intended, and record a fix or a verdict in its entry.
-- `pybads/bads/README.md` lists the open porting work.
+- `pybads/bads/README.md` is the catalogue of the deliberate differences
+  between PyBADS and MATLAB BADS v1.1.3, with the open porting work.
+  `dev/results/2026-09-28-port-correctness-review.md`, the consolidated
+  ledger of the review that compared the port with MATLAB BADS, gives
+  every finding its verdict and its fix or `dev/TODO.md` item. Check both
+  before treating an oddity in the numerical code as intended or as a
+  defect; a change that adds or removes a deliberate difference updates
+  the catalogue.
 - `docsrc/` is the Sphinx source. `docs/` is its gitignored build output;
   the published site lives on the `gh-pages` branch.
 

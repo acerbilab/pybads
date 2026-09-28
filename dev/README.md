@@ -121,6 +121,14 @@ reference's number of seeds.
 
 ## Index
 
+- [The port correctness review](results/2026-09-28-port-correctness-review.md)
+  — the consolidated ledger of the independent review of PyBADS against
+  MATLAB BADS v1.1.3 (2026-09-25 to 09-28, five waves): its 173 rows, each
+  with its classification, the PI's disposition and its fix or `TODO.md`
+  item; the net change on the benchmark on Windows (100 seeds) and Linux
+  (30 seeds); the open ends; and the defects found on the MATLAB side. The
+  deliberate differences it settled are catalogued in
+  `pybads/bads/README.md`.
 - [Where PyBADS spends its time](results/2026-09-28-where-pybads-spends-its-time.md)
   — the stages of PyBADS's own time on six configurations (the ES search's
   candidates and the GP fits take nearly all of it, gpyreg's kernel 31 to
@@ -237,8 +245,9 @@ reference's number of seeds.
 - [plans/port-correctness-review.md](plans/port-correctness-review.md) —
   the independent correctness review of the port against MATLAB BADS
   v1.1.3, after PyVBMC's: slices, waves, the reviewer brief, the gates and
-  the worklog; its records (the known-differences sheet, the counterpart
-  map, the reviewers' reports) under `experiments/port_review_20260925/`.
+  the worklog, closed on 2026-09-28; its records (the known-differences
+  sheet, the counterpart map, the reviewers' reports, the per-wave ledgers)
+  under `experiments/port_review_20260925/`.
 - [plans/gp-update-guards.md](plans/gp-update-guards.md) — guards on the
   three GP calls that stopped benchmark runs with `LinAlgError`, after
   MATLAB BADS: a consistent GP handed on, a rebuild (and, after a failed
@@ -251,11 +260,11 @@ reference's number of seeds.
   assessment of gpyreg 1.3.3 for PyBADS.
 - [Codebase survey](results/2026-09-23-codebase-survey.md) — failures
   observed in the test suite at `273a5b7`, the candidate defects found by a
-  read of the code (not verified), and the tests that checked less than
-  they appeared to, with their fixes, the seed sweep behind the tolerances
+  read of the code, and the tests that checked less than they appeared to,
+  with their fixes, the seed sweep behind the tolerances
   of the optimization tests, three candidate defects found on the way, the
   checks behind running each test once in CI and requiring NumPy 2, the
   fixes of five small defects of `bads.py` with their gates, and the
   reruns of the four crashing benchmark runs, whose failing calls share
-  degenerate GP hyperparameters. The starting point of the deferred bug
-  hunt in `TODO.md`.
+  degenerate GP hyperparameters. The starting point of the port
+  correctness review, which closed its candidate table.

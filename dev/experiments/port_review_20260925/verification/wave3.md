@@ -195,7 +195,12 @@ is proposed here.
   every search and poll step, and at default nothing reads the search's
   target (B4 verifier; B3-I and B4-C note the same): time, and a path that
   can raise `LinAlgError` (KD-B4-2). With W3-21: under (b), or by computing
-  the search's target only when an option reads it.
+  the search's target only when an option reads it. [#84 (`7969783`), after
+  wave 4: the search computes the target only for an acquisition function
+  that reads it, of which none is ported (`_SEARCH_ACQ_FCNS_READING_TARGET`
+  in `bads.py`, empty), and `_get_target_from_gp_` predicts from the GP
+  itself when the best iteration's hyperparameters are its own, and from a
+  copy recomputed under them otherwise (KD-B4-2).]
 - Zero predictive SDs are frequent at level 0 (W3-28); their cause, perhaps
   the latent variance clamped at 0 after rounding, and whether MATLAB's
   `mygp` gives them as often, are not established (B4 verifier).
@@ -346,7 +351,9 @@ recorded at every commit:
 `_get_target_from_gp_` at every search step, whose target nothing reads at
 default (time only), and the cause of the frequent zero predictive SDs at
 level 0: `dev/TODO.md` lines. The first-iteration note of the B3 brief
-needs no change.
+needs no change. [The first line was closed by #84 (`7969783`), after wave
+4, as "Found while verifying" above notes; the second is the `TODO.md` item
+"Zero predictive SDs at uncertainty level 0".]
 
 **After the gates (PI, 2026-09-27)**, on the orchestrator's report of
 W3-24's flagged gate ("Fix pass"):
