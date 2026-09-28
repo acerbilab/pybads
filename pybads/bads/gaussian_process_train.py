@@ -1127,7 +1127,8 @@ def _get_gp_training_options(
     function_logger : FunctionLogger
         Function logger from the BADS instance we are calling this from,
         whose counts of evaluations per point, summed, give the number of
-        evaluations of the training set (``n_eff``).
+        evaluations of the log (``n_eff``), those made before the run
+        (``precomputed_evaluations``) left out.
     second_fit : bool, optional
         Whether the refit also starts from a second set of hyperparameters
         (with ``double_refit``, or after a fit whose noise was too high or
@@ -1141,7 +1142,13 @@ def _get_gp_training_options(
     """
     iteration = optim_state["iter"]
 
-    n_eff = np.sum(function_logger.n_evals[function_logger.X_flag])
+    # The evaluations of the run: the schedule below spans the run's own
+    # budget, which the evaluations made before it (precomputed_evaluations)
+    # do not take, and eff_starting_points leaves them out too
+    n_eff = (
+        np.sum(function_logger.n_evals[function_logger.X_flag])
+        - optim_state["precomputed_n_evals"]
+    )
 
     gp_train = {}
     gp_train["init_method"] = options["gp_train_init_method"]

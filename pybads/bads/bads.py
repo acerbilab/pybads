@@ -83,6 +83,61 @@ def _is_named_pair(value, names):
         return False
 
 
+def _precomputed_array(value, shape, name):
+    """A float64 copy of ``value``, one of the arrays of
+    ``precomputed_evaluations``, refused unless it has ``shape``, where
+    ``None`` takes any length, and finite real values: of a boolean,
+    integer or floating type, as the function logger takes a value."""
+    expected = "({})".format(
+        ", ".join("N" if n is None else str(n) for n in shape)
+        + ("," if len(shape) == 1 else "")
+    )
+    try:
+        array = np.asarray(value)
+    except (TypeError, ValueError) as err:  # A ragged sequence
+        raise ValueError(
+            f"The {name} of precomputed_evaluations must be an array of "
+            f"shape {expected}."
+        ) from err
+    if array.ndim != len(shape) or any(
+        n is not None and n != m for n, m in zip(shape, array.shape)
+    ):
+        raise ValueError(
+            f"The {name} of precomputed_evaluations must have shape "
+            f"{expected}, not {array.shape}."
+        )
+    if array.dtype.kind not in "biuf":
+        raise ValueError(
+            f"The {name} of precomputed_evaluations must be real numbers, "
+            f"not of type {array.dtype}."
+        )
+    array = array.astype(np.float64)
+    finite = np.isfinite(array)
+    if array.ndim > 1:
+        finite = np.all(finite, axis=1)
+    if not np.all(finite):
+        raise ValueError(
+            f"The {name} of precomputed_evaluations must be finite; rows "
+            f"{np.flatnonzero(~finite).tolist()} are not."
+        )
+    return array
+
+
+# Two values of a point given twice in precomputed_evaluations, without
+# uncertainty handling, agree within this many spacings of float64 at their
+# scale, as in PyVBMC
+_PRECOMPUTED_DUPLICATE_ULPS = 4
+
+
+def _precomputed_values_agree(first, second):
+    """Whether two values of one point of ``precomputed_evaluations`` agree
+    within ``_PRECOMPUTED_DUPLICATE_ULPS`` spacings of float64 at the scale
+    of the larger, and of 1 below it."""
+    scale = max(1.0, abs(first), abs(second))
+    tolerance = _PRECOMPUTED_DUPLICATE_ULPS * np.spacing(scale)
+    return abs(first - second) <= tolerance
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message, the reports of the
 # setup and the message of a random starting point from "notify" on, the
@@ -204,6 +259,25 @@ class BADS:
         uncertainty interval of the Sto-BADS success rule. By default
         ``None``, which is 1.96.
 
+    precomputed_evaluations : tuple, optional, keyword-only
+        Evaluations of ``fun`` made before the run, for instance by an
+        earlier run, as ``(X, y)``, or ``(X, y, y_sd)`` with
+        ``options['specify_target_noise']``, which requires ``y_sd``. ``X``
+        holds one point per row in the original space, of shape ``(N,
+        D)``, each within the hard bounds and satisfying ``non_box_cons``;
+        ``y`` holds the values of ``fun`` at them and ``y_sd`` the SDs of
+        their noise, both of shape ``(N,)``. The values are finite and the
+        SDs positive. The evaluations enter the run's log of evaluations,
+        and with it the training set of its Gaussian process, but not its
+        count of evaluations (``func_count``, which ``max_fun_evals``
+        bounds), and the run starts from ``x0`` and its initial design
+        alone: none of the points is its first incumbent. Unless
+        ``options['uncertainty_handling']`` is ``True`` (or
+        ``options['specify_target_noise']`` is), a point given twice must
+        have the same value, and is kept once; otherwise each repeat is an
+        observation of its own. The arrays are copied. By default ``None``,
+        no evaluations.
+
     Attributes
     ----------
     rng : numpy.random.Generator
@@ -253,6 +327,13 @@ class BADS:
         a non-empty ``fun_values`` or ``periodic_vars``, or
         ``acq_hedge=True``, options that are not supported.
     ValueError
+        When ``precomputed_evaluations`` is not a tuple of two or three
+        arrays of the shapes above, of finite values and positive SDs, when
+        it has ``y_sd`` without ``options['specify_target_noise']`` or lacks
+        them with it, when one of its points lies outside the hard bounds or
+        violates ``non_box_cons``, or when a point given twice has two values
+        where a point is kept once.
+    ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
         When ``options['random_seed']`` is a float that is not a whole
@@ -290,6 +371,7 @@ class BADS:
         options: dict = None,
         *,
         gamma_uncertain_interval: float = None,
+        precomputed_evaluations: tuple = None,
     ):
         # set up root logger (only changes stuff if not initialized yet)
         logging.basicConfig(stream=sys.stdout, format="%(message)s")
@@ -445,6 +527,7 @@ class BADS:
             cache_size=self.options.get("cache_size"),
             variable_transformer=self.var_transf,
         )
+        self._import_precomputed_evaluations_(precomputed_evaluations)
 
         self.iteration_history = IterationHistory(
             [
@@ -860,13 +943,16 @@ class BADS:
 
         # Setup covariance information (unused)
 
-        # The import of prior function evaluations, which MATLAB BADS makes
-        # (setupvars.m), is not ported yet
+        # MATLAB BADS's option of the evaluations made before the run
+        # (setupvars.m:126-167) is refused: they are the argument
+        # precomputed_evaluations, imported by
+        # _import_precomputed_evaluations_
         fun_values = self.options["fun_values"]
         if fun_values is not None and len(fun_values) != 0:
             raise ValueError(
-                "options['fun_values'] is not supported yet: leave it empty "
-                "(its default, {})."
+                "options['fun_values'] is not supported: leave it empty (its "
+                "default, {}), and pass evaluations made before the run as "
+                "BADS(..., precomputed_evaluations=(X, y))."
             )
 
         # Other variables initializations
@@ -1215,6 +1301,114 @@ class BADS:
 
         return optim_state
 
+    def _import_precomputed_evaluations_(self, evaluations):
+        """
+        Check the evaluations made before the run (the argument
+        ``precomputed_evaluations``, a tuple ``(X, y)`` or ``(X, y, y_sd)``)
+        and add them to the function log, before any evaluation of the run.
+
+        MATLAB BADS imports them from its option ``FunValues`` into its log
+        (``setupvars.m:126-167``, ``funlogger.m:53-83``) with checks of the
+        shapes and values only; PyBADS takes PyVBMC's interface and checks,
+        and refuses the points outside the hard bounds or that violate
+        ``non_box_cons``, which the run never evaluates. The log's count of
+        evaluations (``func_count``) leaves them out, as MATLAB's
+        ``funccount`` does. Without uncertainty handling, a point given twice
+        is kept once, its values agreeing; with it, the logger keeps each
+        repeat, merged into the point's row when ``fun`` returns the SDs.
+        ``optim_state`` records the number of evaluations given
+        (``"precomputed_observations"``), of distinct points
+        (``"precomputed_locations"``) and of evaluations that the log's
+        ``n_evals`` counts (``"precomputed_n_evals"``), all 0 without them.
+        """
+        self.optim_state["precomputed_observations"] = 0
+        self.optim_state["precomputed_locations"] = 0
+        self.optim_state["precomputed_n_evals"] = 0
+        if evaluations is None:
+            return
+        if not isinstance(evaluations, (tuple, list)) or len(
+            evaluations
+        ) not in (2, 3):
+            raise ValueError(
+                "precomputed_evaluations must be a tuple (X, y), or (X, y, "
+                "y_sd) with options['specify_target_noise']."
+            )
+        X = _precomputed_array(evaluations[0], (None, self.D), "points X")
+        n_rows = X.shape[0]
+        y = _precomputed_array(evaluations[1], (n_rows,), "values y")
+        y_sd = None
+        if len(evaluations) == 3:
+            y_sd = _precomputed_array(
+                evaluations[2], (n_rows,), "noise SDs y_sd"
+            )
+            if np.any(y_sd <= 0):
+                raise ValueError(
+                    "The noise SDs y_sd of precomputed_evaluations must be "
+                    f"positive; rows {np.flatnonzero(y_sd <= 0).tolist()} "
+                    "are not."
+                )
+
+        level = self.optim_state["uncertainty_handling_level"]
+        if level == 2 and y_sd is None:
+            raise ValueError(
+                "With options['specify_target_noise'], precomputed_evaluations "
+                "must hold the noise SDs of the values: (X, y, y_sd)."
+            )
+        if level < 2 and y_sd is not None:
+            raise ValueError(
+                "precomputed_evaluations holds noise SDs y_sd, which require "
+                "options['specify_target_noise'] = True."
+            )
+
+        outside = np.any(
+            (X < self.optim_state["lb_orig"])
+            | (X > self.optim_state["ub_orig"]),
+            axis=1,
+        )
+        if np.any(outside):
+            raise ValueError(
+                "The points X of precomputed_evaluations must lie within the "
+                "hard bounds; rows "
+                f"{np.flatnonzero(outside).tolist()} do not."
+            )
+        if self.non_box_cons is not None and n_rows > 0:
+            violating = np.ravel(self.non_box_cons(X.copy())) > 0
+            if np.any(violating):
+                raise ValueError(
+                    "The points X of precomputed_evaluations must satisfy "
+                    "non_box_cons; rows "
+                    f"{np.flatnonzero(violating).tolist()} violate it."
+                )
+
+        # The first row of each point, whose value the later ones repeat
+        # without uncertainty handling (a key of -0.0 is that of 0.0)
+        first_rows = {}
+        retained = []
+        for row, point in enumerate(map(tuple, X.tolist())):
+            first = first_rows.setdefault(point, row)
+            if first == row or level > 0:
+                retained.append(row)
+            elif not _precomputed_values_agree(y[first], y[row]):
+                raise ValueError(
+                    "Rows {} and {} of precomputed_evaluations give two "
+                    "values at one point. For a noisy target, set "
+                    "options['uncertainty_handling'] = True.".format(
+                        first, row
+                    )
+                )
+
+        U = self.var_transf(X[retained])
+        for u, row in zip(U, retained):
+            self.function_logger.add(
+                u, y[row], None if y_sd is None else y_sd[row]
+            )
+
+        self.optim_state["precomputed_observations"] = n_rows
+        self.optim_state["precomputed_locations"] = len(first_rows)
+        self.optim_state["precomputed_n_evals"] = int(
+            np.sum(self.function_logger.n_evals[self.function_logger.X_flag])
+        )
+
     def _check_tol_fun_(self):
         """
         Check the user's ``tol_fun``, before the advanced options are
@@ -1298,25 +1492,25 @@ class BADS:
         self.fval = self.yval
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
+        # The row of the log of the first incumbent, chosen among the start
+        # and the initial design, as in MATLAB BADS (evalinitmesh.m:120-123):
+        # the log may also hold evaluations made before the run
+        # (precomputed_evaluations), which are never chosen
+        self._init_incumbent_row = idx_start
 
         if self.options["uncertainty_handling"] is None:
             # Test whether the function is noisy, only when the option is
             # left empty, as in MATLAB BADS: False declares it deterministic
             self.logging_action.append("Uncertainty test")
-            # Its time stays out of the target's time, and the start's row of
-            # the log (its count of evaluations and its time) stays as it
-            # was, as MATLAB BADS calls the target directly for it
+            # Its time stays out of the target's time, and it is not
+            # recorded, as MATLAB BADS calls the target directly for it
             # (evalinitmesh.m:41)
             function_logger = self.function_logger
             total_fun_eval_time = function_logger.total_fun_eval_time
-            n_evals = function_logger.n_evals[idx_start].copy()
-            fun_eval_time = function_logger.fun_eval_time[idx_start].copy()
             yval_bis, _, _ = function_logger(
                 self.u, record_duplicate_data=False
             )
             function_logger.total_fun_eval_time = total_fun_eval_time
-            function_logger.n_evals[idx_start] = n_evals
-            function_logger.fun_eval_time[idx_start] = fun_eval_time
             # The test counts in max_fun_evals and adds no point to the log,
             # so the GP's fit schedule leaves it out of its budget
             # (_get_gp_training_options)
@@ -1407,12 +1601,17 @@ class BADS:
                     self.non_box_cons,
                 )
 
+                init_rows = [idx_start]
                 for u_idx in range(len(u1)):
-                    self.function_logger(u1[u_idx])
+                    _, _, idx = self.function_logger(u1[u_idx])
+                    init_rows.append(idx)
 
-                idx_yval = np.argmin(
-                    self.function_logger.Y[: self.function_logger.Xn + 1]
-                )
+                # The first of the lowest values, in the order of the log
+                init_rows = np.unique(init_rows)
+                idx_yval = init_rows[
+                    np.argmin(self.function_logger.Y[init_rows])
+                ]
+                self._init_incumbent_row = idx_yval
                 self.u = self.function_logger.X[idx_yval].copy()
                 self.yval = self.function_logger.Y[idx_yval].item()
                 self.fval = self.yval
@@ -1429,9 +1628,13 @@ class BADS:
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
 
-        # Save the efffective number of initial starting points, which can match with options['fun_eval_start']
-        # but it might be different for example when considering a noisy target function OR when applying a non-box-contraint function.
-        self.optim_state["eff_starting_points"] = self.function_logger.Xn + 1
+        # The number of points evaluated, the start and the initial design,
+        # which can differ from options['fun_eval_start'], for instance with
+        # a noisy target or with non_box_cons: the evaluations but the noise
+        # test, whose point is not recorded
+        self.optim_state["eff_starting_points"] = (
+            self.function_logger.func_count - self.optim_state["n_noise_test"]
+        )
 
         return False
 
@@ -1490,11 +1693,9 @@ class BADS:
             # Specify the standard deviation of the function values
             # It corresponds to specify target noise of Matlab
             if self.optim_state["uncertainty_handling_level"] > 1:
-                idx_min_y = np.argmin(
-                    self.function_logger.Y[: self.function_logger.Xn + 1]
-                ).item()
-                self.fsd = self.function_logger.S[idx_min_y]
-                self.fsd = self.fsd.item()
+                self.fsd = self.function_logger.S[
+                    self._init_incumbent_row
+                ].item()
             else:
                 self.fsd = float(np.ravel(self.options["noise_size"])[0])
 

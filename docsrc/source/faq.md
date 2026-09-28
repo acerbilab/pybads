@@ -692,7 +692,10 @@ row: the second evaluation of `x0` that
 [tests the objective for noise](#faq-should-i-tell-pybads-that-my-objective-is-noisy),
 and the final evaluations of a noisy run, which are in
 `optimize_result["yval_vec"]` (see [above](#faq-how-is-fval-computed)). So
-the log can have fewer rows than `optimize_result["func_count"]`.
+the log can have fewer rows than `optimize_result["func_count"]`. A run
+given evaluations made before it (the argument `precomputed_evaluations` of
+`BADS`) holds them in the first rows of its log, and does not count them in
+`func_count`.
 
 The points at which the iterations ended, and their values, are
 
@@ -1272,11 +1275,16 @@ PyBADS implements the same algorithm, with a Python interface:
   rather than passed to `BADS`.
 - Some features of MATLAB BADS are not (yet) available in PyBADS, which
   refuses them with an error message: fixed variables (see
-  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)),
-  [periodic variables](#faq-does-pybads-support-periodic-variables-such-as-angles),
-  and function evaluations made before the run, passed as `fun_values`. A
-  few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
+  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value))
+  and [periodic variables](#faq-does-pybads-support-periodic-variables-such-as-angles).
+  A few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
   but have no effect.
+- Function evaluations made before the run, which MATLAB BADS takes in its
+  option `FunValues`, are passed to `BADS` as the argument
+  `precomputed_evaluations=(X, y)`, or `(X, y, y_sd)` with
+  `specify_target_noise`. They enter the run's log and its Gaussian process
+  but not its count of evaluations, and the run starts from `x0` and its
+  initial design, as in MATLAB BADS.
 - Runs of PyBADS and of MATLAB BADS do not match step by step, even with the
   same seed. The
   [catalogue of differences](https://github.com/acerbilab/pybads/blob/main/pybads/bads/README.md)

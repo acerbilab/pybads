@@ -248,11 +248,17 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   (`record_duplicate_data=False`).
 - **`FunctionLogger`** calls the target with a 1-D `x` in the original space
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
-  preallocates its arrays, and `X_flag` marks the filled rows. A repeated
-  point at level 2 is merged into its row by precision weighting, which
-  only a direct use of the logger reaches: in a run, `contraints_check`
-  removes the candidates already evaluated, and the final samples take
-  `record_duplicate_data=False`.
+  preallocates its arrays, and `X_flag` marks the filled rows. The log can
+  open with evaluations made before the run (`precomputed_evaluations`,
+  added through `FunctionLogger.add` in `BADS.__init__`), which
+  `func_count` leaves out: code that takes the log's rows for the run's own
+  evaluations (the first incumbent in `_init_mesh_`, `eff_starting_points`
+  and `n_eff` in `_get_gp_training_options`) leaves them out through the
+  counts `optim_state["precomputed_*"]`. A repeated point at level 2 is
+  merged into its row by precision weighting, which a run reaches only
+  through those evaluations: `contraints_check` removes the candidates
+  already evaluated, and the noise test and the final samples take
+  `record_duplicate_data=False`, which leaves the log as it is.
 - **Randomness goes through one `numpy.random.Generator`, `bads.rng`.**
   `BADS.__init__` creates it from `random_seed` (`pybads/rng.py: get_rng`)
   before its first draw, the random `x0`, and passes it as `rng` to

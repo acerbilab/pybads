@@ -149,22 +149,6 @@ decided on; "the next release" below means it.
   (`experiments/port_review_20260925/verification/wave1.md`), PyBADS
   refuses the value with a message instead. A port needs its own population
   comparison with the option set.
-- [ ] **Prior evaluations (`fun_values`).** MATLAB BADS imports
-  evaluations made before the run into its log and its GP
-  (`private/setupvars.m:126-167`, `private/funlogger.m`) and takes its
-  first incumbent from `x0` and the initial design only
-  (`private/evalinitmesh.m:120-123`). PyBADS's `fun_values` never worked,
-  and by the ruling on row W2-6 of the port review
-  (`experiments/port_review_20260925/verification/wave2.md`) a non-empty
-  value is refused with a message. A port imports them after the function
-  logger exists, keeps them out of the choice of the first incumbent, and
-  needs a test that its GP holds them. `FunctionLogger.add`, which such a
-  port would call, keeps checks of its own on the value and its SD, records
-  a missing SD as 1 when the logger holds SDs and drops a given one when it
-  does not, and what it records for a repeated point is settled with it
-  (row W4-10); so is the bookkeeping of the final samples, which still add
-  to the incumbent's `n_evals` in the log and average their times into its
-  row, after the run's last decision (PI, 2026-09-28).
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
