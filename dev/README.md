@@ -187,7 +187,7 @@ reference's number of seeds.
   runs without periodic variables unchanged, and the `periodic` suite with
   and without the option on Linux, with a control under noise. Its
   evidence, also the reference of the `periodic` suite on Linux (gpyreg at
-  `3f1a732`, before its release):
+  `2c9cdfb`, before its release):
   [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md).
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate

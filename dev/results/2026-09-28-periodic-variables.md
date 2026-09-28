@@ -21,7 +21,7 @@ wrap points.
 - gpyreg's three ARD kernels (`SquaredExponential`, `Matern`,
   `RationalQuadraticARD`) take fixed `periods`, not only the kernel that
   PyBADS uses; the isotropic ones refuse them, and so does `GP.quad`
-  (gpyreg's branch `claude/todo-discussion-q8c9im`, `3f1a732`).
+  (gpyreg's branch `claude/todo-discussion-q8c9im`, `2c9cdfb`).
 - A sixth example notebook adapts MATLAB BADS's `bads_examples.m`,
   Example 5.
 
@@ -31,20 +31,20 @@ wrap points.
 variables builds its kernel without `periods` (`_gp_periods` gives
 `None`), and `period_check` returns its input itself. On Linux (Python
 3.11.15, NumPy 2.4.6, SciPy 1.17.1, one BLAS thread),
-`dev/scripts/fingerprint.py` prints `4146a986863602cb` at `66ef459` with
-gpyreg 1.3.3 and with gpyreg at `3f1a732`, the hash of the Linux
+`dev/scripts/fingerprint.py` prints `4146a986863602cb` at `12cf2f29`
+with gpyreg 1.3.3 and with gpyreg at `2c9cdfb`, the hash of the Linux
 reference. On gpyreg's side, a hash of kernel matrices, gradients, fits,
 predictions and one-point updates of every kernel, over several
 dimensions and sizes, is the same on `main` and on the branch with
 `periods` absent, `None` or all infinite, with one BLAS thread and with
 the default.
 
-**Tests.** The PyBADS suite passes with gpyreg at `3f1a732` (811 tests),
+**Tests.** The PyBADS suite passes with gpyreg at `2c9cdfb` (821 tests),
 among them the checks of `periodic_vars`, `period_check`, `udist`, `ucov`
 and the GP's periods, and two whole optimizations. The latter's
 tolerances come from their errors over seeds 0-99 (the survey's section
 "The seed sweep behind the tolerances"). gpyreg's suite passes on its
-branch (904 tests, of which 133 are new).
+branch (911 tests, of which 140 are new).
 
 **The `periodic` suite, `periodic_vars` on and off.**
 [`experiments/population_periodic_linux_20260928/`](../experiments/population_periodic_linux_20260928/README.md)
@@ -53,18 +53,23 @@ its "on" arm is the reference of the suite on Linux. With `periodic_vars`,
 every run of the deterministic configurations is solved, where without it
 a run whose start lies across the bounds from the minimum stops on the
 bound (13 to 47% solved); the median error of the homoskedastic noisy
-configuration falls from 0.091 to 0.024 (0.70 → 0.97 solved); and
-MATLAB's Example 5, solved either way, ends with a tenth of the error. The
-heteroskedastic noisy configuration's errors do not differ (p = 0.78), with
+configuration falls from 0.091 to 0.028 (0.70 → 0.97 solved); and
+MATLAB's Example 5, solved either way, ends with a fifth of the error. The
+heteroskedastic noisy configuration's errors do not differ (p = 0.75), with
 more evaluations. With the minima in the middle of the period, where
 reaching them crosses no bound, the errors with and without `periodic_vars`
 do not differ detectably under either kind of noise (paired signed-rank
-p = 0.97 and 0.34 at 30 seeds): no worsening of noisy runs by the handling
+p = 1.0 and 0.27 at 30 seeds): no worsening of noisy runs by the handling
 of periodic variables is seen.
 
 ## Not done
 
 - No run on Windows, and no reference of the `periodic` suite there.
+- The runs with `periodic_vars` take longer per evaluation than the same
+  problems without it, 1.05 to 1.33 times in the deterministic
+  configurations and about twice in the noisy ones; the cause is not
+  investigated. gpyreg's periodic gradient computes each periodic
+  dimension's term twice, which a change within gpyreg could avoid.
 - No run of MATLAB BADS: the comparison with MATLAB is by reading its code
   (KD-B1-6).
 - gpyreg has no release with `periods` yet. Its release gate, the

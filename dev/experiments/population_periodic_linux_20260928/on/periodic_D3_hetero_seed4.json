@@ -46,25 +46,25 @@
  },
  "final": {
   "x": [
-   0.10039277659639811,
-   0.38935214749690905,
-   -0.4256853647530079
+   0.14154289276676657,
+   0.3966673442727884,
+   -0.4269158863462508
   ],
-  "fval": 0.1885846092257951,
-  "fsd": 0.4329607767838617,
-  "true_error": 0.13626595802734098,
-  "func_count": 372,
+  "fval": -0.10713106103943315,
+  "fsd": 0.4319104210595662,
+  "true_error": 0.1338247667773486,
+  "func_count": 386,
   "iterations": 25,
   "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
-  "wall_s": 17.681270353999935,
+  "wall_s": 18.183696166000118,
   "crashed": false,
   "exception": null,
-  "min_noise_var": 1.5221719746679494
+  "min_noise_var": 1.5221719746683555
  },
  "meta": {
   "git": {
-   "sha": "66ef459c",
-   "dirty": true
+   "sha": "12cf2f29",
+   "dirty": false
   },
   "python": "3.11.15",
   "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
@@ -74,15 +74,15 @@
   "pybads_source": {
    "path": "/home/user/pybads/pybads",
    "git": {
-    "sha": "66ef459c",
-    "dirty": true
+    "sha": "12cf2f29",
+    "dirty": false
    }
   },
   "gpyreg": "1.3.3",
   "gpyreg_source": {
    "path": "/home/user/gpyreg/gpyreg",
    "git": {
-    "sha": "3f1a732",
+    "sha": "2c9cdfb",
     "dirty": false
    }
   },
@@ -91,7 +91,7 @@
    "OPENBLAS_NUM_THREADS": "1",
    "MKL_NUM_THREADS": "1"
   },
-  "started": "2026-09-28T21:31:42+0000",
-  "finished": "2026-09-28T21:32:00+0000"
+  "started": "2026-09-28T22:35:34+0000",
+  "finished": "2026-09-28T22:35:53+0000"
  }
 }

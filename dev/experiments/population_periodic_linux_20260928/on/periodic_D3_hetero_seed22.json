@@ -46,25 +46,25 @@
  },
  "final": {
   "x": [
-   0.06951449656352082,
-   0.08237656594319454,
-   0.026350021362304688
+   0.05565474046047614,
+   0.1246838759153297,
+   0.0006103515625
   ],
-  "fval": 0.3704066390635727,
-  "fsd": 0.3882138118993363,
-  "true_error": 0.05181990801797166,
-  "func_count": 188,
+  "fval": 0.3546136551320664,
+  "fsd": 0.3791114927627537,
+  "true_error": 0.03954363089455006,
+  "func_count": 205,
   "iterations": 15,
   "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
-  "wall_s": 5.984650174000308,
+  "wall_s": 7.099085414000001,
   "crashed": false,
   "exception": null,
-  "min_noise_var": 1.246455049261416
+  "min_noise_var": 1.1237707085497073
  },
  "meta": {
   "git": {
-   "sha": "66ef459c",
-   "dirty": true
+   "sha": "12cf2f29",
+   "dirty": false
   },
   "python": "3.11.15",
   "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
@@ -74,15 +74,15 @@
   "pybads_source": {
    "path": "/home/user/pybads/pybads",
    "git": {
-    "sha": "66ef459c",
-    "dirty": true
+    "sha": "12cf2f29",
+    "dirty": false
    }
   },
   "gpyreg": "1.3.3",
   "gpyreg_source": {
    "path": "/home/user/gpyreg/gpyreg",
    "git": {
-    "sha": "3f1a732",
+    "sha": "2c9cdfb",
     "dirty": false
    }
   },
@@ -91,7 +91,7 @@
    "OPENBLAS_NUM_THREADS": "1",
    "MKL_NUM_THREADS": "1"
   },
-  "started": "2026-09-28T21:34:16+0000",
-  "finished": "2026-09-28T21:34:22+0000"
+  "started": "2026-09-28T22:37:59+0000",
+  "finished": "2026-09-28T22:38:07+0000"
  }
 }

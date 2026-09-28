@@ -1,6 +1,6 @@
 hetero off error median 0.137, solved 0.40, evaluations 377
-hetero on  error median 0.114, solved 0.47, evaluations 384
+hetero on  error median 0.126, solved 0.40, evaluations 382
 homo   off error median 0.0539, solved 0.80, evaluations 346
-homo   on  error median 0.0198, solved 0.93, evaluations 263
-hetero paired log10 error ratio (on/off): median +0.029, signed-rank p 0.97
-homo   paired log10 error ratio (on/off): median -0.065, signed-rank p 0.34
+homo   on  error median 0.0264, solved 0.90, evaluations 263
+hetero paired log10 error ratio (on/off): median +0.030, signed-rank p 1
+homo   paired log10 error ratio (on/off): median -0.111, signed-rank p 0.27

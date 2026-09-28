@@ -1,4 +1,4 @@
-periodic_D3_hetero   on  periodic part median 0.107 [0.0325, 0.188]  non-periodic median 0.0164 [0.0025, 0.0931]  evals 374  runs 30, with a periodic coordinate on a bound 0
+periodic_D3_hetero   on  periodic part median 0.0979 [0.0304, 0.16]  non-periodic median 0.0204 [0.00908, 0.0946]  evals 368  runs 30, with a periodic coordinate on a bound 0
 periodic_D3_hetero   off periodic part median 0.082 [0.082, 0.082]  non-periodic median 0.0171 [0.00613, 0.0733]  evals 310  runs 30, with a periodic coordinate on a bound 25
-periodic_D3_homo     on  periodic part median 0.0171 [0.0113, 0.0242]  non-periodic median 0.00312 [0.00117, 0.0168]  evals 359  runs 30, with a periodic coordinate on a bound 0
+periodic_D3_homo     on  periodic part median 0.0195 [0.00779, 0.027]  non-periodic median 0.00378 [0.00171, 0.0168]  evals 382  runs 30, with a periodic coordinate on a bound 0
 periodic_D3_homo     off periodic part median 0.082 [0.082, 0.082]  non-periodic median 0.00535 [0.000376, 0.0179]  evals 207  runs 30, with a periodic coordinate on a bound 29
