@@ -101,7 +101,9 @@ class FunctionLogger:
         Raises
         ------
         ValueError
-            Raise if the function value is not a finite real-valued scalar.
+            Raise if the function value is not a finite real-valued scalar,
+            as a tuple ``(f, sd)`` is not when ``uncertainty_handling_level``
+            is below 2.
         ValueError
             Raise if the (estimated) SD (second function output)
             is not a finite, positive real-valued scalar.
@@ -153,6 +155,14 @@ class FunctionLogger:
                 )
             raise
 
+        # A pair (f, sd) where the logger takes no SD is refused as a value
+        # that is not a scalar, with the option that takes the SD named
+        returned_pair = (
+            not self.he_noise_flag
+            and type(fval_orig) is tuple
+            and len(fval_orig) == 2
+        )
+
         # An array or a list of one element, as the value or the SD, is taken
         # as that element. The conversion and the checks are the logger's,
         # out of the try above, whose note is for the target's own errors,
@@ -166,6 +176,12 @@ class FunctionLogger:
             error_message = """FunctionLogger:InvalidFuncValue:
             The returned function value must be a finite real-valued scalar
             (returned value {})"""
+            if returned_pair:
+                error_message += (
+                    "\nA target that returns its value and the SD of its "
+                    "noise, as a tuple (f, sd), needs the option "
+                    "specify_target_noise=True."
+                )
             raise ValueError(error_message.format(str(fval_orig)))
 
         # Check returned function SD

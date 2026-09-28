@@ -899,6 +899,19 @@ of its budget.
 - MATLAB: `private/evalinitmesh.m:41-47`.
 - Settled by: W4-6, W4-13. Kind: deliberate change.
 
+**KD-B7-6. A target that returns `(f, sd)` without `specify_target_noise` is refused.**
+Without `SpecifyTargetNoise`, MATLAB's `funlogger` asks the target for one
+output, so that a target that also returns an SD runs with the SD dropped.
+PyBADS's function logger takes the target's return as its value, and a
+tuple is not a scalar: it raises `ValueError`, at the run's first
+evaluation, with a message that names `specify_target_noise=True` when
+the tuple has two elements.
+- PyBADS: `FunctionLogger.__call__`
+  (`pybads/function_logger/function_logger.py`).
+- MATLAB: `private/funlogger.m:91`, `95-99`.
+- Settled by: the PI's ruling on the loose ends of the review ("Open
+  ends" of the consolidated ledger). Kind: deliberate change.
+
 ### Sto-BADS (S)
 
 **KD-S-1. Sto-BADS is PyBADS's own.**

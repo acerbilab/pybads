@@ -600,3 +600,15 @@ def test_final_estimate_keeps_optim_state_in_step(target_noise):
     assert state["yval"] == bads.yval
     assert state["fval"] == result["fval"]
     assert state["fsd"] == result["fsd"]
+
+
+def test_target_returning_a_pair_without_target_noise_is_refused():
+    """A target that returns (f, sd) without `specify_target_noise` stops
+    the run at its first evaluation, with a message that names the
+    option."""
+    bads = _make_bads(
+        _noisy_sphere_with_estimated_sd(0), specify_target_noise=False
+    )
+    with pytest.raises(ValueError, match="specify_target_noise=True"):
+        bads.optimize()
+    assert bads.function_logger.func_count == 0

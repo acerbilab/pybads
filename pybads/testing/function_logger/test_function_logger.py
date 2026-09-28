@@ -432,3 +432,32 @@ def test_call_one_element_sd_taken_as_a_number(sd):
     assert fval == 1.0 and fsd == 0.5 and idx == 0
     assert np.isscalar(fsd)
     assert f_logger.S[0, 0] == 0.5
+
+
+_PAIR = "needs the option specify_target_noise=True"
+
+
+@pytest.mark.parametrize("level", [0, 1])
+def test_call_pair_without_target_noise_names_the_option(level):
+    """A tuple (f, sd) at a level that takes no SD is refused as a value
+    that is not a scalar, and the message names specify_target_noise=True;
+    MATLAB's funlogger drops the SD."""
+    f_logger = FunctionLogger(noisy_function, 3, level == 1, level)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.array([3, 4, 5]))
+    assert _PAIR in str(err.value)
+    assert f_logger.Xn == -1
+
+
+@pytest.mark.parametrize(
+    "output",
+    [np.array([1.0, 0.5]), [1.0, 0.5], (1.0, 0.5, 0.1)],
+    ids=["array", "list", "triple"],
+)
+def test_call_other_sequences_do_not_name_the_target_noise_option(output):
+    """Only a tuple of two elements, the form that specify_target_noise=True
+    takes, has its message name the option."""
+    f_logger = FunctionLogger(lambda x: output, 2, False, 0)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.zeros(2))
+    assert _PAIR not in str(err.value)
