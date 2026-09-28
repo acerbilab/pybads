@@ -556,6 +556,82 @@ Wave 3's records are the model: its worklog lines below and
 
    The plan's "Close" item follows wave 4 in a session of its own.
 
+## Close pickup
+
+For the session that closes the review, in a cloud sandbox as the waves
+ran, on a branch `dev-port-review-close` cut from `dev-next`. The Close
+writes records and moves no code, so it runs no fix pass and no benchmark;
+it ends with a pull request into `dev-next`. Every fix of the review is on
+`dev-next`: the waves' fix passes and doublechecks (#72 to #81), and #84
+(`79697835`), which fixed the minor items that needed no choice of the
+PI, the resolution of `Timer`, the target's copy of the GP and a
+coding-agent skill. Squash merges leave the commits of a wave's branch
+reachable only from `refs/pull/<N>/head`: records cite the pull request
+and its squash commit (for #84, `79697835`).
+
+1. **The consolidated ledger**, `results/<date>-port-correctness-review.md`
+   (the opening of this plan): every row of `verification/wave0.md` to
+   `wave4.md`, with its classification, the PI's disposition, and its fix
+   (pull request and squash commit) or the `TODO.md` item that holds it;
+   the net effect of the review on the benchmark, from
+   `experiments/population_wave4_20260928/README.md` (Windows, 100 seeds,
+   against `population_prereview_20260927`, the code before the review)
+   and from `population_linux_gpfixes_20260925` against
+   `population_linux_wave4_20260927` (Linux, 30 seeds); and pointers to the
+   per-wave ledgers, which stay as written.
+2. **The catalogue**: the durable entries of `known_differences.md`
+   consolidated into `pybads/bads/README.md`, the catalogue of deliberate
+   differences ("Verification and the ledger"), beside the open porting
+   work that it lists.
+3. **The survey's rows closed**: each row of the candidate table of
+   `results/2026-09-23-codebase-survey.md` takes its verdict and its ledger
+   row or fix, or stays open with its `TODO.md` item.
+4. **`TODO.md`**: the item "Bug hunt and verification against MATLAB
+   BADS" closes; the items that wait for its end ("Exact step-by-step
+   replay and numerical oracles") or for the fix passes to land ("The
+   example notebooks' saved outputs") say that the wait is over. The two
+   "Minor items" entries hold the PI's open choices as #84 left them: keep
+   their text, apart from rulings the Close records.
+5. **Notes on records that describe the code before #84.** Each takes a
+   note of what changed and where; the history stays as written.
+   - KD-B4-2 in `known_differences.md`, and `verification/wave3.md` near
+     its lines 194 and 346, say that `_get_target_from_gp_` deep-copies the
+     GP and recomputes its posterior at every search and poll step. Since
+     #84:
+     - the search computes the target only for an acquisition function
+       listed in `_SEARCH_ACQ_FCNS_READING_TARGET` (`bads.py`), which is
+       empty, since none of MATLAB's acquisition functions that read the
+       target (`acqNegEI`, `acqNegPI`, `acqNegEQI`, `acqNegSqEI`,
+       `acqNegEIMin`, `acqNegPIMin`) is ported;
+     - the poll stores the target through `_update_target_`;
+     - `_get_target_from_gp_` predicts from the GP itself when `hyp_best`
+       equals the GP's own hyperparameters, with the same bits as the
+       recomputed copy (checked at 6,399 calls of distinct runs), and
+       otherwise from a deep copy recomputed under `hyp_best`, with the
+       `LinAlgError` fallback unchanged.
+
+     KD-B4-2's settled claim (the recomputation under `hyp_best`, and the
+     fallback) still holds; the reuse and the search's part are added to
+     it.
+   - The survey's row on `_get_target_from_gp_` (line 223 of the survey,
+     verdict "kept") says that it recomputes the posterior of a copy;
+     under the GP's own hyperparameters it now reuses the GP's posterior.
+   - `verification/scripts/wave2/check_fvals.py:35`, `v_runs.py:90` and
+     `fvals.py:44` read `optim_state["cache_active"]`, which #84 removed
+     (it was always False once `f_vals` was refused): run at a later
+     commit, they raise `KeyError`, so they run at the commit they were
+     written for.
+6. **The ledgers' open ends.** "Found while fixing" of `wave2.md` and
+   `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items: #84
+   fixed those that needed no choice, and the rest are the two "Minor
+   items" entries of `TODO.md`. The consolidated ledger says so rather
+   than listing them twice.
+7. **`matlab_side_defects.md`** goes into the consolidated ledger as it
+   stands, its last item added with the measurement of the rank-1 update
+   (`results/2026-09-28-where-pybads-spends-its-time.md`).
+8. A worklog line, the Close item ticked, and the pull request into
+   `dev-next`.
+
 ## Worklog
 
 - [x] 2026-09-25: design discussed and decided with the PI (decisions
@@ -995,5 +1071,13 @@ Wave 3's records are the model: its worklog lines below and
   errors of `sphere_D2` and `sphere_D10` larger but far below their
   tolerance, more evaluations on `ellipsoid_D10`, and fewer on four
   configurations with noise.
+- [x] 2026-09-28: the minor items of the review that needed no choice of
+  the PI, the resolution of `Timer`, the target's copy of the GP and a
+  coding-agent skill, merged as #84 (`79697835`), moving no result: the
+  fingerprint is `4146a986863602cb` on Linux and, at `a4dcd65` and
+  `79697835` alike, `dca2b20df2743512` on Windows with the default number
+  of BLAS threads and `093cb1d05a16d889` with one, so both references
+  stand. The PI's open choices on the minor items stay in `TODO.md`.
 - [ ] Close: the consolidated ledger, the catalogue in
-  `pybads/bads/README.md`, the survey's rows closed and `TODO.md`.
+  `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
+  steps are in "Close pickup" above.
