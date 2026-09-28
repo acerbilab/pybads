@@ -98,23 +98,19 @@ decided on; "the next release" below means it.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-- [ ] **A test whose outcome varies on macOS arm64.**
-  `test_run_control.py::test_output_fcn_that_changes_nothing_leaves_the_run_unchanged`
-  runs the same seeded optimization twice in one process, the second with
-  an output function that alters only its copy of `optim_state`, and
-  requires the same result. In the CI of #90 it failed on `macos-latest`
-  with Python 3.10 (runner image `macos-26-arm64`, NumPy 2.2.6, SciPy
-  1.15.3, gpyreg 1.3.3): the two runs ended at different points. It passed
-  on the job's re-run, in the same job of #88 at the same package code and
-  versions, and on Linux and Windows. So on that platform something in a
-  run, or in a library it calls, does not repeat between two runs in one
-  process; no decision of `bads.py` reads the wall clock. A hypothesis, not
-  yet tested: results of Accelerate or NumPy that depend on the alignment
-  of the arrays, which the output function's deep copies of `optim_state`
-  shift. To settle on macOS arm64: run the test in a loop until it fails,
-  find the first computation at which the two runs differ, and fix it
-  there; if it lies in a library, the test is rewritten to compare only
-  what the platform repeats.
+- [ ] **Seeded runs on macOS arm64.** On macOS arm64, where NumPy and
+  SciPy use Accelerate, results depend on the alignment of the arrays, so
+  two runs of one seed need not match bit for bit, in one process or in
+  two ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
+  Five tests of `test_bads_seed.py` (`test_seed_fixes_run`,
+  `test_seed_ignores_global_draws`, `test_seed_none_follows_global_seed`,
+  `test_seed_none_ignores_draws_after_construction`,
+  `test_seed_fixes_noisy_run`) compare the logs of two seeded runs exactly
+  and can fail there, as the output-function test of `test_run_control.py`
+  did before it was rewritten; `README.md` and `docsrc/source/index.rst`
+  say that a seeded run gives the same result every time on the same
+  machine. To decide: what those tests compare on that platform, and what
+  the documentation promises.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -152,7 +148,9 @@ decided on; "the next release" below means it.
   (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
   reproduce MATLAB's random stream) give. The population comparison of
   `dev/scripts/population.py` checks distributions, not trajectories,
-  until then.
+  until then. A replay that compares trajectories bit for bit holds on
+  Linux and Windows but not on macOS arm64 (the item "Seeded runs on
+  macOS arm64").
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
