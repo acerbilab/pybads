@@ -1837,7 +1837,7 @@ class BADS:
             # reserved; MATLAB BADS takes none then (bads.m:1138)
             final_idx = 0
 
-        # Re-evalate estimated function value and SD at final point
+        # Re-evaluate estimated function value and SD at final point
         if final_idx is not None and self.options["noise_final_samples"] > 0:
             # Estimate function value and standard deviation at final point.
             # Note that by default we do *not* use YVAL because it is biased

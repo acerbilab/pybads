@@ -1114,24 +1114,28 @@ def _get_gp_training_options(
     optim_state : dict
         Optimization state from the BADS instance we are calling this from.
     iteration_history : IterationHistory
-        Iteration history from the BADS instance we are calling this from.
+        Iteration history from the BADS instance we are calling this from,
+        in which ``init_N`` and ``ntrain`` are recorded at the current
+        iteration, once the run's iterations have begun.
     options : Options
         Options from the BADS instance we are calling this from.
-    hyp_dict : dict
-        Hyperparameter summary statistic dictionary.
+    hyp_dict : object
+        Not read.
     gp_s_N : int
         Number of samples for the GP fitting.
+    function_logger : FunctionLogger
+        Function logger from the BADS instance we are calling this from,
+        whose evaluation counts give the number of points evaluated.
+    second_fit : bool, optional
+        Whether the refit also starts from a second set of hyperparameters
+        (with ``double_refit``, or after a fit whose noise was too high or
+        whose mean was too low), which gives two optimization starts
+        (``opts_N``) instead of one. By default False.
 
     Returns
     =======
-    gp_train : dic
+    gp_train : dict
         A dictionary of GP training options.
-
-    Raises
-    ------
-    ValueError
-        Raised if the MCMC sampler for GP hyperparameters is unknown.
-
     """
     iteration = optim_state["iter"]
 

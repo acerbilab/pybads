@@ -181,7 +181,8 @@ class ESSearch(ABC):
                 z_new = z_new.flatten()
             else:
                 raise ValueError(
-                    "es_search: No acquisition function found for the Search phase"
+                    "es_search: No acquisition function found for the Search "
+                    "phase"
                 )
 
             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
