@@ -1,7 +1,16 @@
 """Reproducibility of seeded runs: the `random_seed` option fixes a run, and
 `np.random.seed` before construction fixes a run without it. Every draw of a
 run comes from its generator `bads.rng`, so that after construction a run
-draws nothing from NumPy's global random state."""
+draws nothing from NumPy's global random state.
+
+On macOS arm64, NumPy's and SciPy's linear algebra (Accelerate) gives results
+whose last bits depend on where the arrays lie in memory, so two runs of one
+seed need not match once the first Gaussian process is computed: there, runs
+are compared on what the seed alone decides, the start and the initial
+design."""
+
+import platform
+import sys
 
 import numpy as np
 import pytest
@@ -9,6 +18,9 @@ import pytest
 from pybads import BADS
 
 D = 3
+_REPEATS_BIT_FOR_BIT = not (
+    sys.platform == "darwin" and platform.machine() == "arm64"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -70,6 +82,9 @@ def _summary(bads, result):
         "yval_vec": None if yval_vec is None else np.asarray(yval_vec).copy(),
         "X": logger.X[logger.X_flag].copy(),
         "Y": logger.Y[logger.X_flag].copy(),
+        # the rows of the start and the initial design, which the log holds
+        # before the first Gaussian process is computed
+        "n_start": bads.optim_state["eff_starting_points"],
     }
 
 
@@ -79,6 +94,11 @@ def _run(fun, seed, **options):
 
 
 def _same(a, b):
+    if not _REPEATS_BIT_FOR_BIT:
+        n = a["n_start"]
+        return n == b["n_start"] and all(
+            np.array_equal(a[k][:n], b[k][:n]) for k in ("X", "Y")
+        )
     return all(
         (a[k] is None and b[k] is None)
         or (

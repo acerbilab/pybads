@@ -331,7 +331,13 @@ hashes of the same commit, and a recorded hash names its setting.
   the noise of a noisy target, so a failing test fails again on each rerun,
   and CI runs each test once. A test that fails and then passes when rerun
   depends on something unseeded, in the test or in the package, which is a
-  bug to fix. The tolerances of
+  bug to fix, except on macOS arm64: there Accelerate's results depend on
+  the alignment of the arrays, so two runs of one seed need not match bit
+  for bit, and a test that compares two runs exactly can fail without any
+  unseeded draw (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
+  There a test compares two runs on what the seed alone decides, as
+  `_same` in `test_bads_seed.py` does, or checks its property directly.
+  The tolerances of
   `test_bads_optimization.py` hold over a sweep of seeds, not only at the
   seed each test runs at: when a change that moves results fails one,
   measure the errors over the seeds again with

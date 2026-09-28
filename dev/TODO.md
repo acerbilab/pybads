@@ -1,7 +1,8 @@
 # PyBADS: open work
 
 Updated 2026-09-28. The list describes scope, not priority or execution
-order.
+order. The next release is 1.5.0 (tag `v1.5.0`), the version the PI has
+decided on; "the next release" below means it.
 
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
@@ -86,23 +87,6 @@ order.
   measurably smaller, nor with any of the four Sto-BADS arms measured
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md),
   [results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-- [ ] **A test whose outcome varies on macOS arm64.**
-  `test_run_control.py::test_output_fcn_that_changes_nothing_leaves_the_run_unchanged`
-  runs the same seeded optimization twice in one process, the second with
-  an output function that alters only its copy of `optim_state`, and
-  requires the same result. In the CI of #90 it failed on `macos-latest`
-  with Python 3.10 (runner image `macos-26-arm64`, NumPy 2.2.6, SciPy
-  1.15.3, gpyreg 1.3.3): the two runs ended at different points. It passed
-  on the job's re-run, in the same job of #88 at the same package code and
-  versions, and on Linux and Windows. So on that platform something in a
-  run, or in a library it calls, does not repeat between two runs in one
-  process; no decision of `bads.py` reads the wall clock. A hypothesis, not
-  yet tested: results of Accelerate or NumPy that depend on the alignment
-  of the arrays, which the output function's deep copies of `optim_state`
-  shift. To settle on macOS arm64: run the test in a loop until it fails,
-  find the first computation at which the two runs differ, and fix it
-  there; if it lies in a library, the test is rewritten to compare only
-  what the platform repeats.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -113,12 +97,12 @@ order.
   `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
   every random draw of a run comes from one generator created from
   `random_seed`, which 1.1.0's initial design did not follow (its
-  scrambling was seeded from the start). The list of the next release
-  replaces it, and says that `random_seed` now decides the initial design
-  (the doublecheck of wave 4 of the port review,
+  scrambling was seeded from the start). The list "What's new in PyBADS
+  1.5" replaces it, and says that `random_seed` now decides the initial
+  design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
-  names no release, names it, as PyVBMC's names 1.5.
+  names no release, names 1.5, as PyVBMC's does.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
   over the four suites, up to 40% on some configurations, noisy ones
@@ -140,7 +124,9 @@ order.
   (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
   reproduce MATLAB's random stream) give. The population comparison of
   `dev/scripts/population.py` checks distributions, not trajectories,
-  until then.
+  until then. A replay that compares trajectories bit for bit holds on
+  Linux and Windows but not on macOS arm64
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
 - [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
   once PyBADS times its search, poll and GP-training stages separately:
   today its timer covers only the whole run and the target's evaluations.
