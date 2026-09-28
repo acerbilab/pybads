@@ -17,14 +17,16 @@ def contraints_check(
     non_box_cons: Callable = None,
 ):
     """
-    Return the candidates ``U`` that the search or the poll may evaluate.
+    Return the candidates ``U`` that the initial design, the search or the
+    poll may evaluate.
 
     The candidates outside the bounds ``lb`` and ``ub`` are projected onto
     them (``proj=True``) or removed. The candidates are then binned on a
     grid of ``tol_mesh / 2``, as in MATLAB BADS's ``uCheck``: the first
-    candidate of each bin is kept (``uCheck`` keeps the smallest), unless
-    the bin holds a point already evaluated, and the bins come out sorted.
-    Duplicates share a bin, so only the first of them is kept. Last, the
+    candidate of each bin in the order of ``U`` is kept (``uCheck`` keeps
+    the smallest, KD-B3-10 in ``pybads/bads/README.md``), unless the bin
+    holds a point already evaluated, and the bins come out sorted.
+    Duplicates share a bin, so at most the first of them is kept. Last, the
     candidates that violate ``non_box_cons`` are removed.
     """
 

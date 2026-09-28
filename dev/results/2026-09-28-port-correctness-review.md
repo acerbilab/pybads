@@ -271,7 +271,7 @@ histories and the gate.
 | Row | Slice | What | Classification | Disposition | Fix or open item |
 |---|---|---|---|---|---|
 | W3-1 | B3 | `contraints_check` removes no point already evaluated, so runs evaluate points again, where `uCheck.m` removes them | port discrepancy | fixed, moves results (no flag); its bins rounded as MATLAB's since W4-21 | `149d528` (#77); `86512c9` (#80) |
-| W3-2 | B3 | `contraints_check` returns its candidates sorted by bin | not a defect (MATLAB's `setdiff` sorts too) | the comment corrected | `7e09887` (#77) |
+| W3-2 | B3 | `contraints_check` returns its candidates sorted by bin | not a defect (MATLAB's `setdiff` sorts too) | the comment corrected; of a bin's candidates it keeps the first, MATLAB the smallest (KD-B3-10) | `7e09887` (#77) |
 | W3-3 | B3 | ES-wcm's covariance is the unweighted scatter of the best points, as `ucov.m`'s | shared defect | kept, as MATLAB's; comments corrected; `matlab_side_defects.md` | `7e09887` (#77) |
 | W3-4 | B3 | ES-wcm takes one more best point than it has weights | port discrepancy | fixed, moves results | `81c6a15` (#77) |
 | W3-5 | B3 | The ES selection mask is shifted by one rank (MATLAB's 1-based positions as 0-based indices) | port discrepancy | fixed, moves results | `115a922` (#77) |

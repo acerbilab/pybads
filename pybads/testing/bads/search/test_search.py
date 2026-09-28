@@ -810,8 +810,8 @@ def test_constraint_check_rounds_halves_of_a_bin_away_from_zero():
 def test_constraint_check_keeps_the_first_candidate_of_each_bin(D):
     """Of the candidates that share a bin, duplicates included,
     contraints_check keeps the first in their order, where uCheck.m, whose
-    unique sorts them, keeps the smallest, a difference within a bin (row
-    W3-2 of the port review). The bins come out sorted, without those that
+    unique sorts them, keeps the smallest, a difference within a bin (KD-B3-10
+    in pybads/bads/README.md). The bins come out sorted, without those that
     hold an evaluated point."""
     rng = np.random.default_rng(D)
     tol_mesh = 2.0**-19

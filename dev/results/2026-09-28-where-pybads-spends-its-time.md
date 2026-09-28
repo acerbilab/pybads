@@ -137,11 +137,16 @@ cProfile at the head, seed 0:
 - **Removing evaluated candidates.** `contraints_check` removes the
   candidates already evaluated or infeasible. It takes 4.5 to 13 % of the
   run, nearly all of it called by the ES search, and most of that in
-  `np.unique` (its sort) over the candidates. A later change replaced its
+  `np.unique` (its sort) over the candidates. A later change, the entry
+  "Cost of removing evaluated candidates" of `CHANGELOG.md`, replaced its
   two `np.unique` calls by one stable sort of the candidates' bins, which
-  returns the same candidates in the same order; the check then took 16
-  to 44 % of its former time over seeds 0-2 of the `default`, `oned`,
-  `bounds` and `geometry` suites on Linux.
+  returns the same candidates in the same order. Both versions were timed
+  on every call of the same runs, the old one's output taken: seeds 0-2 of
+  the `default`, `oned`, `bounds` and `geometry` suites, on Linux (Python
+  3.11, NumPy 2.4.6), one BLAS thread per run and four runs at a time. The
+  new check took 16 to 44 % of the old one's time, and a run's time fell
+  by 4 to 24 % (median 12 %), over 35 of the 36 configurations; the runs
+  of `sphere_band_D2` end within 0.05 s.
 - **Deep copies.** They take 0.6 to 1.2 % of the base's run and 0.1 to
   0.5 % of the head's. Most of the target's saving comes from the
   posterior that it no longer recomputes, not from the copy.
