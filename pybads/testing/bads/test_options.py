@@ -187,8 +187,10 @@ def test_descriptions_are_whole_comment_lines():
         "Hyperparameter samples (unused: PyBADS optimizes one set of GP "
         "hyperparameters, where MATLAB BADS samples them above 1)"
     )
-    assert descriptions["stobads_frame_size_scaling_power"].startswith(
-        "Power value of the Sto-BADS incumbent decision rule:  \\gamma"
+    assert descriptions["stobads_frame_size_scaling_power"] == (
+        "Power of the mesh size in the Sto-BADS interval gamma * SD * "
+        "mesh_size**power: at 2, a difference of a fraction of its SD counts "
+        "as certain at a small mesh; 0 makes the rule a z-test"
     )
 
 

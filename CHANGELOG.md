@@ -415,13 +415,16 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   were ignored, the seed included. `gamma_uncertain_interval`, the
   multiplier of the uncertainty interval of Sto-BADS (`stobads=True`), is
   keyword-only and documented.
-- **Sto-BADS poll.** With `stobads=True`, a poll succeeds when one of its
-  points succeeds, as in Sto-MADS, and moves the incumbent to that point;
-  before, the outcome of the last polled point decided, so that a success
-  followed by other points was lost and the mesh contracted. With
+- **Sto-BADS poll and search.** With `stobads=True`, a poll succeeds when
+  one of its points succeeds, as in Sto-MADS, and moves the incumbent to
+  that point; before, the outcome of the last polled point decided, so that
+  a success followed by other points was lost and the mesh contracted. With
   `opp_stobads`, a poll without a success moves to its best point when that
   point improves on the incumbent and any of the poll's points is uncertain,
-  not only when the last one is.
+  not only when the last one is; and a search whose outcome is uncertain
+  moves the incumbent only when the estimate of its point improves on the
+  incumbent's, where it moved on any uncertain outcome, most often to a
+  point estimated worse.
 - **Search without a candidate.** A search that leaves no candidate, for
   instance under a `non_box_cons` that does not always give the same answer
   for a point, counts as a failed search, as in MATLAB BADS; the run stopped
