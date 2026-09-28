@@ -253,7 +253,7 @@ histories and the gate.
 | W2-33 | B2 | The output function's stop message and final stop, and its `"init"` call after a noisy run's setup | intentional, missing from the sheet; design question (the timing) | kept (KD-B2-5) | `9f65d73` (#76), the sheet |
 | W2-34 | B2 | With one final sample at level 1, `yval_vec` has shape (2, 1) | port discrepancy | fixed | `3476000` (#76) |
 | W2-35 | B2 | `min_iter` and `min_fun_evals` are read by nothing, and MATLAB has no such options | confirmed, inert | on the sheet among the options without effect; removed by #87 (KD-B1-5) | `9f65d73` (#76), the sheet; `b18382e` (#87) |
-| W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md` | — |
+| W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md`; at 90 seeds against the first incumbent's value from the initial GP, no flag; the variant raises `sphere_D3_hetero`'s fraction solved (0.50 → 0.61) and changes each other configuration's by at most one run ([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)) | — |
 | W2-37 | B2 | A feasible band thinner than the mesh can resolve ends the run at `x0` on the stall criterion | design question, shared; needs MATLAB | documented in `non_box_cons`'s description; no MATLAB run needed | `bdaef58` (#76); `TODO.md`, "The GP on a one-point training set." |
 | W2-38 | B2 | `IterationHistory` deep-copies every stored GP whenever it grows | confirmed, inert (time) | fixed | `500526b` (#76) |
 | W2-39 | B2 | The NaN estimates of past iterates whose re-estimate failed stay in `iteration_history` | confirmed, inert | kept; the documentation says so (KD-B2-4) | `763e21f` (#76) |
@@ -412,7 +412,6 @@ items that a ruling left to later work are held by these items of
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
 | "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6) |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
-| "Loose ends of the port review." | W2-36's measurement (the loose ends, below) |
 
 **The minor items.** "Found while fixing" of `verification/wave2.md` and
 `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items of slices B1,
@@ -465,8 +464,17 @@ the third.
 
 W2-36's measurement of a noisy run's first incumbent, which its ruling
 allowed "as a separate step" if W2-25 moved the noisy runs (it did), was
-not taken at the close; the PI asked for it on 2026-09-28, and it is open,
-the item "Loose ends of the port review" of `dev/TODO.md`.
+taken after the close, at the PI's request of 2026-09-28
+([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)):
+the five noisy configurations at 90 seeds, with the first incumbent's value
+and SD from the initial GP against the raw minimum of the design. The
+comparison flags nothing. The variant changes 39 of the 450 runs, 27 of them
+on `sphere_D3_hetero`, where the raw minimum lies furthest below the true
+value (a median 2.9 below it, the GP's estimate 1.3), and raises its
+fraction solved from 0.50 to 0.61 (McNemar p = 0.006, 0.03 after a Holm
+correction over the five configurations); the fraction solved of each of
+the other four changes by at most one run. PyBADS keeps MATLAB's
+behaviour.
 
 **Needs MATLAB.** These questions of the review only MATLAB can settle:
 MATLAB's seed of the initial design (W4-1, with the one call that settles
