@@ -1318,6 +1318,7 @@ class BADS:
             self.optim_state["n_noise_test"] = 1
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
+                function_logger.uncertainty_handling_level = 1
                 self.logging_action.append("Uncertainty test")
         else:
             self.optim_state["n_noise_test"] = 0

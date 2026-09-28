@@ -326,6 +326,17 @@ def test_reserve_of_final_samples_is_floored_at_zero():
     assert bads.options["max_fun_evals"] == 1
 
 
+@pytest.mark.parametrize("noisy, level", [(False, 0), (True, 1)])
+def test_function_logger_takes_the_level_of_the_noise_test(noisy, level):
+    """The function logger's uncertainty handling level is the run's after
+    the noise test, which raises it to 1 on a noisy target."""
+    bads = _small_budget_bads(2, 1, noisy=noisy)
+    assert bads.function_logger.uncertainty_handling_level == 0
+    bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == level
+    assert bads.function_logger.uncertainty_handling_level == level
+
+
 def _box():
     return (
         np.ones(D) * 4,
