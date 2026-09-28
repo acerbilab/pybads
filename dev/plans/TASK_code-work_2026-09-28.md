@@ -27,8 +27,8 @@ pushes and runs `/doublecheck` at the end.
 ## Phases (sequential unless noted; one heavy process at a time)
 - [x] P1 Loose ends 1-9, 11 (Opus; main checkout) — fingerprint + suite
   `7110bba` (5), `5ac25aa` (7), `28fef97` (8), `c0aeaf4` (9), `c246982` (docs: 1, 2, 3, 6, 11, ledger, TODO); 778 passed; fingerprint `4146a986863602cb` (1 thread and default)
-- [x] P5a Replay tool + initial-design pin (Opus; worktree) — branch `worktree-agent-a2cf7890c1a6cb6ec`, merge after P2; replay identical at HEAD, parts under Sandybridge / 4 threads
-- [~] P1b W2-36 measurement (Opus; heavy, ~25-45 min) — population compare, 5 noisy configs, 90 seeds
+- [x] P5a Replay tool + initial-design pin (Opus; worktree) — merged `31060da`; replay identical at HEAD, parts under Sandybridge / 4 threads
+- [x] P1b W2-36 measurement (Opus; worktree) — `fb830a4`; no flag in 15 tests; `sphere_D3_hetero` paired fraction solved 0.50 → 0.61 (McNemar p 0.03 after Holm over five); kept as MATLAB, adoption for the PI
 - [x] P2 Stage timers + profiler (Opus) — fingerprint + suite; timing campaign on a quiet machine
   `cf371d4` (timers), `a4a423b` (profiler), results note; 811 passed; fingerprint `4146a986863602cb` (1 thread and default); `optimize()` body now in `_optimize_()`
 - [ ] P3 One-point GP (Opus) — fingerprint; geometry suite + noisy thin band, 30 seeds, base vs change
@@ -43,3 +43,4 @@ pushes and runs `/doublecheck` at the end.
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
 
 ## Notes
+- After merging P1b, P5a: 817 passed; replay of `cf371d4^` (before the timers) against HEAD: 8 of 8 identical
