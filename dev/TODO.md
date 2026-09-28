@@ -1,7 +1,8 @@
 # PyBADS: open work
 
 Updated 2026-09-28. The list describes scope, not priority or execution
-order.
+order. The next release is 1.5.0 (tag `v1.5.0`), the version the PI has
+decided on; "the next release" below means it.
 
 - [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
   its terms change.** MATLAB BADS adds a point to the GP by a rank-1
@@ -124,12 +125,12 @@ order.
   `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
   every random draw of a run comes from one generator created from
   `random_seed`, which 1.1.0's initial design did not follow (its
-  scrambling was seeded from the start). The list of the next release
-  replaces it, and says that `random_seed` now decides the initial design
-  (the doublecheck of wave 4 of the port review,
+  scrambling was seeded from the start). The list "What's new in PyBADS
+  1.5" replaces it, and says that `random_seed` now decides the initial
+  design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
-  names no release, names it, as PyVBMC's names 1.5.
+  names no release, names 1.5, as PyVBMC's does.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
   over the four suites, up to 40% on some configurations, noisy ones
