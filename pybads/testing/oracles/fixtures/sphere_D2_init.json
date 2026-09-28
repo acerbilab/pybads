@@ -1,0 +1,592 @@
+{
+ "cand": {
+  "X": "@@npz:cand/X"
+ },
+ "gp": {
+  "X": "@@npz:gp/X",
+  "bounds": {
+   "covariance_log_lengthscale": [
+    "@@npz:gp/bounds/covariance_log_lengthscale/0",
+    "@@npz:gp/bounds/covariance_log_lengthscale/1"
+   ],
+   "covariance_log_outputscale": [
+    "@@npz:gp/bounds/covariance_log_outputscale/0",
+    "@@npz:gp/bounds/covariance_log_outputscale/1"
+   ],
+   "covariance_log_shape": [
+    "@@npz:gp/bounds/covariance_log_shape/0",
+    "@@npz:gp/bounds/covariance_log_shape/1"
+   ],
+   "mean_const": [
+    "@@npz:gp/bounds/mean_const/0",
+    "@@npz:gp/bounds/mean_const/1"
+   ],
+   "noise_log_scale": [
+    "@@npz:gp/bounds/noise_log_scale/0",
+    "@@npz:gp/bounds/noise_log_scale/1"
+   ]
+  },
+  "cov_fun": 1,
+  "hyp": "@@npz:gp/hyp",
+  "mean_fun": "const",
+  "noise_fun": [
+   1,
+   0,
+   0
+  ],
+  "priors": {
+   "covariance_log_lengthscale": [
+    "gaussian",
+    [
+     "@@npz:gp/priors/covariance_log_lengthscale/1/0",
+     "@@npz:gp/priors/covariance_log_lengthscale/1/1"
+    ]
+   ],
+   "covariance_log_outputscale": [
+    "gaussian",
+    [
+     "@@npz:gp/priors/covariance_log_outputscale/1/0",
+     "@@npz:gp/priors/covariance_log_outputscale/1/1"
+    ]
+   ],
+   "covariance_log_shape": [
+    "gaussian",
+    [
+     "@@npz:gp/priors/covariance_log_shape/1/0",
+     "@@npz:gp/priors/covariance_log_shape/1/1"
+    ]
+   ],
+   "mean_const": [
+    "gaussian",
+    [
+     "@@npz:gp/priors/mean_const/1/0",
+     "@@npz:gp/priors/mean_const/1/1"
+    ]
+   ],
+   "noise_log_scale": [
+    "gaussian",
+    [
+     "@@npz:gp/priors/noise_log_scale/1/0",
+     "@@npz:gp/priors/noise_log_scale/1/1"
+    ]
+   ]
+  },
+  "s2": null,
+  "temporary_data": {
+   "effective_radius": 1.0,
+   "len_scale": 1,
+   "poll_scale": "@@npz:gp/temporary_data/poll_scale"
+  },
+  "y": "@@npz:gp/y"
+ },
+ "hedge": null,
+ "incumbent": {
+  "fsd": 0.0,
+  "fval": 0.3818899917602539,
+  "gamma_uncertain_interval": null,
+  "lower_bounds": "@@npz:incumbent/lower_bounds",
+  "mesh_size": 1.0,
+  "search_mesh_size": 0.0009765625,
+  "sufficient_improvement": 1.0,
+  "u": "@@npz:incumbent/u",
+  "upper_bounds": "@@npz:incumbent/upper_bounds",
+  "yval": 0.3818899917602539
+ },
+ "inputs": {
+  "small_n_train_max": 24
+ },
+ "logger": {
+  "D": 2,
+  "S": null,
+  "X": "@@npz:logger/X",
+  "X_flag": "@@npz:logger/X_flag",
+  "X_max_idx": 4,
+  "X_orig": "@@npz:logger/X_orig",
+  "Xn": 4,
+  "Y": "@@npz:logger/Y",
+  "Y_max": 15.806545906066896,
+  "Y_orig": "@@npz:logger/Y_orig",
+  "cache_count": 0,
+  "cache_size": 500,
+  "func_count": 5,
+  "n_evals": "@@npz:logger/n_evals",
+  "noise_flag": false,
+  "uncertainty_handling_level": 0
+ },
+ "meta": {
+  "D": 2,
+  "bounds": [
+   [
+    -5.0,
+    -5.0
+   ],
+   [
+    5.0,
+    5.0
+   ],
+   [
+    -3.0,
+    -3.0
+   ],
+   [
+    3.0,
+    3.0
+   ]
+  ],
+  "candidate_seed": 20260928,
+  "capture": {
+   "capture_evals": 1,
+   "func_count": 5,
+   "iter": 0,
+   "search_count": 0,
+   "step": "poll"
+  },
+  "generated": "2026-09-28 22:33:10",
+  "git": {
+   "dirty": true,
+   "sha": "de0f7ce0"
+  },
+  "gp_condition_bound": 162247.6706906377,
+  "gpyreg_git": {
+   "dirty": false,
+   "sha": "98ab5a4"
+  },
+  "non_box_cons": null,
+  "note": "deterministic, D = 2, the first poll step: the GP of the initialization, with _gp_hyp's unit scales, and no hedge yet",
+  "oracle_seed": 20260928,
+  "platform_key": {
+   "blas_env": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_CORETYPE": null,
+    "OPENBLAS_NUM_THREADS": "1"
+   },
+   "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+   "cpu_count": 4,
+   "gpyreg": "1.3.3",
+   "machine": "x86_64",
+   "numpy": "2.4.6",
+   "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+   "python": "3.11.15",
+   "scipy": "1.17.1"
+  },
+  "reason": "first generation",
+  "recipe": "sphere_D2_init",
+  "target": "sphere",
+  "target_args": {
+   "center": [
+    0.7,
+    -1.3
+   ]
+  },
+  "user_options": {
+   "display": "off",
+   "random_seed": 1,
+   "uncertainty_handling": false
+  },
+  "versions": {
+   "gpyreg": "1.3.3",
+   "numpy": "2.4.6",
+   "pybads": "1.1.1.dev52+gbec8a57a8",
+   "scipy": "1.17.1"
+  },
+  "x0": [
+   2.5,
+   2.0
+  ]
+ },
+ "optim_state": {
+  "eff_starting_points": 5,
+  "f_success": [],
+  "fsd": 0.0,
+  "fsuccess": 0.3818899917602539,
+  "fval": 0.3818899917602539,
+  "gp_cov_fun": 1,
+  "gp_mean_fun": "const",
+  "gp_noisefun": [
+   1,
+   0,
+   0
+  ],
+  "int_meanfun": null,
+  "iter": 0,
+  "iterlist": {
+   "fhyp": [],
+   "fsd": [],
+   "fval": [],
+   "u": []
+  },
+  "last_re_eval": {
+   "@float": "-inf"
+  },
+  "lastfitgp": {
+   "@float": "-inf"
+  },
+  "lb": "@@npz:optim_state/lb",
+  "lb_orig": "@@npz:optim_state/lb_orig",
+  "lb_search": "@@npz:optim_state/lb_search",
+  "max_fun_evals": 1000,
+  "mesh_size": 1.0,
+  "n_noise_test": 0,
+  "periodic_vars": "@@npz:optim_state/periodic_vars",
+  "plb": "@@npz:optim_state/plb",
+  "plb_orig": "@@npz:optim_state/plb_orig",
+  "pub": "@@npz:optim_state/pub",
+  "pub_orig": "@@npz:optim_state/pub_orig",
+  "random_seed": 1,
+  "scale": 1.0,
+  "sd_level": 0.1,
+  "search_count": 0,
+  "search_factor": 1,
+  "search_hedge": {},
+  "search_mesh_size": 0.0009765625,
+  "search_size_integer": -10,
+  "search_sufficient_improvement": 1.0,
+  "termination_msg": "Optimization terminated: reached maximum number of function evaluations after initialization.",
+  "tol_mesh": 1.9073486328125e-06,
+  "u": "@@npz:optim_state/u",
+  "u_success": [],
+  "ub": "@@npz:optim_state/ub",
+  "ub_orig": "@@npz:optim_state/ub_orig",
+  "ub_search": "@@npz:optim_state/ub_search",
+  "uncertainty_handling_level": 0,
+  "usuccess": "@@npz:optim_state/usuccess",
+  "y_success": [],
+  "ysuccess": 0.3818899917602539,
+  "yval": 0.3818899917602539
+ },
+ "options": {
+  "accelerate_mesh": true,
+  "accelerate_mesh_steps": 3,
+  "acq_hedge": false,
+  "adaptive_incumbent_shift": false,
+  "alternative_incumbent": false,
+  "buffer_ntrain": 100,
+  "cache_size": 500,
+  "chol_attempts": 0,
+  "complete_poll": false,
+  "consecutive_skipping": true,
+  "display": "off",
+  "double_refit": false,
+  "es_beta": 1,
+  "es_start": 0.25,
+  "f_vals": null,
+  "final_quantile": 0.001,
+  "fit_lik": true,
+  "fitness_shaping": false,
+  "force_poll_mesh": false,
+  "forcing_exponent": 1.5,
+  "fun_eval_start": 2,
+  "fun_evals_per_iter": 1,
+  "fun_values": {},
+  "gp_cluster": false,
+  "gp_cov_prior": "iso",
+  "gp_def_fcn": [
+   "gp_def_bads",
+   "rq",
+   [
+    1,
+    1
+   ]
+  ],
+  "gp_fixed_mean": false,
+  "gp_hyp_sampler": "slicesample",
+  "gp_mean_fun": "const",
+  "gp_mean_percentile": 90,
+  "gp_mean_range_fun": {
+   "@callable": "<lambda>"
+  },
+  "gp_method": "nearest",
+  "gp_quadratic_mean_bound": true,
+  "gp_radius": 3,
+  "gp_rescale_poll": 1.0,
+  "gp_samples": 0,
+  "gp_svd_iters": 200,
+  "gp_tol_opt": 1e-05,
+  "gp_train_init_method": "rand",
+  "gp_train_n_init": 128,
+  "gp_train_n_init_final": 8,
+  "gp_warnings": false,
+  "hedge_beta": 1.0,
+  "hedge_decay": 0.5623413251903491,
+  "hedge_gamma": 0.125,
+  "hessian_method": "bfgs",
+  "hessian_update": false,
+  "hpd_frac": 0.8,
+  "hyp_run_weight": 1,
+  "improvement_quantile": 0.5,
+  "incumbent_sigma_multiplier": 0.1,
+  "init_fun": "init_sobol",
+  "init_mesh_size_integer": 0,
+  "max_fun_evals": 1000,
+  "max_iter": 400,
+  "max_poll_grid_number": 0,
+  "mesh_noise_multiplier": 0.5,
+  "mesh_overflow_warning": 3.0,
+  "min_failed_poll_steps": {
+   "@float": "inf"
+  },
+  "min_refit_time": 4,
+  "n_basis": 400,
+  "n_search": 4096,
+  "n_search_iter": 2,
+  "n_train_max": 70,
+  "n_train_min": 50,
+  "noise_final_samples": 10,
+  "noise_nudge": "@@npz:options/noise_nudge",
+  "noise_shaping": false,
+  "noise_size": 0.03162277660168379,
+  "nonlinear_scaling": true,
+  "normalpha_level": 1e-06,
+  "opp_stobads": true,
+  "output_fcn": null,
+  "periodic_vars": null,
+  "plot": false,
+  "poll_acq_fcn": [
+   "acq_LCB",
+   null
+  ],
+  "poll_mesh_multiplier": 2.0,
+  "poll_method": "poll_mads_2n",
+  "poll_training": true,
+  "random_seed": 1,
+  "remove_points_after_tries": 1,
+  "restarts": 0,
+  "rotate_gp": false,
+  "search_acq_fcn": [
+   "acq_LCB",
+   null
+  ],
+  "search_factor_min": 0.5,
+  "search_grid_multiplier": 2,
+  "search_grid_number": 10,
+  "search_improve_frac": 0,
+  "search_mesh_expand": 0,
+  "search_mesh_increment": 1,
+  "search_method": [
+   [
+    "ES-wcm",
+    1
+   ],
+   [
+    "ES-ell",
+    1
+   ]
+  ],
+  "search_n_try": 4,
+  "search_optimize": false,
+  "search_scale_failure": 0.7071067811865476,
+  "search_scale_incremental": 2,
+  "search_scale_success": 1.4142135623730951,
+  "search_size_locked": true,
+  "skip_poll": true,
+  "skip_poll_after_search": true,
+  "sloppy_improvement": true,
+  "specify_target_noise": false,
+  "stobads": false,
+  "stobads_frame_size_scaling_power": 2,
+  "tol_fun": 0.001,
+  "tol_improvement": 1,
+  "tol_mesh": 1e-06,
+  "tol_noise": 1.4901161193847657e-11,
+  "tol_poi": 5e-07,
+  "tol_sd": 0.1,
+  "tol_stall_iters": 5,
+  "uncertain_incumbent": true,
+  "uncertainty_handling": false,
+  "use_effective_radius": true,
+  "use_slice_sampler": false,
+  "warp_func": 0
+ },
+ "ref": {
+  "acq_lcb": {
+   "f_mu": "@@npz:ref/acq_lcb/f_mu",
+   "f_s": "@@npz:ref/acq_lcb/f_s",
+   "z": "@@npz:ref/acq_lcb/z",
+   "z_callable": "@@npz:ref/acq_lcb/z_callable",
+   "z_fixed": "@@npz:ref/acq_lcb/z_fixed"
+  },
+  "contraints_check": {
+   "coarse": "@@npz:ref/contraints_check/coarse",
+   "no_proj": "@@npz:ref/contraints_check/no_proj",
+   "proj": "@@npz:ref/contraints_check/proj",
+   "proj_no_cons": "@@npz:ref/contraints_check/proj_no_cons"
+  },
+  "es_generations": {
+   "iter2_candidates": "@@npz:ref/es_generations/iter2_candidates",
+   "iter2_draws": "@@npz:ref/es_generations/iter2_draws",
+   "iter2_scale": "@@npz:ref/es_generations/iter2_scale",
+   "iter2_sizes": "@@npz:ref/es_generations/iter2_sizes",
+   "iter2_u": "@@npz:ref/es_generations/iter2_u",
+   "iter2_z": "@@npz:ref/es_generations/iter2_z",
+   "iter3_candidates": "@@npz:ref/es_generations/iter3_candidates",
+   "iter3_draws": "@@npz:ref/es_generations/iter3_draws",
+   "iter3_scale": "@@npz:ref/es_generations/iter3_scale",
+   "iter3_sizes": "@@npz:ref/es_generations/iter3_sizes",
+   "iter3_u": "@@npz:ref/es_generations/iter3_u",
+   "iter3_z": "@@npz:ref/es_generations/iter3_z"
+  },
+  "es_search_step": {
+   "ell_u": "@@npz:ref/es_search_step/ell_u",
+   "ell_z": "@@npz:ref/es_search_step/ell_z",
+   "hedge_chosen": "@@npz:ref/es_search_step/hedge_chosen",
+   "hedge_u": "@@npz:ref/es_search_step/hedge_u",
+   "hedge_z": "@@npz:ref/es_search_step/hedge_z",
+   "wcm_u": "@@npz:ref/es_search_step/wcm_u",
+   "wcm_z": "@@npz:ref/es_search_step/wcm_z"
+  },
+  "es_setup": {
+   "ell_sqrt_sigma": "@@npz:ref/es_setup/ell_sqrt_sigma",
+   "mask_1_5": "@@npz:ref/es_setup/mask_1_5",
+   "mask_2048_2048": "@@npz:ref/es_setup/mask_2048_2048",
+   "mask_32_32": "@@npz:ref/es_setup/mask_32_32",
+   "mask_50_20": "@@npz:ref/es_setup/mask_50_20",
+   "mask_7_32": "@@npz:ref/es_setup/mask_7_32",
+   "ns_1": "@@npz:ref/es_setup/ns_1",
+   "ns_2048": "@@npz:ref/es_setup/ns_2048",
+   "ns_32": "@@npz:ref/es_setup/ns_32",
+   "ns_50": "@@npz:ref/es_setup/ns_50",
+   "ns_7": "@@npz:ref/es_setup/ns_7",
+   "vec_1": "@@npz:ref/es_setup/vec_1",
+   "vec_2048": "@@npz:ref/es_setup/vec_2048",
+   "vec_32": "@@npz:ref/es_setup/vec_32",
+   "vec_50": "@@npz:ref/es_setup/vec_50",
+   "vec_7": "@@npz:ref/es_setup/vec_7",
+   "wcm_cov_0": "@@npz:ref/es_setup/wcm_cov_0",
+   "wcm_cov_1": "@@npz:ref/es_setup/wcm_cov_1",
+   "wcm_eig_0": "@@npz:ref/es_setup/wcm_eig_0",
+   "wcm_eig_1": "@@npz:ref/es_setup/wcm_eig_1"
+  },
+  "gp_hyp": {
+   "one_gp_s_N": "@@npz:ref/gp_hyp/one_gp_s_N",
+   "one_hyp0": "@@npz:ref/gp_hyp/one_hyp0",
+   "one_lower_bounds": "@@npz:ref/gp_hyp/one_lower_bounds",
+   "one_prior_df": "@@npz:ref/gp_hyp/one_prior_df",
+   "one_prior_mu": "@@npz:ref/gp_hyp/one_prior_mu",
+   "one_prior_sigma": "@@npz:ref/gp_hyp/one_prior_sigma",
+   "one_repeated_gp_s_N": "@@npz:ref/gp_hyp/one_repeated_gp_s_N",
+   "one_repeated_hyp0": "@@npz:ref/gp_hyp/one_repeated_hyp0",
+   "one_repeated_lower_bounds": "@@npz:ref/gp_hyp/one_repeated_lower_bounds",
+   "one_repeated_prior_df": "@@npz:ref/gp_hyp/one_repeated_prior_df",
+   "one_repeated_prior_mu": "@@npz:ref/gp_hyp/one_repeated_prior_mu",
+   "one_repeated_prior_sigma": "@@npz:ref/gp_hyp/one_repeated_prior_sigma",
+   "one_repeated_upper_bounds": "@@npz:ref/gp_hyp/one_repeated_upper_bounds",
+   "one_upper_bounds": "@@npz:ref/gp_hyp/one_upper_bounds",
+   "train_gp_s_N": "@@npz:ref/gp_hyp/train_gp_s_N",
+   "train_hyp0": "@@npz:ref/gp_hyp/train_hyp0",
+   "train_lower_bounds": "@@npz:ref/gp_hyp/train_lower_bounds",
+   "train_prior_df": "@@npz:ref/gp_hyp/train_prior_df",
+   "train_prior_mu": "@@npz:ref/gp_hyp/train_prior_mu",
+   "train_prior_sigma": "@@npz:ref/gp_hyp/train_prior_sigma",
+   "train_upper_bounds": "@@npz:ref/gp_hyp/train_upper_bounds",
+   "two_gp_s_N": "@@npz:ref/gp_hyp/two_gp_s_N",
+   "two_hyp0": "@@npz:ref/gp_hyp/two_hyp0",
+   "two_lower_bounds": "@@npz:ref/gp_hyp/two_lower_bounds",
+   "two_prior_df": "@@npz:ref/gp_hyp/two_prior_df",
+   "two_prior_mu": "@@npz:ref/gp_hyp/two_prior_mu",
+   "two_prior_sigma": "@@npz:ref/gp_hyp/two_prior_sigma",
+   "two_upper_bounds": "@@npz:ref/gp_hyp/two_upper_bounds"
+  },
+  "gp_predict": {
+   "fmu": "@@npz:ref/gp_predict/fmu",
+   "fs2": "@@npz:ref/gp_predict/fs2",
+   "fs2_y": "@@npz:ref/gp_predict/fs2_y"
+  },
+  "gp_refit": {
+   "effective_radius": "@@npz:ref/gp_refit/effective_radius",
+   "exit_flag": "@@npz:ref/gp_refit/exit_flag",
+   "hyp": "@@npz:ref/gp_refit/hyp",
+   "len_scale": "@@npz:ref/gp_refit/len_scale",
+   "poll_scale": "@@npz:ref/gp_refit/poll_scale"
+  },
+  "gp_training_set": {
+   "incumbent_exit_flag": "@@npz:ref/gp_training_set/incumbent_exit_flag",
+   "incumbent_fmu": "@@npz:ref/gp_training_set/incumbent_fmu",
+   "incumbent_fs2": "@@npz:ref/gp_training_set/incumbent_fs2",
+   "incumbent_ntrain": "@@npz:ref/gp_training_set/incumbent_ntrain",
+   "incumbent_prior_mu": "@@npz:ref/gp_training_set/incumbent_prior_mu",
+   "incumbent_prior_sigma": "@@npz:ref/gp_training_set/incumbent_prior_sigma",
+   "incumbent_rows": "@@npz:ref/gp_training_set/incumbent_rows",
+   "small_incumbent_exit_flag": "@@npz:ref/gp_training_set/small_incumbent_exit_flag",
+   "small_incumbent_fmu": "@@npz:ref/gp_training_set/small_incumbent_fmu",
+   "small_incumbent_fs2": "@@npz:ref/gp_training_set/small_incumbent_fs2",
+   "small_incumbent_ntrain": "@@npz:ref/gp_training_set/small_incumbent_ntrain",
+   "small_incumbent_prior_mu": "@@npz:ref/gp_training_set/small_incumbent_prior_mu",
+   "small_incumbent_prior_sigma": "@@npz:ref/gp_training_set/small_incumbent_prior_sigma",
+   "small_incumbent_rows": "@@npz:ref/gp_training_set/small_incumbent_rows",
+   "small_worst_exit_flag": "@@npz:ref/gp_training_set/small_worst_exit_flag",
+   "small_worst_fmu": "@@npz:ref/gp_training_set/small_worst_fmu",
+   "small_worst_fs2": "@@npz:ref/gp_training_set/small_worst_fs2",
+   "small_worst_ntrain": "@@npz:ref/gp_training_set/small_worst_ntrain",
+   "small_worst_prior_mu": "@@npz:ref/gp_training_set/small_worst_prior_mu",
+   "small_worst_prior_sigma": "@@npz:ref/gp_training_set/small_worst_prior_sigma",
+   "small_worst_rows": "@@npz:ref/gp_training_set/small_worst_rows",
+   "worst_exit_flag": "@@npz:ref/gp_training_set/worst_exit_flag",
+   "worst_fmu": "@@npz:ref/gp_training_set/worst_fmu",
+   "worst_fs2": "@@npz:ref/gp_training_set/worst_fs2",
+   "worst_ntrain": "@@npz:ref/gp_training_set/worst_ntrain",
+   "worst_prior_mu": "@@npz:ref/gp_training_set/worst_prior_mu",
+   "worst_prior_sigma": "@@npz:ref/gp_training_set/worst_prior_sigma",
+   "worst_rows": "@@npz:ref/gp_training_set/worst_rows"
+  },
+  "grid_functions": {
+   "force_to_grid": "@@npz:ref/grid_functions/force_to_grid",
+   "force_to_grid_halves": "@@npz:ref/grid_functions/force_to_grid_halves",
+   "force_to_grid_tol": "@@npz:ref/grid_functions/force_to_grid_tol",
+   "grid_units": "@@npz:ref/grid_functions/grid_units",
+   "grid_units_transf": "@@npz:ref/grid_functions/grid_units_transf",
+   "grid_units_transf_one": "@@npz:ref/grid_functions/grid_units_transf_one",
+   "ucov": "@@npz:ref/grid_functions/ucov",
+   "ucov_unweighted": "@@npz:ref/grid_functions/ucov_unweighted",
+   "udist": "@@npz:ref/grid_functions/udist",
+   "udist_train": "@@npz:ref/grid_functions/udist_train"
+  },
+  "hedge": {
+   "chosen": "@@npz:ref/hedge/chosen",
+   "draws": "@@npz:ref/hedge/draws",
+   "g": "@@npz:ref/hedge/g",
+   "gamma0_chosen": "@@npz:ref/hedge/gamma0_chosen",
+   "gamma0_draws": "@@npz:ref/hedge/gamma0_draws",
+   "gamma0_g": "@@npz:ref/hedge/gamma0_g",
+   "gamma0_phat": "@@npz:ref/hedge/gamma0_phat",
+   "gamma0_prob": "@@npz:ref/hedge/gamma0_prob",
+   "gamma0_searches": "@@npz:ref/hedge/gamma0_searches",
+   "phat": "@@npz:ref/hedge/phat",
+   "prob": "@@npz:ref/hedge/prob",
+   "searches": "@@npz:ref/hedge/searches"
+  },
+  "improvement": {
+   "sto_flags": "@@npz:ref/improvement/sto_flags",
+   "z_nosd": "@@npz:ref/improvement/z_nosd",
+   "z_q20": "@@npz:ref/improvement/z_q20",
+   "z_q50": "@@npz:ref/improvement/z_q50",
+   "z_q90": "@@npz:ref/improvement/z_q90"
+  },
+  "poll_mads_2n": {
+   "nmax16_B": "@@npz:ref/poll_mads_2n/nmax16_B",
+   "nmax16_draws": "@@npz:ref/poll_mads_2n/nmax16_draws",
+   "nmax4_B": "@@npz:ref/poll_mads_2n/nmax4_B",
+   "nmax4_draws": "@@npz:ref/poll_mads_2n/nmax4_draws",
+   "state_B": "@@npz:ref/poll_mads_2n/state_B",
+   "state_draws": "@@npz:ref/poll_mads_2n/state_draws"
+  },
+  "transform": {
+   "U": "@@npz:ref/transform/U",
+   "X_back": "@@npz:ref/transform/X_back",
+   "apply_log_t": "@@npz:ref/transform/apply_log_t",
+   "lb": "@@npz:ref/transform/lb",
+   "plb": "@@npz:ref/transform/plb",
+   "pub": "@@npz:ref/transform/pub",
+   "ub": "@@npz:ref/transform/ub"
+  }
+ },
+ "rng_state": {
+  "bit_generator": "PCG64",
+  "has_uint32": 0,
+  "state": {
+   "inc": 194290289479364712180083596243593368443,
+   "state": 306905474104436351334286296595362733539
+  },
+  "uinteger": 0
+ }
+}
