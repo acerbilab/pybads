@@ -40,9 +40,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `uncertainty_handling` and the options whose default is `True` or
   `False`, except `plot`, take only booleans: `BADS` raises `ValueError` for
   `0`, `1`, `"on"`, `"off"`, a NumPy array such as `np.array(True)`, or any
-  other value. A user value of `None`
-  stands for the option's default: `nonlinear_scaling=None`, for instance,
-  keeps the log transform on.
+  other value. A user value of `None` stands for the option's default:
+  `nonlinear_scaling=None`, for instance, keeps the log transform on.
 - The result's `success` is False when a run ends on `max_fun_evals` or
   `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
 - Without `specify_target_noise` and with `noise_final_samples=1`,
@@ -80,24 +79,25 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   [0, 1], an array of one element or a complex number included.
 - `BADS` raises `ValueError` for a `tol_fun` that is not a positive real
   number at most e^6 (about 403), a boolean, a string, an array or a complex
-  number included, which
-  1.1.0 ran when negative (-inf included) unless the default `hedge_beta` fell
-  far below 0, and ran as 1 when `True`; and for a `search_method` that is not
-  a non-empty list of pairs naming `"ES-wcm"` or `"ES-ell"`, or a
-  `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`,
-  which stopped a 1.1.0 run at its first search, or at the first that chose an
-  unknown search, or which has more than two elements, beyond the pair, which
-  1.1.0 ignored.
+  number included, which 1.1.0 ran when negative (-inf included) unless the
+  default `hedge_beta` fell far below 0, and ran as 1 when `True`; for a
+  `search_method` that is not a non-empty list of pairs naming `"ES-wcm"` or
+  `"ES-ell"`, or a `search_acq_fcn` that is not a pair whose first element is
+  `"acq_LCB"`, which stopped a 1.1.0 run at its first search, or at the first
+  that chose an unknown search; and for an entry of `search_method`, or a
+  `search_acq_fcn`, with more than two elements, whose elements beyond the
+  pair 1.1.0 ignored.
 - The returned `total_time` and `overhead` are timed with
   `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
   no longer inflated by evaluations timed as 0.
 - `BADS` raises `ValueError` for an `n_search` that is not a positive
   integer, and for an `n_search_iter` that is not a positive integer or is
   larger than `n_search`.
-- `BADS` raises `ValueError`, as for any unknown option, for the 65
+- `BADS` raises `ValueError`, as for any unknown option, for the 66
   options that had no effect in 1.1.0 and that MATLAB BADS does not have,
-  leftovers of PyVBMC such as `warp_every_iters`, `variational_sampler`,
-  `min_iter` and `diagnostics` ("Options without effect" below).
+  most of them leftovers of PyVBMC, such as `warp_every_iters`,
+  `variational_sampler`, `min_iter`, `diagnostics` and `gp_cov_fun`
+  ("Options without effect" below).
 
 ### Added
 
@@ -107,12 +107,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Options without effect.** The 65 advanced options that no code of PyBADS
-  read and that MATLAB BADS does not have, leftovers of PyVBMC, are removed,
-  and setting one raises `ValueError`, as for any unknown option:
+- **Options without effect.** The 66 advanced options that had no effect in
+  1.1.0 and that MATLAB BADS does not have, most of them leftovers of PyVBMC,
+  are removed, and setting one raises `ValueError`, as for any unknown option:
   `acq_hedge_iter_window`, `acqhedge_decay`, `active_sample_gp_update`,
   `active_search_bound`, `bandwidth`, `box_search_frac`, `cov_sample_thresh`,
-  `diagnostics`, `double_gp`, `empirical_gp_prior`, `gp_length_prior_mean`,
+  `diagnostics`, `double_gp`, `empirical_gp_prior`, `gp_cov_fun` (the kernel
+  is always the rational-quadratic ARD one), `gp_length_prior_mean`,
   `gp_length_prior_std`, `gp_sample_thin`, `gp_sample_widths`,
   `gp_stochastic_step_size`, `gp_tol_optactive`, `gp_tol_optmcmc`,
   `gp_tol_optmcmcactive`, `heavy_tail_search_frac`, `hessian_alternate`,
@@ -443,11 +444,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   original space for a variable on a log scale (all its bounds positive, and
   `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
   which put most starting points in the upper decade of such a variable.
-  With `non_box_cons`, a random starting point that violates the constraints
-  once it is put on the mesh, where they are tested, is drawn again, up to
+  With `non_box_cons`, a random starting point that violates the
+  constraints, as drawn or once it is put on the mesh, is drawn again, up to
   1000 draws in all, before `BADS` raises `ValueError`, where 1.1.0 and
-  MATLAB BADS raise at the first; a run whose first draw satisfies the
-  constraints on the mesh is unchanged. 1.1.0 refused a start
+  MATLAB BADS raise at the first. 1.1.0 refused a start
   with an element of `inf` or `-inf` when the hard bound on that side was
   finite.
 - **One function evaluation.** A run with `max_fun_evals=1` returns the

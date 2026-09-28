@@ -84,9 +84,9 @@ def _is_named_pair(value, names):
 
 
 # The levels of the BADS logger's messages above the iteration lines (INFO),
-# for MATLAB BADS's display levels: the opening message (and the message of a
-# random starting point, at 25) from "notify" on, the final message from
-# "final" on
+# for MATLAB BADS's display levels: the opening message, the reports of the
+# setup and the message of a random starting point from "notify" on, the
+# final message from "final" on
 _LOG_NOTIFY = 25
 _LOG_FINAL = 22
 
@@ -355,9 +355,9 @@ class BADS:
         # set up BADS logger, from the first three letters of the display
         # option, lower case, as in MATLAB BADS (bads.m): "off" and "none"
         # show the warnings only, "notify" (and any other value) also the
-        # opening message, "final" also the final message, "iter" and "all"
-        # also the iteration lines, and "full", PyBADS's own, the debug
-        # messages too
+        # opening message and the reports of the setup, "final" also the
+        # final message, "iter" and "all" also the iteration lines, and
+        # "full", PyBADS's own, the debug messages too
         self.logger = logging.getLogger("BADS")
         display = str(self.options.get("display"))[:3].lower()
         if display in ("off", "non"):
@@ -404,10 +404,10 @@ class BADS:
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
 
-        # Periodic variables are not supported yet: refused before the first
-        # transform of the variables, which a random x0 needs. An empty
-        # periodic_vars names none, as in MATLAB BADS (setupvars.m), and is
-        # taken as None
+        # Periodic variables are not supported yet: refused before
+        # _init_optim_state_ transforms the variables and draws a random x0.
+        # An empty periodic_vars names none, as in MATLAB BADS (setupvars.m),
+        # and is taken as None
         if np.size(self.options["periodic_vars"]) == 0:
             self.options["periodic_vars"] = None
         elif self.options["periodic_vars"] is not None:
@@ -594,8 +594,9 @@ class BADS:
         # Check that all X0 are inside the bounds. As in MATLAB BADS
         # (boundscheck.m, setupvars.m), neither x0 nor the plausible bounds
         # are moved: a start on a hard bound or outside the plausible box
-        # stays where it is. A start that is not finite passes: __init__
-        # replaces it by a random point, as MATLAB BADS does (setupvars.m)
+        # stays where it is. A start that is not finite passes:
+        # _init_optim_state_ draws a random point in its place, as MATLAB
+        # BADS does (setupvars.m)
         if np.all(np.isfinite(x0)) and (
             np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds)
         ):
@@ -766,7 +767,8 @@ class BADS:
             # BADS (setupvars.m:83-85): log-uniform for a log-transformed
             # variable. MATLAB BADS refuses a point on the mesh that violates
             # non_box_cons (evalinitmesh.m:22-26); PyBADS draws again, up to
-            # 1000 draws in all
+            # 1000 draws in all, while the draw, which the result reports as
+            # x0, or its point on the mesh, the start evaluated, violates it
             for _ in range(1000):
                 u_draw = self.rng.uniform(
                     low=self.var_transf.plb,
@@ -775,14 +777,16 @@ class BADS:
                 )
                 self.x0 = self.var_transf.inverse_transf(u_draw)
                 u0 = start_on_mesh()
-                if not violates_non_box_cons(u0):
+                if not violates_non_box_cons(
+                    u_draw
+                ) and not violates_non_box_cons(u0):
                     break
             self.logger.log(
-                25,
+                _LOG_NOTIFY,
                 "Initial starting point is invalid or not provided."
                 + " Initial point randomly sampled uniformly from plausible box\n",
             )
-            if violates_non_box_cons(u0):
+            if violates_non_box_cons(u_draw) or violates_non_box_cons(u0):
                 self.logger.error(
                     "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
                 )

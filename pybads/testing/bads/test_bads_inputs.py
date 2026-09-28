@@ -1047,12 +1047,13 @@ def test_empty_periodic_vars_stands_for_none(x0, periodic_vars):
         ("warp_every_iters", 5),
         ("min_iter", 2),
         ("diagnostics", False),
+        ("gp_cov_fun", 1),
     ],
 )
 def test_options_of_pyvbmc_without_effect_are_unknown(name, value):
     """The options that no code of PyBADS read and that MATLAB BADS does not
-    have, PyVBMC's leftovers, are not options of PyBADS: setting one raises
-    `ValueError`, as for any unknown name."""
+    have, most of them PyVBMC's leftovers, are not options of PyBADS:
+    setting one raises `ValueError`, as for any unknown name."""
     with pytest.raises(ValueError, match=f"The option {name} does not exist"):
         _bads_with_options({name: value})
 
