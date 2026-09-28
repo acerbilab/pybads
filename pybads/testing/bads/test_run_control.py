@@ -118,7 +118,8 @@ def test_output_fcn_stops_run_after_a_poll():
 def test_iterations_count_from_one(max_iter):
     """A run that ends on `max_iter` reports `max_iter` iterations, as
     MATLAB BADS does. The budget leaves `max_iter` the first criterion to
-    end the run (this run, without it, ends on `tol_fun` at the 8th)."""
+    end the run: without it, this run ends on `tol_fun` after more
+    iterations than any `max_iter` here."""
     result = _make_bads(max_iter=max_iter, max_fun_evals=200).optimize()
     assert result["iterations"] == max_iter
     assert result["message"] == (
@@ -309,6 +310,19 @@ def test_initial_design_within_budget_of_noisy_run():
     assert result["func_count"] <= 25
     assert bads.options["noise_final_samples"] >= 0
     assert bads.options["max_fun_evals"] <= 25
+
+
+def test_reserve_of_final_samples_is_floored_at_zero():
+    """A noisy run whose noise test takes it past `max_fun_evals`, at a
+    budget of 1, reserves no final samples, where the evaluations left are
+    -1, so that `max_fun_evals` does not grow; the run ends after its two
+    evaluations, as MATLAB BADS's does."""
+    bads = _small_budget_bads(2, 1, noisy=True)
+    result = bads.optimize()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert result["func_count"] == 2
+    assert bads.options["noise_final_samples"] == 0
+    assert bads.options["max_fun_evals"] == 1
 
 
 def _box():
