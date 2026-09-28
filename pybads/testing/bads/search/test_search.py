@@ -16,6 +16,8 @@ from pybads.bads.option_configs import get_pybads_option_dir_path
 from pybads.bads.options import Options
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger, contraints_check
+from pybads.function_logger.constraints_check import _lexsort_rows
+from pybads.rounding import round_half_away
 from pybads.search.es_search import ESSearchELL, ESSearchWM, ucov
 from pybads.search.grid_functions import force_to_grid
 from pybads.search.search_hedge import ESSearchHedge
@@ -802,6 +804,60 @@ def test_constraint_check_rounds_halves_of_a_bin_away_from_zero():
         U_new / tol,
         [[-1, -2], [-0.5, 0], [0, 3], [0.5, 0], [0.5, 3], [2.5, 2]],
     )
+
+
+@pytest.mark.parametrize("D", [1, 2, 3, 6])
+def test_constraint_check_keeps_the_first_candidate_of_each_bin(D):
+    """Of the candidates that share a bin, duplicates included,
+    contraints_check keeps the first in their order, where uCheck.m, whose
+    unique sorts them, keeps the smallest, a difference within a bin (KD-B3-10
+    in pybads/bads/README.md). The bins come out sorted, without those that
+    hold an evaluated point."""
+    rng = np.random.default_rng(D)
+    tol_mesh = 2.0**-19
+    tol = tol_mesh / 2  # The width of a bin
+    lb, ub = -np.ones((1, D)), np.ones((1, D))
+    for _ in range(50):
+        # Candidates within a quarter of a bin of a few bins' centres, in a
+        # random order, so that many share a bin or repeat; evaluated points
+        # at some of the centres and elsewhere
+        centres = tol * rng.integers(-3, 4, size=(rng.integers(1, 10), D))
+        n = rng.integers(1, 80)
+        U = centres[rng.integers(0, len(centres), n)]
+        U = U + tol / 4 * rng.integers(-1, 2, size=(n, D))
+        X_eval = np.vstack(
+            (
+                centres[: rng.integers(0, 3)],
+                tol * rng.integers(-3, 4, size=(rng.integers(0, 3), D)),
+            )
+        )
+        function_logger = SimpleNamespace(
+            X=np.vstack((X_eval, np.full((3, D), np.nan))),
+            X_max_idx=len(X_eval) - 1,
+        )
+        U_new = contraints_check(U, lb, ub, tol_mesh, function_logger, True)
+        evaluated = {tuple(r) for r in round_half_away(X_eval / tol)}
+        first = {}
+        for i, r in enumerate(round_half_away(U / tol)):
+            if tuple(r) not in evaluated:
+                first.setdefault(tuple(r), i)
+        assert np.array_equal(U_new, U[[first[k] for k in sorted(first)]])
+
+
+@pytest.mark.parametrize("D", [1, 2, 3, 6])
+def test_lexsort_rows_is_numpys_lexsort(D):
+    """_lexsort_rows, which orders the bins of contraints_check, gives the
+    stable order of np.lexsort, the first column first, on rows with many
+    ties, signed zeros, infinities and NaNs."""
+    rng = np.random.default_rng(D)
+    for _ in range(200):
+        A = rng.integers(-2, 3, size=(rng.integers(1, 60), D)).astype(float)
+        A[A == 0] = rng.choice([0.0, -0.0], size=np.sum(A == 0))
+        special = rng.random(A.shape)
+        A[special < 0.05] = np.nan
+        A[(special >= 0.05) & (special < 0.08)] = np.inf
+        A[(special >= 0.08) & (special < 0.1)] = -np.inf
+        assert np.array_equal(_lexsort_rows(A), np.lexsort(A.T[::-1]))
 
 
 @pytest.mark.parametrize(

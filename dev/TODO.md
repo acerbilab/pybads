@@ -36,14 +36,6 @@ order.
   about a quarter of the fits' time on `ellipsoid_D10`. A change for
   gpyreg; reaching PyBADS, it is a gpyreg release, which moves PyBADS's
   minimum and CI pin after its gate.
-- [ ] **The cost of `contraints_check`.** It takes 4.5 to 13 % of a run,
-  nearly all of it for the ES search's candidates and most of that in its
-  two `np.unique(..., axis=0)` calls, which remove duplicate candidates and
-  those already evaluated
-  ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md)).
-  A faster way must return the same candidates in the same order (sorted
-  by bin, as MATLAB's `setdiff` does), so that the fingerprint of
-  `dev/scripts/fingerprint.py` stays the same.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by

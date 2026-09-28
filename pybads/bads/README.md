@@ -513,6 +513,19 @@ take the fraction (by reading).
 - Settled by: the rulings of wave 4's doublecheck, confirmed by the PI at
   the close of the review. Kind: deliberate change.
 
+**KD-B3-10. Of the candidates that share a bin, the first is kept.**
+Before the initial design, a search or a poll evaluates its candidates,
+PyBADS's `contraints_check` and MATLAB BADS's `uCheck` bin them on a grid
+of `tol_mesh / 2` and keep one candidate of each bin that holds no
+evaluated point, the bins sorted. PyBADS keeps the first of the bin in the
+candidates' order; MATLAB BADS, whose `unique(U,'rows')` sorts the
+candidates before they are binned, keeps the smallest. The two differ by
+less than a bin, 2^-20 in `u` at the default `tol_mesh`, and return their
+bins in the same order.
+- PyBADS: `contraints_check` (`pybads/function_logger/constraints_check.py`).
+- MATLAB: `utils/uCheck.m:14-27`.
+- Settled by: W3-2. Kind: deliberate change.
+
 ### The poll, the mesh, the incumbent and the target (B4)
 
 **KD-B4-1. The poll is MADS 2N (`poll_mads_2n`, MATLAB's `pollMADS2N`); the other poll methods are not ported.**
