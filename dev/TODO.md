@@ -85,7 +85,8 @@ order.
   - the bounds of the GP mean, which the port fixes by the initial design
     and MATLAB leaves infinite (a row of the survey's candidate table);
     since `8afbe16` the prior of the mean can fall outside them, which
-    makes the log prior NaN in the fits of 67 runs of the Windows reference
+    makes the log prior NaN in the fits of 67 runs of the Windows
+    population at `ab4dded`
     ([experiments/population_gpfixes_20260925/](experiments/population_gpfixes_20260925/README.md)).
 - [ ] **The uncertainty interval of Sto-BADS.** Rows W0-12 and W0-13 of the
   port review's ledger (`experiments/port_review_20260925/verification/wave0.md`):
