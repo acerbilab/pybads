@@ -128,8 +128,12 @@ order.
   replaces it, and says that `random_seed` now decides the initial design
   (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck"). At the same release, `skills/pybads/SKILL.md`, which
-  names no release, names it, as PyVBMC's names 1.5.
+  "Doublecheck"). At the same release, `skills/pybads/SKILL.md` and the
+  FAQ (`docsrc/source/faq.md`), which name no release, name it, as
+  PyVBMC's skill and FAQ name 1.5. The published documentation follows
+  `main`, so until that release the FAQ describes code that no release
+  has, among it `output_fcn(x, optim_state, state)`, which 1.1.0 calls as
+  `output_fcn(x, "init")`.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
   over the four suites, up to 40% on some configurations, noisy ones
@@ -223,6 +227,32 @@ order.
   which change no default run, are listed in the consolidated ledger
   ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
   "Open ends"). Each is fixed, documented, or dropped.
+- [ ] **Checks of option values when `BADS` is created.** `BADS` refuses
+  a bad value of some options when it is created, with a `ValueError`
+  that names the option (among them `max_fun_evals`, the options whose
+  default is a boolean, `tol_fun` and `random_seed`), but not of others.
+  Measured on 2026-09-28: a string for `max_iter`, `search_n_try` or
+  `tol_stall_iters` (`"200*D"`, `"D"`, `"5"`) raises a `TypeError` inside
+  `optimize()`, after the initial design has spent its evaluations; a
+  string for `tol_mesh` raises NumPy's `TypeError` at creation, and one
+  for `noise_size` too, at the comparison of its check, neither naming the
+  option; `max_iter=2.5` is taken as it is; and `tol_mesh=-1.0` runs, with
+  a `RuntimeWarning` from its logarithm, and the mesh criterion never ends
+  the run. A check of each when `BADS` is created, with a `ValueError`
+  that names the option, as for `max_fun_evals`, changes what a script
+  written for 1.1.0 gets, so it takes a line of the changelog's "Upgrading
+  from" list, and the FAQ's answer on the differences from MATLAB BADS,
+  which describes the present behaviour, changes with it.
+- [ ] **User documentation written out twice.** Some advice is written
+  out in several places, which can drift apart: the list of the problems
+  that PyBADS suits, in `README.md` ("When should I use PyBADS?"),
+  `docsrc/source/index.rst` ("Should I use PyBADS?"), section 0 of
+  Example 1 and the FAQ ("Which kind of problems is PyBADS suited for?");
+  the passing of additional data to the objective, in the getting-started
+  page (`docsrc/source/quickstart.rst`) and the FAQ; and the amount of
+  noise that PyBADS handles, in the "Remarks" of Example 3 and the FAQ.
+  Each is kept in one place and linked from the others, or the copies are
+  kept in step.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
   as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
