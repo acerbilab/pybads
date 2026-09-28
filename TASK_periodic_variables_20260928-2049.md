@@ -47,7 +47,7 @@ Envs: `/home/user/pybads/.venv`; gpyreg clones `/home/user/gpyreg` (work),
 - [x] D5 [TODO](dev/TODO.md) (porting gaps, gpyreg release, what's new), [ledger](dev/results/2026-09-28-port-correctness-review.md) (W3-35, W4-11, udist loose end), [AGENTS.md](AGENTS.md)
 
 ## E. Verification
-- [ ] E1 `/doublecheck`
+- [~] E1 `/doublecheck`
 - [ ] E2 Push both branches; report
 
 ## Success criteria
