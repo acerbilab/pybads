@@ -206,7 +206,9 @@ if os.environ.get("GP_HEALTH_OUT"):  # noqa: C901
 
     def _mults(gp):
         out = []
-        for p in getattr(gp, "posteriors", None) or []:
+        posteriors = getattr(gp, "posteriors", None)
+        # An array of several posteriors has no truth value
+        for p in [] if posteriors is None else posteriors:
             m = getattr(p, "sn2_mult", None)
             out.append(1.0 if m is None else float(m))
         return out

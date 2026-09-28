@@ -323,6 +323,8 @@ def histograms(runs):
                 for b, n in h["zero_sd"][k].items():
                     agg[k][b] += n
         n = sum(h["zero_sd"]["points"] for h in hs)
+        if n == 0:
+            continue
         out.append(f"Level {lv}, {n} points.\n")
         for k, title in (
             ("raw_rel_log10_hist", "floor(log10(|raw| / kss))"),
@@ -371,10 +373,12 @@ def main():
     print(text)
     if a.md:
         with open(a.md, "w", encoding="utf-8") as fh:
-            fh.write(text + "\n")
+            fh.write(text.rstrip("\n") + "\n")
     if a.csv and rows:
         with open(a.csv, "w", newline="", encoding="utf-8") as fh:
-            w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+            w = csv.DictWriter(
+                fh, fieldnames=list(rows[0]), lineterminator="\n"
+            )
             w.writeheader()
             w.writerows(rows)
 
