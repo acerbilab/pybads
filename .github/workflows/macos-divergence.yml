@@ -1,0 +1,99 @@
+# Temporary diagnostic for the TODO item "A test whose outcome varies on
+# macOS arm64": repeats the test's run in one process and finds the first
+# computation at which two runs differ (dev/scripts/divergence_trace.py).
+name: macos-divergence
+
+on:
+  push:
+    branches:
+      - claude/todo-discussion-0a0a1x
+    paths:
+      - dev/scripts/divergence_trace.py
+      - .github/workflows/macos-divergence.yml
+
+env:
+  GPYREG_PIN: 98ab5a4adecf37eb188521360bd87835979f47e7
+
+jobs:
+  diverge:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pybads
+          fetch-depth: 0
+
+      - uses: actions/checkout@v7
+        with:
+          repository: acerbilab/gpyreg
+          ref: ${{ env.GPYREG_PIN }}
+          path: gpyreg
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          cd ./pybads
+          python -m pip install -e ".[test]" threadpoolctl
+          cd ../gpyreg
+          python -m pip install -e .
+
+      - name: Platform
+        run: |
+          uname -a
+          sysctl -n machdep.cpu.brand_string hw.ncpu 2>/dev/null || nproc
+          python -c "import numpy; numpy.show_config()"
+          python -c "import scipy; scipy.show_config()"
+          python -c "import threadpoolctl, pprint, numpy, scipy.linalg; pprint.pprint(threadpoolctl.threadpool_info())"
+
+      - name: Loop, default threads
+        continue-on-error: true
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py loop 60
+
+      - name: Loop, one BLAS thread
+        continue-on-error: true
+        env:
+          VECLIB_MAXIMUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py loop 60
+
+      - name: Trace, default threads
+        continue-on-error: true
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py trace 20 ../out/default
+
+      - name: Trace, one BLAS thread
+        continue-on-error: true
+        env:
+          VECLIB_MAXIMUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+        run: |
+          cd ./pybads
+          python -u dev/scripts/divergence_trace.py trace 20 ../out/one_thread
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: divergence-${{ matrix.os }}-${{ matrix.python-version }}
+          path: out/
+          if-no-files-found: ignore
