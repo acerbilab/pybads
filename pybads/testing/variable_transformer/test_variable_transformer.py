@@ -356,3 +356,15 @@ def test_bounds_of_another_size_are_refused(lower_bounds):
     is refused with a message that names it."""
     with pytest.raises(ValueError, match="lower_bounds needs to be"):
         VariableTransformer(D, lower_bounds, np.ones((1, D)))
+
+
+@pytest.mark.parametrize(
+    "lower_bounds",
+    ["1", ["1", "2", "3"], [[1.0], [1.0, 2.0]], object()],
+    ids=["string", "strings", "ragged", "object"],
+)
+def test_bounds_that_are_not_numbers_are_refused(lower_bounds):
+    """A bound that is not a number, a string included, which NumPy would
+    convert, is refused with a message that names it."""
+    with pytest.raises(ValueError, match="lower_bounds needs to be a number"):
+        VariableTransformer(D, lower_bounds, np.full((1, D), 10.0))

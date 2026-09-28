@@ -48,10 +48,10 @@ class VariableTransformer:
     Raises
     ------
     ValueError
-        When a bound is neither a scalar nor an array of one or ``D``
-        elements, when the plausible bounds are not finite or the bounds are
-        out of the order above, or when the transform cannot be inverted at
-        the bounds.
+        When a bound is not a number or an array of numbers, or is neither a
+        scalar nor an array of one or ``D`` elements, when the plausible
+        bounds are not finite or the bounds are out of the order above, or
+        when the transform cannot be inverted at the bounds.
     """
 
     def __init__(
@@ -295,8 +295,18 @@ class VariableTransformer:
 def _bound_as_row(bound, name, D):
     """A float copy of ``bound`` of shape ``(1, D)``: an array of ``D``
     elements, of shape ``(1, D)`` or ``(D,)``, or a scalar or an array of one
-    element, replicated in each dimension."""
-    row = np.array(bound, dtype=float, ndmin=2)
+    element, replicated in each dimension. A bound that is not a number, or
+    an array of numbers, is refused, a string included."""
+    try:
+        array = np.asarray(bound)
+        if array.dtype.kind in "USV":
+            raise TypeError("a string or bytes")
+        row = np.array(array, dtype=float, ndmin=2)
+    except (TypeError, ValueError) as err:
+        raise ValueError(
+            f"{name} needs to be a number or an array of numbers, not "
+            f"{bound!r}."
+        ) from err
     if row.size == 1:
         row = np.full((1, D), row.item())
     if row.shape != (1, D):

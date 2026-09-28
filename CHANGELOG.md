@@ -209,8 +209,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `pybads.acquisition_functions.check_sqrt_beta` makes the same check. The
   search scores the point it chooses with that `sqrt_beta` too, as MATLAB BADS
   does, where it took the default schedule there: only the point's mean is
-  read, so results do not change, and a callable `sqrt_beta` is called once
-  more at each search.
+  read, so results do not change for a number or a callable whose value
+  depends on `(t, D)` alone. A callable `sqrt_beta` is called once more at
+  each search, which changes a run whose callable keeps a state or draws
+  random numbers.
 - **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
   `search_method` selects and that failed when called, is removed.
 - **Search hedge parameters.** `BADS` raises `ValueError` for a
@@ -675,8 +677,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   bound, `TypeError` on a list, `AttributeError` on a Python scalar or a
   scalar `apply_log_t`, and `ValueError` on a NumPy scalar hard bound whose
   plausible bound was omitted; NumPy scalars given for all four bounds
-  worked. A bound of another size raises `ValueError` that names it. `BADS`,
-  which gives it rows of D floats, is unchanged.
+  worked. A bound of another size, or that is not a number, a string included,
+  raises `ValueError` that names it. `BADS`, which gives it rows of D floats,
+  is unchanged.
 - **No overflow warning beside a log-scaled variable.** A variable that is
   not on a log scale, with a bound above about 700 in magnitude, beside one
   that is, no longer gives a harmless `RuntimeWarning: overflow encountered
