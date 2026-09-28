@@ -615,6 +615,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   1.07] instead of [-1, 1] for `lb=1`, `plb=2`, `pub=500`, `ub=1000`).
   Results change on such problems. The same holds for `VariableTransformer`
   used directly, whose copies of the bounds are now floats.
+- **`VariableTransformer` used directly.**
+  `pybads.variable_transformer.VariableTransformer` takes bounds given as
+  arrays of shape (D,), lists or scalars, NumPy's or Python's, a scalar
+  standing for the same bound in each dimension, and a scalar `apply_log_t`,
+  which applies to every variable; 1.1.0 stopped with `IndexError` or
+  `AttributeError` on these, and on a NumPy scalar hard bound whose plausible
+  bound was omitted. A bound of another size raises `ValueError` that names
+  it. `BADS`, which gives it rows of D floats, is unchanged.
 - **No overflow warning beside a log-scaled variable.** A variable that is
   not on a log scale, with a bound above about 700 in magnitude, beside one
   that is, no longer gives a harmless `RuntimeWarning: overflow encountered
