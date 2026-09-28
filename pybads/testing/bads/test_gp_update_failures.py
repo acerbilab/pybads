@@ -575,16 +575,24 @@ def test_target_fallback_to_incumbent(
 ):
     """A prediction that is not finite falls back to the incumbent's `fval`
     and `fsd`, in a form the call sites' `.item()` accepts, and the target
-    is computed from them: finite, also when only the variance is not."""
+    is computed from them: finite, also when only the variance is not. The
+    GP predicts under its own hyperparameters, or, after the failure of the
+    posterior under others, as it stands."""
     level, c = captured
     bads = c.bads
     gp = copy.deepcopy(c.add["gp"])
+    hyp_best = gp.get_hyperparameters(as_array=True)
     if fail_hyperparameters:
-        inject(lambda call: call.site == "_get_target_from_gp_")
+        hyp_best = hyp_best + 0.1
+        injector = inject(lambda call: call.site == "_get_target_from_gp_")
     _non_finite_prediction_for_target(monkeypatch, mean, variance)
     f_target_mu, f_target_s, f_target = bads._get_target_from_gp_(
-        bads.u_best, gp, gp.get_hyperparameters(as_array=True)
+        bads.u_best, gp, hyp_best
     )
+    if fail_hyperparameters:
+        assert [call[:2] for call in injector.failed] == [
+            ("_get_target_from_gp_", "set_hyperparameters")
+        ]
     optim_state = bads.optim_state
     assert f_target_mu.item() == optim_state["fval"]
     assert f_target_s == optim_state["fsd"]
@@ -593,6 +601,39 @@ def test_target_fallback_to_incumbent(
         optim_state["fsd"] ** 2 + bads.options["tol_fun"] ** 2
     )
     assert f_target.item() == pytest.approx(expected, rel=1e-12)
+
+
+def test_target_under_the_gps_own_hyperparameters_reuses_its_posterior(
+    captured, inject, monkeypatch
+):
+    """Under the GP's own hyperparameters, the target is predicted from the
+    GP itself, without a copy whose posterior is recomputed, and has the
+    same bits as that copy's prediction; the GP is left as it was."""
+    level, c = captured
+    bads = c.bads
+    gp = copy.deepcopy(c.add["gp"])
+    hyp_best = gp.get_hyperparameters(as_array=True)
+    tmp_gp = copy.deepcopy(gp)
+    tmp_gp.set_hyperparameters(hyp_best)
+    mu, s2 = tmp_gp.predict(np.atleast_2d(bads.u_best))
+    posteriors = _posterior_arrays(gp)
+    copies = []
+    original_deepcopy = copy.deepcopy
+
+    def deepcopy(obj, *args, **kwargs):
+        copies.append(type(obj).__name__)
+        return original_deepcopy(obj, *args, **kwargs)
+
+    monkeypatch.setattr(bads_module.copy, "deepcopy", deepcopy)
+    injector = inject(lambda call: call.site == "_get_target_from_gp_")
+    f_target_mu, f_target_s, f_target = bads._get_target_from_gp_(
+        bads.u_best, gp, hyp_best
+    )
+    assert injector.counts["_get_target_from_gp_"] == 0
+    assert "GP" not in copies
+    assert f_target_mu.item() == mu.item()
+    assert np.asarray(f_target_s).item() == np.sqrt(s2).item()
+    assert _same(_posterior_arrays(gp), posteriors)
 
 
 # --- the markers in the search and the poll --------------------------------

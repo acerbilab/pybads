@@ -2893,7 +2893,9 @@ class BADS:
         gp : GP
             The GP.
         hyp_best : np.ndarray
-            The hyperparameters under which the GP predicts.
+            The hyperparameters under which the GP predicts: from a copy of
+            the GP whose posterior is recomputed under them, or from the GP
+            itself when they are its own.
 
         Returns
         -------
@@ -2913,18 +2915,25 @@ class BADS:
             self.optim_state["uncertainty_handling_level"] > 0
             or self.options["uncertain_incumbent"]
         ):
-            tmp_gp = copy.deepcopy(gp)
-            try:
-                tmp_gp.set_hyperparameters(hyp_best)
-                f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
-            except np.linalg.LinAlgError:
-                # The posterior under `hyp_best` cannot be computed: predict
-                # from the GP as it stands, whose posterior matches its data
-                # (MATLAB's UpdateTarget reuses the current posterior).
-                self.logger.debug(
-                    "bads:optimize: GP posterior under the best hyperparameters failed; target predicted from the current GP"
-                )
+            if np.array_equal(hyp_best, gp.get_hyperparameters(as_array=True)):
+                # The GP's posterior is the one under `hyp_best` on its data,
+                # which a copy recomputed under them would give again, bit
+                # for bit: predict from it
                 f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
+            else:
+                tmp_gp = copy.deepcopy(gp)
+                try:
+                    tmp_gp.set_hyperparameters(hyp_best)
+                    f_target_mu, fs2 = tmp_gp.predict(np.atleast_2d(u))
+                except np.linalg.LinAlgError:
+                    # The posterior under `hyp_best` cannot be computed:
+                    # predict from the GP as it stands, whose posterior
+                    # matches its data (MATLAB's UpdateTarget reuses the
+                    # current posterior).
+                    self.logger.debug(
+                        "bads:optimize: GP posterior under the best hyperparameters failed; target predicted from the current GP"
+                    )
+                    f_target_mu, fs2 = gp.predict(np.atleast_2d(u))
 
             f_target_s = np.sqrt(np.max(fs2, axis=0))
             if (
