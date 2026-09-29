@@ -55,12 +55,11 @@ decisions, as ``--write`` does, and refuses new references that rounding
 could flip: it keeps the stored state, and only ``--write`` reruns the
 recipes and re-chooses the size of the reduced training sets for their
 margins (a decision that stays at its bound there needs another recipe).
-It records the reason, the date, the commit, the platform key
-and the largest change of each output in the fixture's
-``meta["rebaselined"]``, and checks that every other array is unchanged,
-that the new references reproduce and that the other oracles still pass.
-It works on any machine; a platform-bound oracle has no references to
-replace.
+It records the reason, the date, the commit, the platform key and the
+largest change of each output in the fixture's ``meta["rebaselined"]``,
+and checks that every other array is unchanged, that the new references
+reproduce and that the other oracles still pass. It works on any machine;
+a platform-bound oracle has no references to replace.
 
 ``--write --reason TEXT`` reruns the recipes and replaces every fixture,
 references included: a new baseline, for a change of the recipes or of the

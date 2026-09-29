@@ -29,16 +29,17 @@ point, ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``,
 ``func_count``, ``iterations``, ``message``, ``wall_s``, ``crashed``,
 ``exception``, ``min_noise_var`` and ``stage_times``) and ``meta`` (the
 provenance: git state, versions, the source and commit of the imported
-gpyreg, thread variables, start and end times). ``min_noise_var`` is the smallest training
-noise variance ``sn2`` over the GPs of ``iteration_history["gp"]`` and their
-hyperparameter samples: the quantity gpyreg compares with ``1e-6`` to choose
-its low-noise representation of the posterior (``gaussian_process.py``,
-where ``__core_computation`` sets ``L_chol``). ``stage_times`` holds the
-run's ``optim_state["stage_times"]`` (the function ``stage_times``): the
-seconds of each stage by path and by top-level stage, and the entries of
-each stage; None for a run that raised. A run whose stage times cannot be
-read keeps its record, with ``stage_times`` None and the exception in
-``stage_times_error``, a key that only such a record has.
+gpyreg, thread variables, start and end times). ``min_noise_var`` is the
+smallest training noise variance ``sn2`` over the GPs of
+``iteration_history["gp"]`` and their hyperparameter samples: the quantity
+gpyreg compares with ``1e-6`` to choose its low-noise representation of
+the posterior (``gaussian_process.py``, where ``__core_computation`` sets
+``L_chol``). ``stage_times`` holds the run's ``optim_state["stage_times"]``
+(the function ``stage_times``): the seconds of each stage by path and by
+top-level stage, and the entries of each stage; None for a run that
+raised. A run whose stage times cannot be read keeps its record, with
+``stage_times`` None and the exception in ``stage_times_error``, a key
+that only such a record has.
 
 ``summary`` tabulates each configuration (median and interquartile range of
 ``true_error`` and ``func_count``, the fraction solved, the crash count) and
@@ -57,9 +58,9 @@ without such evaluations gives the two populations different ones.
 the evaluations made before the run, differ between the two populations,
 and tests them all the same. It prints the effect sizes (the median paired
 log10 error ratio with a bootstrap 95% interval, the difference in
-fraction solved) and exits 1 on any flag. ``--split``
-compares the even and the odd seeds of one population with the KS tests
-alone: the null check.
+fraction solved) and exits 1 on any flag. ``--split`` compares the even
+and the odd seeds of one population with the KS tests alone: the null
+check.
 """
 
 import argparse

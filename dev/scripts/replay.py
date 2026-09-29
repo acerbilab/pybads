@@ -69,12 +69,12 @@ pairs each repeat of DIR with the first recording of its run. It refuses
 prints a warning for each difference in the gpyreg that ran (version,
 source path, commit), the requested options, the budget scale or the log
 given to the run (its digest: the earlier run that makes it is the
-PyBADS's under test, so a change can move it), and
-reports, per run, exact (bitwise) identity per stream (``evals``,
-``steps``, ``fits``, ``history``, ``result``) and otherwise the first
-divergence: the evaluation, its iteration and stage on each side, ``|dx|``
-and ``|dy|`` there (and the first evaluation whose point differs, when the
-values part first: a target whose own arithmetic moved, as the rotation of
+PyBADS's under test, so a change can move it), and reports, per run, exact
+(bitwise) identity per stream (``evals``, ``steps``, ``fits``,
+``history``, ``result``) and otherwise the first divergence: the
+evaluation, its iteration and stage on each side, ``|dx|`` and ``|dy|``
+there (and the first evaluation whose point differs, when the values part
+first: a target whose own arithmetic moved, as the rotation of
 ``rosenbrock`` does with the BLAS kernel), whether the generator's states
 agree there (they agree when the same draws came before, so that a value
 moved; they differ when a draw was added or skipped, a changed branch), the
@@ -105,10 +105,10 @@ the default configurations included, at every commit from 0d866e84
 ``benchmark_targets.THREAD_VARS``; those from before 2822c561 have no
 configuration given evaluations made before its runs, and their
 ``population.py`` no ``precomputed_summary``, which this script then does
-without. At an older commit the recording stops with ``MissingName``: its ``BADS``
-does not set ``poll_moved``, which the recorder reads. ``--repeat 2`` and
-``check DIR`` find the first computation at which two runs of one process
-differ.
+without. At an older commit the recording stops with ``MissingName``: its
+``BADS`` does not set ``poll_moved``, which the recorder reads.
+``--repeat 2`` and ``check DIR`` find the first computation at which two
+runs of one process differ.
 """
 
 import argparse
