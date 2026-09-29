@@ -22,8 +22,12 @@ What's new in PyBADS 1.1
 
 - **Reproducible runs.** Every random draw of a run comes from one NumPy
   random generator, created from the ``random_seed`` option, so a seeded run
-  gives the same result every time on the same machine and leaves NumPy's
-  global random state untouched.
+  leaves NumPy's global random state untouched and gives the same result
+  every time on the same machine. On Apple Silicon Macs, two runs with the
+  same seed can end at slightly different points: with Apple's Accelerate as
+  the linear algebra library of NumPy and SciPy (as in their wheels on
+  PyPI), the last bits of a result depend on where its arrays lie in
+  memory.
 - **More precise results with gpyreg 1.3.3.** PyBADS requires gpyreg 1.3.3,
   whose Gaussian process predictions are more accurate when the noise is very
   small; on several benchmark problems with deterministic targets, runs end
@@ -78,6 +82,7 @@ How-to
 
    installation
    quickstart
+   faq
    examples
    documentation
 

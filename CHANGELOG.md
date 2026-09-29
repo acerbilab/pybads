@@ -98,9 +98,35 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   most of them leftovers of PyVBMC, such as `warp_every_iters`,
   `variational_sampler`, `min_iter`, `diagnostics` and `gp_cov_fun`
   ("Options without effect" below).
+- `FunctionLogger.add` raises `ValueError` for an evaluation without its
+  noise SD in a logger at uncertainty handling level 2, which 1.1.0
+  recorded with an SD of 1, for a value or an SD that is a string, where
+  1.1.0 raised `TypeError`, and for one of a complex type with a zero
+  imaginary part, which 1.1.0 recorded.
 
 ### Added
 
+- **Evaluations made before the run.** `BADS(...,
+  precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
+  `specify_target_noise=True`, gives a run evaluations of the target made
+  before it, for instance by an earlier run, as MATLAB BADS's option
+  `FunValues` does. They enter the run's log of evaluations and, around the
+  incumbent, the training set of its Gaussian process, but do not count as
+  evaluations of the run (`func_count`, which `max_fun_evals` bounds), and
+  the run still starts from `x0` and its initial design. `BADS` refuses
+  points outside the hard bounds or that violate `non_box_cons`, and, unless
+  `uncertainty_handling` is `True`, two different values at one point. The
+  result reports the number of evaluations given in
+  `precomputed_observations`, and of their distinct points in
+  `precomputed_locations`, when at least one was given.
+- **FAQ.** The documentation has a [page of frequently asked
+  questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
+  MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
+  several starts, make a run reproducible, monitor or stop a run with
+  `output_fcn`, what the log transform of positive variables does, what
+  differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
+  getting-started page and Examples 3 and 4 point to it in place of the
+  MATLAB BADS wiki.
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.
@@ -219,10 +245,21 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   names of MATLAB BADS's plots, and `BADS` raises `ValueError` for any other
   value; 1.1.0 read any value as true or false by Python's rules, so that
   MATLAB's `"off"` was true.
-- **`fun_values`.** `BADS` refuses a non-empty `fun_values`, the evaluations
-  made before the run, with a message that the option is not supported yet;
-  the import never worked, and 1.1.0 stopped with an unrelated
-  `ValueError`.
+- **`fun_values`.** `BADS` refuses a non-empty `fun_values`, MATLAB BADS's
+  option of the evaluations made before the run, with a message that points
+  to the argument `precomputed_evaluations`, which takes them ("Evaluations
+  made before the run" above); the import never worked, and 1.1.0 stopped
+  with an unrelated `ValueError`.
+- **`FunctionLogger.add`.** `add` checks the value and the noise SD as the
+  logger checks the target's outputs: an array or a list of one element is
+  taken as that element, and a string or a complex value raises
+  `ValueError`. At uncertainty handling level 2, where the target returns
+  the SDs, it requires the SD, as PyVBMC's logger does.
+- **Evaluations that are not recorded.** An evaluation of the function
+  logger with `record_duplicate_data=False`, as the final samples of a
+  noisy run are, leaves the log as it is, as MATLAB BADS's log does: 1.1.0
+  added it to the count of evaluations of its point's row (`n_evals`) and
+  averaged its time into the row's.
 - **`f_vals`.** `BADS` refuses an `f_vals` that holds a finite value, with a
   message that the option is not supported; in 1.1.0 a run given one value
   stopped at its first display line, with `display="off"` too, and one given
@@ -332,10 +369,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `FunctionLogger` now merges it with its own earlier evaluation; the
   initial design, the search and the poll no longer evaluate a point again
   (see "Points evaluated again") and the final samples are not recorded, so
-  that no run of `BADS` merges one. On the 3-D ellipsoid above, run over 90
-  seeds on Linux, where 54 runs made such a merge, the fix of the merge
-  alone lowered the median error from 0.58 to 0.48, and the number of runs
-  with an error of 1 or more from 31 to 20.
+  that a run of `BADS` merges one only where the evaluations made before it
+  repeat a point ("Evaluations made before the run"). On the 3-D ellipsoid
+  above, run over 90 seeds on Linux, where 54 runs made such a merge, the
+  fix of the merge alone lowered the median error from 0.58 to 0.48, and
+  the number of runs with an error of 1 or more from 31 to 20.
 - **Prior of the GP mean.** At each rebuild of the local Gaussian process,
   the prior over its constant mean is centred at the 90th percentile of the
   training targets, with a width set by their spread, as in MATLAB BADS.
@@ -523,6 +561,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that it does, and a third is added. The module `pybads.testing.run_tests`,
   which failed on import, and six data files that no test read are no
   longer installed.
+- **Seeded runs on Apple Silicon.** The README and the documentation said
+  that a seeded run gives the same result every time on the same machine.
+  On Apple Silicon Macs, with Apple's Accelerate as the linear algebra
+  library of NumPy and SciPy (as in their wheels on PyPI), the last bits of
+  a result depend on where its arrays lie in memory, so two runs with the
+  same seed make the same random draws but can end at slightly different
+  points. The README, the documentation and the docstring of `BADS` say so,
+  and there the tests that compare two seeded runs compare the start and
+  the initial design, which the seed alone decides.
 - **Refits without poll training.** With `poll_training=False`, a poll
   after the first iteration skipped a refit of the Gaussian process that was
   due but counted it as made, which delayed the next refit of the search
@@ -655,6 +702,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   for infinite bounds and the list of the variables transformed to log
   coordinates, are shown from `"notify"` on (level 25), as MATLAB BADS
   prints them; 1.1.0 showed the caution with `"off"` too.
+- **List of the log-transformed variables.** The report of the variables
+  that PyBADS transforms to log coordinates gives their indices, such as
+  `[0, 2]`, where 1.1.0 printed pairs of indices, `[[0 0] [0 2]]`.
 - **Descriptions of the options.** `str(options)` and `Options.descriptions`
   no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
   them, that of `noise_size` among them, and give the description of an

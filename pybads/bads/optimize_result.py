@@ -52,6 +52,15 @@ class OptimizeResult(dict):
             - Final mesh size.
         - func_count: int
             - Number of evaluations of the objective functions.
+              The evaluations made before the run
+              (``precomputed_evaluations``) are not counted.
+        - precomputed_observations: int
+            - Number of evaluations made before the run that ``BADS`` was
+              given (``precomputed_evaluations``); present only when it was
+              given at least one.
+        - precomputed_locations: int
+            - Number of distinct points among them; present with
+              ``precomputed_observations``.
         - iterations: int
             - Number of iterations performed by the optimizer.
         - success: bool
@@ -73,6 +82,10 @@ class OptimizeResult(dict):
             - Termination message.
         - problem_type: str
             - Type of problem (unconstrained, bound constraints, non-box constraints).
+        - target_type: str
+            - ``"deterministic"``, ``"stochastic"`` for a noisy target
+              whose noise BADS infers, or ``"stochastic (specified
+              noise)"`` with ``specify_target_noise``.
         - total_time: float
             - Time taken by ``optimize()``, in seconds; the setup made when
               ``BADS`` is created is not counted.
@@ -84,6 +97,8 @@ class OptimizeResult(dict):
               it out, as in MATLAB BADS.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
+        - algorithm: str
+            - ``"Bayesian adaptive direct search"``.
         - version: str
             - Version of the optimizer.
 
@@ -100,6 +115,8 @@ class OptimizeResult(dict):
         "message",
         "fun",
         "func_count",  # Number of evaluations of the objective functions
+        "precomputed_observations",  # Evaluations made before the run
+        "precomputed_locations",  # Their distinct points
         "iterations",  # Number of iterations performed by the optimizer.
         "target_type",
         "problem_type",
@@ -152,6 +169,14 @@ class OptimizeResult(dict):
         # optim_state["iter"] counts from 0, and is -1 during initialization
         self["iterations"] = bads.optim_state["iter"] + 1
         self["func_count"] = bads.function_logger.func_count
+        # As PyVBMC reports them, only for a run given evaluations
+        if bads.optim_state["precomputed_observations"] > 0:
+            self["precomputed_observations"] = bads.optim_state[
+                "precomputed_observations"
+            ]
+            self["precomputed_locations"] = bads.optim_state[
+                "precomputed_locations"
+            ]
         self["mesh_size"] = bads.mesh_size
         self["overhead"] = bads.optim_state["overhead"]
         self["algorithm"] = "Bayesian adaptive direct search"

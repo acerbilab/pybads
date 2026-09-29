@@ -158,6 +158,29 @@ def test_setup_reports_from_notify_on(display, shown, caplog):
         assert reports == []
 
 
+def test_log_transform_report_lists_the_variable_indices(caplog):
+    """The report of the variables transformed to log coordinates lists
+    their indices, here 0 and 2, as the report of infinite bounds does."""
+    caplog.set_level(logging.DEBUG)
+    BADS(
+        _sphere,
+        np.array([1.0, 0.5, 1.0]),
+        np.array([1e-3, -2.0, 1e-3]),
+        np.array([1e3, 2.0, 1e3]),
+        np.array([0.1, -1.0, 0.1]),
+        np.array([10.0, 1.0, 10.0]),
+        options={"display": "notify", "random_seed": 0},
+    )
+    messages = [
+        record.getMessage()
+        for record in caplog.records
+        if "log coordinates" in record.getMessage()
+    ]
+    assert messages == [
+        "Variables (index) internally transformed to log coordinates: [0, 2]."
+    ]
+
+
 @pytest.mark.parametrize("omitted", [True, False], ids=["omitted", "given"])
 def test_plausible_bounds_omitted_warn(omitted, caplog):
     """Plausible bounds that are omitted are the hard bounds, with the

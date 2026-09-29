@@ -121,8 +121,15 @@ under `docsrc/source/api/` and an entry in the toctree that owns it
 (`documentation.rst` for a headline page, `api/classes/classes.rst` or
 `api/functions/functions.rst` otherwise). The options page includes the two
 `.ini` files verbatim, so the comment above each option is its user
-documentation. Build with `make github` in `docsrc/` (`.\make.bat github`
-from cmd on Windows), which copies the result into `docs/`.
+documentation. The FAQ, `docsrc/source/faq.md`, quotes option names and
+defaults, messages, display labels and result fields, and nothing runs its
+snippets or checks them against the code: a change to one of those is made
+in the FAQ by hand. Its table of contents is written out by hand too, and
+`skills/pybads/SKILL.md` names its sections and questions by their titles,
+and Examples 3 and 4 link its label `faq-noisy-objective-function`, so a
+question added or renamed, or a label changed, is updated there as well.
+Build with `make github` in `docsrc/` (`.\make.bat github` from cmd
+on Windows), which copies the result into `docs/`.
 
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
@@ -241,11 +248,20 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   (`record_duplicate_data=False`).
 - **`FunctionLogger`** calls the target with a 1-D `x` in the original space
   and raises `ValueError` on a NaN, infinite or non-scalar value; it
-  preallocates its arrays, and `X_flag` marks the filled rows. A repeated
-  point at level 2 is merged into its row by precision weighting, which
-  only a direct use of the logger reaches: in a run, `contraints_check`
-  removes the candidates already evaluated, and the final samples take
-  `record_duplicate_data=False`.
+  preallocates its arrays, and `X_flag` marks the filled rows. The log can
+  open with evaluations made before the run (`precomputed_evaluations`,
+  added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
+  leaves out. Code that takes the log's rows for the run's own evaluations
+  leaves them out: `_init_mesh_` chooses the first incumbent (and at level 2
+  its `fsd`) among the rows that the start and the initial design returned
+  (`_init_rows`), on which `init_and_train_gp` fits the first GP, and counts
+  `eff_starting_points` from `func_count`, and `_get_gp_training_options`
+  subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
+  reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
+  A repeated point at level 2 is merged into its row by precision weighting,
+  which a run reaches only through those evaluations: `contraints_check`
+  removes the candidates already evaluated, and the noise test and the final
+  samples take `record_duplicate_data=False`, which leaves the log as it is.
 - **Randomness goes through one `numpy.random.Generator`, `bads.rng`.**
   `BADS.__init__` creates it from `random_seed` (`pybads/rng.py: get_rng`)
   before its first draw, the random `x0`, and passes it as `rng` to
@@ -353,7 +369,13 @@ same commit, with `--rebaseline ORACLE --reason TEXT`.
   the noise of a noisy target, so a failing test fails again on each rerun,
   and CI runs each test once. A test that fails and then passes when rerun
   depends on something unseeded, in the test or in the package, which is a
-  bug to fix. The tolerances of
+  bug to fix, except on macOS arm64: there Accelerate's results depend on
+  the alignment of the arrays, so two runs of one seed need not match bit
+  for bit, and a test that compares two runs exactly can fail without any
+  unseeded draw (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
+  There a test compares two runs on what the seed alone decides, as
+  `_same` in `test_bads_seed.py` does, or checks its property directly.
+  The tolerances of
   `test_bads_optimization.py` hold over a sweep of seeds, not only at the
   seed each test runs at: when a change that moves results fails one,
   measure the errors over the seeds again with
