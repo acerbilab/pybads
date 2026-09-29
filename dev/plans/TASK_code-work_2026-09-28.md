@@ -57,6 +57,11 @@ pushes and runs `/doublecheck` at the end.
 - [!] Final `/doublecheck` on `a9f744c..a96cb03` (3 Opus reviewers): 1 must-fix (KD-B6-5 and the warmstart README: a rerun keeps the definition's values until its first refit, which needs more than the count past D), ~10 should-fix, optional items — pending the PI
 - [x] Merge `dev-next` (#97-#99, periodic variables; CI pin gpyreg `b44634f`) at `8f107be`: with gpyreg `b44634f`, fingerprint `4146a986863602cb`, 1045 passed, oracles `--check` 6/6 and `--against` a dump of `a96cb03` 1056 identical, replay 8/8 identical, dev tests 40, pre-commit clean
 
+## Round 4 (PI, 2026-09-29: fix the final double-check's findings, optional ones included)
+- [~] G1 tooling: the warmstart log in replay/profile_run/gp_update_failures; `compare` warns on unpaired logs; docstrings; tests of the new paths — worktree `fix-g1`
+- [~] G2 documents: KD-B6-5 and the warmstart README (the rerun's first refit); the README's robustness, recipe and tables; AGENTS.md's arm64 exception; TODO; changelog; optional wording — worktree `fix-g2`
+- [ ] Merge, gates (gpyreg `b44634f`), short check of the fixes
+
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
 
