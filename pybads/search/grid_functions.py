@@ -86,7 +86,9 @@ def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):
         if len(x) == 1:
             u = var_trans(x)
         else:
-            u = np.zeros(x.shape)
+            # var_trans.D columns: a transform with fixed variables leaves
+            # them out of its points
+            u = np.zeros((x.shape[0], var_trans.D))
             for i in range(0, len(x)):
                 u[i, :] = var_trans(x[i, :])
 

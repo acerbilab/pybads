@@ -152,6 +152,21 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   different values at one point. The result reports the number of
   evaluations given in `precomputed_observations`, and of their distinct
   points in `precomputed_locations`, when at least one was given.
+- **Fixed variables.** A variable whose four bounds, `lb`, `ub`, `plb`
+  and `pub`, are equal is fixed at that value, as in MATLAB BADS; 1.1.0
+  raised `ValueError`. BADS optimizes the other variables, as a run of the
+  problem reduced to them would, and the defaults of the options that
+  depend on the number of variables count only those: `max_fun_evals` is
+  500 times the number of variables that are not fixed, for instance. The target, `non_box_cons` and
+  `output_fcn` receive points of all the variables, with the fixed ones at
+  their values, and the result's `x` and `x0`, the log of evaluations and
+  `iteration_history["x"]` hold them all. `x0` at a fixed variable is its
+  value, or NaN, which stands for it; a message lists the fixed variables
+  from `display="notify"` on. The indices of `periodic_vars` count
+  all the variables, and the points of `precomputed_evaluations` hold them
+  all. `BADS` raises `ValueError` when every variable is fixed. The
+  [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)
+  shows an example.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run

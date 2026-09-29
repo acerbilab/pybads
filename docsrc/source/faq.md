@@ -390,32 +390,38 @@ meaningful, unless perhaps
 (faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)=
 ### Can I set `lb = ub` for some variable to fix it to a given value?
 
-No. PyBADS refuses a variable whose lower and upper bounds are equal with a
-`ValueError`; MATLAB BADS takes a variable whose bounds are all equal as
-fixed and optimizes the others.
-
-As a workaround, optimize a function of the other variables that inserts the
-fixed value into the full parameter vector:
+Yes: a variable whose four bounds, `lb`, `ub`, `plb` and `pub`, are equal
+is fixed at that value, as in MATLAB BADS. Where `plb` and `pub` are not
+given they are the hard bounds, so that `lb = ub` alone fixes the variable.
+`x0` at a fixed variable is its value, or NaN, which stands for it. For
+example, to fix the second of three variables at 2:
 
 ```python
-i_fixed, x_fixed = 1, 2.0  # index and value of the fixed variable
+lb = np.array([-5.0, 2.0, -5.0])
+ub = np.array([5.0, 2.0, 5.0])
+plb = np.array([-2.0, 2.0, -2.0])
+pub = np.array([2.0, 2.0, 2.0])
+x0 = np.array([0.0, 2.0, 0.0])
 
-
-def fun_reduced(x):
-    return fun(np.insert(x, i_fixed, x_fixed))
-
-
-bads = BADS(
-    fun_reduced,
-    np.delete(x0, i_fixed),
-    np.delete(lb, i_fixed),
-    np.delete(ub, i_fixed),
-    np.delete(plb, i_fixed),
-    np.delete(pub, i_fixed),
-)
+bads = BADS(fun, x0, lb, ub, plb, pub)  # optimizes x[0] and x[2]
 optimize_result = bads.optimize()
-x_full = np.insert(optimize_result["x"], i_fixed, x_fixed)
 ```
+
+PyBADS optimizes the other variables, as a run of the problem without the
+fixed ones would, and the defaults of the options that depend on the number
+of variables count only those: here `max_fun_evals` is `500 * 2`. When the
+`BADS` object is created, PyBADS lists the fixed variables (from
+`display="notify"` on). Your objective, `non_box_cons` and the
+[output function](#faq-can-i-monitor-or-stop-a-run-while-it-is-running)
+receive points of all the variables, with the fixed ones at their values,
+and `optimize_result["x"]` and `optimize_result["x0"]`, the log of
+evaluations (`bads.function_logger.X_orig`) and
+`bads.iteration_history["x"]` hold them all. The indices of
+`options["periodic_vars"]` count all the variables, and the points of
+`precomputed_evaluations` hold them all. The run's
+[internal state](#faq-where-can-i-find-the-internal-state-and-iteration-history)
+(`bads.optim_state`, the internal coordinates `"u"` and the Gaussian
+process) covers only the variables that are not fixed.
 
 (faq-how-do-i-choose-plb-and-pub)=
 ### How do I choose `plb` and `pub`?
@@ -427,7 +433,8 @@ the minimum lies inside the *plausible box* they define with probability
 above 90%. The plausible box naturally represents a good region where to
 randomly draw starting points for the optimization (see
 [above](#faq-how-do-i-choose-the-starting-point-x0)). The plausible bounds
-must be finite and satisfy `lb <= plb < pub <= ub`.
+must be finite and satisfy `lb <= plb < pub <= ub` at every variable that
+is not [fixed](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value).
 
 If you *really* have no idea about a plausible range, you can set `plb` and
 `pub` equal to `lb` and `ub`, or leave them out, in which case PyBADS uses
@@ -1173,8 +1180,10 @@ dictionary that you pass to the algorithm:
   basic option of PyBADS.
 - Change `options["search_n_try"]`. Be careful that this is an advanced
   option of PyBADS, and we do not recommend to change it unless you have to.
-  The default value is `max(D, floor(3 + D/2))`, where `D` is the
-  dimensionality of the objective function. This quantity represents the
+  The default value is `max(D, floor(3 + D/2))`, where `D` is the number
+  of variables that PyBADS optimizes, all but the
+  [fixed](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)
+  ones. This quantity represents the
   number of searches (via local Bayesian optimization) that PyBADS attempts
   in each round of searches before a poll. You can try and increase it to
   force PyBADS to search for longer in each iteration.
@@ -1243,7 +1252,10 @@ minor changes to run it on your problem. Note that:
   add to the log likelihood.
 - The plausible bounds of PyVBMC should lie strictly inside its hard bounds,
   whereas PyBADS takes plausible bounds equal to the hard ones.
-- PyVBMC does not support variables bounded on one side only.
+- PyVBMC does not support variables bounded on one side only, nor fixed
+  variables: give it a function of the other variables that inserts the
+  fixed values (`np.insert(x, i, value)`), with the bounds of the other
+  variables.
 - The solution of PyBADS is a good starting point `x0` for PyVBMC.
 - PyVBMC supports noisy targets too, and works best when the target returns
   an estimate of its noise.
@@ -1299,10 +1311,7 @@ PyBADS implements the same algorithm, with a Python interface:
   `non_box_cons` an array of shape `(N, D)`. Additional inputs of the
   objective are [bound to it](#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads)
   rather than passed to `BADS`.
-- PyBADS refuses fixed variables, which MATLAB BADS supports, with an
-  error message (see
-  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)).
-  A few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
+- A few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
   but have no effect.
 - Function evaluations made before the run, which MATLAB BADS takes in its
   option `FunValues`, are passed to `BADS` as the argument

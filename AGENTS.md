@@ -145,7 +145,9 @@ label changed, is updated there as well:
 - `faq-can-pybads-handle-any-arbitrary-amount-of-noise-in-the-objective`:
   Example 3;
 - `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6
-  and the changelog's entry "Periodic variables".
+  and the changelog's entry "Periodic variables";
+- `faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`: the
+  changelog's entry "Fixed variables".
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
 again, but for its list of the problems that PyBADS suits: `index.rst`
@@ -216,6 +218,21 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
+- **Fixed variables** (four equal bounds) are left out of the run.
+  `BADS.__init__` finds them (`_find_fixed_values`) before the options are
+  evaluated, so that `D` (`self.D`, and the `D` of the options) counts the
+  other variables. `self._fixed_values`, a row of one value per variable,
+  NaN at the free ones (all NaN when none is fixed), goes to
+  `VariableTransformer` as `fixed_values`: its `inverse_transf` returns
+  points of all the variables and its `__call__` takes them. So every point
+  that leaves the run through it (to the target, `non_box_cons` and
+  `output_fcn`, into the log's `X_orig`, `iteration_history["x"]` and the
+  result) has them all, as `self.x0` has, while `optim_state` (its
+  `*_orig` bounds and its `periodic_vars` mask too), the `u` points and the
+  GP cover the free ones. `options["periodic_vars"]` keeps the user's
+  indices, which `_run_indices` maps to the run's variables where the run
+  reads them; `_user_indices` maps back the indices that a message names.
+  New code that hands the user a point takes it through the transformer.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
   `["len_scale"]` and `["effective_radius"]` are set in
   `gaussian_process_train.py`. `poll_scale` shapes the ES-ell search and

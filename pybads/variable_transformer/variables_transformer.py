@@ -40,10 +40,29 @@ class VariableTransformer:
         transformation is applied if the bounds are all positive and the
         plausible box spans at least one order of magnitude
         (``pub/plb >= 10``), as it is to a variable whose entry is NaN.
+    fixed_values : np.ndarray, optional
+        The values of the fixed variables of a problem, when the transform
+        is of its other variables: one value per variable of the original
+        space, of shape ``(1, D_orig)`` or ``(D_orig,)``, NaN at each of the
+        ``D`` variables that the bounds describe, in their order, and the
+        value elsewhere. ``inverse_transf`` then returns points of the
+        ``D_orig`` variables, with the fixed ones at their values, and
+        ``__call__`` takes such points and transforms their other
+        coordinates. By default `None`, which, as a row of NaN, fixes no
+        variable: the original space has the ``D`` variables of the bounds.
 
     Each bound is an array of ``D`` elements, of shape ``(1, D)`` or
     ``(D,)``, or a scalar or an array of one element, which stands for the
     same bound in each dimension; bounds of integers are taken as floats.
+
+    Attributes
+    ----------
+    D_orig : int
+        The number of variables of the original space: ``D`` and the fixed
+        variables.
+    fixed_values : np.ndarray or None
+        ``fixed_values`` as a row of shape ``(1, D_orig)``, or None when it
+        fixes no variable.
 
     Raises
     ------
@@ -52,6 +71,9 @@ class VariableTransformer:
         scalar nor an array of one or ``D`` elements, when the plausible
         bounds are not finite or the bounds are out of the order above, or
         when the transform cannot be inverted at the bounds.
+    ValueError
+        When ``fixed_values`` is not a row of numbers, NaN at exactly ``D``
+        of them and finite at the others.
     """
 
     def __init__(
@@ -62,6 +84,7 @@ class VariableTransformer:
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
         apply_log_t=None,
+        fixed_values: np.ndarray = None,
     ):
         # Empty lb and ub are Infs
         if lower_bounds is None:
@@ -100,6 +123,35 @@ class VariableTransformer:
         self.pub = pub
 
         self.D = D
+        # The fixed variables, which the transform leaves out of its points
+        # and inverse_transf puts back at their values; self._free marks the
+        # variables of the bounds among the D_orig of the original space. A
+        # row of NaN, which fixes nothing, is None
+        self.D_orig = D
+        self.fixed_values = None
+        self._free = None
+        if fixed_values is not None:
+            try:
+                values = np.array(fixed_values, dtype=float, ndmin=2)
+            except (TypeError, ValueError):
+                values = None
+            if (
+                values is None
+                or values.ndim != 2
+                or values.shape[0] != 1
+                or np.sum(np.isnan(values)) != D
+                or np.any(np.isinf(values))
+            ):
+                raise ValueError(
+                    "fixed_values needs to be a row of one number per "
+                    f"variable of the original space, NaN at exactly D={D} "
+                    "of them and finite at the others, not "
+                    f"{fixed_values!r}."
+                )
+            if not np.all(np.isnan(values)):
+                self.fixed_values = values
+                self._free = np.isnan(values[0])
+                self.D_orig = values.shape[1]
         # Nonlinear log transform: NaN marks a variable whose transform is
         # decided from its bounds, and a scalar applies to every variable
         if apply_log_t is None:
@@ -255,13 +307,16 @@ class VariableTransformer:
         ----------
         input : np.ndarray
             A N x D array, where N is the number of input data
-            and D is the number of dimensions
+            and D is the number of dimensions; N x D_orig with
+            ``fixed_values``, whose fixed coordinates are left out.
 
         Returns
         -------
         u : np.ndarray
             The variables transformed.
         """
+        if self.fixed_values is not None:
+            input = np.asarray(input)[..., self._free]
         y = self.g(input)
         y = np.minimum(
             np.maximum(y, self.lb), self.ub
@@ -281,13 +336,20 @@ class VariableTransformer:
         Returns
         -------
         x : np.ndarray
-            The original variables retrieved by the inverse transform.
+            The original variables retrieved by the inverse transform; with
+            ``fixed_values``, all ``D_orig`` of them, the fixed ones at
+            their values.
         """
         x = self.ginv(input)
         x = np.minimum(
             np.maximum(x, self.orig_lb), self.orig_ub
         )  # Force to stay within bounds
         x = x.reshape(input.shape)
+        if self.fixed_values is not None:
+            full = np.empty(x.shape[:-1] + (self._free.size,))
+            full[...] = self.fixed_values[0]
+            full[..., self._free] = x
+            x = full
 
         return x
 

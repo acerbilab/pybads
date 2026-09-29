@@ -175,6 +175,104 @@ def _precomputed_values_agree(first, second):
         return abs(first - second) <= _PRECOMPUTED_DUPLICATE_ULPS * spacing
 
 
+def _bounds_as_rows(x0, lb, ub, plb, pub):
+    """
+    ``x0`` and the bounds as float arrays of shape ``(1, D)``, ``D`` the
+    number of elements of ``x0``: a scalar bound, or an array of one element,
+    is replicated in each dimension, as MATLAB BADS does
+    (``boundscheck.m``); floats, as MATLAB's doubles.
+
+    Raises
+    ------
+    ValueError
+        When ``x0`` has no element, when a bound is neither a scalar nor
+        an array of ``D`` elements, when ``x0`` has more than one row, or
+        when an input is not real.
+    """
+    N0, D = x0.shape
+    if x0.size == 0:
+        raise ValueError(
+            "The starting point x0 (or, without it, the bounds that give "
+            "its size) needs at least one element."
+        )
+    lb, ub, plb, pub = (
+        np.full((1, D), bound) if bound.size == 1 else bound
+        for bound in map(np.atleast_2d, (lb, ub, plb, pub))
+    )
+    # check that all bounds are row vectors with D elements
+    if any(bound.shape != (1, D) for bound in (lb, ub, plb, pub)):
+        raise ValueError(
+            f"""All input vectors (lower_bounds, upper_bounds,
+             plausible_lower_bounds, plausible_upper_bounds), if specified,
+             need to be of the same dimension D={D} as the starting point x_0={x0}."""
+        )
+
+    # A single starting point, as in MATLAB BADS (boundscheck.m)
+    if N0 > 1:
+        raise ValueError(
+            f"""bads:StartingSet: The starting point x0 needs to be a
+        single point, a vector of D={D} elements; x0 has {N0} rows."""
+        )
+
+    # Test that all vectors are real-valued
+    if not all(np.all(np.isreal(a)) for a in (x0, lb, ub, plb, pub)):
+        raise ValueError(
+            """All input vectors (x0, lower_bounds, upper_bounds,
+             plausible_lower_bounds, plausible_upper_bounds), if specified,
+             need to be real valued."""
+        )
+    return tuple(np.asarray(a, dtype=float) for a in (x0, lb, ub, plb, pub))
+
+
+def _find_fixed_values(x0, lb, ub, plb, pub):
+    """
+    The values of the fixed variables, those whose four bounds are equal
+    (and finite), as the ``fixed_values`` of ``VariableTransformer``: an
+    array of shape ``(1, D)``, NaN at the other variables, all NaN when no
+    variable is fixed. The inputs are rows of ``D`` floats
+    (``_bounds_as_rows``). ``x0`` at a fixed variable is its value, or not
+    finite, which stands for it; MATLAB BADS fixes a variable only where
+    ``x0`` equals its bounds (``boundscheck.m:39-40``).
+
+    Raises
+    ------
+    ValueError
+        When ``x0`` is finite at a fixed variable and differs from its
+        value, or when every variable is fixed.
+    """
+    fixed = (lb == ub) & (ub == plb) & (plb == pub) & np.isfinite(lb)
+    moved = fixed & np.isfinite(x0) & (x0 != lb)
+    if np.any(moved):
+        raise ValueError(
+            "bads:FixedVariables: the bounds of the variables (index) "
+            f"{np.flatnonzero(moved).tolist()} are all equal, which fixes "
+            "each of them at its bound, but x0 differs from it there; set "
+            "x0 to the bound (or to NaN) at a fixed variable."
+        )
+    if np.all(fixed):
+        raise ValueError(
+            "bads:FixedVariables: the four bounds of every variable are "
+            "equal, which fixes them all: there is nothing to optimize."
+        )
+    return np.where(fixed, lb, np.nan)
+
+
+def _run_indices(indices, fixed_values):
+    """The indices among the run's variables, all but the fixed ones, of the
+    variables at ``indices`` among all of them; a fixed variable has none,
+    and is left out. ``fixed_values`` is ``_find_fixed_values``'s row."""
+    free = np.isnan(fixed_values[0])
+    run_index = np.cumsum(free) - 1
+    return [int(run_index[i]) for i in indices if free[i]]
+
+
+def _user_indices(indices, fixed_values):
+    """The indices among all the variables of the run's variables at
+    ``indices``, the inverse of ``_run_indices``."""
+    free = np.flatnonzero(np.isnan(fixed_values[0]))
+    return free[np.asarray(indices, dtype=int)].tolist()
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message, the reports of the
 # setup and the message of a random starting point from "notify" on, the
@@ -221,8 +319,10 @@ class BADS:
     x0 : np.ndarray, optional
         Starting point for the optimization, a single point of ``D``
         elements, of shape ``(D,)`` or ``(1, D)``. If not specified or ``None``,
-        or if an element is not finite (``nan``, ``inf`` or ``-inf``), the
-        starting point ``x0`` is drawn at random inside the plausible box
+        or if an element is not finite (``nan``, ``inf`` or ``-inf``) at a
+        variable that is not fixed (see below), the starting point ``x0`` is
+        drawn at random, over the variables that are not fixed, inside the
+        plausible box
         between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
         below): uniformly, and log-uniformly in a variable on a log scale
         (with ``options['nonlinear_scaling']``, the default, a variable whose
@@ -242,7 +342,8 @@ class BADS:
         specified (see below). By default ``None``.
     plausible_lower_bounds, plausible_upper_bounds : np.ndarray, optional
         Specifies a set of ``plausible_lower_bounds`` (``plb``) and
-        ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``.
+        ``plausible_upper_bounds`` (``pub``) such that ``lb`` <= ``plb`` < ``pub`` <= ``ub``
+        at each variable that is not fixed (see below).
         Both ``plb`` and ``pub`` need to be finite, and are replicated in
         each dimension if scalars. If not specified, ``plb`` is ``lb`` and
         ``pub`` is ``ub``: ``plb`` needs to be specified when ``lb`` has an
@@ -252,6 +353,19 @@ class BADS:
         and ``plausible_upper_bounds`` such that there is > 90% probability that
         the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
+
+        A variable whose four bounds are equal is fixed at their value,
+        which ``x0`` holds there, or a non-finite value in its place. BADS
+        optimizes the other variables, as a run of the problem without the
+        fixed ones would: the defaults of the options that depend on the
+        number of variables count only those, and the run's internal state (``optim_state``, the transformed coordinates and the
+        Gaussian process) covers them alone. ``fun``, ``non_box_cons`` and
+        ``options['output_fcn']`` receive points of all the variables, with
+        the fixed ones at their values, and the result's ``x`` and ``x0``,
+        the function log and the points ``"x"`` of ``iteration_history``
+        hold them all; the indices of ``options['periodic_vars']`` count
+        them all, and the points of ``precomputed_evaluations`` hold them
+        all.
 
     non_box_cons : callable, optional
         A given non-box constraints function that specifies constraint
@@ -361,8 +475,10 @@ class BADS:
     ValueError
         When ``x0`` or the bounds fail the checks of their shapes, values and
         order: for instance an ``x0`` of more than one row, plausible bounds
-        that are not finite, or bounds out of the order ``lb <= plb < pub <=
-        ub``.
+        that are not finite, bounds out of the order ``lb <= plb < pub <=
+        ub`` at a variable that is not fixed, a finite ``x0`` that differs
+        from the value of a fixed variable, or bounds that fix every
+        variable.
     ValueError
         When ``non_box_cons``, given an ``(N, D)`` array, does not return an
         array of shape ``(N,)`` or ``(N, 1)``, or when ``x0`` violates the
@@ -388,8 +504,9 @@ class BADS:
         ``non_box_cons``, or when a point given twice has two different
         values where a point is kept once.
     ImportError
-        When ``options['periodic_vars']`` names a variable and the installed
-        gpyreg is older than 1.4.0, whose kernels take the periods.
+        When ``options['periodic_vars']`` names a variable that is not fixed
+        and the installed gpyreg is older than 1.4.0, whose kernels take the
+        periods.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -438,34 +555,64 @@ class BADS:
         # variable to keep track of logging actions
         self.logging_action = []
 
-        # Initialize variables and algorithm structures. Missing plausible
-        # bounds are the hard bounds, with the warning bads:pbUnspecified
-        # once the logger is set up, as MATLAB BADS warns whenever it fills
-        # them (boundscheck.m:12-16)
-        pb_filled = False
-        if plausible_lower_bounds is None and lower_bounds is not None:
-            plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
-            pb_filled = True
-        if plausible_upper_bounds is None and upper_bounds is not None:
-            plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
-            pb_filled = True
-
+        # Initialize variables and algorithm structures. A missing x0 is a
+        # random start of the size of the plausible bounds, or else of the
+        # hard ones, which the missing plausible bounds are, as in MATLAB
+        # BADS: a list or a Python scalar sizes it as an array does
         if x0 is None:
-            if (
-                plausible_lower_bounds is None
-                or plausible_upper_bounds is None
-            ):
+            lb_size = (
+                lower_bounds
+                if plausible_lower_bounds is None
+                else plausible_lower_bounds
+            )
+            ub_size = (
+                upper_bounds
+                if plausible_upper_bounds is None
+                else plausible_upper_bounds
+            )
+            if lb_size is None or ub_size is None:
                 raise ValueError(
                     """bads:UnknownDims If no starting point is
                  provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
                 )
-            else:
-                # A random start of the plausible bounds' size, as in MATLAB
-                # BADS: a list or a Python scalar sizes it as an array does
-                x0 = np.full(np.shape(plausible_lower_bounds), np.nan)
-
+            x0 = np.full(np.shape(np.atleast_2d(lb_size)), np.nan)
         x0 = np.atleast_2d(x0)
-        self.D = x0.shape[1]
+
+        # Empty lb and ub are Infs. Missing plausible bounds are the hard
+        # bounds, with the warning bads:pbUnspecified once the logger is set
+        # up, as MATLAB BADS warns whenever it fills them
+        # (boundscheck.m:12-16); a plausible bound that is then infinite is
+        # refused by _bounds_check_
+        if lower_bounds is None:
+            lower_bounds = np.full((1, x0.shape[1]), -np.inf)
+        if upper_bounds is None:
+            upper_bounds = np.full((1, x0.shape[1]), np.inf)
+        pb_filled = plausible_lower_bounds is None or (
+            plausible_upper_bounds is None
+        )
+        if plausible_lower_bounds is None:
+            plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
+        if plausible_upper_bounds is None:
+            plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
+        x0, lb, ub, plb, pub = _bounds_as_rows(
+            x0,
+            lower_bounds,
+            upper_bounds,
+            plausible_lower_bounds,
+            plausible_upper_bounds,
+        )
+
+        # Fixed variables, whose four bounds are equal, are left out of the
+        # run: D, with which the options are evaluated, counts the others, as
+        # in MATLAB BADS. The variable transformer puts the fixed variables
+        # back into every point that leaves the run, so that the target,
+        # non_box_cons, output_fcn, the function log, the iteration history
+        # and the result see points of all the variables; x0 holds them all
+        # too, the fixed ones at their values
+        self._fixed_values = _find_fixed_values(x0, lb, ub, plb, pub)
+        free = np.isnan(self._fixed_values[0])
+        x0 = np.where(free, x0, self._fixed_values)
+        self.D = int(np.sum(free))
 
         # load basic and advanced options and validate the names
         pybads_path = os.path.dirname(os.path.realpath(__file__))
@@ -516,44 +663,33 @@ class BADS:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(_LOG_NOTIFY)
-        # A plausible bound still missing (its hard bound missing too) gets
-        # the warning in _bounds_check_
-        if (
-            pb_filled
-            and plausible_lower_bounds is not None
-            and plausible_upper_bounds is not None
-        ):
+        if pb_filled:
             self.logger.warning(_PB_UNSPECIFIED)
 
-        # Empty lb and ub are Infs
-        if lower_bounds is None:
-            lower_bounds = np.ones((1, self.D)) * -np.inf
-
-        if upper_bounds is None:
-            upper_bounds = np.ones((1, self.D)) * np.inf
-
-        # Check/fix boundaries and starting points
-        (
-            self.x0,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.plausible_lower_bounds,
-            self.plausible_upper_bounds,
-        ) = self._bounds_check_(
-            x0.copy(),
-            lower_bounds,
-            upper_bounds,
-            plausible_lower_bounds,
-            plausible_upper_bounds,
-            non_box_cons,
-        )
+        # Check boundaries and starting points
+        self._bounds_check_(x0, lb, ub, plb, pub, non_box_cons)
+        self.x0 = x0
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
 
         # Checked before _init_optim_state_ transforms the variables, which
         # never takes a periodic variable to log coordinates, and draws a
         # random x0
-        self._check_periodic_vars_()
+        self._check_periodic_vars_(lb, ub)
+
+        # The run's bounds are those of the variables it optimizes, and the
+        # transform that _init_optim_state_ builds from them takes the fixed
+        # variables' values
+        self.lower_bounds = lb[:, free]
+        self.upper_bounds = ub[:, free]
+        self.plausible_lower_bounds = plb[:, free]
+        self.plausible_upper_bounds = pub[:, free]
+        if not np.all(free):
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) fixed at their bounds and left out of the "
+                f"optimization: {np.flatnonzero(~free).tolist()}.",
+            )
 
         # evaluate  starting point non-bound constraint (a missing or
         # non-finite start is drawn in _init_optim_state_, where it is put on
@@ -613,65 +749,14 @@ class BADS:
         x0: np.ndarray,
         lower_bounds: np.ndarray,
         upper_bounds: np.ndarray,
-        plausible_lower_bounds: np.ndarray = None,
-        plausible_upper_bounds: np.ndarray = None,
+        plausible_lower_bounds: np.ndarray,
+        plausible_upper_bounds: np.ndarray,
         non_box_cons: callable = None,
     ):
         """
-        Private function for initial checks of the BADS bounds.
+        Check ``x0`` and the bounds, rows of ``D`` floats
+        (``_bounds_as_rows``), for all the variables, fixed ones included.
         """
-
-        N0, D = x0.shape
-
-        # Hard bounds for the plausible bounds that are not specified
-        if plausible_lower_bounds is None or plausible_upper_bounds is None:
-            self.logger.warning(_PB_UNSPECIFIED)
-            if plausible_lower_bounds is None:
-                plausible_lower_bounds = np.copy(lower_bounds)
-            if plausible_upper_bounds is None:
-                plausible_upper_bounds = np.copy(upper_bounds)
-
-        # ensure at least 2d dimensions
-        upper_bounds = np.atleast_2d(upper_bounds)
-        lower_bounds = np.atleast_2d(lower_bounds)
-        plausible_upper_bounds = np.atleast_2d(plausible_upper_bounds)
-        plausible_lower_bounds = np.atleast_2d(plausible_lower_bounds)
-        # replicate scalar bounds in each dimension, as MATLAB BADS does
-        # (boundscheck.m)
-        (
-            upper_bounds,
-            lower_bounds,
-            plausible_upper_bounds,
-            plausible_lower_bounds,
-        ) = (
-            np.full((1, D), bound) if bound.size == 1 else bound
-            for bound in (
-                upper_bounds,
-                lower_bounds,
-                plausible_upper_bounds,
-                plausible_lower_bounds,
-            )
-        )
-        # check that all bounds are row vectors with D elements
-        if (
-            lower_bounds.shape != (1, D)
-            or upper_bounds.shape != (1, D)
-            or plausible_lower_bounds.shape != (1, D)
-            or plausible_upper_bounds.shape != (1, D)
-        ):
-            raise ValueError(
-                f"""All input vectors (lower_bounds, upper_bounds,
-                 plausible_lower_bounds, plausible_upper_bounds), if specified,
-                 need to be of the same dimension D={D} as the starting point x_0={x0}."""
-            )
-
-        # A single starting point, as in MATLAB BADS (boundscheck.m)
-        if N0 > 1:
-            raise ValueError(
-                f"""bads:StartingSet: The starting point x0 needs to be a
-            single point, a vector of D={D} elements; x0 has {N0} rows."""
-            )
-
         # check that plausible bounds are finite
         if np.any(np.invert(np.isfinite(plausible_lower_bounds))) or np.any(
             np.invert(np.isfinite(plausible_upper_bounds))
@@ -680,56 +765,17 @@ class BADS:
                 "Plausible interval bounds plausible_lower_bounds and plausible_upper_bounds need to be finite."
             )
 
-        # Test that all vectors are real-valued
-        if (
-            np.any(np.invert(np.isreal(x0)))
-            or np.any(np.invert(np.isreal(lower_bounds)))
-            or np.any(np.invert(np.isreal(upper_bounds)))
-            or np.any(np.invert(np.isreal(plausible_lower_bounds)))
-            or np.any(np.invert(np.isreal(plausible_upper_bounds)))
-        ):
-            raise ValueError(
-                """All input vectors (x0, lower_bounds, upper_bounds,
-                 plausible_lower_bounds, plausible_upper_bounds), if specified,
-                 need to be real valued."""
-            )
-
-        # Floats, as MATLAB's doubles: VariableTransformer writes the log of
-        # the bounds in place, which an integer array would truncate
-        (
-            x0,
-            lower_bounds,
-            upper_bounds,
-            plausible_lower_bounds,
-            plausible_upper_bounds,
-        ) = (
-            np.asarray(array, dtype=float)
-            for array in (
-                x0,
-                lower_bounds,
-                upper_bounds,
-                plausible_lower_bounds,
-                plausible_upper_bounds,
-            )
-        )
-
-        # Fixed variables (all bounds equal) are not supported
-        fix_idx = (
-            (lower_bounds == upper_bounds)
-            & (upper_bounds == plausible_lower_bounds)
-            & (plausible_lower_bounds == plausible_upper_bounds)
-        )
-        if np.any(fix_idx):
-            raise ValueError(
-                """bads:FixedVariables BADS does not support fixed
-            variables. Lower and upper bounds should be different."""
-            )
+        # The fixed variables (_find_fixed_values), whose four bounds are equal,
+        # pass the tests of distinct and ordered plausible bounds; any other
+        # variable with equal plausible bounds is refused
+        fixed = ~np.isnan(self._fixed_values)
 
         # Test that plausible bounds are different
-        if np.any(plausible_lower_bounds == plausible_upper_bounds):
+        if np.any((plausible_lower_bounds == plausible_upper_bounds) & ~fixed):
             raise ValueError(
-                """bads:MatchingPB:For all variables,
-            plausible lower and upper bounds need to be distinct."""
+                "bads:MatchingPB: For all variables, plausible lower and "
+                "upper bounds need to be distinct, except at a fixed "
+                "variable, whose four bounds are all equal."
             )
 
         # Check that all X0 are inside the bounds. As in MATLAB BADS
@@ -752,7 +798,7 @@ class BADS:
             & (plausible_lower_bounds < plausible_upper_bounds)
             & (plausible_upper_bounds <= upper_bounds)
         )
-        if np.any(np.invert(ordidx)):
+        if np.any(np.invert(ordidx | fixed)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
             plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
@@ -783,7 +829,8 @@ class BADS:
         is_inf = np.isinf(np.concatenate([lower_bounds, upper_bounds]))
         ninfs = np.sum(is_inf)
         if ninfs > 0:
-            if ninfs == 2 * D:
+            # Every bound of the variables that are not fixed
+            if ninfs == 2 * np.sum(~fixed):
                 self.logger.log(
                     _LOG_NOTIFY, "Detected fully unconstrained optimization."
                 )
@@ -793,14 +840,6 @@ class BADS:
                     f"Detected {ninfs} infinite bound(s), in variables"
                     f" (index) {np.flatnonzero(np.any(is_inf, 0)).tolist()}.",
                 )
-
-        return (
-            x0,
-            lower_bounds,
-            upper_bounds,
-            plausible_lower_bounds,
-            plausible_upper_bounds,
-        )
 
     def _init_optim_state_(self):
         """
@@ -855,11 +894,17 @@ class BADS:
         optim_state["lb"] = self.lower_bounds.copy()
         optim_state["ub"] = self.upper_bounds.copy()
 
-        # Periodic variables, a (1, D) mask; their bounds were checked finite
-        # by _check_periodic_vars_
+        # Periodic variables, a (1, D) mask over the run's variables, which
+        # leaves out a fixed one; their bounds were checked finite by
+        # _check_periodic_vars_
         periodic_vars = np.zeros((1, self.D), dtype=bool)
         if self.options["periodic_vars"] is not None:
-            periodic_vars[:, self.options["periodic_vars"]] = True
+            periodic_vars[
+                :,
+                _run_indices(
+                    self.options["periodic_vars"], self._fixed_values
+                ),
+            ] = True
         optim_state["periodic_vars"] = periodic_vars
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
@@ -975,19 +1020,20 @@ class BADS:
         # Report variable transformation, from "notify" on, as MATLAB BADS
         # does (setupvars.m:118-120), with the indices of the variables
         if np.any(self.var_transf.apply_log_t):
+            log_vars = np.flatnonzero(self.var_transf.apply_log_t)
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) internally transformed to log "
-                "coordinates: "
-                f"{np.flatnonzero(self.var_transf.apply_log_t).tolist()}.",
+                f"coordinates: {_user_indices(log_vars, self._fixed_values)}.",
             )
 
         # Report the periodic variables
-        if self.options["periodic_vars"] is not None:
+        if np.any(optim_state["periodic_vars"]):
+            periodic_vars = np.flatnonzero(optim_state["periodic_vars"])
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) defined with periodic boundaries: "
-                f"{self.options['periodic_vars']}",
+                f"{_user_indices(periodic_vars, self._fixed_values)}",
             )
 
         # Setup covariance information (unused)
@@ -1441,7 +1487,11 @@ class BADS:
                 "precomputed_evaluations must be a tuple (X, y), or (X, y, "
                 "y_sd) with options['specify_target_noise']."
             )
-        X = _precomputed_array(evaluations[0], (None, self.D), "points X")
+        # The points hold all the variables, fixed ones included, as the
+        # target takes them
+        X = _precomputed_array(
+            evaluations[0], (None, self.var_transf.D_orig), "points X"
+        )
         n_rows = X.shape[0]
         y = _precomputed_array(evaluations[1], (n_rows,), "values y")
         y_sd = None
@@ -1469,11 +1519,13 @@ class BADS:
                 'options["specify_target_noise"] = True.'
             )
 
-        outside = np.any(
-            (X < self.optim_state["lb_orig"])
-            | (X > self.optim_state["ub_orig"]),
-            axis=1,
-        )
+        # The hard bounds of all the variables: a point whose coordinate at a
+        # fixed variable is not its value lies outside them
+        free = np.isnan(self._fixed_values[0])
+        lb_orig, ub_orig = self._fixed_values.copy(), self._fixed_values.copy()
+        lb_orig[:, free] = self.optim_state["lb_orig"]
+        ub_orig[:, free] = self.optim_state["ub_orig"]
+        outside = np.any((X < lb_orig) | (X > ub_orig), axis=1)
         if np.any(outside):
             raise ValueError(
                 "The points X of precomputed_evaluations must lie within the "
@@ -1555,15 +1607,21 @@ class BADS:
                 f"e^6 (about 403), not {tol_fun!r}."
             )
 
-    def _check_periodic_vars_(self):
+    def _check_periodic_vars_(self, lower_bounds, upper_bounds):
         """
         Check ``periodic_vars`` and store it as a sorted list of indices, or
         ``None`` when it names no variable. An empty value names none, as in
         MATLAB BADS (``setupvars.m``). The indices are integers from 0 to
-        ``D - 1``, each given once; a boolean mask is refused rather than
-        read as the indices 0 and 1. A periodic variable wraps around its
-        hard bounds, ``[lb, ub)``, which must be finite, as MATLAB BADS
-        requires.
+        one less than the number of variables, each given once; a boolean
+        mask is refused rather than read as the indices 0 and 1. A periodic
+        variable wraps around its hard bounds, ``[lb, ub)``, which must be
+        finite, as MATLAB BADS requires.
+
+        The indices count all the variables, fixed ones included, and are
+        checked against their hard bounds, ``lower_bounds`` and
+        ``upper_bounds``. A fixed variable is left out of the run, periodic
+        or not: the run's mask of periodic variables and the transform map
+        the indices to its variables (``_run_indices``).
         """
         value = self.options["periodic_vars"]
         if value is None or (
@@ -1571,6 +1629,7 @@ class BADS:
         ):
             self.options["periodic_vars"] = None
             return
+        D_orig = lower_bounds.shape[1]
         indices = np.atleast_1d(np.asarray(value))
         # A boolean among integers, which NumPy casts to 0 or 1, is refused
         # as a mask is
@@ -1581,14 +1640,14 @@ class BADS:
         if indices.dtype.kind not in "iu" or indices.ndim != 1 or has_bool:
             raise ValueError(
                 "options['periodic_vars'] should be a list of the indices of "
-                "the periodic variables, integers from 0 to D - 1 (a boolean "
-                "mask m gives them as np.flatnonzero(m)), not "
-                f"{value!r}."
+                "the periodic variables, integers from 0 to one less than the "
+                "number of variables (a boolean mask m gives them as "
+                f"np.flatnonzero(m)), not {value!r}."
             )
-        if np.any(indices < 0) or np.any(indices >= self.D):
+        if np.any(indices < 0) or np.any(indices >= D_orig):
             raise ValueError(
                 "options['periodic_vars'] holds indices outside 0 to "
-                f"D - 1 = {self.D - 1}: {value!r}."
+                f"{D_orig - 1}, those of the {D_orig} variables: {value!r}."
             )
         if np.unique(indices).size != indices.size:
             raise ValueError(
@@ -1600,8 +1659,8 @@ class BADS:
             i
             for i in indices
             if not (
-                np.isfinite(self.lower_bounds[0, i])
-                and np.isfinite(self.upper_bounds[0, i])
+                np.isfinite(lower_bounds[0, i])
+                and np.isfinite(upper_bounds[0, i])
             )
         ]
         if infinite:
@@ -1611,7 +1670,9 @@ class BADS:
                 f"variables {infinite} of options['periodic_vars'] are not "
                 "finite."
             )
-        if not _gpyreg_takes_periods():
+        if _run_indices(indices, self._fixed_values) and not (
+            _gpyreg_takes_periods()
+        ):
             raise ImportError(
                 "Periodic variables need gpyreg 1.4.0 or later, whose "
                 "kernels take periods; the installed gpyreg does not."
@@ -1620,13 +1681,15 @@ class BADS:
 
     def _variable_transformer_(self):
         """The transformation of the variables, from the bounds in the
-        original space and the ``nonlinear_scaling`` option."""
+        original space and the ``nonlinear_scaling`` option, with the values
+        of the fixed variables, which it puts back into the points it
+        returns to the original space."""
         if self.options["nonlinear_scaling"]:
             logflag = np.full((1, self.D), np.nan)
             periodic_vars = self.options["periodic_vars"]
             if periodic_vars is not None and len(periodic_vars) != 0:
                 logflag[
-                    :, periodic_vars
+                    :, _run_indices(periodic_vars, self._fixed_values)
                 ] = 0  # Never transform periodic variables
         else:
             logflag = np.zeros((1, self.D))
@@ -1638,6 +1701,7 @@ class BADS:
             self.plausible_lower_bounds,
             self.plausible_upper_bounds,
             logflag,
+            fixed_values=self._fixed_values,
         )
 
     def _init_rng_(self):

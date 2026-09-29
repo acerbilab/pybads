@@ -327,7 +327,8 @@ def test_descriptions_are_whole_comment_lines():
         "specify_target_noise"
     )
     assert descriptions["periodic_vars"] == (
-        "Indices (from 0) of the periodic variables, such as angles, e.g. "
+        "Indices (from 0, counting the fixed variables) of the periodic "
+        "variables, such as angles, e.g. "
         "periodic_vars = [2, 3]; each wraps around its hard bounds, which "
         "need to be finite and are its period"
     )

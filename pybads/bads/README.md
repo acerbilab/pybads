@@ -25,7 +25,6 @@ feature*.
 
 ## Open porting work
 
-* Fixed variables (KD-B1-7).
 * Benchmark PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
 
@@ -216,15 +215,48 @@ value, which rounding makes differ for a periodic target.
   ARD kernels); W3-35 and W4-11, the call sites of `period_check`. Kind:
   deliberate change.
 
-**KD-B1-7. Fixed variables are refused.**
-A variable whose bounds are all equal makes PyBADS raise `ValueError`;
-MATLAB BADS fixes it and optimizes the others. MATLAB's test also asks
-that `x0` equal the bound, which PyBADS's leaves out: with all four bounds
-equal, any other `x0` lies outside them and is refused on both sides.
-- PyBADS: `BADS._bounds_check_`.
+**KD-B1-7. Fixed variables: a non-finite `x0` stands for the value, and the log and the history hold all the variables.**
+A variable whose four bounds are equal is fixed, and the run optimizes the
+others, as in MATLAB BADS: the options are evaluated with `D` the number of
+free variables, a fixed periodic variable is not periodic in the run, and
+the target, `non_box_cons` and the output function receive points of all
+the variables.
+
+MATLAB also asks that `x0` equal the bounds, so that at a variable whose
+four bounds are equal an `x0` that differs, NaN included, leaves the
+variable free, and `setupvars.m` then refuses the order of its bounds.
+PyBADS takes a non-finite `x0` there as the value, and refuses a finite
+`x0` that differs with a message that names the variable.
+
+MATLAB runs `bads` again on the free variables, with the target,
+`non_box_cons` and the output function wrapped by `expandvars`, and lifts
+`x` and, with five outputs or more, `optimState.X` back to all the
+variables. PyBADS's variable transform, which every point that leaves the
+run goes through, drops the fixed coordinates of the points it takes and
+puts them back into those it returns, so that the result's `x` and `x0`,
+the function log's `X_orig` and the points `"x"` of `iteration_history`
+hold all the variables too, while `optim_state`, the transformed points and
+the GP cover the free ones, as MATLAB's `optimState` does but for its `X`.
+
+MATLAB rewrites `PeriodicVars` over the free variables through `eval`,
+which fails on the numeric value that `bads_examples.m` passes, and drops
+the fixed columns of `FunValues.X` unchecked. PyBADS keeps `periodic_vars`
+as given, over all the variables, and refuses a point of
+`precomputed_evaluations` whose coordinate at a fixed variable differs from
+its value, as outside the hard bounds.
+
+With every variable fixed, MATLAB fails in its call on no variables (`If no
+starting point is provided, PLB and PUB need to be specified`), and PyBADS
+raises a `ValueError` saying that there is nothing to optimize. PyBADS
+names the fixed variables from `display="notify"` on, as it names those on
+a log scale and the periodic ones; MATLAB does not.
+- PyBADS: `_bounds_as_rows`, `_find_fixed_values`, `_run_indices` and
+  `_user_indices`, `BADS.__init__`, `_check_periodic_vars_` and
+  `_import_precomputed_evaluations_` (`pybads/bads/bads.py`);
+  `VariableTransformer`'s `fixed_values`; `FunctionLogger`'s `D_orig`.
 - MATLAB: `private/boundscheck.m:39-40`; `bads.m:351-382`, `1480-1488`
-  (`expandvars`); `private/fixedbads.m`.
-- Kind: unported feature (open porting work, above; `dev/TODO.md`).
+  (`expandvars`); `private/fixedbads.m`; `private/setupvars.m:7-9`.
+- Kind: deliberate change.
 
 **KD-B1-8. The result is an `OptimizeResult` dict, not MATLAB's six outputs.**
 PyBADS returns a SciPy-style dict (`x`, `x0`, `fval`, `fsd`, `yval_vec`,
@@ -297,7 +329,7 @@ With `x0` missing and the plausible bounds omitted, MATLAB BADS refuses
 the problem (`bads.m:332-343`). PyBADS takes the hard bounds for the
 plausible bounds and draws the start in the plausible box, as it draws any
 missing start.
-- PyBADS: `BADS.__init__`, `BADS._bounds_check_`.
+- PyBADS: `BADS.__init__`.
 - MATLAB: `bads.m:332-343`.
 - Settled by: W2-9. Kind: deliberate change.
 
