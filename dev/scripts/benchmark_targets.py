@@ -129,6 +129,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # The package of this checkout, whichever checkout is installed.
 sys.path.insert(0, str(REPO_ROOT))
 
+# The variables that set the number of BLAS and OpenMP threads, which the
+# tools set to one for their runs and record: OpenMP, OpenBLAS, MKL, and
+# Accelerate on macOS
+THREAD_VARS = (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+)
+
 # Fixes the shift and the rotation of every target per (name, D),
 # independently of the run seed: every run of every version sees the same
 # targets.
@@ -1088,14 +1098,28 @@ _PROFILE = (
     "sphere_D3_hetero",
 )
 
+
+def _subset(configs, labels, suite):
+    """The configurations of ``configs`` whose labels are in ``labels``, in
+    the order of ``configs``; a label that none has raises, so that a suite
+    never loses a configuration without notice."""
+    missing = sorted(set(labels) - {c.label for c in configs})
+    if missing:
+        raise ValueError(
+            f"suite {suite!r} names configurations that the default suite"
+            f" does not have: {', '.join(missing)}"
+        )
+    return [c for c in configs if c.label in labels]
+
+
 SUITES = {
-    "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
+    "smoke": _subset(_DEFAULT, _SMOKE, "smoke"),
     "default": _DEFAULT,
     "oned": _ONED,
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
     "thinband": _THINBAND,
-    "profile": [c for c in _DEFAULT if c.label in _PROFILE],
+    "profile": _subset(_DEFAULT, _PROFILE, "profile"),
 }
 
 
@@ -1287,9 +1311,10 @@ def run_check(configs, only=None):
 
 
 def single_thread_env():
-    """One BLAS thread per process and a headless matplotlib, for the
-    spawned processes of ``--smoke`` and ``population.py run``."""
-    for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    """One BLAS thread per process (every variable of ``THREAD_VARS``) and a
+    headless matplotlib, for the processes that ``--smoke``, ``population.py
+    run`` and the other tools start after calling it."""
+    for k in THREAD_VARS:
         os.environ[k] = "1"
     os.environ["MPLBACKEND"] = "Agg"
 

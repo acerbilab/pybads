@@ -34,7 +34,9 @@ its low-noise representation of the posterior (``gaussian_process.py``,
 where ``__core_computation`` sets ``L_chol``). ``stage_times`` holds the
 run's ``optim_state["stage_times"]`` (the function ``stage_times``): the
 seconds of each stage by path and by top-level stage, and the entries of
-each stage; None for a run that raised.
+each stage; None for a run that raised. A run whose stage times cannot be
+read keeps its record, with ``stage_times`` None and the exception in
+``stage_times_error``, a key that only such a record has.
 
 ``summary`` tabulates each configuration (median and interquartile range of
 ``true_error`` and ``func_count``, the fraction solved, the crash count) and
@@ -162,8 +164,9 @@ def module_source(name):
 
 
 def thread_env():
-    keys = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")
-    return {k: os.environ.get(k) for k in keys}
+    """The thread variables of ``benchmark_targets.THREAD_VARS`` as the
+    process sees them (None for one that is not set)."""
+    return {k: os.environ.get(k) for k in bt.THREAD_VARS}
 
 
 def jsonable(v):
@@ -304,7 +307,10 @@ def _final(prob, bads, res, exc, wall):
             out["min_noise_var"] = min_noise_var(bads)
         except Exception:  # noqa: BLE001  (keep the run; the field stays None)
             pass
-        out["stage_times"] = stage_times(bads)
+        try:
+            out["stage_times"] = stage_times(bads)
+        except Exception as e:  # noqa: BLE001  (keep the run, with a note)
+            out["stage_times_error"] = f"{type(e).__name__}: {e}"
     return out
 
 

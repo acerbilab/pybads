@@ -11,7 +11,13 @@ every run ending on BADS's own termination, which set the suite's budgets
 """
 import os
 
-for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+# benchmark_targets.THREAD_VARS, set before NumPy loads its BLAS
+for k in (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+):
     os.environ[k] = "1"
 os.environ.setdefault("MPLBACKEND", "Agg")
 
