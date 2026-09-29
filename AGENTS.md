@@ -349,20 +349,20 @@ change that must move nothing shows the same hash of
 same gpyreg and the same number of BLAS threads: one thread
 (`OMP_NUM_THREADS=1` and its kin) and the default can give different
 hashes of the same commit, and a recorded hash names its setting.
-`dev/scripts/replay.py` compares two commits' runs step by step, on one
-machine and one BLAS setting, and reports the first evaluation and the
-earliest GP computation at which they part. The initial design, which
-involves no BLAS work, is pinned on every platform by
-`test_initial_design_pin.py`; a change that moves it on purpose
-regenerates the fixture in the same commit, as the test's docstring says.
-The oracles of `pybads/testing/oracles/` pin PyBADS's components on stored
-states, under tolerances measured across BLAS settings; a change that must
-move nothing also passes `dev/scripts/make_oracle_fixtures.py --check
---exact` (on another machine than the one that generated the fixtures,
-against a `--dump` of the parent commit). Never loosen an oracle's
-tolerance or regenerate the fixtures to make a change pass: a change that
-moves an oracle on purpose replaces that oracle's references alone, in the
-same commit, with `--rebaseline ORACLE --reason TEXT`.
+On one machine, a change that must move nothing also shows
+`dev/scripts/replay.py check` identical against the parent commit (the
+first evaluation and GP computation at which two commits' runs part), and
+`dev/scripts/make_oracle_fixtures.py --check --exact --against` a
+`--dump` of the parent commit identical (the oracles of
+`pybads/testing/oracles/`, PyBADS's components on stored states);
+`dev/README.md` gives the procedures. On every platform, the tests pin the
+initial design, which involves no BLAS work (`test_initial_design_pin.py`,
+whose fixture a change that moves the design on purpose regenerates in the
+same commit), and the oracles' stored references, under tolerances
+measured across BLAS settings. Never loosen an oracle's tolerance or
+regenerate the fixtures to make a change pass: a change that moves an
+oracle on purpose replaces that oracle's references alone, in the same
+commit, with `--rebaseline ORACLE --reason TEXT`.
 
 ## Tests and their traps
 

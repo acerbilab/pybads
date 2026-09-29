@@ -125,7 +125,8 @@ decided on; "the next release" below means it.
   Oracles computed by MATLAB BADS on the same states would check the pure
   pieces that are not deliberate differences (`pybads/bads/README.md`):
   `transvars.m`, `udist.m`, `force2grid.m`, `ucov.m`, the priors of
-  `gpdefBads.m` but the cases of KD-B6-2, `acqLCB.m` with `gppred.m` at
+  `gpdefBads.m` but the cases of KD-B6-2 and the centre of the mean's
+  prior on one point (KD-B6-5), `acqLCB.m` with `gppred.m` at
   fixed hyperparameters, the ES search's weights, `searchHedge.m`'s update
   and `pollMADS2N.m` with injected draws. The fixtures are the inputs such
   a harness would take: plain arrays and JSON, with prescribed draws

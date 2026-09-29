@@ -93,27 +93,40 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   (`_recipes.py`: deterministic at D = 2 and 3, with inferred noise, with
   the target's noise, with log-transformed variables and with a non-box
   constraint), taken at the start of a search or poll step and saved as
-  plain arrays and JSON, with the outputs of 14 oracles of PyBADS's
-  components computed from them: the GP's predictions, the LCB, the
-  variable transform, the grid functions, `contraints_check`, `_gp_hyp`,
-  the choice of the local training set, the ES search's set-up and
-  generations, the hedge, the improvement and Sto-BADS's outcome,
-  `poll_mads_2n`, and two platform-bound ones, a GP refit and an ES search
-  step. Where a component draws, its draws are prescribed: exact
-  arithmetic on PCG64's raw stream, the same everywhere. The tests
-  (`pytest pybads/testing/oracles`, about 3 s) recompute them on every
-  platform under the tolerances measured across BLAS threads and kernels
-  (the docstring of `_oracles.py`). `--check` does the same and exits 1 on
-  a failure; `--check --exact` compares bit for bit, the gate for a change
-  that must move nothing on the machine that generated the fixtures, with
-  one BLAS thread (the script's default); `--dump DIR` and `--check
-  --exact --against DIR` are that gate on any other machine; `--rebaseline
-  ORACLE --reason TEXT` replaces one oracle's references, for a change
-  that moves it on purpose, and records the reason and the commit in the
-  fixtures; `--write --reason TEXT` reruns the recipes, a new baseline.
-  The oracles gate a component's numbers on fixed inputs, not a run:
-  whole trajectories are `replay.py`'s, on one machine, and the
-  distribution of results the population comparison's.
+  plain arrays and JSON, with the outputs of PyBADS's components computed
+  from them: the GP's predictions, the LCB, the variable transform, the
+  grid functions, `contraints_check`, `_gp_hyp`, the choice of the local
+  training set, the ES search's set-up and generations, the hedge, the
+  improvement and Sto-BADS's outcome, and `poll_mads_2n`. Where a
+  component draws, its draws are prescribed: exact arithmetic on PCG64's
+  raw stream, the same everywhere. The fixtures store the portable outputs
+  alone, those that rounding on another platform moves by less than their
+  tolerances, measured across BLAS threads and kernels (the docstring of
+  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 3 s)
+  compare them on every platform, and so does `--check`, which exits 1 on
+  a failure. The platform-bound outputs are not stored: a GP refit, a whole
+  ES search step, and the outputs through the solve of a GP whose
+  condition number exceeds 1e8, as it does after a refit on three of the
+  six states; for those three, a view with the GP's noise raised to bound
+  the condition number by 1e6 keeps the GP's predictions, the LCB, the
+  training set and the hedge covered on every platform. Every mode reports
+  the outputs it compared and those it left out, and why. `--check
+  --exact` compares bit for bit, with one BLAS thread (the script's
+  default), and refuses under another platform key than the fixtures'; on
+  any machine, `--dump DIR` at the parent commit and `--check --exact
+  --against DIR` at the change compare every output, the platform-bound
+  ones included: the gate for a change that must move nothing. `--rebaseline
+  ORACLE --reason TEXT` replaces one oracle's references, for a change that
+  moves it on purpose, and records the reason and the commit in the
+  fixtures; `--write --reason TEXT` reruns the recipes, a new baseline, from
+  a clean checkout. An option of a stored state that the code no longer has
+  is dropped when the state is rebuilt, and listed; a key that the code
+  reads from `optim_state` or a GP's `temporary_data` and that a stored
+  state lacks gets a default in `STATE_DEFAULTS` of `_state.py`, in the
+  commit that makes the code read it. The oracles gate a component's
+  numbers on fixed inputs, not a run: whole trajectories are `replay.py`'s,
+  on one machine, and the distribution of results the population
+  comparison's.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
