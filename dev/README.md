@@ -111,8 +111,8 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the condition number by 1e6 keeps the arithmetic of the GP's
   predictions, the LCB, the training set and the hedge covered on every
   platform, in a smoother regime than the run's GP (a noise SD of 10 to 65
-  against training values of median 0.25 to 5.7; predictions that
-  correlate with the stored view's by 0.69 to 0.998), so that their values
+  against training values of median 0.25 to 5.7; predictions that correlate
+  with those on the state as stored by 0.69 to 0.998), so that their values
   in the near-interpolating regime of the run's GP are covered only by
   `--dump` and `--against`, on one machine. Every mode reports the outputs
   it compared and those it left out, and why. `--check --exact` compares
