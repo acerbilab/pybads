@@ -50,11 +50,14 @@ an output in the dump that this checkout does not compute is a failure.
 ``--rebaseline ORACLE --reason TEXT`` recomputes one oracle, in every view
 of each fixture, from the stored states and replaces its references alone
 (or adds them, for a new oracle), for a change that moves that oracle on
-purpose. It records the reason, the date, the commit, the platform key and
-the largest change of each output in the fixture's ``meta["rebaselined"]``,
-and checks that every other array is unchanged, that the new references
-reproduce and that the other oracles still pass. It works on any machine; a
-platform-bound oracle has no references to replace.
+purpose. Before it changes a file, it checks the margins of the oracle's
+decisions, as ``--write`` does, and refuses new references that rounding
+could flip. It records the reason, the date, the commit, the platform key
+and the largest change of each output in the fixture's
+``meta["rebaselined"]``, and checks that every other array is unchanged,
+that the new references reproduce and that the other oracles still pass.
+It works on any machine; a platform-bound oracle has no references to
+replace.
 
 ``--write --reason TEXT`` reruns the recipes and replaces every fixture,
 references included: a new baseline, for a change of the recipes or of the
@@ -62,8 +65,9 @@ snapshot's contents, never a way to make a failing oracle pass. It refuses
 a checkout with uncommitted changes outside the fixtures, so that the
 fixtures name the commit of the code that wrote them. It checks the margins
 that the decisions of the stored outputs need (the training set's radius
-and its last point, the Sto-BADS outcomes, the hedge's choices), so that
-rounding within the tolerances cannot flip them.
+and its last point, the Sto-BADS outcomes, the hedge's choices;
+``check_margins``), so that rounding within the tolerances cannot flip
+them.
 
 The environment's BLAS threads default to one: each variable of
 ``THREAD_VARS`` that is not set is set to 1 (Accelerate's
@@ -155,6 +159,9 @@ CANDIDATE_SEED = 20260928
 # outputs needs; a decision computed from outputs through the GP's solve
 # needs their tolerance (`decision_margin`)
 MARGIN = 1e-8
+# The oracles whose stored outputs make decisions that `check_margins`
+# checks
+MARGIN_ORACLES = ("gp_training_set", "improvement", "hedge")
 # The sizes tried for the reduced training sets of `gp_training_set`
 SMALL_TRAINING_SIZES = (24, 23, 25, 22, 26, 21, 27, 20, 28)
 
@@ -511,26 +518,32 @@ def decision_margin(name, key, terms=1):
     return terms * (rtol + atol)
 
 
-def check_margins(snap, outputs, seed):
-    """Refuse a snapshot on which a decision of a stored output lies within
-    its margin of its threshold, where rounding within the tolerances could
-    flip it: the training sets' choices, the outcomes of Sto-BADS's rule
-    and the hedge's choices, in each view. ``outputs`` holds every output
-    by case."""
+def check_margins(snap, outputs, seed, oracles=MARGIN_ORACLES):
+    """Refuse a snapshot on which a decision of a stored output of the
+    oracles ``oracles`` lies within its margin of its threshold, where
+    rounding within the tolerances could flip it: the training sets'
+    choices (``gp_training_set``), the outcomes of Sto-BADS's rule
+    (``improvement``) and the hedge's choices (``hedge``), in each view.
+    ``outputs`` holds the outputs of those oracles by case."""
     state = build_state(snap)
-    margin = training_set_margin(state, outputs["gp_training_set"])
-    assert margin > MARGIN, f"a training set's choice at its bound ({margin})"
-    options = state["options"]
-    (f_base, f_new, s_base, s_new), frames = improvement_inputs(state)
-    power = options["stobads_frame_size_scaling_power"]
-    for gamma in (1.96, 1.5):
-        for frame in frames:
-            eps = np.sqrt(s_base**2 + s_new**2)
-            bound = gamma * eps * frame**power
-            mu = f_base - f_new
-            pos = bound > 0
-            rel = np.abs(np.abs(mu[pos]) - bound[pos]) / bound[pos]
-            assert np.all(rel > MARGIN), "a Sto-BADS outcome at its bound"
+    if "gp_training_set" in oracles:
+        margin = training_set_margin(state, outputs["gp_training_set"])
+        what = f"a training set's choice at its bound ({margin})"
+        assert margin > MARGIN, what
+    if "improvement" in oracles:
+        options = state["options"]
+        (f_base, f_new, s_base, s_new), frames = improvement_inputs(state)
+        power = options["stobads_frame_size_scaling_power"]
+        for gamma in (1.96, 1.5):
+            for frame in frames:
+                eps = np.sqrt(s_base**2 + s_new**2)
+                bound = gamma * eps * frame**power
+                mu = f_base - f_new
+                pos = bound > 0
+                rel = np.abs(np.abs(mu[pos]) - bound[pos]) / bound[pos]
+                assert np.all(rel > MARGIN), "a Sto-BADS outcome at its bound"
+    if "hedge" not in oracles:
+        return
     for case, name, view in oracle_cases(snap):
         if name != "hedge":
             continue
@@ -906,6 +919,17 @@ def rebaseline(names, oracle_name, reason):
         snap = decode(tree, arrays)
         cases = [c for c in oracle_cases(snap) if c[1] == oracle_name]
         outputs = compute_outputs(snap, cases)
+        if oracle_name in MARGIN_ORACLES:
+            try:
+                check_margins(
+                    snap, outputs, snap["meta"]["oracle_seed"], (oracle_name,)
+                )
+            except AssertionError as err:
+                sys.exit(
+                    f"{name}: {err}: rounding on another platform could flip"
+                    f" this decision of {oracle_name}, so its references are"
+                    " not replaced"
+                )
         news, change = {}, {}
         for case, _, view in cases:
             new = portable_outputs(snap, view, oracle_name, outputs[case])

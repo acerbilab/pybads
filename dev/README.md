@@ -117,9 +117,10 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   --against DIR` at the change compare every output, the platform-bound
   ones included: the gate for a change that must move nothing. `--rebaseline
   ORACLE --reason TEXT` replaces one oracle's references, for a change that
-  moves it on purpose, and records the reason and the commit in the
-  fixtures; `--write --reason TEXT` reruns the recipes, a new baseline, from
-  a clean checkout. An option of a stored state that the code no longer has
+  moves it on purpose, after the check of its decisions' margins that
+  `--write` makes, and records the reason and the commit in the fixtures;
+  `--write --reason TEXT` reruns the recipes, a new baseline, from a clean
+  checkout. An option of a stored state that the code no longer has
   is dropped when the state is rebuilt, and listed; a key that the code
   reads from `optim_state` or a GP's `temporary_data` and that a stored
   state lacks gets a default in `STATE_DEFAULTS` of `_state.py`, in the
