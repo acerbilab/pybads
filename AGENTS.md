@@ -208,13 +208,12 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   initial design (`_init_mesh_`), the search set (`_search_step_`), each
   generation of the ES search (`ESSearch.__call__`) and the poll
   (`_poll_step_`); a new source of candidates needs the same, and
-  `test_every_source_of_candidates_wraps_them` names them. The
-  evaluations made before the run are logged wrapped as well
-  (`_import_precomputed_evaluations_`). `udist` and `ucov` take a periodic
-  difference the shorter way round, and the GP's kernel takes the periods
-  from `_gp_periods` (gpyreg's `periods`), only in a run that has periodic
-  variables: without them the kernel gets no `periods`. The gate of a
-  change to this code is the `periodic` suite, against
+  `test_every_source_of_candidates_wraps_them` names them; the evaluations
+  made before the run are logged as given. `udist` and `ucov` take a
+  periodic difference the shorter way round, and the GP's kernel takes the
+  periods from `_gp_periods` (gpyreg's `periods`), only in a run that has
+  periodic variables: without them the kernel gets no `periods`. The gate
+  of a change to this code is the `periodic` suite, against
   `dev/experiments/population_periodic_linux_20260928` on Linux. The
   `default` suite holds two of its configurations, which its references
   lack until gpyreg 1.4.0's (`dev/TODO.md`), so that its comparison does

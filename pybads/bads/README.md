@@ -189,18 +189,19 @@ A periodic coordinate that the grid takes to its upper bound or past a
 bound is wrapped and put on the grid again (`force_to_grid_periodic`): it
 stays on the grid, and a point on the upper bound becomes the same point
 on the lower one where the grid holds it, so that the removal of the
-points already evaluated finds it there; a start or an evaluation made
-before the run on the upper bound is taken on the lower one too. MATLAB
-BADS wraps its design, search and poll candidates only before the grid
-(its `SearchOptimize`, not ported, wraps after it), projects a design or
-search candidate that the grid puts past a bound onto the bound, drops
-such a poll candidate under `ForcePollMesh`, starts where `x0` lies, and
-logs the points of `FunValues` where they are given
-(`private/setupvars.m:126-167`, `private/funlogger.m:82`).
+points already evaluated finds it there; a start on the upper bound is
+taken on the lower one too. MATLAB BADS wraps its design, search and poll
+candidates only before the grid (its `SearchOptimize`, not ported, wraps
+after it), projects a design or search candidate that the grid puts past a
+bound onto the bound, drops such a poll candidate under `ForcePollMesh`,
+and starts where `x0` lies. Evaluations made before the run are logged
+where they are given, as MATLAB BADS logs the points of `FunValues`
+(`private/setupvars.m:126-167`, `private/funlogger.m:82`): points on the
+two bounds of a periodic variable are two rows of the log, each with its
+value, which rounding makes differ for a periodic target.
 - PyBADS: `BADS._check_periodic_vars_`, `_variable_transformer_`,
-  `_init_optim_state_`, `_import_precomputed_evaluations_`, `_init_mesh_`,
-  `_search_step_` and `_poll_step_`; `pybads/utils/period_check.py`;
-  `force_to_grid_periodic` and `udist`
+  `_init_optim_state_`, `_init_mesh_`, `_search_step_` and `_poll_step_`;
+  `pybads/utils/period_check.py`; `force_to_grid_periodic` and `udist`
   (`pybads/search/grid_functions.py`); `ucov` and `ESSearch.__call__`
   (`pybads/search/es_search.py`); `_gp_periods`
   (`pybads/bads/gaussian_process_train.py`); gpyreg's

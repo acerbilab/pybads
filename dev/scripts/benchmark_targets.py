@@ -1068,8 +1068,8 @@ def make_problem(
 
 # The default suite. Its 20 configurations cover every target but those
 # kept to the suites below (logsphere, edgesphere, ridge, sphere_band and
-# periodic_rosenbrock), dimension (2, 3, 4, 6, and 10 for sphere and
-# ellipsoid; 5 for timing), noise kind and constraint type, not every
+# periodic_rosenbrock), dimension (2, 3, 6, and 10 for sphere and
+# ellipsoid; 4 for periodic, 5 for timing), noise kind and constraint type, not every
 # combination; the ellipsoid at D = 3 appears with finite bounds, infinite
 # bounds and both noise kinds, on the same shifted target, and
 # multisensory_s1 with and without noise. Two configurations of the
@@ -1205,6 +1205,35 @@ def find_config(label):
         if c.label == label:
             return c
     raise ValueError(f"unknown config label {label!r}")
+
+
+def gpyreg_takes_periods():
+    """Whether the imported gpyreg's kernels take ``periods`` (gpyreg 1.4.0
+    and later), which a configuration with periodic variables needs."""
+    import gpyreg
+
+    try:
+        gpyreg.covariance_functions.RationalQuadraticARD(periods=[1.0])
+    except TypeError:
+        return False
+    return True
+
+
+def runnable_configs(suite):
+    """The configurations of ``suite`` that the imported gpyreg runs, and the
+    labels of those it cannot: the configurations that set
+    ``periodic_vars``, under a gpyreg whose kernels take no ``periods``."""
+    configs = suite_configs(suite)
+    if gpyreg_takes_periods():
+        return configs, []
+    kept = [
+        c
+        for c in configs
+        if not make_problem(c.name, c.D, reference=False).options.get(
+            "periodic_vars"
+        )
+    ]
+    return kept, [c.label for c in configs if c not in kept]
 
 
 # --------------------------------------------------------------------------

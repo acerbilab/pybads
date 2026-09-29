@@ -290,9 +290,9 @@ class BADS:
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
         observation of its own. A point on the upper bound of a periodic
-        variable (``options['periodic_vars']``) is the point on its lower
-        bound. The arrays are copied. By default ``None``, no
-        evaluations.
+        variable (``options['periodic_vars']``) and one on its lower bound
+        are logged as they are given, each with its value. The arrays are
+        copied. By default ``None``, no evaluations.
 
     Attributes
     ----------
@@ -1397,22 +1397,6 @@ class BADS:
                     f"{np.flatnonzero(violating).tolist()} violate it."
                 )
 
-        # A periodic variable's upper bound is the same point as its lower
-        # bound, where the run's candidates are wrapped: a point on it is
-        # taken on the lower bound, before the repeats are matched
-        periodic = np.ravel(self.optim_state["periodic_vars"])
-        if np.any(periodic):
-            X = X.copy()
-            on_ub = (
-                X[:, periodic]
-                == np.ravel(self.optim_state["ub_orig"])[periodic]
-            )
-            X[:, periodic] = np.where(
-                on_ub,
-                np.ravel(self.optim_state["lb_orig"])[periodic],
-                X[:, periodic],
-            )
-
         # The first row of each point, whose value the later ones repeat
         # without uncertainty handling (a key of -0.0 is that of 0.0)
         first_rows = {}
@@ -1442,12 +1426,6 @@ class BADS:
                 f"{np.asarray(retained)[infinite].tolist()} lie too far "
                 "outside the plausible bounds."
             )
-        U = period_check(
-            U,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.optim_state["periodic_vars"],
-        )
         for u, row in zip(U, retained):
             self.function_logger.add(
                 u, y[row], None if y_sd is None else y_sd[row]
