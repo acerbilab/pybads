@@ -1088,6 +1088,19 @@ def test_start_on_a_periodic_bound_is_the_lower_bound(x0_first):
     assert bads.u[0] == bads.optim_state["lb"][0, 0]
 
 
+def test_periodic_vars_need_a_gpyreg_with_periods(monkeypatch):
+    """With a gpyreg whose kernels take no periods (before 1.4.0), a
+    periodic_vars that names a variable is refused when `BADS` is created,
+    before a run spends evaluations; without periodic variables `BADS` runs
+    as before."""
+    import pybads.bads.bads as bads_module
+
+    monkeypatch.setattr(bads_module, "_gpyreg_takes_periods", lambda: False)
+    with pytest.raises(ImportError, match="gpyreg 1.4.0 or later"):
+        _bads_with_periodic_vars([0], np.array([0.5, 0.0, 1.0]))
+    assert _bads_with_periodic_vars(None).options["periodic_vars"] is None
+
+
 def test_periodic_vars_need_finite_bounds():
     """The hard bounds of a periodic variable set its period, and must be
     finite, as in MATLAB BADS."""
