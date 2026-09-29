@@ -1065,9 +1065,11 @@ def _gp_hyp(
         noise_x0 = noise_bounds_info["x0"]
 
     # The constant mean starts at the median of the lowest
-    # ceil(hpd_frac * N) targets, as in MATLAB's gpdefBads.m (ceil(0.8 N));
-    # its prior, below, is centred on the high-density set, the lowest
-    # round(hpd_frac * N), but on one distinct point
+    # ceil(hpd_frac * N) targets, as in MATLAB's gpdefBads.m (ceil(0.8 N)).
+    # Its prior, below, is centred on the high-density set, the lowest
+    # round(hpd_frac * N) targets, except on one distinct point, where it is
+    # centred at the mean's start: the point's target, or that median of
+    # the targets of the rows that repeat it
     mean_start = mean_x0.copy()
     if isinstance(gp.mean, gpr.mean_functions.ConstantMean):
         n_low = math.ceil(options["hpd_frac"] * y.size)

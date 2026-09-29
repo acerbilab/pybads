@@ -201,7 +201,7 @@ for a deterministic run, with `noise_final_samples = 0`, and when the
 budget leaves no evaluation for the final samples, where MATLAB BADS
 returns the incumbent's observation (`bads.m:1136`).
 - PyBADS: `pybads/bads/optimize_result.py` (`OptimizeResult`);
-  `BADS.optimize`.
+  `BADS._optimize_`.
 - MATLAB: `bads.m:1`, `144`, `423`, `1062-1083`, `1185-1194`;
   `private/bads_output.m`.
 - Settled by: W0-4, W2-12, W2-13, W2-14, W2-32; the PI's ruling of
@@ -323,14 +323,14 @@ evaluations. The result counts them in `precomputed_observations` and
 With `restarts > 0`, MATLAB BADS resets the mesh and continues after
 termination ("Multiple starts (deprecated)"); PyBADS stops. Both default
 to 0.
-- PyBADS: `BADS.optimize` (the branch on `restarts` does nothing).
+- PyBADS: `BADS._optimize_` (the branch on `restarts` does nothing).
 - MATLAB: `bads.m:201`, `479`, `1121-1127`.
 - Kind: unported feature.
 
 **KD-B2-2. Plotting is not implemented.**
 `plot` has no effect; MATLAB BADS draws a profile (`utils/landscapeplot.m`)
 or a scatter plot (`private/scatterplot.m`).
-- PyBADS: `BADS.optimize`; `advanced_bads_options.ini`.
+- PyBADS: `BADS._optimize_`; `advanced_bads_options.ini`.
 - MATLAB: `bads.m:187`, `988-1015`, `1054-1057`.
 - Kind: unported feature.
 
@@ -373,7 +373,7 @@ keeps the message of the initialization. A false return at `"init"`
 cannot reopen a run that ended there. The `"init"` call comes after the
 options of a noisy run are changed and the first GP is fitted, and
 MATLAB's before.
-- PyBADS: `BADS.optimize`, `BADS._init_optimization_`.
+- PyBADS: `BADS._optimize_`, `BADS._init_optimization_`.
 - MATLAB: `bads.m:424` (the initialization's message), `426-428` (the
   `'init'` call), `431-445`, `447-457`, `465-469` (a noisy run's setup, the
   GP defined), `1037-1039` (the `'iter'` call), `1062-1085`.
@@ -404,7 +404,7 @@ hyperparameters move with it and the working GP stays. A defect that
 PyBADS shared and fixes. It changes nearly every noisy run, but not their
 errors or fraction solved measurably (90 seeds against the move of the
 value alone, `dev/experiments/w225_linux_20260928/`).
-- PyBADS: `BADS.optimize` (the move after `_re_evaluate_history_`,
+- PyBADS: `BADS._optimize_` (the move after `_re_evaluate_history_`,
   through `_update_incumbent_`).
 - MATLAB: `bads.m:1111-1118`, `769`.
 - Settled by: W2-25, option (b). Kind: deliberate change.
@@ -418,7 +418,7 @@ takes them at the incumbent, the run's only iterate, and reports their
 estimate. A run that `output_fcn` stops at `"init"` takes none, on both
 sides, and its `fsd` is not an estimate (its description says what it
 is). A defect that PyBADS shared and fixes.
-- PyBADS: `BADS.optimize` (the final estimate).
+- PyBADS: `BADS._optimize_` (the final estimate).
 - MATLAB: `bads.m:448-452`, `1138`.
 - Settled by: W4-14, option (a); W4-30. Kind: deliberate change.
 
@@ -430,7 +430,7 @@ estimate before the `"done"` call of `output_fcn`, set `optim_state`'s `u`,
 an earlier iteration there. No result reads these entries, and
 `iteration_history` holds the final estimate at the chosen iterate, as
 MATLAB's `iterList` does.
-- PyBADS: `BADS.optimize`.
+- PyBADS: `BADS._optimize_`.
 - MATLAB: `bads.m:1111-1118`, `1150-1165`.
 - Settled by: W3-33, W4-26. Kind: deliberate change.
 
@@ -447,7 +447,7 @@ the GP (W3-26), so that at the next pass PyBADS runs a search that MATLAB
 BADS skips. With default options this happens at one pass of each run of
 `sphere_band_D3` over seeds 0-6, and of three of the seven runs of
 `sphere_nonbox_D3` (`dev/scripts/benchmark_targets.py`).
-- PyBADS: `BADS.optimize` (`do_search_step_flag`); `BADS._search_step_`.
+- PyBADS: `BADS._optimize_` (`do_search_step_flag`); `BADS._search_step_`.
 - MATLAB: `bads.m:516-517`, `522-536`.
 - Settled by: the PI's ruling of 2026-09-28 on the loose ends of the
   review, in the review's ledger

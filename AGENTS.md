@@ -141,8 +141,9 @@ regenerate them with `make -B -C examples/scripts`, do not edit them.
 
 ## Architecture
 
-`BADS.optimize()` in `pybads/bads/bads.py` holds nearly all of the
-algorithm. Initialization (`_init_mesh_`) evaluates `x0`, and a second time
+`BADS._optimize_()` in `pybads/bads/bads.py`, which the public
+`BADS.optimize()` runs under the run's stage timer, holds nearly all of
+the algorithm. Initialization (`_init_mesh_`) evaluates `x0`, and a second time
 as a noise test when `uncertainty_handling` is `None`, then a Sobol initial
 design of `2**ceil(log2(fun_eval_start))` points, twice as many when that
 number equals `D`, cut to the evaluations that `max_fun_evals` leaves, the
@@ -305,8 +306,11 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **Stage times.** `optimize` charges each second of a run to the
   innermost open stage of a private `StageTimer`
   (`pybads/utils/timer/stage_timer.py`), and the target's evaluations to
-  `target`, which together make `total_time`; `dev/scripts/profile_run.py`
-  reads their plain snapshots, `optim_state["stage_times"]` and
+  `target`, which together make `total_time`. `target` follows the
+  function logger's `total_fun_eval_time`, the time that `overhead`
+  compares with the run's, which leaves out the noise test at `x0`: that
+  evaluation counts in `init`. `dev/scripts/profile_run.py` reads their
+  plain snapshots, `optim_state["stage_times"]` and
   `iteration_history["timer"]`. The timer lives on the `BADS` object and
   goes to the GP functions as `timer=`, as `rng` does, never into
   `optim_state` or a GP's `temporary_data`, which are deep-copied.

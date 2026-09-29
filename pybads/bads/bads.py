@@ -1803,18 +1803,21 @@ class BADS:
         # (optim_state, the GP and its temporary_data); a plain snapshot of
         # its times goes to optim_state["stage_times"] at the end of the
         # run, and to iteration_history["timer"] at the end of each
-        # iteration.
-        self._stage_timer = StageTimer(self._target_time_)
+        # iteration. It reads the target's time through the function logger
+        # alone: a reference to the BADS object here (a bound method, or
+        # self in a closure) would make a cycle, BADS -> timer -> BADS,
+        # that keeps a finished run, every GP of its history included,
+        # alive until the garbage collector goes through its oldest
+        # generation.
+        function_logger = self.function_logger
+        self._stage_timer = StageTimer(
+            lambda: function_logger.total_fun_eval_time
+        )
         try:
             return self._optimize_()
         finally:
             # A run that raises leaves no stage open
             self._stage_timer.stop()
-
-    def _target_time_(self):
-        """The target's cumulative evaluation time, for the stage
-        timer."""
-        return self.function_logger.total_fun_eval_time
 
     def _optimize_(self):
         """The run of ``optimize``, under the stage timer that it

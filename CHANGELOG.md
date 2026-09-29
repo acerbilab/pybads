@@ -69,6 +69,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   design as its second value, not its base-2 logarithm, and takes `lb` and
   `ub`, which it does not read, as required arguments, which 1.1.0 let a
   call leave out.
+- `FunctionLogger` has no `y_max`, which 1.1.0 held at -inf, and the
+  function logger of a run with `uncertainty_handling=True` and without
+  `specify_target_noise` has no `S`, which 1.1.0 held, all NaN.
 - A target that returns a value, or with `specify_target_noise=True` a
   noise SD, of a complex type raises `ValueError`, even when its imaginary
   part is zero, where 1.1.0 accepted a NumPy complex value or SD whose
@@ -584,18 +587,24 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   keeps failing stops after 10 tries with a `RuntimeError` that says so;
   1.1.0 retried without end.
 - **Targets without spread.** A run no longer stops with `ValueError` from
-  gpyreg when the targets of a Gaussian-process fit are all equal: a target
-  flat on the initial design (a penalty plateau over the plausible box), or
-  a feasible region (`non_box_cons`) so thin that the initial design leaves
-  the GP a single point. The prior of the GP mean then takes the width 1,
-  and a rebuild keeps the previous centre of the prior of the output scale.
-  A GP on a single point (such a region, or `max_fun_evals=2`, which the
-  starting point and the noise test use up) is not fitted, as in MATLAB
-  BADS: until its first refit it holds MATLAB BADS's starting values, with
-  its mean at the point's value, and its initialization prints no warning.
-  A refit on points that do not spread in every coordinate, as a narrow
-  band's first refit often is, still prints gpyreg's `RuntimeWarning`s
-  about a log of zero.
+  gpyreg when the targets of a Gaussian-process fit are all equal, as on a
+  target flat on the initial design (a penalty plateau over the plausible
+  box): the prior of the GP mean then takes the width 1, and a rebuild keeps
+  the previous centre of the prior of the output scale. A run's first GP
+  holds a single point, the starting point, when `non_box_cons` leaves only
+  that point feasible in the initial design, when `fun_eval_start=0`, and
+  when `max_fun_evals=2`, which the starting point and the noise test use
+  up. That GP is not fitted, as in MATLAB BADS: until its first refit it
+  holds the values of MATLAB BADS's definition of its GP, with its mean at
+  the point's value, and its initialization prints no warning. 1.1.0 fitted
+  it, with gpyreg's `RuntimeWarning`s, and a rebuild of the GP on the one
+  point stopped the run with gpyreg's `ValueError`; with `max_fun_evals=2`,
+  1.1.0 did not keep its initial design within the budget (see "Small
+  budgets"). A later refit on points that have no spread in a coordinate, as
+  in a thin feasible band, prints gpyreg's `RuntimeWarning` about a log of
+  zero, and at D = 1, with `fun_eval_start=0` and the noise test, the first
+  refit runs on the one point and prints gpyreg's warnings about a log of
+  zero, degrees of freedom <= 0 and an invalid value in a division.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller
@@ -890,13 +899,23 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `specify_target_noise=True` a noise SD, that is not a finite real number
   (and, for the SD, a positive one) raises the documented `ValueError`
   before anything is recorded; an SD of one element, in a list or an array,
-  is taken as that number, as the value already was. 1.1.0 raised
-  `TypeError` or NumPy's own errors for some of them (an SD of `None` or in
-  a list), said that the target had failed for a value of several elements,
-  and accepted a NumPy complex value or SD whose imaginary part is zero.
-- **`FunctionLogger.finalize`.** `finalize` trims `n_evals` with the other
-  arrays of the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long
-  as the others, where 1.1.0 left them of unequal lengths.
+  is taken as that number, as the value already was. The error for a tuple
+  `(f, sd)` that the target returns without `specify_target_noise=True`
+  names that option. 1.1.0 raised `TypeError` or NumPy's own errors for
+  some of them (an SD of `None` or in a list), said that the target had
+  failed for a value of several elements, and accepted a NumPy complex
+  value or SD whose imaginary part is zero.
+- **`FunctionLogger`.** `finalize` trims `n_evals` with the other arrays of
+  the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long as the
+  others, where 1.1.0 left them of unequal lengths. `Y_max`, the largest
+  value of the log, follows the merge of a repeated point at uncertainty
+  level 2 as it follows a new point, where 1.1.0 left it at its value
+  before the merge, and the function logger of a run takes uncertainty
+  level 1 when the noise test finds the target noisy, where 1.1.0's kept
+  level 0. `y_max`, which 1.1.0 set to -inf and never updated, is removed,
+  and the function logger of a run holds the noise SDs, `S`, only with
+  `specify_target_noise=True`, where 1.1.0's also held them, all NaN, with
+  `uncertainty_handling=True` alone.
 - **Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names
   no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0
   refused it.
