@@ -140,6 +140,9 @@ def test_add_record_stats():
 
 
 def test_record_duplicate():
+    # An evaluation that is not recorded (the noise test, the final samples)
+    # leaves the row of its point as it is, as MATLAB's funlogger 'single'
+    # does: its count of evaluations and its time; only the total time grows
     x = np.array([3, 4, 5])
     lb = np.array([[-3, -4, -5]])
     ub = np.array([[13, 14, 15]])
@@ -152,11 +155,12 @@ def test_record_duplicate():
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.n_evals[0] == 1
-    assert f_logger.n_evals[1] == 2
+    assert f_logger.n_evals[1] == 1
     assert np.all(f_logger.X[1] == x)
     assert f_logger.Y[1] == 18
     assert f_logger.Y_orig[1] == 18
-    assert f_logger.fun_eval_time[1] == 5
+    assert f_logger.fun_eval_time[1] == 9
+    assert f_logger.total_fun_eval_time == 19
 
 
 def test_record_duplicate_fsd():
@@ -172,7 +176,7 @@ def test_record_duplicate_fsd():
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.n_evals[0] == 1
-    assert f_logger.n_evals[1] == 2
+    assert f_logger.n_evals[1] == 1
     assert np.all(f_logger.X[1] == x)
     assert np.isclose(f_logger.Y[1], 9, rtol=1e-12, atol=1e-14)
     assert np.isclose(f_logger.Y_orig[1], 9, rtol=1e-12, atol=1e-14)
@@ -375,6 +379,53 @@ def test_add_invalid_sd_value():
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
     with pytest.raises(ValueError):
         f_logger.add(x, 3, np.inf)
+
+
+def test_add_requires_the_sd_at_level_2():
+    # Where the target returns the SDs, an evaluation added without one is
+    # refused, as in PyVBMC's logger, rather than given an SD of 1
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    with pytest.raises(ValueError, match="FunctionLogger:MissingNoiseValue"):
+        f_logger.add(np.array([3, 4, 5]), 3.0)
+    assert f_logger.Xn == -1
+
+
+def test_add_ignores_an_sd_without_sds():
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
+    fval, fsd, idx = f_logger.add(np.array([3, 4, 5]), 3.0, 0.5)
+    assert (fval, fsd, idx) == (3.0, None, 0)
+
+
+def test_add_takes_what_call_takes():
+    # The value and the SD are checked as the target's outputs are: one
+    # element of an array or a list is taken, and a string or a complex
+    # number is refused with the logger's ValueError
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    fval, fsd, _ = f_logger.add(np.array([3, 4, 5]), np.array([3.0]), [0.5])
+    assert (fval, fsd) == (3.0, 0.5)
+    for value, sd, message in [
+        ("a", 0.5, _VALUE),
+        (1 + 0j, 0.5, _VALUE),
+        (np.array([1.0, 2.0]), 0.5, _VALUE),
+        (1.0, "a", _SD),
+        (1.0, 1 + 0j, _SD),
+        (1.0, 0.0, _SD),
+    ]:
+        with pytest.raises(ValueError, match=message):
+            f_logger.add(np.array([1, 2, 3]), value, sd)
+    assert f_logger.Xn == 0
+
+
+def test_add_merges_a_repeat_at_level_2():
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x = np.array([3, 4, 5])
+    f_logger.add(x, 9.0, 2.0)
+    fval, fsd, idx = f_logger.add(x, 12.0, 1.0)
+    tau_1, tau_2 = 1 / 2.0**2, 1 / 1.0**2
+    assert (fsd, idx) == (1.0, 0)
+    assert np.isclose(fval, (tau_1 * 9.0 + tau_2 * 12.0) / (tau_1 + tau_2))
+    assert f_logger.n_evals[0] == 2
+    assert f_logger.func_count == 0
 
 
 _VALUE = "FunctionLogger:InvalidFuncValue"
