@@ -13,6 +13,7 @@ from pybads.bads.gaussian_process_train import (
     _get_fevals_data,
     _get_gp_training_options,
     _get_random_samples_from_priors_,
+    _gp_periods,
     _meanfun_name_to_mean_function,
     _robust_gp_fit_,
     add_and_update_gp,
@@ -169,6 +170,44 @@ def test_cov_identifier_to_covariance_function():
 
     with pytest.raises(ValueError):
         c6 = _cov_identifier_to_covariance_function(0)
+
+
+@pytest.mark.parametrize("identifier", [1, 2, 3, [3, 1]])
+def test_cov_identifier_passes_periods(identifier):
+    """The periods reach the kernel; without them the kernel is built with
+    no `periods` argument at all."""
+    periods = np.array([2.0, np.inf, 4.0])
+    cov = _cov_identifier_to_covariance_function(identifier, periods)
+    np.testing.assert_array_equal(cov.periods, periods)
+    assert _cov_identifier_to_covariance_function(identifier).periods is None
+
+
+def test_gp_periods():
+    """The period of a periodic variable is the width of its bounds in the
+    transformed space, divided by the grid's scale; `inf` for the others,
+    and `None` when no variable is periodic."""
+    optim_state = {
+        "periodic_vars": np.array([[True, False, True]]),
+        "lb": np.array([[-1.0, -np.inf, -3.0]]),
+        "ub": np.array([[1.0, np.inf, 5.0]]),
+        "scale": 2.0,
+    }
+    np.testing.assert_array_equal(_gp_periods(optim_state), [1.0, np.inf, 4.0])
+    optim_state["periodic_vars"] = np.zeros((1, 3), dtype=bool)
+    assert _gp_periods(optim_state) is None
+
+
+def test_gp_kernel_periodic_along_periodic_vars():
+    """The GP of a run with periodic variables has a kernel periodic along
+    them, with the width of their transformed bounds as period, and one
+    without periodic variables a kernel without periods."""
+    bads, gp = _initialized_bads(D=3, periodic_vars=[0, 2])
+    width = np.ravel(bads.optim_state["ub"] - bads.optim_state["lb"])
+    np.testing.assert_allclose(
+        gp.covariance.periods, [width[0], np.inf, width[2]], rtol=1e-15
+    )
+    _, gp = _initialized_bads(D=3)
+    assert gp.covariance.periods is None
 
 
 def test_get_gp_training_options_samplers():
@@ -648,7 +687,7 @@ def test_gp_mean_fun_refused(name):
 @pytest.mark.parametrize("value", ["ard", "foo"])
 def test_gp_cov_prior_refused(value):
     """`gp_cov_prior` accepts only `"iso"`, the default: MATLAB's `"ard"`
-    is not ported, and an unknown value is refused as MATLAB does, when
+    is not supported, and an unknown value is refused as MATLAB does, when
     `BADS` is created."""
     with pytest.raises(ValueError, match="'ard' is not supported"):
         _make_bads(gp_cov_prior=value)

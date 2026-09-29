@@ -205,7 +205,7 @@ histories and the gate.
 | W1-25 | B6 | gpyreg's Cholesky retries multiply the noise and keep the multiplier in the posterior; MATLAB treats a failure as an error | port discrepancy (substituted library) | kept (KD-B6-6); gpyreg's switch (acerbilab/gpyreg#56) stays off in PyBADS after its measurements, the second at the head of the review (PI, 2026-09-28; `2026-09-28-gp-health.md`) | KD-B6-6 |
 | W1-26 | B6 | A plateau of the initial values stops the run in `_gp_hyp` (zero SD of the mean's prior) | port discrepancy; needs MATLAB (the rebuild case) | fixed: a positive fallback, and a rebuild keeps the previous prior (KD-B6-2) | `cd1831f` (#74) |
 | W1-27 | B6 | PyBADS fits a GP on the initial design, where MATLAB only defines it | port discrepancy | kept (PI), on the sheet (KD-B6-5) | — |
-| W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7) | `64616af` (#74); `TODO.md`, "`gp_cov_prior="ard"`." |
+| W1-28 | B6 | `gp_cov_prior="ard"` is not ported, and any value is accepted | port discrepancy (unported) | refused with a message (KD-B6-7); not to be ported (PI, 2026-09-28) | `64616af` (#74) |
 | W1-29 | B6 | The output scale's prior is centred with the SD of ddof 0 | port discrepancy, negligible | fixed | `1d03801` (#74) |
 | W1-30 | B6 | The noise's upper bound is a log SD of 5, as MATLAB's, whatever the target's scale | design question, shared with MATLAB | kept, with a warning above e^5 (KD-B6-9); `matlab_side_defects.md` | `54e6424` (#74) |
 | W1-31 | B6 | The effective radius is said not to match gpyreg's kernel | not a defect | a comment naming the convention | `2794e94` (#74) |
@@ -304,7 +304,7 @@ histories and the gate.
 | W3-32 | B4 | A successful poll appends a bound method | no longer holds (W0-16) | the survey's row corrected | — |
 | W3-33 | B4 | After a re-estimate that moves nothing, `optim_state` keeps older values | confirmed, inert | kept in step (KD-B2-9) | `43ee8ed` (#77) |
 | W3-34 | B4 | `np.vstack(u_poll, u_poll_new)` would raise in a branch that cannot run | confirmed, inert | the branch removed | `01ee524` (#77) |
-| W3-35 | B4 | The poll discards `period_check`'s result | confirmed, inert | kept until periodic variables are ported | `TODO.md`, "Porting gaps" |
+| W3-35 | B4 | The poll discards `period_check`'s result | confirmed, inert | kept until periodic variables are ported; the port (PI, 2026-09-28, for 1.5) assigns it (KD-B1-6) | `66ef459` |
 | W3-36 | B4 | `u_base` is computed and never used | confirmed, inert | removed | `e4b3bca` (#77) |
 | W3-37 | B4 | The accelerated mesh reduction tested from the wrong iteration | no longer holds (W2-29) | none | — |
 | W3-38 | B4 | Under `stobads`, a NaN estimate counts as uncertain | no longer holds (W0-11) | the survey's row corrected | — |
@@ -330,7 +330,7 @@ KD-B3-3), both by the PI's rulings.
 | W4-8 | B7 | A malformed SD or a complex value does not raise the documented `ValueError` before the row is written | port discrepancy (minor) | fixed | `5dd92b7` (#80) |
 | W4-9 | B7 | `finalize` trims every array but `n_evals`, and `reset_fun_eval_time` has no caller | confirmed, inert | fixed | `29a258a` (#80) |
 | W4-10 | B7 | The logger's docstrings omit that `x` is in `u` space; `add`, which nothing calls, keeps checks of its own | confirmed, inert | docstrings corrected; `add` settled with the port of `fun_values` | `4ea665a` (#80); settled by the port of `precomputed_evaluations` (KD-B1-15) |
-| W4-11 | B7 | The poll discards `period_check`'s result, and the design takes the option's indices where the others take a mask | confirmed, inert (as W3-35) | kept until periodic variables are ported | `TODO.md`, "Porting gaps" |
+| W4-11 | B7 | The poll discards `period_check`'s result, and the design takes the option's indices where the others take a mask | confirmed, inert (as W3-35) | kept until periodic variables are ported; the port gives every site the mask (KD-B1-6) | `66ef459` |
 | W4-12 | B7 | The log grows when full, where MATLAB's is a ring of `CacheSize` rows that never writes its last row | intentional difference, missing from the sheet | kept (KD-B7-4); the description of `cache_size` corrected; MATLAB's ring in `matlab_side_defects.md` | `f1247d0` (#80) |
 | W4-13 | B7 | The noise test's second value goes through the logger's checks, where MATLAB reads NaN as deterministic and infinity as noisy | port discrepancy (benign) | kept (KD-B7-5) | `a84a3dd` (#80), the sheet |
 | W4-14 | B7 | A noisy run that ends in its first iteration takes none of its reserved final samples, as MATLAB's, over more budgets | shared defect, widened by the design's size | fixed, option (a): the samples taken at the incumbent (KD-B2-8); `matlab_side_defects.md` | `b61a880` (#80) |
@@ -352,7 +352,9 @@ KD-B3-3), both by the PI's rulings.
 | W4-30 | B2 | A noisy run stopped by `output_fcn` at `"init"` takes no final samples, and its `fsd` is not an estimate (found while fixing) | design question | kept, ruled during the pass; the description of `fsd` says what it is (KD-B2-8) | `4b84a2d` (#80) |
 
 Also in wave 4, without a row: `periodic_vars` refused before the first
-transform, and an empty value taken as `None` (`b78f782`, #80; KD-B1-6).
+transform, and an empty value taken as `None` (`b78f782`, #80); the port
+of periodic variables (`66ef459`, KD-B1-6) replaced the refusal by the
+check of the option, and kept the empty value as `None`.
 
 ## The catalogue of deliberate differences
 
@@ -402,8 +404,6 @@ items that a ruling left to later work are held by these items of
 | `TODO.md` item | Rows and items |
 |---|---|
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
-| "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
-| "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
@@ -455,10 +455,11 @@ docstrings and descriptions of the fix passes; the ones below held at
 default run.
 
 - ES-ell ignores the sum-rule flag of an entry of `search_method`, which
-  only ES-wcm reads (non-default); `udist`'s periodic branch indexes the
-  distance matrix's rows by variable (unreachable, KD-B1-6); the search
-  step counts the points of the log, where MATLAB counts the GP's training
-  set, equal in practice (wave 3, "Found while verifying").
+  only ES-wcm reads (non-default); `udist`'s periodic branch indexed the
+  distance matrix's rows by variable (unreachable then; the port of
+  periodic variables rewrote it, KD-B1-6); the search step counts the
+  points of the log, where MATLAB counts the GP's training set, equal in
+  practice (wave 3, "Found while verifying").
 - A 4-D ridge started on its valley stalls at `x0`, since the only descent
   direction is the exact diagonal, which the coordinate poll does not take
   (KD-B4-1); an `ESSearch` built directly with `n_search_iter = 0` returns

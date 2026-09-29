@@ -451,11 +451,13 @@ of its own:
   are relative to the plausible range of each variable;
 - before that, it takes the logarithm of every variable whose bounds are
   all positive (an infinite upper bound counts as positive) and whose
-  plausible range spans a factor of 10 or more (`pub / plb >= 10`). Its steps
-  along such a variable are then proportional to the variable's value,
-  which suits scale parameters such as standard deviations, rates or time
-  constants, and a random starting point is drawn log-uniformly. PyBADS
-  lists these variables when you create the `BADS` object.
+  plausible range spans a factor of 10 or more (`pub / plb >= 10`), unless
+  the variable is
+  [periodic](#faq-does-pybads-support-periodic-variables-such-as-angles).
+  Its steps along such a variable are then proportional to the variable's
+  value, which suits scale parameters such as standard deviations, rates or
+  time constants, and a random starting point is drawn log-uniformly.
+  PyBADS lists these variables when you create the `BADS` object.
 
 To keep every variable on a linear scale, set
 `options={"nonlinear_scaling": False}`. Otherwise, you rarely need to
@@ -548,29 +550,42 @@ to merely a categorical variable.
 (faq-does-pybads-support-periodic-variables-such-as-angles)=
 ### Does PyBADS support periodic variables, such as angles?
 
-Not yet: PyBADS refuses the option `periodic_vars`, which MATLAB BADS
-supports as `PeriodicVars`.
+Yes. List the indices of the periodic variables, counted from 0, in the
+option `periodic_vars`. The hard bounds `lb` and `ub` of a periodic variable
+are its period, and need to be finite. PyBADS takes `lb` and `ub` as the
+same point and wraps the variable around them, so that a run moves across
+them as across any other value of the variable, and it models the objective
+as periodic along the variable. PyBADS lists the periodic variables when you
+create the `BADS` object.
 
-If you bound a periodic variable to a single period, PyBADS cannot move
-across the ends of the period, where the variable wraps around, and it can
-end at one end of the period while the minimum lies just past the other. One
-workaround is to let the hard bounds of the variable span more than one
-period, keep the plausible bounds on one period, and reduce the result to
-the period at the end. For an angle, of period `2 * np.pi`:
+The bounds of a periodic variable only mark where its period is cut, not a
+range of extreme values, so its plausible bounds are usually its hard bounds
+as well, unlike those of other variables
+([How do I choose `plb` and `pub`?](#faq-how-do-i-choose-plb-and-pub)).
+For example, with an angle in radians as the second variable:
 
 ```python
-i_angle = 2  # index of the angle
-lb, ub = np.array(lb, dtype=float), np.array(ub, dtype=float)
-plb, pub = np.array(plb, dtype=float), np.array(pub, dtype=float)
-lb[i_angle], ub[i_angle] = -np.pi, 3 * np.pi
-plb[i_angle], pub[i_angle] = 0.0, 2 * np.pi
-# ... run the optimization, then
-x_min = optimize_result["x"].copy()
-x_min[i_angle] = np.mod(x_min[i_angle], 2 * np.pi)
+# x[0] is a position, x[1] an angle in radians
+lb = np.array([-10.0, -np.pi])
+ub = np.array([10.0, np.pi])
+plb = np.array([-2.0, -np.pi])
+pub = np.array([2.0, np.pi])
+
+options = {"periodic_vars": [1]}
+bads = BADS(fun, x0, lb, ub, plb, pub, options=options)
+optimize_result = bads.optimize()
 ```
 
-Since the objective repeats itself from one period to the next, every copy
-of the minimum is equally good.
+The result gives a periodic variable within its period, between `lb` and
+`ub`. A minimum at `lb`, which is the same point as `ub`, can come out at
+`lb`, just above it or just below `ub`, so two runs can report nearly the
+same minimum at opposite ends of the period.
+
+PyBADS raises a `ValueError` for a periodic variable with an infinite bound,
+and for a `periodic_vars` that is not a list of distinct indices from 0 to
+`D - 1`; give a boolean mask `m` as `np.flatnonzero(m)`.
+[Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html)
+runs PyBADS on a function with two periodic variables.
 
 (faq-output-arguments)=
 ## Output arguments
@@ -1268,7 +1283,9 @@ PyBADS implements the same algorithm, with a Python interface:
   lower case, with underscores (`MaxFunEvals` becomes `max_fun_evals`,
   `UncertaintyHandling` becomes `uncertainty_handling`), and their values are
   Python values: numbers where MATLAB takes a string such as `'500*nvars'`,
-  and `True` or `False` where MATLAB takes `1`, `0`, `'on'` or `'off'`.
+  `True` or `False` where MATLAB takes `1`, `0`, `'on'` or `'off'`, and
+  indices counted from 0 where MATLAB counts from 1 (`periodic_vars` is
+  `[2, 3]` where MATLAB's `PeriodicVars` is `[3 4]`).
   PyBADS refuses an option name it does not know with a `ValueError`, and
   checks the values of many options; a value of the wrong kind, such as the
   string `'200*D'` for `max_iter`, can instead fail with another error,
@@ -1278,10 +1295,9 @@ PyBADS implements the same algorithm, with a Python interface:
   `non_box_cons` an array of shape `(N, D)`. Additional inputs of the
   objective are [bound to it](#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads)
   rather than passed to `BADS`.
-- Some features of MATLAB BADS are not (yet) available in PyBADS, which
-  refuses them with an error message: fixed variables (see
-  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value))
-  and [periodic variables](#faq-does-pybads-support-periodic-variables-such-as-angles).
+- PyBADS refuses fixed variables, which MATLAB BADS supports, with an
+  error message (see
+  [above](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)).
   A few options of MATLAB BADS, such as `plot` and `restarts`, are accepted
   but have no effect.
 - Function evaluations made before the run, which MATLAB BADS takes in its

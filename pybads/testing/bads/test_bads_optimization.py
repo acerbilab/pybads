@@ -46,10 +46,13 @@ def run_bads(
     non_box_cons=None,
     uncertainty_handling=False,
     max_fun_evals=None,
+    periodic_vars=None,
 ):
     options = {}
     options["display"] = "full"  # debug_flag = True
     options["random_seed"] = SEED
+    if periodic_vars is not None:
+        options["periodic_vars"] = periodic_vars
 
     if uncertainty_handling > 0:
         options["uncertainty_handling"] = True
@@ -268,4 +271,68 @@ def test_he_noisy_sphere_opt():
         f_min=0.0,
         oracle_fun=sphere,
         uncertainty_handling=2,
+    )
+
+
+def periodic_fun(x):
+    """Periodic along its first variable, of period 2 pi, and its third, of
+    period 2; `(x_i - c_i)**2` to second order in each variable, with the
+    minimum 0 at `(0.3, 0.5, 0.9)`."""
+    x = np.atleast_2d(x)
+    return (
+        2 * (1 - np.cos(x[:, 0] - 0.3))
+        + (x[:, 1] - 0.5) ** 2
+        + 2 / np.pi**2 * (1 - np.cos(np.pi * (x[:, 2] - 0.9)))
+    )
+
+
+def get_periodic_conf():
+    """The bounds of `periodic_fun`: the periodic variables' hard bounds are
+    their periods, `[0, 2 pi)` and `[-1, 1)`, and their plausible bounds;
+    the start lies across those bounds from the minimum, closer to it that
+    way than through the box."""
+    x0 = np.array([5.5, -1.0, -0.8])
+    LB = np.array([0.0, -5.0, -1.0])
+    UB = np.array([2 * np.pi, 5.0, 1.0])
+    PLB = np.array([0.0, -2.0, -1.0])
+    PUB = np.array([2 * np.pi, 2.0, 1.0])
+    return x0, LB, UB, PLB, PUB
+
+
+def test_periodic_opt():
+    """Periodic variables (`periodic_vars`): the minimum is reached across
+    the bounds of the periodic variables, where they wrap around."""
+    x0, LB, UB, PLB, PUB = get_periodic_conf()
+    optimize_result, _ = run_bads(
+        periodic_fun,
+        x0,
+        LB,
+        UB,
+        PLB,
+        PUB,
+        tol_err=2e-6,
+        f_min=0.0,
+        periodic_vars=[0, 2],
+    )
+    x = optimize_result["x"]
+    assert np.all(LB <= x) and np.all(x < UB)
+
+
+def test_noisy_periodic_opt():
+    """Periodic variables with noise that BADS is told of."""
+    x0, LB, UB, PLB, PUB = get_periodic_conf()
+    rng = np.random.default_rng(NOISE_SEED)
+    fun = lambda x: periodic_fun(x) + 0.1 * rng.standard_normal()
+    run_bads(
+        fun,
+        x0,
+        LB,
+        UB,
+        PLB,
+        PUB,
+        tol_err=0.2,
+        f_min=0.0,
+        oracle_fun=periodic_fun,
+        uncertainty_handling=1,
+        periodic_vars=[0, 2],
     )

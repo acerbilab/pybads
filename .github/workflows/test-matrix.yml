@@ -23,10 +23,11 @@ on:
         default: ''
 
 env:
-  # gpyreg v1.3.3. The pin is the tagged commit, so setuptools_scm reads
-  # 1.3.3, the minimum in pyproject.toml; an untagged commit before it reads
-  # lower, and pip would install gpyreg from PyPI over the pinned checkout.
-  GPYREG_PIN: 98ab5a4adecf37eb188521360bd87835979f47e7
+  # gpyreg's main at the merge of acerbilab/gpyreg#61, whose kernels take the
+  # periods that periodic variables need. setuptools_scm reads it as
+  # 1.3.4.devN, above the minimum in pyproject.toml, 1.3.3. gpyreg 1.4.0's
+  # release moves the pin to its tag and the minimum to 1.4.0.
+  GPYREG_PIN: b44634f2ae951dd54402e5fa2a8fda2117bb6380
 
 jobs:
   tests:

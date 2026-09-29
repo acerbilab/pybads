@@ -413,6 +413,17 @@ stand; the largest errors at `97b2c66` are 2.6e-5 (`test_ellipsoid_opt`),
 (`test_small_noisy_func`) and 0.65 (`test_he_noisy_sphere_opt`, 0.79 at
 `1c8c71d`).
 
+The two tests of periodic variables were swept on Linux (the same
+environment, with gpyreg's `periods` from its branch at `3f1a732`) at
+`66ef459`, seeds 0-99 each, with one BLAS thread; no run crashed.
+`test_periodic_opt` took 63–81 evaluations, with a median error of 2.1e-8
+and a largest of 1.6e-7 (seed 52), which gives it 2e-6;
+`test_noisy_periodic_opt` took 152–200, with a median error of 1.9e-3 and
+a largest of 1.3e-2 (seed 75), which gives it 0.2. Swept again at
+`12cf2f29` with gpyreg at `2c9cdfb`, after the fixes of the port's
+doublecheck, the largest errors are 2.0e-7 (seed 52) and 1.3e-2 (seed 75),
+under the same tolerances.
+
 The error is `|fval - f_min|` on a target without noise, and the noiseless
 value at the returned point minus the minimum on a noisy one. The three 1D
 tests pass the same problem in different input shapes; the sweep ran

@@ -4,6 +4,7 @@ import math
 import os
 import sys
 
+import gpyreg
 import numpy as np
 from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
@@ -15,7 +16,12 @@ from pybads.init_functions import init_sobol
 from pybads.poll import poll_mads_2n
 from pybads.rng import get_rng
 from pybads.search import ESSearchHedge
-from pybads.search.grid_functions import force_to_grid, grid_units, udist
+from pybads.search.grid_functions import (
+    force_to_grid,
+    force_to_grid_periodic,
+    grid_units,
+    udist,
+)
 from pybads.utils import period_check
 from pybads.utils.iteration_history import IterationHistory
 from pybads.utils.timer import Timer
@@ -28,6 +34,16 @@ from .gaussian_process_train import (
 )
 from .optimize_result import OptimizeResult
 from .options import Options
+
+
+def _gpyreg_takes_periods():
+    """Whether the installed gpyreg's kernels take ``periods`` (gpyreg 1.4.0
+    and later), which periodic variables need."""
+    try:
+        gpyreg.covariance_functions.RationalQuadraticARD(periods=[1.0])
+    except TypeError:
+        return False
+    return True
 
 
 def _is_real(value):
@@ -254,6 +270,11 @@ class BADS:
         determine at runtime if the objective function is noisy, or turn
         uncertainty handling on with ``options['specify_target_noise']``
         = ``True``.
+        A variable that is periodic, such as an angle, is named in
+        ``options['periodic_vars']``, a list of indices from 0 to ``D - 1``:
+        its hard bounds, which need to be finite, are its period, and BADS
+        wraps it around them, so that ``lb`` and ``ub`` are the same point
+        and the variable is optimized across them.
         To obtain reproducible results of the optimization, set
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
@@ -279,8 +300,10 @@ class BADS:
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
-        observation of its own. The arrays are copied. By default ``None``,
-        no evaluations.
+        observation of its own. A point on the upper bound of a periodic
+        variable (``options['periodic_vars']``) and one on its lower bound
+        are logged as they are given, each with its value. The arrays are
+        copied. By default ``None``, no evaluations.
 
     Attributes
     ----------
@@ -327,9 +350,11 @@ class BADS:
         take: for instance a ``max_fun_evals`` that is neither a positive
         integer nor ``inf``, a value other than ``True`` or ``False`` for
         ``uncertainty_handling`` or for an option whose default is one of
-        them (``plot`` excepted), or an ``f_vals`` that holds a finite value,
-        a non-empty ``fun_values`` or ``periodic_vars``, or
-        ``acq_hedge=True``, options that are not supported.
+        them (``plot`` excepted), a ``periodic_vars`` that is not a list of
+        distinct indices from 0 to ``D - 1`` of variables with finite
+        bounds, or an ``f_vals`` that holds a finite value, a non-empty
+        ``fun_values``, or ``acq_hedge=True``, options that are not
+        supported.
     ValueError
         When ``precomputed_evaluations`` is not a tuple (or a list) of two
         or three arrays of the shapes above, of finite values and positive
@@ -338,6 +363,9 @@ class BADS:
         of its points lies outside the hard bounds or violates
         ``non_box_cons``, or when a point given twice has two different
         values where a point is kept once.
+    ImportError
+        When ``options['periodic_vars']`` names a variable and the installed
+        gpyreg is older than 1.4.0, whose kernels take the periods.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -495,16 +523,10 @@ class BADS:
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
 
-        # Periodic variables are not supported yet: refused before
-        # _init_optim_state_ transforms the variables and draws a random x0.
-        # An empty periodic_vars names none, as in MATLAB BADS (setupvars.m),
-        # and is taken as None
-        if np.size(self.options["periodic_vars"]) == 0:
-            self.options["periodic_vars"] = None
-        elif self.options["periodic_vars"] is not None:
-            raise ValueError(
-                "Periodic variables are not yet supported. Please set periodic_vars to None."
-            )
+        # Checked before _init_optim_state_ transforms the variables, which
+        # never takes a periodic variable to log coordinates, and draws a
+        # random x0
+        self._check_periodic_vars_()
 
         # evaluate  starting point non-bound constraint (a missing or
         # non-finite start is drawn in _init_optim_state_, where it is put on
@@ -805,6 +827,13 @@ class BADS:
         self.upper_bounds = self.var_transf.ub.copy()
         optim_state["lb"] = self.lower_bounds.copy()
         optim_state["ub"] = self.upper_bounds.copy()
+
+        # Periodic variables, a (1, D) mask; their bounds were checked finite
+        # by _check_periodic_vars_
+        periodic_vars = np.zeros((1, self.D), dtype=bool)
+        if self.options["periodic_vars"] is not None:
+            periodic_vars[:, self.options["periodic_vars"]] = True
+        optim_state["periodic_vars"] = periodic_vars
         self.plausible_lower_bounds = self.var_transf.plb.copy()
         self.plausible_upper_bounds = self.var_transf.pub.copy()
         optim_state["plb"] = self.plausible_lower_bounds.copy()
@@ -846,7 +875,14 @@ class BADS:
             u0[u0 > self.upper_bounds] = (
                 u0[u0 > self.upper_bounds] - optim_state["search_mesh_size"]
             )
-            return u0
+            # A periodic coordinate on its upper bound is the same point as
+            # on its lower bound, where the candidates are wrapped
+            return period_check(
+                u0,
+                self.lower_bounds,
+                self.upper_bounds,
+                optim_state["periodic_vars"],
+            )
 
         def violates_non_box_cons(u0):
             return self.non_box_cons is not None and np.any(
@@ -927,24 +963,13 @@ class BADS:
             / np.log(self.options["poll_mesh_multiplier"])
         )
 
-        # Periodic variables
-        idx_periodic_vars = self.options["periodic_vars"]
-        periodic_vars = np.zeros((1, self.D)).astype(bool)
-        if idx_periodic_vars is not None:
-            periodic_vars[:, idx_periodic_vars] = True
-            finite_periodic_vars = np.all(
-                np.isfinite(self.lower_bounds[:, idx_periodic_vars])
-            ) and np.all(np.isfinite(self.upper_bounds[:, idx_periodic_vars]))
-            if not finite_periodic_vars:
-                raise ValueError(
-                    "bads:InitOptimState:Periodic variables need to have finite lower and upper bounds."
-                )
+        # Report the periodic variables
+        if self.options["periodic_vars"] is not None:
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) defined with periodic boundaries: "
-                f"{idx_periodic_vars}",
+                f"{self.options['periodic_vars']}",
             )
-        optim_state["periodic_vars"] = periodic_vars
 
         # Setup covariance information (unused)
 
@@ -1282,7 +1307,7 @@ class BADS:
         optim_state["int_meanfun"] = self.options.get("gpintmeanfun")
 
         # MATLAB's per-dimension empirical prior over the length scales,
-        # 'ard' (gpdefBads.m), is not ported
+        # 'ard' (gpdefBads.m), is not supported: the GP's prior is 'iso'
         if self.options.get("gp_cov_prior") != "iso":
             raise ValueError(
                 "options['gp_cov_prior'] should be 'iso' (an empirical prior "
@@ -1452,6 +1477,69 @@ class BADS:
                 f"e^6 (about 403), not {tol_fun!r}."
             )
 
+    def _check_periodic_vars_(self):
+        """
+        Check ``periodic_vars`` and store it as a sorted list of indices, or
+        ``None`` when it names no variable. An empty value names none, as in
+        MATLAB BADS (``setupvars.m``). The indices are integers from 0 to
+        ``D - 1``, each given once; a boolean mask is refused rather than
+        read as the indices 0 and 1. A periodic variable wraps around its
+        hard bounds, ``[lb, ub)``, which must be finite, as MATLAB BADS
+        requires.
+        """
+        value = self.options["periodic_vars"]
+        if value is None or (
+            not isinstance(value, str) and np.size(value) == 0
+        ):
+            self.options["periodic_vars"] = None
+            return
+        indices = np.atleast_1d(np.asarray(value))
+        # A boolean among integers, which NumPy casts to 0 or 1, is refused
+        # as a mask is
+        has_bool = any(
+            isinstance(v, (bool, np.bool_))
+            for v in np.atleast_1d(np.asarray(value, dtype=object)).ravel()
+        )
+        if indices.dtype.kind not in "iu" or indices.ndim != 1 or has_bool:
+            raise ValueError(
+                "options['periodic_vars'] should be a list of the indices of "
+                "the periodic variables, integers from 0 to D - 1 (a boolean "
+                "mask m gives them as np.flatnonzero(m)), not "
+                f"{value!r}."
+            )
+        if np.any(indices < 0) or np.any(indices >= self.D):
+            raise ValueError(
+                "options['periodic_vars'] holds indices outside 0 to "
+                f"D - 1 = {self.D - 1}: {value!r}."
+            )
+        if np.unique(indices).size != indices.size:
+            raise ValueError(
+                "options['periodic_vars'] names a variable more than once: "
+                f"{value!r}."
+            )
+        indices = sorted(int(i) for i in indices)
+        infinite = [
+            i
+            for i in indices
+            if not (
+                np.isfinite(self.lower_bounds[0, i])
+                and np.isfinite(self.upper_bounds[0, i])
+            )
+        ]
+        if infinite:
+            raise ValueError(
+                "Periodic variables need to have finite lower and upper "
+                "bounds, which set their period: the bounds of the "
+                f"variables {infinite} of options['periodic_vars'] are not "
+                "finite."
+            )
+        if not _gpyreg_takes_periods():
+            raise ImportError(
+                "Periodic variables need gpyreg 1.4.0 or later, whose "
+                "kernels take periods; the installed gpyreg does not."
+            )
+        self.options["periodic_vars"] = indices
+
     def _variable_transformer_(self):
         """The transformation of the variables, from the bounds in the
         original space and the ``nonlinear_scaling`` option."""
@@ -1598,16 +1686,14 @@ class BADS:
                 )
                 if np.isfinite(n_left):
                     u1 = u1[: int(n_left)]
-                # enforce periodicity TODO function
-                u1 = period_check(
+                # Enforce periodicity and force the points on the search grid
+                u1 = force_to_grid_periodic(
                     u1,
+                    self.optim_state["search_mesh_size"],
                     self.lower_bounds,
                     self.upper_bounds,
-                    self.options["periodic_vars"],
+                    self.optim_state["periodic_vars"],
                 )
-
-                # Force points to be in the search grid.
-                u1 = force_to_grid(u1, self.optim_state["search_mesh_size"])
 
                 # Remove already evaluated or unfeasible points from search set
                 u1 = contraints_check(
@@ -2331,17 +2417,13 @@ class BADS:
             self.optim_state,
         )
 
-        # Enforce periodicity
-        u_search_set = period_check(
+        # Enforce periodicity and force the candidate points on search grid
+        u_search_set = force_to_grid_periodic(
             u_search_set,
+            self.optim_state["search_mesh_size"],
             self.lower_bounds,
             self.upper_bounds,
             self.optim_state["periodic_vars"],
-        )
-
-        # Force candidate points on search grid
-        u_search_set = force_to_grid(
-            u_search_set, self.optim_state["search_mesh_size"]
         )
 
         # Remove already evaluated or unfeasible points from search set
@@ -2726,18 +2808,22 @@ class BADS:
                     "poll_scale"
                 ]  # scaling again using broadcast
 
-                # Add vector to current point, fix to grid
-                u_poll_new = self.u + vv
-                period_check(
-                    u_poll_new,
-                    self.lower_bounds,
-                    self.upper_bounds,
-                    self.optim_state["periodic_vars"],
-                )
-
+                # Add vector to current point, enforce periodicity, and fix
+                # to grid if asked
                 if self.options["force_poll_mesh"]:
-                    u_poll_new = force_to_grid(
-                        u_poll_new, self.optim_state["search_mesh_size"]
+                    u_poll_new = force_to_grid_periodic(
+                        self.u + vv,
+                        self.optim_state["search_mesh_size"],
+                        self.lower_bounds,
+                        self.upper_bounds,
+                        self.optim_state["periodic_vars"],
+                    )
+                else:
+                    u_poll_new = period_check(
+                        self.u + vv,
+                        self.lower_bounds,
+                        self.upper_bounds,
+                        self.optim_state["periodic_vars"],
                     )
 
                 u_poll_new = contraints_check(

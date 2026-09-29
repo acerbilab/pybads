@@ -182,9 +182,9 @@ def test_descriptions_are_whole_comment_lines():
         "specify_target_noise"
     )
     assert descriptions["periodic_vars"] == (
-        "Array with indices of periodic variables, like periodic_vars = "
-        "[1, 2] (not supported yet: BADS refuses any value but None or an "
-        "empty one)"
+        "Indices (from 0) of the periodic variables, such as angles, e.g. "
+        "periodic_vars = [2, 3]; each wraps around its hard bounds, which "
+        "need to be finite and are its period"
     )
     assert descriptions["gp_samples"] == (
         "Hyperparameter samples (unused: PyBADS optimizes one set of GP "

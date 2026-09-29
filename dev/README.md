@@ -46,21 +46,24 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
   in log-scaled variables, `logsphere`, a sphere whose minimum lies on a
-  hard bound, `edgesphere`, a nonsmooth valley along the diagonal,
-  `ridge`, a sphere in a thin feasible band, `sphere_band`, and two
-  maximum-likelihood fits to real data, `timing` and `multisensory_s1`)
-  and the suites `smoke`, `default`, `oned` (the configurations at D = 1),
-  `bounds` (plausible bounds omitted, a start on a hard bound, and
-  `logsphere`: the setup's checks of the bounds and the start) and
-  `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
-  and W3-24 of the port review). `--list` prints the suites,
-  `--check` verifies each target's minimum, bounds and noise, and the
-  pinned likelihood values of the real-data targets, and `--smoke` runs
-  each configuration of a suite once, in a fresh process as a population
-  does, and prints its wall time with the projected time of 30 seeds. The
-  `default` suite runs every configuration at BADS's default budget,
-  500 D, so that each run ends on BADS's own termination criteria; a
-  population of 30 seeds takes about 80 minutes.
+  hard bound, `edgesphere`, a nonsmooth valley along the diagonal, `ridge`,
+  a sphere in a thin feasible band, `sphere_band`, targets with periodic
+  variables, `periodic` and MATLAB BADS's Example 5, `periodic_rosenbrock`,
+  and two maximum-likelihood fits to real data, `timing` and
+  `multisensory_s1`) and the suites `smoke`, `default`, `oned` (the
+  configurations at D = 1), `bounds` (plausible bounds omitted, a start on
+  a hard bound, and `logsphere`: the setup's checks of the bounds and the
+  start), `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of
+  W3-1 and W3-24 of the port review) and `periodic` (`periodic_vars`, whose
+  configurations set it; with `--options '{"periodic_vars": null}'` they
+  run as bounded problems). `--list` prints the suites, `--check` verifies
+  each target's minimum, bounds and noise, and the pinned likelihood values
+  of the real-data targets, and `--smoke` runs each configuration of a
+  suite once, in a fresh process as a population does, and prints its wall
+  time with the projected time of 30 seeds. The `default` suite runs every
+  configuration at BADS's default budget, 500 D, so that each run ends on
+  BADS's own termination criteria; a population of 30 seeds takes about 95
+  minutes.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes
@@ -178,6 +181,14 @@ reference's number of seeds.
   located in gpyreg's triangular solve; the output-function test rewritten
   to check what the comparison stood for, and the seed tests comparing
   there only what the seed decides.
+- [Periodic variables](results/2026-09-28-periodic-variables.md) — the
+  port of `periodic_vars` for 1.5: the PI's decisions (the length scale in
+  the units of the other variables, `periods` on gpyreg's ARD kernels),
+  runs without periodic variables unchanged, and the `periodic` suite with
+  and without the option on Linux, with a control under noise. Its
+  evidence, also the reference of the `periodic` suite on Linux (gpyreg at
+  `2c9cdfb`, before its release):
+  [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md).
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate
   takes its location with its value) against its revert, the five noisy
@@ -185,9 +196,10 @@ reference's number of seeds.
   errors, evaluations or fraction solved; the lower fraction solved of its
   30-seed gate belongs to those seeds.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
-  — the reference population of the benchmark on Windows (default suite,
-  100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the
-  port review and its doublecheck), with its null check and its comparison
+  — the reference population of the benchmark on Windows (default suite
+  but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
+  `a4dcd65`, `dev-next` after wave 4 of the port review and its
+  doublecheck), with its null check and its comparison
   with the pre-review baseline, the net change of the whole review, which
   flags nine configurations: two better, two spheres with slightly larger
   errors far below their tolerance, `ellipsoid_D10` with more evaluations
@@ -211,9 +223,10 @@ reference's number of seeds.
   with the one before, which flags nothing: the two configurations with
   target noise change, and the other 16 are identical run by run.
 - [experiments/population_linux_wave4_20260927/](experiments/population_linux_wave4_20260927/README.md)
-  — the reference population of the benchmark on Linux (default suite, 30
-  seeds, gpyreg 1.3.3, at the package code of wave 4's fix pass of the
-  port review, `46af65a`, where each seed has its own initial design), with
+  — the reference population of the benchmark on Linux (default suite but
+  its two periodic configurations, 30 seeds, gpyreg 1.3.3, at the package
+  code of wave 4's fix pass of the port review, `46af65a`, where each seed
+  has its own initial design), with
   its null check and its comparison with the previous Linux reference, the
   net change of the pass, which flags nothing.
 - [experiments/population_linux_wave3_20260927/](experiments/population_linux_wave3_20260927/README.md)

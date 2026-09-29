@@ -38,6 +38,19 @@ with ``z = x - c``:
                    plausible box ``[1e-2, 1e2]``, all positive with
                    ``pub / plb >= 10``, so that BADS works on it in log
                    coordinates
+``periodic``       ``sum(2 * (1 - cos(z_i)))`` over the first ``ceil(D/2)``
+                   variables, periodic (``periodic_vars``) on the hard
+                   bounds ``[0, 2 pi)``, which are also their plausible
+                   bounds, plus ``sum(z_j**2)`` over the others, on the
+                   shifted box; the minimum of each periodic variable lies
+                   within 0.3 of its bounds, on one side of them or the
+                   other, so that a run reaches it across the bounds
+``periodic_rosenbrock``  MATLAB BADS's ``bads_examples.m``, Example 5, at
+                   D = 4: Rosenbrock's function of ``x_1, x_2`` plus
+                   ``cos(pi x_3 / 2) + cos(pi x_4) + 2``, with ``x_3`` and
+                   ``x_4`` periodic (periods 4 and 2) on their hard and
+                   plausible bounds, not shifted; its minima lie on the
+                   bounds of the periodic variables, at ``(1, 1, +-2, +-1)``
 
 Every synthetic minimum is 0 except those of ``sphere_nonbox`` and
 ``edgesphere``. The shifted targets other than ``logsphere`` and
@@ -87,7 +100,7 @@ A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
 on BADS's termination criteria, long before the budget, so that the runs
 cover the whole algorithm, from the initial design to the fine mesh and the
-stopping rules. At 30 seeds the suite runs in about 80 minutes as one
+stopping rules. At 30 seeds the suite runs in about 95 minutes as one
 process with a fresh process per run (``population.py run``).
 
 Command line (from the repository root)::
@@ -98,7 +111,8 @@ Command line (from the repository root)::
 
 ``--check`` verifies each target: ``f_true(x_min)`` equals ``f_min`` (to
 rounding), ``x_min`` lies inside the hard bounds (an analytic one inside the
-plausible box too) and satisfies the non-box constraint, a real-data target
+plausible box too) and satisfies the non-box constraint, a target with
+periodic variables repeats with their periods, a real-data target
 reproduces its pinned values, the target is finite and no point does better
 than ``f_min`` on random samples of the plausible box, of the neighbourhood
 of ``x_min`` and of the hard box, the start points are reproducible, inside
@@ -212,8 +226,9 @@ class Problem:
     pins: tuple = ()
     check_n: int = 20_000
     omit_plausible: bool = False
-    # True when the minimum lies on the hard bounds by construction, outside
-    # the plausible box (edgesphere)
+    # True when the minimum lies on the hard bounds by construction: outside
+    # the plausible box (edgesphere), or on the bounds of periodic variables,
+    # which are also their plausible bounds (periodic_rosenbrock)
     min_on_bound: bool = False
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
@@ -557,6 +572,79 @@ def _edgesphere(D, rng):
     )
 
 
+def _periodic(D, rng):
+    # The first ceil(D/2) variables are periodic on [0, 2 pi), their hard and
+    # plausible bounds, with their minima within 0.3 of the bounds; the
+    # others are shifted as in the other targets. 2 (1 - cos z) is z^2 to
+    # second order, as for a sphere.
+    lb, ub, plb, pub = _shifted_box(D)
+    h = (D + 1) // 2
+    lb[:h], plb[:h] = 0.0, 0.0
+    ub[:h], pub[:h] = 2 * np.pi, 2 * np.pi
+    c = _shift(rng, plb, pub)
+    c[:h] = np.mod(rng.uniform(-0.3, 0.3, size=h), 2 * np.pi)
+
+    def f_vec(X):
+        Z = np.atleast_2d(X) - c
+        return np.sum(2.0 * (1.0 - np.cos(Z[:, :h])), axis=1) + np.sum(
+            Z[:, h:] ** 2, axis=1
+        )
+
+    return Problem(
+        name="periodic",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=c.copy(),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": list(range(h))},
+        notes=(
+            "sum(2 (1 - cos z_i)) over ceil(D/2) periodic variables on "
+            "[0, 2 pi), minima within 0.3 of the bounds, + sum(z_j^2)"
+        ),
+    )
+
+
+def _periodic_rosenbrock(D, rng):
+    # MATLAB BADS's bads_examples.m, Example 5, as it is
+    if D != 4:
+        raise ValueError("periodic_rosenbrock is defined at D = 4")
+    lb = np.array([-10.0, -5.0, -2.0, -1.0])
+    ub = np.array([5.0, 10.0, 2.0, 1.0])
+    plb = np.array([-2.0, -2.0, -2.0, -1.0])
+    pub = np.array([2.0, 2.0, 2.0, 1.0])
+
+    def f_vec(X):
+        X = np.atleast_2d(X)
+        rosen = 100.0 * (X[:, 1] - X[:, 0] ** 2) ** 2 + (1.0 - X[:, 0]) ** 2
+        return (
+            rosen + np.cos(X[:, 2] * np.pi / 2) + np.cos(X[:, 3] * np.pi) + 2.0
+        )
+
+    return Problem(
+        name="periodic_rosenbrock",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=np.array([1.0, 1.0, -2.0, -1.0]),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": [2, 3]},
+        min_on_bound=True,
+        notes=(
+            "MATLAB BADS's Example 5: Rosenbrock(x_1, x_2) + cos(pi x_3 / 2)"
+            " + cos(pi x_4) + 2, x_3 and x_4 periodic"
+        ),
+    )
+
+
 def _ridge_of_z(Z):
     return 10.0 * np.sum(np.abs(np.diff(Z, axis=1)), axis=1) + np.abs(
         np.sum(Z, axis=1)
@@ -892,6 +980,8 @@ _REGISTRY = {
     "edgesphere": _edgesphere,
     "ridge": _ridge,
     "sphere_band": _sphere_band,
+    "periodic": _periodic,
+    "periodic_rosenbrock": _periodic_rosenbrock,
     "timing": _timing,
     "multisensory_s1": _multisensory_s1,
 }
@@ -976,16 +1066,23 @@ def make_problem(
 # Suites
 # --------------------------------------------------------------------------
 
-# The default suite. Its 18 configurations cover every target, dimension (2,
-# 3, 6, and 10 for sphere and ellipsoid; 5 for timing), noise kind and
-# constraint type, not every combination; the ellipsoid at D = 3 appears
-# with finite bounds, infinite bounds and both noise kinds, on the same
-# shifted target, and multisensory_s1 with and without noise. Every budget
+# The default suite. Its 20 configurations cover every target but those
+# kept to the suites below (logsphere, edgesphere, ridge, sphere_band and
+# periodic_rosenbrock), dimension (2, 3, 6, and 10 for sphere and
+# ellipsoid; 4 for periodic, 5 for timing), noise kind and constraint type, not every
+# combination; the ellipsoid at D = 3 appears with finite bounds, infinite
+# bounds and both noise kinds, on the same shifted target, and
+# multisensory_s1 with and without noise. Two configurations of the
+# `periodic` suite, one deterministic and one noisy, bring periodic
+# variables into every gate; the references of the suite with gpyreg 1.3.3
+# lack them (dev/TODO.md, "gpyreg releases after 1.3.3"). Every budget
 # is BADS's default, 500 D. A calibration at that budget (4 seeds per
 # configuration, 2026-09-24) found every run ending on BADS's own
 # termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
 # ellipsoid D10, 200 to 500 for the noisy synthetic targets, 200 to 330 for
-# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise.
+# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise;
+# the runs of the periodic suite (30 seeds, 2026-09-28) ended so after 111
+# to 137 evaluations for periodic_D4 and 182 to 607 for periodic_D3_homo.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [
@@ -1007,6 +1104,8 @@ _DEFAULT = [
     Config("timing", 5, budget=500),
     Config("multisensory_s1", 6, budget=500),
     Config("multisensory_s1", 6, noise="homo", budget=500),
+    Config("periodic", 4, budget=500),
+    Config("periodic", 3, noise="homo", budget=500),
 ]
 
 # One configuration per code path: deterministic, inferred noise, specified
@@ -1062,12 +1161,28 @@ _GEOMETRY = [
     Config("sphere_band", 3, budget=500),
 ]
 
+# The configurations with periodic variables (periodic_vars): minima across
+# the bounds of the periodic variables, one to three of them, with both
+# noise kinds, and MATLAB BADS's Example 5; the default suite holds two of
+# them. The gate of a change to the handling of periodic variables; run
+# with --options '{"periodic_vars": null}', the same problems as bounded
+# ones.
+_PERIODIC = [
+    Config("periodic", 2, budget=500),
+    Config("periodic", 4, budget=500),
+    Config("periodic", 6, budget=500),
+    Config("periodic", 3, noise="homo", budget=500),
+    Config("periodic", 3, noise="hetero", budget=500),
+    Config("periodic_rosenbrock", 4, budget=500),
+]
+
 SUITES = {
     "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
     "default": _DEFAULT,
     "oned": _ONED,
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
+    "periodic": _PERIODIC,
 }
 
 
@@ -1090,6 +1205,35 @@ def find_config(label):
         if c.label == label:
             return c
     raise ValueError(f"unknown config label {label!r}")
+
+
+def gpyreg_takes_periods():
+    """Whether the imported gpyreg's kernels take ``periods`` (gpyreg 1.4.0
+    and later), which a configuration with periodic variables needs."""
+    import gpyreg
+
+    try:
+        gpyreg.covariance_functions.RationalQuadraticARD(periods=[1.0])
+    except TypeError:
+        return False
+    return True
+
+
+def runnable_configs(suite):
+    """The configurations of ``suite`` that the imported gpyreg runs, and the
+    labels of those it cannot: the configurations that set
+    ``periodic_vars``, under a gpyreg whose kernels take no ``periods``."""
+    configs = suite_configs(suite)
+    if gpyreg_takes_periods():
+        return configs, []
+    kept = [
+        c
+        for c in configs
+        if not make_problem(c.name, c.D, reference=False).options.get(
+            "periodic_vars"
+        )
+    ]
+    return kept, [c.label for c in configs if c not in kept]
 
 
 # --------------------------------------------------------------------------
@@ -1153,6 +1297,12 @@ def check_problem(cfg, n=None):
         msgs.append("x_min outside the plausible box")
     if not prob.feasible(x_min)[0]:
         msgs.append("x_min violates the non-box constraint")
+    # a target with periodic variables repeats with their periods
+    for d in prob.options.get("periodic_vars") or []:
+        shifted = x_min.copy()
+        shifted[d] += prob.ub[d] - prob.lb[d]
+        if not _close(prob.f_true(shifted), f_at_min):
+            msgs.append(f"f_true is not periodic along variable {d}")
     # BADS's requirements on the bounds
     if not np.all(
         (prob.lb <= prob.plb) & (prob.plb < prob.pub) & (prob.pub <= prob.ub)

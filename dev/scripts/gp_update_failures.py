@@ -35,7 +35,10 @@ calls them. For each run, one entry of the output JSON holds:
 
 ``--check DIR`` compares each run's ``x``, ``fval`` and ``func_count`` with
 the record of the same run in the population ``DIR``, exactly: this shows
-that the wrappers change nothing and that the runs are the population's.
+that the wrappers change nothing and that the runs are the population's. A
+run that ``DIR`` has no record of is listed and skipped. The
+configurations with periodic variables run only with a gpyreg whose
+kernels take ``periods`` (1.4.0 and later), and are skipped otherwise.
 
 ``--inject P`` makes a fraction ``P`` of the guarded computations raise
 ``LinAlgError`` before they start. Each decision is drawn once per distinct
@@ -306,18 +309,20 @@ def run_one(label, seed, inject_p, inject_seed):
 
 
 def check(entries, population_dir):
-    """Mismatches between the entries and the population's records."""
-    mismatches = []
+    """Mismatches between the entries and the population's records, and the
+    runs that the population has no record of, which the check skips, as
+    ``population.py compare`` skips a configuration that one side lacks."""
+    mismatches, missing = [], []
     for e in entries:
         path = pop.record_path(Path(population_dir), e["label"], e["seed"])
         if not path.exists():
-            mismatches.append((e["label"], e["seed"], "no record"))
+            missing.append((e["label"], e["seed"]))
             continue
         ref = json.loads(path.read_text(encoding="utf-8"))["final"]
         for key in ("x", "fval", "func_count"):
             if e["final"][key] != ref[key]:
                 mismatches.append((e["label"], e["seed"], key))
-    return mismatches
+    return mismatches, missing
 
 
 def report(entries):
@@ -382,7 +387,13 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     bt.single_thread_env()  # inherited by the spawned processes
-    cfgs = bt.suite_configs(args.suite)
+    cfgs, skipped = bt.runnable_configs(args.suite)
+    if skipped:
+        print(
+            f"[gp_update_failures] skipped, this gpyreg has no periods:"
+            f" {skipped}",
+            flush=True,
+        )
     if args.only:
         wanted = {s.strip() for s in args.only.split(",") if s.strip()}
         cfgs = [c for c in cfgs if c.label in wanted]
@@ -430,14 +441,16 @@ def main(argv=None):
     }
     status = 0
     if args.check is not None:
-        mismatches = check(entries, args.check)
+        mismatches, missing = check(entries, args.check)
         out["check"] = {
             "population": str(args.check),
             "mismatches": [list(m) for m in mismatches],
+            "missing": [list(m) for m in missing],
         }
         print(
             f"[gp_update_failures] check against {args.check}:"
-            f" {len(mismatches)} mismatches",
+            f" {len(mismatches)} mismatches, {len(missing)} runs without a"
+            " record there (skipped)",
             flush=True,
         )
         status = 1 if mismatches else 0
