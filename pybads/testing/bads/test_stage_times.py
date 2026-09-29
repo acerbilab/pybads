@@ -108,6 +108,99 @@ def test_stages_and_target_make_total_time(tick_clock, level):
     assert noisy <= set(calls) if level > 0 else not noisy & set(calls)
 
 
+class _OutputFcnError(Exception):
+    pass
+
+
+def _output_fcn(stop_at=None, raise_at=None):
+    """An output function that returns True at the first call in the state
+    ``stop_at``, or raises at the ``raise_at``-th call."""
+
+    def output_fcn(x, optim_state, state):
+        output_fcn.states.append(state)
+        if len(output_fcn.states) == raise_at:
+            raise _OutputFcnError(state)
+        return state == stop_at
+
+    output_fcn.states = []
+    return output_fcn
+
+
+# Exit path -> the options that end the run on it
+EXIT_PATHS = {
+    "output_fcn_raises": (lambda: {"output_fcn": _output_fcn(raise_at=3)}),
+    "stop_at_init": (lambda: {"output_fcn": _output_fcn(stop_at="init")}),
+    "stop_at_iter": (lambda: {"output_fcn": _output_fcn(stop_at="iter")}),
+    "max_iter": (lambda: {"max_iter": 2}),
+}
+
+
+@pytest.mark.parametrize(
+    "path, level",
+    [
+        ("output_fcn_raises", 0),
+        ("output_fcn_raises", 1),
+        ("stop_at_init", 0),
+        ("stop_at_init", 1),
+        ("stop_at_iter", 0),
+        ("stop_at_iter", 1),
+        ("max_iter", 0),
+        ("max_iter", 1),
+    ],
+)
+def test_every_exit_path_closes_its_stages(
+    tick_clock, monkeypatch, path, level
+):
+    """On each way a run can end, every stage it entered is closed when the
+    timer stops (only the root is open), and the stages and the target make
+    `total_time`; an exception of the output function propagates, with the
+    timer stopped by `optimize`. A run that returns stops the timer itself,
+    and `optimize` stops it again, which does nothing."""
+    depths = []
+    original_stop = StageTimer.stop
+
+    def stop(timer):
+        depths.append(timer.depth)
+        original_stop(timer)
+
+    monkeypatch.setattr(StageTimer, "stop", stop)
+    make_fun, options = LEVELS[level]
+    run_options = EXIT_PATHS[path]()
+    bads = _make_bads(make_fun(), max_fun_evals=60, **options, **run_options)
+    output_fcn = run_options.get("output_fcn")
+    if path == "output_fcn_raises":
+        with pytest.raises(_OutputFcnError):
+            bads.optimize()
+        assert depths == [1]
+        timer = bads._stage_timer
+        assert not timer.running and timer.depth == 0
+        assert "stage_times" not in bads.optim_state
+        calls = timer.snapshot()["calls"]
+        assert calls["output_fcn"] == len(output_fcn.states) == 3
+        return
+
+    result = bads.optimize()
+    assert depths == [1, 0]
+    stage_times = bads.optim_state["stage_times"]
+    assert sum(stage_times["seconds"].values()) + 2 * TICK == pytest.approx(
+        result["total_time"], rel=0, abs=1e-9
+    )
+    if output_fcn is not None:
+        assert stage_times["calls"]["output_fcn"] == len(output_fcn.states)
+        assert output_fcn.states[-1] == "done"
+    if path == "stop_at_init":
+        assert result["iterations"] == 0
+        assert output_fcn.states == ["init", "done"]
+        return
+    if path == "stop_at_iter":
+        assert "options['output_fcn']" in result["message"]
+        assert result["iterations"] == 1
+    else:
+        assert "options['max_iter']" in result["message"]
+        assert result["iterations"] == 2
+    assert len(bads.iteration_history["timer"]) == result["iterations"]
+
+
 @pytest.mark.parametrize("level", [0, 1])
 def test_finished_run_is_freed_by_reference_counting(level):
     """A finished `BADS` object is in no reference cycle: it is freed, with
