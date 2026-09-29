@@ -102,8 +102,8 @@ among them, so a title stays as it is while its item is open.
     `CHANGELOG.md`'s `Unreleased`, which changes with it;
   - the kernels, `predict` and the objective of `fit` computed without
     intermediate arrays or SciPy's layers, every value the same to the
-    last bit, on gpyreg's branch `perf/bit-identical-speedups` (`421f1b0`,
-    on `e10120c`), which is to be merged before the tag: with it, and
+    last bit, on gpyreg's branch `perf/bit-identical-speedups` (its code
+    at `421f1b0`, on `e10120c`), which is to be merged before the tag: with it, and
     PyBADS's one line that takes the priors once per rebuild, PyBADS's own
     time is 23 to 29 % lower on the `profile` suite, with the
     fingerprint, the replay and the oracles' `--against` identical
