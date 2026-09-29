@@ -308,10 +308,9 @@ decided on; "the next release" below means it.
     that the code at 1.4.0 reproduces run by run is then the release's own
     population of the suite, which the gate of periodic variables in
     `AGENTS.md` would name in place of `population_periodic_linux_20260928`.
-    On 2026-09-29 the two commits were not on gpyreg's GitHub: their patch
-    is in
-    [experiments/periodic_kernel_linux_20260929/](experiments/periodic_kernel_linux_20260929/README.md),
-    and a pull request to gpyreg's `main` is to carry them;
+    Both commits are on gpyreg's `main` since acerbilab/gpyreg#62 (merge
+    commit `e10120c`), with their evidence in
+    [experiments/periodic_kernel_linux_20260929/](experiments/periodic_kernel_linux_20260929/README.md);
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on

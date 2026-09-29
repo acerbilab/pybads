@@ -148,11 +148,9 @@ against 0.11 ms per call under cProfile, about 0.5 s of the 8.9 s that
 the run of `periodic_D3_homo` at seed 0 takes under cProfile at
 `b44634f` (`dev/TODO.md`, "`udist` on periodic variables").
 
-On 2026-09-29, `0f27db5` and `91ea28e` were commits of a local clone of
-gpyreg, not on its GitHub; their patch is
-`gpyreg-perf-periodic-circle.patch` in the evidence directory, and
-`dev/TODO.md` tracks the pull request that is to carry them into gpyreg
-1.4.0.
+`0f27db5` and `91ea28e` are on gpyreg's `main` since acerbilab/gpyreg#62
+(merge commit `e10120c`), which gpyreg 1.4.0 is to carry
+(`dev/TODO.md`).
 
 ## Not done
 

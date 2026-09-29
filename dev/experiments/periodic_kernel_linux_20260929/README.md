@@ -23,8 +23,9 @@ the change, whose tree is `8638145` and which every measurement here ran,
 and `91ea28e`, whose tree is `935929b`, which adds a test (coordinates at
 either end of the wrap interval are one point) and changes docstrings, a
 comment and `AGENTS.md`, not the kernels' code. `git am` of the patch on
-`b44634f` rebuilds both trees. The records name the code by its commit,
-`0f27db5`.
+`b44634f` rebuilds both trees. Both commits are on gpyreg's `main` since
+acerbilab/gpyreg#62, merged on 2026-09-29 (merge commit `e10120c`). The
+records name the code by its commit, `0f27db5`.
 
 ## Command and provenance
 

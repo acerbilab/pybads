@@ -187,8 +187,9 @@ reference's number of seeds.
   runs without periodic variables unchanged, and the `periodic` suite with
   and without the option on Linux, with a control under noise; and the
   time per evaluation of periodic runs (2026-09-29), with gpyreg's
-  periodic kernel as its cause and gpyreg's commit `0f27db5`, which maps
-  each periodic coordinate onto a circle. The evidence of the port, also
+  periodic kernel as its cause and gpyreg's commit `0f27db5`
+  (acerbilab/gpyreg#62), which maps each periodic coordinate onto a
+  circle. The evidence of the port, also
   the reference of the `periodic` suite on Linux (gpyreg at `2c9cdfb`,
   before its release):
   [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
