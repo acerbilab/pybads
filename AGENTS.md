@@ -66,12 +66,19 @@ The tests live in `pybads/testing/`, mirroring the package, and default
 discovery is limited to them (`testpaths` in `pyproject.toml`); the checks
 under `dev/scripts/` run only when named by path.
 
-The test job is defined once, in `.github/workflows/test-matrix.yml`, and
-installs gpyreg at the commit pinned as `GPYREG_PIN` there: the tagged
-commit of the release that `pyproject.toml` names as the minimum (CI reads
-gpyreg's version from its tags, and an untagged commit reads lower, so pip
-would install gpyreg from PyPI over the pinned checkout). A change that
-needs a newer gpyreg moves both. `merge-tests.yml` runs the full matrix
+The test job is defined once, in `.github/workflows/test-matrix.yml`. It
+installs PyBADS, which brings gpyreg from PyPI, and then gpyreg's checkout
+at the commit pinned as `GPYREG_PIN` there, which replaces it whatever
+version the checkout reads from its tags (pip only reports a conflict with
+the minimum in `pyproject.toml`). The pin is normally the tagged commit of
+the release that `pyproject.toml` names as the minimum, and a change that
+needs a newer gpyreg moves both. Until gpyreg 1.4.0 is released, it is a
+commit of gpyreg's `main` that carries the kernels' periods, which
+periodic variables need, while the minimum stays 1.3.3; under a gpyreg
+whose kernels take no periods, `BADS` raises `ImportError` for periodic
+variables (`_gpyreg_takes_periods` in `bads.py`). The release moves the
+pin to its tag and the minimum to 1.4.0 (`dev/TODO.md`).
+`merge-tests.yml` runs the full matrix
 (Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` or to a
 `dev*` branch, only when its changes against that base touch `pybads/`,
 `pyproject.toml` or `setup.py`; a PR that changes anything else, the

@@ -235,24 +235,28 @@ decided on; "the next release" below means it.
   Each is kept in one place and linked from the others, or the copies are
   kept in step.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
-  (`pyproject.toml`) and its CI pin (`GPYREG_PIN`) name one release, 1.3.3
-  as of 2026-09-25 ([assessment](results/2026-09-25-gpyreg-1.3.3.md)).
-  Each new release moves both, after the population comparison
-  (`dev/scripts/population.py compare`) against the current reference
-  shows that it has no effect on PyBADS, or explains the one it has. A
-  move is a change for users: an entry in `CHANGELOG.md` and a line in its
-  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
-  (PI, 2026-09-28), 1.4.0 (PI, 2026-09-29), which is to hold:
+  (`pyproject.toml`) is 1.3.3 as of 2026-09-25
+  ([assessment](results/2026-09-25-gpyreg-1.3.3.md)), and its CI pin
+  (`GPYREG_PIN`) the merge commit of acerbilab/gpyreg#61 on gpyreg's
+  `main`, `b44634f`, which carries the kernels' periods (below). Each new
+  release moves both, the pin to the release's tag, after the population
+  comparison (`dev/scripts/population.py compare`) against the current
+  reference shows that it has no effect on PyBADS, or explains the one it
+  has. A move is a change for users: an entry in `CHANGELOG.md` and a line
+  in its "Upgrading from" list. PyBADS's next release waits for gpyreg's
+  next one (PI, 2026-09-28), 1.4.0 (PI, 2026-09-29), which is to hold:
   - `periods` on the ARD kernels (`SquaredExponential`, `Matern`,
-    `RationalQuadraticARD`), on gpyreg's branch
-    `claude/todo-discussion-q8c9im`, which PyBADS's `periodic_vars` needs:
+    `RationalQuadraticARD`), on gpyreg's `main` since acerbilab/gpyreg#61
+    (merge commit `b44634f`), which PyBADS's `periodic_vars` needs:
     `_gp_periods` passes them to the kernel of a run with periodic
     variables, and a run without them builds its kernel as before, so the
     comparison of this release is expected to flag nothing on runs
     without periodic variables. PyBADS 1.5.0 needs the move: under gpyreg
-    1.3.3 a run with periodic variables stops with `TypeError` when its GP
-    is built, and the tests of periodic variables fail under the CI pin.
-    The changelog's entry "Requirements" and the line of "Upgrading from
+    1.3.3, `BADS` refuses periodic variables with `ImportError`
+    (`_gpyreg_takes_periods` in `bads.py`), and the tests of periodic
+    variables fail. With the minimum at 1.4.0, the check and its test,
+    `test_periodic_vars_need_a_gpyreg_with_periods`, can go. The
+    changelog's entry "Requirements" and the line of "Upgrading from
     1.1.0" name the new minimum. The `default` suite holds two periodic
     configurations, `periodic_D4` and `periodic_D3_homo` (PI, 2026-09-29),
     which its references, the Windows one at 100 seeds and the Linux one
