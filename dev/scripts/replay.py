@@ -45,6 +45,11 @@ A trace captures, with no change to the package:
   ``fsd``, the mesh sizes, ``func_count`` and ``gp_hyp_full``), and the
   whole ``OptimizeResult`` (its timings and version recorded apart, and not
   compared);
+- for a configuration whose runs are given evaluations made before them
+  (the ``warmstart`` suite), the log that the run is given, by its kind,
+  number of rows and digest, as ``population.py`` records it: its rows are
+  not calls of the target, and the result counts them in
+  ``precomputed_observations`` and ``precomputed_locations``;
 - the platform key (OS, libc, machine, CPU model, Python, NumPy's BLAS
   build, NumPy and SciPy versions, each loaded OpenBLAS's kernel and thread
   count, ``OPENBLAS_CORETYPE`` and the thread variables) and the
@@ -62,7 +67,9 @@ which is never taken for a crash of the run.
 pairs each repeat of DIR with the first recording of its run. It refuses
 (exit status 2) traces whose platform keys differ, unless ``--force``,
 prints a warning for each difference in the gpyreg that ran (version,
-source path, commit), the requested options or the budget scale, and
+source path, commit), the requested options, the budget scale or the log
+given to the run (its digest: the earlier run that makes it is the
+PyBADS's under test, so a change can move it), and
 reports, per run, exact (bitwise) identity per stream (``evals``,
 ``steps``, ``fits``, ``history``, ``result``) and otherwise the first
 divergence: the evaluation, its iteration and stage on each side, ``|dx|``
@@ -94,8 +101,11 @@ reports as runs that differ. The copy takes the parent's
 ``benchmark_targets.py`` and ``population.py``, which have what it needs,
 the default configurations included, at every commit from 0d866e84
 (2026-09-27) on; a ``benchmark_targets.py`` from before c60a5238 lacks
-``THREAD_VARS``, and this script holds a copy of its four variables. At
-an older commit the recording stops with ``MissingName``: its ``BADS``
+``THREAD_VARS``, and this script holds a copy of
+``benchmark_targets.THREAD_VARS``; those from before 2822c561 have no
+configuration given evaluations made before its runs, and their
+``population.py`` no ``precomputed_summary``, which this script then does
+without. At an older commit the recording stops with ``MissingName``: its ``BADS``
 does not set ``poll_moved``, which the recorder reads. ``--repeat 2`` and
 ``check DIR`` find the first computation at which two runs of one process
 differ.
@@ -122,6 +132,7 @@ if str(HERE) not in sys.path:
 
 # benchmark_targets puts this checkout first on sys.path
 import benchmark_targets as bt  # noqa: E402
+import population  # noqa: E402
 from population import (  # noqa: E402
     git_info,
     jsonable,
@@ -144,8 +155,8 @@ DEFAULT_BUDGET_SCALE = 0.1  # of the suites' 500 D: 50 D evaluations
 DEFAULT_RUNS = REPO_ROOT / "dev" / "scripts" / "runs" / "replay"
 # The thread variables pinned and recorded, as the other tools do. The
 # `benchmark_targets.py` of a commit before c60a5238, beside a copy of this
-# script in a worktree at that commit, lacks THREAD_VARS: a copy of its
-# four variables stands in.
+# script in a worktree at that commit, lacks THREAD_VARS: a copy of
+# `benchmark_targets.THREAD_VARS` stands in.
 THREAD_VARS = getattr(
     bt,
     "THREAD_VARS",
@@ -192,6 +203,9 @@ RESULT_SCALARS = (
     "algorithm",
 )
 RESULT_UNCOMPARED = ("total_time", "overhead", "version")
+# The keys of the result that only a run given evaluations made before it
+# has, recorded when present, so that the other traces keep their layout
+RESULT_PRECOMPUTED = ("precomputed_observations", "precomputed_locations")
 
 # The private names of the package that a recording wraps or reads; the
 # steps also read `poll_moved` and `search_es_hedge` (with the hedge's
@@ -713,9 +727,24 @@ def _result_parts(res):
         scalars[f"{key}_is_none"] = v is None
     for key in RESULT_SCALARS:
         scalars[key] = jsonable(res.get(key))
+    for key in RESULT_PRECOMPUTED:
+        if key in res:
+            scalars[key] = jsonable(res[key])
     for key in RESULT_UNCOMPARED:
         uncompared[key] = jsonable(res.get(key))
     return arrays, scalars, uncompared
+
+
+def given_evaluations(cfg, prob):
+    """The keyword arguments of ``BADS`` that give a run of ``cfg`` the
+    evaluations made before it, as ``population.py`` gives them, and what
+    the trace records of them (``population.precomputed_summary``: their
+    kind, rows and digest; None without them). Beside the
+    ``benchmark_targets.py`` and ``population.py`` of a commit before
+    2822c561, which give no run such evaluations, ``({}, None)``."""
+    if not hasattr(prob, "bads_kwargs"):
+        return {}, None
+    return prob.bads_kwargs(), population.precomputed_summary(cfg, prob)
 
 
 def record_run(label, seed, budget_scale, extra_options=None):
@@ -727,7 +756,10 @@ def record_run(label, seed, budget_scale, extra_options=None):
     for name in BADS_METHODS:
         _require(BADS, name, "pybads.bads.bads.BADS")
     cfg = bt.find_config(label)
+    # the earlier run of a configuration given evaluations made before its
+    # runs, if any, before the recorder's wrappers are in place
     prob = cfg.make(seed=seed, budget_scale=budget_scale)
+    given, precomputed = given_evaluations(cfg, prob)
     args, options = prob.bads_args()
     options.update(extra_options or {})
     requested = jsonable(options)
@@ -737,7 +769,7 @@ def record_run(label, seed, budget_scale, extra_options=None):
     bads = res = crash = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options)
+        bads = BADS(*args, options=options, **given)
         rec.attach(bads)
         res = bads.optimize()
     except RecorderError as e:
@@ -768,6 +800,7 @@ def record_run(label, seed, budget_scale, extra_options=None):
         "budget_scale": budget_scale,
         "D": prob.D,
         "requested_options": requested,
+        "precomputed": precomputed,
         "result": res_scalars,
         "result_uncompared": res_uncompared,
         "crash": crash,
@@ -1259,8 +1292,9 @@ def platform_differences(a, b, prefix=""):
 def setup_differences(base_meta, new_meta):
     """The fields, other than the platform's, in which two runs' set-ups
     differ: the gpyreg that ran (version, source path, commit), the
-    requested options and the budget scale. ``check`` warns of them and
-    compares the runs all the same."""
+    requested options, the budget scale and the evaluations made before the
+    run (their kind, rows and digest). ``check`` warns of them and compares
+    the runs all the same."""
 
     def setup(meta):
         v = meta.get("provenance") or {}
@@ -1269,6 +1303,7 @@ def setup_differences(base_meta, new_meta):
             "gpyreg_source": v.get("gpyreg_source"),
             "requested_options": meta.get("requested_options"),
             "budget_scale": meta.get("budget_scale"),
+            "precomputed": meta.get("precomputed"),
         }
 
     return platform_differences(setup(base_meta), setup(new_meta))

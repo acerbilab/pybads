@@ -51,10 +51,12 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   about 30 s, and writes one trace per run under `scripts/runs/replay/`:
   every call of the target with the state of the run's generator, every
   search and poll step, every GP computation with its hyperparameters,
-  `iteration_history`, the result, and the platform key (CPU, libraries,
-  BLAS kernel and threads). `check BASE NEW` refuses two recordings whose
-  platform keys differ (unless `--force`), warns when they differ in the
-  gpyreg that ran, the requested options or the budget scale, and
+  `iteration_history`, the result, the log given to a run of the
+  `warmstart` suite (its kind, rows and digest), and the platform key
+  (CPU, libraries, BLAS kernel and threads). `check BASE NEW` refuses two
+  recordings whose platform keys differ (unless `--force`), warns when
+  they differ in the gpyreg that ran, the requested options, the budget
+  scale or the digest of the log given to a run, and
   reports, per run, identity or the first divergence: the evaluation, its
   iteration and stage, whether the generator's states agree there (a
   value moved) or not (a branch changed), and the first step and the
@@ -257,10 +259,14 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   of the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
 - `test_replay.py` checks the comparison of `replay.py` on synthetic
-  traces, its warnings, the recorder's reading of the refit flag, its
-  failure on a private name that the package no longer has and on an
-  error of its own code inside a run, and one short recording repeated in
-  one process: `python -m pytest dev/scripts/test_replay.py`.
+  traces, its warnings (the logs given to the runs included), the
+  recorder's reading of the refit flag, its failure on a private name that
+  the package no longer has and on an error of its own code inside a run,
+  the script beside a `benchmark_targets.py` of an older commit, without
+  `THREAD_VARS` or without runs given evaluations made before them, one
+  short recording repeated in one process, and the recording of a run
+  given the log of an earlier run: `python -m pytest
+  dev/scripts/test_replay.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero
