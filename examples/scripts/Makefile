@@ -1,7 +1,8 @@
 # Makefile for extracting code from Jupyter Notebooks: each script is the
 # code of the notebook of the same stem in ../, without its markdown cells.
-# Needs GNU Make, and nbconvert, black and isort (at the pre-commit hook
-# versions) in the environment that `python` names.
+# Needs GNU Make, and nbconvert, IPython (without which nbconvert leaves the
+# code as it is and the last line of the script is cut), black and isort (at
+# the pre-commit hook versions) in the environment that `python` names.
 
 NOTEBOOKS = $(wildcard ../pybads_example_*.ipynb)
 SCRIPTS = $(patsubst ../%.ipynb,%.py,$(NOTEBOOKS))

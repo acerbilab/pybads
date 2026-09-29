@@ -5,7 +5,9 @@ poll iteration (hence the evaluations it needs to reach the tolerance).
 
 Its run of 2026-09-24 (4 seeds, the suite's first 15 configurations) found
 every run ending on BADS's own termination, which set the suite's budgets
-(``benchmark_targets.py``). Usage, from the repository root::
+(``benchmark_targets.py``). The configurations with periodic variables run
+only with a gpyreg whose kernels take ``periods`` (1.4.0 and later), and
+are skipped otherwise. Usage, from the repository root::
 
     PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
 """
@@ -41,7 +43,10 @@ seeds = range(int(sys.argv[2]) if len(sys.argv) > 2 else 4)
 print(gpyreg.__file__, flush=True)
 rows = []
 t_all = time.time()
-for cfg in bt.suite_configs("default"):
+configs, skipped = bt.runnable_configs("default")
+if skipped:
+    print(f"skipped, this gpyreg has no periods: {skipped}", flush=True)
+for cfg in configs:
     for seed in seeds:
         prob = cfg.make(seed=seed)
         args, options = prob.bads_args()

@@ -12,7 +12,7 @@ from pybads.function_logger.constraints_check import contraints_check
 from pybads.rng import get_rng
 from pybads.rounding import round_half_away
 
-from .grid_functions import force_to_grid
+from .grid_functions import force_to_grid, force_to_grid_periodic
 
 
 class ESSearch(ABC):
@@ -160,10 +160,15 @@ class ESSearch(ABC):
         z = np.empty(0)
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
-            # TODO: enforce periodicity
-
-            # Force candidates points on search grid
-            u_new = force_to_grid(u_new, self.search_mesh_size)
+            # Enforce periodicity and force the candidate points on the
+            # search grid
+            u_new = force_to_grid_periodic(
+                u_new,
+                self.search_mesh_size,
+                optim_state["lb"],
+                optim_state["ub"],
+                optim_state["periodic_vars"],
+            )
 
             # Remove already evaluated or unfeasible points from search set
             u_new = contraints_check(
@@ -318,20 +323,20 @@ class ESSearchELL(ESSearch):
 
 
 def ucov(U, u, w, ub, lb, scale, periodic_vars=None):
-    width_scaled = (ub - lb) / scale
     U_tmp = U.copy()
     u_tmp = u.copy()
     if periodic_vars is not None and np.any(periodic_vars):
-        U_tmp[:, periodic_vars] = (
-            U[:, periodic_vars]
-            - u[periodic_vars]
-            + 0.5 * width_scaled[periodic_vars]
+        # A periodic coordinate is taken relative to u's, the shorter way
+        # round its period, in [-period / 2, period / 2), and u's is then
+        # 0, as in MATLAB's ucov.m
+        mask = np.ravel(periodic_vars).astype(bool)
+        period = (np.ravel(ub) - np.ravel(lb))[mask] / scale
+        u_rows = np.atleast_2d(u_tmp)
+        U_tmp[:, mask] = (
+            np.mod(U[:, mask] - u_rows[:, mask] + 0.5 * period, period)
+            - 0.5 * period
         )
-        U_tmp[:, periodic_vars] = (
-            np.mod(U[:, periodic_vars], width_scaled[periodic_vars])
-            - 0.5 * width_scaled[periodic_vars]
-        )
-        u_tmp[periodic_vars] = 0.0
+        u_rows[:, mask] = 0.0
 
     u_shift = U_tmp - u_tmp
 

@@ -1,0 +1,59 @@
+{
+ "label": "periodic_D6",
+ "seed": 2,
+ "arm": "off",
+ "func_count": 167,
+ "wall_s": 2.5373307469999418,
+ "run_s": 2.5373307469999418,
+ "fun_eval_s": 0.005234050000176665,
+ "fval": 0.10344895292361252,
+ "x": [
+  6.283185307179586,
+  6.283185307179586,
+  6.283185307179586,
+  -1.1972419947414892,
+  -0.9860188618040411,
+  -1.5281439595855772
+ ],
+ "n_train_last": null,
+ "tot": {
+  "kernel_self": 0.07434902999739279,
+  "kernel_grad": 0.32613097199964614,
+  "gp_update": 0.08392723299982663,
+  "gp_fit": 0.5232291530023758,
+  "local_gp_fitting": 0.1578360119996205,
+  "kernel_diag": 0.011537527002928982,
+  "kernel_cross": 0.4152187970008754,
+  "gp_predict": 0.4393046299969683,
+  "poll_step": 0.06442513500064706,
+  "es_search": 0.34016166499986866,
+  "add_and_update_gp": 0.002085686000896203,
+  "search_step": 0.06916437199834036
+ },
+ "cnt": {
+  "kernel_self": 689,
+  "kernel_grad": 479,
+  "gp_update": 187,
+  "gp_fit": 14,
+  "local_gp_fitting": 55,
+  "kernel_diag": 538,
+  "kernel_cross": 538,
+  "gp_predict": 538,
+  "poll_step": 10,
+  "es_search": 67,
+  "add_and_update_gp": 56,
+  "search_step": 67
+ },
+ "size": {
+  "kernel_self": 2071897,
+  "kernel_grad": 3052941,
+  "kernel_diag": 275196,
+  "kernel_cross": 20145865
+ },
+ "gpyreg": "/home/user/gpyreg-base/gpyreg/__init__.py",
+ "pybads": "/home/user/pybads/pybads/__init__.py",
+ "threads": {
+  "OMP_NUM_THREADS": "1",
+  "OPENBLAS_NUM_THREADS": "1"
+ }
+}

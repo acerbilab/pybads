@@ -92,7 +92,10 @@ gpyreg.GP.fit = counting_fit
 gtrain._robust_gp_fit_ = counting_robust
 
 runs = []
-for cfg in bt.suite_configs("default"):
+configs, skipped = bt.runnable_configs("default")
+if skipped:
+    print(f"skipped, this gpyreg has no periods: {skipped}", flush=True)
+for cfg in configs:
     for seed in range(10):
         n0 = len(calls)
         args, options = cfg.make(seed=seed).bads_args()

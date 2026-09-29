@@ -66,12 +66,19 @@ The tests live in `pybads/testing/`, mirroring the package, and default
 discovery is limited to them (`testpaths` in `pyproject.toml`); the checks
 under `dev/scripts/` run only when named by path.
 
-The test job is defined once, in `.github/workflows/test-matrix.yml`, and
-installs gpyreg at the commit pinned as `GPYREG_PIN` there: the tagged
-commit of the release that `pyproject.toml` names as the minimum (CI reads
-gpyreg's version from its tags, and an untagged commit reads lower, so pip
-would install gpyreg from PyPI over the pinned checkout). A change that
-needs a newer gpyreg moves both. `merge-tests.yml` runs the full matrix
+The test job is defined once, in `.github/workflows/test-matrix.yml`. It
+installs PyBADS, which brings gpyreg from PyPI, and then gpyreg's checkout
+at the commit pinned as `GPYREG_PIN` there, which replaces it whatever
+version the checkout reads from its tags (pip only reports a conflict with
+the minimum in `pyproject.toml`). The pin is normally the tagged commit of
+the release that `pyproject.toml` names as the minimum, and a change that
+needs a newer gpyreg moves both. Until gpyreg 1.4.0 is released, it is a
+commit of gpyreg's `main` that carries the kernels' periods, which
+periodic variables need, while the minimum stays 1.3.3; under a gpyreg
+whose kernels take no periods, `BADS` raises `ImportError` for periodic
+variables (`_gpyreg_takes_periods` in `bads.py`). The release moves the
+pin to its tag and the minimum to 1.4.0 (`dev/TODO.md`).
+`merge-tests.yml` runs the full matrix
 (Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` or to a
 `dev*` branch, only when its changes against that base touch `pybads/`,
 `pyproject.toml` or `setup.py`; a PR that changes anything else, the
@@ -126,8 +133,10 @@ defaults, messages, display labels and result fields, and nothing runs its
 snippets or checks them against the code: a change to one of those is made
 in the FAQ by hand. Its table of contents is written out by hand too, and
 `skills/pybads/SKILL.md` names its sections and questions by their titles,
-and Examples 3 and 4 link its label `faq-noisy-objective-function`, so a
-question added or renamed, or a label changed, is updated there as well.
+Examples 3 and 4 link its label `faq-noisy-objective-function`, and
+Example 6 and the changelog's entry "Periodic variables" its label
+`faq-does-pybads-support-periodic-variables-such-as-angles`, so a question
+added or renamed, or a label changed, is updated there as well.
 Build with `make github` in `docsrc/` (`.\make.bat github` from cmd
 on Windows), which copies the result into `docs/`.
 
@@ -135,9 +144,10 @@ The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
 docs build; nothing runs them, so a change that breaks one goes unnoticed.
 `examples/scripts/*.py` are generated from the notebooks by
-`examples/scripts/Makefile` (GNU Make, with nbconvert, and black and isort
-at the pre-commit hook versions, in the environment `python` names);
-regenerate them with `make -B -C examples/scripts`, do not edit them.
+`examples/scripts/Makefile` (GNU Make, with nbconvert, IPython, and black
+and isort at the pre-commit hook versions, in the environment `python`
+names); regenerate them with `make -B -C examples/scripts`, do not edit
+them.
 
 ## Architecture
 
@@ -184,7 +194,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
 - **Two coordinate spaces.** The algorithm runs in `u` space, where
   `VariableTransformer` maps the plausible box to `[-1, 1]^D` (with a log
   transform for a variable whose bounds are all positive and whose
-  `pub/plb >= 10`); the target and `non_box_cons` see the original space.
+  `pub/plb >= 10`, unless it is periodic); the target and `non_box_cons`
+  see the original space.
   After `_init_optim_state_`, `self.lower_bounds` and its siblings hold the
   transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
@@ -197,6 +208,24 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   scales the distances of `udist` (the neighbours of the local training
   set, the length of a search's step), and `effective_radius` the radius
   of the training set.
+- **Periodic variables** (`periodic_vars`, stored as a sorted list of
+  indices; `optim_state["periodic_vars"]` is their `(1, D)` mask) wrap
+  around their hard bounds, in `u` space. Code that proposes points wraps
+  them with `force_to_grid_periodic` where it puts them on the grid, and
+  with `period_check` where it does not: the start (`start_on_mesh`), the
+  initial design (`_init_mesh_`), the search set (`_search_step_`), each
+  generation of the ES search (`ESSearch.__call__`) and the poll
+  (`_poll_step_`); a new source of candidates needs the same, and
+  `test_every_source_of_candidates_wraps_them` names them; the evaluations
+  made before the run are logged as given. `udist` and `ucov` take a
+  periodic difference the shorter way round, and the GP's kernel takes the
+  periods from `_gp_periods` (gpyreg's `periods`), only in a run that has
+  periodic variables: without them the kernel gets no `periods`. The gate
+  of a change to this code is the `periodic` suite, against
+  `dev/experiments/population_periodic_linux_20260928` on Linux. The
+  `default` suite holds two of its configurations, which its references
+  lack until gpyreg 1.4.0's (`dev/TODO.md`), so that its comparison does
+  not test them yet.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -221,8 +250,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   descriptions that say so; an option that no code reads and that MATLAB
   BADS does not have is removed rather than kept. The GP's kernel is a
   hard-coded rational-quadratic ARD kernel (`optim_state["gp_cov_fun"] =
-  1`), a few options are read only by code that no run reaches (KD-B1-4 in
-  `pybads/bads/README.md`), and
+  1`; periodic along the periodic variables), a few options are read only
+  by code that no run reaches (KD-B1-4 in `pybads/bads/README.md`), and
   `_init_optim_state_` reads `gpintmeanfun`, which no `.ini` defines, as
   `None`. Grep for an option's reads before relying on it.
 - **Extension points are hard-coded.** `ESSearchHedge.__call__` chooses a
@@ -332,9 +361,13 @@ under `dev/experiments/` (its `README.md` holds the command, the
 provenance, the null check, the positive control and what "no flag" can
 detect at its number of seeds). There is one reference for Windows and one
 for Linux, since pairing by seed holds only on one platform and set of
-versions; `dev/README.md` names both. A gate is evidence only if it reaches
-the changed code: the benchmark exercises the default options, so a change
-behind a non-default option needs a configuration that sets it. Every
+versions; `dev/README.md` names both. `compare` tests only the
+configurations that both populations hold and lists the others on one
+line, outside its verdict and its exit code: a configuration added to a
+suite goes ungated until the reference holds it too. A gate is evidence
+only if it reaches the changed code: the benchmark exercises the default
+options, so a change behind a non-default option needs a configuration
+that sets it. Every
 evidence run selects gpyreg explicitly, with `PYTHONPATH` naming a clone at
 the release tag (`dev/scripts/runs/LOCAL.md` lists them): the editable
 install follows `../gpyreg`, which other work moves. PyBADS is selected in

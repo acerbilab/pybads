@@ -109,6 +109,22 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Periodic variables.** `periodic_vars` names the variables that are
+  periodic, such as angles, by their indices from 0 to D - 1, as MATLAB
+  BADS's `PeriodicVars` does from 1; 1.1.0 refused it. The hard bounds of
+  a periodic variable, which need to be finite, are its period: BADS wraps
+  the variable around them, so that the lower and the upper bound are the
+  same point and a run moves across them, and the Gaussian process that
+  models the objective is periodic along it. A periodic variable is never
+  taken to log coordinates. An empty `periodic_vars`, such as `[]`, names
+  no periodic variable and stands for `None`, as in MATLAB BADS. `BADS`
+  raises `ValueError` for a `periodic_vars` that is not a list of distinct
+  indices, a boolean mask included, or that names a variable with an
+  infinite bound.
+  [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html)
+  and the
+  [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)
+  show how to set it up.
 - **Evaluations made before the run.** `BADS(...,
   precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
   `specify_target_noise=True`, gives a run evaluations of the target made
@@ -926,9 +942,6 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and the function logger of a run holds the noise SDs, `S`, only with
   `specify_target_noise=True`, where 1.1.0's also held them, all NaN, with
   `uncertainty_handling=True` alone.
-- **Empty `periodic_vars`.** An empty `periodic_vars`, such as `[]`, names
-  no periodic variable and stands for `None`, as in MATLAB BADS; 1.1.0
-  refused it.
 - **Initial design.** The scrambling of the initial Sobol design is seeded
   from the run's generator, so that `random_seed` decides the design, as it
   decides every other random draw of a run; MATLAB BADS derives its design
