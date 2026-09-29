@@ -70,54 +70,63 @@ of periodic variables is seen.
 
 Measured on Linux, with the evidence in
 [`experiments/periodic_kernel_linux_20260929/`](../experiments/periodic_kernel_linux_20260929/README.md).
+Two populations of the same code, run on 2026-09-28 and 2026-09-29,
+differ by 0.96 to 1.09 in the median time per evaluation of a
+configuration, which bounds what the timings below resolve.
 
 **The cause was gpyreg's periodic kernel.** With gpyreg at `b44634f` (the
-merge of acerbilab/gpyreg#61, the CI pin), the runs of the `periodic`
-suite with `periodic_vars` took 1.1 to 1.35 times the median time per
-evaluation of the same problems without it in the deterministic
-configurations (MATLAB's Example 5 as long), and 2.3 (`homo`) and 1.8
-(`hetero`) times in the noisy ones, over 30 seeds on one machine.
-Profiles of seeds 0-2 of each configuration, in which every call of
-gpyreg's kernel was repeated on the same inputs without its periods, put
-the difference in gpyreg: the kernel with periods took 2.5 to 3.9 times
-as long as the same calls without them, a difference of 27 to 38 % of
-each run (10 % on `periodic_D2`). Most of it went to the predictions at
-the ES search's 2048 candidates per generation, where the kernel computed
-an `fmod` and a sine of every pair of inputs, one periodic dimension at a
-time, beside one `cdist` for the other dimensions; a fit's gradient
-computed each periodic dimension's term a second time.
+merge of acerbilab/gpyreg#61), the runs of the `periodic` suite with
+`periodic_vars` took 1.1 to 1.35 times the median time per evaluation of
+the same problems without it in the deterministic configurations
+(MATLAB's Example 5 as long), and 2.3 (`homo`) and 1.8 (`hetero`) times in
+the noisy ones, over 30 seeds. Profiles of seeds 0-2 of each
+configuration, in which every call of gpyreg's kernel was repeated on the
+same inputs without its periods, put the difference in gpyreg: the kernel
+with periods took 2.5 to 3.9 times as long as the same calls without
+them (1.6 times on `periodic_D2`), a difference of 27 to 38 % of each run
+(10 to 11 % on `periodic_D2`). Most of it went to the predictions at the
+ES search's 2048 candidates per generation, where the kernel at
+`b44634f` computes an `fmod` and a sine of every pair of inputs, one
+periodic dimension at a time, beside one `cdist` for the other
+dimensions, and a fit's gradient computes each periodic dimension's term
+a second time.
 
 **The kernel on the circle.** gpyreg's commit `0f27db5` wraps each
 periodic coordinate exactly into `(-p/2, p/2]` and maps it onto the circle
 of circumference `p`, as two coordinates whose squared Euclidean distance
-is the squared chord, and takes the distances of all the dimensions in
-one `cdist`: the trigonometric functions take one evaluation per point
-and periodic dimension instead of one per pair. MATLAB BADS's
+is the squared chord, and takes the distances with `cdist`: the
+trigonometric functions take one evaluation per point and periodic
+dimension instead of one per pair of points. MATLAB BADS's
 `covPPERard_fast` maps a periodic input onto the unit circle in the same
 way; the circle of circumference `p` keeps the length scale in the units
-of the input (KD-B1-6).
-- *Numerics.* The kernels and gradients of gpyreg's five ARD kernels agree
-  with `b44634f`'s to 2e-15 of the output variance, and inputs a whole
-  number of periods apart remain the same input to the last bit. The
-  chord of two close inputs carries the rounding of their mapped
-  coordinates, as a non-periodic dimension carries that of its scaled
-  coordinates, where it carried the relative precision of their
-  difference; on the kernel's values the two differ at the level of their
-  rounding.
+of the input (KD-B1-6). The commit `91ea28e` after it adds a test and
+changes docstrings, not the kernels' code.
+- *Numerics.* Over random inputs, the kernels of gpyreg's three ARD
+  kernels (Matern at its three degrees) agree with those computed at
+  `b44634f` to 2e-15 of the output variance, and their gradients to 2e-15
+  of their largest entry; inputs a whole number of periods apart remain
+  the same input to the last bit. At `b44634f` the chord of two close
+  inputs kept the relative precision of their difference; at `0f27db5` it
+  carries the rounding of their mapped coordinates, as a non-periodic
+  dimension carries that of its scaled coordinates. The kernel's values
+  differ between the two by the order of their rounding.
 - *Runs without periodic variables* do not reach this code:
   `dev/scripts/fingerprint.py` prints `4146a986863602cb` with `0f27db5`.
 - *The gate.* The `periodic` suite at 30 seeds against its Linux reference
-  flags nothing; 34 of the 180 runs return the reference's result to the
-  last bit, and the others differ from the rounding of the kernel on.
-  gpyreg's suite (914 tests, among them a new one, at three seeds: the
-  distance along a periodic dimension is the squared chord) and PyBADS's
-  (871 tests) pass.
+  flags nothing. 34 of the 180 runs return the reference's point, error
+  and number of evaluations; in the others a difference in the kernel's
+  last bits leads the run along another path. gpyreg's suite passes
+  (914 tests at `0f27db5`, 917 at `91ea28e`), and so does PyBADS's (871
+  tests).
 - *Speed.* The kernel with periods takes 1.4 to 1.6 times as long as the
-  same calls without them (1.3 on `periodic_D2`), 8 to 13 % of a run, and
-  the runs take 7 to 34 % less time per evaluation than at `b44634f`
-  (median ratios paired by seed):
+  same calls without them (1.3 times on `periodic_D2`), a difference of 8
+  to 13 % of each run (5 to 6 % on `periodic_D2`). The time per
+  evaluation of each seed falls to 0.66 to 0.81 of its time at `b44634f`,
+  in the median over the seeds of each configuration, and to 0.93 on
+  `periodic_D2`. Relative to the same problems without `periodic_vars`, the
+  ratios of the median times per evaluation are:
 
-| Configuration | Time per evaluation with `periodic_vars` / without, at `b44634f` | at `0f27db5` |
+| Configuration | With `periodic_vars` / without, at `b44634f` | at `0f27db5` |
 |---|---|---|
 | `periodic_D2` | 1.09 | 0.99 |
 | `periodic_D4` | 1.22 | 0.99 |
@@ -129,18 +138,21 @@ of the input (KD-B1-6).
 **What remains** is mostly the length of the noisy runs. With
 `periodic_vars` they take more evaluations (medians 348 and 364 against
 207 and 310), and the time per evaluation of a noisy run grows with its
-length; a least-squares line of the time per evaluation on the number of
-evaluations gives, at the median evaluations of the runs without
-`periodic_vars`, 1.19 (`homo`) and 1.09 (`hetero`) times their time. Of
-PyBADS's own code, `udist`'s periodic branch builds the `N x M x D` array of
-differences with `np.mod`, where a run without periodic variables takes one
-`cdist`: 0.84 against 0.11 ms per call, about 0.5 s of the 8.9 s that the
-run of `periodic_D3_homo` at seed 0 takes under cProfile.
+length: a least-squares line of the time per evaluation on the number of
+evaluations, fitted to each arm, gives at the median evaluations of the
+runs without `periodic_vars` 1.19 (`homo`) and 1.09 (`hetero`) times the
+value of the line fitted to those runs. Of PyBADS's own code, `udist`'s
+periodic branch builds the `N x M x D` array of differences with
+`np.mod`, where a run without periodic variables takes one `cdist`: 0.84
+against 0.11 ms per call under cProfile, about 0.5 s of the 8.9 s that
+the run of `periodic_D3_homo` at seed 0 takes under cProfile at
+`b44634f` (`dev/TODO.md`, "`udist` on periodic variables").
 
-`0f27db5` is a commit of a local clone of gpyreg, on `b44634f`, not on
-gpyreg's GitHub; its patch is `gpyreg-perf-periodic-circle.patch` in the
-evidence directory, and `dev/TODO.md` tracks the pull request that carries
-it into gpyreg 1.4.0.
+On 2026-09-29, `0f27db5` and `91ea28e` were commits of a local clone of
+gpyreg, not on its GitHub; their patch is
+`gpyreg-perf-periodic-circle.patch` in the evidence directory, and
+`dev/TODO.md` tracks the pull request that is to carry them into gpyreg
+1.4.0.
 
 ## Not done
 
