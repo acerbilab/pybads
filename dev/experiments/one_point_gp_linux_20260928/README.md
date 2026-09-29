@@ -1,54 +1,58 @@
 # The GP on one point: MATLAB BADS's definition values, on Linux, gpyreg 1.3.3
 
 The gate of `73d517a`, the PI's ruling of 2026-09-28 on the `dev/TODO.md`
-item "The GP on a one-point training set." (rows W2-37 and W3-40 of the
-port review, wave 1's "Found while fixing" and wave 2's "Found while
-verifying"): a GP whose initial training set holds one distinct point is
-not fitted, and takes the values of MATLAB BADS's definition
-(`gpdef/gpdefBads.m`): log length scales, log output scale and log shape
-0, the log noise SD at the log of the noise size, the mean at the point's
-target, and the mean's prior centred there with the SD 1 (KD-B6-5).
-Before it, `init_and_train_gp` fitted the GP on that point, under the
-priors alone: gpyreg's recommendations replace a single target by
-`[0, 1]`, so that the mean's prior was centred at 0.5 whatever the target,
-and printed six `RuntimeWarning`s, three times each. A non-box constraint
-that leaves only `x0` feasible reaches it, as do `max_fun_evals=2` with the
-noise test and `fun_eval_start=0`; no configuration of the `default` suite
-does. This population measures the change against its parent on the
-configurations that reach it: the `geometry` suite (its thin bands,
-`sphere_band_D2` and `sphere_band_D3`, without noise) and the `thinband`
-suite (the same bands with inferred noise and with the target's noise),
-30 seeds each, paired by seed.
+item "The GP on a one-point training set.", which it closed (rows W2-37 and
+W3-40 of the port review, wave 1's "Found while fixing" and wave 2's
+"Found while verifying"): a GP whose initial training set holds one
+distinct point is not fitted, and takes the values of MATLAB BADS's
+definition (`gpdef/gpdefBads.m`): log length scales, log output scale and
+log shape 0, the log noise SD at the log of the noise size, the mean at
+the point's target, and the mean's prior centred there with the SD 1
+(KD-B6-5). Before it, `init_and_train_gp` fitted the GP on that point,
+under the priors alone: gpyreg's recommendations replace a single target
+by `[0, 1]`, so that the mean's prior was centred at 0.5 whatever the
+target, and printed six `RuntimeWarning`s, three times each. A non-box
+constraint that leaves only `x0` feasible reaches it, as do
+`max_fun_evals=2` with the noise test and `fun_eval_start=0`; no
+configuration of the `default` suite does. This population measures the
+change against its parent on the configurations that reach it: the
+`geometry` suite (its thin bands, `sphere_band_D2` and `sphere_band_D3`,
+without noise) and the `thinband` suite (the same bands with inferred
+noise and with the target's noise), 30 seeds each, paired by seed.
 
-**Outcome: no flag; exactly the runs that start on one point change.**
-The comparison flags nothing in 33 tests. Every run of the thin bands
-starts on one point but seeds 21 and 22 at D = 2 and seed 23 at D = 3 of
-each noisy configuration, whose initial design of 32 points puts a second
-point in the band; those runs, and every run of `edgesphere` and `ridge`,
-are identical in both arms. `sphere_band_D2` without noise is identical too: its runs end
-after 2 evaluations at `x0` (W2-37) whatever the GP holds. The 144 runs
-that change move by no consistent amount: the median paired log10 error
-ratio of the changed runs is between −0.11 and +0.17 per configuration,
-none significant, and the fraction solved moves from 0.33 to 0.43 on
-`sphere_band_D3_hetero` and from 0.87 to 0.90 on `sphere_band_D3_homo`.
-No run prints a warning from its initialization, against every run that
-starts on one point before; the refits still print gpyreg's warnings on
-inputs without spread in a coordinate, in every run of `sphere_band_D3`
-(5 of 30 before), since a GP with MATLAB's output scale of 1 fails the
-check of its predictions at once and is refitted at the first evaluation
-that allows it, on `x0` and two poll points along the one axis the band
-leaves free.
+**Outcome: no flag; the results change in exactly the runs that start on
+one point and go past it.** The comparison flags nothing in 33 tests.
+Every run of the thin bands starts on one point but seeds 21 and 22 at
+D = 2 and seed 23 at D = 3 of each noisy configuration, whose initial
+design of 32 points puts a second point in the band; those runs, and every
+run of `edgesphere` and `ridge`, give identical results in both arms. So do
+the runs of `sphere_band_D2` without noise, which end after 2 evaluations
+at `x0` (W2-37) whatever the GP holds; their GP differs. The results of the
+144 runs that change move by no consistent amount: the median paired log10
+error ratio of the changed runs is between −0.11 and +0.17 per
+configuration, none significant, and the fraction solved moves from 0.33
+to 0.43 on `sphere_band_D3_hetero` and from 0.87 to 0.90 on
+`sphere_band_D3_homo`. No run prints a warning from its initialization,
+against every run that starts on one point before. The refits print
+gpyreg's warnings on inputs without spread in a coordinate in every run of
+`sphere_band_D3` (5 of 30 before) and in 3 of 30 of `sphere_band_D2_hetero`
+(none before): on `sphere_band_D3` a GP with MATLAB's output scale of 1
+fails the check of its predictions at once and is refitted at the first
+evaluation that allows it, on `x0` and two poll points along the one axis
+the band leaves free.
 
 ## Arms
 
 | arm | the GP on one point at the initialization | code |
 | --- | --- | --- |
-| base | fitted under the priors, the mean's prior centred at 0.5 by gpyreg's recommendations | `b255effb`, with `d9772a04` (the `thinband` suite, `dev/scripts` only) cherry-picked as `07280f79` on a detached worktree, not pushed |
+| base | fitted under the priors, the mean's prior centred at 0.5 by gpyreg's recommendations | `b255effb`, with `d9772a04` (the `thinband` suite) cherry-picked as `07280f79` on a detached worktree, not pushed |
 | change | MATLAB BADS's definition values, not fitted | `d9772a04`: `73d517a` with the `thinband` suite |
 
 Both arms run the same `benchmark_targets.py`, so that each seed has the
 same start point and noise stream in both; the records name each arm's
-package in `meta.pybads_source`, clean.
+package in `meta.pybads_source`, clean. `07280f79`, which no pushed branch
+holds, is `b255effb` with the two files of `d9772a04`, `dev/README.md` and
+`dev/scripts/benchmark_targets.py`: its `pybads/` is `b255effb`'s.
 
 ## Command and provenance
 
@@ -124,16 +128,22 @@ nothing in 22.
 "Solved" is an error below the configuration's tolerance (0.001 without
 noise, 0.1 with it). "Runs on one point" counts the runs whose initial
 training set holds one distinct point (`warnings.md`, the same in both
-arms); the changed pairs differ in a field of `final` other than the wall
-time.
+arms). The changed pairs differ in their results, the eight fields of
+`final` that `pairs.py` compares (`x`, `fval`, `fsd`, `true_error`,
+`func_count`, `iterations`, `message` and `crashed`); it leaves out the
+other fields of `final`, the exception of a crashed run, the wall time, the
+stage times and `min_noise_var`, the smallest noise variance of the run's
+recorded GPs.
 
-- **Which runs change.** Exactly the runs that start on one point, 144,
-  but those of `sphere_band_D2`, which end at `x0` after 2 evaluations in
-  both arms. Beyond the GP's values, the skipped fit's random draws no
-  longer come from the run's generator, which shifts its later draws. The
-  stage times agree: no
-  run that starts on one point has a `gp_init/gp_fit` stage in the change,
-  and every run has one in the base.
+- **Which runs change.** The results of exactly the runs that start on
+  one point, but those of `sphere_band_D2`, which end at `x0` after 2
+  evaluations in both arms: 144 runs. Beyond the GP's values, the skipped
+  fit's random draws no longer come from the run's generator, which shifts
+  its later draws. The GP of `sphere_band_D2` differs in each of its 30
+  runs: its `min_noise_var` is 0.001, the definition's, in the change, and
+  0.00079 to 0.0010008 in the base, fitted. The stage times agree: no run
+  that starts on one point has a `gp_init/gp_fit` stage in the change, and
+  every run has one in the base.
 - **The initial GP.** In the base, the fitted mean of the 201 runs that
   start on one point (the six configurations of `warnings.md` and
   `band1`) lies between 0.48 and 1.99 for targets at `x0` from 0.36 to
@@ -178,16 +188,16 @@ target `(x - 1)**2 + 10` with noise of SD 1, `x0 = 0` and the band
   predictions in `_is_gp_refit_time_` (MATLAB's `gppredcheck`) and calls
   for the refit; the base's fitted GP, with an output scale near the
   target's size, passed it (0.5 and 3.4), and its first refit came later,
-  on inputs with spread, in 25 of the 30 runs. MATLAB BADS, with the same
-  values and the same check, refits at the same evaluation; its GP code
-  prints nothing there.
+  on inputs with spread, in 25 of the 30 runs. By a reading of its code,
+  not run, MATLAB BADS, with the same values and the same check, refits at
+  the same evaluation, and its GP code prints nothing there.
 - **A refit on one point** occurs at D = 1: the noise test counts in
   `func_count`, on both sides, so that after it `func_count` is 2 > D. In
   27 of the 30 runs of `band1`, whose noise the test finds, the run's first
   refit is on `x0` alone, in both arms, with the six warnings; the other 3
   have a second feasible point in the initial design. Such a refit is fitted
-  under the priors alone, in MATLAB BADS too; what its fit does with its
-  degenerate priors only MATLAB shows.
+  under the priors alone, in MATLAB BADS too by a reading of its code; what
+  its fit does with its degenerate priors only MATLAB shows.
 
 The warnings of the refits belong to gpyreg's helpers: `dev/TODO.md`, "For
 gpyreg's maintainers.".

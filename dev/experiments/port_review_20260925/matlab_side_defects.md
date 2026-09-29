@@ -173,14 +173,16 @@ Nothing here was run in MATLAB.
   initial GP's ([`w236_linux_20260928`](../w236_linux_20260928/README.md)).
   PyBADS keeps MATLAB's behaviour (PI, 2026-09-29).
 - **A feasible region thinner than the mesh can resolve ends the run on
-  its stall criterion** (W2-37; needs MATLAB for the GP on one point). With
-  `|x1 - x2| <= 0.005` as `NONBCON` at D = 2, no point of the initial design
-  is feasible, the GP is trained on `x0` alone (`log(std(y))` is `-Inf`),
-  no search runs, the axis-aligned poll points are all infeasible, and the
-  stall criterion, which counts iterations without an evaluation, ends the
-  run at `x0`. PyBADS keeps the criterion, and the documentation of
-  `non_box_cons` says that such a region can end the run early and
-  suggests a reparametrization (`bdaef58`).
+  its stall criterion** (W2-37; needs MATLAB for what its fit does with
+  the degenerate priors of a refit on one point, which such a band reaches
+  at D = 1, where the noise test brings the count of evaluations to 2 >
+  D). With `|x1 - x2| <= 0.005` as `NONBCON` at D = 2, no point of the
+  initial design is feasible, the GP is trained on `x0` alone
+  (`log(std(y))` is `-Inf`), no search runs, the axis-aligned poll points
+  are all infeasible, and the stall criterion, which counts iterations
+  without an evaluation, ends the run at `x0`. PyBADS keeps the criterion,
+  and the documentation of `non_box_cons` says that such a region can end
+  the run early and suggests a reparametrization (`bdaef58`).
 - **The covariance of ES-wcm is the unweighted scatter of the best points**
   (W3-3). `utils/ucov.m:19` sums the weighted copies of the scatter matrix
   of the best points about the incumbent, and the weights sum to one, so

@@ -1,8 +1,9 @@
 """The runs that the change moves, per configuration: paired by (label,
-seed), the runs that differ in a field of ``final`` other than the wall
-time, the median error and evaluations of each arm, the fraction solved,
-and the paired log10 error ratio and change in evaluations over the
-changed runs.
+seed), the runs whose results differ, in one of the fields of ``final``
+that ``FIELDS`` names (not the exception, the wall time, the stage times
+or ``min_noise_var``), the median error and evaluations of each arm, the
+fraction solved, and the paired log10 error ratio and change in
+evaluations over the changed runs.
 
     python pairs.py REF_DIR NEW_DIR
 """

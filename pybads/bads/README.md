@@ -204,9 +204,10 @@ returns the incumbent's observation (`bads.m:1136`).
   `BADS.optimize`.
 - MATLAB: `bads.m:1`, `144`, `423`, `1062-1083`, `1185-1194`;
   `private/bads_output.m`.
-- Settled by: W0-4, W2-12, W2-13, W2-14, W2-32; the PI's ruling on the
-  loose ends of the review (`total_time`). Kind: deliberate change
-  (interface).
+- Settled by: W0-4, W2-12, W2-13, W2-14, W2-32; the PI's ruling of
+  2026-09-28 on the loose ends of the review (`total_time`), in the
+  review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
+  "Open ends"). Kind: deliberate change (interface).
 
 **KD-B1-9. A given start that `non_box_cons` rejects once put on the mesh is refused.**
 PyBADS tests `non_box_cons` at a given start, and a second time after
@@ -448,8 +449,10 @@ BADS skips. With default options this happens at one pass of each run of
 `sphere_nonbox_D3` (`dev/scripts/benchmark_targets.py`).
 - PyBADS: `BADS.optimize` (`do_search_step_flag`); `BADS._search_step_`.
 - MATLAB: `bads.m:516-517`, `522-536`.
-- Settled by: the PI's ruling on the loose ends of the review. Kind:
-  deliberate change.
+- Settled by: the PI's ruling of 2026-09-28 on the loose ends of the
+  review, in the review's ledger
+  (`dev/results/2026-09-28-port-correctness-review.md`, "Open ends").
+  Kind: deliberate change.
 
 ### The search (B3)
 
@@ -984,8 +987,10 @@ the tuple has two elements.
 - PyBADS: `FunctionLogger.__call__`
   (`pybads/function_logger/function_logger.py`).
 - MATLAB: `private/funlogger.m:91`, `95-99`.
-- Settled by: the PI's ruling on the loose ends of the review. Kind:
-  deliberate change.
+- Settled by: the PI's ruling of 2026-09-28 on the loose ends of the
+  review, in the review's ledger
+  (`dev/results/2026-09-28-port-correctness-review.md`, "Open ends").
+  Kind: deliberate change.
 
 ### Sto-BADS (S)
 
