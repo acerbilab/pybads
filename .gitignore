@@ -147,6 +147,8 @@ cython_debug/
 
 # do not commit build docs in docsrc folder
 docsrc/_build/
+# copies of the example notebooks, left by a `make github` that failed
+docsrc/source/_examples/
 
 # Sphinx documentation
 docs/

@@ -26,7 +26,12 @@ def circle_constr(x):
 
 
 bads = BADS(
-    rosenbrocks_fcn, x0, lower_bounds, upper_bounds, non_box_cons=circle_constr
+    rosenbrocks_fcn,
+    x0,
+    lower_bounds,
+    upper_bounds,
+    non_box_cons=circle_constr,
+    options={"random_seed": 0},  # Makes the run reproducible
 )
 optimize_result = bads.optimize()
 

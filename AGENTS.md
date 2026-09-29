@@ -92,18 +92,29 @@ to `main` and commits them to `gh-pages`.
 A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
 it. Before the pull request that carries it to `main`, the changelog's
 `Unreleased` section becomes `[X.Y.Z] - <date>` under a new, empty
-`Unreleased`, and the GitHub release takes that section as its notes. The
-example scripts are worth a headless run first, since nothing else runs
-them. `release.yml` builds the package with `build.yml` and uploads it to
-PyPI by trusted publishing, through the `pypi` environment, which admits
-only `v*` tags. No token is stored. conda-forge follows by itself: after
-the upload, the version bot of `conda-forge/pybads-feedstock` opens an
-update PR, takes its dependencies from the PyPI metadata and merges it
-once its CI passes (the `bot` settings in the feedstock's
-`conda-forge.yml`; `conda-forge/gpyreg-feedstock` has the same). That PR
-fails when a dependency is missing from conda-forge, for instance a new
-gpyreg minimum that the gpyreg feedstock has not published yet; then a
-feedstock maintainer takes over.
+`Unreleased`, and the GitHub release takes that section as its notes.
+Before that pull request, too, the example notebooks, whose outputs ship
+with the release and which nothing else runs, are rerun and their outputs
+committed: `make -C examples/scripts run`, with the venv's Python first on
+`PATH` (the target calls `python`) and gpyreg at the release that
+`pyproject.toml` names as the minimum. The target prints the locations and
+installed versions of the PyBADS and gpyreg that it runs, and the commit of
+a gpyreg checkout, whose installed version can belong to another
+installation. Example 5 shows the result's `version`, which PyBADS reads
+from the installed package's metadata, and the run comes before the tag, so
+for it PyBADS is installed under the release's version,
+`SETUPTOOLS_SCM_PRETEND_VERSION=X.Y.Z pip install -e . --no-deps`, and `pip
+install -e . --no-deps` after it takes the version from the tags again.
+`release.yml` builds the package with `build.yml` and uploads it to PyPI by
+trusted publishing, through the `pypi` environment, which admits only `v*`
+tags. No token is stored. conda-forge follows by itself: after the upload,
+the version bot of `conda-forge/pybads-feedstock` opens an update PR, takes
+its dependencies from the PyPI metadata and merges it once its CI passes
+(the `bot` settings in the feedstock's `conda-forge.yml`;
+`conda-forge/gpyreg-feedstock` has the same). That PR fails when a
+dependency is missing from conda-forge, for instance a new gpyreg minimum
+that the gpyreg feedstock has not published yet; then a feedstock
+maintainer takes over.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black
@@ -147,7 +158,8 @@ label changed, is updated there as well:
 - `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6
   and the changelog's entry "Periodic variables";
 - `faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`: the
-  changelog's entry "Fixed variables".
+  changelog's entry "Fixed variables";
+- `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4.
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
 again, but for its list of the problems that PyBADS suits: `index.rst`
@@ -160,12 +172,15 @@ on Windows), which copies the result into `docs/`.
 
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
-docs build; nothing runs them, so a change that breaks one goes unnoticed.
-`examples/scripts/*.py` are generated from the notebooks by
+docs build; no CI job runs them, so a change that breaks one goes
+unnoticed. `examples/scripts/*.py` are generated from the notebooks by
 `examples/scripts/Makefile` (GNU Make, with nbconvert, IPython, and black
 and isort at the pre-commit hook versions, in the environment `python`
 names); regenerate them with `make -B -C examples/scripts`, do not edit
-them.
+them. `make -C examples/scripts run`, which needs ipykernel too, reruns the
+notebooks in place; nbconvert called directly saves each line that PyBADS
+prints as an output of its own, and the times of each cell's execution in
+its metadata.
 
 ## Architecture
 
