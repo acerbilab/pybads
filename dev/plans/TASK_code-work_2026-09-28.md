@@ -42,12 +42,13 @@ pushes and runs `/doublecheck` at the end.
 - [!] `/doublecheck` (comprehensive, 5 Opus reviewers): 3 must-fix (W2-36 adoption not recorded as open; oracle `--rebaseline` dead-ends off the generating machine; `profile_suite.py` relative `--out` loses runs), ~13 should-fix (BADS reference cycle via the stage timer; replay recorder fragility; oracle `--exact` silent skips, gpyreg key, option coupling; stale `BADS.optimize` pointers; changelog gaps; doc slips) — fixes pending the PI
 
 ## Fixes after the double-check (PI, 2026-09-29: fix the findings; W2-36 keeps MATLAB's behaviour; the one-point side effects stay with gpyreg)
-- [~] F1 package code: `BADS` reference cycle; stale `BADS.optimize` pointers; changelog gaps (`(f, sd)` message, `FunctionLogger`, one-point entry); comments; tests (stage balance on `output_fcn` exits, one point at level 2, median rule at N = 5) — worktree `fix-code`
+- [x] F1 package code (merged `deef30c`; agent stopped by a container restart after its commits, gates run on the merged head): `BADS` reference cycle; stale `BADS.optimize` pointers; changelog gaps (`(f, sd)` message, `FunctionLogger`, one-point entry); comments; tests (stage balance on `output_fcn` exits, one point at level 2, median rule at N = 5) — worktree `fix-code`
 - [x] F2 dev tooling (merged `8b52d3a`): `profile_suite.py` relative `--out`; replay recorder robustness and `check` warnings; gate recipe in dev/README; population/benchmark guards, thread variables; stage-times note facts; TODO item for shared dev helpers — worktree `fix-tools`
-- [~] F3 oracles: no platform-bound references in fixtures (rebaseline works anywhere); honest `--check --exact`; gpyreg and CPU features in the key; removed options tolerated; hedge margins; AGENTS.md gate sentences; shipped-tests changelog line — worktree `fix-oracles`
+- [x] F3 oracles (merged `5862d65`; docs finished in `55c4359`; `fa658c0`: the stored states take #96's `precomputed_*` counts, which `--check` caught): no platform-bound references in fixtures (rebaseline works anywhere); honest `--check --exact`; gpyreg and CPU features in the key; removed options tolerated; hedge margins; AGENTS.md gate sentences; shipped-tests changelog line — worktree `fix-oracles`
 - [x] Merge `dev-next` (#93-#96) at `7949cf6`: fingerprint `4146a986863602cb`, 962 passed; its TODO holds "Checks of option values when `BADS` is created." (open)
-- [~] Merge F1, F3; F4 records (worktree `fix-records`): W2-36 ruling; ledger, wave notes, KD "Settled by", one-point README fixes
-- [ ] Gates on the merged head; second `/doublecheck` (PI asked)
+- [x] Merge F1, F3; F4 records (merged `2eedd96`): W2-36 ruling; ledger, wave notes, KD "Settled by", one-point README fixes
+- [x] Gates at `fa658c0`: fingerprint `4146a986863602cb` (1 thread and default); 984 passed, no skips; dev tests 38 passed; oracle `--check` 6/6 under threads 1/4, Haswell, Sandybridge, `--exact` 6/6; `--rebaseline` under Sandybridge works; replay `7949cf6` vs HEAD 8/8 identical; wheel: 106 oracle and pin tests pass
+- [~] Second `/doublecheck` (PI asked)
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
