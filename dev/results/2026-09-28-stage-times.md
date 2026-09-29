@@ -27,21 +27,24 @@ as a reference for later changes.
   preparations and the fallbacks take at most 2.4 %.
 - **The own time** is 12 to 40 ms per evaluation. The target takes 0.02 s
   or less per run, except `multisensory_s1_D6_homo`'s, 0.6 to 0.8 s.
-- **The accounting.** In every run, `total_time` less the stages and the
-  target is 1.2e-5 to 2.1e-5 s, the two readings of the clock between the
-  starts and between the stops of the run's two timers. A run has 890 to
-  7,500 transitions between stages, at 1.2 µs each: under 0.05 % of its
-  time.
-- **The noise of the machine.** A second pass of the plain runs, five
+- **The accounting.** In every plain run, `total_time` less the stages
+  and the target is 1.2e-5 to 2.1e-5 s, the two readings of the clock
+  between the starts and between the stops of the run's two timers; under
+  cProfile, which slows the code between those readings, it is 3.3e-5 to
+  5.9e-5 s. A run has 890 to 7,500 transitions between stages, at 1.2 µs
+  each: under 0.05 % of its time.
+- **The noise of the machine.** A second pass of the plain runs, ten
   minutes after the first, took 0.98 to 1.03 times as long per
   configuration (median over the seeds), except on `ellipsoid_D3`, the
   first configuration of the first pass, which ran right after a
-  population run had ended: 0.90 times as long in every stage, the
-  control `search_es` included. Nine runs of the same trajectory
-  (`ellipsoid_D3`, seed 0) took 3.2 to 3.9 s. A change below about 10 % in
-  a configuration's time needs a control stage near 1 to be believed.
-  `gp_init`, one fit, varied by up to 17 % between the passes: a control
-  is a large stage that the change does not reach.
+  population run had ended: 0.90 times as long in its large stages, the
+  search, the poll, the GP's fits and the control `search_es` alike, and
+  0.78 to 0.85 times in its small ones (`init`, `gp_init` and `loop`).
+  Nine runs of the same trajectory (`ellipsoid_D3`, seed 0) took 3.2 to
+  3.9 s. A change below about 10 % in a configuration's time needs a
+  control stage near 1 to be believed. `gp_init`, one fit, varied by up to
+  17 % between the passes: a control is a large stage that the change
+  does not reach.
 - **cProfile** slows the runs by 1.10 to 1.62 times, most on
   `ellipsoid_D3`, whose failed fits make many short calls; the plain runs
   give the stage times, the profiled ones the functions inside them. Every
@@ -56,7 +59,7 @@ as a reference for later changes.
 - **Code.** PyBADS at `a4a423b3`, with the stage timers (`cf371d4e`) and the
   profiler; gpyreg 1.3.3 from a clone at its tag, on `PYTHONPATH`.
 - **Environment.** A Linux container (Firecracker VM) with 4 virtual CPUs
-  (Intel Xeon at 2.10 GHz) and 15 GB of memory; Python 3.11.14, NumPy
+  (Intel Xeon at 2.10 GHz) and 15 GB of memory; Python 3.11.15, NumPy
   2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31 (scipy-openblas). One BLAS thread
   (`OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` set to
   1), one run per process, one process at a time, nothing else running.
@@ -66,10 +69,22 @@ as a reference for later changes.
   `sphere_D3_hetero` (noise given by the target), each at its budget of
   500 D, set up as `population.py` sets it up. Seeds 0, 1 and 2, plain and
   under cProfile.
-- **Command.** `profile_suite.py --suite profile --seeds 0-2 --mode both
-  --probe ellipsoid_D3`. The plain runs were then run again (`--mode
-  plain`), after the machine had settled; the tables hold the second pass,
-  and the first pass is the null comparison above.
+- **Commands.** The first pass: `profile_suite.py --suite profile --seeds
+  0-2 --mode both --probe ellipsoid_D3 --out
+  dev/scripts/runs/profile/stage_times_20260928`, followed by three more
+  plain runs of `ellipsoid_D3` at seed 0 in the same directory
+  (`profile_run.py --config ellipsoid_D3 --seed 0 --out <the same> --tag
+  probe_extra<k>_ellipsoid_D3`, k = 1 to 3). The plain runs, the probes
+  and the three extra runs were then moved to
+  `stage_times_20260928_first_plain/` and aggregated there
+  (`profile_suite.py --aggregate`), and the second pass reran the plain
+  runs and the probes in the campaign directory, after the machine had
+  settled: `profile_suite.py --suite profile --seeds 0-2 --mode plain
+  --probe ellipsoid_D3` with the same `--out`, which kept the cProfile
+  runs of the first pass. The stage tables hold the second pass; the
+  first pass is the null comparison above (`profile_compare.py` of the two
+  directories), and the nine runs of `ellipsoid_D3` at seed 0 are the
+  probes and the seed-0 runs of both passes and the three extra runs.
 - **The stages.** At the top level: `init` (the start, the noise test and
   the initial design, `_init_mesh_`), `gp_init` (the first GP), `search`,
   `poll`, `history` (the records of an iteration), `reestimate` (the
@@ -102,9 +117,12 @@ separately, so a row need not add up to 100.
 `final_samples` and `output_fcn` (no output function is set) take 0.0 %.
 
 By leaf, wherever the stage happens (% of the own time; entries per run
-in parentheses):
+in parentheses). The columns are the leaves `search_es`, `gp_fit`,
+`gp_fit_failed`, `gp_fit_retry`, `gp_rebuild` (the rebuilds less the fits
+inside them), `gp_update` and `target_from_gp` (the optimization target
+computed from the GP, not the target's evaluations):
 
-| configuration | ES search | fits | failed fits | retries | rebuilds (rest) | posterior updates | target |
+| configuration | ES search | fits | failed fits | retries | rebuilds (rest) | posterior updates | optimization target |
 |---|---|---|---|---|---|---|---|
 | ellipsoid_D3 | 17.3 (69) | 19.6 (16) | 49.0 (52) | 2.4 (52) | 4.8 (66) | 0.7 (52) | 0.6 (72) |
 | ellipsoid_D10 | 46.2 (340) | 29.9 (27) | 13.0 (8) | 0.1 (8) | 4.6 (235) | 1.6 (306) | 1.1 (320) |
@@ -114,10 +132,11 @@ in parentheses):
 | ellipsoid_D3_homo | 27.5 (156) | 22.9 (25) | 32.2 (46) | 0.6 (46) | 11.8 (479) | 1.6 (232) | 0.5 (116) |
 | sphere_D3_hetero | 51.2 (156) | 13.8 (27) | 0 | 0 | 24.0 (632) | 2.7 (261) | 1.0 (139) |
 
-The fits' fallback, after a refit in which no try fits, happened in two
-runs of `ellipsoid_D3`, once in each, and took under 1 ms. The rebuilds of the noisy runs are
-many: those of the search's copy around each point and those of the
-re-estimation around each iterate, which is the re-estimation's time.
+The fits' fallback, after a refit in which no try fits, happened once in
+each of two runs of `ellipsoid_D3` and took under 1 ms. The rebuilds of
+the noisy runs are many: those of the search's copy around each point and
+those of the re-estimation around each iterate, which is the
+re-estimation's time.
 
 Compared with the Windows measurement of six of these configurations
 ([where PyBADS spends its
