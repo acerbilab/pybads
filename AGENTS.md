@@ -203,11 +203,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
 - **Fixed variables** (four equal bounds) are left out of the run.
-  `BADS.__init__` puts `x0` and the bounds in rows (`_bounds_as_rows`) and
-  finds them (`_find_fixed_values`) before the options are evaluated, so
-  that `D` (`self.D`, and the `D` of the options) counts the other
-  variables. `self._fixed_values`, a `(1, D_orig)` row that is NaN at the
-  free variables (all NaN when none is fixed), goes to
+  `BADS.__init__` finds them (`_find_fixed_values`) before the options are
+  evaluated, so that `D` (`self.D`, and the `D` of the options) counts the
+  other variables. `self._fixed_values`, a row of one value per variable,
+  NaN at the free ones (all NaN when none is fixed), goes to
   `VariableTransformer` as `fixed_values`: its `inverse_transf` returns
   points of all the variables and its `__call__` takes them. So every point
   that leaves the run through it (to the target, `non_box_cons` and

@@ -220,30 +220,36 @@ A variable whose four bounds are equal is fixed, and the run optimizes the
 others, as in MATLAB BADS: the options are evaluated with `D` the number of
 free variables, a fixed periodic variable is not periodic in the run, and
 the target, `non_box_cons` and the output function receive points of all
-the variables. MATLAB also asks that `x0` equal the bounds, so that at a
-variable whose four bounds are equal an `x0` that differs, NaN included,
-leaves the variable free, and `setupvars.m` then refuses the order of its
-bounds; PyBADS takes a non-finite `x0` there as the value, and refuses a
-finite `x0` that differs with a message that names the variable. MATLAB
-runs `bads` again on the free variables, with the target, `non_box_cons`
-and the output function wrapped by `expandvars`, and lifts `x` and, with
-five outputs or more, `optimState.X` back to all the variables. PyBADS's
-variable transform, which every point that leaves the run goes through,
-drops the fixed coordinates of the points it takes and puts them back into
-those it returns, so that the result's `x` and `x0`, the function log's
-`X_orig` and the points `"x"` of `iteration_history` hold all the
-variables too, while `optim_state`, the transformed points and the GP
-cover the free ones, as MATLAB's `optimState` does but for its `X`. MATLAB
-rewrites `PeriodicVars` over the free variables through `eval`, which fails
-on the numeric value that `bads_examples.m` passes, and drops the fixed
-columns of `FunValues.X` unchecked; PyBADS keeps `periodic_vars` as given,
-over all the variables, and refuses a point of `precomputed_evaluations`
-whose coordinate at a fixed variable differs from its value, as outside
-the hard bounds. With every variable fixed, MATLAB fails in its call on no
-variables (`If no starting point is provided, PLB and PUB need to be
-specified`), and PyBADS raises a `ValueError` saying that there is nothing
-to optimize. PyBADS names the fixed variables from `display="notify"` on,
-as it names those on a log scale and the periodic ones; MATLAB does not.
+the variables.
+
+MATLAB also asks that `x0` equal the bounds, so that at a variable whose
+four bounds are equal an `x0` that differs, NaN included, leaves the
+variable free, and `setupvars.m` then refuses the order of its bounds.
+PyBADS takes a non-finite `x0` there as the value, and refuses a finite
+`x0` that differs with a message that names the variable.
+
+MATLAB runs `bads` again on the free variables, with the target,
+`non_box_cons` and the output function wrapped by `expandvars`, and lifts
+`x` and, with five outputs or more, `optimState.X` back to all the
+variables. PyBADS's variable transform, which every point that leaves the
+run goes through, drops the fixed coordinates of the points it takes and
+puts them back into those it returns, so that the result's `x` and `x0`,
+the function log's `X_orig` and the points `"x"` of `iteration_history`
+hold all the variables too, while `optim_state`, the transformed points and
+the GP cover the free ones, as MATLAB's `optimState` does but for its `X`.
+
+MATLAB rewrites `PeriodicVars` over the free variables through `eval`,
+which fails on the numeric value that `bads_examples.m` passes, and drops
+the fixed columns of `FunValues.X` unchecked. PyBADS keeps `periodic_vars`
+as given, over all the variables, and refuses a point of
+`precomputed_evaluations` whose coordinate at a fixed variable differs from
+its value, as outside the hard bounds.
+
+With every variable fixed, MATLAB fails in its call on no variables (`If no
+starting point is provided, PLB and PUB need to be specified`), and PyBADS
+raises a `ValueError` saying that there is nothing to optimize. PyBADS
+names the fixed variables from `display="notify"` on, as it names those on
+a log scale and the periodic ones; MATLAB does not.
 - PyBADS: `_bounds_as_rows`, `_find_fixed_values`, `_run_indices` and
   `_user_indices`, `BADS.__init__`, `_check_periodic_vars_` and
   `_import_precomputed_evaluations_` (`pybads/bads/bads.py`);

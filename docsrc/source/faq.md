@@ -405,8 +405,10 @@ optimize_result = bads.optimize()
 ```
 
 PyBADS optimizes the other variables, as a run of the problem without the
-fixed ones would, and the defaults of the options take `D` as their number:
-here `max_fun_evals` is `500 * 2`. Your objective, `non_box_cons` and the
+fixed ones would, and the defaults of the options that depend on the number
+of variables count only those: here `max_fun_evals` is `500 * 2`. When the
+`BADS` object is created, PyBADS lists the fixed variables (from
+`display="notify"` on). Your objective, `non_box_cons` and the
 [output function](#faq-can-i-monitor-or-stop-a-run-while-it-is-running)
 receive points of all the variables, with the fixed ones at their values,
 and `optimize_result["x"]` and `optimize_result["x0"]`, the log of
@@ -1175,8 +1177,10 @@ dictionary that you pass to the algorithm:
   basic option of PyBADS.
 - Change `options["search_n_try"]`. Be careful that this is an advanced
   option of PyBADS, and we do not recommend to change it unless you have to.
-  The default value is `max(D, floor(3 + D/2))`, where `D` is the
-  dimensionality of the objective function. This quantity represents the
+  The default value is `max(D, floor(3 + D/2))`, where `D` is the number
+  of variables that PyBADS optimizes, all but the
+  [fixed](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)
+  ones. This quantity represents the
   number of searches (via local Bayesian optimization) that PyBADS attempts
   in each round of searches before a poll. You can try and increase it to
   force PyBADS to search for longer in each iteration.
@@ -1245,7 +1249,10 @@ minor changes to run it on your problem. Note that:
   add to the log likelihood.
 - The plausible bounds of PyVBMC should lie strictly inside its hard bounds,
   whereas PyBADS takes plausible bounds equal to the hard ones.
-- PyVBMC does not support variables bounded on one side only.
+- PyVBMC does not support variables bounded on one side only, nor fixed
+  variables: give it a function of the other variables that inserts the
+  fixed values (`np.insert(x, i, value)`), with the bounds of the other
+  variables.
 - The solution of PyBADS is a good starting point `x0` for PyVBMC.
 - PyVBMC supports noisy targets too, and works best when the target returns
   an estimate of its noise.
