@@ -65,22 +65,34 @@ that the decisions of the stored outputs need (the training set's radius
 and its last point, the Sto-BADS outcomes, the hedge's choices), so that
 rounding within the tolerances cannot flip them.
 
-The environment's BLAS threads default to one (``OMP_NUM_THREADS`` and its
-kin, unless set). PyBADS comes from the checkout that holds this script,
-which it puts first on ``sys.path``; gpyreg from ``PYTHONPATH`` or the
-installed one, which the platform key identifies by its source and, for a
-checkout, its commit.
+The environment's BLAS threads default to one: each variable of
+``THREAD_VARS`` that is not set is set to 1 (Accelerate's
+``VECLIB_MAXIMUM_THREADS`` on macOS only: elsewhere it would change the
+platform key and nothing else). PyBADS comes from the checkout that holds
+this script, which it puts first on ``sys.path``; gpyreg from
+``PYTHONPATH`` or the installed one, which the platform key identifies by
+its source and, for a checkout, its commit.
 """
 
 import os
+import platform
 
-for _k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
-    os.environ.setdefault(_k, "1")
+# The variables that set the number of BLAS and OpenMP threads (OpenMP,
+# OpenBLAS, MKL and Accelerate), set before NumPy loads its BLAS and
+# recorded in the platform key
+THREAD_VARS = (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+)
+for _k in THREAD_VARS:
+    if _k != "VECLIB_MAXIMUM_THREADS" or platform.system() == "Darwin":
+        os.environ.setdefault(_k, "1")
 
 import argparse  # noqa: E402
 import copy  # noqa: E402
 import json  # noqa: E402
-import platform  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
@@ -145,12 +157,6 @@ CANDIDATE_SEED = 20260928
 MARGIN = 1e-8
 # The sizes tried for the reduced training sets of `gp_training_set`
 SMALL_TRAINING_SIZES = (24, 23, 25, 22, 26, 21, 27, 20, 28)
-THREAD_VARS = (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "VECLIB_MAXIMUM_THREADS",
-)
 
 
 # --------------------------------------------------------------------------
