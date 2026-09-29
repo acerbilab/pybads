@@ -72,7 +72,7 @@ and its last point, the Sto-BADS outcomes, the hedge's choices;
 them.
 
 The environment's BLAS threads default to one: each variable of
-``THREAD_VARS`` that is not set is set to 1, Accelerate's
+``harness.THREAD_VARS`` that is not set is set to 1, Accelerate's
 ``VECLIB_MAXIMUM_THREADS`` on macOS alone. Elsewhere that variable sets
 nothing, and setting it would change only the platform key, which records
 every variable of ``THREAD_VARS``: the stored fixtures, computed on Linux,
@@ -80,8 +80,8 @@ record it unset, so that ``--check --exact`` would refuse them on the
 machine that computed them. On macOS, a ``--dump`` made by the script of
 a commit from before f5928ef9, which leaves the variable unset, differs
 from this script's platform key in ``env``, and ``--against`` refuses it:
-make the dump at the parent commit with this script copied alone into the
-parent's worktree, as for ``replay.py``.
+make the dump at the parent commit with this script and ``harness.py``
+copied into the parent's worktree, as for ``replay.py``.
 PyBADS comes from the checkout that holds this script, which it puts first
 on ``sys.path``; gpyreg from ``PYTHONPATH`` or the installed one, which the
 platform key identifies by its source and, for a checkout, its commit.
@@ -89,37 +89,32 @@ platform key identifies by its source and, for a checkout, its commit.
 
 import os
 import platform
+import sys
+from pathlib import Path
 
-# The variables that set the number of BLAS and OpenMP threads (OpenMP,
-# OpenBLAS, MKL and Accelerate), set before NumPy loads its BLAS (Accelerate's
-# on macOS alone; the module's docstring says why) and recorded in the
-# platform key
-THREAD_VARS = (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "VECLIB_MAXIMUM_THREADS",
-)
-for _k in THREAD_VARS:
+HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parents[1]
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+
+import harness  # noqa: E402  (imports no NumPy)
+
+# The thread variables, recorded in the platform key: one thread unless set,
+# before NumPy loads its BLAS (Accelerate's on macOS alone; the module's
+# docstring says why)
+for _k in harness.THREAD_VARS:
     if _k != "VECLIB_MAXIMUM_THREADS" or platform.system() == "Darwin":
         os.environ.setdefault(_k, "1")
 
 import argparse  # noqa: E402
 import copy  # noqa: E402
 import json  # noqa: E402
-import subprocess  # noqa: E402
-import sys  # noqa: E402
 import time  # noqa: E402
-from importlib.metadata import PackageNotFoundError, version  # noqa: E402
-from pathlib import Path  # noqa: E402
 
-HERE = Path(__file__).resolve().parent
-REPO_ROOT = HERE.parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 import gpyreg  # noqa: E402
 import numpy as np  # noqa: E402
-import scipy  # noqa: E402
 
 import pybads  # noqa: E402
 from pybads import BADS  # noqa: E402
@@ -181,199 +176,21 @@ SMALL_TRAINING_SIZES = (24, 23, 25, 22, 26, 21, 27, 20, 28)
 # --------------------------------------------------------------------------
 
 
-def _git(args, cwd):
-    return subprocess.check_output(
-        ["git", *args], cwd=cwd, text=True, stderr=subprocess.DEVNULL
-    ).strip()
-
-
-def git_info(cwd=REPO_ROOT, exclude=()):
-    """Short commit, ``git describe`` and dirty flag (tracked files, but
-    the paths of ``exclude``) of a checkout; ``None`` values outside
-    one."""
-    try:
-        excluded = [f":!{p}" for p in exclude]
-        return {
-            "sha": _git(["rev-parse", "--short", "HEAD"], cwd),
-            "describe": _git(
-                ["describe", "--tags", "--long", "--always"], cwd
-            ),
-            "dirty": bool(
-                _git(
-                    [
-                        "status",
-                        "--porcelain",
-                        "--untracked-files=no",
-                        "--",
-                        ".",
-                        *excluded,
-                    ],
-                    cwd,
-                )
-            ),
-        }
-    except Exception:  # noqa: BLE001
-        return {"sha": None, "describe": None, "dirty": None}
-
-
 def checkout_info():
     """The commit of the checkout that runs, the fixtures' own changes
     aside."""
     fixtures = FIXTURES.relative_to(REPO_ROOT).as_posix()
-    return git_info(REPO_ROOT, exclude=(fixtures,))
-
-
-def module_identity(module, dist):
-    """A module's source directory, with its commit when it is a git
-    checkout that tracks the module, and the installed distribution's
-    version."""
-    init = Path(module.__file__).resolve()
-    source = init.parent
-    try:
-        installed = version(dist)
-    except PackageNotFoundError:
-        installed = None
-    try:
-        _git(["ls-files", "--error-unmatch", init.name], source)
-        git = git_info(source)
-    except Exception:  # noqa: BLE001  (not in a checkout that tracks it)
-        git = None
-    return {
-        "source": str(source),
-        "git": git,
-        "installed_version": installed,
-    }
-
-
-def _cpu_model():
-    system = platform.system()
-    try:
-        if system == "Linux":
-            keys = ("model name", "Hardware", "CPU part")
-            for line in Path("/proc/cpuinfo").read_text().splitlines():
-                key, _, value = line.partition(":")
-                if key.strip() in keys:
-                    return value.strip()
-        if system == "Darwin":
-            return subprocess.check_output(
-                ["sysctl", "-n", "machdep.cpu.brand_string"], text=True
-            ).strip()
-    except Exception:  # noqa: BLE001
-        pass
-    return platform.processor() or None
-
-
-def _numpy_cpu_features():
-    """The CPU features that NumPy's dispatch uses, as enabled at run time
-    (``NPY_DISABLE_CPU_FEATURES`` removes some)."""
-    for path in (
-        "numpy._core._multiarray_umath",
-        "numpy.core._multiarray_umath",
-    ):
-        try:
-            module = __import__(path, fromlist=["__cpu_features__"])
-            features = module.__cpu_features__
-        except (ImportError, AttributeError):
-            continue
-        return sorted(k for k, v in features.items() if v)
-    return None
-
-
-def _blas_build():
-    """NumPy's BLAS and LAPACK as built (name, version, configuration)."""
-    try:
-        cfg = np.show_config(mode="dicts")["Build Dependencies"]
-    except Exception:  # noqa: BLE001
-        return None
-    return {
-        k: {
-            f: cfg[k].get(f)
-            for f in ("name", "version", "openblas configuration")
-        }
-        for k in ("blas", "lapack")
-        if k in cfg
-    }
-
-
-def _openblas_libraries():
-    """The OpenBLAS libraries that the process has loaded."""
-    paths = set()
-    maps = Path("/proc/self/maps")
-    if maps.exists():
-        for line in maps.read_text().splitlines():
-            p = line.split()[-1] if line.split() else ""
-            if "openblas" in Path(p).name.lower():
-                paths.add(p)
-        return sorted(paths)
-    for mod in (np, scipy):  # no /proc: the bundled libraries
-        root = Path(mod.__file__).resolve().parent
-        name = mod.__name__
-        for d in (root.parent / f"{name}.libs", root / ".dylibs", root):
-            if d.is_dir():
-                paths.update(
-                    str(p) for p in d.glob("*openblas*") if p.is_file()
-                )
-    return sorted(paths)
-
-
-def _openblas_runtime():
-    """Kernel (core name) and thread count of each loaded OpenBLAS."""
-    import ctypes
-
-    import scipy.linalg  # noqa: F401  (loads SciPy's own OpenBLAS)
-
-    out = []
-    for path in _openblas_libraries():
-        entry = {"library": Path(path).name, "corename": None, "threads": None}
-        try:
-            lib = ctypes.CDLL(path)
-        except OSError:
-            out.append(entry)
-            continue
-        for field, func, restype in (
-            ("corename", "get_corename", ctypes.c_char_p),
-            ("threads", "get_num_threads", ctypes.c_int),
-        ):
-            for prefix in ("scipy_openblas_", "openblas_"):
-                for suffix in ("64_", "", "_64"):
-                    f = getattr(lib, prefix + func + suffix, None)
-                    if f is None:
-                        continue
-                    f.restype = restype
-                    value = f()
-                    entry[field] = (
-                        value.decode() if isinstance(value, bytes) else value
-                    )
-                    break
-                if entry[field] is not None:
-                    break
-        out.append(entry)
-    return out
+    return harness.git_info(REPO_ROOT, exclude=(fixtures,), describe=True)
 
 
 def platform_key():
     """What must be the same for the platform-bound outputs to reproduce
-    exactly: the system, its C library, the CPU and the features of it
-    that NumPy dispatches to, Python, NumPy, SciPy, BLAS as built and as
-    loaded (its kernel and threads), the environment variables that choose
-    them, and gpyreg, by its source and commit."""
-    return {
-        "os": platform.system(),
-        "libc": " ".join(platform.libc_ver()).strip() or None,
-        "machine": platform.machine(),
-        "cpu": _cpu_model(),
-        "cpu_count": os.cpu_count(),
-        "numpy_cpu_features": _numpy_cpu_features(),
-        "python": platform.python_version(),
-        "numpy": np.__version__,
-        "scipy": scipy.__version__,
-        "blas_build": _blas_build(),
-        "openblas_runtime": _openblas_runtime(),
-        "env": {
-            k: os.environ.get(k) for k in ("OPENBLAS_CORETYPE",) + THREAD_VARS
-        },
-        "gpyreg": module_identity(gpyreg, "gpyreg"),
-    }
+    exactly: ``harness.platform_key``, and gpyreg, by its source and
+    commit."""
+    return dict(
+        harness.platform_key(),
+        gpyreg=harness.module_identity(gpyreg, "gpyreg"),
+    )
 
 
 def key_differences(a, b):

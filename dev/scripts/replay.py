@@ -10,8 +10,8 @@ Sub-commands, from the repository root::
 
 ``record`` runs each configuration (default: ``DEFAULT_CONFIGS`` at seed 0,
 at 50 D evaluations, ``--budget-scale 0.1`` of the suite's 500 D) in a fresh
-child process, built as ``population.py`` builds its runs, and writes one
-trace per run under ``--out`` (default
+child process, built by ``harness.build_run`` as ``population.py`` builds
+its runs, and writes one trace per run under ``--out`` (default
 ``dev/scripts/runs/replay/<sha>_<time>/``): ``<label>_seed<seed>.npz`` and
 its ``.json`` sidecar. ``--repeat N`` records each run N times in the same
 process, the later ones as ``..._rep1`` and on. The default set takes about
@@ -50,12 +50,14 @@ A trace captures, with no change to the package:
   number of rows and digest, as ``population.py`` records it: its rows are
   not calls of the target, and the result counts them in
   ``precomputed_observations`` and ``precomputed_locations``;
-- the platform key (OS, libc, machine, CPU model, Python, NumPy's BLAS
-  build, NumPy and SciPy versions, each loaded OpenBLAS's kernel and thread
-  count, ``OPENBLAS_CORETYPE`` and the thread variables) and the
-  provenance (the git commit and dirty flag of the checkout that holds this
-  script, the versions and source paths of NumPy, SciPy, gpyreg and PyBADS,
-  gpyreg's commit, the pinning).
+- the platform key (``harness.platform_key``: OS, libc, machine, CPU model
+  and count, the CPU features that NumPy dispatches to, Python, NumPy's
+  BLAS build, NumPy and SciPy versions, each loaded OpenBLAS's kernel and
+  thread count, ``OPENBLAS_CORETYPE`` and the thread variables) and the
+  provenance (``harness.code_meta``: the git commit and dirty flag of the
+  checkout that holds this script, Python and the platform, the versions
+  of NumPy, SciPy, gpyreg and PyBADS, the source paths and commits of the
+  last two; the source paths of NumPy and SciPy, the pinning).
 
 A private name that the tool wraps or reads and that the package no longer
 has stops the recording with its name (``MissingName``), before the run or
@@ -94,17 +96,14 @@ change that must move nothing, record at the parent commit with a
 ``replay.py`` in a worktree at it (``benchmark_targets.py`` puts the
 checkout that holds it first on ``sys.path``), record at the change, on
 the same machine, and ``check`` the two. Both sides record with the same
-version of this script: when the parent has no ``replay.py`` or an older
-one, copy the change's alone into the parent's worktree, since traces
-written by two versions can differ in their layout, which ``check``
-reports as runs that differ. The copy takes the parent's
-``benchmark_targets.py`` and ``population.py``, which have what it needs,
-the default configurations included, at every commit from 0d866e84
-(2026-09-27) on; a ``benchmark_targets.py`` from before c60a5238 lacks
-``THREAD_VARS``, and this script holds a copy of
-``benchmark_targets.THREAD_VARS``; those from before 2822c561 have no
-configuration given evaluations made before its runs, and their
-``population.py`` no ``precomputed_summary``, which this script then does
+version of this script and of ``harness.py``: when the parent's differ
+from the change's, or it has none, copy the change's two into the
+parent's worktree, since traces written by two versions can differ in
+their layout, which ``check`` reports as runs that differ. The copy takes
+the parent's ``benchmark_targets.py``, which has what it needs, the
+default configurations included, at every commit from 0d866e84
+(2026-09-27) on; those from before 2822c561 have no configuration given
+evaluations made before its runs, which ``harness.build_run`` then does
 without. At an older commit the recording stops with ``MissingName``: its
 ``BADS`` does not set ``poll_moved``, which the recorder reads.
 ``--repeat 2`` and ``check DIR`` find the first computation at which two
@@ -132,13 +131,14 @@ if str(HERE) not in sys.path:
 
 # benchmark_targets puts this checkout first on sys.path
 import benchmark_targets as bt  # noqa: E402
-import population  # noqa: E402
-from population import (  # noqa: E402
+from harness import (  # noqa: E402
+    THREAD_VARS,
+    build_run,
+    code_meta,
     git_info,
     jsonable,
-    module_source,
     parse_seeds,
-    pkg_version,
+    platform_key,
 )
 
 DEFAULT_CONFIGS = (
@@ -153,20 +153,6 @@ DEFAULT_CONFIGS = (
 )
 DEFAULT_BUDGET_SCALE = 0.1  # of the suites' 500 D: 50 D evaluations
 DEFAULT_RUNS = REPO_ROOT / "dev" / "scripts" / "runs" / "replay"
-# The thread variables pinned and recorded, as the other tools do. The
-# `benchmark_targets.py` of a commit before c60a5238, beside a copy of this
-# script in a worktree at that commit, lacks THREAD_VARS: a copy of
-# `benchmark_targets.THREAD_VARS` stands in.
-THREAD_VARS = getattr(
-    bt,
-    "THREAD_VARS",
-    (
-        "OMP_NUM_THREADS",
-        "OPENBLAS_NUM_THREADS",
-        "MKL_NUM_THREADS",
-        "VECLIB_MAXIMUM_THREADS",
-    ),
-)
 PINNED_CORETYPE = "Haswell"  # the x86_64 OpenBLAS kernels of the recordings
 HORIZON_TOLS = (1e-12, 1e-8)
 STREAMS = ("evals", "steps", "fits", "history", "result")
@@ -240,132 +226,18 @@ class MissingName(RecorderError):
 # --------------------------------------------------------------------------
 
 
-def _cpu_model():
-    system = platform.system()
-    try:
-        if system == "Linux":
-            keys = ("model name", "Hardware", "CPU part")
-            for line in Path("/proc/cpuinfo").read_text().splitlines():
-                key, _, value = line.partition(":")
-                if key.strip() in keys:
-                    return value.strip()
-        if system == "Darwin":
-            return subprocess.check_output(
-                ["sysctl", "-n", "machdep.cpu.brand_string"], text=True
-            ).strip()
-    except Exception:  # noqa: BLE001
-        pass
-    return platform.processor() or None
-
-
-def _blas_build():
-    """NumPy's BLAS and LAPACK as built (name, version, configuration)."""
-    try:
-        cfg = np.show_config(mode="dicts")["Build Dependencies"]
-    except Exception:  # noqa: BLE001
-        return None
-    return {
-        k: {
-            f: cfg[k].get(f)
-            for f in ("name", "version", "openblas configuration")
-        }
-        for k in ("blas", "lapack")
-        if k in cfg
-    }
-
-
-def _openblas_libraries():
-    """The OpenBLAS libraries that the process has loaded."""
-    paths = set()
-    maps = Path("/proc/self/maps")
-    if maps.exists():
-        for line in maps.read_text().splitlines():
-            p = line.split()[-1] if line.split() else ""
-            if "openblas" in Path(p).name.lower():
-                paths.add(p)
-        return sorted(paths)
-    for mod in ("numpy", "scipy"):  # no /proc: the bundled libraries
-        root = Path(__import__(mod).__file__).resolve().parent
-        for d in (root.parent / f"{mod}.libs", root / ".dylibs", root):
-            if d.is_dir():
-                paths.update(
-                    str(p) for p in d.glob("*openblas*") if p.is_file()
-                )
-    return sorted(paths)
-
-
-def _openblas_runtime():
-    """Kernel (core name) and thread count of each loaded OpenBLAS."""
-    import ctypes
-
-    import scipy.linalg  # noqa: F401  (loads SciPy's own OpenBLAS)
-
-    out = []
-    for path in _openblas_libraries():
-        entry = {"library": Path(path).name, "corename": None, "threads": None}
-        try:
-            lib = ctypes.CDLL(path)
-        except OSError:
-            out.append(entry)
-            continue
-        for field, func, restype in (
-            ("corename", "get_corename", ctypes.c_char_p),
-            ("threads", "get_num_threads", ctypes.c_int),
-        ):
-            for prefix in ("scipy_openblas_", "openblas_"):
-                for suffix in ("64_", "", "_64"):
-                    f = getattr(lib, prefix + func + suffix, None)
-                    if f is None:
-                        continue
-                    f.restype = restype
-                    value = f()
-                    entry[field] = (
-                        value.decode() if isinstance(value, bytes) else value
-                    )
-                    break
-                if entry[field] is not None:
-                    break
-        out.append(entry)
-    return out
-
-
-def platform_key():
-    """What must be the same for two runs of one commit to repeat exactly;
-    ``check`` refuses traces whose keys differ."""
-    import scipy
-
-    return {
-        "os": platform.system(),
-        "libc": " ".join(platform.libc_ver()).strip() or None,
-        "machine": platform.machine(),
-        "cpu": _cpu_model(),
-        "python": platform.python_version(),
-        "numpy": np.__version__,
-        "scipy": scipy.__version__,
-        "blas_build": _blas_build(),
-        "openblas_runtime": _openblas_runtime(),
-        "env": {
-            k: os.environ.get(k) for k in ("OPENBLAS_CORETYPE",) + THREAD_VARS
-        },
-    }
-
-
 def provenance():
     """What identifies the code that ran; reported, never refused."""
     import scipy
 
-    return {
-        "git": git_info(),
-        "checkout": str(REPO_ROOT),
-        "pybads": pkg_version("pybads"),
-        "pybads_source": module_source("pybads"),
-        "gpyreg": pkg_version("gpyreg"),
-        "gpyreg_source": module_source("gpyreg"),
-        "numpy_path": str(Path(np.__file__).resolve().parent),
-        "scipy_path": str(Path(scipy.__file__).resolve().parent),
-        "python_executable": sys.executable,
-        "kernel": platform.release(),
-    }
+    return dict(
+        code_meta(),
+        checkout=str(REPO_ROOT),
+        numpy_path=str(Path(np.__file__).resolve().parent),
+        scipy_path=str(Path(scipy.__file__).resolve().parent),
+        python_executable=sys.executable,
+        kernel=platform.release(),
+    )
 
 
 # --------------------------------------------------------------------------
@@ -735,18 +607,6 @@ def _result_parts(res):
     return arrays, scalars, uncompared
 
 
-def given_evaluations(cfg, prob):
-    """The keyword arguments of ``BADS`` that give a run of ``cfg`` the
-    evaluations made before it, as ``population.py`` gives them, and what
-    the trace records of them (``population.precomputed_summary``: their
-    kind, rows and digest; None without them). Beside the
-    ``benchmark_targets.py`` and ``population.py`` of a commit before
-    2822c561, which give no run such evaluations, ``({}, None)``."""
-    if not hasattr(prob, "bads_kwargs"):
-        return {}, None
-    return prob.bads_kwargs(), population.precomputed_summary(cfg, prob)
-
-
 def record_run(label, seed, budget_scale, extra_options=None):
     """Run one configuration with every capture attached; return the
     trace's arrays and sidecar."""
@@ -755,21 +615,16 @@ def record_run(label, seed, budget_scale, extra_options=None):
 
     for name in BADS_METHODS:
         _require(BADS, name, "pybads.bads.bads.BADS")
-    cfg = bt.find_config(label)
     # the earlier run of a configuration given evaluations made before its
     # runs, if any, before the recorder's wrappers are in place
-    prob = cfg.make(seed=seed, budget_scale=budget_scale)
-    given, precomputed = given_evaluations(cfg, prob)
-    args, options = prob.bads_args()
-    options.update(extra_options or {})
-    requested = jsonable(options)
+    run = build_run(label, seed, budget_scale, extra_options)
     rec = Recorder()
-    args = (rec.wrap_target(args[0]),) + tuple(args[1:])
+    target = rec.wrap_target(run.args[0])
     restore = rec.wrap_gp_functions(bads_module)
     bads = res = crash = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options, **given)
+        bads = BADS(target, *run.args[1:], options=run.options, **run.kwargs)
         rec.attach(bads)
         res = bads.optimize()
     except RecorderError as e:
@@ -789,18 +644,19 @@ def record_run(label, seed, budget_scale, extra_options=None):
     if rec.error is not None:  # raised inside the run and caught there
         raise rec.failure()
     wall = time.perf_counter() - t0
-    arrays = rec.arrays(prob.D)
+    D = run.prob.D
+    arrays = rec.arrays(D)
     if bads is not None:
-        arrays.update(_history_arrays(bads, prob.D))
+        arrays.update(_history_arrays(bads, D))
     res_arrays, res_scalars, res_uncompared = _result_parts(res)
     arrays.update(res_arrays)
     sidecar = {
         "label": label,
         "seed": seed,
         "budget_scale": budget_scale,
-        "D": prob.D,
-        "requested_options": requested,
-        "precomputed": precomputed,
+        "D": D,
+        "requested_options": run.requested,
+        "precomputed": run.precomputed,
         "result": res_scalars,
         "result_uncompared": res_uncompared,
         "crash": crash,

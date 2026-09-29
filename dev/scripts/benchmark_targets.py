@@ -136,7 +136,6 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
-import os
 import sys
 import time
 import zlib
@@ -150,15 +149,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # The package of this checkout, whichever checkout is installed.
 sys.path.insert(0, str(REPO_ROOT))
 
-# The variables that set the number of BLAS and OpenMP threads, which the
-# tools set to one for their runs and record: OpenMP, OpenBLAS, MKL, and
-# Accelerate on macOS
-THREAD_VARS = (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "VECLIB_MAXIMUM_THREADS",
-)
+from harness import build_run, single_thread_env  # noqa: E402
 
 # Fixes the shift and the rotation of every target per (name, D),
 # independently of the run seed: every run of every version sees the same
@@ -1583,30 +1574,19 @@ def run_check(configs, only=None):
 # --------------------------------------------------------------------------
 
 
-def single_thread_env():
-    """One BLAS thread per process (every variable of ``THREAD_VARS``) and a
-    headless matplotlib, for the processes that ``--smoke``, ``population.py
-    run`` and the other tools start after calling it."""
-    for k in THREAD_VARS:
-        os.environ[k] = "1"
-    os.environ["MPLBACKEND"] = "Agg"
-
-
 def _smoke_task(label, seed, budget_scale):
     """One BADS run of a configuration (executed in a spawned process)."""
     from pybads import BADS
 
-    cfg = find_config(label)
-    prob = cfg.make(seed=seed, budget_scale=budget_scale)
-    args, options = prob.bads_args()
+    run = build_run(find_config(label), seed, budget_scale)
     t0 = time.perf_counter()
-    res = BADS(*args, options=options, **prob.bads_kwargs()).optimize()
+    res = BADS(*run.args, options=run.options, **run.kwargs).optimize()
     wall = time.perf_counter() - t0
     return {
         "bads_s": wall,
         "func_count": int(res["func_count"]),
-        "max_fun_evals": options["max_fun_evals"],
-        "true_error": prob.f_true(np.ravel(res["x"])) - prob.f_min,
+        "max_fun_evals": run.options["max_fun_evals"],
+        "true_error": run.prob.f_true(np.ravel(res["x"])) - run.prob.f_min,
         "message": str(res["message"]),
     }
 

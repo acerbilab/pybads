@@ -11,30 +11,22 @@ are skipped otherwise. Usage, from the repository root::
 
     PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
 """
-import os
-
-# benchmark_targets.THREAD_VARS, set before NumPy loads its BLAS
-for k in (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "VECLIB_MAXIMUM_THREADS",
-):
-    os.environ[k] = "1"
-os.environ.setdefault("MPLBACKEND", "Agg")
-
-import json  # noqa: E402
-import sys  # noqa: E402
-import time  # noqa: E402
-from pathlib import Path  # noqa: E402
-
-import numpy as np  # noqa: E402
+import sys
+from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
+import harness  # noqa: E402  (imports no NumPy)
+
+harness.single_thread_env()  # before NumPy loads its BLAS
+
+import json  # noqa: E402
+import time  # noqa: E402
+
 import benchmark_targets as bt  # noqa: E402
 import gpyreg  # noqa: E402
+import numpy as np  # noqa: E402
 
 from pybads import BADS  # noqa: E402
 
@@ -48,11 +40,12 @@ if skipped:
     print(f"skipped, this gpyreg has no periods: {skipped}", flush=True)
 for cfg in configs:
     for seed in seeds:
-        prob = cfg.make(seed=seed)
-        args, options = prob.bads_args()
-        options["max_fun_evals"] = 500 * cfg.D
+        run = harness.build_run(
+            cfg, seed, extra_options={"max_fun_evals": 500 * cfg.D}
+        )
+        prob = run.prob
         t0 = time.perf_counter()
-        bads = BADS(*args, options=options)
+        bads = BADS(*run.args, options=run.options, **run.kwargs)
         res = bads.optimize()
         wall = time.perf_counter() - t0
         hist_x = bads.iteration_history["x"]

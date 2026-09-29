@@ -30,6 +30,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 import benchmark_targets as bt  # noqa: E402
 import gpyreg  # noqa: E402
+from harness import build_run  # noqa: E402
 
 import pybads.bads.gaussian_process_train as gtrain  # noqa: E402
 from pybads import BADS  # noqa: E402
@@ -38,11 +39,9 @@ print(gpyreg.__file__, flush=True)
 out = {"gpyreg": gpyreg.__file__}
 
 # 1. fit_lik=False
-prob = bt.find_config("ellipsoid_D3").make(seed=0)
-args, options = prob.bads_args()
-options["fit_lik"] = False
+run = build_run("ellipsoid_D3", 0, extra_options={"fit_lik": False})
 try:
-    r = BADS(*args, options=options).optimize()
+    r = BADS(*run.args, options=run.options, **run.kwargs).optimize()
     out["fit_lik_false"] = {"outcome": "finished", "fval": float(r["fval"])}
 except Exception as e:  # noqa: BLE001
     tb = traceback.extract_tb(e.__traceback__)
@@ -98,9 +97,9 @@ if skipped:
 for cfg in configs:
     for seed in range(10):
         n0 = len(calls)
-        args, options = cfg.make(seed=seed).bads_args()
+        run = build_run(cfg, seed)
         try:
-            BADS(*args, options=options).optimize()
+            BADS(*run.args, options=run.options, **run.kwargs).optimize()
             outcome = "finished"
         except Exception as e:  # noqa: BLE001
             outcome = f"{type(e).__name__}: {str(e)[:120]}"

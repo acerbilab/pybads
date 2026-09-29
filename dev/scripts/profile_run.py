@@ -73,8 +73,15 @@ sys.path.insert(0, str(REPO_ROOT))
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-import benchmark_targets as bt  # noqa: E402
 import population as pp  # noqa: E402
+from harness import (  # noqa: E402
+    build_run,
+    code_meta,
+    jsonable,
+    thread_env,
+    timestamp,
+    write_json,
+)
 
 DEFAULT_CAMPAIGNS = HERE / "runs" / "profile"
 TARGET = "target"
@@ -287,11 +294,9 @@ def _print_table(title, table, total):
 
 def main(argv=None):
     args = parse_args(argv)
-    cfg = bt.find_config(args.config)
-    prob = cfg.make(seed=args.seed, budget_scale=args.budget_scale)
-    bads_args, options = prob.bads_args()
-    options.update(json.loads(args.options) if args.options else {})
-    requested = pp.jsonable(options)
+    extra = json.loads(args.options) if args.options else None
+    run = build_run(args.config, args.seed, args.budget_scale, extra)
+    cfg, prob = run.cfg, run.prob
 
     mode = "cprof" if args.cprofile else "plain"
     out = (
@@ -303,11 +308,11 @@ def main(argv=None):
     print(
         f"[profile_run] {cfg.label} seed {args.seed} -> {run_dir}", flush=True
     )
-    started = pp._now()
+    started = timestamp()
 
     from pybads import BADS
 
-    bads = BADS(*bads_args, options=options, **prob.bads_kwargs())
+    bads = BADS(*run.args, options=run.options, **run.kwargs)
     prof = cProfile.Profile() if args.cprofile else None
     t0 = time.perf_counter()
     if prof is not None:
@@ -343,28 +348,20 @@ def main(argv=None):
         "problem": prob.name,
         "D": prob.D,
         "noise": prob.noise,
-        "precomputed": pp.precomputed_summary(cfg, prob),
-        "requested_options": requested,
+        "precomputed": run.precomputed,
+        "requested_options": run.requested,
         "result": result,
         "stages": None,
         "per_iteration": [],
         "buckets": None,
-        "meta": {
-            "git": pp.git_info(),
-            "python": sys.version.split()[0],
-            "platform": platform.platform(),
-            "processor": platform.processor(),
-            "numpy": np.__version__,
-            "scipy": pp.pkg_version("scipy"),
-            "pybads": pp.pkg_version("pybads"),
-            "pybads_source": pp.module_source("pybads"),
-            "gpyreg": pp.pkg_version("gpyreg"),
-            "gpyreg_source": pp.module_source("gpyreg"),
-            "threads": pp.thread_env(),
-            "cprofile": bool(args.cprofile),
-            "started": started,
-            "finished": pp._now(),
-        },
+        "meta": dict(
+            code_meta(),
+            processor=platform.processor(),
+            threads=thread_env(),
+            cprofile=bool(args.cprofile),
+            started=started,
+            finished=timestamp(),
+        ),
     }
 
     print(
@@ -414,7 +411,7 @@ def main(argv=None):
                 flush=True,
             )
 
-    pp._write_json(run_dir / "summary.json", pp.jsonable(summary))
+    write_json(run_dir / "summary.json", jsonable(summary))
     print(f"[profile_run] done -> {run_dir / 'summary.json'}", flush=True)
 
 

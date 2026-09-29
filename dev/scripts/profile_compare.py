@@ -31,13 +31,16 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
-
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-from profile_suite import GP_TRAINING, TOP_LEVEL  # noqa: E402
+from profile_suite import (  # noqa: E402
+    GP_TRAINING,
+    TOP_LEVEL,
+    finite_median,
+    fmt,
+)
 
 PER_CALL = (
     "ESSearchHedge.__call__",
@@ -86,15 +89,6 @@ def _ratio(b, n):
     return n / b
 
 
-def _median(values):
-    values = [v for v in values if v is not None and np.isfinite(v)]
-    return float(np.median(values)) if values else None
-
-
-def _fmt(v, nd=2):
-    return "-" if v is None else f"{v:.{nd}f}"
-
-
 def pairs(base, new, mode):
     """``{label: [(base_row, new_row), ...]}`` over the seeds present in
     both campaigns."""
@@ -123,19 +117,23 @@ def compare_plain(base, new, control):
         cells = [label, str(len(group))]
         for key in ("wall_s", "own_s"):
             cells.append(
-                _fmt(_median([_ratio(b[key], n[key]) for b, n in group]))
+                fmt(
+                    finite_median([_ratio(b[key], n[key]) for b, n in group]),
+                    2,
+                )
             )
         for key in stages + [control]:
             cells.append(
-                _fmt(
-                    _median(
+                fmt(
+                    finite_median(
                         [
                             _ratio(
                                 stage_seconds(b, key), stage_seconds(n, key)
                             )
                             for b, n in group
                         ]
-                    )
+                    ),
+                    2,
                 )
             )
         differ = [b["seed"] for b, n in group if not same_trajectory(b, n)]
@@ -175,9 +173,9 @@ def compare_cprof(base, new):
         cells = [bucket]
         for label in labels:
             group = groups[label]
-            bs = _median([b["buckets"][bucket]["s"] for b, _ in group])
-            ns = _median([n["buckets"][bucket]["s"] for _, n in group])
-            ratio = _median(
+            bs = finite_median([b["buckets"][bucket]["s"] for b, _ in group])
+            ns = finite_median([n["buckets"][bucket]["s"] for _, n in group])
+            ratio = finite_median(
                 [
                     _ratio(
                         b["buckets"][bucket]["s"], n["buckets"][bucket]["s"]
@@ -185,12 +183,16 @@ def compare_cprof(base, new):
                     for b, n in group
                 ]
             )
-            bc = _median([b["buckets"][bucket]["calls"] for b, _ in group])
-            nc = _median([n["buckets"][bucket]["calls"] for _, n in group])
-            calls = (
-                _fmt(bc, 0) if bc == nc else f"{_fmt(bc, 0)}->{_fmt(nc, 0)}"
+            bc = finite_median(
+                [b["buckets"][bucket]["calls"] for b, _ in group]
             )
-            cells.append(f"{_fmt(bs)}->{_fmt(ns)} ({_fmt(ratio)}) [{calls}]")
+            nc = finite_median(
+                [n["buckets"][bucket]["calls"] for _, n in group]
+            )
+            calls = fmt(bc, 0) if bc == nc else f"{fmt(bc, 0)}->{fmt(nc, 0)}"
+            cells.append(
+                f"{fmt(bs, 2)}->{fmt(ns, 2)} ({fmt(ratio, 2)}) [{calls}]"
+            )
         print("| " + " | ".join(cells) + " |")
     print()
     print("Time per call, ms, BASE -> NEW (median ratio)\n")
@@ -207,12 +209,12 @@ def compare_cprof(base, new):
                 b = row["buckets"][bucket]
                 return 1e3 * b["s"] / b["calls"] if b["calls"] else None
 
-            pb = _median([per_call(b) for b, _ in group])
-            pn = _median([per_call(n) for _, n in group])
-            ratio = _median(
+            pb = finite_median([per_call(b) for b, _ in group])
+            pn = finite_median([per_call(n) for _, n in group])
+            ratio = finite_median(
                 [_ratio(per_call(b), per_call(n)) for b, n in group]
             )
-            cells.append(f"{_fmt(pb, 3)}->{_fmt(pn, 3)} ({_fmt(ratio)})")
+            cells.append(f"{fmt(pb, 3)}->{fmt(pn, 3)} ({fmt(ratio, 2)})")
         print("| " + " | ".join(cells) + " |")
     print()
     for label, group in groups.items():

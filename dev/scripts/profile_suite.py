@@ -44,9 +44,14 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 import benchmark_targets as bt  # noqa: E402
-import population as pp  # noqa: E402
+from harness import (  # noqa: E402
+    jsonable,
+    parse_seeds,
+    single_thread_env,
+    write_json,
+)
+from profile_run import DEFAULT_CAMPAIGNS  # noqa: E402
 
-DEFAULT_CAMPAIGNS = HERE / "runs" / "profile"
 PROFILE_RUN = HERE / "profile_run.py"
 
 # The top-level stages in the order of a run, and the leaves reported
@@ -176,12 +181,14 @@ def load_rows(out_dir):
     return rows
 
 
-def _median(values):
+def finite_median(values):
+    """The median of the finite values; None without any."""
     values = [v for v in values if v is not None and np.isfinite(v)]
     return float(np.median(values)) if values else None
 
 
-def _fmt(v, nd=1):
+def fmt(v, nd=1):
+    """A table's cell: a float to ``nd`` decimals, "-" for None."""
     if v is None:
         return "-"
     if isinstance(v, float):
@@ -239,36 +246,44 @@ def aggregate_text(rows, name):
             cells = [
                 label,
                 str(len(group)),
-                _fmt(_median([r["wall_s"] for r in group]), 2),
-                _fmt(_median([r["own_s"] for r in group]), 2),
-                _fmt(
-                    _median(
+                fmt(finite_median([r["wall_s"] for r in group]), 2),
+                fmt(finite_median([r["own_s"] for r in group]), 2),
+                fmt(
+                    finite_median(
                         [1e3 * r["own_s"] / r["func_count"] for r in group]
                     ),
                     1,
                 ),
-                _fmt(_median([r["func_count"] for r in group]), 0),
-                _fmt(_median([r["iterations"] for r in group]), 0),
-                _fmt(_median([r["true_error"] for r in group]), 3),
+                fmt(finite_median([r["func_count"] for r in group]), 0),
+                fmt(finite_median([r["iterations"] for r in group]), 0),
+                fmt(finite_median([r["true_error"] for r in group]), 3),
             ]
             for key in TOP_LEVEL:
                 cells.append(
-                    _fmt(_median([_share(r, "top_level", key) for r in timed]))
+                    fmt(
+                        finite_median(
+                            [_share(r, "top_level", key) for r in timed]
+                        )
+                    )
                 )
             gp_training = [
                 sum(_share(r, "leaf", key) for key in GP_TRAINING)
                 for r in timed
             ]
-            cells.append(_fmt(_median(gp_training)))
+            cells.append(fmt(finite_median(gp_training)))
             cells.append(
-                _fmt(
-                    _median(
+                fmt(
+                    finite_median(
                         [_share(r, "leaf", "gp_fit_failed") for r in timed]
                     )
                 )
             )
             cells.append(
-                _fmt(_median([_share(r, "leaf", "search_es") for r in timed]))
+                fmt(
+                    finite_median(
+                        [_share(r, "leaf", "search_es") for r in timed]
+                    )
+                )
             )
             residuals = [abs(r["residual_s"]) for r in timed]
             cells.append(f"{max(residuals):.1e}" if residuals else "-")
@@ -285,11 +300,11 @@ def aggregate_text(rows, name):
             timed = [r for r in group if r["leaf"] is not None]
             cells = [label]
             for key in LEAVES:
-                share = _median([_share(r, "leaf", key) for r in timed])
-                calls = _median(
+                share = finite_median([_share(r, "leaf", key) for r in timed])
+                calls = finite_median(
                     [r["leaf"].get(key, {"calls": 0})["calls"] for r in timed]
                 )
-                cells.append(f"{_fmt(share)} ({_fmt(calls, 0)})")
+                cells.append(f"{fmt(share)} ({fmt(calls, 0)})")
             lines.append("| " + " | ".join(cells) + " |")
         lines.append("")
     cprof = _groups(rows, "cprof")
@@ -315,13 +330,13 @@ def aggregate_text(rows, name):
                 ]
                 calls = [r["buckets"][bucket]["calls"] for r in group]
                 cells.append(
-                    f"{_fmt(_median(shares))} ({_fmt(_median(calls), 0)})"
+                    f"{fmt(finite_median(shares))} ({fmt(finite_median(calls), 0)})"
                 )
             lines.append("| " + " | ".join(cells) + " |")
         lines += [
             "| profiled wall s | "
             + " | ".join(
-                _fmt(_median([r["wall_s"] for r in cprof[label]]), 2)
+                fmt(finite_median([r["wall_s"] for r in cprof[label]]), 2)
                 for label in labels
             )
             + " |",
@@ -341,7 +356,7 @@ def aggregate(out_dir):
     ``out_dir``; return the number of runs."""
     out_dir = Path(out_dir)
     rows = load_rows(out_dir)
-    pp._write_json(out_dir / "aggregate.json", pp.jsonable(rows))
+    write_json(out_dir / "aggregate.json", jsonable(rows))
     text = aggregate_text(rows, out_dir.name)
     (out_dir / "aggregate.md").write_text(text, encoding="utf-8")
     print(text, flush=True)
@@ -397,7 +412,7 @@ def main(argv=None):
             return 1
         return 0
 
-    bt.single_thread_env()  # inherited by the runs
+    single_thread_env()  # inherited by the runs
     # absolute: the runs start in REPO_ROOT, not in the caller's directory
     out_dir = (
         args.out or DEFAULT_CAMPAIGNS / f"campaign_{int(time.time())}"
@@ -410,7 +425,7 @@ def main(argv=None):
         if unknown:
             sys.exit(f"not in suite {args.suite!r}: {', '.join(unknown)}")
         cfgs = [c for c in cfgs if c.label in wanted]
-    seeds = pp.parse_seeds(args.seeds)
+    seeds = parse_seeds(args.seeds)
     modes = ["plain", "cprof"] if args.mode == "both" else [args.mode]
     print(
         f"[suite] {len(cfgs)} configurations x {len(seeds)} seeds x"

@@ -80,6 +80,12 @@ if str(HERE) not in sys.path:
 
 import benchmark_targets as bt  # noqa: E402
 import population as pop  # noqa: E402
+from harness import (  # noqa: E402
+    build_run,
+    code_meta,
+    parse_seeds,
+    single_thread_env,
+)
 
 SITES = ("add_and_update_gp", "local_gp_fitting", "_get_target_from_gp_")
 STEPS = ("_search_step_", "_poll_step_")
@@ -283,9 +289,7 @@ def run_one(label, seed, inject_p, inject_seed):
     # the earlier run of a configuration given evaluations made before its
     # runs, if any, before the wrappers are in place: neither counted nor
     # injected
-    cfg = bt.find_config(label)
-    prob = cfg.make(seed=seed)
-    args, options = prob.bads_args()
+    run = build_run(label, seed)
 
     inject_rng = np.random.default_rng(
         [inject_seed, seed, zlib.crc32(label.encode())]
@@ -301,7 +305,7 @@ def run_one(label, seed, inject_p, inject_seed):
     t0 = time.perf_counter()
     bads = None
     try:
-        bads = BADS(*args, options=options, **prob.bads_kwargs())
+        bads = BADS(*run.args, options=run.options, **run.kwargs)
         res = bads.optimize()
         final.update(
             x=np.asarray(res["x"], dtype=float).ravel().tolist(),
@@ -316,7 +320,7 @@ def run_one(label, seed, inject_p, inject_seed):
     entry = {
         "label": label,
         "seed": seed,
-        "precomputed": pop.precomputed_summary(cfg, prob),
+        "precomputed": run.precomputed,
         "final": final,
     }
     entry.update(probe.summary(final["func_count"]))
@@ -407,7 +411,7 @@ def main(argv=None):
     ap.add_argument("--check", type=Path, default=None)
     args = ap.parse_args(argv)
 
-    bt.single_thread_env()  # inherited by the spawned processes
+    single_thread_env()  # inherited by the spawned processes
     cfgs, skipped = bt.runnable_configs(args.suite)
     if skipped:
         print(
@@ -418,7 +422,7 @@ def main(argv=None):
     if args.only:
         wanted = {s.strip() for s in args.only.split(",") if s.strip()}
         cfgs = [c for c in cfgs if c.label in wanted]
-    tasks = [(c.label, s) for c in cfgs for s in pop.parse_seeds(args.seeds)]
+    tasks = [(c.label, s) for c in cfgs for s in parse_seeds(args.seeds)]
     print(
         f"[gp_update_failures] {len(tasks)} runs, {args.workers} worker(s),"
         f" inject {args.inject}",
@@ -448,16 +452,13 @@ def main(argv=None):
             )
     entries.sort(key=lambda e: (e["label"], e["seed"]))
     out = {
-        "meta": {
-            "git": pop.git_info(),
-            "gpyreg_source": pop.module_source("gpyreg"),
-            "python": sys.version.split()[0],
-            "numpy": np.__version__,
-            "suite": args.suite,
-            "seeds": args.seeds,
-            "inject": args.inject,
-            "inject_seed": args.inject_seed,
-        },
+        "meta": dict(
+            code_meta(),
+            suite=args.suite,
+            seeds=args.seeds,
+            inject=args.inject,
+            inject_seed=args.inject_seed,
+        ),
         "runs": entries,
     }
     status = 0

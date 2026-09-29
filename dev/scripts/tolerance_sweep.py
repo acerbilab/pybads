@@ -27,14 +27,8 @@ import time
 
 import numpy as np
 
-
-def parse_seeds(text):
-    """``"0-99"`` or ``"0,5,7"`` or a mix, to a list of integers."""
-    seeds = []
-    for part in text.split(","):
-        lo, _, hi = part.partition("-")
-        seeds.extend(range(int(lo), int(hi or lo) + 1))
-    return seeds
+# harness leaves sys.path, and so the PyBADS that the tests import, as it is
+from harness import parse_seeds
 
 
 def run(seeds, names=None):

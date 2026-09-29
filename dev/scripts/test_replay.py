@@ -4,11 +4,9 @@ differ, a GP computation that differs, a shorter run, platform keys that
 differ, set-ups that differ, logs given to the runs that differ, the
 repeats of one recording), the recorder's reading of the refit flag, its
 loud failure on a missing private name and on an error of its own code
-inside a run, its thread variables beside a ``benchmark_targets.py`` that
-does not name them, and one that gives no run evaluations made before it,
-one short real recording repeated in one process, and the recording of a
-run given the log of an earlier run. Run by path, from the repository
-root::
+inside a run, one short real recording repeated in one process, and the
+recording of a run given the log of an earlier run. Run by path, from the
+repository root::
 
     python -m pytest dev/scripts/test_replay.py
 
@@ -18,9 +16,7 @@ of 45, in a few seconds.
 """
 
 import copy
-import importlib.util
 import json
-import sys
 import types
 
 import numpy as np
@@ -318,34 +314,6 @@ def test_missing_private_name_fails_loudly(monkeypatch):
         rp.record_run("sphere_D2", 0, 0.02)
 
 
-def test_benchmark_without_thread_variables(monkeypatch):
-    """Beside a ``benchmark_targets.py`` without ``THREAD_VARS`` (a commit
-    before c60a5238), the script imports, and it pins and records the
-    thread variables that ``benchmark_targets.THREAD_VARS`` names."""
-    import benchmark_targets as bt
-
-    older = types.ModuleType("benchmark_targets")
-    older.__dict__.update(vars(bt))
-    del older.THREAD_VARS
-    monkeypatch.setitem(sys.modules, "benchmark_targets", older)
-    spec = importlib.util.spec_from_file_location("replay_older", rp.__file__)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    assert module.bt is older
-    assert module.THREAD_VARS == bt.THREAD_VARS
-    env, _ = module.pinned_env(1, None, False)
-    assert all(env[k] == "1" for k in bt.THREAD_VARS)
-    assert set(bt.THREAD_VARS) <= set(module.platform_key()["env"])
-
-
-def test_benchmark_without_earlier_evaluations():
-    """Beside a ``benchmark_targets.py`` whose problems give no evaluations
-    made before a run (a commit before 2822c561), a run is given none and
-    its trace records none."""
-    older = types.SimpleNamespace(precomputed=None)
-    assert rp.given_evaluations(None, older) == ({}, None)
-
-
 # --------------------------------------------------------------------------
 # The recorder
 # --------------------------------------------------------------------------
@@ -505,14 +473,14 @@ def test_record_a_run_given_earlier_evaluations():
     initial design the run does not evaluate again, with the log's kind,
     rows and digest in the sidecar and its size in the result."""
     import benchmark_targets as bt
-    import population as pp
+    import harness
 
     cfg = bt.find_config("sphere_D3_rerun")
     prob = cfg.make(seed=2)
     X, _ = prob.precomputed
     arrays, sidecar = rp.record_run("sphere_D3_rerun", 2, 0.02)
     assert sidecar["crash"] is None
-    assert sidecar["precomputed"] == pp.precomputed_summary(cfg, prob)
+    assert sidecar["precomputed"] == harness.precomputed_summary(cfg, prob)
     assert sidecar["precomputed"]["rows"] == len(X)
     result = sidecar["result"]
     assert result["precomputed_observations"] == len(X)

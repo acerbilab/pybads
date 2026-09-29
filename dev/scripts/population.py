@@ -64,17 +64,11 @@ check.
 """
 
 import argparse
-import hashlib
-import importlib
 import json
-import os
-import platform
-import subprocess
 import sys
 import time
 import traceback
 import warnings
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import numpy as np
@@ -88,6 +82,16 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 import benchmark_targets as bt  # noqa: E402
+from harness import (  # noqa: E402
+    build_run,
+    code_meta,
+    jsonable,
+    parse_seeds,
+    single_thread_env,
+    thread_env,
+    timestamp,
+    write_json,
+)
 
 METRICS = ("true_error", "func_count")
 LOG_FLOOR = 1e-12  # added to true_error before log10
@@ -111,91 +115,6 @@ EFFECTIVE_OPTION_KEYS = (
     "random_seed",
     "display",
 )
-
-
-# --------------------------------------------------------------------------
-# Provenance
-# --------------------------------------------------------------------------
-
-
-def pkg_version(name):
-    try:
-        return version(name)
-    except PackageNotFoundError:
-        return None
-
-
-def git_info(cwd=REPO_ROOT):
-    """Short commit and dirty flag (tracked files only) of a repository."""
-    try:
-        sha = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=cwd,
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        dirty = bool(
-            subprocess.check_output(
-                ["git", "status", "--porcelain", "--untracked-files=no"],
-                cwd=cwd,
-                text=True,
-                stderr=subprocess.DEVNULL,
-            ).strip()
-        )
-        return {"sha": sha, "dirty": dirty}
-    except Exception:  # noqa: BLE001
-        return {"sha": None, "dirty": None}
-
-
-def module_source(name):
-    """Where the imported package ``name`` loads from, and its commit.
-
-    ``git`` is the commit and dirty state of the repository that tracks the
-    package directory, so the checkout it loads from is identified: for
-    pybads the checkout of this script, which ``sys.path`` puts first, and
-    for gpyreg a clone placed on ``PYTHONPATH`` or the editable checkout;
-    an installed copy under site-packages reports ``git`` as None.
-    """
-    try:
-        path = Path(importlib.import_module(name).__file__).resolve().parent
-    except Exception:  # noqa: BLE001
-        return None
-    git = None
-    try:
-        subprocess.check_output(
-            ["git", "ls-files", "--error-unmatch", "__init__.py"],
-            cwd=path,
-            text=True,
-            stderr=subprocess.DEVNULL,
-        )
-        git = git_info(cwd=path)
-    except Exception:  # noqa: BLE001
-        pass
-    return {"path": str(path), "git": git}
-
-
-def thread_env():
-    """The thread variables of ``benchmark_targets.THREAD_VARS`` as the
-    process sees them (None for one that is not set)."""
-    return {k: os.environ.get(k) for k in bt.THREAD_VARS}
-
-
-def jsonable(v):
-    if isinstance(v, (np.floating, np.integer, np.bool_)):
-        return v.item()
-    if isinstance(v, np.ndarray):
-        return [jsonable(x) for x in v.tolist()]
-    if isinstance(v, (list, tuple)):
-        return [jsonable(x) for x in v]
-    if isinstance(v, dict):
-        return {str(k): jsonable(x) for k, x in v.items()}
-    if isinstance(v, (str, int, float, bool)) or v is None:
-        return v
-    return repr(v)
-
-
-def _now():
-    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
 # --------------------------------------------------------------------------
@@ -325,42 +244,12 @@ def _final(prob, bads, res, exc, wall):
     return out
 
 
-def precomputed_summary(cfg, prob):
-    """What a record keeps of the evaluations made before the run: their
-    kind (``Config.precomputed``), their number of rows and the first 16
-    hex digits of the SHA-256 digest of their arrays, by which ``compare``
-    checks that two populations gave a seed's run the same; None without
-    them."""
-    if prob.precomputed is None:
-        return None
-    digest = hashlib.sha256()
-    for a in prob.precomputed:
-        digest.update(np.ascontiguousarray(a, dtype=float).tobytes())
-    return {
-        "kind": cfg.precomputed,
-        "rows": int(len(prob.precomputed[1])),
-        "digest": digest.hexdigest()[:16],
-    }
-
-
-def _write_json(path, obj):
-    """Write through a temporary file, so that an interrupted write never
-    leaves a record that ``run`` would take as done."""
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(obj, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
-
-
 def run_task(label, seed, extra_options, budget_scale, out_dir):
     """Run one (configuration, seed); write its record; return a row."""
     out_dir = Path(out_dir)
-    started = _now()
+    started = timestamp()
     try:
-        cfg = bt.find_config(label)
-        prob = cfg.make(seed=seed, budget_scale=budget_scale)
-        args, options = prob.bads_args()
-        options.update(extra_options or {})
-        requested = jsonable(options)
+        run = build_run(label, seed, budget_scale, extra_options)
         from pybads import BADS
     except Exception:  # noqa: BLE001
         error_path(out_dir, label, seed).write_text(
@@ -368,10 +257,11 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         )
         return {"label": label, "seed": seed, "status": "error"}
 
+    prob = run.prob
     bads = res = exc = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options, **prob.bads_kwargs())
+        bads = BADS(*run.args, options=run.options, **run.kwargs)
         res = bads.optimize()
     except Exception as e:  # noqa: BLE001
         exc = {
@@ -384,7 +274,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
     effective = None
     if bads is not None:
         keys = list(EFFECTIVE_OPTION_KEYS) + [
-            k for k in requested if k not in EFFECTIVE_OPTION_KEYS
+            k for k in run.requested if k not in EFFECTIVE_OPTION_KEYS
         ]
         effective = {k: jsonable(bads.options.get(k)) for k in keys}
     record = {
@@ -393,32 +283,24 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         "problem": prob.name,
         "D": prob.D,
         "noise": prob.noise,
-        "unbounded": cfg.unbounded,
+        "unbounded": run.cfg.unbounded,
         "x0": prob.x0.tolist(),
-        "precomputed": precomputed_summary(cfg, prob),
+        "precomputed": run.precomputed,
         "f_min": prob.f_min,
         "tolerance": prob.tolerance,
-        "budget": cfg.budget,
+        "budget": run.cfg.budget,
         "budget_scale": budget_scale,
-        "requested_options": requested,
+        "requested_options": run.requested,
         "effective_options": effective,
         "final": jsonable(final),
-        "meta": {
-            "git": git_info(),
-            "python": sys.version.split()[0],
-            "platform": platform.platform(),
-            "numpy": np.__version__,
-            "scipy": pkg_version("scipy"),
-            "pybads": pkg_version("pybads"),
-            "pybads_source": module_source("pybads"),
-            "gpyreg": pkg_version("gpyreg"),
-            "gpyreg_source": module_source("gpyreg"),
-            "threads": thread_env(),
-            "started": started,
-            "finished": _now(),
-        },
+        "meta": dict(
+            code_meta(),
+            threads=thread_env(),
+            started=started,
+            finished=timestamp(),
+        ),
     }
-    _write_json(record_path(out_dir, label, seed), record)
+    write_json(record_path(out_dir, label, seed), record)
     error_path(out_dir, label, seed).unlink(missing_ok=True)  # a retried run
     return {
         "label": label,
@@ -436,19 +318,6 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
 # --------------------------------------------------------------------------
 # run
 # --------------------------------------------------------------------------
-
-
-def parse_seeds(spec):
-    """``"0-29"``, ``"0,3,5-7"`` -> sorted list of ints."""
-    seeds = []
-    for part in str(spec).split(","):
-        part = part.strip()
-        if "-" in part:
-            a, b = part.split("-")
-            seeds.extend(range(int(a), int(b) + 1))
-        elif part:
-            seeds.append(int(part))
-    return sorted(set(seeds))
 
 
 def _progress(k, n, r, t0):
@@ -473,7 +342,7 @@ def cmd_run(args):
     import multiprocessing as mp
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    bt.single_thread_env()  # inherited by the spawned processes
+    single_thread_env()  # inherited by the spawned processes
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     cfgs = bt.suite_configs(args.suite)
