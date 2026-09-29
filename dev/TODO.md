@@ -99,7 +99,17 @@ among them, so a title stays as it is while its item is open.
     since acerbilab/gpyreg#60, so that installing PyBADS does not install
     them. Moving PyBADS's minimum to that release makes false the
     "(gpyreg 1.3.3 still installs it)" of the entry "Requirements" of
-    `CHANGELOG.md`'s `Unreleased`, which changes with it.
+    `CHANGELOG.md`'s `Unreleased`, which changes with it;
+  - the kernels, `predict` and the objective of `fit` computed without
+    intermediate arrays or SciPy's layers, every value the same to the
+    last bit, on gpyreg's `main` since acerbilab/gpyreg#63 (merge commit
+    `4126dbe`): with it, and PyBADS's one line that takes the priors once
+    per rebuild, PyBADS's own time is 23 to 29 % lower on the `profile`
+    suite, with the fingerprint, the replay and the oracles' `--against`
+    identical
+    ([results/2026-09-29-bit-identical-speedups.md](results/2026-09-29-bit-identical-speedups.md)).
+    The move's entry in `CHANGELOG.md` states that speed-up, measured
+    again with the release.
 
   At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's records in
   all 1,080 runs of the `default`, `geometry`, `oned` and `bounds` suites

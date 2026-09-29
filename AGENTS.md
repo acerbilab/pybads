@@ -431,9 +431,14 @@ first evaluation and GP computation at which two commits' runs part), and
 `dev/scripts/make_oracle_fixtures.py --check --exact --against` a
 `--dump` of the parent commit identical (the oracles of
 `pybads/testing/oracles/`, PyBADS's components on stored states);
-`dev/README.md` gives the procedures. The three, the fingerprint, the
-replay and the oracles' `--against`, need a machine that repeats a
-computation bit for bit, which macOS arm64 is not: there Accelerate's
+`dev/README.md` gives the procedures. A change to gpyreg that must move
+nothing shows the fingerprint and the replay identical with its clone and
+with its parent's, and `dev/scripts/gpyreg_bitwise.py compare` identical
+between dumps of the two, which reach gpyreg's paths that PyBADS's runs do
+not; the oracles' `--against` refuses a dump made under another gpyreg.
+The four, the fingerprint, the replay, the oracles' `--against` and
+`gpyreg_bitwise.py`, need a machine that repeats a computation bit for
+bit, which macOS arm64 is not: there Accelerate's
 results depend on the alignment of the arrays, so that two runs of one
 seed need not match (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
 On every platform, the tests pin the initial design, which involves no BLAS
