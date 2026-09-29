@@ -329,7 +329,7 @@ With `x0` missing and the plausible bounds omitted, MATLAB BADS refuses
 the problem (`bads.m:332-343`). PyBADS takes the hard bounds for the
 plausible bounds and draws the start in the plausible box, as it draws any
 missing start.
-- PyBADS: `BADS.__init__`, `BADS._bounds_check_`.
+- PyBADS: `BADS.__init__`.
 - MATLAB: `bads.m:332-343`.
 - Settled by: W2-9. Kind: deliberate change.
 

@@ -173,10 +173,10 @@ def _bounds_as_rows(x0, lb, ub, plb, pub):
         when an input is not real.
     """
     N0, D = x0.shape
-    if D == 0:
+    if x0.size == 0:
         raise ValueError(
-            "The starting point x0 (or, without it, the plausible bounds) "
-            "needs at least one element."
+            "The starting point x0 (or, without it, the bounds that give "
+            "its size) needs at least one element."
         )
     lb, ub, plb, pub = (
         np.full((1, D), bound) if bound.size == 1 else bound
@@ -340,15 +340,15 @@ class BADS:
         A variable whose four bounds are equal is fixed at their value,
         which ``x0`` holds there, or a non-finite value in its place. BADS
         optimizes the other variables, as a run of the problem without the
-        fixed ones would: the defaults of the options are evaluated with
-        ``D`` the number of variables that are not fixed, and the run's
-        internal state (``optim_state``, the transformed coordinates and the
+        fixed ones would: the defaults of the options that depend on the
+        number of variables count only those, and the run's internal state (``optim_state``, the transformed coordinates and the
         Gaussian process) covers them alone. ``fun``, ``non_box_cons`` and
         ``options['output_fcn']`` receive points of all the variables, with
         the fixed ones at their values, and the result's ``x`` and ``x0``,
         the function log and the points ``"x"`` of ``iteration_history``
-        hold them all; the indices of ``options['periodic_vars']`` and the
-        points of ``precomputed_evaluations`` count them all too.
+        hold them all; the indices of ``options['periodic_vars']`` count
+        them all, and the points of ``precomputed_evaluations`` hold them
+        all.
 
     non_box_cons : callable, optional
         A given non-box constraints function that specifies constraint

@@ -203,19 +203,25 @@ def _assert_same_run(runs):
         {},
         {"x0": None},
         {"x0": np.where(np.isin(np.arange(D_ORIG), FIXED), np.nan, X0)},
+        {"x0": np.where(np.isin(np.arange(D_ORIG), FIXED), -np.inf, X0)},
         {"noise": "inferred"},
         {"noise": "specified"},
+        {"noise": "inferred", "stobads": True},
         {"non_box_cons": _non_box_cons},
         {"periodic_vars": [0, 2]},
+        {"cache_size": 3},
     ],
     ids=[
         "deterministic",
         "random_x0",
         "x0_nan_at_fixed",
+        "x0_inf_at_fixed",
         "inferred_noise",
         "specified_noise",
+        "stobads",
         "non_box_cons",
         "periodic",
+        "log_grows",
     ],
 )
 def test_run_is_that_of_the_reduced_problem(kwargs):
@@ -226,7 +232,8 @@ def test_run_is_that_of_the_reduced_problem(kwargs):
     or non-finite `x0` is drawn over the free variables alone; a
     non-finite `x0` at a fixed variable is its value; `periodic_vars`
     counts all the variables, and a fixed periodic variable is not periodic
-    in the run."""
+    in the run; the log, grown from a small cache, holds all the variables
+    in its points."""
     _assert_same_run(_runs(**kwargs))
 
 
@@ -240,6 +247,19 @@ def test_run_with_evaluations_made_before_is_that_of_the_reduced_problem():
     X = np.vstack([X, X[[5, 2]]])
     y = np.array([_target()[0](x) for x in X])
     _assert_same_run(_runs(precomputed=(X, y)))
+
+
+def test_evaluations_with_their_noise_merge_as_in_the_reduced_problem():
+    """With the target's noise, a point given twice is merged into one row
+    of the log, by precision weighting, as the reduced problem merges it."""
+    rng = np.random.default_rng(4)
+    X = _expand(rng.uniform(-3, 3, (6, len(FREE))) + [0, 0, 4])
+    X = np.vstack([X, X[[1, 4]]])
+    y = np.array([_target()[0](x) for x in X]) + rng.normal(0, 0.5, len(X))
+    y_sd = np.full(len(X), 0.5)
+    runs = _runs(noise="specified", precomputed=(X, y, y_sd))
+    assert runs[0][0].optim_state["precomputed_locations"] == 6
+    _assert_same_run(runs)
 
 
 def test_callbacks_and_result_see_all_the_variables():

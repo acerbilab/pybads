@@ -55,6 +55,15 @@ class VariableTransformer:
     ``(D,)``, or a scalar or an array of one element, which stands for the
     same bound in each dimension; bounds of integers are taken as floats.
 
+    Attributes
+    ----------
+    D_orig : int
+        The number of variables of the original space: ``D`` and the fixed
+        variables.
+    fixed_values : np.ndarray or None
+        ``fixed_values`` as a row of shape ``(1, D_orig)``, or None when it
+        fixes no variable.
+
     Raises
     ------
     ValueError
