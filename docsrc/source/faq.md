@@ -108,10 +108,12 @@ without them, from the hard bounds), so give those as arrays.
 
 We recommend PyBADS for problems in which:
 
+<!-- suited-for: start (index.rst includes this list, README.md copies it) -->
 - the objective function landscape is *rough* (nonsmooth), typically due to numerical approximations or noise;
 - the objective function is at least moderately expensive to compute (e.g., more than 0.1 s per function evaluation);
 - the gradient is unavailable;
 - the number of input parameters is up to about `D = 20`.
+<!-- suited-for: end -->
 
 If your objective function is fully analytical, PyBADS is most likely not suited for your problem (see [below](#faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem)).
 

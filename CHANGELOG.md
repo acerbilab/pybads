@@ -158,7 +158,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `output_fcn`, what the log transform of positive variables does, what
   differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
   getting-started page and Examples 3 and 4 point to it in place of the
-  MATLAB BADS wiki.
+  MATLAB BADS wiki, and the getting-started page and Examples 1 and 3 link
+  to its answers on the problems that PyBADS suits, on passing additional
+  data to the objective and on how much noise PyBADS handles, in place of
+  their own versions of them.
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.

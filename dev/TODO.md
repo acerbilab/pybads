@@ -191,16 +191,6 @@ decided on; "the next release" below means it.
   Example 6 (periodic variables) was run with gpyreg's development branch
   (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
   the others, with gpyreg 1.4.0.
-- [ ] **User documentation written out twice.** Some advice is written
-  out in several places, which can drift apart: the list of the problems
-  that PyBADS suits, in `README.md` ("When should I use PyBADS?"),
-  `docsrc/source/index.rst` ("Should I use PyBADS?"), section 0 of
-  Example 1 and the FAQ ("Which kind of problems is PyBADS suited for?");
-  the passing of additional data to the objective, in the getting-started
-  page (`docsrc/source/quickstart.rst`) and the FAQ; and the amount of
-  noise that PyBADS handles, in the "Remarks" of Example 3 and the FAQ.
-  Each is kept in one place and linked from the others, or the copies are
-  kept in step.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) is 1.3.3 as of 2026-09-25
   ([assessment](results/2026-09-25-gpyreg-1.3.3.md)), and its CI pin

@@ -45,19 +45,9 @@ The ``optimize_result`` object contains more information about the optimization 
 
 **Additional data/parameters in the target function?**
 
-In case the ``target`` function requires additional data/parameters, they can be easily handled using an anonymous function. For example:
-
-.. code-block:: python
-
-  data = None # define your data
-  extra_params = None # define your function-specific parameters
-
-  def fun_for_pybads(x):
-    return fun(x, data, extra_params)
-
-  # Pass fun_for_pybads to PyBADS
-
-where ``fun`` is the function to optimize, note that ``fun_for_pybads`` only depends on ``x`` now, ``data`` and ``extra_params`` are given in the outer scope.
+If the ``target`` function requires additional data or parameters, the
+:ref:`FAQ <faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads>`
+shows how to pass them.
 
 Examples & FAQ
 =================
