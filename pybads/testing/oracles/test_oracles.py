@@ -11,9 +11,10 @@ platform. A failure means that the numerics moved. Never loosen a
 tolerance, or regenerate the fixtures, to make a change pass: when a change
 moves an oracle on purpose, replace that oracle's references alone with
 ``make_oracle_fixtures.py --rebaseline ORACLE --reason "..."``. The
-platform-bound outputs (``_oracles.platform_bound``) are not stored; the
-script's ``--dump`` and ``--check --exact --against`` compare them between
-two commits on one machine.
+platform-bound outputs (``_oracles.platform_bound``) are not stored: the
+tests compute them only to check that none raises, and the script's
+``--dump`` and ``--check --exact --against`` compare them between two
+commits on one machine.
 """
 
 import copy
@@ -88,6 +89,21 @@ def test_oracle(snapshots, name, oracle):
         assert all(r[3] for r in rows), f"{name}/{case}:\n{format_rows(rows)}"
         compared += len(rows)
     assert compared > 0, f"{name}/{oracle}: no output stored"
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_every_case_computes(snapshots, name):
+    """Every oracle computes in every view of the snapshot, the
+    platform-bound ones included, whose values no test compares: a key that
+    the code reads from ``optim_state`` or a GP's ``temporary_data`` and
+    that the stored states lack raises here, on the paths that only those
+    oracles reach, such as a GP refit (``STATE_DEFAULTS`` of ``_state.py``
+    gives such a key its default)."""
+    snap = snapshots[name]
+    seed = snap["meta"]["oracle_seed"]
+    for case, oracle, view in oracle_cases(snap, stored_only=False):
+        out = ORACLES[oracle](build_state(snap, view), seed)
+        assert out, f"{name}/{case}: no output"
 
 
 def test_fixtures_hold_the_portable_cases(snapshots):

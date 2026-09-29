@@ -1367,7 +1367,7 @@ class BADS:
         if level < 2 and y_sd is not None:
             raise ValueError(
                 "precomputed_evaluations holds noise SDs y_sd, which require "
-                "options['specify_target_noise'] = True."
+                'options["specify_target_noise"] = True.'
             )
 
         outside = np.any(

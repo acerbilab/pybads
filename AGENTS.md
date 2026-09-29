@@ -301,6 +301,12 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   with `poll_training` on).
   `local_gp_fitting` removes both once it leaves a posterior on its new
   training set. `test_gp_update_failures.py` injects the failures.
+- **The oracles' stored states.** The oracles of `pybads/testing/oracles/`
+  rebuild states stored by an earlier commit, so a key that the code newly
+  reads from `optim_state` or a GP's `temporary_data` gets a default in
+  `STATE_DEFAULTS` of `pybads/testing/oracles/_state.py` in the same
+  commit; `test_every_case_computes` fails without it, on the GP refit
+  too, whose outputs no test compares.
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
 - **Stage times.** `optimize` charges each second of a run to the
@@ -351,7 +357,8 @@ same gpyreg and the same number of BLAS threads: one thread
 hashes of the same commit, and a recorded hash names its setting.
 On one machine, a change that must move nothing also shows
 `dev/scripts/replay.py check` identical against the parent commit (the
-first evaluation and GP computation at which two commits' runs part), and
+first evaluation and GP computation at which two commits' runs part; not
+on macOS arm64, where two runs of one seed need not match bit for bit), and
 `dev/scripts/make_oracle_fixtures.py --check --exact --against` a
 `--dump` of the parent commit identical (the oracles of
 `pybads/testing/oracles/`, PyBADS's components on stored states);

@@ -422,7 +422,10 @@ mean's prior centred at the one target (`73d517a`, KD-B6-5), measured
 against its parent in
 [`one_point_gp_linux_20260928`](../experiments/one_point_gp_linux_20260928/README.md).
 What gpyreg's helpers do on inputs or targets without spread, which refits
-still reach, went to "For gpyreg's maintainers.".
+still reach, went to "For gpyreg's maintainers.", and the PI ruled
+(2026-09-29) that it stays with them, whatever MATLAB computes: the
+refits' warnings on inputs without spread, and the refit on one point at
+D = 1 with the noise test.
 
 The item "Prior evaluations (`fun_values`)." held W2-6, W4-10,
 `FunctionLogger.add`'s checks and the final samples' bookkeeping in the
@@ -515,13 +518,14 @@ where the noise test brings the count of evaluations to 2 > D
 MATLAB BADS does not fit its initial GP, which on one point holds the
 definition's values on both sides (KD-B6-5, by the PI's ruling of
 2026-09-28). PyBADS's disposition of the plateau and of two points
-(KD-B6-2) is decided whatever MATLAB computes; by the plan's rule no MATLAB
-run is written up. Three items of `dev/TODO.md` would use one: a run of
-MATLAB BADS on `ellipsoid_D3_hetero`; how often MATLAB's own fits give a
-predictive SD of 0, which, traced on 2026-09-28, comes from the same clamp
-on both sides (`dev/results/2026-09-28-gp-health.md`); and oracles of
-PyBADS's components computed by MATLAB BADS on the stored states of
-`pybads/testing/oracles/`.
+(KD-B6-2) is decided whatever MATLAB computes, and so is that of the refit
+on one point, which stays with gpyreg's helpers (PI, 2026-09-29); by the
+plan's rule no MATLAB run is written up. Three items of `dev/TODO.md` would
+use one: a run of MATLAB BADS on `ellipsoid_D3_hetero`; how often MATLAB's
+own fits give a predictive SD of 0, which, traced on 2026-09-28, comes from
+the same clamp on both sides (`dev/results/2026-09-28-gp-health.md`); and
+oracles of PyBADS's components computed by MATLAB BADS on the stored states
+of `pybads/testing/oracles/`.
 
 ## The MATLAB side
 

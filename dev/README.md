@@ -62,31 +62,31 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   identical. For a change that must move nothing, record at the parent
   commit, in a worktree at it, and at the change, on one machine, and
   check the two. Both sides record with the change's `replay.py`, copied
-  into the parent's worktree when the parent has an older one or none (a
-  commit from before 2026-09-28): traces written by two versions of the
-  tool can differ in their layout, which `check` reports as runs that
-  differ. The default configurations need a `benchmark_targets.py` that
-  defines them, which every commit from 2026-09-26 on has; for an older
-  parent, copy the change's `benchmark_targets.py` too, or name
-  `--configs` that the parent's defines. `--repeat 2` records each run
-  twice in one process, and `check DIR` compares the repeats. `report DIR`
-  tabulates a recording. The replay is exact only on one machine, one set
-  of versions, one BLAS kernel and one thread count, and not on macOS
+  alone into the parent's worktree when the parent has an older one or
+  none (a commit from before 2026-09-28): traces written by two versions
+  of the tool can differ in their layout, which `check` reports as runs
+  that differ. The copy takes the parent's `benchmark_targets.py` and
+  `population.py`, which have what it needs, the default configurations
+  included, at every commit from `0d866e84` (2026-09-27) on; at an older
+  commit the recording stops with `MissingName`, since its `BADS` does not
+  set `poll_moved`, which the recorder reads. `--repeat 2` records each
+  run twice in one process, and `check DIR` compares the repeats. `report
+  DIR` tabulates a recording. The replay is exact only on one machine, one
+  set of versions, one BLAS kernel and one thread count, and not on macOS
   arm64, where two runs of one seed need not match bit for bit
-  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)). Measured at `948e0d96` on Linux (a
-  container with 4 virtual CPUs, Intel Xeon at 2.10 GHz; NumPy 2.4.6,
-  SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg 1.3.3), a seeded run repeats
-  exactly, in one process and across processes. Under
-  `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first GP
-  fit of every run differs, by 1e-15 to 1e-10, and every run of the
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
+  Measured at `948e0d96` on Linux (a container with 4 virtual CPUs, Intel
+  Xeon at 2.10 GHz; NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg
+  1.3.3), a seeded run repeats exactly, in one process and across processes.
+  Under `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first
+  GP fit of every run differs, by 1e-15 to 1e-10, and every run of the
   default set parts after 15 to 40 evaluations, into different decisions
-  (the values of `rosenbrock_D6`, whose target rotates its input by a
-  matrix product, differ from the first evaluation, and its points after
-  24). With four threads, seven of the eight runs part after 22 to 50
-  evaluations, and `sphere_D3_homo` differs only in its GP
-  hyperparameters, by about 1e-10. So it is a developer tool, not a test:
-  the part of a run that involves no BLAS work, the initial design, is
-  pinned on every platform by
+  (the values of `rosenbrock_D6`, whose target rotates its input by a matrix
+  product, differ from the first evaluation, and its points after 24). With
+  four threads, seven of the eight runs part after 22 to 50 evaluations, and
+  `sphere_D3_homo` differs only in its GP hyperparameters, by about 1e-10.
+  So it is a developer tool, not a test: the part of a run that involves no
+  BLAS work, the initial design, is pinned on every platform by
   `pybads/testing/bads/test_initial_design_pin.py`.
 - `make_oracle_fixtures.py` writes and checks the oracles of
   `pybads/testing/oracles/`: the states of six short seeded runs
@@ -102,28 +102,35 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   raw stream, the same everywhere. The fixtures store the portable outputs
   alone, those that rounding on another platform moves by less than their
   tolerances, measured across BLAS threads and kernels (the docstring of
-  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 3 s)
+  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 4 s)
   compare them on every platform, and so does `--check`, which exits 1 on
   a failure. The platform-bound outputs are not stored: a GP refit, a whole
   ES search step, and the outputs through the solve of a GP whose
   condition number exceeds 1e8, as it does after a refit on three of the
   six states; for those three, a view with the GP's noise raised to bound
-  the condition number by 1e6 keeps the GP's predictions, the LCB, the
-  training set and the hedge covered on every platform. Every mode reports
-  the outputs it compared and those it left out, and why. `--check
-  --exact` compares bit for bit, with one BLAS thread (the script's
-  default), and refuses under another platform key than the fixtures'; on
-  any machine, `--dump DIR` at the parent commit and `--check --exact
-  --against DIR` at the change compare every output, the platform-bound
-  ones included: the gate for a change that must move nothing. `--rebaseline
-  ORACLE --reason TEXT` replaces one oracle's references, for a change that
-  moves it on purpose, and records the reason and the commit in the
-  fixtures; `--write --reason TEXT` reruns the recipes, a new baseline, from
-  a clean checkout. An option of a stored state that the code no longer has
-  is dropped when the state is rebuilt, and listed; a key that the code
-  reads from `optim_state` or a GP's `temporary_data` and that a stored
-  state lacks gets a default in `STATE_DEFAULTS` of `_state.py`, in the
-  commit that makes the code read it. The oracles gate a component's
+  the condition number by 1e6 keeps the arithmetic of the GP's
+  predictions, the LCB, the training set and the hedge covered on every
+  platform, in a smoother regime than the run's GP (a noise SD of 10 to 65
+  against training values of median 0.25 to 5.7; predictions that
+  correlate with the stored view's by 0.69 to 0.998), so that their values
+  in the near-interpolating regime of the run's GP are covered only by
+  `--dump` and `--against`, on one machine. Every mode reports the outputs
+  it compared and those it left out, and why. `--check --exact` compares
+  bit for bit, with one BLAS thread (the script's default), and refuses
+  under another platform key than the fixtures'; on any machine, `--dump
+  DIR` at the parent commit and `--check --exact --against DIR` at the
+  change compare every output, the platform-bound ones included: the gate
+  for a change that must move nothing. `--rebaseline ORACLE --reason TEXT`
+  replaces one oracle's references, for a change that moves it on purpose,
+  after the check of its decisions' margins that `--write` makes, and
+  records the reason and the commit in the fixtures; `--write --reason TEXT`
+  reruns the recipes, a new baseline, from a clean checkout. An option of a
+  stored state that the code no longer has is dropped when the state is
+  rebuilt, and listed; a key that the code reads from `optim_state` or a
+  GP's `temporary_data` and that a stored state lacks gets a default in
+  `STATE_DEFAULTS` of `_state.py`, in the commit that makes the code read
+  it; `test_every_case_computes` computes every oracle, the platform-bound
+  ones included, and fails on such a key. The oracles gate a component's
   numbers on fixed inputs, not a run: whole trajectories are `replay.py`'s,
   on one machine, and the distribution of results the population
   comparison's.
@@ -170,16 +177,15 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   change in the error and in the number of evaluations, with one Holm
   correction over all the tests, prints effect sizes, and exits 1 on a
   flag; `compare REF --split` compares the even and the odd seeds of one
-  population, as a null check. The paired test
-  of `compare` assumes that both populations share each seed's start point
-  and noise, that is, the same `benchmark_targets.py`; `compare` warns when
-  the recorded start points differ. To run against another gpyreg
-  checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
-  source path and commit, since the version string is that of the
-  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets
-  and seeds, come from the checkout that holds the script, which it puts
-  first on `sys.path`: to run a commit, run the
-  `dev/scripts/population.py` of a worktree at it, from the main
+  population, as a null check. The paired test of `compare` assumes that
+  both populations share each seed's start point and noise, that is, the
+  same `benchmark_targets.py`; `compare` warns when the recorded start
+  points differ. To run against another gpyreg checkout, put it on
+  `PYTHONPATH`: the records identify gpyreg by its source path and commit,
+  since the version string is that of the installed gpyreg. PyBADS, and
+  `benchmark_targets.py` with its targets and seeds, come from the checkout
+  that holds the script, which it puts first on `sys.path`: to run a commit,
+  run the `dev/scripts/population.py` of a worktree at it, from the main
   checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.

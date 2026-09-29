@@ -561,10 +561,11 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   machine: every test whose outcome depends on random draws is seeded. Each
   optimization test checks a tolerance of its own, tighter than before for
   most. Two tests of the poll, which pytest did not collect, are renamed so
-  that it does, and a third is added. The module `pybads.testing.run_tests`,
+  that it does, and a third is added. The shipped tests include a check of
+  the initial design and checks of PyBADS's components on stored states,
+  whose data take about 600 KB. The module `pybads.testing.run_tests`,
   which failed on import, and six data files that no test read are no
-  longer installed. They include a check of the initial design and checks of
-  PyBADS's components on stored states, whose data take about 600 KB.
+  longer installed.
 - **Seeded runs on Apple Silicon.** The README and the documentation said
   that a seeded run gives the same result every time on the same machine.
   On Apple Silicon Macs, with Apple's Accelerate as the linear algebra

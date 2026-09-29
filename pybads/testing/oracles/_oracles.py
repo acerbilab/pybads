@@ -59,6 +59,14 @@ raised so that the bound on the condition number is
 fixture stores the raised hyperparameters), where every output is
 portable. An oracle's outputs in a view are stored under the case
 :func:`case_name`, and :func:`oracle_cases` lists the cases of a snapshot.
+The raised noise puts the view's GP in a smoother regime than the run's:
+on the three such snapshots, a noise SD of 10 to 65 (the stored GP's is
+3.7e-4) against training values of median 0.25 to 5.7, and predictions at
+the candidates that correlate with the stored view's by 0.69 to 0.998. The
+view checks the arithmetic of the GP's predictions, the LCB, the training
+set and the hedge on every platform; their values in the near-interpolating
+regime of the run's GP are compared only between two commits on one
+machine (``make_oracle_fixtures.py --dump`` and ``--against``).
 
 Measured floors (2026-09-29; Linux x86_64 with 4 cores, NumPy 2.4.6 and
 SciPy 1.17.1 with their OpenBLAS 0.3.31, gpyreg 1.3.3). The references were

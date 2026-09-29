@@ -501,7 +501,7 @@ def test_call_one_element_sd_taken_as_a_number(sd):
     assert f_logger.S[0, 0] == 0.5
 
 
-_PAIR = "needs the option specify_target_noise=True"
+_PAIR = 'needs options["specify_target_noise"] = True.'
 
 
 @pytest.mark.parametrize("level", [0, 1])

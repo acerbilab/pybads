@@ -178,8 +178,8 @@ class FunctionLogger:
             if returned_pair:
                 error_message += (
                     "\nA target that returns its value and the SD of its "
-                    "noise, as a tuple (f, sd), needs the option "
-                    "specify_target_noise=True."
+                    "noise, as a tuple (f, sd), needs "
+                    'options["specify_target_noise"] = True.'
                 )
             raise ValueError(error_message.format(str(fval_orig)))
 

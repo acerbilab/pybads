@@ -88,13 +88,17 @@ change that must move nothing, record at the parent commit with a
 checkout that holds it first on ``sys.path``), record at the change, on
 the same machine, and ``check`` the two. Both sides record with the same
 version of this script: when the parent has no ``replay.py`` or an older
-one, copy the change's into the parent's worktree, since traces written by
-two versions can differ in their layout, which ``check`` reports as runs
-that differ. The default configurations need a ``benchmark_targets.py``
-that defines them, as every commit from 2026-09-26 on has; for an older
-parent, copy the change's ``benchmark_targets.py`` beside it too, or name
-``--configs`` that the parent's defines. ``--repeat 2`` and ``check DIR``
-find the first computation at which two runs of one process differ.
+one, copy the change's alone into the parent's worktree, since traces
+written by two versions can differ in their layout, which ``check``
+reports as runs that differ. The copy takes the parent's
+``benchmark_targets.py`` and ``population.py``, which have what it needs,
+the default configurations included, at every commit from 0d866e84
+(2026-09-27) on; a ``benchmark_targets.py`` from before c60a5238 lacks
+``THREAD_VARS``, and this script holds a copy of its four variables. At
+an older commit the recording stops with ``MissingName``: its ``BADS``
+does not set ``poll_moved``, which the recorder reads. ``--repeat 2`` and
+``check DIR`` find the first computation at which two runs of one process
+differ.
 """
 
 import argparse
@@ -138,7 +142,20 @@ DEFAULT_CONFIGS = (
 )
 DEFAULT_BUDGET_SCALE = 0.1  # of the suites' 500 D: 50 D evaluations
 DEFAULT_RUNS = REPO_ROOT / "dev" / "scripts" / "runs" / "replay"
-THREAD_VARS = bt.THREAD_VARS  # pinned and recorded, as the other tools do
+# The thread variables pinned and recorded, as the other tools do. The
+# `benchmark_targets.py` of a commit before c60a5238, beside a copy of this
+# script in a worktree at that commit, lacks THREAD_VARS: a copy of its
+# four variables stands in.
+THREAD_VARS = getattr(
+    bt,
+    "THREAD_VARS",
+    (
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+    ),
+)
 PINNED_CORETYPE = "Haswell"  # the x86_64 OpenBLAS kernels of the recordings
 HORIZON_TOLS = (1e-12, 1e-8)
 STREAMS = ("evals", "steps", "fits", "history", "result")
