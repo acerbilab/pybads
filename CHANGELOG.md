@@ -425,6 +425,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that the candidates fall in, instead of two sorts by `np.unique`. Results
   are unchanged, and the time that PyBADS takes besides the target's
   evaluations falls by 4 to 24 % on the problems of its benchmark.
+- **Reproducible examples.** Examples 1 to 4 set `random_seed`, as Examples
+  5 and 6 do, and Examples 3 and 4 give their noisy target a random number
+  generator of its own, with a fixed seed, since `random_seed` does not seed
+  the target. In 1.1.0, Examples 1 to 4 gave different results at each run.
 
 ### Fixed
 
