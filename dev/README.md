@@ -126,7 +126,9 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   replaces one oracle's references, for a change that moves it on purpose,
   after the check of its decisions' margins that `--write` makes, and
   records the reason and the commit in the fixtures; `--write --reason TEXT`
-  reruns the recipes, a new baseline, from a clean checkout. An option of a
+  reruns the recipes, a new baseline, from a clean checkout, and alone
+  re-chooses the size of the reduced training sets for their margins: the
+  remedy when `--rebaseline` refuses a decision at its bound. An option of a
   stored state that the code no longer has is dropped when the state is
   rebuilt, and listed; a key that the code reads from `optim_state` or a
   GP's `temporary_data` and that a stored state lacks gets a default in
@@ -274,6 +276,12 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   short recording repeated in one process, and the recording of a run
   given the log of an earlier run: `python -m pytest
   dev/scripts/test_replay.py`.
+- `test_make_oracle_fixtures.py` checks the `--rebaseline` of
+  `make_oracle_fixtures.py` on a copy of the fixtures: its refusal of new
+  references whose decisions lie within their margins, which names
+  `--write` and leaves every file as it was, and the replacement of one
+  oracle's references otherwise: `python -m pytest
+  dev/scripts/test_make_oracle_fixtures.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero
