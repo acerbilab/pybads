@@ -116,7 +116,9 @@ python $E/w236_first_incumbent.py summary $E/first_incumbent_head.jsonl
 All 450 runs of the variant finished; none crashed. The comparison flags
 nothing in 15 tests (Holm; a flag needs a KS statistic of at least 0.267 at
 90 against 90 runs), and the null check of the variant nothing in 10, nor
-did the head's.
+did the head's. A pair is changed when its two runs differ in `x`, `fval`,
+`fsd`, the error, the evaluations, the iterations, the message or the
+crash flag (`FIELDS` of `w236_pairs.py`).
 
 | configuration | changed pairs | median error, head → variant | median evaluations | solved | paired difference in solved [95% CI] | McNemar p |
 | --- | --- | --- | --- | --- | --- | --- |
