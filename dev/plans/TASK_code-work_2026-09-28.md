@@ -52,7 +52,7 @@ pushes and runs `/doublecheck` at the end.
 
 ## Round 3 (PI, 2026-09-29: fix 2-7 and the cheap optional items; redesign the first GP with evaluations made before the run)
 - [~] W: with `precomputed_evaluations`, rebuild the first GP from the whole log (the incumbent's neighbours) and refit once at initialization; gate on a new `warmstart` suite; no move without them (fingerprint, replay, oracles `--exact`) — worktree `fix-warm`
-- [~] F5: items 2-7 of the second double-check and the cheap optional items — worktree `fix-five`
+- [x] F5: items 2-7 and the cheap optional items (merged `e7d47b9`; fingerprint unchanged; oracle and replay tests pass)
 - [ ] Merge, gates, focused double-check
 
 ## Success criteria
