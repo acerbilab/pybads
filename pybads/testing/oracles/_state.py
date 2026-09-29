@@ -74,7 +74,16 @@ VIEWS = ("stored", "noise_floor")
 # The defaults of the keys that the code reads and that stored states lack:
 # for "optim_state" and "temporary_data", a dict from the key to a function
 # of the decoded snapshot that gives its value
-STATE_DEFAULTS = {"optim_state": {}, "temporary_data": {}}
+STATE_DEFAULTS = {
+    # The counts of the evaluations made before the run
+    # (``precomputed_evaluations``) are 0 without them, as in every recipe.
+    "optim_state": {
+        "precomputed_observations": lambda snap: 0,
+        "precomputed_locations": lambda snap: 0,
+        "precomputed_n_evals": lambda snap: 0,
+    },
+    "temporary_data": {},
+}
 
 
 # --------------------------------------------------------------------------
