@@ -140,19 +140,26 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
   and W3-24 of the port review), `thinband` (`sphere_band` at D = 2 and 3
   with inferred noise and with the target's noise, whose GP starts on one
-  point: the gate of a change to that GP) and `profile` (the seven
-  configurations whose time `profile_suite.py` measures). `--list` prints
-  the suites, `--check` verifies each target's minimum, bounds and noise,
-  and the pinned likelihood values of the real-data targets, and `--smoke`
-  runs each configuration of a suite once, in a fresh process as a
-  population does, and prints its wall time with the projected time of 30
-  seeds. The `default` suite runs every configuration at BADS's default
-  budget, 500 D, so that each run ends on BADS's own termination
-  criteria; a population of 30 seeds takes about 80 minutes. The
-  processes that the tools start for their runs have one BLAS thread,
-  with the variables of `THREAD_VARS` (`OMP_NUM_THREADS`,
-  `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`)
-  set to 1, and their records hold those variables.
+  point: the gate of a change to that GP), `warmstart` (the sphere and the
+  ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise, and
+  the sphere at D = 3 with both kinds of noise, each run given as
+  `precomputed_evaluations` the function log of an earlier BADS run: of 15 D
+  evaluations at the run's seed and start, a rerun, whose log holds the
+  run's initial design, or of 20 D at the seed plus 1000; the earlier run is
+  made in the run's process, and the record names its log by a digest; the
+  gate of a change to how a run uses evaluations made before it) and
+  `profile` (the seven configurations whose time `profile_suite.py`
+  measures). `--list` prints the suites, `--check` verifies each target's
+  minimum, bounds and noise, and the pinned likelihood values of the
+  real-data targets, and `--smoke` runs each configuration of a suite once,
+  in a fresh process as a population does, and prints its wall time with the
+  projected time of 30 seeds. The `default` suite runs every configuration
+  at BADS's default budget, 500 D, so that each run ends on BADS's own
+  termination criteria; a population of 30 seeds takes about 80 minutes. The
+  processes that the tools start for their runs have one BLAS thread, with
+  the variables of `THREAD_VARS` (`OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`,
+  `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`) set to 1, and their
+  records hold those variables.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes

@@ -98,6 +98,43 @@ def test_record_schema(tmp_path):
         assert key in meta
     assert set(meta["git"]) == {"sha", "dirty"}
     assert meta["gpyreg_source"]["path"]
+    assert rec["precomputed"] is None
+
+
+def test_warmstart_runs_are_given_an_earlier_log(tmp_path):
+    """A configuration of the warmstart suite gives its runs the function
+    log of an earlier run on the same target, the same for a seed at each
+    call: a rerun's at the run's seed, which holds the run's initial
+    design, and another's at a seed of its own. The record names the log
+    by its kind, rows and digest."""
+    rerun, other = (
+        bt.find_config(label)
+        for label in ("sphere_D3_rerun", "sphere_D3_other")
+    )
+    assert (rerun.precomputed_budget, other.precomputed_budget) == (15, 20)
+    first, again = rerun.make(seed=2), rerun.make(seed=2)
+    assert first.bads_kwargs().keys() == {"precomputed_evaluations"}
+    for a, b in zip(first.precomputed, again.precomputed):
+        assert np.array_equal(a, b)
+    X, y = first.precomputed
+    assert 5 <= len(X) <= 15 * 3
+    assert np.array_equal(y, first.f_vec(X))
+    X_other, _ = other.make(seed=2).precomputed
+    assert not np.array_equal(X_other[0], X[0])
+    assert bt.Config("sphere", 3).make(seed=2).bads_kwargs() == {}
+
+    for d in ("a", "b"):
+        (tmp_path / d).mkdir()
+        row = pp.run_task("sphere_D3_rerun", 2, FAST, 1.0, str(tmp_path / d))
+        assert row["status"] == "ok"
+    recs = [
+        json.loads((tmp_path / d / "sphere_D3_rerun_seed2.json").read_text())
+        for d in ("a", "b")
+    ]
+    assert recs[0]["precomputed"] == recs[1]["precomputed"]
+    assert recs[0]["precomputed"]["kind"] == "rerun"
+    assert recs[0]["precomputed"]["rows"] == len(X)
+    assert recs[0]["final"]["func_count"] == 20
 
 
 def test_seed_fixes_run(tmp_path):
