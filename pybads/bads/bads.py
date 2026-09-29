@@ -296,8 +296,12 @@ class BADS:
         and with it the training sets of its Gaussian process, which is
         rebuilt around the incumbent from the first poll on, but not its
         count of evaluations (``func_count``, which ``max_fun_evals``
-        bounds), and the run starts from ``x0`` and its initial design
-        alone: its first incumbent is the best of them. Unless
+        bounds). The run starts from ``x0`` and its initial design alone,
+        less the points of the design that the evaluations hold, which it
+        does not evaluate again: its first incumbent is the best of the
+        points it evaluates, so that, given the log of an earlier run with
+        the same seed and ``x0``, which holds the whole design, it
+        evaluates ``x0`` alone, its first incumbent. Unless
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an

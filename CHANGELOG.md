@@ -134,12 +134,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Gaussian process. They do not count as evaluations of the run
   (`func_count`, which `max_fun_evals` bounds), and the run starts from
   `x0` and its initial design all the same, but for the points of the
-  design that they hold, which it does not evaluate again. `BADS` refuses
-  points outside the hard bounds or that violate `non_box_cons`, and, unless
-  `uncertainty_handling` is `True`, two different values at one point. The
-  result reports the number of evaluations given in
-  `precomputed_observations`, and of their distinct points in
-  `precomputed_locations`, when at least one was given.
+  design that they hold, which it does not evaluate again; its first
+  incumbent is the best of the points it evaluates, on which alone its
+  first Gaussian process is fitted. So a run given the log of an earlier
+  run with the same seed and starting point evaluates its start alone, and
+  its first Gaussian process holds that one point, with the values of
+  MATLAB BADS's definition until its first refit ("Targets without
+  spread"). `BADS` refuses points outside the hard bounds or that violate
+  `non_box_cons`, and, unless `uncertainty_handling` is `True`, two
+  different values at one point. The result reports the number of
+  evaluations given in `precomputed_observations`, and of their distinct
+  points in `precomputed_locations`, when at least one was given.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
@@ -612,25 +617,23 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   box): the prior of the GP mean then takes the width 1, and a rebuild keeps
   the previous centre of the prior of the output scale. A run's first GP
   holds a single point, the starting point, when `non_box_cons` leaves only
-  that point feasible in the initial design, when `fun_eval_start=0`, and
-  when `max_fun_evals=2`, which the starting point and the noise test use
-  up. That GP is not fitted, as in MATLAB BADS: until its first refit it
-  holds the values of MATLAB BADS's definition of its GP, with its mean at
-  the point's value, and its initialization prints no warning. 1.1.0 fitted
-  it, with gpyreg's `RuntimeWarning`s, and a rebuild of the GP on the one
-  point stopped the run with gpyreg's `ValueError`; with `max_fun_evals=2`,
-  1.1.0 did not keep its initial design within the budget (see "Small
-  budgets"). A run given the log of an earlier run with the same seed and
-  starting point (`precomputed_evaluations`) evaluates its start alone and
-  starts on one point too. A later refit on points that have no spread in a
-  coordinate, as in a thin feasible band, prints gpyreg's `RuntimeWarning`
-  about a log of zero. At D = 1 the noise test brings the count of
-  evaluations past D, so that a first GP on one point is refitted on it at
-  the first poll, with gpyreg's warnings about a log of zero, degrees of
-  freedom <= 0 and an invalid value in a division: with `fun_eval_start=0`
-  and a deterministic target, and with a noisy target, left to the noise
-  test, whose `non_box_cons` leaves only the starting point feasible in the
-  initial design.
+  that point feasible in the initial design, when `fun_eval_start=0` with a
+  deterministic target, and when `max_fun_evals=2`, which the starting
+  point and the noise test use up. That GP is not fitted, as in MATLAB
+  BADS: until its first refit it holds the values of MATLAB BADS's
+  definition of its GP, with its mean at the point's value, and its
+  initialization prints no warning. 1.1.0 fitted it, with gpyreg's
+  `RuntimeWarning`s, and a rebuild of the GP on the one point stopped the
+  run with gpyreg's `ValueError`; with `max_fun_evals=2`, 1.1.0 did not
+  keep its initial design within the budget (see "Small budgets"). A later
+  refit on points that have no spread in a coordinate, as in a thin
+  feasible band, prints gpyreg's `RuntimeWarning` about a log of zero. At
+  D = 1 the noise test brings the count of evaluations past D, so that a
+  first GP on one point is refitted on it at the first poll, with gpyreg's
+  warnings about a log of zero, degrees of freedom <= 0 and an invalid
+  value in a division: with `fun_eval_start=0` and a deterministic target,
+  and with a noisy target, left to the noise test, whose `non_box_cons`
+  leaves only the starting point feasible in the initial design.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller

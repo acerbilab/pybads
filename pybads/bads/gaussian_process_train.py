@@ -41,8 +41,9 @@ def init_and_train_gp(
     refit (``gpdefBads.m``). On one point the priors alone would decide the
     fit's optimum. A run's start and initial design are one distinct point
     when the design adds none to the start: in a feasible region too thin
-    for it, with ``fun_eval_start=0``, with a budget that leaves it no
-    evaluation, or when the log already holds each of its points.
+    for it, with ``fun_eval_start=0`` in a deterministic run (uncertainty
+    handling raises it to 20), with a budget that leaves it no evaluation,
+    or when the log already holds each of its points.
 
     Parameters
     ==========
