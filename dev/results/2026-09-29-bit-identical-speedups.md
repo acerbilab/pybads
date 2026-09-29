@@ -17,8 +17,9 @@ suite, and every result is the same to the last bit.
   the repeated work: what remained was the cost of intermediate arrays and
   of SciPy's Python layers around small calls.
 - **The changes**, on gpyreg's branch `perf/bit-identical-speedups`
-  (its code at `421f1b0`, on `e10120c`), with the share of PyBADS's own time
-  that each saves alone on the `profile` suite:
+  (its code at `421f1b0`, on `e10120c`; merged as acerbilab/gpyreg#63,
+  merge commit `4126dbe`), with the share of PyBADS's own time that each
+  saves alone on the `profile` suite:
   - the kernel without its gradient, and `predict`, computed in place:
     about six fewer arrays of the size of the training set by the ES
     search's 2048 candidates at each prediction; 9 to 23 %;

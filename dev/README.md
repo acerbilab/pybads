@@ -369,8 +369,8 @@ reference's number of seeds.
   stage.
 - [Speed-ups that change no result](results/2026-09-29-bit-identical-speedups.md)
   — gpyreg's kernels, `predict` and the objective of its fits without
-  intermediate arrays or SciPy's layers (gpyreg's branch
-  `perf/bit-identical-speedups`, for 1.4.0), and one line of PyBADS:
+  intermediate arrays or SciPy's layers (acerbilab/gpyreg#63, for 1.4.0),
+  and one line of PyBADS:
   PyBADS's own time 23 to 29 % lower on the `profile` suite, every
   result the same to the last bit (the fingerprint, the replay and the
   oracles' `--against`); and what was measured and not adopted, the
