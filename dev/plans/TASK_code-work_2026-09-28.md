@@ -41,6 +41,13 @@ pushes and runs `/doublecheck` at the end.
 - [x] Test suite green; fingerprint unchanged where nothing may move; gates where results move — at `38491bf`: 913 passed, 18 skipped (platform-bound oracles); fingerprint `4146a986863602cb` (1 thread and default); pre-commit clean; dev tests 29 passed; replay of `bec8a57` against HEAD 8 of 8 identical
 - [!] `/doublecheck` (comprehensive, 5 Opus reviewers): 3 must-fix (W2-36 adoption not recorded as open; oracle `--rebaseline` dead-ends off the generating machine; `profile_suite.py` relative `--out` loses runs), ~13 should-fix (BADS reference cycle via the stage timer; replay recorder fragility; oracle `--exact` silent skips, gpyreg key, option coupling; stale `BADS.optimize` pointers; changelog gaps; doc slips) — fixes pending the PI
 
+## Fixes after the double-check (PI, 2026-09-29: fix the findings; W2-36 keeps MATLAB's behaviour; the one-point side effects stay with gpyreg)
+- [ ] F1 package code: `BADS` reference cycle; stale `BADS.optimize` pointers; changelog gaps (`(f, sd)` message, `FunctionLogger`, one-point entry); comments; tests (stage balance on `output_fcn` exits, one point at level 2, median rule at N = 5) — worktree `fix-code`
+- [ ] F2 dev tooling: `profile_suite.py` relative `--out`; replay recorder robustness and `check` warnings; gate recipe in dev/README; population/benchmark guards, thread variables; stage-times note facts; TODO item for shared dev helpers — worktree `fix-tools`
+- [ ] F3 oracles: no platform-bound references in fixtures (rebaseline works anywhere); honest `--check --exact`; gpyreg and CPU features in the key; removed options tolerated; hedge margins; AGENTS.md gate sentences; shipped-tests changelog line — worktree `fix-oracles`
+- [ ] Merge F1-F3; F4 records: W2-36 ruling; ledger, wave notes, KD "Settled by", one-point README fixes
+- [ ] Gates on the merged head; focused re-review
+
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
 
