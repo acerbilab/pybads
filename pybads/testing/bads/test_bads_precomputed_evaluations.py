@@ -265,6 +265,23 @@ def test_points_on_the_hard_bounds_are_taken():
     assert _make_bads((X, y)).function_logger.Xn + 1 == 2
 
 
+def test_a_periodic_upper_bound_is_the_lower_bound():
+    """Along a periodic variable, a point on the upper bound is the same
+    point as on the lower bound, where the run's candidates are wrapped: it
+    is logged there, one point with the other, and two values at it are
+    refused without uncertainty handling."""
+    X = np.array([[-10.0, 1.0, 2.0], [10.0, 1.0, 2.0], [0.0, 0.0, 0.0]])
+    y = np.array([_sphere(X[0]), _sphere(X[0]), 0.0])
+    bads = _make_bads((X, y), periodic_vars=[0])
+    assert bads.optim_state["precomputed_locations"] == 2
+    logged = bads.function_logger.X[bads.function_logger.X_flag]
+    assert np.min(logged[:, 0]) == bads.optim_state["lb"][0, 0]
+    assert np.all(logged[:, 0] < bads.optim_state["ub"][0, 0])
+    y[1] += 1.0
+    with pytest.raises(ValueError, match="Rows 0 and 1"):
+        _make_bads((X, y), periodic_vars=[0])
+
+
 _X, _Y = _evaluations(n=4)
 
 

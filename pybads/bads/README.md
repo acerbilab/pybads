@@ -188,28 +188,27 @@ A periodic coordinate that the grid takes to its upper bound or past a
 bound is wrapped and put on the grid again (`force_to_grid_periodic`): it
 stays on the grid, and a point on the upper bound becomes the same point
 on the lower one where the grid holds it, so that the removal of the
-points already evaluated finds it there; a start on the upper bound is
-taken on the lower one too. MATLAB BADS wraps its design, search and poll
-candidates only before the grid (its `SearchOptimize`, not ported, wraps
-after it), projects a design or search candidate that the grid puts past
-a bound onto the bound, drops such a poll candidate under
-`ForcePollMesh`, and starts where `x0` lies.
-- PyBADS: `BADS._check_periodic_vars_`, `_variable_transformer_`,
-  `_init_optim_state_`, `_init_mesh_`, `_search_step_` and `_poll_step_`;
-  `pybads/utils/period_check.py`; `force_to_grid_periodic` and `udist`
-  (`pybads/search/grid_functions.py`); `ucov` and `ESSearch.__call__`
-  (`pybads/search/es_search.py`); `_gp_periods`
-  (`pybads/bads/gaussian_process_train.py`); gpyreg's
-  `SquaredExponential`, `Matern` and `RationalQuadraticARD` (`periods`).
-- MATLAB: `bads.m:152`, `552`, `807`; `private/setupvars.m:49-57`,
-  `107-116`; `private/evalinitmesh.m:106-107`; `search/searchES.m:127-128`;
-  `utils/periodCheck.m`; `utils/uCheck.m`; `utils/udist.m`; `utils/ucov.m`;
-  `gpdef/gpdefBads.m:58-81`, `277-284`; `private/gpupdate.m:284-308`;
-  `gpml_fast/covPPERard_fast.m`.
-- Settled by: the PI's rulings of 2026-09-28 (the port, for 1.5; the
-  length scale in the units of the other variables; `periods` on gpyreg's
-  ARD kernels); W3-35 and W4-11, the call sites of `period_check`. Kind:
-  deliberate change.
+points already evaluated finds it there; a start or an evaluation made
+before the run on the upper bound is taken on the lower one too. MATLAB
+BADS wraps its design, search and poll candidates only before the grid
+(its `SearchOptimize`, not ported, wraps after it), projects a design or
+search candidate that the grid puts past a bound onto the bound, drops
+such a poll candidate under `ForcePollMesh`, and starts where `x0` lies. -
+PyBADS: `BADS._check_periodic_vars_`, `_variable_transformer_`,
+`_init_optim_state_`, `_import_precomputed_evaluations_`, `_init_mesh_`,
+`_search_step_` and `_poll_step_`; `pybads/utils/period_check.py`;
+`force_to_grid_periodic` and `udist` (`pybads/search/grid_functions.py`);
+`ucov` and `ESSearch.__call__` (`pybads/search/es_search.py`);
+`_gp_periods` (`pybads/bads/gaussian_process_train.py`); gpyreg's
+`SquaredExponential`, `Matern` and `RationalQuadraticARD` (`periods`). -
+MATLAB: `bads.m:152`, `552`, `807`; `private/setupvars.m:49-57`,
+`107-116`; `private/evalinitmesh.m:106-107`; `search/searchES.m:127-128`;
+`utils/periodCheck.m`; `utils/uCheck.m`; `utils/udist.m`; `utils/ucov.m`;
+`gpdef/gpdefBads.m:58-81`, `277-284`; `private/gpupdate.m:284-308`;
+`gpml_fast/covPPERard_fast.m`. - Settled by: the PI's rulings of
+2026-09-28 (the port, for 1.5; the length scale in the units of the other
+variables; `periods` on gpyreg's ARD kernels); W3-35 and W4-11, the call
+sites of `period_check`. Kind: deliberate change.
 
 **KD-B1-7. Fixed variables are refused.**
 A variable whose bounds are all equal makes PyBADS raise `ValueError`;
