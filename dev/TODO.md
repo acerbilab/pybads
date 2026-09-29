@@ -273,6 +273,24 @@ decided on; "the next release" below means it.
     on Windows, which has no run of it, in both arms (with `--options
     '{"periodic_vars": null}'` for "off"), whose "on" arm becomes the
     reference of the suite there;
+  - a periodic kernel that costs less, if gpyreg's code is the cause
+    (PI, 2026-09-29). PyBADS's runs with `periodic_vars` take longer per
+    evaluation than the same problems without it, in the medians of the
+    `periodic` suite on Linux: 1.05 to 1.33 times in its deterministic
+    configurations, 2.4 in `periodic_D3_homo` (51 against 22 ms) and 1.9
+    in `periodic_D3_hetero` (52 against 27 ms)
+    ([experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md)).
+    Where the time goes is not measured. gpyreg's periodic kernel computes
+    the squared chord (`np.fmod` and `np.sin` over an N × M matrix) one
+    periodic dimension at a time, where the other dimensions take one
+    `cdist` (`_scaled_sq_dist` in `covariance_functions.py`), and a fit's
+    gradient computes each periodic dimension's chord a second time
+    (`_scaled_sq_diff`). A profile of `periodic_D3_homo` comes first. A
+    change confined to gpyreg's periodic code leaves runs without periodic
+    variables as they are (`dev/scripts/fingerprint.py` keeps
+    `4146a986863602cb`, Linux, one BLAS thread); one that moves the
+    results of periodic runs is judged by the release's comparison of the
+    `periodic` suite above;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on
