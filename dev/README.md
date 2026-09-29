@@ -102,7 +102,7 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   raw stream, the same everywhere. The fixtures store the portable outputs
   alone, those that rounding on another platform moves by less than their
   tolerances, measured across BLAS threads and kernels (the docstring of
-  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 3 s)
+  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 4 s)
   compare them on every platform, and so does `--check`, which exits 1 on
   a failure. The platform-bound outputs are not stored: a GP refit, a whole
   ES search step, and the outputs through the solve of a GP whose
@@ -123,10 +123,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   is dropped when the state is rebuilt, and listed; a key that the code
   reads from `optim_state` or a GP's `temporary_data` and that a stored
   state lacks gets a default in `STATE_DEFAULTS` of `_state.py`, in the
-  commit that makes the code read it. The oracles gate a component's
-  numbers on fixed inputs, not a run: whole trajectories are `replay.py`'s,
-  on one machine, and the distribution of results the population
-  comparison's.
+  commit that makes the code read it; `test_every_case_computes` computes
+  every oracle, the platform-bound ones included, and fails on such a key.
+  The oracles gate a component's numbers on fixed inputs, not a run: whole
+  trajectories are `replay.py`'s, on one machine, and the distribution of
+  results the population comparison's.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
