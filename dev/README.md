@@ -313,7 +313,7 @@ reference's number of seeds.
   incumbent's value from the initial GP, the five noisy configurations at
   90 seeds on Linux: no flag; the variant raises `sphere_D3_hetero`'s
   fraction solved from 0.50 to 0.61 and changes each other configuration's
-  by at most one run.
+  by at most one run; MATLAB BADS's behaviour kept (PI, 2026-09-29).
 - [experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)
   — the GP whose initial training set holds one point takes MATLAB BADS's
   definition values without a fit (`73d517a`), against its parent, the
