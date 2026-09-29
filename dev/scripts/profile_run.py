@@ -289,7 +289,9 @@ def main(argv=None):
     requested = pp.jsonable(options)
 
     mode = "cprof" if args.cprofile else "plain"
-    out = args.out or DEFAULT_CAMPAIGNS / f"adhoc_{int(time.time())}"
+    out = (
+        args.out or DEFAULT_CAMPAIGNS / f"adhoc_{int(time.time())}"
+    ).resolve()
     tag = args.tag or f"{cfg.label}_seed{args.seed}_{mode}"
     run_dir = out / tag
     run_dir.mkdir(parents=True, exist_ok=True)
