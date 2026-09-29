@@ -65,9 +65,9 @@ among them, so a title stays as it is while its item is open.
     of 1.8 to 2.3
     ([results/2026-09-28-periodic-variables.md](results/2026-09-28-periodic-variables.md),
     "Time per evaluation"). `dev/scripts/fingerprint.py` keeps
-    `4146a986863602cb` with `0f27db5` (Linux, one BLAS thread), and the
-    `periodic` suite at 30 seeds flags nothing against its Linux
-    reference. The periodic runs take other paths from a difference in the
+    `4146a986863602cb` with `0f27db5` (Linux, SciPy 1.17.1, one BLAS
+    thread), and the `periodic` suite at 30 seeds flags nothing against
+    its Linux reference. The periodic runs take other paths from a difference in the
     kernel's last bits, so the release's comparison of that suite on
     Linux, above, is a statistical one, not an identity, and a reference
     that the code at 1.4.0 reproduces run by run is then the release's own
@@ -103,14 +103,14 @@ among them, so a title stays as it is while its item is open.
   - the kernels, `predict` and the objective of `fit` computed without
     intermediate arrays or SciPy's layers, every value the same to the
     last bit, on gpyreg's `main` since acerbilab/gpyreg#63 (merge commit
-    `4126dbe`), with the training covariance factorized by
-    `scipy.linalg.cholesky` as before (`61cbfd3`, branch
-    `fix/training-cholesky-scipy`): the direct call of LAPACK that
-    `4126dbe` makes instead gives other bits than SciPy 1.18's. With the
-    change and PyBADS's one line that takes the priors once per rebuild,
-    PyBADS's own time is 23 to 28 % lower on the `profile` suite under
-    SciPy 1.17 and 19 to 27 % lower under SciPy 1.18, with the fingerprint,
-    the replay and the oracles' `--against` identical
+    `4126dbe`) and acerbilab/gpyreg#64 (merge commit `d84bf39`), which
+    gives the factorization of the training covariance back to
+    `scipy.linalg.cholesky`, whose bits a direct call of LAPACK misses
+    under SciPy 1.18. With them and PyBADS's one line that takes the
+    priors once per rebuild, PyBADS's own time is 23 to 28 % lower on the
+    `profile` suite under SciPy 1.17 and 19 to 27 % lower under SciPy
+    1.18, with the fingerprint, the replay and `gpyreg_bitwise.py`
+    identical under both, and the oracles' `--against` under SciPy 1.17
     ([results/2026-09-29-bit-identical-speedups.md](results/2026-09-29-bit-identical-speedups.md)).
     The move's entry in `CHANGELOG.md` states that speed-up, measured
     again with the release.
