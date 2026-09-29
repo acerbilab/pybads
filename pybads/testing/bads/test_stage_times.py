@@ -5,7 +5,9 @@ plain numbers: `optim_state["stage_times"]` at the end of the run and
 `iteration_history["timer"]` at the end of each iteration. The stages and
 the target make `total_time`."""
 
+import gc
 import sys
+import weakref
 from types import SimpleNamespace
 
 import gpyreg as gpr
@@ -104,6 +106,28 @@ def test_stages_and_target_make_total_time(tick_clock, level):
     )
     noisy = {"reestimate", "final_samples", "poll/gp_update"}
     assert noisy <= set(calls) if level > 0 else not noisy & set(calls)
+
+
+@pytest.mark.parametrize("level", [0, 1])
+def test_finished_run_is_freed_by_reference_counting(level):
+    """A finished `BADS` object is in no reference cycle: it is freed, with
+    the GPs of its history, when its last reference goes, with the garbage
+    collector off (the stage timer reads the target's time through the
+    function logger, which holds no reference to the object)."""
+    make_fun, options = LEVELS[level]
+    enabled = gc.isenabled()
+    gc.disable()
+    try:
+        bads = _make_bads(make_fun(), max_fun_evals=40, **options)
+        bads.optimize()
+        bads_ref = weakref.ref(bads)
+        gp_ref = weakref.ref(bads.iteration_history["gp"][-1])
+        del bads
+        assert bads_ref() is None
+        assert gp_ref() is None
+    finally:
+        if enabled:
+            gc.enable()
 
 
 @pytest.mark.parametrize("level", [0, 1])
