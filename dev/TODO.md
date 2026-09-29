@@ -191,22 +191,6 @@ decided on; "the next release" below means it.
   Example 6 (periodic variables) was run with gpyreg's development branch
   (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
   the others, with gpyreg 1.4.0.
-- [ ] **Checks of option values when `BADS` is created.** `BADS` refuses
-  a bad value of some options when it is created, with a `ValueError`
-  that names the option (among them `max_fun_evals`, the options whose
-  default is a boolean, `tol_fun` and `random_seed`), but not of others.
-  Measured on 2026-09-28: a string for `max_iter`, `search_n_try` or
-  `tol_stall_iters` (`"200*D"`, `"D"`, `"5"`) raises a `TypeError` inside
-  `optimize()`, after the initial design has spent its evaluations; a
-  string for `tol_mesh` raises NumPy's `TypeError` at creation, and one
-  for `noise_size` too, at the comparison of its check, neither naming the
-  option; `max_iter=2.5` is taken as it is; and `tol_mesh=-1.0` runs, with
-  a `RuntimeWarning` from its logarithm, and the mesh criterion never ends
-  the run. A check of each when `BADS` is created, with a `ValueError`
-  that names the option, as for `max_fun_evals`, changes what a script
-  written for 1.1.0 gets, so it takes a line of the changelog's "Upgrading
-  from" list, and the FAQ's answer on the differences from MATLAB BADS,
-  which describes the present behaviour, changes with it.
 - [ ] **User documentation written out twice.** Some advice is written
   out in several places, which can drift apart: the list of the problems
   that PyBADS suits, in `README.md` ("When should I use PyBADS?"),

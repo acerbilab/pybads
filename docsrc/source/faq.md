@@ -1287,10 +1287,11 @@ PyBADS implements the same algorithm, with a Python interface:
   indices counted from 0 where MATLAB counts from 1 (`periodic_vars` is
   `[2, 3]` where MATLAB's `PeriodicVars` is `[3 4]`).
   PyBADS refuses an option name it does not know with a `ValueError`, and
-  checks the values of many options; a value of the wrong kind, such as the
-  string `'200*D'` for `max_iter`, can instead fail with another error,
-  for some options only once the run has started. The
-  [options page](api/options/bads_options.rst) lists them all.
+  checks the values of many options when `BADS` is created: a value of the
+  wrong kind, such as the string `'200*D'` for `max_iter`, raises a
+  `ValueError` that names the option. A wrong value of another option can
+  instead fail with another error, for some options only once the run has
+  started. The [options page](api/options/bads_options.rst) lists them all.
 - The objective receives a one-dimensional array of shape `(D,)`, and
   `non_box_cons` an array of shape `(N, D)`. Additional inputs of the
   objective are [bound to it](#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads)

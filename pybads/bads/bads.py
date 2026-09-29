@@ -77,6 +77,23 @@ def _is_whole_number(value):
     return math.isfinite(value) and float(value).is_integer()
 
 
+def _as_limit(value):
+    """Return ``value``, a limit of the run such as ``max_fun_evals``, as an
+    int if it is a positive whole number (``_is_whole_number``), as inf if it
+    is inf or a whole number beyond NumPy's 64-bit integers, which the run's
+    NumPy arithmetic does not take, and None otherwise."""
+    if not (
+        _is_real(value)
+        and value > 0
+        and (_is_whole_number(value) or value == np.inf)
+    ):
+        return None
+    if value == np.inf:
+        return np.inf
+    value = int(value)
+    return np.inf if value > np.iinfo(np.int64).max else value
+
+
 def _name_among(value, names):
     """The name among ``names`` that ``value`` is, compared as the searches
     compare it (``value == name``): a string, a NumPy string or an array of
@@ -352,14 +369,16 @@ class BADS:
         constraints, or each of the 1000 random draws of it does.
     ValueError
         When an option has an unknown name or a value that BADS does not
-        take: for instance a ``max_fun_evals`` that is neither a positive
-        integer nor ``inf``, a value other than ``True`` or ``False`` for
-        ``uncertainty_handling`` or for an option whose default is one of
-        them (``plot`` excepted), a ``periodic_vars`` that is not a list of
-        distinct indices from 0 to ``D - 1`` of variables with finite
-        bounds, or an ``f_vals`` that holds a finite value, a non-empty
-        ``fun_values``, or ``acq_hedge=True``, options that are not
-        supported.
+        take: for instance a ``max_fun_evals``, ``max_iter`` or
+        ``tol_stall_iters`` that is neither a positive integer nor ``inf``,
+        a ``tol_mesh`` that is not a positive finite number, a
+        ``noise_size`` that is not one or two numbers, a value other than
+        ``True`` or ``False`` for ``uncertainty_handling`` or for an option
+        whose default is one of them (``plot`` excepted), a
+        ``periodic_vars`` that is not a list of distinct indices from 0 to
+        ``D - 1`` of variables with finite bounds, or an ``f_vals`` that
+        holds a finite value, a non-empty ``fun_values``, or
+        ``acq_hedge=True``, options that are not supported.
     ValueError
         When ``precomputed_evaluations`` is not a tuple (or a list) of two
         or three arrays of the shapes above, of finite values and positive
@@ -963,14 +982,6 @@ class BADS:
                 f"{np.flatnonzero(self.var_transf.apply_log_t).tolist()}.",
             )
 
-        # Put tol_mesh on space
-        optim_state["tol_mesh"] = self.options[
-            "poll_mesh_multiplier"
-        ] ** np.ceil(
-            np.log(self.options["tol_mesh"])
-            / np.log(self.options["poll_mesh_multiplier"])
-        )
-
         # Report the periodic variables
         if self.options["periodic_vars"] is not None:
             self.logger.log(
@@ -996,9 +1007,6 @@ class BADS:
         # Other variables initializations
         optim_state["search_factor"] = 1
         optim_state["sd_level"] = self.options["incumbent_sigma_multiplier"]
-        optim_state["search_count"] = self.options[
-            "search_n_try"
-        ]  # Skip search at first iteration
         optim_state["lastfitgp"] = -np.inf
         # Last fcn evaluation for which the gp was trained
         self.mesh_overflows = 0
@@ -1020,25 +1028,73 @@ class BADS:
         # Iterations are from 0 onwards in optimize so we should have -1
         optim_state["iter"] = -1
 
-        # The checks of MATLAB BADS's setupoptions.m: max_fun_evals is a
-        # positive integer (or inf); a whole-number float is converted
-        max_fun_evals = self.options["max_fun_evals"]
+        # The run's limits are positive integers or inf (_as_limit), stored as
+        # an int or inf, inf turning the limit off: max_fun_evals, as MATLAB
+        # BADS's setupoptions.m checks it, and max_iter and tol_stall_iters,
+        # which MATLAB BADS does not check. The loop compares the number of
+        # the iteration with them, and reads the iteration tol_stall_iters
+        # back, which a string, or a tol_stall_iters of 0 or not whole, stops
+        # with TypeError or IndexError at the end of an iteration
+        for name in ("max_fun_evals", "max_iter", "tol_stall_iters"):
+            value = _as_limit(self.options[name])
+            if value is None:
+                raise ValueError(
+                    f"options['{name}'] needs to be a positive integer or "
+                    f"inf, not {self.options[name]!r}."
+                )
+            self.options[name] = value
+        # search_n_try, the number of searches of an iteration, is an integer
+        # at least 0, 0 a run without searches, whose every pass of the loop
+        # polls, as in MATLAB BADS (bads.m:516, 744), which does not check
+        # it; a whole-number float is converted. A value that is not whole
+        # ends no round of searches, after which the loop turns without
+        # evaluating. The first iteration starts at the poll: its round of
+        # searches counts as done
+        search_n_try = self.options["search_n_try"]
         if not (
-            _is_real(max_fun_evals)
-            and max_fun_evals > 0
-            and (_is_whole_number(max_fun_evals) or max_fun_evals == np.inf)
+            _is_real(search_n_try)
+            and _is_whole_number(search_n_try)
+            and search_n_try >= 0
         ):
             raise ValueError(
-                "options['max_fun_evals'] needs to be a positive integer, "
-                f"not {max_fun_evals!r}."
+                "options['search_n_try'] needs to be an integer at least 0, "
+                f"not {search_n_try!r}."
             )
-        if _is_whole_number(max_fun_evals):
-            # A budget beyond NumPy's 64-bit integers, which the run's NumPy
-            # arithmetic does not take, is no budget: it stands for inf
-            max_fun_evals = int(max_fun_evals)
-            if max_fun_evals > np.iinfo(np.int64).max:
-                max_fun_evals = np.inf
-            self.options["max_fun_evals"] = max_fun_evals
+        self.options["search_n_try"] = int(search_n_try)
+        optim_state["search_count"] = self.options["search_n_try"]
+        # tol_mesh is a positive finite number (_as_real_number), stored as a
+        # float and put on the mesh, as in MATLAB BADS (setupvars.m:105),
+        # which does not check it: at 0 or below, the mesh criterion never
+        # ends the run
+        tol_mesh = self.options["tol_mesh"]
+        value = _as_real_number(tol_mesh)
+        if value is None or not 0 < value < np.inf:
+            raise ValueError(
+                "options['tol_mesh'] needs to be a positive finite number, "
+                f"not {tol_mesh!r}."
+            )
+        self.options["tol_mesh"] = value
+        optim_state["tol_mesh"] = self.options[
+            "poll_mesh_multiplier"
+        ] ** np.ceil(
+            np.log(self.options["tol_mesh"])
+            / np.log(self.options["poll_mesh_multiplier"])
+        )
+        # noise_final_samples, the evaluations of the returned point at the
+        # end of a noisy run, is an integer at least 0; a whole-number float
+        # is converted. MATLAB BADS does not check it; a value that is not
+        # whole stops the run with TypeError after its last iteration
+        noise_final_samples = self.options["noise_final_samples"]
+        if not (
+            _is_real(noise_final_samples)
+            and _is_whole_number(noise_final_samples)
+            and noise_final_samples >= 0
+        ):
+            raise ValueError(
+                "options['noise_final_samples'] needs to be an integer at "
+                f"least 0, not {noise_final_samples!r}."
+            )
+        self.options["noise_final_samples"] = int(noise_final_samples)
         # improvement_quantile lies in (0, 1), which MATLAB BADS checks when
         # it evaluates an improvement (bads.m:1269-1271). It and the hedge's
         # three options below take a real number (_as_real_number), which
@@ -1208,31 +1264,47 @@ class BADS:
             )
 
         # noise_size is a base noise SD, or MATLAB's pair of that base and
-        # the SD of the prior over its logarithm
-        if self.options["noise_size"] is not None and not np.isscalar(
-            self.options["noise_size"]
-        ):
-            noise_size = np.ravel(
-                np.asarray(self.options["noise_size"], dtype=float)
-            )
-            if noise_size.size not in (1, 2):
+        # the SD of the prior over its logarithm: one or two real numbers,
+        # as a number, a sequence or an array, stored as a float or an array
+        # of two floats
+        noise_size = self.options["noise_size"]
+        if noise_size is not None:
+            try:
+                values = np.ravel(np.asarray(noise_size))
+            except (TypeError, ValueError):  # A ragged sequence
+                values = np.array([], dtype=object)
+            if values.dtype.kind not in "iuf" or values.size not in (1, 2):
                 raise ValueError(
-                    "options['noise_size'] should be a scalar, or a pair of "
-                    "the base noise SD and the SD of the prior over its "
-                    "logarithm."
+                    "options['noise_size'] needs to be a number, or a pair "
+                    "of the base noise SD and the SD of the prior over its "
+                    f"logarithm, not {noise_size!r}."
                 )
+            values = values.astype(float)
             self.options["noise_size"] = (
-                noise_size.item() if noise_size.size == 1 else noise_size
+                values.item() if values.size == 1 else values
             )
+        # Without specify_target_noise, which ignores it, the base is
+        # positive, as MATLAB BADS's setupoptions.m checks, and finite, and a
+        # finite SD of the prior is positive; one that is not finite stands
+        # for its default, 1, as in MATLAB BADS (gpupdate.m:379-380). The
+        # GP's noise prior, centred at the log of the base with that SD,
+        # refuses the others at its first fit
         if (
             not self.options["specify_target_noise"]
             and self.options["noise_size"] is not None
-            and np.ravel(self.options["noise_size"])[0] <= 0
         ):
-            raise ValueError(
-                "options['noise_size'], if specified, needs to be positive "
-                "for numerical stability."
-            )
+            values = np.ravel(self.options["noise_size"])
+            if not 0 < values[0] < np.inf:
+                raise ValueError(
+                    "options['noise_size'], if specified, needs a positive "
+                    f"finite base noise SD, not {noise_size!r}."
+                )
+            if values.size == 2 and np.isfinite(values[1]) and values[1] <= 0:
+                raise ValueError(
+                    "options['noise_size'] needs a positive SD of the prior "
+                    "over the log noise SD, or inf for its default of 1, not "
+                    f"{noise_size!r}."
+                )
         # The GP's noise is bounded above at a log SD of 5 (_gp_hyp), as in
         # MATLAB's gpdefBads.m
         if (

@@ -1,7 +1,8 @@
 """The options that `BADS` is given: a value of `None` stands for the
 default, the boolean options take only booleans, the checks that MATLAB
-BADS's `setupoptions.m` makes, and the options that are not supported; and
-the option files, whose comment lines describe the options."""
+BADS's `setupoptions.m` makes, those of the run's limits and counts, and
+the options that are not supported; and the option files, whose comment
+lines describe the options."""
 
 import logging
 
@@ -31,10 +32,154 @@ def _make_bads(**options):
     )
 
 
-@pytest.mark.parametrize("max_fun_evals", [0, -5, 30.5, np.nan, "200*D"])
-def test_max_fun_evals_must_be_a_positive_integer(max_fun_evals):
-    with pytest.raises(ValueError, match="max_fun_evals.*positive integer"):
-        _make_bads(max_fun_evals=max_fun_evals)
+LIMITS = ["max_fun_evals", "max_iter", "tol_stall_iters"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        0,
+        -5,
+        30.5,
+        np.nan,
+        -np.inf,
+        True,
+        "200*D",
+        np.array(30),
+        np.array([30]),
+        30 + 0j,
+    ],
+    ids=repr,
+)
+@pytest.mark.parametrize("name", LIMITS)
+def test_limits_must_be_positive_integers_or_inf(name, value):
+    """The run's limits take a positive integer or inf, and anything else is
+    refused when `BADS` is created. MATLAB BADS checks `max_fun_evals` so;
+    a `max_iter` or a `tol_stall_iters` given as a string stopped the run
+    with `TypeError` at the end of its first iteration, a `tol_stall_iters`
+    of 0 or not whole with `TypeError` or `IndexError`, and a `max_iter` not
+    whole ended the run at the next whole number of iterations."""
+    with pytest.raises(
+        ValueError,
+        match=rf"options\['{name}'\] needs to be a positive integer or inf, "
+        r"not ",
+    ):
+        _make_bads(**{name: value})
+
+
+@pytest.mark.parametrize(
+    "value, stored",
+    [
+        (3, 3),
+        (3.0, 3),
+        (np.int64(3), 3),
+        (np.float64(3.0), 3),
+        (2**70, np.inf),
+        (np.inf, np.inf),
+    ],
+    ids=repr,
+)
+@pytest.mark.parametrize("name", ["max_iter", "tol_stall_iters"])
+def test_limits_are_stored_as_ints_or_inf(name, value, stored):
+    bads = _make_bads(**{name: value})
+    assert bads.options[name] == stored
+    assert type(bads.options[name]) is (float if stored == np.inf else int)
+
+
+def test_max_iter_counts_whole_iterations():
+    """A whole-number float `max_iter` ends the run at that iteration, as
+    the integer does."""
+    result = _make_bads(max_iter=3.0).optimize()
+    assert result["iterations"] == 3
+    assert "options['max_iter']" in result["message"]
+
+
+def test_infinite_tol_stall_iters_turns_the_stall_criterion_off():
+    """At its default, the stall criterion ends this run; `tol_stall_iters
+    = inf` leaves it to the other criteria."""
+    assert _make_bads().optimize()["status"] == 2
+    result = _make_bads(tol_stall_iters=np.inf).optimize()
+    assert result["status"] != 2
+    assert "tol_fun" not in result["message"]
+
+
+@pytest.mark.parametrize(
+    "search_n_try",
+    [-1, 2.5, np.nan, np.inf, True, "D", np.array([3]), 3 + 0j],
+    ids=repr,
+)
+def test_search_n_try_must_be_an_integer_at_least_zero(search_n_try):
+    """A `search_n_try` that is not an integer at least 0 is refused when
+    `BADS` is created. One that is not whole ended no round of searches, and
+    the run turned without evaluating, forever."""
+    with pytest.raises(
+        ValueError,
+        match=r"options\['search_n_try'\] needs to be an integer at least 0",
+    ):
+        _make_bads(search_n_try=search_n_try)
+
+
+def test_search_n_try_whole_number_is_an_int():
+    bads = _make_bads(search_n_try=4.0)
+    assert bads.options["search_n_try"] == 4
+    assert type(bads.options["search_n_try"]) is int
+    assert type(bads.optim_state["search_count"]) is int
+
+
+def test_search_n_try_zero_runs_no_search(monkeypatch):
+    """`search_n_try = 0` is a run without searches, whose every iteration
+    is a poll, as in MATLAB BADS."""
+
+    def no_search(self, gp):
+        raise AssertionError("searched with search_n_try = 0")
+
+    monkeypatch.setattr(BADS, "_search_step_", no_search)
+    result = _make_bads(search_n_try=0, max_fun_evals=60).optimize()
+    assert np.isfinite(result["fval"])
+    assert result["iterations"] > 1
+
+
+@pytest.mark.parametrize(
+    "noise_final_samples",
+    [-1, 2.5, np.nan, np.inf, True, "10", np.array([10]), 10 + 0j],
+    ids=repr,
+)
+def test_noise_final_samples_must_be_an_integer_at_least_zero(
+    noise_final_samples,
+):
+    """A `noise_final_samples` that is not an integer at least 0 is refused
+    when `BADS` is created: one that is not whole stopped a noisy run with
+    `TypeError` after its last iteration, and a string at its start."""
+    with pytest.raises(
+        ValueError,
+        match=r"options\['noise_final_samples'\] needs to be an integer at "
+        r"least 0",
+    ):
+        _make_bads(noise_final_samples=noise_final_samples)
+
+
+def test_noise_final_samples_whole_number_is_an_int():
+    """A whole-number float is taken as its integer, which sets the number
+    of final samples of a noisy run."""
+    noise = np.random.default_rng(0)
+    bads = BADS(
+        lambda x: _sphere(x) + noise.standard_normal(),
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={
+            "display": "off",
+            "random_seed": 3,
+            "uncertainty_handling": True,
+            "max_fun_evals": 60,
+            "noise_final_samples": 4.0,
+        },
+    )
+    assert bads.options["noise_final_samples"] == 4
+    assert type(bads.options["noise_final_samples"]) is int
+    assert np.shape(bads.optimize()["yval_vec"]) == (4,)
 
 
 @pytest.mark.parametrize(

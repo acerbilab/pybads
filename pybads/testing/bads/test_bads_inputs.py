@@ -632,6 +632,34 @@ def test_tol_fun_up_to_e6_runs(tol_fun):
 
 
 @pytest.mark.parametrize(
+    "tol_mesh", [0, 0.0, -1.0, -1e-12, np.nan, np.inf, -np.inf], ids=repr
+)
+def test_tol_mesh_not_a_positive_finite_number_is_refused(tol_mesh):
+    """A `tol_mesh` that is not a positive finite number is refused when
+    `BADS` is created: at 0 or below, the mesh criterion never ended the
+    run, with a `RuntimeWarning` from the logarithm of `tol_mesh`."""
+    with pytest.raises(
+        ValueError,
+        match=r"options\['tol_mesh'\] needs to be a positive finite number",
+    ):
+        _bads_with_options({"tol_mesh": tol_mesh})
+
+
+@pytest.mark.parametrize(
+    "tol_mesh, on_mesh",
+    [(1e-6, 2.0**-19), (1e-5, 2.0**-16), (2**-10, 2.0**-10), (1, 1.0)],
+    ids=repr,
+)
+def test_tol_mesh_is_put_on_the_mesh(tol_mesh, on_mesh):
+    """`tol_mesh` is stored as a float, and the run's tolerance is the
+    smallest power of `poll_mesh_multiplier` (2) at least `tol_mesh`, as in
+    MATLAB BADS (`setupvars.m`)."""
+    bads = _bads_with_options({"tol_mesh": tol_mesh})
+    assert type(bads.options["tol_mesh"]) is float
+    assert bads.optim_state["tol_mesh"] == on_mesh
+
+
+@pytest.mark.parametrize(
     "search_method",
     [
         [],
@@ -808,16 +836,24 @@ def test_hedge_decay_from_zero_to_one_is_accepted(hedge_decay):
         ("improvement_quantile", np.array([0.3])),
         ("improvement_quantile", np.complex128(0.3)),
         ("improvement_quantile", Fraction(1, 3)),
+        ("tol_mesh", "1e-6"),
+        ("tol_mesh", True),
+        ("tol_mesh", np.array(1e-6)),
+        ("tol_mesh", np.array([1e-6])),
+        ("tol_mesh", np.complex128(1e-6)),
+        ("tol_mesh", Decimal("1e-6")),
     ],
 )
 def test_real_valued_options_refuse_what_is_not_a_real_number(name, value):
-    """`hedge_gamma`, `hedge_beta`, `hedge_decay` and `improvement_quantile`
-    take a real number, a Python or NumPy integer or float that is not a
-    boolean: an array, of one element too, a NumPy complex number, which
-    NumPy orders, a `Decimal`, a `Fraction` or an integer too large for a
-    float is refused when `BADS` is created. Some of them passed the range
-    checks and stopped the run at its first search with an unrelated error
-    (a `hedge_decay` of `[0.5]`, a `hedge_gamma` of shape (1, 1))."""
+    """`hedge_gamma`, `hedge_beta`, `hedge_decay`, `improvement_quantile`
+    and `tol_mesh` take a real number, a Python or NumPy integer or float
+    that is not a boolean: an array, of one element too, a NumPy complex
+    number, which NumPy orders, a `Decimal`, a `Fraction` or an integer too
+    large for a float is refused when `BADS` is created. Some of them passed
+    the range checks and stopped the run at its first search with an
+    unrelated error (a `hedge_decay` of `[0.5]`, a `hedge_gamma` of shape
+    (1, 1)), and a string `tol_mesh` stopped the creation of `BADS` with
+    NumPy's `TypeError`."""
     with pytest.raises(ValueError, match=rf"{name}'\] needs to"):
         _bads_with_options({name: value})
 
@@ -831,6 +867,8 @@ def test_real_valued_options_refuse_what_is_not_a_real_number(name, value):
         ("hedge_beta", np.float64(0.5)),
         ("hedge_decay", np.float16(0.5)),
         ("improvement_quantile", np.float64(0.25)),
+        ("tol_mesh", np.float32(1e-4)),
+        ("tol_mesh", np.int64(1)),
     ],
 )
 def test_real_valued_options_are_stored_as_floats(name, value):
