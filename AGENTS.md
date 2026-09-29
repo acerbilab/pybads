@@ -409,7 +409,11 @@ design on purpose regenerates in the same commit), and the oracles' stored
 references, under tolerances measured across BLAS settings. Never loosen an
 oracle's tolerance or regenerate the fixtures to make a change pass: a
 change that moves an oracle on purpose replaces that oracle's references
-alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`.
+alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`. The
+one regeneration the fixtures take is `--write --reason TEXT` from a clean
+checkout, when `--rebaseline` refuses because a moved decision lies within
+rounding of its threshold: it reruns the recipes and re-chooses the stored
+states, a new baseline of every oracle, with its reason recorded.
 
 ## Tests and their traps
 
