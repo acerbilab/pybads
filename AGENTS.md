@@ -151,8 +151,9 @@ them.
 
 ## Architecture
 
-`BADS.optimize()` in `pybads/bads/bads.py` holds nearly all of the
-algorithm. Initialization (`_init_mesh_`) evaluates `x0`, and a second time
+`BADS._optimize_()` in `pybads/bads/bads.py`, which the public
+`BADS.optimize()` runs under the run's stage timer, holds nearly all of
+the algorithm. Initialization (`_init_mesh_`) evaluates `x0`, and a second time
 as a noise test when `uncertainty_handling` is `None`, then a Sobol initial
 design of `2**ceil(log2(fun_eval_start))` points, twice as many when that
 number equals `D`, cut to the evaluations that `max_fun_evals` leaves, the
@@ -281,12 +282,16 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   open with evaluations made before the run (`precomputed_evaluations`,
   added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
   leaves out. Code that takes the log's rows for the run's own evaluations
-  leaves them out: `_init_mesh_` chooses the first incumbent (and at level 2
-  its `fsd`) among the rows that the start and the initial design returned
-  (`_init_rows`), on which `init_and_train_gp` fits the first GP, and counts
-  `eff_starting_points` from `func_count`, and `_get_gp_training_options`
-  subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
-  reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
+  leaves them out: `_init_mesh_` chooses the first incumbent among the rows
+  that the start and the initial design returned (`_init_rows`) and counts
+  `eff_starting_points` from `func_count`; `init_and_train_gp` fits the
+  first GP on those rows; at level 2 `_init_optimization_` reads the first
+  incumbent's `fsd` from its row, `_init_incumbent_row`; and
+  `_get_gp_training_options` subtracts `optim_state["precomputed_n_evals"]`
+  from `n_eff`. New code that reads `Xn`, `X_flag` or `n_evals` as the
+  run's evaluations does the same.
+  The evaluations made before the run join the GP at the loop's first
+  rebuild, at the first poll, among the incumbent's neighbours.
   A repeated point at level 2 is merged into its row by precision weighting,
   which a run reaches only through those evaluations: `contraints_check`
   removes the candidates already evaluated, and the noise test and the final
@@ -329,8 +334,25 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   with `poll_training` on).
   `local_gp_fitting` removes both once it leaves a posterior on its new
   training set. `test_gp_update_failures.py` injects the failures.
+- **The oracles' stored states.** The oracles of `pybads/testing/oracles/`
+  rebuild states stored by an earlier commit, so a key that the code newly
+  reads from `optim_state` or a GP's `temporary_data` gets a default in
+  `STATE_DEFAULTS` of `pybads/testing/oracles/_state.py` in the same
+  commit; `test_every_case_computes` fails without it, on the GP refit
+  too, whose outputs no test compares.
 - **`IterationHistory`** deep-copies what it records, including the GP,
   every iteration.
+- **Stage times.** `optimize` charges each second of a run to the
+  innermost open stage of a private `StageTimer`
+  (`pybads/utils/timer/stage_timer.py`), and the target's evaluations to
+  `target`, which together make `total_time`. `target` follows the
+  function logger's `total_fun_eval_time`, the time that `overhead`
+  compares with the run's, which leaves out the noise test at `x0`: that
+  evaluation counts in `init`. `dev/scripts/profile_run.py` reads their
+  plain snapshots, `optim_state["stage_times"]` and
+  `iteration_history["timer"]`. The timer lives on the `BADS` object and
+  goes to the GP functions as `timer=`, as `rng` does, never into
+  `optim_state` or a GP's `temporary_data`, which are deep-copied.
 
 ## Numerical gates
 
@@ -370,6 +392,29 @@ change that must move nothing shows the same hash of
 same gpyreg and the same number of BLAS threads: one thread
 (`OMP_NUM_THREADS=1` and its kin) and the default can give different
 hashes of the same commit, and a recorded hash names its setting.
+On one machine, a change that must move nothing also shows
+`dev/scripts/replay.py check` identical against the parent commit (the
+first evaluation and GP computation at which two commits' runs part), and
+`dev/scripts/make_oracle_fixtures.py --check --exact --against` a
+`--dump` of the parent commit identical (the oracles of
+`pybads/testing/oracles/`, PyBADS's components on stored states);
+`dev/README.md` gives the procedures. The three, the fingerprint, the
+replay and the oracles' `--against`, need a machine that repeats a
+computation bit for bit, which macOS arm64 is not: there Accelerate's
+results depend on the alignment of the arrays, so that two runs of one
+seed need not match (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
+On every platform, the tests pin the initial design, which involves no BLAS
+work (`test_initial_design_pin.py`, whose fixture a change that moves the
+design on purpose regenerates in the same commit), and the oracles' stored
+references, under tolerances measured across BLAS settings. Never loosen an
+oracle's tolerance or regenerate the fixtures to make a change pass: a
+change that moves an oracle on purpose replaces that oracle's references
+alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`.
+`--write --reason TEXT`, from a clean checkout, makes a new baseline of
+every oracle for a change of the recipes or of what the snapshots hold,
+and when `--rebaseline` refuses a decision at its bound, since it alone
+re-chooses the size of the reduced training sets; the fixtures record its
+reason.
 
 ## Tests and their traps
 

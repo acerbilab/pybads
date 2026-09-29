@@ -22,16 +22,24 @@ dict into every run's options, ``--budget-scale`` multiplies every
 configuration's budget.
 
 Each run writes ``<label>_seed<seed>.json``: the configuration, the seed,
-the requested and the effective options, ``final`` (the returned point,
-``fval``, ``fsd``, ``true_error = f_true(x) - f_min``, ``func_count``,
-``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception`` and
-``min_noise_var``) and ``meta`` (the provenance: git state, versions, the
-source and commit of the imported gpyreg, thread variables, start and end
-times). ``min_noise_var`` is the smallest training noise variance ``sn2``
-over the GPs of ``iteration_history["gp"]`` and their hyperparameter
-samples: the quantity gpyreg compares with ``1e-6`` to choose its low-noise
-representation of the posterior (``gaussian_process.py``, where
-``__core_computation`` sets ``L_chol``).
+the requested and the effective options, ``precomputed`` (for a
+configuration whose runs are given evaluations made before them, their
+kind, number of rows and digest; None otherwise), ``final`` (the returned
+point, ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``,
+``func_count``, ``iterations``, ``message``, ``wall_s``, ``crashed``,
+``exception``, ``min_noise_var`` and ``stage_times``) and ``meta`` (the
+provenance: git state, versions, the source and commit of the imported
+gpyreg, thread variables, start and end times). ``min_noise_var`` is the
+smallest training noise variance ``sn2`` over the GPs of
+``iteration_history["gp"]`` and their hyperparameter samples: the quantity
+gpyreg compares with ``1e-6`` to choose its low-noise representation of
+the posterior (``gaussian_process.py``, where ``__core_computation`` sets
+``L_chol``). ``stage_times`` holds the run's ``optim_state["stage_times"]``
+(the function ``stage_times``): the seconds of each stage by path and by
+top-level stage, and the entries of each stage; None for a run that
+raised. A run whose stage times cannot be read keeps its record, with
+``stage_times`` None and the exception in ``stage_times_error``, a key
+that only such a record has.
 
 ``summary`` tabulates each configuration (median and interquartile range of
 ``true_error`` and ``func_count``, the fraction solved, the crash count) and
@@ -41,14 +49,22 @@ where both sides have at least 3 runs, and ``true_error`` also with a
 Wilcoxon signed-rank test on ``log10(true_error + 1e-12)`` paired by seed
 (both populations share each seed's start point and noise stream); the
 p-values of all tests form one Holm family at ``--alpha``. A configuration
-whose crash count rises from zero is flagged too. It prints the effect
-sizes (the median paired log10 error ratio with a bootstrap 95% interval,
-the difference in fraction solved) and exits 1 on any flag. ``--split``
-compares the even and the odd seeds of one population with the KS tests
-alone: the null check.
+whose crash count rises from zero is flagged too. The pairing also
+assumes that both populations give a seed's run the same evaluations made
+before it, which each population's PyBADS makes by an earlier run
+(``benchmark_targets.earlier_evaluations``): a change that moves runs
+without such evaluations gives the two populations different ones.
+``compare`` warns of the seeds whose recorded start points, or digests of
+the evaluations made before the run, differ between the two populations,
+and tests them all the same. It prints the effect sizes (the median paired
+log10 error ratio with a bootstrap 95% interval, the difference in
+fraction solved) and exits 1 on any flag. ``--split`` compares the even
+and the odd seeds of one population with the KS tests alone: the null
+check.
 """
 
 import argparse
+import hashlib
 import importlib
 import json
 import os
@@ -159,8 +175,9 @@ def module_source(name):
 
 
 def thread_env():
-    keys = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")
-    return {k: os.environ.get(k) for k in keys}
+    """The thread variables of ``benchmark_targets.THREAD_VARS`` as the
+    process sees them (None for one that is not set)."""
+    return {k: os.environ.get(k) for k in bt.THREAD_VARS}
 
 
 def jsonable(v):
@@ -226,6 +243,43 @@ def min_noise_var(bads):
     return None if best == np.inf else best
 
 
+def top_level_seconds(paths):
+    """The seconds of each top-level stage, the stages nested in it
+    included, from the seconds by path of ``optim_state["stage_times"]``
+    (``"target"`` is a top-level key)."""
+    top = {}
+    for path, seconds in paths.items():
+        name = path.split("/", 1)[0]
+        top[name] = top.get(name, 0.0) + seconds
+    return top
+
+
+def stage_times(bads):
+    """The stage times that a run stores at its end,
+    ``optim_state["stage_times"]``, as a record keeps them.
+
+    ``paths`` holds the seconds of each stage by its path (as
+    ``search/gp_rebuild/gp_fit``), exclusive of the stages nested in it,
+    and ``"target"``, the target's evaluations: they add up to the run's
+    ``total_time``. ``calls`` holds the number of entries of each stage,
+    and ``top_level`` the seconds of each top-level stage with the stages
+    nested in it. None when the run stored none: it raised, or its PyBADS
+    has no stage timers.
+    """
+    try:
+        stored = bads.optim_state.get("stage_times")
+    except Exception:  # noqa: BLE001
+        return None
+    if not stored:
+        return None
+    paths = {str(k): float(v) for k, v in stored["seconds"].items()}
+    return {
+        "top_level": top_level_seconds(paths),
+        "paths": paths,
+        "calls": {str(k): int(v) for k, v in stored["calls"].items()},
+    }
+
+
 def _final(prob, bads, res, exc, wall):
     crashed = exc is not None
     out = {
@@ -240,6 +294,7 @@ def _final(prob, bads, res, exc, wall):
         "crashed": crashed,
         "exception": exc,
         "min_noise_var": None,
+        "stage_times": None,
     }
     if res is not None:
         x = np.asarray(res["x"], dtype=float).ravel()
@@ -263,7 +318,29 @@ def _final(prob, bads, res, exc, wall):
             out["min_noise_var"] = min_noise_var(bads)
         except Exception:  # noqa: BLE001  (keep the run; the field stays None)
             pass
+        try:
+            out["stage_times"] = stage_times(bads)
+        except Exception as e:  # noqa: BLE001  (keep the run, with a note)
+            out["stage_times_error"] = f"{type(e).__name__}: {e}"
     return out
+
+
+def precomputed_summary(cfg, prob):
+    """What a record keeps of the evaluations made before the run: their
+    kind (``Config.precomputed``), their number of rows and the first 16
+    hex digits of the SHA-256 digest of their arrays, by which ``compare``
+    checks that two populations gave a seed's run the same; None without
+    them."""
+    if prob.precomputed is None:
+        return None
+    digest = hashlib.sha256()
+    for a in prob.precomputed:
+        digest.update(np.ascontiguousarray(a, dtype=float).tobytes())
+    return {
+        "kind": cfg.precomputed,
+        "rows": int(len(prob.precomputed[1])),
+        "digest": digest.hexdigest()[:16],
+    }
 
 
 def _write_json(path, obj):
@@ -294,7 +371,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
     bads = res = exc = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options)
+        bads = BADS(*args, options=options, **prob.bads_kwargs())
         res = bads.optimize()
     except Exception as e:  # noqa: BLE001
         exc = {
@@ -318,6 +395,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         "noise": prob.noise,
         "unbounded": cfg.unbounded,
         "x0": prob.x0.tolist(),
+        "precomputed": precomputed_summary(cfg, prob),
         "f_min": prob.f_min,
         "tolerance": prob.tolerance,
         "budget": cfg.budget,
@@ -606,14 +684,29 @@ def paired_log_ratios(a, b):
     return _log_err(xb[ok]) - _log_err(xa[ok])
 
 
-def x0_mismatches(a, b):
-    """Number of seeds present in both whose recorded start points differ:
-    a pairing by seed assumes the same targets and streams on both sides."""
-    xa = {r["seed"]: r.get("x0") for r in a["records"]}
+def _mismatches(a, b, field):
+    """Number of seeds present in both whose records differ in
+    ``field(record)``."""
+    va = {r["seed"]: field(r) for r in a["records"]}
     return sum(
         1
         for r in b["records"]
-        if r["seed"] in xa and xa[r["seed"]] != r.get("x0")
+        if r["seed"] in va and va[r["seed"]] != field(r)
+    )
+
+
+def x0_mismatches(a, b):
+    """Number of seeds present in both whose recorded start points differ:
+    a pairing by seed assumes the same targets and streams on both sides."""
+    return _mismatches(a, b, lambda r: r.get("x0"))
+
+
+def precomputed_mismatches(a, b):
+    """Number of seeds present in both whose evaluations made before the
+    run differ, by their digest: a pairing by seed assumes that both sides
+    were given the same, and each side's PyBADS makes them."""
+    return _mismatches(
+        a, b, lambda r: (r.get("precomputed") or {}).get("digest")
     )
 
 
@@ -754,17 +847,24 @@ def compare_populations(ref, new, alpha=0.05, paired=True, crash_flag=True):
     if only_ref or only_new:
         lines += ["", f"Only in REF: {only_ref}; only in NEW: {only_new}."]
     if paired:
-        unpaired = {
-            label: n
-            for label in labels
-            if (n := x0_mismatches(ref[label], new[label]))
-        }
-        if unpaired:
-            lines += [
-                "",
-                "WARNING: seeds whose start points differ between REF and"
-                f" NEW (the pairing does not hold): {unpaired}.",
-            ]
+        for what, mismatches in (
+            ("start points", x0_mismatches),
+            (
+                "evaluations made before the run (by digest)",
+                precomputed_mismatches,
+            ),
+        ):
+            unpaired = {
+                label: n
+                for label in labels
+                if (n := mismatches(ref[label], new[label]))
+            }
+            if unpaired:
+                lines += [
+                    "",
+                    f"WARNING: seeds whose {what} differ between REF and"
+                    f" NEW (the pairing does not hold): {unpaired}.",
+                ]
     ks_sizes = [(t["n_ref"], t["n_new"]) for t in tests if t["test"] == "KS"]
     if ks_sizes:
         n1, n2 = max(set(ks_sizes), key=ks_sizes.count)

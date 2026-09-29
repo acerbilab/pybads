@@ -312,7 +312,10 @@ def _with(i, value):
         (_with(1, _Y.astype(complex)), "values y .* real numbers"),
         (_with(1, ["1", "2", "3", "4"]), "values y .* real numbers"),
         (_with(1, [1.0, [2.0], 3.0, 4.0]), "values y .* an array"),
-        ((_X, _Y, np.ones(4)), "require.*specify_target_noise"),
+        (
+            (_X, _Y, np.ones(4)),
+            r'require options\["specify_target_noise"\] = True',
+        ),
         (
             _with("X", np.vstack((_X[:3], [[0.0, 11.0, 0.0]]))),
             r"within the hard bounds; rows \[3\]",

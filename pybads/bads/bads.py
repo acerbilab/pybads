@@ -25,6 +25,7 @@ from pybads.search.grid_functions import (
 from pybads.utils import period_check
 from pybads.utils.iteration_history import IterationHistory
 from pybads.utils.timer import Timer
+from pybads.utils.timer.stage_timer import NULL_STAGE_TIMER, StageTimer
 from pybads.variable_transformer import VariableTransformer
 
 from .gaussian_process_train import (
@@ -295,8 +296,12 @@ class BADS:
         and with it the training sets of its Gaussian process, which is
         rebuilt around the incumbent from the first poll on, but not its
         count of evaluations (``func_count``, which ``max_fun_evals``
-        bounds), and the run starts from ``x0`` and its initial design
-        alone: its first incumbent is the best of them. Unless
+        bounds). The run starts from ``x0`` and its initial design alone,
+        less the points of the design that the evaluations hold, which it
+        does not evaluate again: its first incumbent is the best of the
+        points it evaluates, so that, given the log of an earlier run with
+        the same seed and ``x0``, which holds the whole design, it
+        evaluates ``x0`` alone, its first incumbent. Unless
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
@@ -470,6 +475,9 @@ class BADS:
 
         # set up the random generator of the run
         self._init_rng_()
+        # The stage timer of a run, created by optimize(); the steps called
+        # outside it time nothing
+        self._stage_timer = NULL_STAGE_TIMER
 
         # set up BADS logger, from the first three letters of the display
         # option, lower case, as in MATLAB BADS (bads.m): "off" and "none"
@@ -1388,7 +1396,7 @@ class BADS:
         if level < 2 and y_sd is not None:
             raise ValueError(
                 "precomputed_evaluations holds noise SDs y_sd, which require "
-                "options['specify_target_noise'] = True."
+                'options["specify_target_noise"] = True.'
             )
 
         outside = np.any(
@@ -1624,6 +1632,7 @@ class BADS:
             self.optim_state["n_noise_test"] = 1
             if np.abs(self.yval - yval_bis) > self.options["tol_noise"]:
                 self.optim_state["uncertainty_handling_level"] = 1
+                function_logger.uncertainty_handling_level = 1
                 self.logging_action.append("Uncertainty test")
         else:
             self.optim_state["n_noise_test"] = 0
@@ -1757,7 +1766,8 @@ class BADS:
         hyp_dict = {}
 
         # Evaluate starting point and initial mesh,
-        is_finished = self._init_mesh_()
+        with self._stage_timer.stage("init"):
+            is_finished = self._init_mesh_()
 
         # Change options for uncertainty handling
         if self.optim_state["uncertainty_handling_level"] > 0:
@@ -1826,17 +1836,19 @@ class BADS:
             return gp, None, None, hyp_dict
 
         # Initialize Gaussian Process (GP) structure
-        gp, Ns_gp, sn2hpd, hyp_dict = init_and_train_gp(
-            hyp_dict,
-            self.optim_state,
-            self.function_logger,
-            self.iteration_history,
-            self.options,
-            self.plausible_lower_bounds,
-            self.plausible_upper_bounds,
-            rng=self.rng,
-            rows=self._init_rows,
-        )
+        with self._stage_timer.stage("gp_init"):
+            gp, Ns_gp, sn2hpd, hyp_dict = init_and_train_gp(
+                hyp_dict,
+                self.optim_state,
+                self.function_logger,
+                self.iteration_history,
+                self.options,
+                self.plausible_lower_bounds,
+                self.plausible_upper_bounds,
+                rng=self.rng,
+                rows=self._init_rows,
+                timer=self._stage_timer,
+            )
 
         self.gp_stats = IterationHistory(
             [
@@ -1874,11 +1886,39 @@ class BADS:
             For example, retrieve the final solution and its value with the
             attributes ``optimize_result.x`` and ``optimize_result.fval``.
         """
+        # The stage timer of the run times each stage, exclusive of the
+        # stages nested in it and of the target's evaluations, which form
+        # the pseudo-stage "target": together they make total_time. It stays
+        # on the BADS object, out of the states that a run deep-copies
+        # (optim_state, the GP and its temporary_data); a plain snapshot of
+        # its times goes to optim_state["stage_times"] at the end of the
+        # run, and to iteration_history["timer"] at the end of each
+        # iteration. It reads the target's time through the function logger
+        # alone: a reference to the BADS object here (a bound method, or
+        # self in a closure) would make a cycle, BADS -> timer -> BADS,
+        # that keeps a finished run, every GP of its history included,
+        # alive until the garbage collector goes through its oldest
+        # generation.
+        function_logger = self.function_logger
+        self._stage_timer = StageTimer(
+            lambda: function_logger.total_fun_eval_time
+        )
+        try:
+            return self._optimize_()
+        finally:
+            # A run that raises leaves no stage open
+            self._stage_timer.stop()
+
+    def _optimize_(self):
+        """The run of ``optimize``, under the stage timer that it
+        creates."""
         is_finished = False
         poll_iteration = -1
         self.logging_action = []
         timer = Timer()
         timer.start_timer("BADS")
+        stage_timer = self._stage_timer
+        stage_timer.start()
         hyp_dict = {}
         self.search_success = 0
         self.last_skipped = -1
@@ -1905,11 +1945,12 @@ class BADS:
         # a true return value stops the run
         output_fcn = self.options["output_fcn"]
         if output_fcn is not None:
-            stop = output_fcn(
-                self.var_transf.inverse_transf(self.u),
-                copy.deepcopy(self.optim_state),
-                "init",
-            )
+            with stage_timer.stage("output_fcn"):
+                stop = output_fcn(
+                    self.var_transf.inverse_transf(self.u),
+                    copy.deepcopy(self.optim_state),
+                    "init",
+                )
             if stop and not is_finished:
                 is_finished = True
                 msg = "Optimization terminated by options['output_fcn']."
@@ -1972,13 +2013,14 @@ class BADS:
 
             if do_search_step_flag:
                 # Search stage
-                (
-                    u_search,
-                    search_dist,
-                    f_mu_search,
-                    f_sd_search,
-                    gp,
-                ) = self._search_step_(gp)
+                with stage_timer.stage("search"):
+                    (
+                        u_search,
+                        search_dist,
+                        f_mu_search,
+                        f_sd_search,
+                        gp,
+                    ) = self._search_step_(gp)
             # End Search step
 
             # Check whether to perform the poll stage, it can be run consecutively after the search.
@@ -2023,13 +2065,17 @@ class BADS:
 
             # check and do poll step; the poll's GP goes on, as the search's
             if do_poll_step:
-                (_, _, _, _, gp) = self._poll_step_(gp)
-                if output_fcn is not None and output_fcn(
-                    self.var_transf.inverse_transf(self.u),
-                    copy.deepcopy(self.optim_state),
-                    "iter",
-                ):
-                    is_finished = True
+                with stage_timer.stage("poll"):
+                    (_, _, _, _, gp) = self._poll_step_(gp)
+                if output_fcn is not None:
+                    with stage_timer.stage("output_fcn"):
+                        stop = output_fcn(
+                            self.var_transf.inverse_transf(self.u),
+                            copy.deepcopy(self.optim_state),
+                            "iter",
+                        )
+                    if stop:
+                        is_finished = True
 
             # A poll that moved the incumbent asks for a rebuild of the local
             # GP at the end of every pass, until a poll that does not move,
@@ -2090,36 +2136,43 @@ class BADS:
 
             # Store best points at the end of each iteration, or upon termination
             if do_poll_step or is_finished:
-                self.iteration_history.record(
-                    "u", self.u.flatten(), poll_iteration
-                )
-                self.iteration_history.record(
-                    "x",
-                    self.var_transf.inverse_transf(self.u.flatten()),
-                    poll_iteration,
-                )
-                self.iteration_history.record(
-                    "yval", float(self.yval), poll_iteration
-                )
-                self.iteration_history.record(
-                    "fval", self.fval, poll_iteration
-                )
-                self.iteration_history.record("fsd", self.fsd, poll_iteration)
-                self.iteration_history.record(
-                    "mesh_size", self.mesh_size, poll_iteration
-                )
-                self.iteration_history.record(
-                    "search_mesh_size", self.search_mesh_size, poll_iteration
-                )
-                self.iteration_history.record(
-                    "gp_hyp_full", gp.get_hyperparameters(True), poll_iteration
-                )  # corresponds to self.best_gp_hyp
-                self.iteration_history.record("gp", gp, poll_iteration)
-                self.iteration_history.record(
-                    "func_count",
-                    self.function_logger.func_count,
-                    poll_iteration,
-                )
+                with stage_timer.stage("history"):
+                    self.iteration_history.record(
+                        "u", self.u.flatten(), poll_iteration
+                    )
+                    self.iteration_history.record(
+                        "x",
+                        self.var_transf.inverse_transf(self.u.flatten()),
+                        poll_iteration,
+                    )
+                    self.iteration_history.record(
+                        "yval", float(self.yval), poll_iteration
+                    )
+                    self.iteration_history.record(
+                        "fval", self.fval, poll_iteration
+                    )
+                    self.iteration_history.record(
+                        "fsd", self.fsd, poll_iteration
+                    )
+                    self.iteration_history.record(
+                        "mesh_size", self.mesh_size, poll_iteration
+                    )
+                    self.iteration_history.record(
+                        "search_mesh_size",
+                        self.search_mesh_size,
+                        poll_iteration,
+                    )
+                    self.iteration_history.record(
+                        "gp_hyp_full",
+                        gp.get_hyperparameters(True),
+                        poll_iteration,
+                    )  # corresponds to self.best_gp_hyp
+                    self.iteration_history.record("gp", gp, poll_iteration)
+                    self.iteration_history.record(
+                        "func_count",
+                        self.function_logger.func_count,
+                        poll_iteration,
+                    )
 
             # Re-evaluate all noisy estimates at the end of the iteration
             if (
@@ -2127,7 +2180,8 @@ class BADS:
                 and do_poll_step
                 and poll_iteration > 0
             ):
-                self._re_evaluate_history_(gp)
+                with stage_timer.stage("reestimate"):
+                    self._re_evaluate_history_(gp)
                 self.yval = self.iteration_history.get("yval")[poll_iteration]
                 self.fval = self.iteration_history.get("fval")[poll_iteration]
                 self.fsd = self.iteration_history.get("fsd")[poll_iteration]
@@ -2171,6 +2225,13 @@ class BADS:
                         "gp_hyp_full"
                     )[idx_impr]
 
+            # The stage times up to the end of the iteration, its
+            # re-estimation included
+            if do_poll_step or is_finished:
+                self.iteration_history.record(
+                    "timer", stage_timer.snapshot(), poll_iteration
+                )
+
             # if isFinished_flag
             if is_finished:
                 # Multiple starts (deprecated)
@@ -2199,7 +2260,8 @@ class BADS:
             self.optim_state["uncertainty_handling_level"] > 0
             and poll_iteration > 0
         ):
-            self._re_evaluate_history_(gp)
+            with stage_timer.stage("reestimate"):
+                self._re_evaluate_history_(gp)
 
             # Order by lowest probabilistic upper bound and choose
             # the point with the lowest quantile values of the history of the optimization run: inf{x: F(x)>p}.
@@ -2239,12 +2301,13 @@ class BADS:
             # random fluctuation lower than the mean)
             yval_vec = np.empty(self.options["noise_final_samples"])
             ysd_vec = np.empty(self.options["noise_final_samples"])
-            for i_sample in range(self.options["noise_final_samples"]):
-                y, y_sd, _ = self.function_logger(
-                    self.u, record_duplicate_data=False
-                )
-                yval_vec[i_sample] = y
-                ysd_vec[i_sample] = y_sd
+            with stage_timer.stage("final_samples"):
+                for i_sample in range(self.options["noise_final_samples"]):
+                    y, y_sd, _ = self.function_logger(
+                        self.u, record_duplicate_data=False
+                    )
+                    yval_vec[i_sample] = y
+                    ysd_vec[i_sample] = y_sd
 
             # With one sample and no noise estimate from the target, YVAL
             # is used as well (biased, but better than no uncertainty)
@@ -2285,13 +2348,15 @@ class BADS:
         self.x = self.var_transf.inverse_transf(self.u)
 
         if output_fcn is not None:
-            output_fcn(
-                self.var_transf.inverse_transf(self.u),
-                copy.deepcopy(self.optim_state),
-                "done",
-            )
+            with stage_timer.stage("output_fcn"):
+                output_fcn(
+                    self.var_transf.inverse_transf(self.u),
+                    copy.deepcopy(self.optim_state),
+                    "done",
+                )
 
         # Compute total running time and fractional overhead
+        stage_timer.stop()
         timer.stop_timer("BADS")
         total_time = timer.get_duration("BADS")
         if self.function_logger.total_fun_eval_time > 0.0:
@@ -2302,6 +2367,7 @@ class BADS:
             overhead = np.nan
         self.optim_state["total_time"] = total_time
         self.optim_state["overhead"] = overhead
+        self.optim_state["stage_times"] = stage_timer.snapshot()
 
         self.logger.log(_LOG_FINAL, msg)
         if self.optim_state["uncertainty_handling_level"] > 0:
@@ -2358,6 +2424,7 @@ class BADS:
             self._record_gp_refit_()
             do_gp_calibration = False
 
+        stage_timer = self._stage_timer
         if (
             refit_flag
             or self.optim_state["search_count"] == 0
@@ -2365,16 +2432,18 @@ class BADS:
             or gp.temporary_data.get("needs_rebuild", False)
         ):
             # Local GP approximation on current incumbent
-            gp, gp_exit_flag = local_gp_fitting(
-                gp,
-                self.u,
-                self.function_logger,
-                self.options,
-                self.optim_state,
-                self.iteration_history,
-                refit_flag,
-                rng=self.rng,
-            )
+            with stage_timer.stage("gp_rebuild"):
+                gp, gp_exit_flag = local_gp_fitting(
+                    gp,
+                    self.u,
+                    self.function_logger,
+                    self.options,
+                    self.optim_state,
+                    self.iteration_history,
+                    refit_flag,
+                    rng=self.rng,
+                    timer=stage_timer,
+                )
             # The rebuild answers a move of the incumbent, as in MATLAB BADS
             # it fills the posterior that the move emptied: once after a
             # search's move, and at every pass after a poll's move, until a
@@ -2396,7 +2465,8 @@ class BADS:
             )
             is not None
         ):
-            self._update_target_(self.u_best, gp, self.best_gp_hyp)
+            with stage_timer.stage("target_from_gp"):
+                self._update_target_(self.u_best, gp, self.best_gp_hyp)
 
         # Generate search set (normalized coordinate)
         self.optim_state["search_count"] += 1
@@ -2408,14 +2478,15 @@ class BADS:
                 self.non_box_cons,
                 rng=self.rng,
             )
-        u_search_set, z = self.search_es_hedge(
-            self.u,
-            self.lower_bounds,
-            self.upper_bounds,
-            self.function_logger,
-            gp,
-            self.optim_state,
-        )
+        with stage_timer.stage("search_es"):
+            u_search_set, z = self.search_es_hedge(
+                self.u,
+                self.lower_bounds,
+                self.upper_bounds,
+                self.function_logger,
+                gp,
+                self.optim_state,
+            )
 
         # Enforce periodicity and force the candidate points on search grid
         u_search_set = force_to_grid_periodic(
@@ -2486,14 +2557,15 @@ class BADS:
                 < self.options["search_n_try"]
             ):
                 # TODO: Handle fitness_shaping and rotate gp axes (latter one is unsupported)
-                gp = add_and_update_gp(
-                    self.function_logger,
-                    gp,
-                    u_search,
-                    y_search,
-                    f_sd_search,
-                    self.options,
-                )
+                with stage_timer.stage("gp_update"):
+                    gp = add_and_update_gp(
+                        self.function_logger,
+                        gp,
+                        u_search,
+                        y_search,
+                        f_sd_search,
+                        self.options,
+                    )
 
                 if np.any(~np.isfinite(gp.y)):
                     self.logger.warning(
@@ -2502,18 +2574,20 @@ class BADS:
 
             # If the function is non-deterministic we update the posterior of the GP with the new point
             if self.optim_state["uncertainty_handling_level"] > 0:
-                new_gp = copy.deepcopy(gp)
-                # Update priors and posteriors
-                new_gp, _ = local_gp_fitting(
-                    new_gp,
-                    u_search,
-                    self.function_logger,
-                    self.options,
-                    self.optim_state,
-                    self.iteration_history,
-                    False,
-                    rng=self.rng,
-                )
+                with stage_timer.stage("gp_rebuild"):
+                    new_gp = copy.deepcopy(gp)
+                    # Update priors and posteriors
+                    new_gp, _ = local_gp_fitting(
+                        new_gp,
+                        u_search,
+                        self.function_logger,
+                        self.options,
+                        self.optim_state,
+                        self.iteration_history,
+                        False,
+                        rng=self.rng,
+                        timer=stage_timer,
+                    )
                 if new_gp.temporary_data.get("needs_rebuild", False):
                     # The rebuild failed and `new_gp` is the GP of its
                     # entry, not built around the point: no estimate there,
@@ -2780,6 +2854,7 @@ class BADS:
         B = None
         u_poll = None
         u_new = []
+        stage_timer = self._stage_timer
 
         # Poll loop
         while (
@@ -2874,16 +2949,18 @@ class BADS:
                 or self.reset_gp
                 or gp.temporary_data.get("needs_rebuild", False)
             ):
-                gp, gp_exit_flag = local_gp_fitting(
-                    gp,
-                    self.u,
-                    self.function_logger,
-                    self.options,
-                    self.optim_state,
-                    self.iteration_history,
-                    refit_flag,
-                    rng=self.rng,
-                )
+                with stage_timer.stage("gp_rebuild"):
+                    gp, gp_exit_flag = local_gp_fitting(
+                        gp,
+                        self.u,
+                        self.function_logger,
+                        self.options,
+                        self.optim_state,
+                        self.iteration_history,
+                        refit_flag,
+                        rng=self.rng,
+                        timer=stage_timer,
+                    )
                 # The rebuild answers a move of the incumbent (see the
                 # search step)
                 self.reset_gp = False
@@ -2896,7 +2973,8 @@ class BADS:
                     do_gp_calibration = True
 
             # Update Target from GP prediction
-            self._update_target_(u_poll_best, gp, gp_poll_hyp_best)
+            with stage_timer.stage("target_from_gp"):
+                self._update_target_(u_poll_best, gp, gp_poll_hyp_best)
 
             # Evaluate acquisition function on poll vectors
             # Batch evaluation of acquisition function on search set (The Acquisition Hedge policy is not yet supported (even in Matlab))
@@ -2957,14 +3035,15 @@ class BADS:
             if self.optim_state["uncertainty_handling_level"] > 0:
                 # Update posterior with the new polled point
                 n_train = gp.X.shape[0]
-                gp = add_and_update_gp(
-                    self.function_logger,
-                    gp,
-                    u_new,
-                    y_poll,
-                    y_sd_poll,
-                    self.options,
-                )  # u_new is already added from the function logger
+                with stage_timer.stage("gp_update"):
+                    gp = add_and_update_gp(
+                        self.function_logger,
+                        gp,
+                        u_new,
+                        y_poll,
+                        y_sd_poll,
+                        self.options,
+                    )  # u_new is already added from the function logger
                 if gp.X.shape[0] > n_train:
                     f_poll, f_sd_poll = gp.predict(np.atleast_2d(u_new))
                     f_sd_poll = np.sqrt(f_sd_poll).item()
@@ -3496,21 +3575,24 @@ class BADS:
             hyp_history = self.iteration_history.get("gp_hyp_full")
             n_iter = u_history.shape[0]
             tmp_gp = copy.deepcopy(gp)
+            stage_timer = self._stage_timer
             for i in range(n_iter):
                 u = u_history[i]
                 tmp_gp.set_hyperparameters(
                     hyp_history[i], compute_posterior=False
                 )
-                tmp_gp, _ = local_gp_fitting(
-                    tmp_gp,
-                    u,
-                    self.function_logger,
-                    self.options,
-                    self.optim_state,
-                    self.iteration_history,
-                    False,
-                    rng=self.rng,
-                )
+                with stage_timer.stage("gp_rebuild"):
+                    tmp_gp, _ = local_gp_fitting(
+                        tmp_gp,
+                        u,
+                        self.function_logger,
+                        self.options,
+                        self.optim_state,
+                        self.iteration_history,
+                        False,
+                        rng=self.rng,
+                        timer=stage_timer,
+                    )
                 if tmp_gp.temporary_data.get("needs_refit", False):
                     # The rebuild failed, and the GP has no posterior
                     if i == n_iter - 1:

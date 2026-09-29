@@ -87,7 +87,7 @@ slice of its code, with the other slice's reach added.
 | W3-37 | B4-K10 | the accelerated mesh reduction tested from the wrong iteration (W2-29) | no longer holds: `c9a2cde` tests `iter >= accelerate_mesh_steps`, MATLAB's `iter > steps` with its count from 1, and reads the same stored iteration (`iter - steps`, MATLAB's `iter - steps` counted from 1); at each poll with `iter` ≥ 3 the history holds exactly `iter` entries | yes | fixed 2026-09-26 | — | none | — |
 | W3-38 | B4-K11 | under `stobads`, a NaN estimate after a failed add counts as uncertain | no longer holds: `_sto_success_improvement_` returns −1 for a non-finite estimate since `0c56d86` (W0-11) | no (`stobads`) | fixed in wave 0's fix pass | the `_poll_step_` row with `stobads` "(at `a83bd51`)" | correct the survey's row | — |
 | W3-39 | wave 2's doublecheck (`wave2.md`, "Doublecheck", "Left"), added after the triage | `accelerate_mesh_steps` below 1 stops the run with `TypeError` at its first failed poll: the accelerated mesh reduction reads `iteration_history`'s `fval` and `fsd` at `iter - accelerate_mesh_steps` (`bads.py:2434-2443`), an iteration not recorded yet (the current one at 0; at the first failed poll `iteration_history.get("fval")` is still `None`). Reproduced by the orchestrator at `4f50376` on a 2-D sphere, seeds 0 and 1 (`scripts/wave3/orchestrator/w3_acc0.py`). MATLAB fails too: `iterList` starts empty (`setupvars.m:179-182`) and `bads.m:976-979` read `iterList.fval(iter - AccelerateMeshSteps)` with `iter > 0` | confirmed shared defect | no (default 3) | older than the review (`157bd09`, 2022; MATLAB 2017) | — | PI, after the gates: refuse a value that is not a positive integer when `BADS` is created (fixed in `5d711bf`), as W3-31 does for `improvement_quantile` (a stricter interface: a changelog entry and an "Upgrading from" line), and an entry in `matlab_side_defects.md` | fingerprint; a test with `accelerate_mesh_steps=0` |
-| W3-40 | W3-24's gate (`geometry_w3-24_crashes.txt`), added after the gates | a rebuild of the local GP on two distinct points stops the run with gpyreg's `ValueError` for a prior with a sigma of 0: the empirical prior of the log length scales takes its centre and width from the spread of the training set's pairwise distances (`gaussian_process_train.py:360-382`), and two points have one distance. Reached by W3-24's tilted poll on the thin bands of the `geometry` suite (three runs), and, with MATLAB's coordinate poll, by a band along a coordinate, in four of four seeds (`scripts/wave3/doublecheck/b_B4/w3_40_band.out`). MATLAB computes the same zero width (`gpdef/gpdefBads.m:240-251`), where GPML's `priorGauss` gives NaN, which enters only the fit's objective | confirmed shared defect (B6's code) | no (a feasible region that leaves two points in the training set; no run of the `default` or `geometry` suite at MATLAB's poll) | never agreed on a guard: Python `c7c88ab`; MATLAB `31a39f3` (2017) | — (`dev/TODO.md`, "The GP on a one-point training set") | PI, after the gates: keep the previous prior, as a rebuild on targets without spread keeps its own (KD-B6-2); fixed in `a14524d`, with an entry in `matlab_side_defects.md` | fingerprint; a test of a rebuild on two points |
+| W3-40 | W3-24's gate (`geometry_w3-24_crashes.txt`), added after the gates | a rebuild of the local GP on two distinct points stops the run with gpyreg's `ValueError` for a prior with a sigma of 0: the empirical prior of the log length scales takes its centre and width from the spread of the training set's pairwise distances (`gaussian_process_train.py:360-382`), and two points have one distance. Reached by W3-24's tilted poll on the thin bands of the `geometry` suite (three runs), and, with MATLAB's coordinate poll, by a band along a coordinate, in four of four seeds (`scripts/wave3/doublecheck/b_B4/w3_40_band.out`). MATLAB computes the same zero width (`gpdef/gpdefBads.m:240-251`), where GPML's `priorGauss` gives NaN, which enters only the fit's objective | confirmed shared defect (B6's code) | no (a feasible region that leaves two points in the training set; no run of the `default` or `geometry` suite at MATLAB's poll) | never agreed on a guard: Python `c7c88ab`; MATLAB `31a39f3` (2017) | — (`dev/TODO.md`, "The GP on a one-point training set") [2026-09-28: the item closed by the PI's ruling on the GP on one point, `73d517a`; `dev/results/2026-09-28-port-correctness-review.md`, "Open ends"] | PI, after the gates: keep the previous prior, as a rebuild on targets without spread keeps its own (KD-B6-2); fixed in `a14524d`, with an entry in `matlab_side_defects.md` | fingerprint; a test of a rebuild on two points |
 
 ## Notes on the reports
 
@@ -214,8 +214,10 @@ is proposed here.
   KD-B1-6); the docstring of `_get_target_from_gp_` says that the target is
   shifted only for a stochastic function and calls `f_target_s` a variance
   (B4-I); the search step counts the points of the log, MATLAB the GP's
-  training set, equal in practice (B3-C, a B2 item): for the docstrings
-  and descriptions of the fix pass.
+  training set, equal in practice (B3-C, a B2 item) [2026-09-28: not
+  equal in practice; at default options they differ at one pass of runs
+  with `non_box_cons`, KD-B2-10 of `pybads/bads/README.md`]: for the
+  docstrings and descriptions of the fix pass.
 
 ## Rulings (PI, 2026-09-27)
 
@@ -568,7 +570,11 @@ owns its code.
 - **Warnings that `np.seterr` hid** (the orchestrator, W3-22): gpyreg's
   `get_bounds_info` takes the log of a zero width on a degenerate training
   set (`covariance_functions.py:476-479` at v1.3.3), the warnings that
-  `dev/TODO.md`'s "The GP on a one-point training set" names.
+  `dev/TODO.md`'s "The GP on a one-point training set" names [2026-09-28:
+  that item closed by the PI's ruling on the GP on one point, `73d517a`;
+  the warnings, which refits still print, went to the item "For gpyreg's
+  maintainers." (`dev/results/2026-09-28-port-correctness-review.md`,
+  "Open ends")].
 - **The search and the LCB** (A): the empty-set branch of `_search_step_`
   sets `search_dist = 0`, an `int`, read only by `_update_search_stats_`;
   `acq_fcn_lcb`'s summary line says that it retrieves a point, and it

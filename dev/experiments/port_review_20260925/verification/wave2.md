@@ -319,7 +319,12 @@ recorded at every commit:
 - W2-35: `min_iter` and `min_fun_evals` on KD-B1-5 (d).
 - W2-36 (PI: keep MATLAB's): a shared design observation in
   `matlab_side_defects.md`; if W2-25's comparison moves the noisy runs, it
-  can be measured as a separate step.
+  can be measured as a separate step. [2026-09-28: at 90 seeds, the first
+  incumbent's value from the initial GP flags nothing, and raises
+  `sphere_D3_hetero`'s fraction solved from 0.50 to 0.61
+  (`experiments/w236_linux_20260928/`).] [2026-09-29: on that measurement
+  the PI keeps MATLAB's behaviour
+  (`dev/results/2026-09-28-port-correctness-review.md`, "Open ends").]
 - W2-37 (PI: document): the documentation of `non_box_cons` says that a
   feasible region thinner than the mesh can resolve ends the run early, and
   suggests a reparametrization. MATLAB's GP on one point is not needed for

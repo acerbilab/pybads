@@ -1,0 +1,112 @@
+{
+ "label": "sphere_band_D2",
+ "seed": 13,
+ "problem": "sphere_band",
+ "D": 2,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  2.5857243801166776,
+  2.582561295271618
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1000,
+  "random_seed": 13
+ },
+ "effective_options": {
+  "max_fun_evals": 1000,
+  "max_iter": 400,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 70,
+  "random_seed": 13,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   2.587890625,
+   2.5830078125
+  ],
+  "fval": 8.54325740588208,
+  "fsd": 0.0,
+  "true_error": 8.54325740588208,
+  "func_count": 2,
+  "iterations": 6,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 0.04917249099980836,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.0010007553140806797,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.0005707350001102895,
+    "target": 2.2284000362222082e-05,
+    "init": 0.014221678000002042,
+    "gp_init": 0.023860072000388755,
+    "poll": 0.0014728430005561677,
+    "history": 0.0009404339980392251
+   },
+   "paths": {
+    "loop": 0.0005707350001102895,
+    "target": 2.2284000362222082e-05,
+    "init": 0.014221678000002042,
+    "gp_init": 0.0027512870001373813,
+    "gp_init/gp_fit": 0.021108785000251373,
+    "poll": 0.0014728430005561677,
+    "history": 0.0009404339980392251
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 6,
+    "history": 6
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "07280f79",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/p3_base/pybads",
+   "git": {
+    "sha": "07280f79",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T21:33:03+0000",
+  "finished": "2026-09-28T21:33:04+0000"
+ }
+}

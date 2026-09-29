@@ -1,6 +1,10 @@
-"""Checks of ``population.py``: the record schema, the reference minima of
-the real-data targets, resumability, and the statistics of ``compare`` on
-synthetic records. Run by path, from the repository root::
+"""Checks of ``population.py``: the record schema, a record whose stage
+times cannot be read, the suites' configurations, the reference minima of
+the real-data targets, the earlier runs that give the runs of the
+``warmstart`` suite their evaluations made before them (the log in the
+records, and the noise stream of a noisy rerun), resumability, and the
+statistics and warnings of ``compare`` on synthetic records. Run by path,
+from the repository root::
 
     python -m pytest dev/scripts/test_population.py
 
@@ -65,6 +69,7 @@ def test_record_schema(tmp_path):
         "crashed",
         "exception",
         "min_noise_var",
+        "stage_times",
     }
     assert final["crashed"] is False and final["exception"] is None
     assert len(final["x"]) == 2 and final["func_count"] == 20
@@ -73,6 +78,13 @@ def test_record_schema(tmp_path):
     assert rec["x0"] == prob.x0.tolist()
     assert final["true_error"] >= 0 and final["wall_s"] > 0
     assert 0 < final["min_noise_var"] < np.inf
+    stages = final["stage_times"]
+    assert set(stages) == {"top_level", "paths", "calls"}
+    assert {"init", "gp_init", "loop", "target"} <= set(stages["top_level"])
+    assert sum(stages["top_level"].values()) == pytest.approx(
+        sum(stages["paths"].values())
+    )
+    assert set(stages["calls"]) == set(stages["paths"]) - {"target"}
     meta = rec["meta"]
     for key in (
         "git",
@@ -89,6 +101,73 @@ def test_record_schema(tmp_path):
         assert key in meta
     assert set(meta["git"]) == {"sha", "dirty"}
     assert meta["gpyreg_source"]["path"]
+    assert rec["precomputed"] is None
+
+
+def test_warmstart_runs_are_given_an_earlier_log(tmp_path):
+    """A configuration of the warmstart suite gives its runs the function
+    log of an earlier run on the same target, the same for a seed at each
+    call: a rerun's at the run's seed, which holds the run's initial
+    design, and another's at a seed of its own. The record names the log
+    by its kind, rows and digest."""
+    rerun, other = (
+        bt.find_config(label)
+        for label in ("sphere_D3_rerun", "sphere_D3_other")
+    )
+    assert (rerun.precomputed_budget, other.precomputed_budget) == (15, 20)
+    first, again = rerun.make(seed=2), rerun.make(seed=2)
+    assert first.bads_kwargs().keys() == {"precomputed_evaluations"}
+    for a, b in zip(first.precomputed, again.precomputed):
+        assert np.array_equal(a, b)
+    X, y = first.precomputed
+    assert 5 <= len(X) <= 15 * 3
+    assert np.array_equal(y, first.f_vec(X))
+    X_other, _ = other.make(seed=2).precomputed
+    assert not np.array_equal(X_other[0], X[0])
+    assert bt.Config("sphere", 3).make(seed=2).bads_kwargs() == {}
+
+    for d in ("a", "b"):
+        (tmp_path / d).mkdir()
+        row = pp.run_task("sphere_D3_rerun", 2, FAST, 1.0, str(tmp_path / d))
+        assert row["status"] == "ok"
+    recs = [
+        json.loads((tmp_path / d / "sphere_D3_rerun_seed2.json").read_text())
+        for d in ("a", "b")
+    ]
+    assert recs[0]["precomputed"] == recs[1]["precomputed"]
+    assert recs[0]["precomputed"]["kind"] == "rerun"
+    assert recs[0]["precomputed"]["rows"] == len(X)
+    assert recs[0]["final"]["func_count"] == 20
+
+
+@pytest.mark.parametrize("noise", ["homo", "hetero"])
+def test_noisy_rerun_draws_a_third_stream(noise):
+    """The earlier run of a noisy rerun draws its noise from a third stream
+    of the seed, ``SeedSequence(seed).spawn(3)[2]``: its log is the same
+    for a seed at each call, none of its noise is a draw of the run's own
+    stream, and making it leaves that stream untouched. With the target's
+    noise, the log holds the SDs that the target returned."""
+    cfg = bt.find_config(f"sphere_D3_{noise}_rerun")
+    prob, again = cfg.make(seed=2), cfg.make(seed=2)
+    for a, b in zip(prob.precomputed, again.precomputed):
+        assert np.array_equal(a, b)
+    X, y = prob.precomputed[:2]
+    if noise == "hetero":
+        assert len(prob.precomputed) == 3
+        sd = prob.precomputed[2]
+        assert np.array_equal(sd, [prob.noise_sd(x) for x in X])
+    else:
+        assert len(prob.precomputed) == 2
+        sd = bt.HOMO_SD
+    noise_draws = (y - prob.f_vec(X)) / sd
+    n_calls = cfg.precomputed_budget * cfg.D
+    third = np.random.default_rng(np.random.SeedSequence(2).spawn(3)[2])
+    fresh = cfg._problem(2)._noise_rng
+    assert prob._noise_rng.bit_generator.state == fresh.bit_generator.state
+    for stream, found in ((third, True), (fresh, False)):
+        draws = stream.standard_normal(n_calls)
+        near = [np.min(np.abs(draws - d)) < 1e-9 for d in noise_draws]
+        assert all(near) if found else not any(near)
 
 
 def test_seed_fixes_run(tmp_path):
@@ -120,9 +199,33 @@ def test_crash_is_an_outcome(tmp_path):
     assert rec["final"]["crashed"] is True
     assert rec["final"]["exception"]["type"] == "ValueError"
     assert rec["final"]["true_error"] is None
+    assert rec["final"]["stage_times"] is None
     pop = pp.load_population(tmp_path)
     assert pop["sphere_D3_hetero"]["crashed"].tolist() == [True]
     assert np.isnan(pop["sphere_D3_hetero"]["true_error"][0])
+
+
+def test_unreadable_stage_times_keep_the_record(tmp_path, monkeypatch):
+    def broken(bads):
+        raise KeyError("seconds")
+
+    monkeypatch.setattr(pp, "stage_times", broken)
+    row = pp.run_task("sphere_D2", 3, FAST, 1.0, str(tmp_path))
+    assert row["status"] == "ok"
+    final = json.loads((tmp_path / "sphere_D2_seed3.json").read_text())[
+        "final"
+    ]
+    assert final["stage_times"] is None
+    assert final["stage_times_error"] == "KeyError: 'seconds'"
+    assert final["func_count"] == 20 and final["crashed"] is False
+
+
+def test_suites_name_known_configurations():
+    profile = [c.label for c in bt.SUITES["profile"]]
+    assert sorted(profile) == sorted(bt._PROFILE)
+    assert [c.label for c in bt.SUITES["smoke"]] == list(bt._SMOKE)
+    with pytest.raises(ValueError, match="sphere_D99"):
+        bt._subset(bt._DEFAULT, ("sphere_D2", "sphere_D99"), "profile")
 
 
 def test_real_targets_reference_and_pins():
@@ -178,6 +281,7 @@ def test_run_resumes(tmp_path, capsys):
         "OMP_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
     }
 
 
@@ -320,6 +424,44 @@ def test_unpaired_start_points_warn(tmp_path):
     rec_path.write_text(json.dumps(rec))
     text, _ = compare(tmp_path / "ref", tmp_path / "new")
     assert "WARNING" in text and "'a_D2': 1" in text
+
+
+def test_unpaired_logs_warn(tmp_path):
+    """A seed whose runs were given evaluations made before them of
+    different digests is not paired: the earlier run that makes them is
+    each population's PyBADS's."""
+    rng = np.random.default_rng(8)
+    err = lognormal_errors(rng)
+    for side in ("ref", "new"):
+        write_population(tmp_path / side, "a_D2_rerun", err)
+        for seed in range(30):
+            path = tmp_path / side / f"a_D2_rerun_seed{seed}.json"
+            rec = json.loads(path.read_text())
+            digest = f"{seed:016x}"
+            if side == "new" and seed in (4, 9):
+                digest = "f" * 16
+            rec["precomputed"] = {
+                "kind": "rerun",
+                "rows": 30,
+                "digest": digest,
+            }
+            path.write_text(json.dumps(rec))
+    text, _ = compare(tmp_path / "ref", tmp_path / "new")
+    warnings = [line for line in text.splitlines() if "WARNING" in line]
+    assert warnings == [
+        "WARNING: seeds whose evaluations made before the run (by digest)"
+        " differ between REF and NEW (the pairing does not hold):"
+        " {'a_D2_rerun': 2}."
+    ]
+    # records of runs given none pair with records from before the key
+    write_population(tmp_path / "old", "a_D2", err)
+    write_population(tmp_path / "none", "a_D2", err)
+    for path in (tmp_path / "none").glob("*.json"):
+        path.write_text(
+            json.dumps(dict(json.loads(path.read_text()), precomputed=None))
+        )
+    text, _ = compare(tmp_path / "old", tmp_path / "none")
+    assert "WARNING" not in text
 
 
 def test_summary(tmp_path):

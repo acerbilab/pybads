@@ -120,25 +120,19 @@ decided on; "the next release" below means it.
   variance exceeds the noise by 1e12 or more, the same cause as KD-B6-6;
   MATLAB's `mygp.m:187` clamps the same way. Open only: how often MATLAB's
   own fits reach them, which needs MATLAB.
-- [ ] **Exact step-by-step replay and numerical oracles**, after PyVBMC's
-  (`dev/scripts/golden_replay.py`, `pyvbmc/testing/oracles/`). They were
-  to follow the bug hunt, so as not to pin its defects, and the hunt is
-  done ([the port correctness review](results/2026-09-28-port-correctness-review.md)):
-  nothing holds them back. The random draws go through one generator per
-  run (`bads.rng`), which replay needs. An oracle computed by MATLAB BADS
-  needs MATLAB's own numbers, which PyVBMC's MATLAB-comparison helpers
-  (`pyvbmc/testing/_compare_matlab.py`: `randn2` and the draws that
-  reproduce MATLAB's random stream) give. The population comparison of
-  `dev/scripts/population.py` checks distributions, not trajectories,
-  until then. A replay that compares trajectories bit for bit holds on
-  Linux and Windows but not on macOS arm64
-  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
-- [ ] **Profiler**, after PyVBMC's (`dev/scripts/profile_run.py` and kin),
-  once PyBADS times its search, poll and GP-training stages separately:
-  today its timer covers only the whole run and the target's evaluations.
-  One stage is measured: the failed tries of the refits take 9% of the
-  deterministic runs' time over four suites, 42% of `ellipsoid_D3`'s
-  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)).
+- [ ] **Numerical oracles computed by MATLAB BADS.** The oracles of
+  `pybads/testing/oracles/` are PyBADS's own numbers on stored states: they
+  pin the numerics against change, not the port against MATLAB BADS.
+  Oracles computed by MATLAB BADS on the same states would check the pure
+  pieces that are not deliberate differences (`pybads/bads/README.md`):
+  `transvars.m`, `udist.m`, `force2grid.m`, `ucov.m`, the priors of
+  `gpdefBads.m` but the cases of KD-B6-2 and the centre of the mean's
+  prior on one point (KD-B6-5), `acqLCB.m` with `gppred.m` at
+  fixed hyperparameters, the ES search's weights, `searchHedge.m`'s update
+  and `pollMADS2N.m` with injected draws. The fixtures are the inputs such
+  a harness would take: plain arrays and JSON, with prescribed draws
+  (`ScriptedGenerator` in `_oracles.py`), which can be handed to MATLAB as
+  arrays. Generating the references needs MATLAB and the BADS toolbox.
 - [ ] **`udist` on periodic variables.** With periodic variables,
   `udist` (`search/grid_functions.py`) builds the `N x M x D` array of the
   differences of every pair and wraps the periodic ones with `np.mod`,
@@ -180,24 +174,6 @@ decided on; "the next release" below means it.
   variables that matches, seed for seed, the run of the reduced problem.
   The two FAQ answers that name fixed variables and KD-B1-7 change with it,
   and so does the changelog.
-- [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
-  only `x0` feasible (the thin band of row W2-37 of the port review), the
-  GP is fitted on one point: gpyreg's bounds helper replaces the targets by
-  `[0, 1]`, so the mean's prior at the initial fit is centred at 0.5
-  whatever the target (wave 1's fix pass, `verification/wave1.md`, "Found
-  while fixing"), and `get_bounds_info`, called from `_gp_hyp`, warns of a
-  log of zero and a variance with no degrees of freedom (wave 2's
-  verifiers, `verification/wave2.md`, "Found while verifying"). On two
-  distinct points, the empirical prior of the length scales had a sigma of
-  0, which gpyreg refuses; since W3-40 (wave 3's fix pass,
-  `verification/wave3.md`) a rebuild keeps the previous prior there.
-  Slice B6, whose wave has passed: decide the priors and bounds of such a
-  GP, in PyBADS or in gpyreg, with a test on the thin band. Measured on
-  2026-09-28 over the four suites
-  ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)):
-  only non-box constraints reach it, every run of the thin bands on one
-  point and 2 of 30 runs of `sphere_nonbox_D3` on two, and the runs at
-  D = 3 go on to converge.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their
@@ -215,11 +191,6 @@ decided on; "the next release" below means it.
   Example 6 (periodic variables) was run with gpyreg's development branch
   (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
   the others, with gpyreg 1.4.0.
-- [ ] **Loose ends of the port review.** Observations that the reports and
-  the fix agents made outside their findings, which no ruling took up and
-  which change no default run, are listed in the consolidated ledger
-  ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md),
-  "Open ends"). Each is fixed, documented, or dropped.
 - [ ] **Checks of option values when `BADS` is created.** `BADS` refuses
   a bad value of some options when it is created, with a `ValueError`
   that names the option (among them `max_fun_evals`, the options whose
@@ -350,3 +321,67 @@ decided on; "the next release" below means it.
   the three test packages among its run requirements (`recipe/meta.yaml`),
   and its bot merges its version-update PR once a CI that only imports
   gpyreg passes: that PR has them dropped before it merges.
+- [ ] **For gpyreg's maintainers.** gpyreg's hyperparameter helpers, the
+  `get_bounds_info` of its kernels, means and noise, which `fit` calls even
+  where the caller sets every bound and prior
+  (`gaussian_process.py:1762-1764`, and `555-557` through the recommended
+  bounds), are degenerate on inputs or targets without spread (1.3.3). The
+  kernels' helper takes the log of each column's width and of its SD with
+  `ddof=1` (`covariance_functions.py:476-480`), which prints
+  `RuntimeWarning`s (a log of zero; on one point also NumPy's "Degrees of
+  freedom <= 0" and an invalid division) on a column without spread and on
+  one point; the three replace a single target by `[0, 1]`
+  (`covariance_functions.py:472`, `mean_functions.py:491`,
+  `noise_functions.py:129`), which centres the constant mean's
+  recommendation at 0.5 whatever the target. PyBADS gives the GP on one
+  point MATLAB BADS's values without a fit (KD-B6-5), but its refits reach
+  the helpers: on inputs that a poll along one axis leaves without spread in
+  a coordinate (every run of `sphere_band_D3` at `73d517a`, whose first
+  refit takes `x0` and two poll points along the third axis, and 3 of 30 of
+  `sphere_band_D2_hetero`), and on one point at D = 1, where the noise test
+  brings `func_count` to 2 > D (27 of 30 runs of a noisy band that leaves
+  only `x0` feasible)
+  ([experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)).
+  The PI ruled (2026-09-29) that PyBADS leaves both cases to gpyreg's
+  helpers, whatever MATLAB computes. The helpers could centre on the one
+  target for N <= 1 and keep the upper bound of -inf of a column without
+  spread, on which the recommended bounds' refusal of such a column relies
+  (`gaussian_process.py:586-620`).
+- [ ] **Shared helpers of the developer scripts.** Several helpers of the
+  developer tooling exist in two or more copies, so that a change to one (a
+  thread variable, a field of the provenance) has to be repeated in the
+  others, and some copies have diverged: the thread variables
+  (`benchmark_targets.THREAD_VARS`, which `population.py` and `replay.py`
+  import, `replay.py`'s copy for a `benchmark_targets.py` that lacks it, and
+  the lists of `calibrate_budgets.py` and `make_oracle_fixtures.py`, which
+  set them before NumPy loads, the latter Accelerate's on macOS only, so
+  that elsewhere its platform key stays that of the stored fixtures);
+  building a run from a configuration of `benchmark_targets.py`
+  (`replay.record_run`, `profile_run.main`, `population.run_task`,
+  `gp_update_failures.run_one` and `benchmark_targets._smoke_task`); the
+  provenance of a record (the `meta` of `population.run_task` and of
+  `profile_run.main`, and `replay.provenance`), where
+  `population.module_source` and `make_oracle_fixtures.module_identity`
+  identify a package's source and commit in two layouts; `git_info`
+  (`population.py`, which `replay.py` imports, and
+  `make_oracle_fixtures.py`, whose version adds `git describe` and excluded
+  paths) and `pkg_version` (`population.py`, and inside `module_identity`);
+  the platform key (`replay.platform_key` and
+  `make_oracle_fixtures.platform_key`, each with its own `_cpu_model`,
+  `_blas_build`, `_openblas_libraries` and `_openblas_runtime`), whose
+  versions have diverged: replay's lacks `cpu_count`, `numpy_cpu_features`
+  and gpyreg, and replay records gpyreg in its provenance, where a
+  difference warns instead of refusing, and the other two nowhere; `_median`
+  and `_fmt` (`profile_suite.py` and `profile_compare.py`) and
+  `DEFAULT_CAMPAIGNS` (`profile_suite.py` and `profile_run.py`); and three
+  ways of capturing a run's steps (`replay.py`'s wrappers of the target, the
+  steps and the GP functions, `run_recipe` in `make_oracle_fixtures.py`, and
+  the output function `stop_at_init` of `test_initial_design_pin.py`). A
+  module of `dev/scripts/` can hold all of them but `stop_at_init`, which
+  belongs to the package's tests: they ship in the wheel and cannot import
+  from `dev/`. The scripts kept with an experiment's record are frozen with
+  its evidence and stay copies: `dev/experiments/warmstart_gp_linux_20260929/`,
+  for instance, holds verbatim copies of `pairs.py` (from
+  `one_point_gp_linux_20260928/`) and `w236_pairs.py` (from
+  `w236_linux_20260928/`), and a `first_gp.py` with its own list of the
+  thread variables, its own `parse_seeds` and its own builder of a run.

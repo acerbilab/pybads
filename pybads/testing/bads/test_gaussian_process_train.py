@@ -271,7 +271,8 @@ def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
     """With a budget no larger than the initial design, the design takes what
     the starting point and the noise test leave of it, and the budget counts
     as used up: the GP fits start from `gp_train_n_init_final` points, within
-    the range of the schedule, from `gp_train_n_init` down."""
+    the range of the schedule, from `gp_train_n_init` down. A budget of 2
+    leaves the GP one point, which is not fitted."""
     import pybads.bads.gaussian_process_train as gpt
 
     seen = []
@@ -301,7 +302,7 @@ def test_get_gp_training_options_small_budget(monkeypatch, D, max_fun_evals):
     # evaluations
     assert result["func_count"] == max_fun_evals
     assert bads.optim_state["eff_starting_points"] == max_fun_evals - 1
-    assert seen
+    assert bool(seen) == (max_fun_evals > 2)
     assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
     assert np.isfinite(result["fval"])
 
@@ -830,24 +831,238 @@ def test_refit_on_targets_below_initial_design_fits_mean_below_them():
     assert lower.item() == -np.inf and upper.item() == np.inf
 
 
-def test_thin_feasible_region_runs():
-    """A feasible region too thin for the initial design (`non_box_cons`
-    |x1 - x2| <= 0.005) leaves the local GP one training point, whose
-    targets have no spread: the rebuild keeps the previous prior of the
-    output scale, and the run goes on."""
-    D = 3
-    bads = BADS(
-        lambda x: float(np.sum((np.ravel(x) - 1.0) ** 2)),
+def _thin_band_bads(D, fun, **options):
+    """A run whose feasible region, the band |x1 - x2| <= 0.005, is too
+    thin for the initial design: only `x0` is feasible in it."""
+    return BADS(
+        fun,
         np.zeros(D),
         -5 * np.ones(D),
         5 * np.ones(D),
         -2 * np.ones(D),
         2 * np.ones(D),
         non_box_cons=lambda x: np.abs(x[:, 0] - x[:, 1]) > 0.005,
-        options={"display": "off", "max_fun_evals": 100, "random_seed": 0},
+        options={
+            "display": "off",
+            "max_fun_evals": 100,
+            "random_seed": 0,
+            **options,
+        },
     )
+
+
+def _spy_initial_gp(monkeypatch, bads, errors=False):
+    """Record the GP that `init_and_train_gp` hands on, its training data
+    (the noise variances included), hyperparameters and prior of the mean,
+    and the evaluations made before it; with `errors`, every warning of the
+    call raises."""
+    import warnings
+
+    import pybads.bads.bads as bads_module
+
+    seen = {}
+    original = bads_module.init_and_train_gp
+
+    def spy(*args, **kwargs):
+        with warnings.catch_warnings():
+            if errors:
+                warnings.simplefilter("error")
+            out = original(*args, **kwargs)
+        gp = out[0]
+        seen.update(
+            X=gp.X.copy(),
+            y=gp.y.copy(),
+            s2=None if gp.s2 is None else gp.s2.copy(),
+            hyp=gp.get_hyperparameters()[0],
+            mean_prior=gp.get_priors()["mean_const"],
+            func_count=bads.function_logger.func_count,
+        )
+        return out
+
+    monkeypatch.setattr(bads_module, "init_and_train_gp", spy)
+    return seen
+
+
+def _assert_matlab_definition(seen, D, y1, log_noise):
+    """The GP on one point holds the values of MATLAB BADS's definition
+    (gpdefBads.m): log length scales, log output scale and log shape 0,
+    the log noise SD at the log of the noise size and the mean at the one
+    target, with the mean's prior centred there with the SD 1."""
+    assert np.unique(seen["X"], axis=0).shape[0] == 1
+    assert seen["y"].ravel().tolist() == [y1]
+    hyp = seen["hyp"]
+    assert np.all(hyp["covariance_log_lengthscale"] == np.zeros(D))
+    assert hyp["covariance_log_outputscale"].tolist() == [0.0]
+    assert hyp["covariance_log_shape"].tolist() == [0.0]
+    assert hyp["noise_log_scale"].tolist() == [log_noise]
+    assert hyp["mean_const"].tolist() == [y1]
+    kind, (mu, sigma) = seen["mean_prior"]
+    assert kind == "gaussian"
+    assert mu.item() == y1 and sigma.item() == 1.0
+
+
+@pytest.mark.parametrize("offset", [10.0, 1e4, -1e3])
+def test_one_point_gp_takes_matlab_definition(monkeypatch, offset):
+    """At D = 2 the thin band leaves the GP one training point, `x0`, which
+    is not fitted: whatever the target's offset, the GP takes MATLAB BADS's
+    definition values, with the mean at the target of `x0`, and gpyreg's
+    helpers, which warn on one point, are not called (every warning of the
+    run raises here). The run makes no fit at all and ends after 2
+    evaluations, at `x0`, on the stall criterion (the port review's
+    W2-37)."""
+    import warnings
+
+    D = 2
+    bads = _thin_band_bads(
+        D, lambda x: float(np.sum((np.ravel(x) - 1.0) ** 2)) + offset
+    )
+    seen = _spy_initial_gp(monkeypatch, bads)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = bads.optimize()
+    assert result["func_count"] == 2
+    assert abs(result["x"][0] - result["x"][1]) <= 0.005
+    y1 = bads.function_logger.Y[0].item()
+    assert y1 == pytest.approx(2.0 + offset, rel=1e-12)
+    _assert_matlab_definition(
+        seen, D, y1, np.log(np.sqrt(bads.options["tol_fun"]))
+    )
+    calls = bads.optim_state["stage_times"]["calls"]
+    assert calls["gp_init"] == 1
+    assert not any("gp_fit" in key for key in calls)
+
+
+def test_one_point_gp_with_inferred_noise(monkeypatch):
+    """With noise, which the noise test finds from its repeat of `x0`, the
+    thin band's GP holds one point from two evaluations: it takes MATLAB
+    BADS's definition values, the log noise SD at the log of the noisy
+    run's noise size, 1, and the mean at the first evaluation's value
+    (the repeat is not recorded), with no warning."""
+    D = 2
+    noise = np.random.default_rng(1)
+    bads = _thin_band_bads(
+        D,
+        lambda x: float(np.sum((np.ravel(x) - 1.0) ** 2))
+        + noise.standard_normal(),
+    )
+    seen = _spy_initial_gp(monkeypatch, bads, errors=True)
+    bads._init_optimization_()
+    assert bads.optim_state["uncertainty_handling_level"] == 1
+    assert seen["func_count"] == 2
+    _assert_matlab_definition(
+        seen, D, bads.function_logger.Y[0].item(), np.log(1.0)
+    )
+
+
+def test_one_point_gp_with_target_noise(monkeypatch):
+    """With `specify_target_noise=True` (uncertainty level 2), the thin
+    band's GP on one point receives the variance of that point's noise, the
+    square of the SD that the target returns, and takes MATLAB BADS's
+    definition values, with the log noise SD at the log of `tol_fun`, the
+    noise that `_gp_hyp` adds at level 2 to the target's, and the mean at
+    the point's value, with no warning."""
+    D = 2
+    noise = np.random.default_rng(2)
+
+    def fun(x):
+        sd = 1.5
+        y = float(np.sum((np.ravel(x) - 1.0) ** 2))
+        return y + sd * noise.standard_normal(), sd
+
+    bads = _thin_band_bads(
+        D, fun, uncertainty_handling=True, specify_target_noise=True
+    )
+    seen = _spy_initial_gp(monkeypatch, bads, errors=True)
+    bads._init_optimization_()
+    assert bads.optim_state["uncertainty_handling_level"] == 2
+    assert seen["func_count"] == 1
+    assert seen["s2"].ravel().tolist() == [1.5**2]
+    _assert_matlab_definition(
+        seen,
+        D,
+        bads.function_logger.Y[0].item(),
+        np.log(bads.options["tol_fun"]),
+    )
+
+
+def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
+    """A GP on one point whose posterior fails with the definition values
+    is left as it was by gpyreg and is fitted instead, with a warning."""
+    import warnings
+
+    D = 2
+    bads = _thin_band_bads(D, lambda x: float(np.sum(np.ravel(x) ** 2)) + 10.0)
+    seen = _spy_initial_gp(monkeypatch, bads)
+    original_update = gpr.GP.update
+    failed = []
+
+    def update(self, *args, **kwargs):
+        if not failed:
+            failed.append(True)
+            raise np.linalg.LinAlgError("injected")
+        return original_update(self, *args, **kwargs)
+
+    monkeypatch.setattr(gpr.GP, "update", update)
+    with warnings.catch_warnings():
+        # gpyreg's helpers warn on the one point that the fit takes
+        warnings.simplefilter("ignore", RuntimeWarning)
+        gp, _, _, _ = bads._init_optimization_()
+    assert failed
+    assert "one training point failed" in caplog.text
+    assert seen["X"].shape == (1, D)
+    assert seen["hyp"]["mean_const"].item() != seen["y"].item()
+    assert np.all(np.isfinite(gp.predict(np.zeros((1, D)))[0]))
+
+
+@pytest.mark.parametrize(
+    "targets, mean",
+    [
+        # ceil(0.8 * 3) = 3: the median of every target
+        ([3.0, 5.0, 4.5], 4.5),
+        # ceil(0.8 * 5) = 4: the median of the lowest 4, not of all 5 (3.0)
+        ([20.0, 1.0, 10.0, 3.0, 2.0], 2.5),
+    ],
+)
+def test_one_point_gp_hyp_on_repeated_rows(targets, mean):
+    """Rows that repeat one point count as one point: the starting values
+    are MATLAB BADS's definition values, with the mean at the median of
+    the lowest ceil(0.8 N) targets, as MATLAB's definition takes it, and
+    the mean's prior centred there with the SD 1."""
+    bads, gp = _initialized_bads()
+    X = np.zeros((len(targets), 2))
+    y = np.array(targets)[:, None]
+    fresh = gpr.GP(D=2, covariance=gp.covariance, mean=gp.mean, noise=gp.noise)
+    fresh, hyp0, _ = gaussian_process_train._gp_hyp(
+        bads.optim_state,
+        bads.options,
+        None,
+        None,
+        fresh,
+        X,
+        y,
+        bads.function_logger,
+    )
+    log_noise = np.log(bads.options["noise_size"])
+    assert hyp0.tolist() == [0.0, 0.0, 0.0, 0.0, log_noise, mean]
+    kind, (mu, sigma) = fresh.get_priors()["mean_const"]
+    assert mu.item() == mean and sigma.item() == 1.0
+
+
+def test_thin_feasible_region_runs(monkeypatch):
+    """A feasible region too thin for the initial design (`non_box_cons`
+    |x1 - x2| <= 0.005) leaves the local GP one training point, whose
+    targets have no spread: the initial GP holds the target of `x0` as its
+    mean, the rebuild keeps the previous prior of the output scale, and
+    the run goes on."""
+    D = 3
+    bads = _thin_band_bads(
+        D, lambda x: float(np.sum((np.ravel(x) - 1.0) ** 2))
+    )
+    seen = _spy_initial_gp(monkeypatch, bads)
     result = bads.optimize()
     assert bads.optim_state["eff_starting_points"] == 1
+    assert seen["hyp"]["mean_const"].item() == seen["y"].item()
+    assert seen["y"].item() == bads.function_logger.Y[0].item()
     assert abs(result["x"][0] - result["x"][1]) <= 0.005
     assert result["fval"] < 1e-3
 

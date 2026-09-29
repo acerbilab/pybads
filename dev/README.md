@@ -42,6 +42,102 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the same hash before and after, on one machine and with the same number
   of BLAS threads: BLAS, its thread count and platform differences can
   change the value.
+- `replay.py` records short seeded runs step by step and compares two
+  recordings exactly. `record` runs eight configurations of the benchmark
+  (`sphere_D2`, `ellipsoid_D3`, `rosenbrock_D6`, `sphere_D3` with both
+  noise kinds, `sphere_nonbox_D3`, `ellipsoid_D3_unbounded` and
+  `logsphere_D3`) at seed 0 and 50 D evaluations, each in a fresh process
+  with one BLAS thread and, on x86_64, OpenBLAS's Haswell kernels, in
+  about 30 s, and writes one trace per run under `scripts/runs/replay/`:
+  every call of the target with the state of the run's generator, every
+  search and poll step, every GP computation with its hyperparameters,
+  `iteration_history`, the result, the log given to a run of the
+  `warmstart` suite (its kind, rows and digest), and the platform key
+  (CPU, libraries, BLAS kernel and threads). `check BASE NEW` refuses two
+  recordings whose platform keys differ (unless `--force`), warns when
+  they differ in the gpyreg that ran, the requested options, the budget
+  scale or the digest of the log given to a run, and
+  reports, per run, identity or the first divergence: the evaluation, its
+  iteration and stage, whether the generator's states agree there (a
+  value moved) or not (a branch changed), and the first step and the
+  earliest GP computation that differ; it exits 1 unless every run is
+  identical. For a change that must move nothing, record at the parent
+  commit, in a worktree at it, and at the change, on one machine, and
+  check the two. Both sides record with the change's `replay.py`, copied
+  alone into the parent's worktree when the parent has an older one or
+  none (a commit from before 2026-09-28): traces written by two versions
+  of the tool can differ in their layout, which `check` reports as runs
+  that differ. The copy takes the parent's `benchmark_targets.py` and
+  `population.py`, which have what it needs, the default configurations
+  included, at every commit from `0d866e84` (2026-09-27) on; at an older
+  commit the recording stops with `MissingName`, since its `BADS` does not
+  set `poll_moved`, which the recorder reads. `--repeat 2` records each
+  run twice in one process, and `check DIR` compares the repeats. `report
+  DIR` tabulates a recording. The replay is exact only on one machine, one
+  set of versions, one BLAS kernel and one thread count, and not on macOS
+  arm64, where two runs of one seed need not match bit for bit
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
+  Measured at `948e0d96` on Linux (a container with 4 virtual CPUs, Intel
+  Xeon at 2.10 GHz; NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg
+  1.3.3), a seeded run repeats exactly, in one process and across processes.
+  Under `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first
+  GP fit of every run differs, by 1e-15 to 1e-10, and every run of the
+  default set parts after 15 to 40 evaluations, into different decisions
+  (the values of `rosenbrock_D6`, whose target rotates its input by a matrix
+  product, differ from the first evaluation, and its points after 24). With
+  four threads, seven of the eight runs part after 22 to 50 evaluations, and
+  `sphere_D3_homo` differs only in its GP hyperparameters, by about 1e-10.
+  So it is a developer tool, not a test: the part of a run that involves no
+  BLAS work, the initial design, is pinned on every platform by
+  `pybads/testing/bads/test_initial_design_pin.py`.
+- `make_oracle_fixtures.py` writes and checks the oracles of
+  `pybads/testing/oracles/`: the states of six short seeded runs
+  (`_recipes.py`: deterministic at D = 2 and 3, with inferred noise, with
+  the target's noise, with log-transformed variables and with a non-box
+  constraint), taken at the start of a search or poll step and saved as
+  plain arrays and JSON, with the outputs of PyBADS's components computed
+  from them: the GP's predictions, the LCB, the variable transform, the
+  grid functions, `contraints_check`, `_gp_hyp`, the choice of the local
+  training set, the ES search's set-up and generations, the hedge, the
+  improvement and Sto-BADS's outcome, and `poll_mads_2n`. Where a
+  component draws, its draws are prescribed: exact arithmetic on PCG64's
+  raw stream, the same everywhere. The fixtures store the portable outputs
+  alone, those that rounding on another platform moves by less than their
+  tolerances, measured across BLAS threads and kernels (the docstring of
+  `_oracles.py`); the tests (`pytest pybads/testing/oracles`, about 4 s)
+  compare them on every platform, and so does `--check`, which exits 1 on
+  a failure. The platform-bound outputs are not stored: a GP refit, a whole
+  ES search step, and the outputs through the solve of a GP whose
+  condition number exceeds 1e8, as it does after a refit on three of the
+  six states; for those three, a view with the GP's noise raised to bound
+  the condition number by 1e6 keeps the arithmetic of the GP's
+  predictions, the LCB, the training set and the hedge covered on every
+  platform, in a smoother regime than the run's GP (a noise SD of 10 to 65
+  against training values of median 0.25 to 5.7; predictions that correlate
+  with those on the state as stored by 0.69 to 0.998), so that their values
+  in the near-interpolating regime of the run's GP are covered only by
+  `--dump` and `--against`, on one machine. Every mode reports the outputs
+  it compared and those it left out, and why. `--check --exact` compares
+  bit for bit, with one BLAS thread (the script's default), and refuses
+  under another platform key than the fixtures'; on any machine, `--dump
+  DIR` at the parent commit and `--check --exact --against DIR` at the
+  change compare every output, the platform-bound ones included: the gate
+  for a change that must move nothing. `--rebaseline ORACLE --reason TEXT`
+  replaces one oracle's references, for a change that moves it on purpose,
+  after the check of its decisions' margins that `--write` makes, and
+  records the reason and the commit in the fixtures; `--write --reason TEXT`
+  reruns the recipes, a new baseline, from a clean checkout, and alone
+  re-chooses the size of the reduced training sets for their margins: the
+  remedy when `--rebaseline` refuses a decision at its bound. An option of a
+  stored state that the code no longer has is dropped when the state is
+  rebuilt, and listed; a key that the code reads from `optim_state` or a
+  GP's `temporary_data` and that a stored state lacks gets a default in
+  `STATE_DEFAULTS` of `_state.py`, in the commit that makes the code read
+  it; `test_every_case_computes` computes every oracle, the platform-bound
+  ones included, and fails on such a key. The oracles gate a component's
+  numbers on fixed inputs, not a run: whole trajectories are `replay.py`'s,
+  on one machine, and the distribution of results the population
+  comparison's.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
@@ -54,16 +150,31 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   configurations at D = 1), `bounds` (plausible bounds omitted, a start on
   a hard bound, and `logsphere`: the setup's checks of the bounds and the
   start), `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of
-  W3-1 and W3-24 of the port review) and `periodic` (`periodic_vars`, whose
-  configurations set it; with `--options '{"periodic_vars": null}'` they
-  run as bounded problems). `--list` prints the suites, `--check` verifies
-  each target's minimum, bounds and noise, and the pinned likelihood values
-  of the real-data targets, and `--smoke` runs each configuration of a
-  suite once, in a fresh process as a population does, and prints its wall
-  time with the projected time of 30 seeds. The `default` suite runs every
-  configuration at BADS's default budget, 500 D, so that each run ends on
-  BADS's own termination criteria; a population of 30 seeds takes about 95
-  minutes.
+  W3-1 and W3-24 of the port review), `thinband` (`sphere_band` at D = 2
+  and 3 with inferred noise and with the target's noise, whose GP starts on
+  one point: the gate of a change to that GP), `warmstart` (the sphere and
+  the ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise,
+  and the sphere at D = 3 with both kinds of noise, each run given as
+  `precomputed_evaluations` the function log of an earlier BADS run: of
+  15 D evaluations at the run's seed and start, a rerun, whose log holds
+  the run's initial design, or of 20 D at the seed plus 1000; the earlier
+  run is made in the run's process, and the record names its log by a
+  digest, which `population.py compare` checks seed by seed; the gate of
+  a change to how a run uses evaluations made before it), `profile` (the
+  seven configurations whose time `profile_suite.py` measures) and
+  `periodic` (`periodic_vars`, whose configurations set it; with
+  `--options '{"periodic_vars": null}'` they run as bounded problems).
+  `--list` prints the suites, `--check` verifies each target's minimum,
+  bounds and noise, and the pinned likelihood values of the real-data
+  targets, and `--smoke` runs each configuration of a suite once, in a
+  fresh process as a population does, and prints its wall time with the
+  projected time of 30 seeds. The `default` suite runs every configuration
+  at BADS's default budget, 500 D, so that each run ends on BADS's own
+  termination criteria; a population of 30 seeds takes about 95 minutes.
+  The processes that the tools start for their runs have one BLAS thread,
+  with the variables of `THREAD_VARS` (`OMP_NUM_THREADS`,
+  `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`)
+  set to 1, and their records hold those variables.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes
@@ -74,23 +185,26 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   real-data likelihood or its data changes.
 - `population.py` runs, summarizes and compares populations of seeded
   runs. `run --suite default --seeds 0-29 --out DIR` writes one JSON record
-  per run (result, error against the target's minimum, effective options,
-  provenance) and skips the runs already recorded, so it resumes after an
-  interruption. `summary DIR` writes `DIR/summary.md`. `compare REF NEW`
-  tests each configuration for a change in the error and in the number of
-  evaluations, with one Holm correction over all the tests, prints effect
-  sizes, and exits 1 on a flag; `compare REF --split` compares the even
-  and the odd seeds of one population, as a null check. The paired test
-  of `compare` assumes that both populations share each seed's start point
-  and noise, that is, the same `benchmark_targets.py`; `compare` warns when
-  the recorded start points differ. To run against another gpyreg
+  per run (result, error against the target's minimum, the run's stage
+  times, effective options, provenance) and skips the runs already
+  recorded, so it resumes after an interruption. `summary DIR` writes
+  `DIR/summary.md`. `compare REF NEW` tests each configuration for a
+  change in the error and in the number of evaluations, with one Holm
+  correction over all the tests, prints effect sizes, and exits 1 on a
+  flag; `compare REF --split` compares the even and the odd seeds of one
+  population, as a null check. The paired test of `compare` assumes that
+  both populations share each seed's start point and noise, that is, the
+  same `benchmark_targets.py`, and in the `warmstart` suite each seed's
+  evaluations made before the run, which each side's PyBADS makes by an
+  earlier run, so that a change that moves any run gives the two sides
+  different ones; `compare` warns when the recorded start points, or the
+  digests of those evaluations, differ. To run against another gpyreg
   checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
   source path and commit, since the version string is that of the
-  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets
-  and seeds, come from the checkout that holds the script, which it puts
-  first on `sys.path`: to run a commit, run the
-  `dev/scripts/population.py` of a worktree at it, from the main
-  checkout's root.
+  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets and
+  seeds, come from the checkout that holds the script, which it puts first
+  on `sys.path`: to run a commit, run the `dev/scripts/population.py` of a
+  worktree at it, from the main checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`,
@@ -110,6 +224,35 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the error of each run; `summary LOG` prints, per test, the largest and
   the median error, the evaluations and the ratio of the tolerance to the
   largest error. Seeds 0-99 take about 40 minutes.
+- `profile_run.py --config LABEL --seed N` runs one configuration as
+  `population.py` does and records where its time goes: the result, the
+  run's stage times (`optim_state["stage_times"]`: each second charged to
+  the innermost open stage, the target's evaluations to `target`) by
+  path, top-level stage and leaf, with their entries and the residual
+  `total_time` less the stages and the target, one row per iteration from
+  `iteration_history["timer"]`, and with `--cprofile` a cProfile of
+  `optimize()` and the cumulative times of a curated list of functions
+  (`BUCKETS`). The profiler slows the run, most where calls are many and
+  short: stage times come from the runs without it.
+- `profile_suite.py` runs `profile_run.py` over a suite (`profile` by
+  default) and a set of seeds (`--seeds`, as `0-2`; seed 0 by default),
+  plain, under cProfile or both, one run per process and one BLAS thread,
+  resumable, and writes `aggregate.json` and `aggregate.md` (medians over
+  the seeds) in the campaign directory (`--out`, by default a new one
+  under `scripts/runs/profile/`); it exits 1 when a run fails or leaves no
+  summary, or when the campaign holds no run. `--probe CONFIG` times one
+  configuration before and after the campaign, to show a machine that
+  slowed down.
+- `profile_compare.py BASE NEW` pairs the runs of two campaigns by
+  configuration, seed and mode, and prints the median ratios of the wall
+  time, the own time and each stage, a large control stage that the
+  change does not reach (`--control`, `search_es` by default: a ratio far
+  from 1 is the machine's speed, not the code's), whether each pair ran
+  the same trajectory, and the cProfile buckets with their times per
+  call. A commit from before the stage timers is measured with these
+  scripts, `population.py` and `benchmark_targets.py` copied into a
+  worktree at it: its runs have no stages, and the comparison takes their
+  wall times and buckets.
 - `divergence_trace.py` repeats the optimization of an output-function
   test of `test_run_control.py` in one process and finds where two runs of
   one seed differ: `loop N` compares their evaluations, `trace N OUT_DIR`
@@ -117,9 +260,28 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   SciPy's linear algebra, down to the first local variable that differs,
   and `align N` counts the results of the linear algebra of a GP fit at
   each alignment of its arrays. Its docstring gives the details.
-- `test_population.py` checks the record schema, the reference minima of
-  the real-data targets, resumability and the statistics of `compare`:
-  `python -m pytest dev/scripts/test_population.py`.
+- `test_population.py` checks the record schema, a record whose stage
+  times cannot be read, the suites' configurations, the reference minima
+  of the real-data targets, the earlier runs of the `warmstart` suite (the
+  same log for a seed at each call, named in the records by its digest,
+  and a noisy rerun's noise from a third stream of the seed, with the SDs
+  that the target returned), resumability, and the statistics and
+  warnings of `compare`: `python -m pytest dev/scripts/test_population.py`.
+- `test_replay.py` checks the comparison of `replay.py` on synthetic
+  traces, its warnings (the logs given to the runs included), the
+  recorder's reading of the refit flag, its failure on a private name that
+  the package no longer has and on an error of its own code inside a run,
+  the script beside a `benchmark_targets.py` of an older commit, without
+  `THREAD_VARS` or without runs given evaluations made before them, one
+  short recording repeated in one process, and the recording of a run
+  given the log of an earlier run: `python -m pytest
+  dev/scripts/test_replay.py`.
+- `test_make_oracle_fixtures.py` checks the `--rebaseline` of
+  `make_oracle_fixtures.py` on a copy of the fixtures: its refusal of new
+  references whose decisions lie within their margins, which names
+  `--write` and leaves every file as it was, and the replacement of one
+  oracle's references otherwise: `python -m pytest
+  dev/scripts/test_make_oracle_fixtures.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero
@@ -158,6 +320,14 @@ reference's number of seeds.
   measured beside every addition of a point: agreement, the noise
   multiplier it carries over, and a saving of at most 2.5 %, behind the
   decision to keep the full recomputation.
+- [The stage times of PyBADS's runs](results/2026-09-28-stage-times.md) —
+  the baseline campaign of the profiler, whose stage timers charge each
+  second of a run to one stage: on the `profile` suite, the ES search's
+  candidates take 17 to 65 % of the own time and the GP's fits 14 to 71 %,
+  the failed fits alone 49 % of `ellipsoid_D3`'s; the stages and the target
+  make `total_time` to 2e-5 s (6e-5 s under cProfile); the noise of the
+  machine between two passes of the same runs, and the choice of a control
+  stage.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over
@@ -202,6 +372,31 @@ reference's number of seeds.
   configurations at 90 seeds on Linux: no measurable effect on their
   errors, evaluations or fraction solved; the lower fraction solved of its
   30-seed gate belongs to those seeds.
+- [experiments/w236_linux_20260928/](experiments/w236_linux_20260928/README.md)
+  — row W2-36 of the port review (a noisy run's first incumbent is the raw
+  minimum of its initial design, as in MATLAB BADS) against the first
+  incumbent's value from the initial GP, the five noisy configurations at
+  90 seeds on Linux: no flag; the variant raises `sphere_D3_hetero`'s
+  fraction solved from 0.50 to 0.61 and changes each other configuration's
+  by at most one run; MATLAB BADS's behaviour kept (PI, 2026-09-29).
+- [experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)
+  — the GP whose initial training set holds one point takes MATLAB BADS's
+  definition values without a fit (`73d517a`), against its parent, the
+  `geometry` and `thinband` suites at 30 seeds on Linux: no flag; the
+  results of exactly the 144 runs that start on one point and go past it
+  change, by no consistent amount; their initialization prints no warning,
+  and refits print gpyreg's warnings on inputs without spread in a
+  coordinate in every run of `sphere_band_D3` and 3 of 30 of
+  `sphere_band_D2_hetero`.
+- [experiments/warmstart_gp_linux_20260929/](experiments/warmstart_gp_linux_20260929/README.md)
+  — a first GP fitted on the incumbent's neighbours in the whole log when
+  the run is given evaluations made before it (`58d922a1`), against its
+  parent, the `warmstart` suite at 90 seeds on Linux: the reruns' first GP
+  holds the start alone in the base and 35 to 90 rows of the log in the
+  change (seeds 0-29); flagged for more evaluations on
+  `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
+  pooled fraction solved 0.90 in the base against 0.88 in the change, not
+  significant; not adopted (PI, 2026-09-29), its diff kept with the record.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite
   but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
@@ -309,6 +504,12 @@ reference's number of seeds.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
   and the detectable effect sizes that the later references cite.
+- [plans/2026-09-28-code-work-without-release.md](plans/2026-09-28-code-work-without-release.md)
+  — the checklist and worklog of the work that needed no release, the
+  PI's rulings on it, and its gates: the port review's loose ends, stage
+  times and the profiler, replay, the initial-design pin and the oracles,
+  the GP on one point, and the first GP of a run given evaluations made
+  before it.
 - [plans/port-correctness-review.md](plans/port-correctness-review.md) —
   the independent correctness review of the port against MATLAB BADS
   v1.1.3, after PyVBMC's: slices, waves, the reviewer brief, the gates and

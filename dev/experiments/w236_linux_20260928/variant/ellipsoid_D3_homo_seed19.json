@@ -1,0 +1,88 @@
+{
+ "label": "ellipsoid_D3_homo",
+ "seed": 19,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  4.857346755959076,
+  -4.45008236579461,
+  2.8200716857217003
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 19
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 19,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -1.741577386856079,
+   1.1970329284667969,
+   -2.048187255859375
+  ],
+  "fval": 0.1153704585637065,
+  "fsd": 0.36507917535279116,
+  "true_error": 0.4180145938565171,
+  "func_count": 263,
+  "iterations": 17,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 32.29550341699996,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 3.4914880774025215e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "9a7c361e",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/agent-a3a977723e07cae97/dev/scripts/runs/worktrees/w236_variant/pybads",
+   "git": {
+    "sha": "9a7c361e",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T19:58:29+0000",
+  "finished": "2026-09-28T19:59:03+0000"
+ }
+}

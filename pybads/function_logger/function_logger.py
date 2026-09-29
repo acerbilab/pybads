@@ -64,7 +64,6 @@ class FunctionLogger:
         self.X_max_idx = -1  # Last filled entry in the cache memory.
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
-        self.y_max = float("-Inf")
         self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
         self.total_fun_eval_time = 0.0
 
@@ -101,7 +100,9 @@ class FunctionLogger:
         Raises
         ------
         ValueError
-            Raise if the function value is not a finite real-valued scalar.
+            Raise if the function value is not a finite real-valued scalar,
+            as a tuple ``(f, sd)`` is not when ``uncertainty_handling_level``
+            is below 2.
         ValueError
             Raise if the (estimated) SD (second function output)
             is not a finite, positive real-valued scalar.
@@ -153,6 +154,14 @@ class FunctionLogger:
                 )
             raise
 
+        # A pair (f, sd) where the logger takes no SD is refused as a value
+        # that is not a scalar, with the option that takes the SD named
+        returned_pair = (
+            not self.he_noise_flag
+            and type(fval_orig) is tuple
+            and len(fval_orig) == 2
+        )
+
         # An array or a list of one element, as the value or the SD, is taken
         # as that element. The conversion and the checks are the logger's,
         # out of the try above, whose note is for the target's own errors,
@@ -166,6 +175,12 @@ class FunctionLogger:
             error_message = """FunctionLogger:InvalidFuncValue:
             The returned function value must be a finite real-valued scalar
             (returned value {})"""
+            if returned_pair:
+                error_message += (
+                    "\nA target that returns its value and the SD of its "
+                    "noise, as a tuple (f, sd), needs "
+                    'options["specify_target_noise"] = True.'
+                )
             raise ValueError(error_message.format(str(fval_orig)))
 
         # Check returned function SD
@@ -452,6 +467,9 @@ class FunctionLogger:
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
                     self.n_evals[idx] += 1
+                    # The merged value can raise or lower the log's largest
+                    # value, Y_max
+                    self.Y_max = np.amax(self.Y[self.X_flag])
                     return f_val, idx
 
             # Add the new point

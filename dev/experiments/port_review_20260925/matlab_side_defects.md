@@ -161,16 +161,28 @@ Nothing here was run in MATLAB.
   so for two iterations the incumbent of a noisy run is the lowest noisy
   observation of the design, a biased order statistic, with `fsd` set to
   `NoiseSize`, and the searches and polls of those iterations are judged
-  against it. PyBADS keeps MATLAB's behaviour.
+  against it. Measured in PyBADS, on the five noisy configurations of its
+  benchmark at 90 seeds, a variant whose first incumbent takes its value
+  and SD from the initial GP (which PyBADS fits and MATLAB only defines)
+  flags nothing in 15 tests. It raises the fraction solved of a 3-D sphere
+  with the target's heteroscedastic noise, where the raw minimum lies
+  furthest below the true value, from 0.50 to 0.61 (McNemar p = 0.03 after
+  a Holm correction over the five), changes that of each other
+  configuration by at most one run, and on a 3-D ellipsoid with inferred
+  noise starts 49 of the 90 runs with an incumbent SD of exactly 0, the
+  initial GP's ([`w236_linux_20260928`](../w236_linux_20260928/README.md)).
+  PyBADS keeps MATLAB's behaviour (PI, 2026-09-29).
 - **A feasible region thinner than the mesh can resolve ends the run on
-  its stall criterion** (W2-37; needs MATLAB for the GP on one point). With
-  `|x1 - x2| <= 0.005` as `NONBCON` at D = 2, no point of the initial design
-  is feasible, the GP is trained on `x0` alone (`log(std(y))` is `-Inf`),
-  no search runs, the axis-aligned poll points are all infeasible, and the
-  stall criterion, which counts iterations without an evaluation, ends the
-  run at `x0`. PyBADS keeps the criterion, and the documentation of
-  `non_box_cons` says that such a region can end the run early and
-  suggests a reparametrization (`bdaef58`).
+  its stall criterion** (W2-37; needs MATLAB for what its fit does with
+  the degenerate priors of a refit on one point, which such a band reaches
+  at D = 1, where the noise test brings the count of evaluations to 2 >
+  D). With `|x1 - x2| <= 0.005` as `NONBCON` at D = 2, no point of the
+  initial design is feasible, the GP is trained on `x0` alone
+  (`log(std(y))` is `-Inf`), no search runs, the axis-aligned poll points
+  are all infeasible, and the stall criterion, which counts iterations
+  without an evaluation, ends the run at `x0`. PyBADS keeps the criterion,
+  and the documentation of `non_box_cons` says that such a region can end
+  the run early and suggests a reparametrization (`bdaef58`).
 - **The covariance of ES-wcm is the unweighted scatter of the best points**
   (W3-3). `utils/ucov.m:19` sums the weighted copies of the scatter matrix
   of the best points about the incumbent, and the weights sum to one, so

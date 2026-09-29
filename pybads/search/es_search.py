@@ -153,9 +153,11 @@ class ESSearch(ABC):
 
         # TODO add check rotate gp flag
 
-        us_rows = np.minimum(u_new.shape[0], self.lamb)
-        us = np.empty((us_rows, u_new.shape[1]))
-        z = np.empty((us_rows, 1))
+        # The candidates kept and their acquisition values: each generation
+        # sets both, and with no generation the search returns the empty set,
+        # as MATLAB's searchES does
+        us = np.empty((0, nvars))
+        z = np.empty(0)
         # Loop over evolutionary strategies iterations
         for i in range(0, self.n_search_iter):
             # Enforce periodicity and force the candidate points on the

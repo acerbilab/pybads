@@ -226,6 +226,22 @@ def test_record_duplicate_with_user_noise_merges_into_its_own_row():
     assert np.isclose(fval, f_logger.Y[1, 0])
 
 
+def test_record_duplicate_with_user_noise_updates_the_largest_value():
+    # Y_max follows a merge that raises the largest value and one that
+    # lowers it below another row's.
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x = np.array([3.0, 4.0, 5.0])
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    f_logger._record(x * 2, x * 2, 5.0, 1.0, 1)
+    assert f_logger.Y_max == 9.0
+    fval, _ = f_logger._record(x, x, 12.0, 1.0, 1)
+    assert fval > 9.0
+    assert f_logger.Y_max == fval == np.amax(f_logger.Y[f_logger.X_flag])
+    fval, _ = f_logger._record(x, x, 0.0, 0.1, 1)
+    assert fval < 5.0
+    assert f_logger.Y_max == 5.0
+
+
 def test_record_duplicate_adds_its_time_to_the_total():
     # Every evaluation counts in the target's time, as in MATLAB's
     # funlogger: a repeat merged into its row (level 2) and an evaluation
@@ -483,3 +499,33 @@ def test_call_one_element_sd_taken_as_a_number(sd):
     assert fval == 1.0 and fsd == 0.5 and idx == 0
     assert np.isscalar(fsd)
     assert f_logger.S[0, 0] == 0.5
+
+
+_PAIR = 'needs options["specify_target_noise"] = True.'
+
+
+@pytest.mark.parametrize("level", [0, 1])
+def test_call_pair_without_target_noise_names_the_option(level):
+    """A tuple (f, sd) at a level that takes no SD is refused as a value
+    that is not a scalar, and the message names specify_target_noise=True;
+    MATLAB's funlogger drops the SD. The logger is built as `BADS` builds
+    it, holding SDs only at level 2."""
+    f_logger = FunctionLogger(noisy_function, 3, level > 1, level)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.array([3, 4, 5]))
+    assert _PAIR in str(err.value)
+    assert f_logger.Xn == -1
+
+
+@pytest.mark.parametrize(
+    "output",
+    [np.array([1.0, 0.5]), [1.0, 0.5], (1.0, 0.5, 0.1)],
+    ids=["array", "list", "triple"],
+)
+def test_call_other_sequences_do_not_name_the_target_noise_option(output):
+    """Only a tuple of two elements, the form that specify_target_noise=True
+    takes, has its message name the option."""
+    f_logger = FunctionLogger(lambda x: output, 2, False, 0)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.zeros(2))
+    assert _PAIR not in str(err.value)
