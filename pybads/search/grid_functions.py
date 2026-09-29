@@ -95,6 +95,39 @@ def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):
     return u
 
 
+def _pairwise_sum(terms):
+    """
+    The sum of ``terms``, a list of arrays of one shape, in the order in
+    which ``np.sum`` adds the elements along an axis, NumPy's pairwise
+    summation: in turn below 8 terms, in 8 partial sums up to 128 terms, and
+    as the sum of two parts beyond, the first a multiple of 8 terms. The
+    result is that of ``np.sum`` over the terms stacked along a last axis,
+    to the last bit, without the stacked array.
+    """
+    n = len(terms)
+    if n < 8:
+        total = np.zeros_like(terms[0])
+        for term in terms:
+            total += term
+        return total
+    if n <= 128:
+        partial = [term.copy() for term in terms[:8]]
+        i = 8
+        while i < n - n % 8:
+            for j in range(8):
+                partial[j] += terms[i + j]
+            i += 8
+        total = ((partial[0] + partial[1]) + (partial[2] + partial[3])) + (
+            (partial[4] + partial[5]) + (partial[6] + partial[7])
+        )
+        for term in terms[i:]:
+            total += term
+        return total
+    half = n // 2
+    half -= half % 8
+    return _pairwise_sum(terms[:half]) + _pairwise_sum(terms[half:])
+
+
 def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
     """
     Squared distances between the rows of ``U`` and of ``u2``, in units of
@@ -126,15 +159,29 @@ def udist(U, u2, len_scale, lb, ub, bound_scale, periodic_vars):
         The squared distances, of shape ``(N, M)``.
     """
     if periodic_vars is not None and np.any(periodic_vars):
-        mask = np.ravel(periodic_vars).astype(bool)
-        A = np.atleast_2d(U)
-        B = np.atleast_2d(u2)
-        # The differences of every pair, shape (N, M, D)
-        diff = np.abs(A[:, None, :] - B[None, :, :])
-        period = (np.ravel(ub) - np.ravel(lb))[mask] / bound_scale
-        wrapped = np.mod(diff[:, :, mask], period)
-        diff[:, :, mask] = np.minimum(wrapped, period - wrapped)
-        return np.sum((diff / np.ravel(len_scale)) ** 2, axis=2)
+        periodic = np.ravel(periodic_vars).astype(bool)
+        A = np.atleast_2d(np.asarray(U, dtype=float))
+        B = np.atleast_2d(np.asarray(u2, dtype=float))
+        D = A.shape[1]
+        len_scale = np.broadcast_to(np.ravel(len_scale), (D,))
+        period = (np.ravel(ub) - np.ravel(lb)) / bound_scale
+        # The squared differences of every pair, one (N, M) array per
+        # variable
+        terms = []
+        for d in range(D):
+            diff = np.subtract.outer(A[:, d], B[:, d])
+            if periodic[d]:
+                p = period[d]
+                np.abs(diff, out=diff)
+                # np.mod leaves a difference in [0, p) as it is
+                beyond = diff >= p
+                if np.any(beyond):
+                    diff[beyond] = np.mod(diff[beyond], p)
+                np.minimum(diff, p - diff, out=diff)
+            diff /= len_scale[d]
+            diff *= diff
+            terms.append(diff)
+        return _pairwise_sum(terms)
 
     else:
         dist = cdist(

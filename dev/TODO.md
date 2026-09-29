@@ -133,18 +133,6 @@ decided on; "the next release" below means it.
   a harness would take: plain arrays and JSON, with prescribed draws
   (`ScriptedGenerator` in `_oracles.py`), which can be handed to MATLAB as
   arrays. Generating the references needs MATLAB and the BADS toolbox.
-- [ ] **`udist` on periodic variables.** With periodic variables,
-  `udist` (`search/grid_functions.py`) builds the `N x M x D` array of the
-  differences of every pair and wraps the periodic ones with `np.mod`,
-  where a run without them takes one `cdist`. Under cProfile, on seed 0 of
-  `periodic_D3_homo` at gpyreg `b44634f`, it takes 0.84 ms per call
-  against 0.11, about 0.5 s of the run's 8.9 s, nearly all of it in
-  `local_gp_fitting`, whose empirical prior of the length scales takes the
-  distances between all the training inputs
-  ([results/2026-09-28-periodic-variables.md](results/2026-09-28-periodic-variables.md),
-  "Time per evaluation"). A version that keeps its results to the last bit
-  is gated by the identity of the `periodic` suite's records; one that
-  changes them, by its comparison.
 - [ ] **Benchmarking on neurobench**, open porting work listed in
   `pybads/bads/README.md`: PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
