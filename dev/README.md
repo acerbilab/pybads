@@ -371,10 +371,12 @@ reference's number of seeds.
   — gpyreg's kernels, `predict` and the objective of its fits without
   intermediate arrays or SciPy's layers (acerbilab/gpyreg#63, for 1.4.0),
   and one line of PyBADS:
-  PyBADS's own time 23 to 29 % lower on the `profile` suite, every
-  result the same to the last bit (the fingerprint, the replay and the
-  oracles' `--against`); and what was measured and not adopted, the
-  changes that move the last bits among it.
+  PyBADS's own time 23 to 28 % lower on the `profile` suite under SciPy
+  1.17 and 19 to 27 % under SciPy 1.18, every result the same to the last
+  bit (the fingerprint, the replay and the oracles' `--against`); and what
+  was measured and not adopted, the changes that move the last bits among
+  it, the direct factorization of the training covariance, whose bits are
+  not SciPy 1.18's, included.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over
