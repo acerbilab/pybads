@@ -46,12 +46,14 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   change the value.
 - `gpyreg_bitwise.py` compares two versions of gpyreg bit for bit, for a
   change to gpyreg that must move nothing. `dump OUT`, run with the version
-  on `PYTHONPATH`, computes 31,974 outputs: its kernels (every ARD kernel,
+  on `PYTHONPATH`, computes 31,974 outputs (fewer where long double is
+  double): its kernels (every ARD kernel,
   with and without periods, at 1 to 10 dimensions and 1 to 150 inputs,
-  with float32, long-double and infinite inputs among them) and whole
-  Gaussian processes (priors, fits, predictions, the objective and its
-  gradient, the low-noise representation, updates, `random_function`, the
-  noise multiplier and a refused factorization), and stores a SHA-256
+  with float32, long-double (where it is wider than double) and infinite
+  inputs among them) and whole Gaussian processes (priors, fits,
+  predictions, the objective and its gradient, the low-noise
+  representation, updates, `random_function`, the noise multiplier and a
+  refused factorization), and stores a SHA-256
   digest of each; `compare A B` names the outputs that differ and exits 1
   unless none does, and refuses two dumps made under different platform
   keys. A dump takes about 45 s, one BLAS thread. The comparison reaches

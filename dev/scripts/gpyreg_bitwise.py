@@ -10,8 +10,9 @@ beside PyBADS's own (``fingerprint.py``, ``replay.py`` and the oracles'
   quadratic ARD), with and without periods, at 1 to 10 dimensions and 1 to
   150 inputs: the kernel, its gradient, its cross-covariance and its
   diagonal, for random hyperparameters, a rational-quadratic shape of 1,
-  repeated points, Fortran-ordered, strided, float32 and long-double inputs
-  and an infinite coordinate;
+  repeated points, Fortran-ordered, strided and float32 inputs, long-double
+  inputs where long double is wider than double, and an infinite
+  coordinate;
 * Gaussian processes of each kernel (and the isotropic ones), with a
   constant or a negative quadratic mean and with or without a noise per
   point: priors, a fit, the priors' normalization constants, predictions
@@ -92,20 +93,27 @@ def _kernels(cf, D, periodic):
     }
 
 
+# The inputs of the kernels. Long double only where it is wider than
+# double: where it is double itself (Windows, macOS on arm64) it adds
+# nothing, and on Windows SciPy's distance functions, which the kernels
+# call, corrupt the heap on it (SciPy 1.17.1).
+_VARIANTS = (
+    ("plain", "repeated", "fortran", "strided", "float32")
+    + (
+        ("longdouble",)
+        if np.finfo(np.longdouble).nmant > np.finfo(np.float64).nmant
+        else ()
+    )
+    + ("infinite",)
+)
+
+
 def dump_kernels(out):
     import gpyreg.covariance_functions as cf
 
     rng = np.random.default_rng(0)
     for D, N in itertools.product([1, 2, 3, 6, 10], [1, 2, 7, 54, 150]):
-        for variant in (
-            "plain",
-            "repeated",
-            "fortran",
-            "strided",
-            "float32",
-            "longdouble",
-            "infinite",
-        ):
+        for variant in _VARIANTS:
             X = rng.normal(size=(N, D)) * rng.uniform(0.1, 5)
             if variant == "repeated" and N > 3:
                 X[1] = X[0]
