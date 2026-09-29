@@ -52,6 +52,15 @@ class OptimizeResult(dict):
             - Final mesh size.
         - func_count: int
             - Number of evaluations of the objective functions.
+              The evaluations made before the run
+              (``precomputed_evaluations``) are not counted.
+        - precomputed_observations: int
+            - Number of evaluations made before the run that ``BADS`` was
+              given (``precomputed_evaluations``); present only when it was
+              given at least one.
+        - precomputed_locations: int
+            - Number of distinct points among them; present with
+              ``precomputed_observations``.
         - iterations: int
             - Number of iterations performed by the optimizer.
         - success: bool
@@ -106,6 +115,8 @@ class OptimizeResult(dict):
         "message",
         "fun",
         "func_count",  # Number of evaluations of the objective functions
+        "precomputed_observations",  # Evaluations made before the run
+        "precomputed_locations",  # Their distinct points
         "iterations",  # Number of iterations performed by the optimizer.
         "target_type",
         "problem_type",
@@ -158,6 +169,14 @@ class OptimizeResult(dict):
         # optim_state["iter"] counts from 0, and is -1 during initialization
         self["iterations"] = bads.optim_state["iter"] + 1
         self["func_count"] = bads.function_logger.func_count
+        # As PyVBMC reports them, only for a run given evaluations
+        if bads.optim_state["precomputed_observations"] > 0:
+            self["precomputed_observations"] = bads.optim_state[
+                "precomputed_observations"
+            ]
+            self["precomputed_locations"] = bads.optim_state[
+                "precomputed_locations"
+            ]
         self["mesh_size"] = bads.mesh_size
         self["overhead"] = bads.optim_state["overhead"]
         self["algorithm"] = "Bayesian adaptive direct search"

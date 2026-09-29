@@ -223,7 +223,7 @@ histories and the gate.
 | W2-3 | B1 | Scalar bounds are not replicated when D > 1 | port discrepancy | fixed | `4917bde` (#76) |
 | W2-4 | B1 | `_bounds_check_` moves the plausible bounds and clamps `x0` into bounds 1e-3 inside the hard ones, which MATLAB never does | port discrepancy | fixed, moves results on the `bounds` suite (a worsening kept, reported to the PI); with N4, a start of ±inf | `a31a9be`, `a236eb7` (#76) |
 | W2-5 | B1 | The transform's self-test has an absolute tolerance, which refuses valid bounds of large magnitude, as MATLAB's | shared defect | fixed: a relative tolerance (KD-B1-10); `matlab_side_defects.md` | `a2b8d38` (#76) |
-| W2-6 | B1 | A non-empty `fun_values` stops `BADS()`: the option never worked | port discrepancy | refused with a message; the port left to `TODO.md` | `0ba1241` (#76); `TODO.md`, "Prior evaluations (`fun_values`)." |
+| W2-6 | B1 | A non-empty `fun_values` stops `BADS()`: the option never worked | port discrepancy | refused with a message; the port left to `TODO.md` | `0ba1241` (#76); ported as the argument `precomputed_evaluations` (KD-B1-15) |
 | W2-7 | B1 | `f_vals`, PyBADS's own, sets a display format that the display cannot fill | defect | refused with a message (KD-B1-4); one without a finite value stands for `None` since the doublecheck | `652b25c` (#76); `68d4516` (`dev-next`) |
 | W2-8 | B1 | A multi-row `x0` passes the checks and fails in `optimize()` | port discrepancy | refused, as MATLAB | `6250a3a`, `a1e8a93` (#76) |
 | W2-9 | B1 | `x0=None` with only hard bounds is accepted, where MATLAB and PyBADS's own "Raises" section refuse it | port discrepancy | kept accepting it (revised proposal); the "Raises" section corrected (KD-B1-12) | `9b172fc` (#76) |
@@ -324,12 +324,12 @@ KD-B3-3), both by the PI's rulings.
 | W4-2 | B7 | A start at or below -1 in `u` reaches an undefined cast to `uint64`, which x86 and arm64 resolve differently | defect | fixed with W4-1; wave 2's dating of the reach corrected | `efe5e95`, `3a8096b` (#80) |
 | W4-3 | B7 | The design doubles when its size equals D, with no recorded reason (W0-18) | design question | kept at every D (PI), where the proposal was to remove it (KD-B7-1) | `a84a3dd` (#80), the records |
 | W4-4 | B7 | `init_sobol` returns the exponent where its docstring says the number of samples, and its parameters are misdescribed | confirmed, inert | fixed; `lb` and `ub` required | `8daf7ad` (#80) |
-| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | the merge kept (KD-B7-3), records corrected | `2dc5807`, `fba29cd` (#80) |
+| W4-5 | B7 | No run reaches the merge of a repeated point at level 2 since W3-1, and the records describe earlier runs | confirmed, inert | the merge kept (KD-B7-3), records corrected | `2dc5807`, `fba29cd` (#80); reached again through `precomputed_evaluations` (KD-B1-15, KD-B7-3) |
 | W4-6 | B7 | The noise test, recorded nowhere, still adds 1 to the start's `n_evals` and its time to the start's row | defect (minor); the time inert | fixed, moves results; completed so that the fits' schedule leaves the test out of its budget | `e7bd01d`, `46af65a` (#80) |
 | W4-7 | B7 | The untimed noise test counts as the optimizer's time in `overhead`, as MATLAB's | shared defect, negligible | kept, as MATLAB's; the description of `overhead` says so; `matlab_side_defects.md` | `e744ed9` (#80) |
 | W4-8 | B7 | A malformed SD or a complex value does not raise the documented `ValueError` before the row is written | port discrepancy (minor) | fixed | `5dd92b7` (#80) |
 | W4-9 | B7 | `finalize` trims every array but `n_evals`, and `reset_fun_eval_time` has no caller | confirmed, inert | fixed | `29a258a` (#80) |
-| W4-10 | B7 | The logger's docstrings omit that `x` is in `u` space; `add`, which nothing calls, keeps checks of its own | confirmed, inert | docstrings corrected; `add` settled with the port of `fun_values` | `4ea665a` (#80); `TODO.md`, "Prior evaluations (`fun_values`)." |
+| W4-10 | B7 | The logger's docstrings omit that `x` is in `u` space; `add`, which nothing calls, keeps checks of its own | confirmed, inert | docstrings corrected; `add` settled with the port of `fun_values` | `4ea665a` (#80); settled by the port of `precomputed_evaluations` (KD-B1-15) |
 | W4-11 | B7 | The poll discards `period_check`'s result, and the design takes the option's indices where the others take a mask | confirmed, inert (as W3-35) | kept until periodic variables are ported | `TODO.md`, "Porting gaps" |
 | W4-12 | B7 | The log grows when full, where MATLAB's is a ring of `CacheSize` rows that never writes its last row | intentional difference, missing from the sheet | kept (KD-B7-4); the description of `cache_size` corrected; MATLAB's ring in `matlab_side_defects.md` | `f1247d0` (#80) |
 | W4-13 | B7 | The noise test's second value goes through the logger's checks, where MATLAB reads NaN as deterministic and infinity as noisy | port discrepancy (benign) | kept (KD-B7-5) | `a84a3dd` (#80), the sheet |
@@ -404,13 +404,28 @@ items that a ruling left to later work are held by these items of
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
-| "Prior evaluations (`fun_values`)." | W2-6, W4-10, `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log |
 | "The GP on a one-point training set." | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying" |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
 | "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6) |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
+
+The item "Prior evaluations (`fun_values`)." held W2-6, W4-10,
+`FunctionLogger.add`'s checks and the final samples' bookkeeping in the
+log until the port of the evaluations made before the run, the argument
+`precomputed_evaluations` (KD-B1-15), settled them. The PI ruled on the
+port (2026-09-28): PyVBMC's interface, a keyword argument of `BADS`,
+without PyVBMC's `initialization_cost`; the points that violate
+`non_box_cons` refused, as those outside the hard bounds are; and the
+result's `precomputed_observations` and `precomputed_locations`, as PyVBMC
+reports them. The port takes PyVBMC's other rules: the checks of the
+arrays, the SDs required exactly with `specify_target_noise`, and a point
+given twice without uncertainty handling kept once, its two values
+agreeing within four float64 spacings. `FunctionLogger.add` requires the
+SD at level 2, as PyVBMC's logger does, and an evaluation that the logger
+does not record leaves its rows as they are, as MATLAB's `funlogger`
+evaluates the final samples (`'single'`).
 
 **The minor items.** "Found while fixing" of `verification/wave2.md` and
 `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items of slices B1,
@@ -426,7 +441,7 @@ ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
 | The redraw of a random start tests it before it is put on the mesh (KD-B1-9) | test it on the mesh | the draw moved to where the start is put on the mesh (KD-B1-11) |
 | The test of fixed variables leaves `x0` out (KD-B1-7) | no change: both sides refuse such a problem | KD-B1-7 says so |
 | The floor of the ES search's `mu = n_search / n_search_iter`, kept by the rulings of wave 4's doublecheck | close as ruled | KD-B3-9 |
-| `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log | with the port of `fun_values` | `TODO.md`'s item of that port |
+| `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log | with the port of `fun_values` | `TODO.md`'s item of that port, since done (KD-B1-15) |
 | Elements beyond the pair in `search_acq_fcn` or in an entry of `search_method` are ignored | refuse them | refused (KD-B3-1, KD-B3-2) |
 | 76 advanced options read by no code (78 on a closer count: `diagnostics` and `gp_cov_fun` too) | remove those without a MATLAB counterpart, keep and mark the MATLAB-named ones | 66 removed, 12 marked unused (KD-B1-5) |
 | No module of PyBADS imports matplotlib, which `pyproject.toml` requires and gpyreg imports | keep the requirement, with a comment | the comment |
