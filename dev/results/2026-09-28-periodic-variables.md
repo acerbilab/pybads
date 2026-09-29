@@ -72,8 +72,9 @@ of periodic variables is seen.
   dimension's term twice, which a change within gpyreg could avoid.
 - No run of MATLAB BADS: the comparison with MATLAB is by reading its code
   (KD-B1-6).
-- gpyreg has no release with `periods` yet. The `default` suite holds
-  two of the periodic configurations (PI, 2026-09-29), which its
-  references lack; at gpyreg's release, the comparison run with its
-  clone becomes the new references on both platforms, those two
-  included (`dev/TODO.md`, "gpyreg releases after 1.3.3").
+- gpyreg 1.4.0, the release that carries `periods`, is not out yet. The
+  `default` suite holds two of the periodic configurations (PI,
+  2026-09-29), which its references lack; at gpyreg's release, the
+  comparison run with its clone becomes the new references on both
+  platforms, those two included (`dev/TODO.md`, "gpyreg releases after
+  1.3.3").

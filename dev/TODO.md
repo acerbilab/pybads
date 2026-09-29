@@ -230,8 +230,8 @@ decided on; "the next release" below means it.
   (`dev/scripts/population.py compare`) against the current reference
   shows that it has no effect on PyBADS, or explains the one it has. A
   move is a change for users: an entry in `CHANGELOG.md` and a line in its
-  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
-  (PI, 2026-09-28), which is to hold:
+  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one,
+  1.4.0 (PI, 2026-09-28 and 09-29), which is to hold:
   - `periods` on the ARD kernels (`SquaredExponential`, `Matern`,
     `RationalQuadraticARD`), on gpyreg's branch
     `claude/todo-discussion-q8c9im`, which PyBADS's `periodic_vars` needs:
@@ -255,8 +255,7 @@ decided on; "the next release" below means it.
     [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
     on Windows, which has no run of them, the whole `periodic` suite runs
     in both arms (with `--options '{"periodic_vars": null}'` for "off"),
-    as on Linux. gpyreg's release notes list `periods` under "1.3.4 (unreleased)"; a new
-    feature may call for 1.4.0, the maintainers' choice;
+    as on Linux;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on
