@@ -54,7 +54,8 @@ pushes and runs `/doublecheck` at the end.
 - [x] W (not adopted, PI 2026-09-29: flagged worse at 90 seeds on the `warmstart` suite; suite and experiment merged `30b5771`, docs `f147eca`): with `precomputed_evaluations`, rebuild the first GP from the whole log (the incumbent's neighbours) and refit once at initialization; gate on a new `warmstart` suite; no move without them (fingerprint, replay, oracles `--exact`) — worktree `fix-warm`
 - [x] F5: items 2-7 and the cheap optional items (merged `e7d47b9`; fingerprint unchanged; oracle and replay tests pass)
 - [x] Merge and gates at `f147eca`: fingerprint `4146a986863602cb` (1 thread and default); 990 passed; dev tests 40; oracles 6/6 (`--check`, `--exact`); replay vs `a9f744c` 8/8 identical; pre-commit clean
-- [~] Final `/doublecheck` on `a9f744c..HEAD` (PI asked)
+- [!] Final `/doublecheck` on `a9f744c..a96cb03` (3 Opus reviewers): 1 must-fix (KD-B6-5 and the warmstart README: a rerun keeps the definition's values until its first refit, which needs more than the count past D), ~10 should-fix, optional items — pending the PI
+- [x] Merge `dev-next` (#97-#99, periodic variables; CI pin gpyreg `b44634f`) at `8f107be`: with gpyreg `b44634f`, fingerprint `4146a986863602cb`, 1045 passed, oracles `--check` 6/6 and `--against` a dump of `a96cb03` 1056 identical, replay 8/8 identical, dev tests 40, pre-commit clean
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
