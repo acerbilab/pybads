@@ -320,7 +320,7 @@ def build_transformer(optim_state, options, D):
         upper_bounds=optim_state["ub_orig"],
         plausible_lower_bounds=optim_state["plb_orig"],
         plausible_upper_bounds=optim_state["pub_orig"],
-        _fixed_values=None,
+        _fixed_values=np.full((1, D), np.nan),
     )
     return BADS._variable_transformer_(stand_in)
 

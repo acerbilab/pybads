@@ -390,7 +390,8 @@ meaningful, unless perhaps
 Yes: a variable whose four bounds, `lb`, `ub`, `plb` and `pub`, are equal
 is fixed at that value, as in MATLAB BADS. Where `plb` and `pub` are not
 given they are the hard bounds, so that `lb = ub` alone fixes the variable.
-`x0` at a fixed variable is its value, or NaN, which stands for it:
+`x0` at a fixed variable is its value, or NaN, which stands for it. For
+example, to fix the second of three variables at 2:
 
 ```python
 lb = np.array([-5.0, 2.0, -5.0])
@@ -408,8 +409,9 @@ fixed ones would, and the defaults of the options take `D` as their number:
 here `max_fun_evals` is `500 * 2`. Your objective, `non_box_cons` and the
 [output function](#faq-can-i-monitor-or-stop-a-run-while-it-is-running)
 receive points of all the variables, with the fixed ones at their values,
-and so do `optimize_result["x"]` and `optimize_result["x0"]`, the log of
-evaluations and `bads.iteration_history["x"]`. The indices of
+and `optimize_result["x"]` and `optimize_result["x0"]`, the log of
+evaluations (`bads.function_logger.X_orig`) and
+`bads.iteration_history["x"]` hold them all. The indices of
 `options["periodic_vars"]` count all the variables, and the points of
 `precomputed_evaluations` hold them all. The run's
 [internal state](#faq-where-can-i-find-the-internal-state-and-iteration-history)
@@ -426,7 +428,8 @@ the minimum lies inside the *plausible box* they define with probability
 above 90%. The plausible box naturally represents a good region where to
 randomly draw starting points for the optimization (see
 [above](#faq-how-do-i-choose-the-starting-point-x0)). The plausible bounds
-must be finite and satisfy `lb <= plb < pub <= ub`.
+must be finite and satisfy `lb <= plb < pub <= ub` at every variable that
+is not [fixed](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value).
 
 If you *really* have no idea about a plausible range, you can set `plb` and
 `pub` equal to `lb` and `ub`, or leave them out, in which case PyBADS uses

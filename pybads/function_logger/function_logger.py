@@ -56,12 +56,9 @@ class FunctionLogger:
         self.cache_count: int = 0
         # The points in the original space hold the fixed variables of the
         # transform too, which it leaves out of the transformed ones
-        self.D_orig: int = D
-        if (
-            variable_transformer is not None
-            and variable_transformer.fixed_values is not None
-        ):
-            self.D_orig = variable_transformer.fixed_values.shape[1]
+        self.D_orig: int = (
+            D if variable_transformer is None else variable_transformer.D_orig
+        )
         self.X_orig = np.full([cache_size, self.D_orig], np.nan)
         self.Y_orig = np.full([cache_size, 1], np.nan)
         self.X = np.full([cache_size, self.D], np.nan)

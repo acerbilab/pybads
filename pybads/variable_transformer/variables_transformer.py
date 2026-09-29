@@ -48,8 +48,8 @@ class VariableTransformer:
         value elsewhere. ``inverse_transf`` then returns points of the
         ``D_orig`` variables, with the fixed ones at their values, and
         ``__call__`` takes such points and transforms their other
-        coordinates. By default `None`: no variable is fixed, and the
-        original space has the ``D`` variables of the bounds.
+        coordinates. By default `None`, which, as a row of NaN, fixes no
+        variable: the original space has the ``D`` variables of the bounds.
 
     Each bound is an array of ``D`` elements, of shape ``(1, D)`` or
     ``(D,)``, or a scalar or an array of one element, which stands for the
@@ -116,7 +116,9 @@ class VariableTransformer:
         self.D = D
         # The fixed variables, which the transform leaves out of its points
         # and inverse_transf puts back at their values; self._free marks the
-        # variables of the bounds among those of the original space
+        # variables of the bounds among the D_orig of the original space. A
+        # row of NaN, which fixes nothing, is None
+        self.D_orig = D
         self.fixed_values = None
         self._free = None
         if fixed_values is not None:
@@ -137,8 +139,10 @@ class VariableTransformer:
                     "of them and finite at the others, not "
                     f"{fixed_values!r}."
                 )
-            self.fixed_values = values
-            self._free = np.isnan(values[0])
+            if not np.all(np.isnan(values)):
+                self.fixed_values = values
+                self._free = np.isnan(values[0])
+                self.D_orig = values.shape[1]
         # Nonlinear log transform: NaN marks a variable whose transform is
         # decided from its bounds, and a scalar applies to every variable
         if apply_log_t is None:
@@ -303,7 +307,7 @@ class VariableTransformer:
             The variables transformed.
         """
         if self.fixed_values is not None:
-            input = input[..., self._free]
+            input = np.asarray(input)[..., self._free]
         y = self.g(input)
         y = np.minimum(
             np.maximum(y, self.lb), self.ub

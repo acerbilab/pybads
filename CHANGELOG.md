@@ -152,11 +152,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as their number: `max_fun_evals` is 500 times the number of variables
   that are not fixed, for instance. The target, `non_box_cons` and
   `output_fcn` receive points of all the variables, with the fixed ones at
-  their values, as do the result's `x` and `x0`, the log of evaluations and
-  `iteration_history["x"]`. `x0` at a fixed variable is its value, or NaN,
-  which stands for it. The indices of `periodic_vars` count all the
-  variables, and the points of `precomputed_evaluations` hold them all.
-  `BADS` raises `ValueError` when every variable is fixed.
+  their values, and the result's `x` and `x0`, the log of evaluations and
+  `iteration_history["x"]` hold them all. `x0` at a fixed variable is its
+  value, or NaN, which stands for it. The indices of `periodic_vars` count
+  all the variables, and the points of `precomputed_evaluations` hold them
+  all. `BADS` raises `ValueError` when every variable is fixed. The
+  [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)
+  shows an example.
 - **FAQ.** The documentation has a [page of frequently asked
   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run

@@ -153,9 +153,13 @@ def _assert_same_run(runs):
     assert bads.D == bads_r.D == len(FREE)
     assert np.array_equal(result["x0"], _expand(result_r["x0"]))
     if not _REPEATS_BIT_FOR_BIT:
+        # The rows of the evaluations made before the run (distinct points
+        # without uncertainty handling), of the start and of the design
         n = bads.optim_state["eff_starting_points"]
         assert n == bads_r.optim_state["eff_starting_points"]
+        n += bads.optim_state["precomputed_locations"]
         assert np.array_equal(log.X[:n], log_r.X[:n])
+        assert np.array_equal(log.X_orig[:n], _expand(log_r.X_orig[:n]))
         assert np.array_equal(log.Y[:n], log_r.Y[:n])
         return
     # The target received the same points, of all the variables
@@ -228,9 +232,12 @@ def test_run_is_that_of_the_reduced_problem(kwargs):
 
 def test_run_with_evaluations_made_before_is_that_of_the_reduced_problem():
     """`precomputed_evaluations` holds points of all the variables, which
-    the run takes as the reduced problem takes their free coordinates."""
+    the run takes as the reduced problem takes their free coordinates, a
+    point given twice included."""
     rng = np.random.default_rng(3)
     X = _expand(rng.uniform(-3, 3, (8, len(FREE))) + [0, 0, 4])
+    # Two points given twice, which the log holds once
+    X = np.vstack([X, X[[5, 2]]])
     y = np.array([_target()[0](x) for x in X])
     _assert_same_run(_runs(precomputed=(X, y)))
 
@@ -299,9 +306,9 @@ def test_setup_reports_the_indices_of_all_the_variables(caplog):
 
 
 def test_periodic_vars_count_all_the_variables():
-    """`periodic_vars` is checked against all the variables and stored over
-    the free ones; a fixed variable is left out of it, and one that names
-    only fixed variables names none, and needs no gpyreg with periods."""
+    """`periodic_vars` counts all the variables, is checked against them all
+    and kept as given, sorted; the run's mask of periodic variables and its
+    transform cover the free ones, and leave a fixed one out."""
     fun = _target()[0]
 
     def make(periodic_vars):
@@ -317,15 +324,20 @@ def test_periodic_vars_count_all_the_variables():
 
     # The last variable is on a log scale, which a periodic one is not
     bads = make([4, 0, 1])
-    assert bads.options["periodic_vars"] == [0, 2]
+    assert bads.options["periodic_vars"] == [0, 1, 4]
     assert bads.optim_state["periodic_vars"].tolist() == [[True, False, True]]
     assert not bads.var_transf.apply_log_t[0, 2]
-    assert make([0, 3]).options["periodic_vars"] is None
+    only_fixed = make([0, 3])
+    assert only_fixed.options["periodic_vars"] == [0, 3]
+    assert not np.any(only_fixed.optim_state["periodic_vars"])
+    assert only_fixed.var_transf.apply_log_t[0, 2]
     with pytest.raises(ValueError, match="outside 0 to D - 1 = 4"):
         make([5])
 
 
 def test_periodic_fixed_variables_need_no_gpyreg_with_periods(monkeypatch):
+    """A `periodic_vars` that names only fixed variables makes no variable
+    of the run periodic, and needs no gpyreg whose kernels take periods."""
     import pybads.bads.bads as bads_module
 
     monkeypatch.setattr(bads_module, "_gpyreg_takes_periods", lambda: False)
@@ -338,7 +350,7 @@ def test_periodic_fixed_variables_need_no_gpyreg_with_periods(monkeypatch):
         PUB,
         options={"display": "off", "periodic_vars": [0]},
     )
-    assert bads.options["periodic_vars"] is None
+    assert not np.any(bads.optim_state["periodic_vars"])
 
 
 def test_x0_off_a_fixed_value_is_refused():
@@ -389,3 +401,65 @@ def test_evaluations_made_before_have_all_the_variables(precomputed, match):
             PUB,
             precomputed_evaluations=precomputed,
         )
+
+
+def test_one_free_variable_among_lists_of_integers():
+    """A run with one free variable, from lists of integers and without
+    plausible bounds, which are then the hard bounds, is the run of the
+    problem reduced to that variable."""
+    options = {"display": "off", "random_seed": 3, "max_fun_evals": 30}
+    calls = []
+
+    def fun(x):
+        calls.append(np.array(x, copy=True))
+        return float((x[1] - 0.5) ** 2 + 0.1 * x[0] * x[1])
+
+    result = BADS(fun, [2, 3], [2, -10], [2, 10], options=dict(options))
+    result = result.optimize()
+    calls_full, calls[:] = calls[:], []
+    result_r = BADS(
+        lambda x: fun(np.r_[2.0, x]), [3], [-10], [10], options=dict(options)
+    ).optimize()
+    assert np.array_equal(result["x0"], [[2.0, 3.0]])
+    assert result["x"][0] == 2.0
+    if _REPEATS_BIT_FOR_BIT:
+        assert np.array_equal(np.array(calls_full), np.array(calls))
+        assert result["x"][1] == result_r["x"][0]
+        assert result["fval"] == result_r["fval"]
+    else:
+        assert np.array_equal(calls_full[0], calls[0])
+
+
+def test_unbounded_free_variables_are_reported_as_unconstrained(caplog):
+    """Beside fixed variables, free variables without bounds make a fully
+    unconstrained optimization, as the reduced problem is."""
+    lb, ub = np.full(D_ORIG, -np.inf), np.full(D_ORIG, np.inf)
+    lb[FIXED], ub[FIXED] = LB[FIXED], UB[FIXED]
+    plb, pub = PLB.copy(), PUB.copy()
+    plb[4], pub[4] = -5.0, 5.0
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        BADS(_target()[0], X0, lb, ub, plb, pub, options={"display": "notify"})
+    messages = [record.getMessage() for record in caplog.records]
+    assert "Detected fully unconstrained optimization." in messages
+
+
+def test_x0_of_several_rows_beside_fixed_variables_is_refused():
+    with pytest.raises(ValueError, match="bads:StartingSet"):
+        BADS(_target()[0], np.vstack([X0, X0]), LB, UB, PLB, PUB)
+
+
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
+def test_complex_inputs_of_real_values_fix_variables():
+    """Inputs of a complex type whose values are real are taken as real
+    numbers, as without fixed variables."""
+    bads = BADS(
+        _target()[0],
+        X0.astype(complex),
+        LB.astype(complex),
+        UB,
+        PLB,
+        PUB,
+        options={"display": "off"},
+    )
+    assert bads.D == len(FREE)
+    assert np.array_equal(bads.x0, X0[None])

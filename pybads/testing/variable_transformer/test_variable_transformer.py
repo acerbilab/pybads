@@ -405,6 +405,7 @@ def test_fixed_values_are_put_back_by_the_inverse(shape):
     assert np.array_equal(x_free, without.inverse_transf(u))
     assert np.array_equal(transformer(x), without(x_free))
     assert np.allclose(transformer(x), u)
+    assert np.array_equal(transformer(x.tolist()), transformer(x))
 
 
 @pytest.mark.parametrize(
@@ -425,3 +426,19 @@ def test_fixed_values_are_refused_unless_nan_at_the_d_variables(fixed_values):
         VariableTransformer(
             D, -np.ones(D), np.ones(D), fixed_values=fixed_values
         )
+
+
+def test_fixed_values_of_nan_fix_nothing():
+    """A `fixed_values` of NaN at every variable fixes none: the transform
+    is the one without it, and its original space has its D variables."""
+    bounds = (-np.ones(D), np.ones(D), -0.5 * np.ones(D), 0.5 * np.ones(D))
+    transformer = VariableTransformer(
+        D, *bounds, fixed_values=np.full(D, np.nan)
+    )
+    assert transformer.fixed_values is None
+    assert transformer.D_orig == D
+    u = np.random.default_rng(1).uniform(-1, 1, (4, D))
+    assert np.array_equal(
+        transformer.inverse_transf(u),
+        VariableTransformer(D, *bounds).inverse_transf(u),
+    )
