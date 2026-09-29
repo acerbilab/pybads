@@ -50,6 +50,11 @@ pushes and runs `/doublecheck` at the end.
 - [x] Gates at `fa658c0`: fingerprint `4146a986863602cb` (1 thread and default); 984 passed, no skips; dev tests 38 passed; oracle `--check` 6/6 under threads 1/4, Haswell, Sandybridge, `--exact` 6/6; `--rebaseline` under Sandybridge works; replay `7949cf6` vs HEAD 8/8 identical; wheel: 106 oracle and pin tests pass
 - [!] Second `/doublecheck` (3 Opus reviewers): no must-fix; first-pass findings resolved but for three partial ones; 7 should-fix (a rerun with `precomputed_evaluations` reaches the one-point GP, whose mean differs from MATLAB's there: PI to rule; CI never runs the refit oracle, so a new state key breaks only `--check`; replay recipe fails for parents before `c60a523`; stale "Shared helpers" TODO item; `make_oracle_fixtures.py` sets 3 of 4 thread variables; an ambiguous "They" in the changelog; the one-point side-effects ruling recorded only here) — pending the PI
 
+## Round 3 (PI, 2026-09-29: fix 2-7 and the cheap optional items; redesign the first GP with evaluations made before the run)
+- [ ] W: with `precomputed_evaluations`, rebuild the first GP from the whole log (the incumbent's neighbours) and refit once at initialization; gate on a new `warmstart` suite; no move without them (fingerprint, replay, oracles `--exact`) — worktree `fix-warm`
+- [ ] F5: items 2-7 of the second double-check and the cheap optional items — worktree `fix-five`
+- [ ] Merge, gates, focused double-check
+
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
 
