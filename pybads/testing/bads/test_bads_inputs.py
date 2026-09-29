@@ -647,7 +647,7 @@ def test_tol_mesh_not_a_positive_finite_number_is_refused(tol_mesh):
 
 @pytest.mark.parametrize(
     "tol_mesh, on_mesh",
-    [(1e-6, 2.0**-19), (1e-5, 2.0**-16), (2**-10, 2.0**-10), (1, 1.0)],
+    [(1e-6, 2.0**-19), (1e-5, 2.0**-16), (3e-3, 2.0**-8), (1, 1.0)],
     ids=repr,
 )
 def test_tol_mesh_is_put_on_the_mesh(tol_mesh, on_mesh):
