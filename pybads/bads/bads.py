@@ -158,6 +158,64 @@ def _precomputed_values_agree(first, second):
         return abs(first - second) <= _PRECOMPUTED_DUPLICATE_ULPS * spacing
 
 
+def _find_fixed_variables(x0, lb, ub, plb, pub):
+    """
+    The values of the fixed variables, those whose four bounds are equal and
+    finite, as the ``fixed_values`` of ``VariableTransformer``: an array of
+    shape ``(1, D)``, NaN at the other variables, or None when no variable
+    is fixed. MATLAB BADS fixes a variable whose four bounds equal ``x0``
+    (``boundscheck.m:39-40``), and refuses one whose ``x0`` is NaN there;
+    PyBADS takes a non-finite ``x0`` at a fixed variable as its value.
+
+    The inputs are those of ``BADS``, before ``_bounds_check_``: bounds
+    that are missing, that are not arrays of real numbers of one or ``D``
+    elements, or an ``x0`` that is not a single point, give None, and
+    ``_bounds_check_`` then refuses them as it refuses any such input.
+
+    Raises
+    ------
+    ValueError
+        When ``x0`` is finite at a fixed variable and differs from its
+        value, or when every variable is fixed.
+    """
+    if any(bound is None for bound in (lb, ub, plb, pub)):
+        return None
+    try:
+        arrays = [np.asarray(a) for a in (x0, lb, ub, plb, pub)]
+    except (TypeError, ValueError):  # A ragged sequence
+        return None
+    if any(a.dtype.kind not in "biuf" for a in arrays):
+        return None
+    x0, *bounds = (np.array(a, dtype=float, ndmin=2) for a in arrays)
+    if x0.ndim != 2 or x0.shape[0] != 1:
+        return None
+    D = x0.shape[1]
+    bounds = [
+        np.full((1, D), bound.item()) if bound.size == 1 else bound
+        for bound in bounds
+    ]
+    if any(bound.shape != (1, D) for bound in bounds):
+        return None
+    lb, ub, plb, pub = bounds
+    fixed = (lb == ub) & (ub == plb) & (plb == pub) & np.isfinite(lb)
+    if not np.any(fixed):
+        return None
+    moved = fixed & np.isfinite(x0) & (x0 != lb)
+    if np.any(moved):
+        raise ValueError(
+            "bads:FixedVariables: the bounds of the variables (index) "
+            f"{np.flatnonzero(moved).tolist()} are all equal, which fixes "
+            "each of them at its bound, but x0 differs from it there; set "
+            "x0 to the bound (or to NaN) at a fixed variable."
+        )
+    if np.all(fixed):
+        raise ValueError(
+            "bads:FixedVariables: the four bounds of every variable are "
+            "equal, which fixes them all: there is nothing to optimize."
+        )
+    return np.where(fixed, lb, np.nan)
+
+
 # The levels of the BADS logger's messages above the iteration lines (INFO),
 # for MATLAB BADS's display levels: the opening message, the reports of the
 # setup and the message of a random starting point from "notify" on, the
@@ -235,6 +293,19 @@ class BADS:
         and ``plausible_upper_bounds`` such that there is > 90% probability that
         the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
+
+        A variable whose four bounds are equal is fixed at their value,
+        which ``x0`` holds there, or NaN in its place. BADS
+        optimizes the other variables, as a run of the problem without the
+        fixed ones would: the defaults of the options take ``D`` as their
+        number, and the run's internal state (``optim_state``, the
+        transformed coordinates and the Gaussian process) covers them
+        alone. ``fun``, ``non_box_cons`` and ``options['output_fcn']``
+        receive points of all the variables, with the fixed ones at their
+        values, as do the result's ``x`` and ``x0``, the function log and
+        the points ``"x"`` of ``iteration_history``; the indices of
+        ``options['periodic_vars']`` and the points of
+        ``precomputed_evaluations`` count all the variables too.
 
     non_box_cons : callable, optional
         A given non-box constraints function that specifies constraint
@@ -344,8 +415,10 @@ class BADS:
     ValueError
         When ``x0`` or the bounds fail the checks of their shapes, values and
         order: for instance an ``x0`` of more than one row, plausible bounds
-        that are not finite, or bounds out of the order ``lb <= plb < pub <=
-        ub``.
+        that are not finite, bounds out of the order ``lb <= plb < pub <=
+        ub`` at a variable that is not fixed, a finite ``x0`` that differs
+        from the value of a fixed variable, or bounds that fix every
+        variable.
     ValueError
         When ``non_box_cons``, given an ``(N, D)`` array, does not return an
         array of shape ``(N,)`` or ``(N, 1)``, or when ``x0`` violates the
@@ -446,7 +519,28 @@ class BADS:
                 x0 = np.full(np.shape(plausible_lower_bounds), np.nan)
 
         x0 = np.atleast_2d(x0)
-        self.D = x0.shape[1]
+        D_orig = x0.shape[1]
+
+        # Fixed variables, whose four bounds are equal, are left out of the
+        # run, as in MATLAB BADS (bads.m:351-382, fixedbads.m): it optimizes
+        # the other variables, and D, with which the options are evaluated,
+        # is their number. The variable transformer puts the fixed variables
+        # back into every point that leaves the run, so that the target,
+        # non_box_cons, output_fcn, the function log, the iteration history
+        # and the result see points of all the D_orig variables; x0 holds
+        # them all too, the fixed ones at their values
+        self._fixed_values = _find_fixed_variables(
+            x0,
+            lower_bounds,
+            upper_bounds,
+            plausible_lower_bounds,
+            plausible_upper_bounds,
+        )
+        if self._fixed_values is None:
+            self.D = D_orig
+        else:
+            self.D = int(np.sum(np.isnan(self._fixed_values)))
+            x0 = np.where(np.isnan(self._fixed_values), x0, self._fixed_values)
 
         # load basic and advanced options and validate the names
         pybads_path = os.path.dirname(os.path.realpath(__file__))
@@ -508,10 +602,10 @@ class BADS:
 
         # Empty lb and ub are Infs
         if lower_bounds is None:
-            lower_bounds = np.ones((1, self.D)) * -np.inf
+            lower_bounds = np.ones((1, D_orig)) * -np.inf
 
         if upper_bounds is None:
-            upper_bounds = np.ones((1, self.D)) * np.inf
+            upper_bounds = np.ones((1, D_orig)) * np.inf
 
         # Check/fix boundaries and starting points
         (
@@ -535,6 +629,21 @@ class BADS:
         # never takes a periodic variable to log coordinates, and draws a
         # random x0
         self._check_periodic_vars_()
+
+        # The run's bounds are those of the variables it optimizes, and the
+        # transform that _init_optim_state_ builds from them takes the fixed
+        # variables' values
+        if self._fixed_values is not None:
+            free = np.isnan(self._fixed_values[0])
+            self.lower_bounds = self.lower_bounds[:, free]
+            self.upper_bounds = self.upper_bounds[:, free]
+            self.plausible_lower_bounds = self.plausible_lower_bounds[:, free]
+            self.plausible_upper_bounds = self.plausible_upper_bounds[:, free]
+            self.logger.log(
+                _LOG_NOTIFY,
+                "Variables (index) fixed at their bounds and left out of the "
+                f"optimization: {np.flatnonzero(~free).tolist()}.",
+            )
 
         # evaluate  starting point non-bound constraint (a missing or
         # non-finite start is drawn in _init_optim_state_, where it is put on
@@ -694,23 +803,20 @@ class BADS:
             )
         )
 
-        # Fixed variables (all bounds equal) are not supported
-        fix_idx = (
-            (lower_bounds == upper_bounds)
-            & (upper_bounds == plausible_lower_bounds)
-            & (plausible_lower_bounds == plausible_upper_bounds)
-        )
-        if np.any(fix_idx):
-            raise ValueError(
-                """bads:FixedVariables BADS does not support fixed
-            variables. Lower and upper bounds should be different."""
-            )
+        # The fixed variables (_find_fixed_variables), whose four bounds are
+        # equal, pass the tests of distinct and ordered plausible bounds;
+        # any other variable with equal plausible bounds is refused
+        if self._fixed_values is None:
+            fixed = np.zeros((1, D), dtype=bool)
+        else:
+            fixed = ~np.isnan(self._fixed_values)
 
         # Test that plausible bounds are different
-        if np.any(plausible_lower_bounds == plausible_upper_bounds):
+        if np.any((plausible_lower_bounds == plausible_upper_bounds) & ~fixed):
             raise ValueError(
-                """bads:MatchingPB:For all variables,
-            plausible lower and upper bounds need to be distinct."""
+                "bads:MatchingPB: For all variables, plausible lower and "
+                "upper bounds need to be distinct, except at a fixed "
+                "variable, whose four bounds are all equal."
             )
 
         # Check that all X0 are inside the bounds. As in MATLAB BADS
@@ -733,7 +839,7 @@ class BADS:
             & (plausible_lower_bounds < plausible_upper_bounds)
             & (plausible_upper_bounds <= upper_bounds)
         )
-        if np.any(np.invert(ordidx)):
+        if np.any(np.invert(ordidx | fixed)):
             raise ValueError(
                 """bads:StrictBounds: For each variable, hard and
             plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
@@ -956,11 +1062,11 @@ class BADS:
         # Report variable transformation, from "notify" on, as MATLAB BADS
         # does (setupvars.m:118-120), with the indices of the variables
         if np.any(self.var_transf.apply_log_t):
+            log_vars = np.flatnonzero(self.var_transf.apply_log_t)
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) internally transformed to log "
-                "coordinates: "
-                f"{np.flatnonzero(self.var_transf.apply_log_t).tolist()}.",
+                f"coordinates: {self._user_indices_(log_vars)}.",
             )
 
         # Put tol_mesh on space
@@ -976,7 +1082,7 @@ class BADS:
             self.logger.log(
                 _LOG_NOTIFY,
                 "Variables (index) defined with periodic boundaries: "
-                f"{self.options['periodic_vars']}",
+                f"{self._user_indices_(self.options['periodic_vars'])}",
             )
 
         # Setup covariance information (unused)
@@ -1371,7 +1477,11 @@ class BADS:
                 "precomputed_evaluations must be a tuple (X, y), or (X, y, "
                 "y_sd) with options['specify_target_noise']."
             )
-        X = _precomputed_array(evaluations[0], (None, self.D), "points X")
+        # The points hold all the variables, fixed ones included, as the
+        # target takes them
+        X = _precomputed_array(
+            evaluations[0], (None, self.function_logger.D_orig), "points X"
+        )
         n_rows = X.shape[0]
         y = _precomputed_array(evaluations[1], (n_rows,), "values y")
         y_sd = None
@@ -1399,11 +1509,19 @@ class BADS:
                 'options["specify_target_noise"] = True.'
             )
 
-        outside = np.any(
-            (X < self.optim_state["lb_orig"])
-            | (X > self.optim_state["ub_orig"]),
-            axis=1,
-        )
+        # A point whose coordinate at a fixed variable is not its value lies
+        # outside the hard bounds, which are both that value
+        lb_orig = self.optim_state["lb_orig"]
+        ub_orig = self.optim_state["ub_orig"]
+        if self._fixed_values is not None:
+            free = np.isnan(self._fixed_values[0])
+            lb_orig, ub_orig = (
+                self._fixed_values.copy(),
+                self._fixed_values.copy(),
+            )
+            lb_orig[:, free] = self.optim_state["lb_orig"]
+            ub_orig[:, free] = self.optim_state["ub_orig"]
+        outside = np.any((X < lb_orig) | (X > ub_orig), axis=1)
         if np.any(outside):
             raise ValueError(
                 "The points X of precomputed_evaluations must lie within the "
@@ -1494,6 +1612,12 @@ class BADS:
         read as the indices 0 and 1. A periodic variable wraps around its
         hard bounds, ``[lb, ub)``, which must be finite, as MATLAB BADS
         requires.
+
+        The indices count all the variables, fixed ones included, and are
+        checked against the bounds of them all, before ``__init__`` leaves
+        out the fixed variables; the list stored counts the variables of the
+        run, with a fixed variable left out, periodic or not, as MATLAB
+        BADS's ``fixedbads.m`` renumbers ``PeriodicVars``.
         """
         value = self.options["periodic_vars"]
         if value is None or (
@@ -1501,6 +1625,7 @@ class BADS:
         ):
             self.options["periodic_vars"] = None
             return
+        D_orig = self.lower_bounds.shape[1]
         indices = np.atleast_1d(np.asarray(value))
         # A boolean among integers, which NumPy casts to 0 or 1, is refused
         # as a mask is
@@ -1515,10 +1640,10 @@ class BADS:
                 "mask m gives them as np.flatnonzero(m)), not "
                 f"{value!r}."
             )
-        if np.any(indices < 0) or np.any(indices >= self.D):
+        if np.any(indices < 0) or np.any(indices >= D_orig):
             raise ValueError(
                 "options['periodic_vars'] holds indices outside 0 to "
-                f"D - 1 = {self.D - 1}: {value!r}."
+                f"D - 1 = {D_orig - 1}: {value!r}."
             )
         if np.unique(indices).size != indices.size:
             raise ValueError(
@@ -1541,6 +1666,12 @@ class BADS:
                 f"variables {infinite} of options['periodic_vars'] are not "
                 "finite."
             )
+        if self._fixed_values is not None:
+            free = np.flatnonzero(np.isnan(self._fixed_values[0])).tolist()
+            indices = [free.index(i) for i in indices if i in free]
+            if not indices:
+                self.options["periodic_vars"] = None
+                return
         if not _gpyreg_takes_periods():
             raise ImportError(
                 "Periodic variables need gpyreg 1.4.0 or later, whose "
@@ -1550,7 +1681,9 @@ class BADS:
 
     def _variable_transformer_(self):
         """The transformation of the variables, from the bounds in the
-        original space and the ``nonlinear_scaling`` option."""
+        original space and the ``nonlinear_scaling`` option, with the values
+        of the fixed variables, which it puts back into the points it
+        returns to the original space."""
         if self.options["nonlinear_scaling"]:
             logflag = np.full((1, self.D), np.nan)
             periodic_vars = self.options["periodic_vars"]
@@ -1568,7 +1701,19 @@ class BADS:
             self.plausible_lower_bounds,
             self.plausible_upper_bounds,
             logflag,
+            fixed_values=self._fixed_values,
         )
+
+    def _user_indices_(self, indices):
+        """The indices among all the variables, fixed ones included, of the
+        run's variables at ``indices``, which count only the variables that
+        are not fixed: ``indices`` itself, as a list, without fixed
+        variables."""
+        indices = [int(i) for i in indices]
+        if self._fixed_values is None:
+            return indices
+        free = np.flatnonzero(np.isnan(self._fixed_values[0]))
+        return free[indices].tolist()
 
     def _init_rng_(self):
         """

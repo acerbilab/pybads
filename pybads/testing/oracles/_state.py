@@ -311,7 +311,8 @@ def build_options(D, user_options, effective):
 
 def build_transformer(optim_state, options, D):
     """The run's ``VariableTransformer``, built by ``BADS``'s own method
-    from the original bounds."""
+    from the original bounds, of a run without fixed variables, as every
+    recipe's is."""
     stand_in = types.SimpleNamespace(
         options=options,
         D=D,
@@ -319,6 +320,7 @@ def build_transformer(optim_state, options, D):
         upper_bounds=optim_state["ub_orig"],
         plausible_lower_bounds=optim_state["plb_orig"],
         plausible_upper_bounds=optim_state["pub_orig"],
+        _fixed_values=None,
     )
     return BADS._variable_transformer_(stand_in)
 

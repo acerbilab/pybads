@@ -200,6 +200,19 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
+- **Fixed variables** (four equal bounds) are left out of the run.
+  `_find_fixed_variables` finds them in `BADS.__init__` before the options
+  are evaluated, so that `D` (`self.D`, and the `D` of the options) counts
+  the other variables, and `self._fixed_values`, a `(1, D_orig)` row that is
+  NaN at the free variables, goes to `VariableTransformer` as
+  `fixed_values`: its `inverse_transf` returns points of all the variables
+  and its `__call__` takes them. So every point that leaves the run through
+  it (to the target, `non_box_cons` and `output_fcn`, into the log's
+  `X_orig`, `iteration_history["x"]` and the result) has them all, as
+  `self.x0` has, while `optim_state` (its `*_orig` bounds too), the `u`
+  points, the GP and the stored `periodic_vars` cover the free ones. New
+  code that hands the user a point takes it through the transformer, and a
+  message that names variables maps their indices with `_user_indices_`.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
   `["len_scale"]` and `["effective_radius"]` are set in
   `gaussian_process_train.py`. `poll_scale` shapes the ES-ell search and
