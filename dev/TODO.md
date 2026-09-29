@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-28. The list describes scope, not priority or execution
+Updated 2026-09-29. The list describes scope, not priority or execution
 order. The next release is 1.5.0 (tag `v1.5.0`), the version the PI has
 decided on; "the next release" below means it.
 
@@ -102,12 +102,12 @@ decided on; "the next release" below means it.
   design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`,
   "Doublecheck") and that a run takes evaluations made before it
-  (`precomputed_evaluations`). At the same release, `skills/pybads/SKILL.md` and the
-  FAQ (`docsrc/source/faq.md`), which name no release, name 1.5, as
-  PyVBMC's skill and FAQ do. The published documentation follows `main`,
-  so until that release the FAQ describes code that no release has, among
-  it `output_fcn(x, optim_state, state)`, which 1.1.0 calls as
-  `output_fcn(x, "init")`.
+  (`precomputed_evaluations`). At the same release,
+  `skills/pybads/SKILL.md` and the FAQ (`docsrc/source/faq.md`), which name
+  no release, name 1.5, as PyVBMC's skill and FAQ do. The published
+  documentation follows `main`, so until that release the FAQ describes
+  code that no release has, among it `output_fcn(x, optim_state, state)`,
+  which 1.1.0 calls as `output_fcn(x, "init")`.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
   over the four suites, up to 40% on some configurations, noisy ones
@@ -140,11 +140,11 @@ decided on; "the next release" below means it.
   rewrites the periodic branches of `udist`
   (`pybads/search/grid_functions.py`) and `ucov`
   (`pybads/search/es_search.py`) from MATLAB's `utils/udist.m` and
-  `utils/ucov.m`: `udist`'s takes the row indices that `np.nonzero` gives
-  of the `(1, D)` mask for the variables', indexes the rows of its matrix
-  of summed squared distances by them and divides by the length scales
-  after summing, and `ucov`'s wraps the points without the shift it
-  computes (KD-B1-6).
+  `utils/ucov.m`: `udist`'s uses, as the periodic variables' indices, the
+  row indices (all 0) that `np.nonzero` gives of their `(1, D)` mask,
+  indexes by them the rows of its matrix of summed squared distances, and
+  divides by the length scales after summing; `ucov`'s wraps the points
+  without the shift it computes (KD-B1-6).
 - [ ] **`gp_cov_prior="ard"`.** MATLAB's per-dimension empirical prior of
   the GP length scales (`gpdef/gpdefBads.m:254-274`) is not ported; by the
   ruling on row W1-28 of the port review

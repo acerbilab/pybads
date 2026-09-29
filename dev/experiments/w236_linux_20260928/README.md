@@ -22,11 +22,14 @@ true value, it changes 27 runs and raises the fraction solved from 0.50 to
 0.61 (11 runs solved by the variant alone, 1 by the head alone; McNemar
 p = 0.006, 0.03 after a Holm correction over the five configurations), in
 both seed ranges, with a median of 324 evaluations against 322. Elsewhere
-it changes at most
-10 runs of a configuration and the fraction solved by at most one run.
-Pooled, the fraction solved is 0.65 at the head and 0.66 with the variant,
-a paired difference of +0.018 [+0.002, +0.033]. PyBADS keeps MATLAB's
-behaviour.
+it changes at most 10 runs of a configuration and the fraction solved by at
+most one run, and on `ellipsoid_D3_homo` it starts 49 of the 90 runs with
+an incumbent SD of exactly 0, the initial GP's. Pooled, the fraction solved
+is 0.65 at the head and 0.66 with the variant, a paired difference of
++0.018 [+0.002, +0.033].
+
+**Ruling (PI, 2026-09-29): PyBADS keeps MATLAB BADS's behaviour.** A noisy
+run's first incumbent stays the raw minimum of its initial design.
 
 ## Arms
 

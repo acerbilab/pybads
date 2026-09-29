@@ -253,7 +253,7 @@ histories and the gate.
 | W2-33 | B2 | The output function's stop message and final stop, and its `"init"` call after a noisy run's setup | intentional, missing from the sheet; design question (the timing) | kept (KD-B2-5) | `9f65d73` (#76), the sheet |
 | W2-34 | B2 | With one final sample at level 1, `yval_vec` has shape (2, 1) | port discrepancy | fixed | `3476000` (#76) |
 | W2-35 | B2 | `min_iter` and `min_fun_evals` are read by nothing, and MATLAB has no such options | confirmed, inert | on the sheet among the options without effect; removed by #87 (KD-B1-5) | `9f65d73` (#76), the sheet; `b18382e` (#87) |
-| W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md`; at 90 seeds against the first incumbent's value from the initial GP, no flag; the variant raises `sphere_D3_hetero`'s fraction solved (0.50 → 0.61) and changes each other configuration's by at most one run ([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)) | — |
+| W2-36 | B2 | A noisy run's incumbent is the raw minimum of its design for two iterations, as in MATLAB | design question, shared | kept, as MATLAB's; `matlab_side_defects.md`; measured at 90 seeds against the first incumbent's value from the initial GP: no flag in 15 tests; the variant raises `sphere_D3_hetero`'s fraction solved (0.50 → 0.61, McNemar p 0.03 after Holm over five) and changes each other configuration's by at most one run ([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)); kept after the measurement (PI, 2026-09-29) | — |
 | W2-37 | B2 | A feasible band thinner than the mesh can resolve ends the run at `x0` on the stall criterion | design question, shared; needs MATLAB | documented in `non_box_cons`'s description; no MATLAB run needed | `bdaef58` (#76); the GP on one point, `73d517a` (KD-B6-5; "Open ends") |
 | W2-38 | B2 | `IterationHistory` deep-copies every stored GP whenever it grows | confirmed, inert (time) | fixed | `500526b` (#76) |
 | W2-39 | B2 | The NaN estimates of past iterates whose re-estimate failed stay in `iteration_history` | confirmed, inert | kept; the documentation says so (KD-B2-4) | `763e21f` (#76) |
@@ -391,7 +391,9 @@ other calling forms, and KD-B6-9, the warning of a `noise_size` above e^5
 (W1-30).
 KD-B4-3, LTMADS's directions, went with W3-24's revert. The
 gpyreg citations of KD-B5-6 and KD-B6-6 were not read again. The PI's
-rulings on the loose ends ("Open ends") added KD-B2-10 and KD-B7-6.
+rulings on the loose ends ("Open ends") added KD-B2-10 and KD-B7-6, and
+the ruling on the GP on one point changed KD-B6-5; #92 added KD-B3-10
+(W3-2), and #96, the port of `precomputed_evaluations`, KD-B1-15.
 
 ## Open ends
 
@@ -405,12 +407,22 @@ items that a ruling left to later work are held by these items of
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "Porting gaps" | W3-35, W4-11 (KD-B1-6); the periodic branches of `udist` and `ucov` (the loose ends, below) |
 | "`gp_cov_prior="ard"`." | W1-28 (KD-B6-7) |
-| "The GP on a one-point training set." (closed on 2026-09-28) | W2-37, W3-40, wave 1's "Found while fixing" and wave 2's "Found while verifying": by the PI's ruling of 2026-09-28, the initial GP on one distinct point takes MATLAB BADS's definition values without a fit, its mean's prior centred at the one target (`73d517a`, KD-B6-5; [`one_point_gp_linux_20260928`](../experiments/one_point_gp_linux_20260928/README.md)); the warnings of gpyreg's helpers in refits on inputs without spread are in "For gpyreg's maintainers." |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
 | "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6) |
+| "For gpyreg's maintainers." | gpyreg's hyperparameter helpers on inputs or targets without spread (wave 1's "Found while fixing", wave 2's "Found while verifying", wave 3's "Found while fixing"), which PyBADS's refits still reach |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
+
+The item "The GP on a one-point training set." held W2-37, W3-40, wave
+1's and wave 3's "Found while fixing" and wave 2's "Found while verifying"
+until the PI's ruling of 2026-09-28 closed it: the initial GP on one
+distinct point takes MATLAB BADS's definition values without a fit, its
+mean's prior centred at the one target (`73d517a`, KD-B6-5), measured
+against its parent in
+[`one_point_gp_linux_20260928`](../experiments/one_point_gp_linux_20260928/README.md).
+What gpyreg's helpers do on inputs or targets without spread, which refits
+still reach, went to "For gpyreg's maintainers.".
 
 The item "Prior evaluations (`fun_values`)." held W2-6, W4-10,
 `FunctionLogger.add`'s checks and the final samples' bookkeeping in the
@@ -453,24 +465,20 @@ ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
 observations outside their findings, most of which the ledgers left to the
 docstrings and descriptions of the fix passes; the ones below held at
 `dev-next` at the close, and no record took them up. The PI ruled on them
-on 2026-09-28. Three were wrong as first written, and the table gives them
-corrected: the search step's count of points differs from MATLAB's at
-default options in runs with `non_box_cons`, where wave 3 found the two
-counts equal in practice; an `ESSearch` without generations returned an
-uninitialized row, the first of its `np.empty` placeholders, which an
-earlier version of this note called empty; and MATLAB's `transvars` clips
-its inverse to the original bounds as PyBADS's does, where wave 4 said it
-does not.
-`verification/wave3.md` and `wave4.md` carry a dated note at the first and
-the third.
+on 2026-09-28. Two were recorded wrongly in the wave ledgers, and the table
+gives them corrected: the search step's count of points differs from
+MATLAB's at default options in runs with `non_box_cons`, where wave 3
+found the two counts equal in practice; and MATLAB's `transvars` clips its
+inverse to the original bounds as PyBADS's does, where wave 4 said it does
+not. `verification/wave3.md` and `wave4.md` carry a dated note at each.
 
 | Observation | Noted in | Ruling | Carried by |
 |---|---|---|---|
 | ES-ell ignores the sum-rule flag of an entry of `search_method`, which only ES-wcm reads, as in MATLAB BADS (`search/searchES.m:81`, `86-94`) | wave 3, "Found while verifying" | document | the description of `search_method` |
-| `udist`'s periodic branch takes the row indices that `np.nonzero` gives of the `(1, D)` mask of the periodic variables for the variables', indexes the rows of its matrix of summed squared distances by them and divides by the length scales after summing; `ucov`'s wraps the points without the shift it computes; neither can be reached (KD-B1-6) | wave 3, "Found while verifying" (`udist`); found with the ruling (`ucov`) | document: a port of periodic variables rewrites both from MATLAB's `utils/udist.m` and `utils/ucov.m` | KD-B1-6; `dev/TODO.md`, "Porting gaps" |
+| `udist`'s periodic branch uses, as the periodic variables' indices, the row indices (all 0) that `np.nonzero` gives of their `(1, D)` mask, indexes by them the rows of its matrix of summed squared distances, and divides by the length scales after summing; `ucov`'s wraps the points without the shift it computes; neither can be reached (KD-B1-6) | wave 3, "Found while verifying" (`udist`); found with the ruling (`ucov`) | document: a port of periodic variables rewrites both from MATLAB's `utils/udist.m` and `utils/ucov.m` | KD-B1-6; `dev/TODO.md`, "Porting gaps" |
 | The search step runs once more than D points are counted, PyBADS in the log, MATLAB BADS in the GP's training set before the search's rebuild (`bads.m:516-517`). At uncertainty level 0 the poll's evaluations join the log and not the GP, so the two differ at the pass after a poll that follows an initial design that leaves D points or fewer: at default options, once in each of 7 runs of `sphere_band_D3` and in 3 of 7 of `sphere_nonbox_D3` (seeds 0-6) | wave 3, "Found while verifying" | keep PyBADS's count, the points that the search trains on | KD-B2-10 |
 | A 4-D ridge started on its valley stalls at `x0`: the only descent direction is the exact diagonal, which the coordinate poll does not take, nor MATLAB's (`poll/pollMADS2N.m:7-14`; KD-B4-1) | wave 3, "Fix pass" | drop: a limitation shared with MATLAB BADS | — |
-| An `ESSearch` built directly with `n_search_iter = 0`, which `BADS` refuses (W4-25), returned the first row of an uninitialized array, where MATLAB's `searchES` returns an empty set (`search/searchES.m:121`, `125`, `209`) | wave 3, "Fix pass" | fix: the empty set | `7110bba` |
+| An `ESSearch` built directly with `n_search_iter = 0`, which `BADS` refuses (W4-25), returned as its candidate an uninitialized row, the first of its `np.empty` placeholders, where MATLAB's `searchES` returns an empty set (`search/searchES.m:121`, `125`, `209`) | wave 3, "Fix pass" | fix: the empty set | `7110bba` |
 | `VariableTransformer`'s inverse clips to the original bounds, as MATLAB's `transvars` does (`utils/transvars.m:65`) | wave 4, "Found while verifying" | drop: no difference | — |
 | A target that returns `(f, sd)` without `specify_target_noise` is refused, with a message that did not name the option; MATLAB BADS drops `sd` | wave 4, "Found while verifying" | keep refusing; the message names `specify_target_noise=True` | `5ac25aa`, KD-B7-6 |
 | The function logger's `uncertainty_handling_level` keeps its value from construction after the noise test raises the run's level | wave 4, "Found while verifying" | fix | `28fef97` |
@@ -483,27 +491,37 @@ taken after the close, at the PI's request of 2026-09-28
 ([`w236_linux_20260928`](../experiments/w236_linux_20260928/README.md)):
 the five noisy configurations at 90 seeds, with the first incumbent's value
 and SD from the initial GP against the raw minimum of the design. The
-comparison flags nothing. The variant changes 39 of the 450 runs, 27 of them
-on `sphere_D3_hetero`, where the raw minimum lies furthest below the true
-value (a median 2.9 below it, the GP's estimate 1.3), and raises its
-fraction solved from 0.50 to 0.61 (McNemar p = 0.006, 0.03 after a Holm
-correction over the five configurations); the fraction solved of each of
-the other four changes by at most one run. PyBADS keeps MATLAB's
-behaviour.
+comparison flags nothing in 15 tests. The variant changes 39 of the 450
+runs, 27 of them on `sphere_D3_hetero`, where the raw minimum lies
+furthest below the true value (a median 2.9 below it, the GP's estimate
+1.3), and raises its fraction solved from 0.50 to 0.61 (McNemar p = 0.006,
+0.03 after a Holm correction over the five configurations); the fraction
+solved of each of the other four changes by at most one run. On
+`ellipsoid_D3_homo` the initial GP's SD at the first incumbent is exactly 0
+in 49 of the 90 runs, which the variant starts with an incumbent SD of 0.
+On this measurement the PI ruled (2026-09-29) that PyBADS keeps MATLAB
+BADS's behaviour: a noisy run's first incumbent is the raw minimum of its
+initial design.
 
 **Needs MATLAB.** These questions of the review only MATLAB can settle:
 MATLAB's seed of the initial design (W4-1, with the one call that settles
 it, in `matlab_side_defects.md`), with the negative seed that
-`i4_sobol.m:249-250` would clamp under one reading of its `mod`; what
-MATLAB's fit does with the zero-variance prior of a plateau (W1-26, the
-rebuild case), of a two-point training set (W3-40) and of a one-point
-training set (W2-37). PyBADS's disposition of each is decided whatever
-MATLAB computes, the GP on one point by the PI's ruling of 2026-09-28
-(KD-B6-5); by the plan's rule no MATLAB run is written up. Two
-items of `dev/TODO.md` would use one: a run of MATLAB BADS on
-`ellipsoid_D3_hetero`, and how often MATLAB's own fits give a predictive
-SD of 0, which, traced on 2026-09-28, comes from the same clamp on both
-sides (`dev/results/2026-09-28-gp-health.md`).
+`i4_sobol.m:249-250` would clamp under one reading of its `mod`; and what
+MATLAB's fit does with the degenerate priors of a plateau (W1-26, the
+rebuild case), of a two-point training set (W3-40) and of a refit on one
+point, which a band as thin as W2-37's reaches at D = 1 on both sides,
+where the noise test brings the count of evaluations to 2 > D
+([`one_point_gp_linux_20260928`](../experiments/one_point_gp_linux_20260928/README.md)).
+MATLAB BADS does not fit its initial GP, which on one point holds the
+definition's values on both sides (KD-B6-5, by the PI's ruling of
+2026-09-28). PyBADS's disposition of the plateau and of two points
+(KD-B6-2) is decided whatever MATLAB computes; by the plan's rule no MATLAB
+run is written up. Three items of `dev/TODO.md` would use one: a run of
+MATLAB BADS on `ellipsoid_D3_hetero`; how often MATLAB's own fits give a
+predictive SD of 0, which, traced on 2026-09-28, comes from the same clamp
+on both sides (`dev/results/2026-09-28-gp-health.md`); and oracles of
+PyBADS's components computed by MATLAB BADS on the stored states of
+`pybads/testing/oracles/`.
 
 ## The MATLAB side
 
@@ -533,8 +551,8 @@ what PyBADS does; nothing there was run in MATLAB. Its items, as it stands:
 | *Shared design observations (PyBADS keeps MATLAB's behavior)* | | | |
 | The calibration test for three or more points tests normality only | `utils/gppredcheck.m:30` | W1-7 | as MATLAB |
 | The GP's noise is bounded above at a log SD of 5 | `gpdef/gpdefBads.m:161` | W1-30 | as MATLAB, with a warning (KD-B6-9) |
-| A noisy run's first incumbent is the raw minimum of its initial design | `bads.m:1097` | W2-36 | as MATLAB |
-| A feasible region thinner than the mesh can resolve ends the run on its stall criterion (needs MATLAB for the GP on one point) | — | W2-37 | as MATLAB, documented |
+| A noisy run's first incumbent is the raw minimum of its initial design | `bads.m:1097` | W2-36 | as MATLAB, after its measurement (PI, 2026-09-29) |
+| A feasible region thinner than the mesh can resolve ends the run on its stall criterion (needs MATLAB for what its fit does with the degenerate priors of a refit on one point, at D = 1, or on two) | — | W2-37 | as MATLAB, documented |
 | The covariance of ES-wcm is the unweighted scatter of the best points | `utils/ucov.m:19` | W3-3 | as MATLAB, commented |
 | At uncertainty level 0 the poll's GP does not take the poll's evaluations | `bads.m:908-916`, `841` | W3-26 | as MATLAB |
 | The poll's basis is bounded by the inverse of LTMADS's ratio, so the poll steps along the coordinates | `poll/pollMADS2N.m:7` | W3-24 | as MATLAB, after LTMADS's bound was tried and reverted (KD-B4-1) |
