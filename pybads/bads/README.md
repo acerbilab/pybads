@@ -1066,8 +1066,8 @@ Without `SpecifyTargetNoise`, MATLAB's `funlogger` asks the target for one
 output, so that a target that also returns an SD runs with the SD dropped.
 PyBADS's function logger takes the target's return as its value, and a
 tuple is not a scalar: it raises `ValueError`, at the run's first
-evaluation, with a message that names `specify_target_noise=True` when
-the tuple has two elements.
+evaluation, with a message that names `options["specify_target_noise"] =
+True` when the tuple has two elements.
 - PyBADS: `FunctionLogger.__call__`
   (`pybads/function_logger/function_logger.py`).
 - MATLAB: `private/funlogger.m:91`, `95-99`.
