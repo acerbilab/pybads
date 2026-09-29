@@ -457,8 +457,9 @@ _PAIR = "needs the option specify_target_noise=True"
 def test_call_pair_without_target_noise_names_the_option(level):
     """A tuple (f, sd) at a level that takes no SD is refused as a value
     that is not a scalar, and the message names specify_target_noise=True;
-    MATLAB's funlogger drops the SD."""
-    f_logger = FunctionLogger(noisy_function, 3, level == 1, level)
+    MATLAB's funlogger drops the SD. The logger is built as `BADS` builds
+    it, holding SDs only at level 2."""
+    f_logger = FunctionLogger(noisy_function, 3, level > 1, level)
     with pytest.raises(ValueError, match=_VALUE) as err:
         f_logger(np.array([3, 4, 5]))
     assert _PAIR in str(err.value)

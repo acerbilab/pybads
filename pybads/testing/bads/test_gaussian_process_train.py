@@ -813,9 +813,10 @@ def _thin_band_bads(D, fun, **options):
 
 
 def _spy_initial_gp(monkeypatch, bads, errors=False):
-    """Record the GP that `init_and_train_gp` hands on, its training data,
-    hyperparameters and prior of the mean, and the evaluations made
-    before it; with `errors`, every warning of the call raises."""
+    """Record the GP that `init_and_train_gp` hands on, its training data
+    (the noise variances included), hyperparameters and prior of the mean,
+    and the evaluations made before it; with `errors`, every warning of the
+    call raises."""
     import warnings
 
     import pybads.bads.bads as bads_module
@@ -832,6 +833,7 @@ def _spy_initial_gp(monkeypatch, bads, errors=False):
         seen.update(
             X=gp.X.copy(),
             y=gp.y.copy(),
+            s2=None if gp.s2 is None else gp.s2.copy(),
             hyp=gp.get_hyperparameters()[0],
             mean_prior=gp.get_priors()["mean_const"],
             func_count=bads.function_logger.func_count,
@@ -913,6 +915,37 @@ def test_one_point_gp_with_inferred_noise(monkeypatch):
     )
 
 
+def test_one_point_gp_with_target_noise(monkeypatch):
+    """With `specify_target_noise=True` (uncertainty level 2), the thin
+    band's GP on one point receives the variance of that point's noise, the
+    square of the SD that the target returns, and takes MATLAB BADS's
+    definition values, with the log noise SD at the log of `tol_fun`, the
+    noise that `_gp_hyp` adds at level 2 to the target's, and the mean at
+    the point's value, with no warning."""
+    D = 2
+    noise = np.random.default_rng(2)
+
+    def fun(x):
+        sd = 1.5
+        y = float(np.sum((np.ravel(x) - 1.0) ** 2))
+        return y + sd * noise.standard_normal(), sd
+
+    bads = _thin_band_bads(
+        D, fun, uncertainty_handling=True, specify_target_noise=True
+    )
+    seen = _spy_initial_gp(monkeypatch, bads, errors=True)
+    bads._init_optimization_()
+    assert bads.optim_state["uncertainty_handling_level"] == 2
+    assert seen["func_count"] == 1
+    assert seen["s2"].ravel().tolist() == [1.5**2]
+    _assert_matlab_definition(
+        seen,
+        D,
+        bads.function_logger.Y[0].item(),
+        np.log(bads.options["tol_fun"]),
+    )
+
+
 def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
     """A GP on one point whose posterior fails with the definition values
     is left as it was by gpyreg and is fitted instead, with a warning."""
@@ -942,14 +975,23 @@ def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
     assert np.all(np.isfinite(gp.predict(np.zeros((1, D)))[0]))
 
 
-def test_one_point_gp_hyp_on_repeated_rows():
+@pytest.mark.parametrize(
+    "targets, mean",
+    [
+        # ceil(0.8 * 3) = 3: the median of every target
+        ([3.0, 5.0, 4.5], 4.5),
+        # ceil(0.8 * 5) = 4: the median of the lowest 4, not of all 5 (3.0)
+        ([20.0, 1.0, 10.0, 3.0, 2.0], 2.5),
+    ],
+)
+def test_one_point_gp_hyp_on_repeated_rows(targets, mean):
     """Rows that repeat one point count as one point: the starting values
     are MATLAB BADS's definition values, with the mean at the median of
     the lowest ceil(0.8 N) targets, as MATLAB's definition takes it, and
     the mean's prior centred there with the SD 1."""
     bads, gp = _initialized_bads()
-    X = np.zeros((3, 2))
-    y = np.array([[3.0], [5.0], [4.5]])
+    X = np.zeros((len(targets), 2))
+    y = np.array(targets)[:, None]
     fresh = gpr.GP(D=2, covariance=gp.covariance, mean=gp.mean, noise=gp.noise)
     fresh, hyp0, _ = gaussian_process_train._gp_hyp(
         bads.optim_state,
@@ -961,7 +1003,6 @@ def test_one_point_gp_hyp_on_repeated_rows():
         y,
         bads.function_logger,
     )
-    mean = np.median([3.0, 4.5, 5.0])
     log_noise = np.log(bads.options["noise_size"])
     assert hyp0.tolist() == [0.0, 0.0, 0.0, 0.0, log_noise, mean]
     kind, (mu, sigma) = fresh.get_priors()["mean_const"]
