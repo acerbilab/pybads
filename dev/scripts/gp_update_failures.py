@@ -3,8 +3,11 @@ and how each guard ends, under the gpyreg that ``PYTHONPATH`` selects
 (``dev/plans/gp-update-guards.md``, Phase 3).
 
 Each (configuration, seed) of ``benchmark_targets.py`` runs as in
-``population.py``: the same problem, options and seed, in a fresh spawned
-process with one BLAS thread. ``gpyreg.GP.update``,
+``population.py``: the same problem, options and seed, and the same
+evaluations made before the run for a configuration of the ``warmstart``
+suite, in a fresh spawned process with one BLAS thread. The earlier run
+that makes those evaluations runs before the wrappers are in place, and
+counts in none of the tallies. ``gpyreg.GP.update``,
 ``GP.set_hyperparameters`` and ``GP.predict`` are wrapped for counting, and
 so are ``add_and_update_gp`` and ``local_gp_fitting`` where ``bads.py``
 calls them. For each run, one entry of the output JSON holds:
@@ -31,14 +34,17 @@ calls them. For each run, one entry of the output JSON holds:
 - ``stale_evals``: the evaluations made while the GP of the search or the
   poll carried ``needs_rebuild``;
 - ``final``: ``x``, ``fval``, ``func_count``, and the exception of a run
-  that raised.
+  that raised;
+- ``precomputed``: the evaluations made before the run, by kind, number of
+  rows and digest, as ``population.py`` records them (None without them).
 
-``--check DIR`` compares each run's ``x``, ``fval`` and ``func_count`` with
-the record of the same run in the population ``DIR``, exactly: this shows
-that the wrappers change nothing and that the runs are the population's. A
-run that ``DIR`` has no record of is listed and skipped. The
-configurations with periodic variables run only with a gpyreg whose
-kernels take ``periods`` (1.4.0 and later), and are skipped otherwise.
+``--check DIR`` compares each run's ``x``, ``fval``, ``func_count`` and
+``precomputed`` (where the record holds it) with the record of the same
+run in the population ``DIR``, exactly: this shows that the wrappers change
+nothing and that the runs are the population's. A run that ``DIR`` has no
+record of is listed and skipped. The configurations with periodic
+variables run only with a gpyreg whose kernels take ``periods`` (1.4.0 and
+later), and are skipped otherwise.
 
 ``--inject P`` makes a fraction ``P`` of the guarded computations raise
 ``LinAlgError`` before they start. Each decision is drawn once per distinct
@@ -274,6 +280,13 @@ def run_one(label, seed, inject_p, inject_seed):
     import pybads.bads.bads as bads_module
     from pybads import BADS
 
+    # the earlier run of a configuration given evaluations made before its
+    # runs, if any, before the wrappers are in place: neither counted nor
+    # injected
+    cfg = bt.find_config(label)
+    prob = cfg.make(seed=seed)
+    args, options = prob.bads_args()
+
     inject_rng = np.random.default_rng(
         [inject_seed, seed, zlib.crc32(label.encode())]
     )
@@ -284,13 +297,11 @@ def run_one(label, seed, inject_p, inject_seed):
     probe.wrap_step_function(bads_module, "add_and_update_gp", 0)
     probe.wrap_step_function(bads_module, "local_gp_fitting", 2)
 
-    prob = bt.find_config(label).make(seed=seed)
-    args, options = prob.bads_args()
     final = {"x": None, "fval": None, "func_count": None, "exception": None}
     t0 = time.perf_counter()
     bads = None
     try:
-        bads = BADS(*args, options=options)
+        bads = BADS(*args, options=options, **prob.bads_kwargs())
         res = bads.optimize()
         final.update(
             x=np.asarray(res["x"], dtype=float).ravel().tolist(),
@@ -302,7 +313,12 @@ def run_one(label, seed, inject_p, inject_seed):
         final["traceback"] = traceback.format_exc()
         if bads is not None:
             final["func_count"] = int(bads.function_logger.func_count)
-    entry = {"label": label, "seed": seed, "final": final}
+    entry = {
+        "label": label,
+        "seed": seed,
+        "precomputed": pop.precomputed_summary(cfg, prob),
+        "final": final,
+    }
     entry.update(probe.summary(final["func_count"]))
     entry["wall_s"] = time.perf_counter() - t0
     return entry
@@ -311,14 +327,19 @@ def run_one(label, seed, inject_p, inject_seed):
 def check(entries, population_dir):
     """Mismatches between the entries and the population's records, and the
     runs that the population has no record of, which the check skips, as
-    ``population.py compare`` skips a configuration that one side lacks."""
+    ``population.py compare`` skips a configuration that one side lacks.
+    The evaluations made before a run are compared by their summary (kind,
+    rows and digest) where the record has one."""
     mismatches, missing = [], []
     for e in entries:
         path = pop.record_path(Path(population_dir), e["label"], e["seed"])
         if not path.exists():
             missing.append((e["label"], e["seed"]))
             continue
-        ref = json.loads(path.read_text(encoding="utf-8"))["final"]
+        record = json.loads(path.read_text(encoding="utf-8"))
+        if record.get("precomputed", e["precomputed"]) != e["precomputed"]:
+            mismatches.append((e["label"], e["seed"], "precomputed"))
+        ref = record["final"]
         for key in ("x", "fval", "func_count"):
             if e["final"][key] != ref[key]:
                 mismatches.append((e["label"], e["seed"], key))
