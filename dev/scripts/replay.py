@@ -53,11 +53,16 @@ A trace captures, with no change to the package:
   gpyreg's commit, the pinning).
 
 A private name that the tool wraps or reads and that the package no longer
-has stops the recording with its name.
+has stops the recording with its name (``MissingName``), before the run or
+where the run reaches it; so does any other failure of the recording's own
+code inside a run (``RecorderError``, with the wrapper where it happened),
+which is never taken for a crash of the run.
 
 ``check BASE NEW`` pairs the runs of two recordings by name; ``check DIR``
 pairs each repeat of DIR with the first recording of its run. It refuses
-(exit status 2) traces whose platform keys differ, unless ``--force``, and
+(exit status 2) traces whose platform keys differ, unless ``--force``,
+prints a warning for each difference in the gpyreg that ran (version,
+source path, commit), the requested options or the budget scale, and
 reports, per run, exact (bitwise) identity per stream (``evals``,
 ``steps``, ``fits``, ``history``, ``result``) and otherwise the first
 divergence: the evaluation, its iteration and stage on each side, ``|dx|``
@@ -78,15 +83,23 @@ The comparison is exact, so it holds only for one machine, one set of
 versions, one BLAS kernel and one thread count: another kernel or another
 number of threads rounds a few operations differently, and a run parts
 within a few dozen evaluations, into different decisions. To check a
-change that must move nothing, record at the parent commit with the
-``replay.py`` of a worktree at it (``benchmark_targets.py`` puts the
-checkout that holds it first on ``sys.path``), record at the change, and
-``check`` the two. ``--repeat 2`` and ``check DIR`` find the first
-computation at which two runs of one process differ.
+change that must move nothing, record at the parent commit with a
+``replay.py`` in a worktree at it (``benchmark_targets.py`` puts the
+checkout that holds it first on ``sys.path``), record at the change, on
+the same machine, and ``check`` the two. Both sides record with the same
+version of this script: when the parent has no ``replay.py`` or an older
+one, copy the change's into the parent's worktree, since traces written by
+two versions can differ in their layout, which ``check`` reports as runs
+that differ. The default configurations need a ``benchmark_targets.py``
+that defines them, as every commit from 2026-09-26 on has; for an older
+parent, copy the change's ``benchmark_targets.py`` beside it too, or name
+``--configs`` that the parent's defines. ``--repeat 2`` and ``check DIR``
+find the first computation at which two runs of one process differ.
 """
 
 import argparse
 import hashlib
+import inspect
 import json
 import os
 import platform
@@ -125,12 +138,7 @@ DEFAULT_CONFIGS = (
 )
 DEFAULT_BUDGET_SCALE = 0.1  # of the suites' 500 D: 50 D evaluations
 DEFAULT_RUNS = REPO_ROOT / "dev" / "scripts" / "runs" / "replay"
-THREAD_VARS = (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "VECLIB_MAXIMUM_THREADS",
-)
+THREAD_VARS = bt.THREAD_VARS  # pinned and recorded, as the other tools do
 PINNED_CORETYPE = "Haswell"  # the x86_64 OpenBLAS kernels of the recordings
 HORIZON_TOLS = (1e-12, 1e-8)
 STREAMS = ("evals", "steps", "fits", "history", "result")
@@ -169,8 +177,9 @@ RESULT_SCALARS = (
 RESULT_UNCOMPARED = ("total_time", "overhead", "version")
 
 # The private names of the package that a recording wraps or reads; the
-# steps also read `poll_moved` and `search_es_hedge`, which `optimize()`
-# sets
+# steps also read `poll_moved` and `search_es_hedge` (with the hedge's
+# `chosen_search_fun`), which `optimize()` sets, and the wrapper of
+# `local_gp_fitting` its parameter `refit_flag`
 BADS_METHODS = ("_search_step_", "_poll_step_", "_update_search_stats_")
 MODULE_FUNCTIONS = (
     "init_and_train_gp",
@@ -186,7 +195,12 @@ BADS_ATTRIBUTES = (
 )
 
 
-class MissingName(RuntimeError):
+class RecorderError(RuntimeError):
+    """The recording's own code failed during a run; the message names the
+    wrapper where. Never taken for a crash of the run."""
+
+
+class MissingName(RecorderError):
     """A private name that the recording needs is missing from PyBADS."""
 
 
@@ -335,22 +349,34 @@ def _require(obj, name, where):
 
 
 class _bookkeeping:
-    """Turn a key or an attribute that the recording reads and that the
-    package no longer has into ``MissingName``, so that it is not taken
-    for a crash of the run."""
+    """The recording's own code in a wrapper, which runs inside the run: an
+    exception it raises becomes a ``RecorderError`` naming ``where``
+    (``MissingName`` for a key or an attribute that the package no longer
+    has), whose class and message are kept on ``recorder``, so that
+    ``record_run`` reports it even when the package catches it, wraps it or
+    adds to its arguments on its way out."""
 
-    def __init__(self, where):
+    def __init__(self, recorder, where):
+        self.recorder = recorder
         self.where = where
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        if exc_type is not None and issubclass(
-            exc_type, (KeyError, AttributeError)
-        ):
-            raise MissingName(f"replay: {self.where}: {exc!r}") from exc
-        return False
+        if exc_type is None or not issubclass(exc_type, Exception):
+            return False
+        if isinstance(exc, RecorderError):
+            err = exc
+        elif isinstance(exc, (KeyError, AttributeError)):
+            err = MissingName(f"replay: {self.where}: {exc!r}")
+        else:
+            err = RecorderError(f"replay: {self.where}: {exc!r}")
+        if self.recorder.error is None:
+            self.recorder.error = (type(err), str(err))
+        if err is exc:
+            return False
+        raise err from exc
 
 
 def _float(v):
@@ -377,7 +403,15 @@ class Recorder:
         self.evals = []
         self.steps = []
         self.fits = []
+        # the class and message of the first RecorderError inside the run
+        self.error = None
         self._search_status = None
+
+    def failure(self):
+        """The first ``RecorderError`` raised inside the run, as it was
+        raised."""
+        cls, message = self.error
+        return cls(message)
 
     # state of the run ------------------------------------------------------
 
@@ -405,17 +439,18 @@ class Recorder:
     def wrap_target(self, fun):
         def target(x):
             out = fun(x)
-            y, sd = out if isinstance(out, tuple) else (out, None)
-            self.evals.append(
-                (
-                    np.array(x, dtype=float).ravel(),
-                    _float(y),
-                    _float(sd),
-                    self.stage,
-                    self.iteration(),
-                    self.rng_digest(),
+            with _bookkeeping(self, "the target's wrapper"):
+                y, sd = out if isinstance(out, tuple) else (out, None)
+                self.evals.append(
+                    (
+                        np.array(x, dtype=float).ravel(),
+                        _float(y),
+                        _float(sd),
+                        self.stage,
+                        self.iteration(),
+                        self.rng_digest(),
+                    )
                 )
-            )
             return out
 
         return target
@@ -432,26 +467,27 @@ class Recorder:
         stats = _require(bads, "_update_search_stats_", "BADS")
 
         def search_step(gp):
-            fc = self.func_count()
+            with _bookkeeping(self, "the search step"):
+                fc = self.func_count()
             self._search_status = None
             self.stage = "search"
             try:
                 out = search(gp)
             finally:
                 self.stage = "between"
-            with _bookkeeping("the search step"):
-                hedge = getattr(bads, "search_es_hedge", None)
-                method = getattr(hedge, "chosen_search_fun", None)
+            with _bookkeeping(self, "the search step"):
+                hedge = _require(bads, "search_es_hedge", "BADS")
+                method = _require(
+                    hedge, "chosen_search_fun", "BADS.search_es_hedge"
+                )
                 outcome = (
                     "empty" if out[0] is None else str(self._search_status)
                 )
-                self._step(
-                    "search", fc, str(method[0]) if method else "", outcome
-                )
+                self._step("search", fc, str(method[0]), outcome)
             return out
 
         def poll_step(gp):
-            with _bookkeeping("the poll step"):
+            with _bookkeeping(self, "the poll step"):
                 fc = self.func_count()
                 n_success = len(bads.optim_state["u_success"])
             self.stage = "poll"
@@ -459,7 +495,7 @@ class Recorder:
                 out = poll(gp)
             finally:
                 self.stage = "between"
-            with _bookkeeping("the poll step"):
+            with _bookkeeping(self, "the poll step"):
                 if len(bads.optim_state["u_success"]) > n_success:
                     outcome = "success"
                 else:
@@ -498,22 +534,27 @@ class Recorder:
             name: _require(module, name, module.__name__)
             for name in MODULE_FUNCTIONS
         }
+        # the refit flag is read by name, wherever the call puts it
+        fitting = inspect.signature(originals["local_gp_fitting"])
+        if "refit_flag" not in fitting.parameters:
+            raise MissingName(
+                f"replay: {module.__name__}.local_gp_fitting has no"
+                " parameter 'refit_flag'"
+            )
 
         def wrap(name, fun):
             def wrapped(*args, **kwargs):
                 out = fun(*args, **kwargs)
-                gp = out[0] if isinstance(out, tuple) else out
-                refit = -1
-                exit_flag = float("nan")
-                if name == "local_gp_fitting":
-                    flag = (
-                        kwargs["refit_flag"]
-                        if "refit_flag" in kwargs
-                        else args[6]
-                    )
-                    refit = int(bool(flag))
-                    exit_flag = float(out[1])
-                self._fit(name, gp, refit, exit_flag)
+                with _bookkeeping(self, f"the wrapper of {name}"):
+                    gp = out[0] if isinstance(out, tuple) else out
+                    refit = -1
+                    exit_flag = float("nan")
+                    if name == "local_gp_fitting":
+                        bound = fitting.bind(*args, **kwargs)
+                        bound.apply_defaults()
+                        refit = int(bool(bound.arguments["refit_flag"]))
+                        exit_flag = float(out[1])
+                    self._fit(name, gp, refit, exit_flag)
                 return out
 
             return wrapped
@@ -682,9 +723,13 @@ def record_run(label, seed, budget_scale, extra_options=None):
         bads = BADS(*args, options=options)
         rec.attach(bads)
         res = bads.optimize()
-    except MissingName:
-        raise
+    except RecorderError as e:
+        if rec.error is None:  # attach's checks, before the run
+            raise
+        raise rec.failure() from e
     except Exception as e:  # noqa: BLE001  (a crash is an outcome)
+        if rec.error is not None:  # the recorder's, wrapped by the package
+            raise rec.failure() from e
         crash = {
             "type": type(e).__name__,
             "message": str(e),
@@ -692,6 +737,8 @@ def record_run(label, seed, budget_scale, extra_options=None):
         }
     finally:
         restore()
+    if rec.error is not None:  # raised inside the run and caught there
+        raise rec.failure()
     wall = time.perf_counter() - t0
     arrays = rec.arrays(prob.D)
     if bads is not None:
@@ -742,8 +789,8 @@ def _cmd_child(args):
             arrays, sidecar = record_run(
                 args.label, args.seed, args.budget_scale, extra
             )
-        except MissingName as e:
-            print(str(e), flush=True)
+        except RecorderError as e:
+            print(f"{type(e).__name__}: {e}", flush=True)
             return 3
         sidecar.update(
             name=name,
@@ -801,7 +848,7 @@ def cmd_record(args):
     for label in labels:
         bt.find_config(label)  # an unknown label fails before any run
     seeds = parse_seeds(args.seeds)
-    out_dir = Path(args.out) if args.out else default_out_dir()
+    out_dir = (Path(args.out) if args.out else default_out_dir()).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     taken = [
         trace_name(label, seed, rep)
@@ -1192,6 +1239,24 @@ def platform_differences(a, b, prefix=""):
     return [] if a == b else [f"{prefix[:-1]}: {a!r} vs {b!r}"]
 
 
+def setup_differences(base_meta, new_meta):
+    """The fields, other than the platform's, in which two runs' set-ups
+    differ: the gpyreg that ran (version, source path, commit), the
+    requested options and the budget scale. ``check`` warns of them and
+    compares the runs all the same."""
+
+    def setup(meta):
+        v = meta.get("provenance") or {}
+        return {
+            "gpyreg": v.get("gpyreg"),
+            "gpyreg_source": v.get("gpyreg_source"),
+            "requested_options": meta.get("requested_options"),
+            "budget_scale": meta.get("budget_scale"),
+        }
+
+    return platform_differences(setup(base_meta), setup(new_meta))
+
+
 def _describe(meta):
     p, v = meta.get("platform", {}), meta.get("provenance", {})
     rt = p.get("openblas_runtime") or []
@@ -1255,6 +1320,13 @@ def cmd_check(args):
             return 2
     else:
         print("platform: identical")
+    warned = {}  # each difference of the set-ups, with the runs that show it
+    for b, n in pairs:
+        for d in setup_differences(b.meta, n.meta):
+            warned.setdefault(d, []).append(n.name)
+    for d, names in warned.items():
+        where = "every run" if len(names) == len(pairs) else names
+        print(f"warning: the set-ups differ: {d}  ({where})")
     print()
     n_same = 0
     for b, n in pairs:

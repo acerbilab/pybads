@@ -1,9 +1,10 @@
 """Checks of ``replay.py``: the comparison of two recordings on synthetic
 traces (identical, parted at a known evaluation, generator states that
 differ, a GP computation that differs, a shorter run, platform keys that
-differ, the repeats of one recording), the loud failure on a missing
-private name, and one short real recording repeated in one process. Run by
-path, from the repository root::
+differ, set-ups that differ, the repeats of one recording), the recorder's
+reading of the refit flag, its loud failure on a missing private name and
+on an error of its own code inside a run, and one short real recording
+repeated in one process. Run by path, from the repository root::
 
     python -m pytest dev/scripts/test_replay.py
 
@@ -13,6 +14,7 @@ process, in a few seconds.
 
 import copy
 import json
+import types
 
 import numpy as np
 import pytest
@@ -76,8 +78,17 @@ def _synthetic(name="sphere_D2_seed0", repeat=0):
         "label": "sphere_D2",
         "seed": 0,
         "repeat": repeat,
+        "budget_scale": 0.1,
+        "requested_options": {"max_fun_evals": 20, "random_seed": 0},
         "platform": copy.deepcopy(PLATFORM),
-        "provenance": {"git": {"sha": "abc1234", "dirty": False}},
+        "provenance": {
+            "git": {"sha": "abc1234", "dirty": False},
+            "gpyreg": "1.3.3",
+            "gpyreg_source": {
+                "path": "/src/gpyreg/gpyreg",
+                "git": {"sha": "98ab5a4", "dirty": False},
+            },
+        },
         "result": {"fval": 0.5, "func_count": N_EVALS, "iterations": 3},
         "crash": None,
         "counts": {"evals": N_EVALS, "steps": 4, "fits": 3, "iterations": 3},
@@ -111,7 +122,7 @@ def test_identical(tmp_path, capsys):
     assert c["identical"] and all(c["streams"].values())
     assert rp.main(["check", str(base), str(new)]) == 0
     out = capsys.readouterr().out
-    assert "platform: identical" in out
+    assert "platform: identical" in out and "warning" not in out
     assert "identical  (12 evaluations, 4 steps, 3 GP computations)" in out
 
 
@@ -220,6 +231,28 @@ def test_platform_keys_that_differ(tmp_path, capsys):
     assert rp.main(["check", str(base), str(new), "--force"]) == 0
 
 
+def test_setups_that_differ_warn(tmp_path, capsys):
+    def change(a, s):
+        s["provenance"]["gpyreg_source"]["git"]["sha"] = "0123abc"
+        s["requested_options"]["max_fun_evals"] = 40
+        s["budget_scale"] = 0.2
+
+    base, new, c = _pair(tmp_path, change)
+    assert c["identical"]
+    # a warning, not a refusal: the runs are compared all the same
+    assert rp.main(["check", str(base), str(new)]) == 0
+    out = capsys.readouterr().out
+    warnings = [line for line in out.splitlines() if "warning" in line]
+    assert warnings == [
+        "warning: the set-ups differ: budget_scale: 0.1 vs 0.2  (every run)",
+        "warning: the set-ups differ: gpyreg_source.git.sha: '98ab5a4' vs"
+        " '0123abc'  (every run)",
+        "warning: the set-ups differ: requested_options.max_fun_evals:"
+        " 20 vs 40  (every run)",
+    ]
+    assert "identical  (12 evaluations" in out
+
+
 def test_runs_on_one_side_only(tmp_path, capsys):
     a, s = _synthetic()
     base = _write(tmp_path / "base", a, s)
@@ -257,6 +290,136 @@ def test_missing_private_name_fails_loudly(monkeypatch):
     monkeypatch.delattr(bads_module.BADS, "_poll_step_")
     with pytest.raises(rp.MissingName, match="_poll_step_"):
         rp.record_run("sphere_D2", 0, 0.02)
+
+
+# --------------------------------------------------------------------------
+# The recorder
+# --------------------------------------------------------------------------
+
+
+class _GP:
+    X = np.zeros((3, 2))
+    temporary_data = {}
+
+    def get_hyperparameters(self, as_array=True):
+        return np.ones((1, 4))
+
+
+def _gp_module(local_gp_fitting):
+    """A module with the three GP functions that the recorder wraps."""
+    m = types.ModuleType("gp_functions")
+    m.init_and_train_gp = lambda *args, **kwargs: (_GP(), 0, 0, {})
+    m.local_gp_fitting = local_gp_fitting
+    m.add_and_update_gp = lambda *args, **kwargs: _GP()
+    return m
+
+
+def test_refit_flag_is_read_by_name():
+    def local_gp_fitting(
+        gp, point, logger, options, state, history, refit_flag, rng=None
+    ):
+        return _GP(), 7
+
+    rec = rp.Recorder()
+    m = _gp_module(local_gp_fitting)
+    restore = rec.wrap_gp_functions(m)
+    m.local_gp_fitting(*[None] * 6, True)
+    m.local_gp_fitting(*[None] * 6, refit_flag=False, rng=None)
+    restore()
+    assert m.local_gp_fitting is local_gp_fitting
+    assert [(f[0], f[5], f[6]) for f in rec.fits] == [
+        ("local_gp_fitting", 1, 7.0),
+        ("local_gp_fitting", 0, 7.0),
+    ]
+
+    # a parameter inserted before the flag moves it, and a default fills it
+    def inserted(
+        gp, point, extra, logger, options, state, history, refit_flag=True
+    ):
+        return _GP(), 0
+
+    rec = rp.Recorder()
+    m = _gp_module(inserted)
+    rec.wrap_gp_functions(m)
+    m.local_gp_fitting(*[None] * 7)
+    m.local_gp_fitting(*[None] * 7, False)
+    assert [f[5] for f in rec.fits] == [1, 0]
+
+
+def test_renamed_refit_flag_fails_loudly():
+    def renamed(gp, point, logger, options, state, history, refit):
+        return _GP(), 0
+
+    m = _gp_module(renamed)
+    with pytest.raises(rp.MissingName, match="refit_flag"):
+        rp.Recorder().wrap_gp_functions(m)
+    assert m.local_gp_fitting is renamed  # nothing left wrapped
+
+
+def test_recorder_error_in_a_gp_wrapper():
+    def local_gp_fitting(
+        gp, point, logger, options, state, history, refit_flag
+    ):
+        return _GP(), "no exit flag"
+
+    rec = rp.Recorder()
+    m = _gp_module(local_gp_fitting)
+    rec.wrap_gp_functions(m)
+    with pytest.raises(
+        rp.RecorderError, match="the wrapper of local_gp_fitting: ValueError"
+    ):
+        m.local_gp_fitting(*[None] * 6, True)
+    assert rec.error[0] is rp.RecorderError
+
+
+def _bads(hedge):
+    """What ``Recorder.attach`` and the step wrappers read of a BADS."""
+    return types.SimpleNamespace(
+        rng=np.random.default_rng(0),
+        optim_state={"iter": 0, "u_success": []},
+        function_logger=types.SimpleNamespace(func_count=0),
+        mesh_size_integer=0,
+        iteration_history={},
+        search_es_hedge=hedge,
+        poll_moved=False,
+        _search_step_=lambda gp: (np.zeros(2), 1.0),
+        _poll_step_=lambda gp: None,
+        _update_search_stats_=lambda status, dist: None,
+    )
+
+
+def test_missing_search_method_fails_loudly():
+    rec = rp.Recorder()
+    bads = _bads(types.SimpleNamespace(chosen_search_fun=("ES-wcm", 1)))
+    rec.attach(bads)
+    bads._search_step_(None)
+    assert rec.steps[0][4] == "ES-wcm"
+    rec = rp.Recorder()
+    bads = _bads(types.SimpleNamespace())
+    rec.attach(bads)
+    with pytest.raises(rp.MissingName, match="chosen_search_fun"):
+        bads._search_step_(None)
+
+
+@pytest.mark.parametrize(
+    "name, where",
+    [
+        ("_float", "the target's wrapper"),
+        ("_hyp", "the wrapper of init_and_train_gp"),
+    ],
+)
+def test_recorder_error_inside_a_run_is_not_a_crash(monkeypatch, name, where):
+    def broken(*args):
+        raise ZeroDivisionError("the recorder's own slip")
+
+    monkeypatch.setattr(rp, name, broken)
+    with pytest.raises(rp.RecorderError) as info:
+        rp.record_run("sphere_D2", 0, 0.02)
+    # as raised, whatever the package added to it on its way out
+    assert str(info.value) == (
+        f'replay: {where}: ZeroDivisionError("the recorder\'s own slip")'
+    )
+    assert type(info.value) is rp.RecorderError
 
 
 def test_record_twice_in_one_process(tmp_path, capsys):
