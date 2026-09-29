@@ -350,6 +350,14 @@ reference's number of seeds.
   make `total_time` to 2e-5 s (6e-5 s under cProfile); the noise of the
   machine between two passes of the same runs, and the choice of a control
   stage.
+- [Speed-ups that change no result](results/2026-09-29-bit-identical-speedups.md)
+  — gpyreg's kernels, `predict` and the objective of its fits without
+  intermediate arrays or SciPy's layers (gpyreg's branch
+  `perf/bit-identical-speedups`, for 1.4.0), and one line of PyBADS:
+  PyBADS's own time 23 to 29 % lower on the `profile` suite, every
+  result the same to the last bit (the fingerprint, the replay and the
+  oracles' `--against`); and what was measured and not adopted, the
+  changes that move the last bits among it.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over

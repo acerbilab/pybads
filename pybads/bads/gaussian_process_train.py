@@ -383,7 +383,9 @@ def local_gp_fitting(
     # Update GP Noise: the prior's centre scales with the mesh size, as in
     # MATLAB's gpdefBads.m (a noisy run sets mesh_noise_multiplier to 0)
     old_priors = gp.get_priors()
-    gp_priors = gp.get_priors()
+    # The entries of `gp_priors` are replaced below, never changed in place,
+    # so a shallow copy keeps `old_priors` as it was, for the restore
+    gp_priors = dict(old_priors)
     prior_noise = gp_priors["noise_log_scale"]
     mu_noise_prior = np.log(noise_size) + options[
         "mesh_noise_multiplier"
