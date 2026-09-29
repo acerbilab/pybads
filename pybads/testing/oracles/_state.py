@@ -14,7 +14,9 @@ A snapshot holds the function logger's filled rows, the ``optim_state``
 priors and ``temporary_data``, the effective options, the incumbent, the
 hedge's gains, the state of the run's generator (PCG64's state is plain
 JSON), the inputs that some oracles take beside the state, a candidate
-set, and the reference outputs of the oracles.
+set, and the reference outputs of the oracles. The JSON tree's ``schema``
+is the version of this layout (``SCHEMA_VERSION``); :func:`load_tree`
+refuses another.
 
 :func:`snapshot_from_bads` takes the state out of a live :class:`BADS`;
 ``build_*`` rebuild the objects through the public constructors (a gpyreg
@@ -24,9 +26,24 @@ row, ``Options`` from the option files); :func:`save_snapshot` and
 (``dev/scripts/make_oracle_fixtures.py``) and the tests share this module,
 so that the references and the checked outputs are computed from states
 rebuilt the same way.
+
+A state is rebuilt in one of the *views* of ``VIEWS``: ``"stored"``, as
+the run left it, and ``"noise_floor"``, the same state with the GP's
+hyperparameters replaced by the snapshot's ``inputs["noise_floor_hyp"]``
+(its noise raised to a floor that bounds the condition number of the
+training covariance; ``_oracles.py``), which only a snapshot holding that
+input has.
+
+The stored states outlive the code that wrote them. An option of a stored
+state that the code no longer has is dropped when the state is rebuilt, and
+listed in the state's ``dropped_options``. A key that the code reads from
+``optim_state`` or from the GP's ``temporary_data`` and that a stored state
+lacks raises a ``KeyError`` that names it; such a key gets a default in
+``STATE_DEFAULTS``, in the commit that makes the code read it.
 """
 
 import copy
+import functools
 import json
 import numbers
 import types
@@ -50,6 +67,14 @@ ARRAY_MARKER = "@@npz:"
 FLOAT_TAG = "@float"
 CALLABLE_TAG = "@callable"
 OPTION_FILES = Path(pybads.bads.__file__).resolve().parent / "option_configs"
+# The version of the layout of a snapshot's files
+SCHEMA_VERSION = 1
+# The views in which a state is rebuilt (see the module's docstring)
+VIEWS = ("stored", "noise_floor")
+# The defaults of the keys that the code reads and that stored states lack:
+# for "optim_state" and "temporary_data", a dict from the key to a function
+# of the decoded snapshot that gives its value
+STATE_DEFAULTS = {"optim_state": {}, "temporary_data": {}}
 
 
 # --------------------------------------------------------------------------
@@ -228,10 +253,33 @@ def snapshot_from_bads(bads, gp, meta):
 # --------------------------------------------------------------------------
 
 
+@functools.lru_cache(maxsize=None)
+def _option_names(D):
+    """The names of the options that the option files define."""
+    options = Options(
+        str(OPTION_FILES / "basic_bads_options.ini"),
+        evaluation_parameters={"D": D},
+    )
+    options.load_options_file(
+        str(OPTION_FILES / "advanced_bads_options.ini"),
+        evaluation_parameters={"D": D},
+    )
+    return frozenset(options.keys())
+
+
 def build_options(D, user_options, effective):
     """The options of a run: the option files evaluated at ``D`` with the
     user's options, as ``BADS`` loads them, then the run's effective value
-    of every option but the callables, which keep the files' value."""
+    of every option but the callables, which keep the files' value.
+
+    Returns ``(options, dropped)``, with ``dropped`` the sorted names of the
+    stored options, user options included, that the option files no longer
+    define: they are left out."""
+    known = _option_names(D)
+    dropped = sorted(
+        {k for k in list(user_options) + list(effective) if k not in known}
+    )
+    user_options = {k: v for k, v in user_options.items() if k in known}
     options = Options(
         str(OPTION_FILES / "basic_bads_options.ini"),
         evaluation_parameters={"D": D},
@@ -242,14 +290,14 @@ def build_options(D, user_options, effective):
         evaluation_parameters={"D": D},
     )
     for key, value in effective.items():
-        if key not in options:
-            raise ValueError(f"the snapshot's option {key!r} does not exist")
+        if key in dropped:
+            continue
         if isinstance(value, dict) and set(value) == {CALLABLE_TAG}:
             if not callable(options[key]):
                 raise ValueError(f"option {key!r} is no longer a callable")
             continue
         options[key] = value
-    return options
+    return options, dropped
 
 
 def build_transformer(optim_state, options, D):
@@ -325,10 +373,36 @@ def new_gp(D, cov_fun, mean_fun, noise_fun):
     )
 
 
-def build_gp(d):
+class StoredState(dict):
+    """A dict of a stored state (``optim_state`` or the GP's
+    ``temporary_data``) whose missing key raises a ``KeyError`` that names
+    the key and the remedy: a default in ``STATE_DEFAULTS``."""
+
+    def __init__(self, items, where):
+        super().__init__(items)
+        self.where = where
+
+    def __missing__(self, key):
+        raise KeyError(
+            f"the stored {self.where} has no {key!r}: the code reads a key"
+            " that the fixtures' states lack; give it a default in"
+            f" pybads/testing/oracles/_state.py: STATE_DEFAULTS"
+            f"[{self.where!r}], in the commit that makes the code read it"
+        )
+
+
+def _with_defaults(d, where, snap):
+    d = StoredState(d, where)
+    for key, default in STATE_DEFAULTS[where].items():
+        if key not in d:
+            d[key] = default(snap)
+    return d
+
+
+def build_gp(d, hyp=None):
     """A gpyreg ``GP`` with the snapshot's functions, bounds, priors, data
-    and hyperparameters, its posterior computed from them, and its
-    ``temporary_data``."""
+    and hyperparameters (or ``hyp``), its posterior computed from them, and
+    its ``temporary_data``."""
     X = np.array(d["X"])
     gp = new_gp(X.shape[1], d["cov_fun"], d["mean_fun"], d["noise_fun"])
     gp.set_bounds(_as_tuples(d["bounds"]))
@@ -337,32 +411,53 @@ def build_gp(d):
         X_new=X,
         y_new=np.array(d["y"]),
         s2_new=None if d["s2"] is None else np.array(d["s2"]),
-        hyp=np.atleast_2d(np.array(d["hyp"])),
+        hyp=np.atleast_2d(np.array(d["hyp"] if hyp is None else hyp)),
     )
     gp.temporary_data = copy.deepcopy(d["temporary_data"])
     return gp
 
 
-def build_state(snap):
-    """Rebuild every object of a decoded snapshot, on a private copy.
+def snapshot_views(snap):
+    """The views in which the decoded snapshot ``snap`` is rebuilt."""
+    return [
+        view
+        for view in VIEWS
+        if view == "stored" or f"{view}_hyp" in snap["inputs"]
+    ]
 
-    Returns a dict with ``options``, ``optim_state``, ``var_transf``,
-    ``logger``, ``gp``, ``incumbent``, ``hedge``, ``rng_state``,
-    ``inputs``, ``cand``, ``non_box_cons``, ``meta`` and ``ref``.
+
+def build_state(snap, view="stored"):
+    """Rebuild every object of a decoded snapshot, on a private copy, in
+    the view ``view`` (see the module's docstring).
+
+    Returns a dict with ``options``, ``dropped_options``, ``optim_state``,
+    ``var_transf``, ``logger``, ``gp``, ``incumbent``, ``hedge``,
+    ``rng_state``, ``inputs``, ``cand``, ``non_box_cons``, ``meta``,
+    ``view`` and ``ref``.
     """
+    if view not in snapshot_views(snap):
+        raise ValueError(f"the snapshot has no view {view!r}")
+    src = snap
     snap = copy.deepcopy(snap)
     meta = snap["meta"]
     D = int(meta["D"])
-    options = build_options(D, meta["user_options"], snap["options"])
-    optim_state = snap["optim_state"]
+    options, dropped = build_options(D, meta["user_options"], snap["options"])
+    optim_state = _with_defaults(snap["optim_state"], "optim_state", src)
     var_transf = build_transformer(optim_state, options, D)
+    gp = build_gp(
+        snap["gp"], None if view == "stored" else snap["inputs"][f"{view}_hyp"]
+    )
+    gp.temporary_data = _with_defaults(
+        gp.temporary_data, "temporary_data", src
+    )
     name = meta.get("non_box_cons")
     return {
         "options": options,
+        "dropped_options": dropped,
         "optim_state": optim_state,
         "var_transf": var_transf,
         "logger": build_logger(snap["logger"], var_transf),
-        "gp": build_gp(snap["gp"]),
+        "gp": gp,
         "incumbent": snap["incumbent"],
         "hedge": snap["hedge"],
         "rng_state": snap["rng_state"],
@@ -370,6 +465,7 @@ def build_state(snap):
         "cand": snap["cand"],
         "non_box_cons": None if name is None else NON_BOX_CONS[name],
         "meta": meta,
+        "view": view,
         "ref": snap["ref"],
     }
 
@@ -389,12 +485,19 @@ def snapshot_files(path):
 
 
 def save_snapshot(path, arrays, tree):
-    """Write ``<path>.npz`` and ``<path>.json`` (strict JSON, LF)."""
+    """Write ``<path>.npz`` and ``<path>.json`` (strict JSON, LF), the
+    tree's ``schema`` set to ``SCHEMA_VERSION``."""
     npz, js = snapshot_files(path)
     npz.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(npz, **arrays)
     with open(js, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(tree, f, indent=1, sort_keys=True, allow_nan=False)
+        json.dump(
+            dict(tree, schema=SCHEMA_VERSION),
+            f,
+            indent=1,
+            sort_keys=True,
+            allow_nan=False,
+        )
         f.write("\n")
 
 
@@ -406,9 +509,17 @@ def load_arrays(path):
 
 
 def load_tree(path):
-    """The JSON tree of the snapshot at ``path``, not decoded."""
+    """The JSON tree of the snapshot at ``path``, not decoded; raises
+    ``ValueError`` on a schema other than ``SCHEMA_VERSION``."""
     _, js = snapshot_files(path)
-    return json.loads(js.read_text(encoding="utf-8"))
+    tree = json.loads(js.read_text(encoding="utf-8"))
+    schema = tree.get("schema")
+    if schema != SCHEMA_VERSION:
+        raise ValueError(
+            f"{js}: snapshot schema {schema}, where this code reads"
+            f" {SCHEMA_VERSION}"
+        )
+    return tree
 
 
 def load_snapshot(path):

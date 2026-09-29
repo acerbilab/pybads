@@ -32,37 +32,57 @@ entries (:func:`compare`); NaN and infinite entries must match exactly.
   probabilities that the GP's predictions set; a variance near a training
   point is a difference of nearly equal terms.
 
-Platform-bound outputs are compared exactly where the platform key
-(:func:`platform_key`: the system, the CPU, the libraries and the BLAS
-threads and kernel) is the fixture's, and skipped elsewhere unless
-``PYBADS_ORACLES_ALL`` is set (:func:`comparison`). They are every output of
-the oracles of ``PLATFORM_BOUND``, a GP fit (L-BFGS-B from several starts)
-and a whole ES search step with the LCB (a ranking of thousands of
-candidates), which turn rounding into different decisions; and, on a
-snapshot whose GP is ill-conditioned (:func:`gp_condition_bound` above
-``GP_CONDITION_MAX``), every output that goes through the GP's solve. ES-wcm
-takes the eigenvectors of its covariance with the signs that LAPACK gives
-them, so its candidates are left to ``es_search_step``; ``es_setup`` pins
-its covariance, in which the signs cancel.
+Portable and platform-bound outputs. The fixtures store the portable
+outputs alone, which the tests compare on every platform under their
+tolerances. An output is platform-bound (:func:`platform_bound`) when
+rounding on another platform moves it beyond any tolerance that would
+still catch a change: every output of the oracles of ``PLATFORM_BOUND``, a
+GP fit (L-BFGS-B from several starts) and a whole ES search step with the
+LCB (a ranking of thousands of candidates), which turn rounding into
+different decisions; and, where a GP is ill-conditioned
+(:func:`gp_condition_bound` above ``GP_CONDITION_MAX``), every output that
+goes through its solve. Platform-bound outputs reproduce only on one
+machine, with one set of libraries and one BLAS setting, and are compared
+only between two commits there (``make_oracle_fixtures.py --dump`` and
+``--against``). ES-wcm takes the eigenvectors of its covariance with the
+signs that LAPACK gives them, so its candidates are left to
+``es_search_step``; ``es_setup`` pins its covariance, in which the signs
+cancel.
 
-Measured floors (2026-09-28; Linux x86_64 with 4 cores, NumPy 2.4.6 and
+Views. A deterministic run's GP, after a refit, has its noise at its lower
+bound and an ill-conditioned training covariance. On such a snapshot the
+oracles with outputs through the GP's solve (:func:`view_oracles`) are
+computed twice: on the state as stored, where those outputs are
+platform-bound, and in the view ``"noise_floor"``, with the GP's noise
+raised so that the bound on the condition number is
+``NOISE_FLOOR_CONDITION`` (:func:`noise_floor_hyperparameters`; the
+fixture stores the raised hyperparameters), where every output is
+portable. An oracle's outputs in a view are stored under the case
+:func:`case_name`, and :func:`oracle_cases` lists the cases of a snapshot.
+
+Measured floors (2026-09-29; Linux x86_64 with 4 cores, NumPy 2.4.6 and
 SciPy 1.17.1 with their OpenBLAS 0.3.31, gpyreg 1.3.3). The references were
 computed with one BLAS thread and OpenBLAS's kernel for the CPU (SkylakeX),
 and recomputed with 2 and 4 threads (4 is OpenBLAS's default there), with
-one thread under ``OPENBLAS_CORETYPE`` Haswell and Sandybridge, and with 4
-threads under Sandybridge. The thread count moved nothing: the matrices are
-too small for OpenBLAS to split. The kernels moved the GP classes and
-``linalg``. The largest deviation of the portable outputs, scaled as in the
-rule above, and the margin that each tolerance leaves over it:
+one thread under ``OPENBLAS_CORETYPE`` Haswell and Sandybridge, with 4
+threads under Sandybridge, and with NumPy's AVX-512 dispatch disabled
+(``NPY_DISABLE_CPU_FEATURES="X86_V4 AVX512_ICL AVX512_SPR"``), alone and
+under Sandybridge. The thread count moved nothing: the matrices are too
+small for OpenBLAS to split. The kernels moved the GP classes and
+``linalg``, and NumPy's dispatch ``gp_free`` by an ulp. The largest
+deviation of the stored outputs, scaled as in the rule above, and the
+margin that each tolerance leaves over it (the GP classes' largest are
+those of the noise-floor views; of the stored states, 3.6e-10 and
+1.8e-10):
 
 =========  ==============  =========  ======
 class      largest scaled  rtol       margin
 =========  ==============  =========  ======
 exact      0               0
-gp_free    0               1e-10
+gp_free    2.5e-16         1e-10      4e5
 linalg     4.9e-15         1e-9       2e5
-gp_mean    3.6e-10         1e-4       3e5
-gp_var     1.8e-10         1e-3       6e6
+gp_mean    6.2e-10         1e-4       2e5
+gp_var     1.6e-9          1e-3       6e5
 =========  ==============  =========  ======
 
 ``gp_free`` involves no BLAS; its tolerance leaves room for another
@@ -73,27 +93,23 @@ candidate points, 1e-3 for the variance), set after its first CI runs on
 Ubuntu and macOS, whose BLAS builds moved GP outputs far beyond the floors
 measured on one machine (the predictive mean at candidate points by
 1.2e-6). The snapshots whose GP is well-conditioned have bounds of 5e4 to
-4e5 on the condition number. The three deterministic snapshots taken after
-refits have the GP's noise at its lower bound, and bounds of 8e14 to 3e16:
-there the kernels moved the predictive means by up to 4e-3 and the
-variances by up to 0.6 (scaled). They moved the GP fit of every snapshot,
-and the ES step's LCB of all but one. Windows and macOS have not been
-measured: where a platform exceeds a tolerance, measure there
+4e5 on the condition number, and the noise-floor views 1e6. The three
+deterministic snapshots taken after refits have the GP's noise at its lower
+bound, and bounds of 8e14 to 3e16: there the kernels moved the predictive
+means by up to 4e-3 and the variances by up to 0.6 (scaled; measured
+2026-09-28). The kernels moved the GP fit of every snapshot, and the ES
+step's LCB of all but one. Windows and macOS have not been measured: where
+a platform exceeds a tolerance, measure there
 (``make_oracle_fixtures.py --check --verbose``) rather than loosen it.
 """
 
 import contextlib
 import copy
 import importlib
-import os
-import platform
 import types
 from fnmatch import fnmatchcase
-from importlib.metadata import PackageNotFoundError, version
-from pathlib import Path
 
 import numpy as np
-import scipy
 
 from pybads.acquisition_functions.acq_fcn_lcb import acq_fcn_lcb
 from pybads.bads.bads import BADS
@@ -105,7 +121,7 @@ from pybads.search.grid_functions import force_to_grid, grid_units, udist
 from pybads.search.search_hedge import ESSearchHedge
 from pybads.utils import IterationHistory
 
-from ._state import new_gp
+from ._state import new_gp, snapshot_views
 
 DEFAULT_SEED = 20260928
 
@@ -116,6 +132,9 @@ TOLERANCES = {
     "gp_mean": (1e-4, 1e-10),
     "gp_var": (1e-3, 1e-8),
 }
+# The classes of the outputs that go through the solve with the GP's
+# training covariance
+GP_CLASSES = ("gp_mean", "gp_var")
 
 PLATFORM_BOUND = frozenset({"es_search_step", "gp_refit"})
 # The largest bound on the condition number of the GP's training covariance
@@ -123,14 +142,8 @@ PLATFORM_BOUND = frozenset({"es_search_step", "gp_refit"})
 # take their tolerances on every platform: the well-conditioned snapshots
 # have bounds of at most 4e5, the others of at least 8e14
 GP_CONDITION_MAX = 1e8
-
-# The environment variables that choose OpenBLAS's threads and kernel
-BLAS_ENV = (
-    "OMP_NUM_THREADS",
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "OPENBLAS_CORETYPE",
-)
+# The bound on the condition number that the noise-floor view gives
+NOISE_FLOOR_CONDITION = 1e6
 
 
 # --------------------------------------------------------------------------
@@ -165,8 +178,15 @@ class Oracle:
 
     def depends_on_gp(self, key):
         """Whether the output ``key`` goes through the GP's solve."""
-        return self.tolerance_class(key) in ("gp_mean", "gp_var") or any(
+        return self.tolerance_class(key) in GP_CLASSES or any(
             fnmatchcase(key, p) for p in self.gp_keys
+        )
+
+    def has_gp_outputs(self):
+        """Whether some output goes through the GP's solve, by its class or
+        a pattern of ``gp_keys``."""
+        return bool(self.gp_keys) or any(
+            cls in GP_CLASSES for cls in self.tol.values()
         )
 
     def tolerance_class(self, key):
@@ -221,30 +241,74 @@ def gp_condition_bound(gp, logger):
     return float(bound)
 
 
-def comparison(name, snap, same_platform, exact=False):
-    """How to compare the oracle ``name`` on the decoded snapshot ``snap``:
-    ``(skip, tolerance)``, the output keys not compared and a callable
-    ``key -> (rtol, atol)`` for the others.
+def noise_floor_hyperparameters(gp, logger, condition=NOISE_FLOOR_CONDITION):
+    """The GP's hyperparameters with the log SD of its constant noise raised,
+    where it is lower, to ``0.5 * log(N * sf2 / (condition - 1))``, which
+    makes :func:`gp_condition_bound` ``condition`` for a GP whose noise is
+    that constant alone (``N`` and ``sf2`` as there)."""
+    if gp.noise.parameters[0] != 1:
+        raise ValueError("the GP's noise has no constant term to raise")
+    n = logger.X_max_idx + 1
+    X = logger.X[:n]
+    cov_N = gp.covariance.hyperparameter_count(gp.D)
+    hyp = np.array(gp.get_hyperparameters(as_array=True), dtype=float)
+    for row in hyp:
+        sf2 = np.max(np.diag(gp.covariance.compute(row[:cov_N], X)))
+        floor = 0.5 * np.log(n * sf2 / (condition - 1.0))
+        row[cov_N] = max(row[cov_N], floor)
+    return hyp
 
-    A platform-bound output (every output of an oracle of
-    ``PLATFORM_BOUND``, and the outputs that go through the GP's solve on
-    a snapshot whose ``meta["gp_condition_bound"]`` exceeds
-    ``GP_CONDITION_MAX``) is compared exactly where ``same_platform``, and
-    skipped elsewhere; the others take their class's tolerance, or none
-    with ``exact``."""
-    orc = ORACLES[name]
-    portable_gp = snap["meta"]["gp_condition_bound"] <= GP_CONDITION_MAX
 
-    def bound(key):
-        return name in PLATFORM_BOUND or (
-            not portable_gp and orc.depends_on_gp(key)
-        )
+def case_name(name, view):
+    """The name under which the outputs of the oracle ``name`` in the view
+    ``view`` are stored: the oracle's name in the view ``"stored"``, else
+    ``"<name>@<view>"``."""
+    return name if view == "stored" else f"{name}@{view}"
 
-    def tolerance(key):
-        return (0.0, 0.0) if exact or bound(key) else orc.tolerance(key)
 
-    skip = set() if same_platform else set(filter(bound, snap["ref"][name]))
-    return skip, tolerance
+def view_oracles(view):
+    """The names of the oracles computed in the view ``view``: every oracle
+    in ``"stored"``; elsewhere, those with outputs through the GP's solve,
+    but the platform-bound oracles."""
+    return [
+        name
+        for name, orc in ORACLES.items()
+        if view == "stored"
+        or (name not in PLATFORM_BOUND and orc.has_gp_outputs())
+    ]
+
+
+def oracle_cases(snap, stored_only=True):
+    """The cases of the decoded snapshot ``snap``, ``(case, name, view)``:
+    each oracle in each view of the snapshot that computes it. With
+    ``stored_only``, the cases whose outputs the fixture stores, those of
+    the oracles that are not platform-bound."""
+    return [
+        (case_name(name, view), name, view)
+        for view in snapshot_views(snap)
+        for name in view_oracles(view)
+        if not (stored_only and name in PLATFORM_BOUND)
+    ]
+
+
+def platform_bound(snap, view, name, key):
+    """Whether the output ``key`` of the oracle ``name``, in the view
+    ``view`` of the decoded snapshot ``snap``, is platform-bound: every
+    output of an oracle of ``PLATFORM_BOUND``, and the outputs through the
+    GP's solve where the view's ``meta["gp_condition_bound"]`` exceeds
+    ``GP_CONDITION_MAX``. The fixtures store the other outputs."""
+    if name in PLATFORM_BOUND:
+        return True
+    bound = snap["meta"]["gp_condition_bound"][view]
+    return bound > GP_CONDITION_MAX and ORACLES[name].depends_on_gp(key)
+
+
+def portable_outputs(snap, view, name, out):
+    """The outputs of ``out`` (the oracle ``name`` in the view ``view``)
+    that are not platform-bound."""
+    return {
+        k: v for k, v in out.items() if not platform_bound(snap, view, name, k)
+    }
 
 
 def compare(reference, output, tolerance):
@@ -303,41 +367,6 @@ def format_rows(rows):
         f"  {'ok ' if ok else 'BAD'} {k:28s} max|d| {a:.2e}  scaled {r:.2e}"
         for k, a, r, ok in rows
     )
-
-
-def _cpu_model():
-    try:
-        for line in Path("/proc/cpuinfo").read_text().splitlines():
-            key, _, value = line.partition(":")
-            if key.strip() in ("model name", "Hardware", "CPU part"):
-                return value.strip()
-    except OSError:
-        pass
-    return platform.processor() or None
-
-
-def _version(name):
-    try:
-        return version(name)
-    except PackageNotFoundError:
-        return None
-
-
-def platform_key():
-    """What must be the same for a platform-bound oracle to reproduce: the
-    system, the CPU, Python, NumPy, SciPy and gpyreg, and the environment
-    variables that choose BLAS's threads and kernel."""
-    return {
-        "platform": platform.platform(),
-        "machine": platform.machine(),
-        "cpu": _cpu_model(),
-        "cpu_count": os.cpu_count(),
-        "python": platform.python_version(),
-        "numpy": np.__version__,
-        "scipy": scipy.__version__,
-        "gpyreg": _version("gpyreg"),
-        "blas_env": {k: os.environ.get(k) for k in BLAS_ENV},
-    }
 
 
 # --------------------------------------------------------------------------
