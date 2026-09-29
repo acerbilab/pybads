@@ -4,8 +4,9 @@ Measured on 2026-09-29. The question: with the port review closed, what
 could still make PyBADS's runs faster without changing any number they
 compute, and by how much. The answer is a change to gpyreg, for its release
 1.4.0, and one line of PyBADS: together they cut PyBADS's own time (the
-run's time less the target's evaluations) by 23 to 29 % on the `profile`
-suite, and every result is the same to the last bit.
+run's time less the target's evaluations) by 23 to 28 % on the `profile`
+suite under SciPy 1.17 and by 19 to 27 % under SciPy 1.18, and every
+result is the same to the last bit.
 
 ## Summary
 
@@ -18,8 +19,12 @@ suite, and every result is the same to the last bit.
   of SciPy's Python layers around small calls.
 - **The changes**, on gpyreg's branch `perf/bit-identical-speedups`
   (its code at `421f1b0`, on `e10120c`; merged as acerbilab/gpyreg#63,
-  merge commit `4126dbe`), with the share of PyBADS's own time that each
-  saves alone on the `profile` suite:
+  merge commit `4126dbe`), less the factorization of the training
+  covariance by a direct call of LAPACK, which `61cbfd3` (branch
+  `fix/training-cholesky-scipy`) gives back to `scipy.linalg.cholesky`
+  since the direct call's bits are not SciPy 1.18's (see "Not adopted"),
+  with the share
+  of PyBADS's own time that each saves alone on the `profile` suite:
   - the kernel without its gradient, and `predict`, computed in place:
     about six fewer arrays of the size of the training set by the ES
     search's 2048 candidates at each prediction; 9 to 23 %;
@@ -34,13 +39,13 @@ suite, and every result is the same to the last bit.
     GP), and the Gaussian draws of the space-filling design of `fit`, by
     `scipy.special.ndtr` and `ndtri` (about 1 µs a call) instead of
     `scipy.stats.norm` (about 50 µs); 3 to 7 %;
-  - the Cholesky factorizations of the training covariance, and the four
-    triangular solves that still went through SciPy's wrapper (two for the
-    gradient of the objective, two for a posterior in the low-noise
-    representation), by direct calls of LAPACK, as gpyreg's
-    `_solve_triangular` already made its other solves; 1 to 6 %, most on
+  - the four triangular solves that still went through SciPy's wrapper
+    (two for the gradient of the objective, two for a posterior in the
+    low-noise representation), by `_solve_triangular`, gpyreg's direct
+    call of LAPACK, which already made its other solves; 1 to 6 %
+    together with the factorization's direct call, most on
     `ellipsoid_D3`, whose failed fits retry each factorization with a
-    larger noise;
+    larger noise (the solves' share alone was not measured);
   - the gradient of the objective summed in one reused array; up to 4 %.
 
   The gradient's changes reach the squared exponential and Matern
@@ -49,21 +54,32 @@ suite, and every result is the same to the last bit.
   priors it has just taken instead of taking them again from gpyreg, whose
   `get_priors` re-checks them (0.4 to 3 %).
 - **Every result is unchanged.**
-  - `dev/scripts/fingerprint.py` gives `4146a986863602cb`, one BLAS thread.
+  - `dev/scripts/fingerprint.py` gives, with one BLAS thread,
+    `4146a986863602cb` under SciPy 1.17.1 and `917c279f2c777dbb` under
+    SciPy 1.18.1, as PyBADS `618652d6` with gpyreg `e10120c` does.
   - `dev/scripts/replay.py check` finds the 8 recorded runs identical to
-    those of PyBADS `618652d6` with gpyreg `e10120c`, step by step.
+    those of PyBADS `618652d6` with gpyreg `e10120c`, step by step, under
+    either SciPy. It takes `--force`, since the recorder of `618652d6`
+    leaves the CPU count and NumPy's CPU features out of the platform key.
   - `make_oracle_fixtures.py --check --exact --against` a `--dump` of
     `618652d6` with gpyreg `e10120c` compares 1,056 outputs, every one
-    identical. The script refuses a dump made under another gpyreg, since
-    its gate is for a change to PyBADS; the dump's record of gpyreg was
-    set to the branch's, the only field of the platform key that differed,
-    so that the comparison could cross the change to gpyreg.
-  - gpyreg's kernels against those of `e10120c`: 15,000 random cases, bit
-    for bit, strides included (the three ARD kernels, Matern of degrees 1,
-    3 and 5, with and without periods, with the gradient, against test
-    points and on the diagonal, a shape of 1 for the rational-quadratic
-    kernel, repeated points, Fortran-ordered and strided inputs).
-  - Whole GPs against `e10120c`, each version in a process of its own: 5,724
+    identical, under SciPy 1.17.1. The script refuses a dump made under
+    another gpyreg, since its gate is for a change to PyBADS; the dump's
+    record of gpyreg was set to the changed gpyreg's, the only field of
+    the platform key that differed, so that the comparison could cross the
+    change to gpyreg.
+  - `dev/scripts/gpyreg_bitwise.py` finds the 31,974 outputs of `61cbfd3`
+    identical to those of `e10120c` under SciPy 1.17.1 and 1.18.1. Under
+    SciPy 1.18.1 they are also those of gpyreg 1.3.3, in a variant of the
+    script that leaves out what 1.3.3 lacks (the periods and the GP that
+    refuses a failed factorization, which becomes an ordinary one).
+  - At `421f1b0`, under SciPy 1.17.1, two earlier sweeps: gpyreg's
+    kernels against those of `e10120c`, 15,000 random cases, bit for bit,
+    strides included (the three ARD kernels, Matern of degrees 1, 3 and 5,
+    with and without periods, with the gradient, against test points and
+    on the diagonal, a shape of 1 for the rational-quadratic kernel,
+    repeated points, Fortran-ordered and strided inputs); and whole GPs
+    against `e10120c`, each version in a process of its own: 5,724
     outputs of fits, predictions (with noise, the log predictive density,
     separate samples and cross-covariances), `predict_full`, the objective
     with its gradient, posteriors in the low-noise representation,
@@ -71,17 +87,23 @@ suite, and every result is the same to the last bit.
     factorization needed a noise multiplier of 100 or 1000, and a GP that
     refuses a failed factorization, all bit for bit.
   - gpyreg's suite, with new tests that compare the kernels with their
-    direct formulas, `_cholesky` with SciPy's wrapper, the standard
-    normal's functions with `scipy.stats.norm`, and `predict`'s in-place
-    path with the path that returns the cross-covariance; and PyBADS's.
+    direct formulas, the factor of the training covariance with
+    `scipy.linalg.cholesky`'s, the standard normal's functions with
+    `scipy.stats.norm`, and `predict`'s in-place path with the path that
+    returns the cross-covariance, under SciPy 1.17.1 and 1.18.1; and
+    PyBADS's.
 
 ## Setup
 
-- **Code.** PyBADS `618652d6` (`dev-next`); gpyreg `e10120c` (`main`, the
-  candidate for 1.4.0) and the branch `perf/bit-identical-speedups`.
-- **Environment.** A Linux container with 4 virtual CPUs, Python 3.11,
-  NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, one BLAS thread; gpyreg
-  selected by `PYTHONPATH`.
+- **Code.** The original: PyBADS `618652d6` (`dev-next`) with gpyreg
+  `e10120c` (`main`, the candidate for 1.4.0). The changed code: PyBADS's
+  one line (on `dev-next` since `e6733592`) with gpyreg's branch
+  `perf/bit-identical-speedups` during the search; PyBADS `a5d69243` with
+  gpyreg `61cbfd3` for the checks and the runs below.
+- **Environment.** A Linux container with 4 virtual CPUs, one BLAS thread;
+  Python 3.11, NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, and Python
+  3.12, NumPy 2.5.3, SciPy 1.18.1, OpenBLAS 0.3.34 (SciPy 1.18 needs
+  Python 3.12); gpyreg selected by `PYTHONPATH`.
 - **Search.** A cProfile of seed 0 of each configuration of the `profile`
   suite (`dev/scripts/profile_suite.py`), then four searches, each of one
   region of the code: the ES search and its predictions, the
@@ -91,32 +113,63 @@ suite, and every result is the same to the last bit.
   60-dimensional test problem). Each prototype was checked by the
   fingerprint and the replay before it was timed.
 - **Timing.** Plain runs of `dev/scripts/profile_run.py`, seed 0, the
-  original and the changed code alternating, two rounds; the table gives
-  both rounds and the ratio of the faster of each. Two runs of one
-  trajectory differ by about 5 %; a lighter process ran beside them.
+  original and the changed code alternating, two rounds under each SciPy;
+  the tables give both rounds and the ratio of the faster of each. Two
+  runs of one trajectory differ by about 5 %.
 
 ## The runs
 
+Under SciPy 1.17.1:
+
 | configuration | own time, original (s) | own time, changed (s) | ratio |
 |---|---|---|---|
-| ellipsoid_D3 | 4.21 / 4.12 | 2.92 / 2.98 | 0.71 |
-| rosenbrock_D6 | 7.03 / 6.42 | 5.12 / 4.69 | 0.73 |
-| multisensory_s1_D6_homo | 24.30 / 23.59 | 17.93 / 17.12 | 0.73 |
-| sphere_D3_hetero | 9.36 / 8.85 | 6.81 / 6.45 | 0.73 |
-| ackley_D6 | 5.01 / 4.84 | 3.67 / 3.61 | 0.75 |
-| ellipsoid_D10 | 20.46 / 19.38 | 16.23 / 14.83 | 0.77 |
-| ellipsoid_D3_homo | 12.72 / 12.14 | 9.33 / 9.38 | 0.77 |
-| periodic_D4 | 1.31 / 1.21 | 1.06 / 1.14 | 0.88 |
+| rosenbrock_D6 | 6.79 / 6.89 | 5.05 / 4.91 | 0.72 |
+| multisensory_s1_D6_homo | 23.82 / 23.76 | 17.90 / 17.42 | 0.73 |
+| ackley_D6 | 4.92 / 5.04 | 3.66 / 3.82 | 0.74 |
+| sphere_D3_hetero | 9.09 / 9.00 | 6.87 / 6.71 | 0.75 |
+| ellipsoid_D3 | 4.34 / 4.05 | 3.28 / 3.02 | 0.75 |
+| ellipsoid_D10 | 21.10 / 20.01 | 15.37 / 15.58 | 0.77 |
+| ellipsoid_D3_homo | 12.47 / 12.39 | 9.56 / 9.66 | 0.77 |
+| periodic_D4 | 1.35 / 1.45 | 1.08 / 1.11 | 0.80 |
+
+Under SciPy 1.18.1:
+
+| configuration | own time, original (s) | own time, changed (s) | ratio |
+|---|---|---|---|
+| sphere_D3_hetero | 7.55 / 7.43 | 5.44 / 5.57 | 0.73 |
+| ackley_D6 | 6.00 / 6.04 | 4.42 / 4.46 | 0.74 |
+| rosenbrock_D6 | 6.96 / 6.81 | 5.02 / 5.07 | 0.74 |
+| ellipsoid_D3 | 4.38 / 4.67 | 3.60 / 3.34 | 0.76 |
+| multisensory_s1_D6_homo | 15.13 / 15.24 | 11.57 / 11.77 | 0.76 |
+| ellipsoid_D10 | 17.37 / 18.50 | 13.56 / 14.03 | 0.78 |
+| ellipsoid_D3_homo | 13.06 / 12.83 | 10.40 / 10.37 | 0.81 |
+| periodic_D4 | 1.49 / 1.34 | 1.14 / 1.22 | 0.85 |
 
 Each run of the changed code gave the original's result: the same
-returned point and value, evaluations and iterations. The ratio compares
-the faster run of each; `periodic_D4`, of the `periodic` suite, whose runs
-last about a second, is the least certain. A first measurement of the same
-changes, on a prototype of them, had given ratios of 0.65 to 0.81 on these
-configurations.
+returned point and value, evaluations and iterations. The two SciPy
+versions give different last bits, so that a run can follow another
+trajectory under each, and a configuration's times do not compare across
+the tables. The ratio compares the faster run of each;
+`periodic_D4`, of the `periodic` suite, whose runs last about a second, is
+the least certain. A first measurement of the changes, on a prototype of
+them, had given ratios of 0.65 to 0.81 on these configurations.
 
 ## Not adopted
 
+- **The training covariance factorized by a direct call of LAPACK.**
+  `421f1b0` called `potrf` with `lower=False`, as `scipy.linalg.cholesky`
+  does up to SciPy 1.17, which saved SciPy's Python layers (3 to 11 µs a
+  call, one BLAS thread) and gave SciPy's bits under SciPy 1.17. From
+  SciPy 1.18, which needs Python 3.12, SciPy's upper factor is the
+  transpose of `potrf(lower=True)`, which differs in the last bits, and
+  SciPy's call is the faster from 50 inputs on (16 to 31 % less time than
+  the direct call at 50 to 150). Under SciPy 1.18 the direct call moved
+  4,168 of the 31,974 outputs of `gpyreg_bitwise.py`, and gave the
+  fingerprint its value under SciPy 1.17, `4146a986863602cb`; `61cbfd3`
+  factorizes by SciPy's call again. Under SciPy 1.17, PyBADS's own time
+  on the `profile` suite was 0.71 to 0.77 of the original's with the
+  direct call, in two rounds measured as those of "The runs", and is 0.72
+  to 0.77 without it.
 - **Changes that move the last bits.** Solving the triangular system of
   `predict` from the right with BLAS's `dtrsm` instead of LAPACK's `trtrs`
   on the transposed system, which needs no copy of the right-hand side,
@@ -152,14 +205,17 @@ configurations.
 The profiles and the timings were machine-local and were not kept. The
 comparison of gpyreg's kernels and Gaussian processes between two versions
 is `dev/scripts/gpyreg_bitwise.py`, whose dumps of `e10120c` and
-`421f1b0` hold 31,974 outputs, every one identical, where `a79f84b`
-differs in 922 (the kernels' outputs on long-double and infinite
-inputs); it supersedes the two sweeps above, whose scripts were not
-kept.
+`421f1b0` under SciPy 1.17.1 hold 31,974 outputs, every one identical,
+where `a79f84b` differs in 922 (the kernels' outputs on long-double and
+infinite inputs); under SciPy 1.18.1, `4126dbe`, which factorizes the
+training covariance by the direct call, differs from `e10120c` in 4,168,
+and `61cbfd3` in none. It supersedes the two sweeps above, whose scripts
+were not kept.
 
-The timings and the first comparisons were taken at the branch's first
-commit, `a79f84b`. The independent review of it found that the broadcast
-and `cdist` differed from `pdist` and `squareform` on inputs that are not
+The first timings and comparisons were taken at the branch's first
+commit, `a79f84b`, and the tables above at `61cbfd3`. The independent
+review of `a79f84b` found that the broadcast and `cdist` differed from
+`pdist` and `squareform` on inputs that are not
 float64 (a float32 input under NumPy 1.x, a long-double input) and on an
 infinite coordinate; `d53af17` takes `pdist` for the former and sets the
 diagonal to zero for the latter, which changes nothing for finite float64

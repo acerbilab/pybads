@@ -126,11 +126,9 @@ BUCKETS = [
     ),
     ("cholesky", "scipy/linalg/_decomp_cholesky.py", "cholesky"),
     ("solve_triangular", "scipy/linalg/_basic.py", "solve_triangular"),
-    # gpyreg's direct calls of LAPACK, which factorize the training
-    # covariance (`_cholesky`, from gpyreg 1.4.0) and make most of its
-    # triangular solves (`_solve_triangular`, from 1.1.0); the two rows
-    # above count SciPy's wrappers alone
-    ("gpyreg._cholesky", "gpyreg/gaussian_process.py", "_cholesky"),
+    # gpyreg's direct call of LAPACK, which makes most of its triangular
+    # solves (`_solve_triangular`, from gpyreg 1.1.0); the row above counts
+    # SciPy's wrapper alone
     (
         "gpyreg._solve_triangular",
         "gpyreg/gaussian_process.py",
