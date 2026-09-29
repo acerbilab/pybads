@@ -1,4 +1,5 @@
-"""Checks of ``population.py``: the record schema, the reference minima of
+"""Checks of ``population.py``: the record schema, a record whose stage
+times cannot be read, the suites' configurations, the reference minima of
 the real-data targets, resumability, and the statistics of ``compare`` on
 synthetic records. Run by path, from the repository root::
 
@@ -134,6 +135,29 @@ def test_crash_is_an_outcome(tmp_path):
     assert np.isnan(pop["sphere_D3_hetero"]["true_error"][0])
 
 
+def test_unreadable_stage_times_keep_the_record(tmp_path, monkeypatch):
+    def broken(bads):
+        raise KeyError("seconds")
+
+    monkeypatch.setattr(pp, "stage_times", broken)
+    row = pp.run_task("sphere_D2", 3, FAST, 1.0, str(tmp_path))
+    assert row["status"] == "ok"
+    final = json.loads((tmp_path / "sphere_D2_seed3.json").read_text())[
+        "final"
+    ]
+    assert final["stage_times"] is None
+    assert final["stage_times_error"] == "KeyError: 'seconds'"
+    assert final["func_count"] == 20 and final["crashed"] is False
+
+
+def test_suites_name_known_configurations():
+    profile = [c.label for c in bt.SUITES["profile"]]
+    assert sorted(profile) == sorted(bt._PROFILE)
+    assert [c.label for c in bt.SUITES["smoke"]] == list(bt._SMOKE)
+    with pytest.raises(ValueError, match="sphere_D99"):
+        bt._subset(bt._DEFAULT, ("sphere_D2", "sphere_D99"), "profile")
+
+
 def test_real_targets_reference_and_pins():
     for name, D in bt.REAL_TARGETS.items():
         prob = bt.make_problem(name, D, seed=0)
@@ -187,6 +211,7 @@ def test_run_resumes(tmp_path, capsys):
         "OMP_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
     }
 
 

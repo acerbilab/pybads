@@ -5,10 +5,12 @@ with one BLAS thread (as ``population.py`` runs), each writing a log of its
 own in the campaign directory. The modes are ``plain`` (the stage times)
 and ``cprof`` (the same run under cProfile, for the buckets); ``both`` runs
 every plain run first. A run whose directory holds a ``summary.json`` is
-skipped, so a campaign resumes with the same ``--out``. At the end, or with
-``--aggregate DIR`` alone, it writes ``aggregate.json`` (one row per run)
-and ``aggregate.md`` (medians over the seeds of each configuration) in the
-campaign directory.
+skipped, so a campaign resumes with the same ``--out``; a relative
+``--out`` is taken from the working directory of the call. At the end, or
+with ``--aggregate DIR`` alone, it writes ``aggregate.json`` (one row per
+run) and ``aggregate.md`` (medians over the seeds of each configuration)
+in the campaign directory. It exits 1 when a run fails or leaves no
+``summary.json``, or when the campaign directory holds no run.
 
 ``--probe CONFIG`` runs one configuration plain before and after the
 campaign (seed 0, tags ``probe_start_...`` and ``probe_end_...``) and
@@ -73,8 +75,13 @@ GP_TRAINING = ("gp_fit", "gp_fit_failed", "gp_fit_retry", "gp_fit_fallback")
 
 
 def run_one(label, seed, mode, out_dir, extra, tag=None):
+    """Run one configuration in a child process, in the working directory
+    ``REPO_ROOT``; ``out_dir`` is absolute, so that the run's directory, its
+    log and the skip check are in the same place whatever the caller's
+    working directory. A run is done when its ``summary.json`` exists."""
     tag = tag or f"{label}_seed{seed}_{mode}"
-    if (out_dir / tag / "summary.json").exists():
+    summary = out_dir / tag / "summary.json"
+    if summary.exists():
         print(f"[suite] skip {tag} (summary.json exists)", flush=True)
         return True
     log = out_dir / f"{tag}.log"
@@ -103,9 +110,15 @@ def run_one(label, seed, mode, out_dir, extra, tag=None):
         rc = subprocess.call(
             cmd, stdout=fh, stderr=subprocess.STDOUT, cwd=REPO_ROOT
         )
-    status = "done" if rc == 0 else f"FAILED rc={rc}"
+    ok = rc == 0 and summary.exists()
+    if ok:
+        status = "done"
+    elif rc == 0:
+        status = f"FAILED: no {summary}"
+    else:
+        status = f"FAILED rc={rc}"
     print(f"[suite] {status} {tag} in {time.time() - t0:.0f} s", flush=True)
-    return rc == 0
+    return ok
 
 
 # --------------------------------------------------------------------------
@@ -324,6 +337,8 @@ def aggregate_text(rows, name):
 
 
 def aggregate(out_dir):
+    """Write ``aggregate.json`` and ``aggregate.md`` of the runs in
+    ``out_dir``; return the number of runs."""
     out_dir = Path(out_dir)
     rows = load_rows(out_dir)
     pp._write_json(out_dir / "aggregate.json", pp.jsonable(rows))
@@ -331,6 +346,7 @@ def aggregate(out_dir):
     (out_dir / "aggregate.md").write_text(text, encoding="utf-8")
     print(text, flush=True)
     print(f"[suite] wrote {out_dir / 'aggregate.md'}", flush=True)
+    return len(rows)
 
 
 # --------------------------------------------------------------------------
@@ -376,11 +392,16 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     if args.aggregate:
-        aggregate(args.aggregate)
+        if not aggregate(args.aggregate.resolve()):
+            print(f"[suite] no runs in {args.aggregate}", flush=True)
+            return 1
         return 0
 
     bt.single_thread_env()  # inherited by the runs
-    out_dir = args.out or DEFAULT_CAMPAIGNS / f"campaign_{int(time.time())}"
+    # absolute: the runs start in REPO_ROOT, not in the caller's directory
+    out_dir = (
+        args.out or DEFAULT_CAMPAIGNS / f"campaign_{int(time.time())}"
+    ).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     cfgs = bt.suite_configs(args.suite)
     if args.only:
@@ -426,7 +447,9 @@ def main(argv=None):
             f" {probe['end'] / probe['start']:.2f})",
             flush=True,
         )
-    aggregate(out_dir)
+    if not aggregate(out_dir):
+        print(f"[suite] FAILED: no runs in {out_dir}", flush=True)
+        return 1
     return 0 if ok else 1
 
 

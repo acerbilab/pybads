@@ -53,29 +53,41 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   search and poll step, every GP computation with its hyperparameters,
   `iteration_history`, the result, and the platform key (CPU, libraries,
   BLAS kernel and threads). `check BASE NEW` refuses two recordings whose
-  platform keys differ (unless `--force`) and reports, per run, identity
-  or the first divergence: the evaluation, its iteration and stage,
-  whether the generator's states agree there (a value moved) or not (a
-  branch changed), and the first step and the earliest GP computation
-  that differ; it exits 1 unless every run is identical. For a change that
-  must move nothing, record at the parent commit, with the `replay.py` of
-  a worktree at it, and at the change, on one machine, and check the two.
-  `--repeat 2` records each run twice in one process, and `check DIR`
-  compares the repeats: the instrument for a run that does not repeat
-  within one process (`TODO.md`, the item on macOS arm64). `report DIR`
-  tabulates a recording. The replay is exact only on one machine, one set
-  of versions, one BLAS kernel and one thread count. On Linux (NumPy
-  2.4.6, SciPy 1.17.1, gpyreg 1.3.3, 2026-09-28) a seeded run repeats
-  exactly, in one process and across processes. With another OpenBLAS
-  kernel (`--coretype Sandybridge`) the first GP fit of every run differs,
-  by 1e-15 to 1e-10, and the runs' points part after 15 to 40
-  evaluations, into different decisions (the values of `rosenbrock_D6`,
-  whose target rotates its input by a matrix product, differ from the
-  first evaluation). With four threads every run differs: seven of the
-  eight part after 22 to 50 evaluations, and `sphere_D3_homo` differs only
-  in its GP hyperparameters. So it is a developer tool, not a test: the
-  part of a run that involves no BLAS work, the initial design, is pinned
-  on every platform by `pybads/testing/bads/test_initial_design_pin.py`.
+  platform keys differ (unless `--force`), warns when they differ in the
+  gpyreg that ran, the requested options or the budget scale, and
+  reports, per run, identity or the first divergence: the evaluation, its
+  iteration and stage, whether the generator's states agree there (a
+  value moved) or not (a branch changed), and the first step and the
+  earliest GP computation that differ; it exits 1 unless every run is
+  identical. For a change that must move nothing, record at the parent
+  commit, in a worktree at it, and at the change, on one machine, and
+  check the two. Both sides record with the change's `replay.py`, copied
+  into the parent's worktree when the parent has an older one or none (a
+  commit from before 2026-09-28): traces written by two versions of the
+  tool can differ in their layout, which `check` reports as runs that
+  differ. The default configurations need a `benchmark_targets.py` that
+  defines them, which every commit from 2026-09-26 on has; for an older
+  parent, copy the change's `benchmark_targets.py` too, or name
+  `--configs` that the parent's defines. `--repeat 2` records each run
+  twice in one process, and `check DIR` compares the repeats: the
+  instrument for a run that does not repeat within one process (`TODO.md`,
+  the item on macOS arm64). `report DIR` tabulates a recording. The
+  replay is exact only on one machine, one set of versions, one BLAS
+  kernel and one thread count. Measured at `948e0d96` on Linux (a
+  container with 4 virtual CPUs, Intel Xeon at 2.10 GHz; NumPy 2.4.6,
+  SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg 1.3.3), a seeded run repeats
+  exactly, in one process and across processes. Under
+  `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first GP
+  fit of every run differs, by 1e-15 to 1e-10, and every run of the
+  default set parts after 15 to 40 evaluations, into different decisions
+  (the values of `rosenbrock_D6`, whose target rotates its input by a
+  matrix product, differ from the first evaluation, and its points after
+  24). With four threads, seven of the eight runs part after 22 to 50
+  evaluations, and `sphere_D3_homo` differs only in its GP
+  hyperparameters, by about 1e-10. So it is a developer tool, not a test:
+  the part of a run that involves no BLAS work, the initial design, is
+  pinned on every platform by
+  `pybads/testing/bads/test_initial_design_pin.py`.
 - `make_oracle_fixtures.py` writes and checks the oracles of
   `pybads/testing/oracles/`: the states of six short seeded runs
   (`_recipes.py`: deterministic at D = 2 and 3, with inferred noise, with
@@ -116,14 +128,18 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   and W3-24 of the port review), `thinband` (`sphere_band` at D = 2 and 3
   with inferred noise and with the target's noise, whose GP starts on one
   point: the gate of a change to that GP) and `profile` (the seven
-  configurations whose time `profile_suite.py` measures). `--list` prints the suites,
-  `--check` verifies each target's minimum, bounds and noise, and the
-  pinned likelihood values of the real-data targets, and `--smoke` runs
-  each configuration of a suite once, in a fresh process as a population
-  does, and prints its wall time with the projected time of 30 seeds. The
-  `default` suite runs every configuration at BADS's default budget,
-  500 D, so that each run ends on BADS's own termination criteria; a
-  population of 30 seeds takes about 80 minutes.
+  configurations whose time `profile_suite.py` measures). `--list` prints
+  the suites, `--check` verifies each target's minimum, bounds and noise,
+  and the pinned likelihood values of the real-data targets, and `--smoke`
+  runs each configuration of a suite once, in a fresh process as a
+  population does, and prints its wall time with the projected time of 30
+  seeds. The `default` suite runs every configuration at BADS's default
+  budget, 500 D, so that each run ends on BADS's own termination
+  criteria; a population of 30 seeds takes about 80 minutes. The
+  processes that the tools start for their runs have one BLAS thread,
+  with the variables of `THREAD_VARS` (`OMP_NUM_THREADS`,
+  `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`)
+  set to 1, and their records hold those variables.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes
@@ -136,11 +152,12 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   runs. `run --suite default --seeds 0-29 --out DIR` writes one JSON record
   per run (result, error against the target's minimum, the run's stage
   times, effective options, provenance) and skips the runs already
-  recorded, so it resumes after an interruption. `summary DIR` writes `DIR/summary.md`. `compare REF NEW`
-  tests each configuration for a change in the error and in the number of
-  evaluations, with one Holm correction over all the tests, prints effect
-  sizes, and exits 1 on a flag; `compare REF --split` compares the even
-  and the odd seeds of one population, as a null check. The paired test
+  recorded, so it resumes after an interruption. `summary DIR` writes
+  `DIR/summary.md`. `compare REF NEW` tests each configuration for a
+  change in the error and in the number of evaluations, with one Holm
+  correction over all the tests, prints effect sizes, and exits 1 on a
+  flag; `compare REF --split` compares the even and the odd seeds of one
+  population, as a null check. The paired test
   of `compare` assumes that both populations share each seed's start point
   and noise, that is, the same `benchmark_targets.py`; `compare` warns when
   the recorded start points differ. To run against another gpyreg
@@ -181,30 +198,33 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   (`BUCKETS`). The profiler slows the run, most where calls are many and
   short: stage times come from the runs without it.
 - `profile_suite.py` runs `profile_run.py` over a suite (`profile` by
-  default) and seeds (`--seeds 0-2`), plain, under cProfile or both, one
-  run per process and one BLAS thread, resumable, and writes
-  `aggregate.json` and `aggregate.md` (medians over the seeds) in the
-  campaign directory, under `scripts/runs/profile/`. `--probe CONFIG`
-  times one configuration before and after the campaign, to show a
-  machine that slowed down.
+  default) and a set of seeds (`--seeds`, as `0-2`; seed 0 by default),
+  plain, under cProfile or both, one run per process and one BLAS thread,
+  resumable, and writes `aggregate.json` and `aggregate.md` (medians over
+  the seeds) in the campaign directory (`--out`, by default a new one
+  under `scripts/runs/profile/`); it exits 1 when a run fails or leaves no
+  summary, or when the campaign holds no run. `--probe CONFIG` times one
+  configuration before and after the campaign, to show a machine that
+  slowed down.
 - `profile_compare.py BASE NEW` pairs the runs of two campaigns by
   configuration, seed and mode, and prints the median ratios of the wall
   time, the own time and each stage, a large control stage that the
   change does not reach (`--control`, `search_es` by default: a ratio far
-  from 1 is the machine's speed, not the code's), whether each pair ran the
-  same
-  trajectory, and the cProfile buckets with their times per call. A
-  commit from before the stage timers is measured with these scripts,
-  `population.py` and `benchmark_targets.py` copied into a worktree at
-  it: its runs have no stages, and the comparison takes their wall times
-  and buckets.
-- `test_population.py` checks the record schema, the reference minima of
-  the real-data targets, resumability and the statistics of `compare`:
+  from 1 is the machine's speed, not the code's), whether each pair ran
+  the same trajectory, and the cProfile buckets with their times per
+  call. A commit from before the stage timers is measured with these
+  scripts, `population.py` and `benchmark_targets.py` copied into a
+  worktree at it: its runs have no stages, and the comparison takes their
+  wall times and buckets.
+- `test_population.py` checks the record schema, a record whose stage
+  times cannot be read, the suites' configurations, the reference minima
+  of the real-data targets, resumability and the statistics of `compare`:
   `python -m pytest dev/scripts/test_population.py`.
 - `test_replay.py` checks the comparison of `replay.py` on synthetic
-  traces, its failure on a private name that the package no longer has,
-  and one short recording repeated in one process:
-  `python -m pytest dev/scripts/test_replay.py`.
+  traces, its warnings, the recorder's reading of the refit flag, its
+  failure on a private name that the package no longer has and on an
+  error of its own code inside a run, and one short recording repeated in
+  one process: `python -m pytest dev/scripts/test_replay.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero
@@ -248,8 +268,9 @@ reference's number of seeds.
   second of a run to one stage: on the `profile` suite, the ES search's
   candidates take 17 to 65 % of the own time and the GP's fits 14 to 71 %,
   the failed fits alone 49 % of `ellipsoid_D3`'s; the stages and the target
-  make `total_time` to 2e-5 s; the noise of the machine between two passes
-  of the same runs, and the choice of a control stage.
+  make `total_time` to 2e-5 s (6e-5 s under cProfile); the noise of the
+  machine between two passes of the same runs, and the choice of a control
+  stage.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over

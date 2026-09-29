@@ -247,3 +247,28 @@ order.
   The helpers could centre on the one target for N <= 1 and keep the upper
   bound of -inf of a column without spread, on which the recommended
   bounds' refusal of such a column relies (`gaussian_process.py:586-620`).
+- [ ] **Shared helpers of the developer scripts.** Several helpers of the
+  developer tooling exist in two to five copies, so that a change to one
+  (a thread variable, a field of the provenance) has to be repeated in the
+  others: the thread variables (`benchmark_targets.THREAD_VARS`, which the
+  other scripts import, and the lists of `calibrate_budgets.py`, which sets
+  them before NumPy loads, `make_oracle_fixtures.py` and
+  `pybads/testing/oracles/_oracles.py`); building a run from a
+  configuration of `benchmark_targets.py`
+  (`replay.record_run`, `profile_run.main`, `population.run_task`,
+  `gp_update_failures.run_one` and `benchmark_targets._smoke_task`); the
+  provenance of a record (the `meta` of `population.run_task` and of
+  `profile_run.main`, and `replay.provenance`); the platform key
+  (`replay.platform_key` and `platform_key` in
+  `pybads/testing/oracles/_oracles.py`); `git_info` and `pkg_version`
+  (`population.py`, which `replay.py` imports, and
+  `make_oracle_fixtures.py`); `_median` and `_fmt` (`profile_suite.py` and
+  `profile_compare.py`) and `DEFAULT_CAMPAIGNS` (`profile_suite.py` and
+  `profile_run.py`); and three ways of capturing a run's steps
+  (`replay.py`'s wrappers of the target, the steps and the GP functions,
+  `run_recipe` in `make_oracle_fixtures.py`, and the output function
+  `stop_at_init` of `test_initial_design_pin.py`). A module of
+  `dev/scripts/` can hold the others; the platform key and the capture of
+  steps reach the package's tests, which ship in the wheel and cannot
+  import from `dev/`, so their shared version belongs in the package's
+  testing code.
