@@ -157,10 +157,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   15 D evaluations at the run's seed and start, a rerun, whose log holds
   the run's initial design, or of 20 D at the seed plus 1000; the earlier
   run is made in the run's process, and the record names its log by a
-  digest; the gate of a change to how a run uses evaluations made before
-  it), `profile` (the seven configurations whose time `profile_suite.py`
-  measures) and `periodic` (`periodic_vars`, whose configurations set it;
-  with `--options '{"periodic_vars": null}'` they run as bounded problems).
+  digest, which `population.py compare` checks seed by seed; the gate of
+  a change to how a run uses evaluations made before it), `profile` (the
+  seven configurations whose time `profile_suite.py` measures) and
+  `periodic` (`periodic_vars`, whose configurations set it; with
+  `--options '{"periodic_vars": null}'` they run as bounded problems).
   `--list` prints the suites, `--check` verifies each target's minimum,
   bounds and noise, and the pinned likelihood values of the real-data
   targets, and `--smoke` runs each configuration of a suite once, in a
@@ -191,14 +192,17 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   flag; `compare REF --split` compares the even and the odd seeds of one
   population, as a null check. The paired test of `compare` assumes that
   both populations share each seed's start point and noise, that is, the
-  same `benchmark_targets.py`; `compare` warns when the recorded start
-  points differ. To run against another gpyreg checkout, put it on
-  `PYTHONPATH`: the records identify gpyreg by its source path and commit,
-  since the version string is that of the installed gpyreg. PyBADS, and
-  `benchmark_targets.py` with its targets and seeds, come from the checkout
-  that holds the script, which it puts first on `sys.path`: to run a commit,
-  run the `dev/scripts/population.py` of a worktree at it, from the main
-  checkout's root.
+  same `benchmark_targets.py`, and in the `warmstart` suite each seed's
+  evaluations made before the run, which each side's PyBADS makes by an
+  earlier run, so that a change that moves any run gives the two sides
+  different ones; `compare` warns when the recorded start points, or the
+  digests of those evaluations, differ. To run against another gpyreg
+  checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
+  source path and commit, since the version string is that of the
+  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets and
+  seeds, come from the checkout that holds the script, which it puts first
+  on `sys.path`: to run a commit, run the `dev/scripts/population.py` of a
+  worktree at it, from the main checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`,
@@ -256,8 +260,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   each alignment of its arrays. Its docstring gives the details.
 - `test_population.py` checks the record schema, a record whose stage
   times cannot be read, the suites' configurations, the reference minima
-  of the real-data targets, resumability and the statistics of `compare`:
-  `python -m pytest dev/scripts/test_population.py`.
+  of the real-data targets, the earlier runs of the `warmstart` suite (the
+  same log for a seed at each call, named in the records by its digest,
+  and a noisy rerun's noise from a third stream of the seed, with the SDs
+  that the target returned), resumability, and the statistics and
+  warnings of `compare`: `python -m pytest dev/scripts/test_population.py`.
 - `test_replay.py` checks the comparison of `replay.py` on synthetic
   traces, its warnings (the logs given to the runs included), the
   recorder's reading of the refit flag, its failure on a private name that

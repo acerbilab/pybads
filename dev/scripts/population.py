@@ -24,13 +24,12 @@ configuration's budget.
 Each run writes ``<label>_seed<seed>.json``: the configuration, the seed,
 the requested and the effective options, ``precomputed`` (for a
 configuration whose runs are given evaluations made before them, their
-kind, number of rows and digest, which two populations share seed by seed;
-None otherwise), ``final`` (the returned point,
-``fval``, ``fsd``, ``true_error = f_true(x) - f_min``, ``func_count``,
-``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception``,
-``min_noise_var`` and ``stage_times``) and ``meta`` (the provenance: git
-state, versions, the source and commit of the imported gpyreg, thread
-variables, start and end times). ``min_noise_var`` is the smallest training
+kind, number of rows and digest; None otherwise), ``final`` (the returned
+point, ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``,
+``func_count``, ``iterations``, ``message``, ``wall_s``, ``crashed``,
+``exception``, ``min_noise_var`` and ``stage_times``) and ``meta`` (the
+provenance: git state, versions, the source and commit of the imported
+gpyreg, thread variables, start and end times). ``min_noise_var`` is the smallest training
 noise variance ``sn2`` over the GPs of ``iteration_history["gp"]`` and their
 hyperparameter samples: the quantity gpyreg compares with ``1e-6`` to choose
 its low-noise representation of the posterior (``gaussian_process.py``,
@@ -49,9 +48,16 @@ where both sides have at least 3 runs, and ``true_error`` also with a
 Wilcoxon signed-rank test on ``log10(true_error + 1e-12)`` paired by seed
 (both populations share each seed's start point and noise stream); the
 p-values of all tests form one Holm family at ``--alpha``. A configuration
-whose crash count rises from zero is flagged too. It prints the effect
-sizes (the median paired log10 error ratio with a bootstrap 95% interval,
-the difference in fraction solved) and exits 1 on any flag. ``--split``
+whose crash count rises from zero is flagged too. The pairing also
+assumes that both populations give a seed's run the same evaluations made
+before it, which each population's PyBADS makes by an earlier run
+(``benchmark_targets.earlier_evaluations``): a change that moves runs
+without such evaluations gives the two populations different ones.
+``compare`` warns of the seeds whose recorded start points, or digests of
+the evaluations made before the run, differ between the two populations,
+and tests them all the same. It prints the effect sizes (the median paired
+log10 error ratio with a bootstrap 95% interval, the difference in
+fraction solved) and exits 1 on any flag. ``--split``
 compares the even and the odd seeds of one population with the KS tests
 alone: the null check.
 """
@@ -321,7 +327,9 @@ def _final(prob, bads, res, exc, wall):
 def precomputed_summary(cfg, prob):
     """What a record keeps of the evaluations made before the run: their
     kind (``Config.precomputed``), their number of rows and the first 16
-    hex digits of the SHA-256 digest of their arrays; None without them."""
+    hex digits of the SHA-256 digest of their arrays, by which ``compare``
+    checks that two populations gave a seed's run the same; None without
+    them."""
     if prob.precomputed is None:
         return None
     digest = hashlib.sha256()
@@ -675,14 +683,29 @@ def paired_log_ratios(a, b):
     return _log_err(xb[ok]) - _log_err(xa[ok])
 
 
-def x0_mismatches(a, b):
-    """Number of seeds present in both whose recorded start points differ:
-    a pairing by seed assumes the same targets and streams on both sides."""
-    xa = {r["seed"]: r.get("x0") for r in a["records"]}
+def _mismatches(a, b, field):
+    """Number of seeds present in both whose records differ in
+    ``field(record)``."""
+    va = {r["seed"]: field(r) for r in a["records"]}
     return sum(
         1
         for r in b["records"]
-        if r["seed"] in xa and xa[r["seed"]] != r.get("x0")
+        if r["seed"] in va and va[r["seed"]] != field(r)
+    )
+
+
+def x0_mismatches(a, b):
+    """Number of seeds present in both whose recorded start points differ:
+    a pairing by seed assumes the same targets and streams on both sides."""
+    return _mismatches(a, b, lambda r: r.get("x0"))
+
+
+def precomputed_mismatches(a, b):
+    """Number of seeds present in both whose evaluations made before the
+    run differ, by their digest: a pairing by seed assumes that both sides
+    were given the same, and each side's PyBADS makes them."""
+    return _mismatches(
+        a, b, lambda r: (r.get("precomputed") or {}).get("digest")
     )
 
 
@@ -823,17 +846,24 @@ def compare_populations(ref, new, alpha=0.05, paired=True, crash_flag=True):
     if only_ref or only_new:
         lines += ["", f"Only in REF: {only_ref}; only in NEW: {only_new}."]
     if paired:
-        unpaired = {
-            label: n
-            for label in labels
-            if (n := x0_mismatches(ref[label], new[label]))
-        }
-        if unpaired:
-            lines += [
-                "",
-                "WARNING: seeds whose start points differ between REF and"
-                f" NEW (the pairing does not hold): {unpaired}.",
-            ]
+        for what, mismatches in (
+            ("start points", x0_mismatches),
+            (
+                "evaluations made before the run (by digest)",
+                precomputed_mismatches,
+            ),
+        ):
+            unpaired = {
+                label: n
+                for label in labels
+                if (n := mismatches(ref[label], new[label]))
+            }
+            if unpaired:
+                lines += [
+                    "",
+                    f"WARNING: seeds whose {what} differ between REF and"
+                    f" NEW (the pairing does not hold): {unpaired}.",
+                ]
     ks_sizes = [(t["n_ref"], t["n_new"]) for t in tests if t["test"] == "KS"]
     if ks_sizes:
         n1, n2 = max(set(ks_sizes), key=ks_sizes.count)
