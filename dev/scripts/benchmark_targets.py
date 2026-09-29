@@ -99,6 +99,9 @@ configuration whose runs are given evaluations made before them
 (``Config.precomputed``, the ``warmstart`` suite) makes them with an earlier
 BADS run, at the run's seed or at another (``earlier_evaluations``); at the
 run's seed, the earlier run's noise comes from a third stream of the seed.
+The earlier run is made by the PyBADS under test, so that two populations
+share a seed's evaluations made before the run only when their PyBADS make
+the same earlier run.
 
 A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
@@ -405,8 +408,12 @@ def earlier_evaluations(cfg, seed):
     is the run of the seed ``seed + OTHER_SEED_OFFSET``, with that seed's
     start and noise. The log holds BADS's rows: without the noise test and
     the final samples, which it does not record. The earlier run is made
-    by the PyBADS that runs the configuration, and depends on the seed
-    alone.
+    by the PyBADS that runs the configuration, so that the log depends on
+    the seed and on that PyBADS (and, as every run, on the platform): two
+    versions of PyBADS whose runs part give a seed different logs,
+    wherever the change between them lies. ``population.py`` records the
+    log's digest, and its ``compare`` warns of the seeds whose digests
+    differ.
     """
     from pybads import BADS
 

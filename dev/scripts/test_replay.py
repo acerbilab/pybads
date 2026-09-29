@@ -1,16 +1,20 @@
 """Checks of ``replay.py``: the comparison of two recordings on synthetic
 traces (identical, parted at a known evaluation, generator states that
 differ, a GP computation that differs, a shorter run, platform keys that
-differ, set-ups that differ, the repeats of one recording), the recorder's
-reading of the refit flag, its loud failure on a missing private name and
-on an error of its own code inside a run, its thread variables beside a
-``benchmark_targets.py`` that does not name them, and one short real
-recording repeated in one process. Run by path, from the repository root::
+differ, set-ups that differ, logs given to the runs that differ, the
+repeats of one recording), the recorder's reading of the refit flag, its
+loud failure on a missing private name and on an error of its own code
+inside a run, its thread variables beside a ``benchmark_targets.py`` that
+does not name them, and one that gives no run evaluations made before it,
+one short real recording repeated in one process, and the recording of a
+run given the log of an earlier run. Run by path, from the repository
+root::
 
     python -m pytest dev/scripts/test_replay.py
 
-The real recording runs ``sphere_D2`` at 20 evaluations twice, in a child
-process, in a few seconds.
+The real recordings run ``sphere_D2`` at 20 evaluations twice, in a child
+process, and ``sphere_D3_rerun`` at 30 evaluations after its earlier run
+of 45, in a few seconds.
 """
 
 import copy
@@ -256,6 +260,25 @@ def test_setups_that_differ_warn(tmp_path, capsys):
     assert "identical  (12 evaluations" in out
 
 
+def test_logs_given_to_the_runs_that_differ_warn(tmp_path, capsys):
+    """Two runs given evaluations made before them warn when the logs'
+    digests differ: the earlier run that makes a log is the PyBADS's under
+    test."""
+    a, s = _synthetic()
+    s["precomputed"] = {"kind": "rerun", "rows": 44, "digest": "0" * 16}
+    base = _write(tmp_path / "base", a, s)
+    a, s = _synthetic()
+    s["precomputed"] = {"kind": "rerun", "rows": 44, "digest": "f" * 16}
+    new = _write(tmp_path / "new", a, s)
+    assert rp.main(["check", str(base), str(new)]) == 0
+    out = capsys.readouterr().out
+    warnings = [line for line in out.splitlines() if "warning" in line]
+    assert warnings == [
+        "warning: the set-ups differ: precomputed.digest:"
+        f" '{'0' * 16}' vs '{'f' * 16}'  (every run)"
+    ]
+
+
 def test_runs_on_one_side_only(tmp_path, capsys):
     a, s = _synthetic()
     base = _write(tmp_path / "base", a, s)
@@ -313,6 +336,14 @@ def test_benchmark_without_thread_variables(monkeypatch):
     env, _ = module.pinned_env(1, None, False)
     assert all(env[k] == "1" for k in bt.THREAD_VARS)
     assert set(bt.THREAD_VARS) <= set(module.platform_key()["env"])
+
+
+def test_benchmark_without_earlier_evaluations():
+    """Beside a ``benchmark_targets.py`` whose problems give no evaluations
+    made before a run (a commit before 2822c561), a run is given none and
+    its trace records none."""
+    older = types.SimpleNamespace(precomputed=None)
+    assert rp.given_evaluations(None, older) == ({}, None)
 
 
 # --------------------------------------------------------------------------
@@ -466,6 +497,35 @@ def test_record_twice_in_one_process(tmp_path, capsys):
     # a second recording never goes into the same directory
     with pytest.raises(SystemExit, match="already holds"):
         rp.main(args)
+
+
+def test_record_a_run_given_earlier_evaluations():
+    """A configuration of the warmstart suite records its run as
+    ``population.py`` runs it: given the log of the earlier run, whose
+    initial design the run does not evaluate again, with the log's kind,
+    rows and digest in the sidecar and its size in the result."""
+    import benchmark_targets as bt
+    import population as pp
+
+    cfg = bt.find_config("sphere_D3_rerun")
+    prob = cfg.make(seed=2)
+    X, _ = prob.precomputed
+    arrays, sidecar = rp.record_run("sphere_D3_rerun", 2, 0.02)
+    assert sidecar["crash"] is None
+    assert sidecar["precomputed"] == pp.precomputed_summary(cfg, prob)
+    assert sidecar["precomputed"]["rows"] == len(X)
+    result = sidecar["result"]
+    assert result["precomputed_observations"] == len(X)
+    assert result["precomputed_locations"] == len(X)
+    assert len(arrays["eval_y"]) == result["func_count"] == 30
+    # the start and its noise test alone, at the log's first row: the
+    # design is in the log
+    init = arrays["eval_x"][arrays["eval_stage"] == "init"]
+    assert len(init) == 2 and np.all(init == X[0])
+    # a run given none keeps the layout of its result
+    _, sidecar = rp.record_run("sphere_D2", 0, 0.02)
+    assert sidecar["precomputed"] is None
+    assert not set(rp.RESULT_PRECOMPUTED) & set(sidecar["result"])
 
 
 def test_trace_sidecar_is_json(tmp_path):

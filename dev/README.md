@@ -51,10 +51,12 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   about 30 s, and writes one trace per run under `scripts/runs/replay/`:
   every call of the target with the state of the run's generator, every
   search and poll step, every GP computation with its hyperparameters,
-  `iteration_history`, the result, and the platform key (CPU, libraries,
-  BLAS kernel and threads). `check BASE NEW` refuses two recordings whose
-  platform keys differ (unless `--force`), warns when they differ in the
-  gpyreg that ran, the requested options or the budget scale, and
+  `iteration_history`, the result, the log given to a run of the
+  `warmstart` suite (its kind, rows and digest), and the platform key
+  (CPU, libraries, BLAS kernel and threads). `check BASE NEW` refuses two
+  recordings whose platform keys differ (unless `--force`), warns when
+  they differ in the gpyreg that ran, the requested options, the budget
+  scale or the digest of the log given to a run, and
   reports, per run, identity or the first divergence: the evaluation, its
   iteration and stage, whether the generator's states agree there (a
   value moved) or not (a branch changed), and the first step and the
@@ -124,7 +126,9 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   replaces one oracle's references, for a change that moves it on purpose,
   after the check of its decisions' margins that `--write` makes, and
   records the reason and the commit in the fixtures; `--write --reason TEXT`
-  reruns the recipes, a new baseline, from a clean checkout. An option of a
+  reruns the recipes, a new baseline, from a clean checkout, and alone
+  re-chooses the size of the reduced training sets for their margins: the
+  remedy when `--rebaseline` refuses a decision at its bound. An option of a
   stored state that the code no longer has is dropped when the state is
   rebuilt, and listed; a key that the code reads from `optim_state` or a
   GP's `temporary_data` and that a stored state lacks gets a default in
@@ -155,10 +159,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   15 D evaluations at the run's seed and start, a rerun, whose log holds
   the run's initial design, or of 20 D at the seed plus 1000; the earlier
   run is made in the run's process, and the record names its log by a
-  digest; the gate of a change to how a run uses evaluations made before
-  it), `profile` (the seven configurations whose time `profile_suite.py`
-  measures) and `periodic` (`periodic_vars`, whose configurations set it;
-  with `--options '{"periodic_vars": null}'` they run as bounded problems).
+  digest, which `population.py compare` checks seed by seed; the gate of
+  a change to how a run uses evaluations made before it), `profile` (the
+  seven configurations whose time `profile_suite.py` measures) and
+  `periodic` (`periodic_vars`, whose configurations set it; with
+  `--options '{"periodic_vars": null}'` they run as bounded problems).
   `--list` prints the suites, `--check` verifies each target's minimum,
   bounds and noise, and the pinned likelihood values of the real-data
   targets, and `--smoke` runs each configuration of a suite once, in a
@@ -189,14 +194,17 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   flag; `compare REF --split` compares the even and the odd seeds of one
   population, as a null check. The paired test of `compare` assumes that
   both populations share each seed's start point and noise, that is, the
-  same `benchmark_targets.py`; `compare` warns when the recorded start
-  points differ. To run against another gpyreg checkout, put it on
-  `PYTHONPATH`: the records identify gpyreg by its source path and commit,
-  since the version string is that of the installed gpyreg. PyBADS, and
-  `benchmark_targets.py` with its targets and seeds, come from the checkout
-  that holds the script, which it puts first on `sys.path`: to run a commit,
-  run the `dev/scripts/population.py` of a worktree at it, from the main
-  checkout's root.
+  same `benchmark_targets.py`, and in the `warmstart` suite each seed's
+  evaluations made before the run, which each side's PyBADS makes by an
+  earlier run, so that a change that moves any run gives the two sides
+  different ones; `compare` warns when the recorded start points, or the
+  digests of those evaluations, differ. To run against another gpyreg
+  checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
+  source path and commit, since the version string is that of the
+  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets and
+  seeds, come from the checkout that holds the script, which it puts first
+  on `sys.path`: to run a commit, run the `dev/scripts/population.py` of a
+  worktree at it, from the main checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
 - `gpyreg_issue_checks.py` runs the known-noise path (`fit_lik=False`,
@@ -254,13 +262,26 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   each alignment of its arrays. Its docstring gives the details.
 - `test_population.py` checks the record schema, a record whose stage
   times cannot be read, the suites' configurations, the reference minima
-  of the real-data targets, resumability and the statistics of `compare`:
-  `python -m pytest dev/scripts/test_population.py`.
+  of the real-data targets, the earlier runs of the `warmstart` suite (the
+  same log for a seed at each call, named in the records by its digest,
+  and a noisy rerun's noise from a third stream of the seed, with the SDs
+  that the target returned), resumability, and the statistics and
+  warnings of `compare`: `python -m pytest dev/scripts/test_population.py`.
 - `test_replay.py` checks the comparison of `replay.py` on synthetic
-  traces, its warnings, the recorder's reading of the refit flag, its
-  failure on a private name that the package no longer has and on an
-  error of its own code inside a run, and one short recording repeated in
-  one process: `python -m pytest dev/scripts/test_replay.py`.
+  traces, its warnings (the logs given to the runs included), the
+  recorder's reading of the refit flag, its failure on a private name that
+  the package no longer has and on an error of its own code inside a run,
+  the script beside a `benchmark_targets.py` of an older commit, without
+  `THREAD_VARS` or without runs given evaluations made before them, one
+  short recording repeated in one process, and the recording of a run
+  given the log of an earlier run: `python -m pytest
+  dev/scripts/test_replay.py`.
+- `test_make_oracle_fixtures.py` checks the `--rebaseline` of
+  `make_oracle_fixtures.py` on a copy of the fixtures: its refusal of new
+  references whose decisions lie within their margins, which names
+  `--write` and leaves every file as it was, and the replacement of one
+  oracle's references otherwise: `python -m pytest
+  dev/scripts/test_make_oracle_fixtures.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the
   posteriors that keep it, the refits and their failed tries, the zero

@@ -52,12 +52,14 @@ of each fixture, from the stored states and replaces its references alone
 (or adds them, for a new oracle), for a change that moves that oracle on
 purpose. Before it changes a file, it checks the margins of the oracle's
 decisions, as ``--write`` does, and refuses new references that rounding
-could flip. It records the reason, the date, the commit, the platform key
-and the largest change of each output in the fixture's
-``meta["rebaselined"]``, and checks that every other array is unchanged,
-that the new references reproduce and that the other oracles still pass.
-It works on any machine; a platform-bound oracle has no references to
-replace.
+could flip: it keeps the stored state, and only ``--write`` reruns the
+recipes and re-chooses the size of the reduced training sets for their
+margins (a decision that stays at its bound there needs another recipe).
+It records the reason, the date, the commit, the platform key and the
+largest change of each output in the fixture's ``meta["rebaselined"]``,
+and checks that every other array is unchanged, that the new references
+reproduce and that the other oracles still pass. It works on any machine;
+a platform-bound oracle has no references to replace.
 
 ``--write --reason TEXT`` reruns the recipes and replaces every fixture,
 references included: a new baseline, for a change of the recipes or of the
@@ -70,20 +72,28 @@ and its last point, the Sto-BADS outcomes, the hedge's choices;
 them.
 
 The environment's BLAS threads default to one: each variable of
-``THREAD_VARS`` that is not set is set to 1 (Accelerate's
-``VECLIB_MAXIMUM_THREADS`` on macOS only: elsewhere it would change the
-platform key and nothing else). PyBADS comes from the checkout that holds
-this script, which it puts first on ``sys.path``; gpyreg from
-``PYTHONPATH`` or the installed one, which the platform key identifies by
-its source and, for a checkout, its commit.
+``THREAD_VARS`` that is not set is set to 1, Accelerate's
+``VECLIB_MAXIMUM_THREADS`` on macOS alone. Elsewhere that variable sets
+nothing, and setting it would change only the platform key, which records
+every variable of ``THREAD_VARS``: the stored fixtures, computed on Linux,
+record it unset, so that ``--check --exact`` would refuse them on the
+machine that computed them. On macOS, a ``--dump`` made by the script of
+a commit from before f5928ef9, which leaves the variable unset, differs
+from this script's platform key in ``env``, and ``--against`` refuses it:
+make the dump at the parent commit with this script copied alone into the
+parent's worktree, as for ``replay.py``.
+PyBADS comes from the checkout that holds this script, which it puts first
+on ``sys.path``; gpyreg from ``PYTHONPATH`` or the installed one, which the
+platform key identifies by its source and, for a checkout, its commit.
 """
 
 import os
 import platform
 
 # The variables that set the number of BLAS and OpenMP threads (OpenMP,
-# OpenBLAS, MKL and Accelerate), set before NumPy loads its BLAS and
-# recorded in the platform key
+# OpenBLAS, MKL and Accelerate), set before NumPy loads its BLAS (Accelerate's
+# on macOS alone; the module's docstring says why) and recorded in the
+# platform key
 THREAD_VARS = (
     "OMP_NUM_THREADS",
     "OPENBLAS_NUM_THREADS",
@@ -928,7 +938,11 @@ def rebaseline(names, oracle_name, reason):
                 sys.exit(
                     f"{name}: {err}: rounding on another platform could flip"
                     f" this decision of {oracle_name}, so its references are"
-                    " not replaced"
+                    " not replaced. --rebaseline keeps the stored state; a"
+                    " new baseline, --write --reason TEXT, reruns the recipes"
+                    " and re-chooses the size of the reduced training sets"
+                    " for their margins (a decision that stays at its bound"
+                    " there needs another recipe in _recipes.py)"
                 )
         news, change = {}, {}
         for case, _, view in cases:

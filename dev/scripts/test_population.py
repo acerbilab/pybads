@@ -1,7 +1,10 @@
 """Checks of ``population.py``: the record schema, a record whose stage
 times cannot be read, the suites' configurations, the reference minima of
-the real-data targets, resumability, and the statistics of ``compare`` on
-synthetic records. Run by path, from the repository root::
+the real-data targets, the earlier runs that give the runs of the
+``warmstart`` suite their evaluations made before them (the log in the
+records, and the noise stream of a noisy rerun), resumability, and the
+statistics and warnings of ``compare`` on synthetic records. Run by path,
+from the repository root::
 
     python -m pytest dev/scripts/test_population.py
 
@@ -135,6 +138,36 @@ def test_warmstart_runs_are_given_an_earlier_log(tmp_path):
     assert recs[0]["precomputed"]["kind"] == "rerun"
     assert recs[0]["precomputed"]["rows"] == len(X)
     assert recs[0]["final"]["func_count"] == 20
+
+
+@pytest.mark.parametrize("noise", ["homo", "hetero"])
+def test_noisy_rerun_draws_a_third_stream(noise):
+    """The earlier run of a noisy rerun draws its noise from a third stream
+    of the seed, ``SeedSequence(seed).spawn(3)[2]``: its log is the same
+    for a seed at each call, none of its noise is a draw of the run's own
+    stream, and making it leaves that stream untouched. With the target's
+    noise, the log holds the SDs that the target returned."""
+    cfg = bt.find_config(f"sphere_D3_{noise}_rerun")
+    prob, again = cfg.make(seed=2), cfg.make(seed=2)
+    for a, b in zip(prob.precomputed, again.precomputed):
+        assert np.array_equal(a, b)
+    X, y = prob.precomputed[:2]
+    if noise == "hetero":
+        assert len(prob.precomputed) == 3
+        sd = prob.precomputed[2]
+        assert np.array_equal(sd, [prob.noise_sd(x) for x in X])
+    else:
+        assert len(prob.precomputed) == 2
+        sd = bt.HOMO_SD
+    noise_draws = (y - prob.f_vec(X)) / sd
+    n_calls = cfg.precomputed_budget * cfg.D
+    third = np.random.default_rng(np.random.SeedSequence(2).spawn(3)[2])
+    fresh = cfg._problem(2)._noise_rng
+    assert prob._noise_rng.bit_generator.state == fresh.bit_generator.state
+    for stream, found in ((third, True), (fresh, False)):
+        draws = stream.standard_normal(n_calls)
+        near = [np.min(np.abs(draws - d)) < 1e-9 for d in noise_draws]
+        assert all(near) if found else not any(near)
 
 
 def test_seed_fixes_run(tmp_path):
@@ -391,6 +424,44 @@ def test_unpaired_start_points_warn(tmp_path):
     rec_path.write_text(json.dumps(rec))
     text, _ = compare(tmp_path / "ref", tmp_path / "new")
     assert "WARNING" in text and "'a_D2': 1" in text
+
+
+def test_unpaired_logs_warn(tmp_path):
+    """A seed whose runs were given evaluations made before them of
+    different digests is not paired: the earlier run that makes them is
+    each population's PyBADS's."""
+    rng = np.random.default_rng(8)
+    err = lognormal_errors(rng)
+    for side in ("ref", "new"):
+        write_population(tmp_path / side, "a_D2_rerun", err)
+        for seed in range(30):
+            path = tmp_path / side / f"a_D2_rerun_seed{seed}.json"
+            rec = json.loads(path.read_text())
+            digest = f"{seed:016x}"
+            if side == "new" and seed in (4, 9):
+                digest = "f" * 16
+            rec["precomputed"] = {
+                "kind": "rerun",
+                "rows": 30,
+                "digest": digest,
+            }
+            path.write_text(json.dumps(rec))
+    text, _ = compare(tmp_path / "ref", tmp_path / "new")
+    warnings = [line for line in text.splitlines() if "WARNING" in line]
+    assert warnings == [
+        "WARNING: seeds whose evaluations made before the run (by digest)"
+        " differ between REF and NEW (the pairing does not hold):"
+        " {'a_D2_rerun': 2}."
+    ]
+    # records of runs given none pair with records from before the key
+    write_population(tmp_path / "old", "a_D2", err)
+    write_population(tmp_path / "none", "a_D2", err)
+    for path in (tmp_path / "none").glob("*.json"):
+        path.write_text(
+            json.dumps(dict(json.loads(path.read_text()), precomputed=None))
+        )
+    text, _ = compare(tmp_path / "old", tmp_path / "none")
+    assert "WARNING" not in text
 
 
 def test_summary(tmp_path):
