@@ -265,27 +265,34 @@ decided on; "the next release" below means it.
   bound of -inf of a column without spread, on which the recommended bounds'
   refusal of such a column relies (`gaussian_process.py:586-620`).
 - [ ] **Shared helpers of the developer scripts.** Several helpers of the
-  developer tooling exist in two to five copies, so that a change to one
-  (a thread variable, a field of the provenance) has to be repeated in the
-  others: the thread variables (`benchmark_targets.THREAD_VARS`, which the
-  other scripts import, and the lists of `calibrate_budgets.py`, which sets
-  them before NumPy loads, `make_oracle_fixtures.py` and
-  `pybads/testing/oracles/_oracles.py`); building a run from a
-  configuration of `benchmark_targets.py`
+  developer tooling exist in two or more copies, so that a change to one (a
+  thread variable, a field of the provenance) has to be repeated in the
+  others, and some copies have diverged: the thread variables
+  (`benchmark_targets.THREAD_VARS`, which `population.py` and `replay.py`
+  import, `replay.py`'s copy for a `benchmark_targets.py` that lacks it, and
+  the lists of `calibrate_budgets.py` and `make_oracle_fixtures.py`, which
+  set them before NumPy loads, the latter Accelerate's on macOS only, so
+  that elsewhere its platform key stays that of the stored fixtures);
+  building a run from a configuration of `benchmark_targets.py`
   (`replay.record_run`, `profile_run.main`, `population.run_task`,
   `gp_update_failures.run_one` and `benchmark_targets._smoke_task`); the
   provenance of a record (the `meta` of `population.run_task` and of
-  `profile_run.main`, and `replay.provenance`); the platform key
-  (`replay.platform_key` and `platform_key` in
-  `pybads/testing/oracles/_oracles.py`); `git_info` and `pkg_version`
+  `profile_run.main`, and `replay.provenance`), where
+  `population.module_source` and `make_oracle_fixtures.module_identity`
+  identify a package's source and commit in two layouts; `git_info`
   (`population.py`, which `replay.py` imports, and
-  `make_oracle_fixtures.py`); `_median` and `_fmt` (`profile_suite.py` and
+  `make_oracle_fixtures.py`, whose version adds `git describe` and excluded
+  paths) and `pkg_version` (`population.py`, and inside `module_identity`);
+  the platform key (`replay.platform_key` and
+  `make_oracle_fixtures.platform_key`, each with its own `_cpu_model`,
+  `_blas_build`, `_openblas_libraries` and `_openblas_runtime`), whose
+  versions have diverged: replay's lacks `cpu_count`, `numpy_cpu_features`
+  and gpyreg, which it records in its provenance, where a difference warns
+  instead of refusing; `_median` and `_fmt` (`profile_suite.py` and
   `profile_compare.py`) and `DEFAULT_CAMPAIGNS` (`profile_suite.py` and
   `profile_run.py`); and three ways of capturing a run's steps
   (`replay.py`'s wrappers of the target, the steps and the GP functions,
   `run_recipe` in `make_oracle_fixtures.py`, and the output function
   `stop_at_init` of `test_initial_design_pin.py`). A module of
-  `dev/scripts/` can hold the others; the platform key and the capture of
-  steps reach the package's tests, which ship in the wheel and cannot
-  import from `dev/`, so their shared version belongs in the package's
-  testing code.
+  `dev/scripts/` can hold all of them but `stop_at_init`, which belongs to
+  the package's tests: they ship in the wheel and cannot import from `dev/`.
