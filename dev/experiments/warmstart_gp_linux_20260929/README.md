@@ -3,28 +3,34 @@
 The gate of `58d922a1`, which the PI asked for on 2026-09-29: with
 evaluations made before the run (`precomputed_evaluations`), the first GP's
 hyperparameters are fitted on the incumbent's neighbours in the whole log,
-chosen and capped as a rebuild chooses them (KD-B6-5).
-`_init_optimization_` keeps the fit on the start and the initial design
-(MATLAB BADS's definition values on one distinct point), then, within
-`gp_init`, rebuilds the GP with `local_gp_fitting` and a refit, once.
-Without it, the first GP is fitted on the start and the design alone, and
+chosen and capped as a rebuild chooses them. `_init_optimization_` keeps
+the fit on the start and the initial design (MATLAB BADS's definition
+values on one distinct point), then, within `gp_init`, rebuilds the GP
+with `local_gp_fitting` and a refit, once. Without it, as PyBADS keeps it
+(KD-B6-5), the first GP is fitted on the start and the design alone, and
 the loop's first rebuild, at the first poll, brings the evaluations given
-into its training set and refits there once the run has made more than D
-evaluations, as it has after an initial design; until then the GP keeps the
-initial hyperparameters. In a rerun given the log of an earlier run with
-the same seed and start, the log holds the whole initial design, which is
-not evaluated again, so that the first GP holds the start alone, with the
-definition's values. No configuration of the other suites gives a run
-evaluations made before it; the `warmstart` suite (`2822c561`) does: the
-sphere and the ellipsoid at D = 3 and Rosenbrock's function at D = 6
-without noise, and the sphere at D = 3 with inferred noise (`homo`) and
-with the target's noise (`hetero`), each run given the function log of an
-earlier BADS run on the same target, made in the run's process from the
-seed: of 15 D evaluations at the run's seed and start (`_rerun`), or of 20
-D at the seed plus 1000, with its own start and noise (`_other`). This
-population measures the change against its parent on that suite, 90 seeds,
-paired by seed: the gate's 30 (0-29), then 60 more (30-89), since the
-gate's pooled fraction solved leaned towards the base.
+into its training set. The first refit needs the run's count of
+evaluations past D and either max(10, 2D) of the GP's predictions at
+points that the run then evaluated or a failed check of their
+calibration, which fails when there are none: after an initial design it
+comes at that first rebuild. In a rerun given the log of an earlier run
+with the same seed and start, the log holds the whole initial design,
+which is not evaluated again, so that the first GP holds the start alone,
+with the definition's values, and the GP keeps them over the log's
+neighbours until the first refit, which the base's reruns at seeds 0-9,
+each stopped there, reach at a `func_count` of 4 or 12 at D = 3 without
+noise, 11 with it, and 14 (12 in one seed) for Rosenbrock's function at
+D = 6. No configuration of the other suites gives a run evaluations made
+before it; the `warmstart` suite (`2822c561`) does: the sphere and the
+ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise, and
+the sphere at D = 3 with inferred noise (`homo`) and with the target's
+noise (`hetero`), each run given the function log of an earlier BADS run
+on the same target, made in the run's process from the seed: of 15 D
+evaluations at the run's seed and start (`_rerun`), or of 20 D at the
+seed plus 1000, with its own start and noise (`_other`). This population
+measures the change against its parent on that suite, 90 seeds, paired
+by seed: the gate's 30 (0-29), then 60 more (30-89), since the gate's
+pooled fraction solved leaned towards the base.
 
 **Outcome: flagged, and not adopted (PI, 2026-09-29).** At the gate's 30
 seeds the comparison flags nothing in 30 tests, but the fraction solved,
@@ -35,32 +41,36 @@ difference −0.043 [−0.083, −0.003]). At 90 seeds the comparison flags
 426, its quantiles from the 10th to the 90th by 15 to 35, for an unchanged
 error (the median paired log10 error ratio −0.05, signed-rank p = 0.97) and
 a fraction solved of 0.83 against 0.79 (McNemar p = 0.57). The pooled
-fraction solved at 90 seeds is 0.90 against 0.88 (53 against 69, p = 0.17,
+fraction solved at 90 seeds is 0.90 in the base against 0.88 in the change
+(69 runs solved by the base alone, 53 by the change alone; p = 0.17,
 −0.018 [−0.041, +0.007]), the hetero configurations' 0.64 → 0.59 and 0.67 →
-0.60 none significant. The change does what it is for: in the base, every
-rerun's first GP holds the start alone with the definition's values; in the
-change none does, and it holds 35 to 90 rows of the log. Since the change's
-fit draws from the run's generator, every run of the change parts from its
-base (900 of 900 pairs differ), with the same start, noise and log. The
-change is kept off the branch that holds this record: its commit,
-`58d922a1`, is `change_58d922a1.patch` here.
+0.60 none significant. The change does what it is for: at seeds 0-29, every
+rerun's first GP holds the start alone with the definition's values in the
+base; in the change none does, and it holds 35 to 90 rows of the log. Since
+the change's fit draws from the run's generator, every run of the change
+parts from its base (900 of 900 pairs differ), with the same start, noise
+and log. The change is kept off the branch that holds this record: its
+commit, `58d922a1`, is `change_58d922a1.patch` here.
 
 ## Arms
 
 | arm | the first GP with evaluations made before the run | code |
 | --- | --- | --- |
-| base | fitted on the start and the initial design (the definition's values on one point); the evaluations given enter the GP at the loop's first rebuild | `f6c13872`, with `2822c561` (the `warmstart` suite) cherry-picked as `ee0d9c29` on a detached worktree, not pushed |
-| change | then rebuilt on the incumbent's neighbours in the whole log and refitted, in the initialization | `58d922a1`: the change, on `2822c561`; not adopted, its diff in `change_58d922a1.patch` |
+| base | fitted on the start and the initial design (the definition's values on one point); the evaluations given enter the GP at the loop's first rebuild | `2822c561`, the `warmstart` suite on `f6c13872`; the records name `ee0d9c29`, a commit with its tree and its parent, not pushed |
+| change | then rebuilt on the incumbent's neighbours in the whole log and refitted, in the initialization | `58d922a1`: the change, on `2822c561`; not adopted and not pushed, its diff in `change_58d922a1.patch` |
 
 Both arms run the same `benchmark_targets.py`, so that each seed has the
 same start point, noise stream and log of evaluations given in both; the
 earlier run that makes the log gives no evaluations before it, and so runs
 the same in both arms, which `first_gp.py logs` checks from the digests of
 the records (`precomputed`). The records name each arm's package in
-`meta.pybads_source`, clean. `ee0d9c29`, which no pushed branch holds, is
-`f6c13872` with the four files of `2822c561`, `dev/README.md`,
-`dev/scripts/benchmark_targets.py`, `population.py` and
-`test_population.py`: its `pybads/` is `f6c13872`'s.
+`meta.pybads_source`, clean. `2822c561` is `f6c13872` with four files
+changed, `dev/README.md`, `dev/scripts/benchmark_targets.py`,
+`population.py` and `test_population.py`, so that the base's `pybads/` is
+`f6c13872`'s. The base's records name `ee0d9c29`, which no pushed branch
+holds: a cherry-pick of `2822c561` onto its own parent, with the same tree
+(`13cb926c`). No pushed branch holds `58d922a1` either; `git am` of
+`change_58d922a1.patch` on `2822c561` gives its tree (`c6642ed6`).
 
 ## Command and provenance
 
@@ -68,9 +78,9 @@ the records (`precomputed`). The records name each arm's package in
 W=dev/scripts/runs/worktrees
 R=dev/scripts/runs/population/warmstart
 E=dev/experiments/warmstart_gp_linux_20260929
-git worktree add --detach $W/w_base f6c13872
-git -C $W/w_base cherry-pick 2822c561      # the records name ee0d9c29
-git worktree add --detach $W/w_change 58d922a1
+git worktree add --detach $W/w_base 2822c561   # its tree is ee0d9c29's
+git worktree add --detach $W/w_change 2822c561
+git -C $W/w_change am $PWD/$E/change_58d922a1.patch     # 58d922a1's tree
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 export PYTHONPATH=<gpyreg clone at v1.3.3>
 for seeds in 0-29 30-89; do
@@ -116,7 +126,10 @@ python $E/first_gp.py summary $E/first_gp_base.jsonl $E/first_gp_change.jsonl
   `logs.md`, the check that each pair was given the same log;
   `first_gp.py`, `first_gp_base.jsonl`, `first_gp_change.jsonl` and
   `first_gp.md`, the first GP of each run of seeds 0-29 as the
-  initialization leaves it; `change_58d922a1.patch`, the change.
+  initialization leaves it; `change_58d922a1.patch`, the change. The
+  `_seeds0-29` files are the output of the same `compare`, `compare
+  --split`, `pairs.py` and `w236_pairs.py` on directories that hold the
+  records of seeds 0-29 alone.
 
 ## The other gates
 
@@ -161,11 +174,16 @@ paired runs share their start, noise and log but not their trajectory.
 - **The flag.** `rosenbrock_D6_rerun`'s evaluations: KS statistic 0.30,
   p = 0.0006 (0.017 after Holm). Their 10th, 25th, 50th, 75th and 90th
   percentiles move from 346, 371, 394, 420 and 454 to 362, 397, 426, 455
-  and 477; the median paired change is +29, the
-  iterations' median 16 in both arms. At the gate's 30 seeds the same test
-  gave KS 0.37, p = 0.035, not flagged. `rosenbrock_D6_other` moves the same
-  way by less (406.5 → 416.5, KS 0.13, p = 0.40). Why a fitted first GP costs
-  a rerun on Rosenbrock's function more evaluations is not measured here.
+  and 477; the median paired change is +29, the iterations' median 16 in
+  both arms. Among the solved runs alone (75 of the base, 71 of the
+  change), the median moves from 400 to 431 (KS 0.33, p = 0.0006). At the
+  gate's 30 seeds the same test gave KS 0.37, p = 0.035, not flagged; on
+  the 60 seeds added after the gate (30-89) alone, it gives KS 0.32,
+  p = 0.0046 (0.14 after Holm over the 30 tests of that comparison), the
+  median 394 → 421 and a paired signed-rank p = 0.03, and among their
+  solved runs (51 and 47) KS 0.38, p = 0.001, the median 394 → 428.
+  `rosenbrock_D6_other` moves the same way by less (406.5 → 416.5, KS
+  0.13, p = 0.40).
 - **The fraction solved.** The unsolved runs of `rosenbrock_D6` end at
   3.97, the local minimum of Rosenbrock's function at D = 6, in both arms;
   those of the hetero configurations end between 0.10 and 0.81. No
@@ -195,13 +213,13 @@ beside the given one, 36 rows.
 
 ## Conclusion
 
-The change reaches what the ruling asked for, a first GP fitted on the
-whole log's neighbours, and moves nothing without evaluations made before
-the run. On the `warmstart` suite it improves no configuration, and at 90
-seeds it is flagged for more evaluations on `rosenbrock_D6_rerun` at an
-unchanged error, with a pooled fraction solved that leans towards the base
-without significance. By the gate's rule a change flagged worse is not
-adopted, and the PI ruled so on 2026-09-29: PyBADS keeps the first GP
-fitted on the start and the initial design (KD-B6-5). Why a first GP fitted
-on the log's neighbours costs the Rosenbrock reruns more evaluations is not
-known.
+The change reaches what the PI asked for, a first GP fitted on the whole
+log's neighbours, and moves nothing without evaluations made before the
+run. On the `warmstart` suite it improves no configuration significantly,
+and at 90 seeds it is flagged for more evaluations on
+`rosenbrock_D6_rerun` at an unchanged error, with a pooled fraction solved
+that leans towards the base without significance. By the gate's rule a
+change flagged worse is not adopted, and the PI ruled on 2026-09-29 not to
+adopt it: PyBADS keeps the first GP fitted on the start and the initial
+design (KD-B6-5). Why a first GP fitted on the log's neighbours costs the
+Rosenbrock reruns more evaluations is not known.
