@@ -1,4 +1,4 @@
-# TASK: PyBADS code work that doesn't depend on the release
+# Code work that needs no release (2026-09-28 to 2026-09-29)
 
 The four `dev/TODO.md` items that need no release, MATLAB, macOS or Windows:
 loose ends of the port review, stage timers + profiler, replay + oracles, the
@@ -68,3 +68,17 @@ Each item fixed, documented or dropped per the rulings; the four TODO items clos
 
 ## Notes
 - After merging P1b, P5a: 817 passed; replay of `cf371d4^` (before the timers) against HEAD: 8 of 8 identical
+
+## Completion summary
+Done on `claude/todo-discussion-ad0tsh`, with `dev-next` merged up to #99.
+The four TODO items are closed: the port review's loose ends (W2-36 kept
+as MATLAB BADS); stage timers and the profiler; the replay tool, the pin
+of the initial design and the self-generated oracles (the MATLAB-derived
+ones stay in `dev/TODO.md`); the GP on one training point, which takes
+MATLAB BADS's definition values. A first GP fitted on the whole log for a
+run given evaluations made before it was measured on the `warmstart`
+suite and not adopted. Three double-checks and a short check found no
+open finding at the end. The fingerprint `4146a986863602cb` held from
+`bec8a57a` on; the only change of results is that of the runs whose
+first GP holds one point. Not verified here: Windows and macOS, which
+the pull request's CI covers.

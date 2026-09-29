@@ -504,6 +504,12 @@ reference's number of seeds.
 - [experiments/population_baseline_20260924/](experiments/population_baseline_20260924/README.md)
   — the first reference (global random stream), with the positive control
   and the detectable effect sizes that the later references cite.
+- [plans/2026-09-28-code-work-without-release.md](plans/2026-09-28-code-work-without-release.md)
+  — the checklist and worklog of the work that needed no release, the
+  PI's rulings on it, and its gates: the port review's loose ends, stage
+  times and the profiler, replay, the initial-design pin and the oracles,
+  the GP on one point, and the first GP of a run given evaluations made
+  before it.
 - [plans/port-correctness-review.md](plans/port-correctness-review.md) —
   the independent correctness review of the port against MATLAB BADS
   v1.1.3, after PyVBMC's: slices, waves, the reviewer brief, the gates and
