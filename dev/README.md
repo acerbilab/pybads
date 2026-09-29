@@ -177,16 +177,15 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   change in the error and in the number of evaluations, with one Holm
   correction over all the tests, prints effect sizes, and exits 1 on a
   flag; `compare REF --split` compares the even and the odd seeds of one
-  population, as a null check. The paired test
-  of `compare` assumes that both populations share each seed's start point
-  and noise, that is, the same `benchmark_targets.py`; `compare` warns when
-  the recorded start points differ. To run against another gpyreg
-  checkout, put it on `PYTHONPATH`: the records identify gpyreg by its
-  source path and commit, since the version string is that of the
-  installed gpyreg. PyBADS, and `benchmark_targets.py` with its targets
-  and seeds, come from the checkout that holds the script, which it puts
-  first on `sys.path`: to run a commit, run the
-  `dev/scripts/population.py` of a worktree at it, from the main
+  population, as a null check. The paired test of `compare` assumes that
+  both populations share each seed's start point and noise, that is, the
+  same `benchmark_targets.py`; `compare` warns when the recorded start
+  points differ. To run against another gpyreg checkout, put it on
+  `PYTHONPATH`: the records identify gpyreg by its source path and commit,
+  since the version string is that of the installed gpyreg. PyBADS, and
+  `benchmark_targets.py` with its targets and seeds, come from the checkout
+  that holds the script, which it puts first on `sys.path`: to run a commit,
+  run the `dev/scripts/population.py` of a worktree at it, from the main
   checkout's root.
 - `calibrate_budgets.py` runs each configuration at 500 D for a few seeds
   and records where the runs end: the evidence behind the suite's budgets.
