@@ -283,9 +283,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
   leaves out. Code that takes the log's rows for the run's own evaluations
   leaves them out: `_init_mesh_` chooses the first incumbent among the rows
-  that the start and the initial design returned (`_init_rows`), on which
-  `init_and_train_gp` fits the first GP, and counts `eff_starting_points`
-  from `func_count`; at level 2 `_init_optimization_` reads the first
+  that the start and the initial design returned (`_init_rows`) and counts
+  `eff_starting_points` from `func_count`; `init_and_train_gp` fits the
+  first GP on those rows; at level 2 `_init_optimization_` reads the first
   incumbent's `fsd` from its row, `_init_incumbent_row`; and
   `_get_gp_training_options` subtracts `optim_state["precomputed_n_evals"]`
   from `n_eff`. New code that reads `Xn`, `X_flag` or `n_evals` as the
@@ -409,11 +409,12 @@ design on purpose regenerates in the same commit), and the oracles' stored
 references, under tolerances measured across BLAS settings. Never loosen an
 oracle's tolerance or regenerate the fixtures to make a change pass: a
 change that moves an oracle on purpose replaces that oracle's references
-alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`. The
-one regeneration the fixtures take is `--write --reason TEXT` from a clean
-checkout, when `--rebaseline` refuses because a moved decision lies within
-rounding of its threshold: it reruns the recipes and re-chooses the stored
-states, a new baseline of every oracle, with its reason recorded.
+alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`.
+`--write --reason TEXT`, from a clean checkout, makes a new baseline of
+every oracle for a change of the recipes or of what the snapshots hold,
+and when `--rebaseline` refuses a decision at its bound, since it alone
+re-chooses the size of the reduced training sets; the fixtures record its
+reason.
 
 ## Tests and their traps
 

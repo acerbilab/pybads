@@ -5,32 +5,32 @@ evaluations made before the run (`precomputed_evaluations`), the first GP's
 hyperparameters are fitted on the incumbent's neighbours in the whole log,
 chosen and capped as a rebuild chooses them. `_init_optimization_` keeps
 the fit on the start and the initial design (MATLAB BADS's definition
-values on one distinct point), then, within `gp_init`, rebuilds the GP
-with `local_gp_fitting` and a refit, once. Without it, as PyBADS keeps it
+values on one distinct point), then, within `gp_init`, rebuilds the GP with
+`local_gp_fitting` and a refit, once. In the behaviour that PyBADS keeps
 (KD-B6-5), the first GP is fitted on the start and the design alone, and
 the loop's first rebuild, at the first poll, brings the evaluations given
-into its training set. The first refit needs the run's count of
-evaluations past D and either max(10, 2D) of the GP's predictions at
-points that the run then evaluated or a failed check of their
-calibration, which fails when there are none: after an initial design it
-comes at that first rebuild. In a rerun given the log of an earlier run
-with the same seed and start, the log holds the whole initial design,
-which is not evaluated again, so that the first GP holds the start alone,
-with the definition's values, and the GP keeps them over the log's
-neighbours until the first refit, which the base's reruns at seeds 0-9,
-each stopped there, reach at a `func_count` of 4 or 12 at D = 3 without
-noise, 11 with it, and 14 (12 in one seed) for Rosenbrock's function at
-D = 6. No configuration of the other suites gives a run evaluations made
-before it; the `warmstart` suite (`2822c561`) does: the sphere and the
-ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise, and
-the sphere at D = 3 with inferred noise (`homo`) and with the target's
-noise (`hetero`), each run given the function log of an earlier BADS run
-on the same target, made in the run's process from the seed: of 15 D
-evaluations at the run's seed and start (`_rerun`), or of 20 D at the
-seed plus 1000, with its own start and noise (`_other`). This population
-measures the change against its parent on that suite, 90 seeds, paired
-by seed: the gate's 30 (0-29), then 60 more (30-89), since the gate's
-pooled fraction solved leaned towards the base.
+into its training set. The first refit needs the run's count of evaluations
+past D and either max(10, 2D) of the GP's predictions at points that the
+run then evaluated or a failed check of their calibration, which fails when
+there are none: after an initial design it comes at that first rebuild. In
+a rerun given the log of an earlier run with the same seed and start, the
+log holds the whole initial design, which is not evaluated again, so that
+the first GP holds the start alone, with the definition's values, and the
+GP keeps them over the log's neighbours until the first refit, which the
+base's reruns at seeds 0-9 reach at a `func_count` of 4 or 12 at D = 3
+without noise, 11 with it, and 14 (12 in one seed) for Rosenbrock's
+function at D = 6, and the runs given another run's log at their first poll
+(`first_refit.md`). No configuration of the other suites gives a run
+evaluations made before it; the `warmstart` suite (`2822c561`) does: the
+sphere and the ellipsoid at D = 3 and Rosenbrock's function at D = 6
+without noise, and the sphere at D = 3 with inferred noise (`homo`) and
+with the target's noise (`hetero`), each run given the function log of an
+earlier BADS run on the same target, made in the run's process from the
+seed: of 15 D evaluations at the run's seed and start (`_rerun`), or of 20
+D at the seed plus 1000, with its own start and noise (`_other`). This
+population measures the change against its parent on that suite, 90 seeds,
+paired by seed: the gate's 30 (0-29), then 60 more (30-89), since the
+gate's pooled fraction solved leaned towards the base.
 
 **Outcome: flagged, and not adopted (PI, 2026-09-29).** At the gate's 30
 seeds the comparison flags nothing in 30 tests, but the fraction solved,
@@ -40,17 +40,18 @@ difference −0.043 [−0.083, −0.003]). At 90 seeds the comparison flags
 `rosenbrock_D6_rerun`, for more evaluations: the median rises from 394 to
 426, its quantiles from the 10th to the 90th by 15 to 35, for an unchanged
 error (the median paired log10 error ratio −0.05, signed-rank p = 0.97) and
-a fraction solved of 0.83 against 0.79 (McNemar p = 0.57). The pooled
-fraction solved at 90 seeds is 0.90 in the base against 0.88 in the change
-(69 runs solved by the base alone, 53 by the change alone; p = 0.17,
-−0.018 [−0.041, +0.007]), the hetero configurations' 0.64 → 0.59 and 0.67 →
-0.60 none significant. The change does what it is for: at seeds 0-29, every
-rerun's first GP holds the start alone with the definition's values in the
-base; in the change none does, and it holds 35 to 90 rows of the log. Since
-the change's fit draws from the run's generator, every run of the change
-parts from its base (900 of 900 pairs differ), with the same start, noise
-and log. The change is kept off the branch that holds this record: its
-commit, `58d922a1`, is `change_58d922a1.patch` here.
+a fraction solved of 0.83 in the base against 0.79 in the change (McNemar p
+= 0.57). The pooled fraction solved at 90 seeds is 0.90 in the base against
+0.88 in the change (69 runs solved by the base alone, 53 by the change
+alone; p = 0.17, −0.018 [−0.041, +0.007]), and the hetero configurations'
+fractions, base to change, 0.64 → 0.59 and 0.67 → 0.60, none significant.
+The change does what it is for: at seeds 0-29, every rerun's first GP holds
+the start alone with the definition's values in the base; in the change
+none does, and it holds 35 to 90 rows of the log. Since the change's fit
+draws from the run's generator, every run of the change parts from its base
+(900 of 900 pairs differ), with the same start, noise and log. The change
+is kept off the branch that holds this record: its commit, `58d922a1`, is
+`change_58d922a1.patch` here.
 
 ## Arms
 
@@ -100,6 +101,8 @@ python $E/first_gp.py logs $E/base $E/change
 .venv/bin/python -u $E/first_gp.py run --root $W/w_$arm --seeds 0-29 \
   --out $E/first_gp_$arm.jsonl                  # for each arm
 python $E/first_gp.py summary $E/first_gp_base.jsonl $E/first_gp_change.jsonl
+.venv/bin/python -u $E/first_refit.py --root $W/w_base --seeds 0-9 \
+  > $E/first_refit.md
 ```
 
 - gpyreg 1.3.3 from a clone checked out at the tag `v1.3.3` (`98ab5a4`),
@@ -126,7 +129,9 @@ python $E/first_gp.py summary $E/first_gp_base.jsonl $E/first_gp_change.jsonl
   `logs.md`, the check that each pair was given the same log;
   `first_gp.py`, `first_gp_base.jsonl`, `first_gp_change.jsonl` and
   `first_gp.md`, the first GP of each run of seeds 0-29 as the
-  initialization leaves it; `change_58d922a1.patch`, the change. The
+  initialization leaves it; `first_refit.py` and `first_refit.md`, the
+  evaluation of the first refit in the base's runs of seeds 0-9;
+  `change_58d922a1.patch`, the change. The
   `_seeds0-29` files are the output of the same `compare`, `compare
   --split`, `pairs.py` and `w236_pairs.py` on directories that hold the
   records of seeds 0-29 alone.
@@ -178,11 +183,11 @@ paired runs share their start, noise and log but not their trajectory.
   both arms. Among the solved runs alone (75 of the base, 71 of the
   change), the median moves from 400 to 431 (KS 0.33, p = 0.0006). At the
   gate's 30 seeds the same test gave KS 0.37, p = 0.035, not flagged; on
-  the 60 seeds added after the gate (30-89) alone, it gives KS 0.32,
-  p = 0.0046 (0.14 after Holm over the 30 tests of that comparison), the
-  median 394 → 421 and a paired signed-rank p = 0.03, and among their
-  solved runs (51 and 47) KS 0.38, p = 0.001, the median 394 → 428.
-  `rosenbrock_D6_other` moves the same way by less (406.5 → 416.5, KS
+  the 60 seeds added after the gate (30-89) alone, it gives KS 0.32, p =
+  0.0046 (0.14 after Holm over the 30 tests of that comparison), the median
+  394 → 421 and a paired signed-rank p = 0.03, and among their solved runs
+  (51 of the base, 47 of the change) KS 0.38, p = 0.001, the median 394 →
+  428. `rosenbrock_D6_other` moves the same way by less (406.5 → 416.5, KS
   0.13, p = 0.40).
 - **The fraction solved.** The unsolved runs of `rosenbrock_D6` end at
   3.97, the local minimum of Rosenbrock's function at D = 6, in both arms;

@@ -410,8 +410,8 @@ def earlier_evaluations(cfg, seed):
     the final samples, which it does not record. The earlier run is made
     by the PyBADS that runs the configuration, so that the log depends on
     the seed and on that PyBADS (and, as every run, on the platform): two
-    versions of PyBADS whose runs part give a seed different logs,
-    wherever the change between them lies. ``population.py`` records the
+    versions of PyBADS whose runs without evaluations given before them
+    part give a seed different logs. ``population.py`` records the
     log's digest, and its ``compare`` warns of the seeds whose digests
     differ.
     """
