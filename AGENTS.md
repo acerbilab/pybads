@@ -357,7 +357,8 @@ same gpyreg and the same number of BLAS threads: one thread
 hashes of the same commit, and a recorded hash names its setting.
 On one machine, a change that must move nothing also shows
 `dev/scripts/replay.py check` identical against the parent commit (the
-first evaluation and GP computation at which two commits' runs part), and
+first evaluation and GP computation at which two commits' runs part; not
+on macOS arm64, where two runs of one seed need not match bit for bit), and
 `dev/scripts/make_oracle_fixtures.py --check --exact --against` a
 `--dump` of the parent commit identical (the oracles of
 `pybads/testing/oracles/`, PyBADS's components on stored states);
