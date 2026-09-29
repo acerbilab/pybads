@@ -99,10 +99,12 @@ the same machine, and ``check`` the two. Both sides record with the same
 version of this script and of ``harness.py``: when the parent's differ
 from the change's, or it has none, copy the change's two into the
 parent's worktree, since traces written by two versions can differ in
-their layout, which ``check`` reports as runs that differ. The copy takes
-the parent's ``benchmark_targets.py``, which has what it needs, the
-default configurations included, at every commit from 0d866e84
-(2026-09-27) on; those from before 2822c561 have no configuration given
+their layout, which ``check`` reports as runs that differ, and in the
+fields of their platform keys, which ``harness.py`` sets: ``check``
+refuses keys that differ. The copy takes the parent's
+``benchmark_targets.py``, which has what it needs, the default
+configurations included, at every commit from 0d866e84 (2026-09-27) on;
+those from before 2822c561 (in #100) have no configuration given
 evaluations made before its runs, which ``harness.build_run`` then does
 without. At an older commit the recording stops with ``MissingName``: its
 ``BADS`` does not set ``poll_moved``, which the recorder reads.
@@ -139,6 +141,8 @@ from harness import (  # noqa: E402
     jsonable,
     parse_seeds,
     platform_key,
+    timestamp,
+    write_json,
 )
 
 DEFAULT_CONFIGS = (
@@ -678,9 +682,7 @@ def trace_name(label, seed, rep=0):
 def write_trace(out_dir, name, arrays, sidecar):
     out_dir = Path(out_dir)
     np.savez_compressed(out_dir / f"{name}.npz", **arrays)
-    tmp = out_dir / f"{name}.json.tmp"
-    tmp.write_text(json.dumps(sidecar, indent=1), encoding="utf-8")
-    os.replace(tmp, out_dir / f"{name}.json")
+    write_json(out_dir / f"{name}.json", sidecar)
 
 
 def _cmd_child(args):
@@ -690,7 +692,7 @@ def _cmd_child(args):
     prov = provenance()
     for rep in range(args.repeat):
         name = trace_name(args.label, args.seed, rep)
-        started = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        started = timestamp()
         try:
             arrays, sidecar = record_run(
                 args.label, args.seed, args.budget_scale, extra

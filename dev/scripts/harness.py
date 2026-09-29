@@ -32,9 +32,11 @@ leaves ``sys.path`` as it is: ``build_run`` imports
 
 A tool copied into a worktree at an older commit, as ``replay.py`` is to
 record the parent of a change, is copied with this module, and builds the
-runs of that commit's ``benchmark_targets.py``, whose problems before
-2822c561 have no evaluations made before the run: ``build_run`` gives
-their runs none.
+runs of the ``benchmark_targets.py`` beside it, whose problems before
+2822c561 (in #100) have no evaluations made before the run: ``build_run``
+gives their runs none. ``benchmark_targets.py`` imports ``build_run`` and
+``single_thread_env`` from this module: a later version of it, copied
+beside a ``benchmark_targets.py``, keeps those two names.
 """
 
 import dataclasses
@@ -410,8 +412,8 @@ def build_run(config, seed, budget_scale=1.0, extra_options=None):
     prob = config.make(seed=seed, budget_scale=budget_scale)
     args, options = prob.bads_args()
     options.update(extra_options or {})
-    # a benchmark_targets.py from before 2822c561 gives no run evaluations
-    # made before it
+    # a benchmark_targets.py from before 2822c561 (in #100) gives no run
+    # evaluations made before it
     kwargs = prob.bads_kwargs() if hasattr(prob, "bads_kwargs") else {}
     return Run(
         cfg=config,

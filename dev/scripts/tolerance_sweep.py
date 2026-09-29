@@ -15,7 +15,8 @@ tolerance::
     python -u dev/scripts/tolerance_sweep.py run --seeds 0-99 > dev/scripts/runs/test_tolerances/sweep_$(date +%s).log 2>&1
     python dev/scripts/tolerance_sweep.py summary dev/scripts/runs/test_tolerances/sweep_<time>.log
 
-Seeds 0-99 of every test take about 40 minutes.
+Seeds 0-99 of every test take about 40 minutes. PyBADS comes from
+``PYTHONPATH``, or else from the installed package.
 """
 
 import argparse
@@ -26,8 +27,6 @@ import sys
 import time
 
 import numpy as np
-
-# harness leaves sys.path, and so the PyBADS that the tests import, as it is
 from harness import parse_seeds
 
 

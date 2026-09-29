@@ -8,8 +8,8 @@ the repository root::
 
     python -m pytest dev/scripts/test_harness.py
 
-The run given evaluations made before it makes their earlier run, of 45
-evaluations, in a few seconds.
+The runs given evaluations made before them make their earlier run, of 45
+evaluations, twice, in a few seconds.
 """
 
 import os
@@ -125,7 +125,9 @@ def test_module_sources():
 
 def test_thread_variables(monkeypatch):
     for k in harness.THREAD_VARS + ("MPLBACKEND",):
-        monkeypatch.delenv(k, raising=False)
+        # set first, so that the test's end restores the environment
+        monkeypatch.setenv(k, "unset")
+        monkeypatch.delenv(k)
     harness.single_thread_env()
     assert harness.thread_env() == dict.fromkeys(harness.THREAD_VARS, "1")
     assert os.environ["MPLBACKEND"] == "Agg"

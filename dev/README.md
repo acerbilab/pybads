@@ -14,6 +14,8 @@ Separate notes are appropriate for genuinely separate topics.
   names and no further date or campaign subdirectory. A top-level note
   summarizes the evidence and decisions and links to them.
 - `experiments/` holds the machine-readable evidence that a result cites.
+  The scripts kept with an experiment's record are frozen with its
+  evidence: they keep their own copies of the tools' helpers.
 - `scripts/` holds developer tooling that is not part of the package or the
   test suite. Run it from the repository root with the project venv, as
   `python dev/scripts/<name>.py`. Its output goes under `scripts/runs/`,
@@ -66,15 +68,17 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   check the two. Both sides record with the change's `replay.py` and
   `harness.py`, copied into the parent's worktree when the parent's differ
   or it has none: traces written by two versions of the tool can differ in
-  their layout, which `check` reports as runs that differ. The copy takes
-  the parent's `benchmark_targets.py`, which has what it needs, the default
-  configurations included, at every commit from `0d866e84` (2026-09-27)
-  on; at an older commit the recording stops with `MissingName`, since its
-  `BADS` does not set `poll_moved`, which the recorder reads. `--repeat 2`
-  records each run twice in one process, and `check DIR` compares the
-  repeats. `report DIR` tabulates a recording. The replay is exact only on one machine, one
-  set of versions, one BLAS kernel and one thread count, and not on macOS
-  arm64, where two runs of one seed need not match bit for bit
+  their layout, which `check` reports as runs that differ, and in the
+  fields of their platform keys, which `harness.py` sets: `check` refuses
+  keys that differ. The copy takes the parent's `benchmark_targets.py`,
+  which has what it needs, the default configurations included, at every
+  commit from `0d866e84` (2026-09-27) on; at an older commit the recording
+  stops with `MissingName`, since its `BADS` does not set `poll_moved`,
+  which the recorder reads. `--repeat 2` records each run twice in one
+  process, and `check DIR` compares the repeats. `report DIR` tabulates a
+  recording. The replay is exact only on one machine, one set of versions,
+  one BLAS kernel and one thread count, and not on macOS arm64, where two
+  runs of one seed need not match bit for bit
   ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
   Measured at `948e0d96` on Linux (a container with 4 virtual CPUs, Intel
   Xeon at 2.10 GHz; NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg
@@ -187,11 +191,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the layout of the oracles' fixtures); the platform key, `platform_key`,
   of `replay.py` and of the oracles (which add gpyreg to it; `replay.py`
   records gpyreg in its provenance instead); and the JSON of the records.
-  It imports NumPy only inside its functions and leaves `sys.path` as it
-  is, so that a tool sets the thread variables through it before NumPy
-  loads its BLAS, and `tolerance_sweep.py` imports it without changing the
-  PyBADS that it tests. A tool copied into a worktree at an older commit
-  is copied with it.
+  Its import loads no NumPy and leaves `sys.path` as it is, so that a tool
+  sets the thread variables through it before NumPy loads its BLAS, and
+  `tolerance_sweep.py` imports it without changing the PyBADS that it
+  tests. A tool copied into a worktree at an older commit is copied with
+  it.
 - `make_reference_optima.py` computes the reference minima (BADS restarts
   at a long budget, the best of them polished with SciPy) and writes
   `data/reference_optima.json`, in about 7 minutes. Rerun it when a
@@ -294,11 +298,11 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   oracle's references otherwise: `python -m pytest
   dev/scripts/test_make_oracle_fixtures.py`.
 - `test_harness.py` checks `harness.py`: its import, which loads no NumPy
-  and leaves `sys.path` as it is, the runs it builds (a configuration given
-  evaluations made before its runs, and a problem of the
-  `benchmark_targets.py` of an older commit, without them), `git_info`
-  inside and outside a checkout and under a directory, the packages'
-  sources, and the thread variables: `python -m pytest
+  and leaves `sys.path` as it is, the seeds it parses, the runs it builds
+  (a configuration given evaluations made before its runs, and a problem
+  of the `benchmark_targets.py` of an older commit, without them),
+  `git_info` inside and outside a checkout and under a directory, the
+  packages' sources, and the thread variables: `python -m pytest
   dev/scripts/test_harness.py`.
 - `gp_health_hooks/sitecustomize.py` counts, per run, what the GP layer
   does: the factorizations that fail and gpyreg's noise multiplier, the

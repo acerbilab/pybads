@@ -1,9 +1,13 @@
 # PyBADS: open work
 
 Updated 2026-09-29. The next release is 1.5.0 (tag `v1.5.0`), the version
-the PI has decided on; "the next release" below means it. The items are
-grouped by what they wait on. The first section is in the order in which
-the release takes them; in the others, the order is not a priority.
+the PI has decided on; "the next release" below means it. The release
+waits for the first item of its section, gpyreg 1.4.0, and the last, the
+conda-forge recipe, follows its upload to PyPI; otherwise the order of the
+items is not a priority. Other records name the items by their titles, the
+port review's ledger
+([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md))
+among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
@@ -222,9 +226,9 @@ all three.
 
 ## Upstream, in gpyreg
 
-- [ ] **Hyperparameter helpers on data without spread.** gpyreg's
-  hyperparameter helpers, the `get_bounds_info` of its kernels, means and
-  noise, which `fit` calls even where the caller sets every bound and prior
+- [ ] **For gpyreg's maintainers.** gpyreg's hyperparameter helpers, the
+  `get_bounds_info` of its kernels, means and noise, which `fit` calls even
+  where the caller sets every bound and prior
   (`gaussian_process.py:1762-1764`, and `555-557` through the recommended
   bounds), are degenerate on inputs or targets without spread (1.3.3). The
   kernels' helper takes the log of each column's width and of its SD with
@@ -249,13 +253,13 @@ all three.
   spread, on which the recommended bounds' refusal of such a column relies
   (`gaussian_process.py:586-620`).
 
-## Not adopted, to revisit if its terms change
+## Not adopted
 
-- [ ] **Rank-1 GP update when adding a point.** MATLAB BADS adds a point
-  to the GP by a rank-1 update of the posterior (`private/gpupdate.m`,
-  `utils/update_posterior.m`); PyBADS's `add_and_update_gp` recomputes
-  every posterior in full, and says why at its call of `gp.update`. The
-  measurement
+- [ ] **Rank-1 GP update when adding a point: not adopted, to revisit if
+  its terms change.** MATLAB BADS adds a point to the GP by a rank-1
+  update of the posterior (`private/gpupdate.m`, `utils/update_posterior.m`);
+  PyBADS's `add_and_update_gp` recomputes every posterior in full, and says
+  why at its call of `gp.update`. The measurement
   ([results/2026-09-28-where-pybads-spends-its-time.md](results/2026-09-28-where-pybads-spends-its-time.md))
   settled the questions: gpyreg's rank-1 path agrees with the full
   recomputation to rounding, target noise included (so there is no reason
