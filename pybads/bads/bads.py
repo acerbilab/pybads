@@ -163,17 +163,21 @@ def _bounds_as_rows(x0, lb, ub, plb, pub):
     ``x0`` and the bounds as float arrays of shape ``(1, D)``, ``D`` the
     number of elements of ``x0``: a scalar bound, or an array of one element,
     is replicated in each dimension, as MATLAB BADS does
-    (``boundscheck.m``). Floats, as MATLAB's doubles: ``VariableTransformer``
-    writes the log of the bounds in place, which an integer array would
-    truncate.
+    (``boundscheck.m``); floats, as MATLAB's doubles.
 
     Raises
     ------
     ValueError
-        When a bound is neither a scalar nor an array of ``D`` elements,
-        when ``x0`` has more than one row, or when an input is not real.
+        When ``x0`` has no element, when a bound is neither a scalar nor
+        an array of ``D`` elements, when ``x0`` has more than one row, or
+        when an input is not real.
     """
     N0, D = x0.shape
+    if D == 0:
+        raise ValueError(
+            "The starting point x0 (or, without it, the plausible bounds) "
+            "needs at least one element."
+        )
     lb, ub, plb, pub = (
         np.full((1, D), bound) if bound.size == 1 else bound
         for bound in map(np.atleast_2d, (lb, ub, plb, pub))
@@ -532,46 +536,45 @@ class BADS:
         # variable to keep track of logging actions
         self.logging_action = []
 
-        # Initialize variables and algorithm structures. Missing plausible
-        # bounds are the hard bounds, with the warning bads:pbUnspecified
-        # once the logger is set up, as MATLAB BADS warns whenever it fills
-        # them (boundscheck.m:12-16)
-        pb_filled = False
-        if plausible_lower_bounds is None and lower_bounds is not None:
-            plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
-            pb_filled = True
-        if plausible_upper_bounds is None and upper_bounds is not None:
-            plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
-            pb_filled = True
-
+        # Initialize variables and algorithm structures. A missing x0 is a
+        # random start of the size of the plausible bounds, or else of the
+        # hard ones, which the missing plausible bounds are, as in MATLAB
+        # BADS: a list or a Python scalar sizes it as an array does
         if x0 is None:
-            if (
-                plausible_lower_bounds is None
-                or plausible_upper_bounds is None
-            ):
+            lb_size = (
+                lower_bounds
+                if plausible_lower_bounds is None
+                else plausible_lower_bounds
+            )
+            ub_size = (
+                upper_bounds
+                if plausible_upper_bounds is None
+                else plausible_upper_bounds
+            )
+            if lb_size is None or ub_size is None:
                 raise ValueError(
                     """bads:UnknownDims If no starting point is
                  provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
                 )
-            else:
-                # A random start of the plausible bounds' size, as in MATLAB
-                # BADS: a list or a Python scalar sizes it as an array does
-                x0 = np.full(np.shape(plausible_lower_bounds), np.nan)
-
+            x0 = np.full(np.shape(np.atleast_2d(lb_size)), np.nan)
         x0 = np.atleast_2d(x0)
 
-        # Empty lb and ub are Infs, and so is a plausible bound still
-        # missing, which _bounds_check_ refuses as not finite
+        # Empty lb and ub are Infs. Missing plausible bounds are the hard
+        # bounds, with the warning bads:pbUnspecified once the logger is set
+        # up, as MATLAB BADS warns whenever it fills them
+        # (boundscheck.m:12-16); a plausible bound that is then infinite is
+        # refused by _bounds_check_
         if lower_bounds is None:
             lower_bounds = np.full((1, x0.shape[1]), -np.inf)
         if upper_bounds is None:
             upper_bounds = np.full((1, x0.shape[1]), np.inf)
+        pb_filled = plausible_lower_bounds is None or (
+            plausible_upper_bounds is None
+        )
         if plausible_lower_bounds is None:
             plausible_lower_bounds = np.atleast_2d(lower_bounds).copy()
-            pb_filled = True
         if plausible_upper_bounds is None:
             plausible_upper_bounds = np.atleast_2d(upper_bounds).copy()
-            pb_filled = True
         x0, lb, ub, plb, pub = _bounds_as_rows(
             x0,
             lower_bounds,
@@ -1540,10 +1543,9 @@ class BADS:
         ``None`` when it names no variable. An empty value names none, as in
         MATLAB BADS (``setupvars.m``). The indices are integers from 0 to
         one less than the number of variables, each given once; a boolean
-        mask is refused rather than
-        read as the indices 0 and 1. A periodic variable wraps around its
-        hard bounds, ``[lb, ub)``, which must be finite, as MATLAB BADS
-        requires.
+        mask is refused rather than read as the indices 0 and 1. A periodic
+        variable wraps around its hard bounds, ``[lb, ub)``, which must be
+        finite, as MATLAB BADS requires.
 
         The indices count all the variables, fixed ones included, and are
         checked against their hard bounds, ``lower_bounds`` and
@@ -1568,14 +1570,14 @@ class BADS:
         if indices.dtype.kind not in "iu" or indices.ndim != 1 or has_bool:
             raise ValueError(
                 "options['periodic_vars'] should be a list of the indices of "
-                "the periodic variables, integers from 0 to D - 1 (a boolean "
-                "mask m gives them as np.flatnonzero(m)), not "
-                f"{value!r}."
+                "the periodic variables, integers from 0 to one less than the "
+                "number of variables (a boolean mask m gives them as "
+                f"np.flatnonzero(m)), not {value!r}."
             )
         if np.any(indices < 0) or np.any(indices >= D_orig):
             raise ValueError(
                 "options['periodic_vars'] holds indices outside 0 to "
-                f"D - 1 = {D_orig - 1}: {value!r}."
+                f"{D_orig - 1}, those of the {D_orig} variables: {value!r}."
             )
         if np.unique(indices).size != indices.size:
             raise ValueError(

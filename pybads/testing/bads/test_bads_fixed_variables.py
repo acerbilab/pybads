@@ -224,9 +224,9 @@ def test_run_is_that_of_the_reduced_problem(kwargs):
     number of free variables, and every draw and computation is the same,
     while the points that leave the run have all the variables. A random
     or non-finite `x0` is drawn over the free variables alone; a
-    non-finite `x0` at a fixed variable is its value; a fixed periodic
-    variable is left out of `periodic_vars`, whose other indices count all
-    the variables."""
+    non-finite `x0` at a fixed variable is its value; `periodic_vars`
+    counts all the variables, and a fixed periodic variable is not periodic
+    in the run."""
     _assert_same_run(_runs(**kwargs))
 
 
@@ -331,7 +331,9 @@ def test_periodic_vars_count_all_the_variables():
     assert only_fixed.options["periodic_vars"] == [0, 3]
     assert not np.any(only_fixed.optim_state["periodic_vars"])
     assert only_fixed.var_transf.apply_log_t[0, 2]
-    with pytest.raises(ValueError, match="outside 0 to D - 1 = 4"):
+    with pytest.raises(
+        ValueError, match="outside 0 to 4, those of the 5 variables"
+    ):
         make([5])
 
 
