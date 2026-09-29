@@ -1,8 +1,8 @@
 From 0f27db5bfb637fb993dc75cc9f610b378f2fc734 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Tue, 29 Sep 2026 06:17:10 +0000
-Subject: [PATCH] perf: periodic kernels map each periodic coordinate onto a
- circle once per point
+Subject: [PATCH 1/2] perf: periodic kernels map each periodic coordinate onto
+ a circle once per point
 
 Along a periodic dimension the kernels computed the squared chord of every
 pair of inputs, with an fmod and a sine over the whole N x M matrix, one
@@ -293,6 +293,114 @@ index fbff4bd..1932888 100644
  @_each_ard_kernel
  @pytest.mark.parametrize(
      "periods, message",
+-- 
+2.43.0
+
+
+From 91ea28e481cd6cd8cc4f5836f5e63741d69806ef Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 29 Sep 2026 07:07:03 +0000
+Subject: [PATCH 2/2] test: coordinates at either end of the wrap interval are
+ one point on the circle
+
+A test that coordinates a whole number of periods apart, among them -p/2
+and p/2, the two ends of the interval into which each periodic coordinate
+is wrapped, are at distance exactly zero: wrapping into [-p/2, p/2) or
+(-p/2, p/2) instead passes every other test. Also: the docstring of
+_on_circle states the point it returns, R * (1 - cos 2phi, sin 2phi), the
+comment on the order of the products says why p / pi is formed apart from
+the scale, and AGENTS.md says that the trigonometric functions take one
+evaluation per point and periodic dimension. The kernels' code does not
+change.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ AGENTS.md                                   |  2 +-
+ gpyreg/covariance_functions.py              | 14 ++++++++------
+ gpyreg/testing/test_covariance_functions.py | 18 ++++++++++++++++++
+ 3 files changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/AGENTS.md b/AGENTS.md
+index bc0a9ff..37c1ecf 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -49,7 +49,7 @@ The PR test workflow only runs when files under `gpyreg/`, `pyproject.toml`, or
+ 
+ Isotropic kernels use cooperative multiple inheritance, e.g. `MaternIsotropic(AbstractIsotropicKernel, Matern)`: the isotropic mixin overrides the hyperparameter count (always 2), info, and bounds, and the constructor, which passes its arguments on to the ARD parent's; each isotropic kernel defines its own `compute` and inherits the rest, such as Matern's degree, from its ARD parent.
+ 
+-The ARD kernels (`SquaredExponential`, `Matern`, `RationalQuadraticARD`) take fixed `periods` at construction: constants, not hyperparameters, so the hyperparameter count, info and bounds do not depend on them. `kernel.periods` is `None` when no dimension is periodic, as it is for a kernel pickled without the attribute, which reads the class attribute `AbstractKernel.periods`. In each `compute` the periodic code is a branch of its own beside the non-periodic code, which does not go through the periodic helpers (`_scaled_sq_dist`, `_scaled_sq_diff`, and `_scaled_coordinates` and `_on_circle` beneath them), so that a change to the periodic branch moves no result of a kernel without periods. The helpers map each periodic coordinate onto a circle once per point and take every distance in one `cdist`, so that a periodic kernel costs about what the kernel without periods costs. The isotropic kernels refuse periods (`AbstractIsotropicKernel.__init__`), and `GP.quad` refuses a periodic kernel.
++The ARD kernels (`SquaredExponential`, `Matern`, `RationalQuadraticARD`) take fixed `periods` at construction: constants, not hyperparameters, so the hyperparameter count, info and bounds do not depend on them. `kernel.periods` is `None` when no dimension is periodic, as it is for a kernel pickled without the attribute, which reads the class attribute `AbstractKernel.periods`. In each `compute` the periodic code is a branch of its own beside the non-periodic code, which does not go through the periodic helpers (`_scaled_sq_dist`, `_scaled_sq_diff`, and `_scaled_coordinates` and `_on_circle` beneath them), so that a change to the periodic branch moves no result of a kernel without periods. The helpers evaluate the trigonometric functions once per point and periodic dimension, not once per pair of points, and take the distances with `cdist`, so that a periodic kernel costs about what the kernel without periods costs. The isotropic kernels refuse periods (`AbstractIsotropicKernel.__init__`), and `GP.quad` refuses a periodic kernel.
+ 
+ The hyperparameter name strings returned by `hyperparameter_info` (`covariance_log_lengthscale`, `mean_const`, `noise_log_scale`, ...) are the dict keys used by `set_bounds`, `set_priors`, `hyperparameters_to_dict`, and friends. `set_bounds` and `set_priors` require every name to be present.
+ 
+diff --git a/gpyreg/covariance_functions.py b/gpyreg/covariance_functions.py
+index 308e053..43fce77 100644
+--- a/gpyreg/covariance_functions.py
++++ b/gpyreg/covariance_functions.py
+@@ -126,9 +126,10 @@ def _on_circle(x, period):
+     Returns
+     -------
+     circle : ndarray, shape (N, 2)
+-        ``(p / pi) * (sin(phi)**2, sin(phi) * cos(phi))``, the point of
+-        angle ``2 * phi`` on the circle of radius ``p / (2 * pi)``, shifted
+-        so that the angle zero lies at the origin.
++        ``R * (1 - cos(2 * phi), sin(2 * phi))`` with ``R = p / (2 * pi)``,
++        computed as ``(p / pi) * (sin(phi)**2, sin(phi) * cos(phi))``: a
++        point of the circle of radius ``R`` through the origin, at the
++        origin for the angle zero.
+     """
+     half = period / 2
+     r = np.fmod(x, period)
+@@ -136,9 +137,10 @@ def _on_circle(x, period):
+     r = np.where(r <= -half, r + period, r)
+     phi = np.pi / period * r
+     s = np.sin(phi)
+-    # The radius first, then the unit-circle terms: p / pi alone stays
+-    # finite for any finite period, where its product with a scale could
+-    # overflow.
++    # The radius multiplies the unit-circle terms here, and the caller's
++    # scale multiplies the result: p / pi stays finite for any finite
++    # period, where the product of p and a scale could overflow and give
++    # NaN against a zero sine.
+     radius = period / np.pi
+     return np.stack((radius * (s * s), radius * (s * np.cos(phi))), axis=1)
+ 
+diff --git a/gpyreg/testing/test_covariance_functions.py b/gpyreg/testing/test_covariance_functions.py
+index 1932888..204610e 100644
+--- a/gpyreg/testing/test_covariance_functions.py
++++ b/gpyreg/testing/test_covariance_functions.py
+@@ -11,6 +11,7 @@ from gpyreg.covariance_functions import (
+     Matern,
+     RationalQuadraticARD,
+     SquaredExponential,
++    _scaled_sq_diff,
+     _scaled_sq_dist,
+ )
+ 
+@@ -501,6 +502,23 @@ def test_periodic_kernel_diagonal_and_cross_covariance(make_kernel):
+     )
+ 
+ 
++@pytest.mark.parametrize("k", [1, -3, 1000])
++def test_coordinates_a_period_apart_are_one_point(k):
++    """Coordinates a whole number of periods apart, among them the two ends
++    of half a period on either side of zero, are at distance exactly zero
++    along a periodic dimension. The coordinates are exact in binary."""
++    p = 0.75
++    x = np.array(
++        [0.375, -0.375, 0.375 + k * p, 0.25, 0.25 + k * p, -0.5, -0.5 + k * p]
++    )
++
++    sq_diff = _scaled_sq_diff(x, 1.3, p)
++
++    for i, j in [(0, 1), (0, 2), (1, 2), (3, 4), (5, 6)]:
++        assert sq_diff[i, j] == 0.0
++    assert np.all(sq_diff[0, 3:] > 0.0)
++
++
+ @pytest.mark.parametrize("seed", [0, 1, 2])
+ def test_periodic_distance_is_the_squared_chord(seed):
+     """Along a periodic dimension the scaled squared distance is the
 -- 
 2.43.0
 

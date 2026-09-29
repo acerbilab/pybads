@@ -14,11 +14,15 @@ suite on Linux,
 
 ## The gpyreg change
 
-`gpyreg-perf-periodic-circle.patch` is gpyreg's commit `0f27db5`, on the
-branch `perf-periodic-circle` of a clone of gpyreg whose `main` was at
-`b44634f` (the merge of acerbilab/gpyreg#61, the CI pin `GPYREG_PIN`);
-its tree is `8638145`. `git am` of the patch on `b44634f` rebuilds that
-tree. The records name it by the commit, `0f27db5`.
+`gpyreg-perf-periodic-circle.patch` holds two commits of the branch
+`perf-periodic-circle` of a clone of gpyreg whose `main` was at `b44634f`
+(the merge of acerbilab/gpyreg#61, the CI pin `GPYREG_PIN`): `0f27db5`,
+the change, whose tree is `8638145` and which every measurement here ran,
+and `91ea28e`, whose tree is `935929b`, which adds a test (coordinates at
+either end of the wrap interval are one point) and changes docstrings, a
+comment and `AGENTS.md`, not the kernels' code. `git am` of the patch on
+`b44634f` rebuilds both trees. The records name the code by its commit,
+`0f27db5`.
 
 ## Command and provenance
 
