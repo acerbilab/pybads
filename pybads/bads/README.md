@@ -25,6 +25,7 @@ feature*.
 
 ## Open porting work
 
+* Fixed variables (KD-B1-7).
 * Benchmark PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
 

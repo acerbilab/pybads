@@ -140,9 +140,32 @@ decided on; "the next release" below means it.
   One stage is measured: the failed tries of the refits take 9% of the
   deterministic runs' time over four suites, 42% of `ellipsoid_D3`'s
   ([results/2026-09-28-gp-health.md](results/2026-09-28-gp-health.md)).
-- [ ] **Benchmarking on neurobench**, the open porting work listed in
+- [ ] **Benchmarking on neurobench**, open porting work listed in
   `pybads/bads/README.md`: PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
+- [ ] **Fixed variables**, open porting work listed in
+  `pybads/bads/README.md` (KD-B1-7). MATLAB BADS takes a variable whose
+  bounds and plausible bounds all equal `x0` as fixed
+  (`private/boundscheck.m:39-40`) and runs itself on the other variables
+  (`bads.m:351-382`, `private/fixedbads.m`): the target, `non_box_cons`
+  and the output function receive the full vector (`expandvars`,
+  `bads.m:1480-1488`), `PeriodicVars` is renumbered over the free
+  variables, the points of `FunValues` lose their fixed coordinates
+  (unchecked), and `x` and the points of `optimState` are lifted back to
+  the full dimension. The options' defaults are evaluated at the reduced
+  dimension, so that `MaxFunEvals` is 500 times the number of free
+  variables. PyBADS refuses a variable whose four bounds are equal, whatever
+  `x0` (`BADS._bounds_check_`), and the FAQ's answer "Can I set `lb = ub`
+  for some variable to fix it to a given value?" gives the workaround of a
+  reduced target. A port reduces the problem in `BADS.__init__` before the
+  options are evaluated with `D`; wraps `fun`, `non_box_cons` and
+  `output_fcn`; maps `periodic_vars` and the points of
+  `precomputed_evaluations` to the free variables, whose fixed
+  coordinates it can check; lifts what the result reports in the full
+  space (`x`, `x0`); and decides whether `x0` must equal the bound, as
+  MATLAB asks. Its test is a run with fixed variables that matches, seed
+  for seed, the run of the reduced problem. The two FAQ answers that name
+  fixed variables and KD-B1-7 change with it, and so does the changelog.
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
