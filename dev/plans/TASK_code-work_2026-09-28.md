@@ -58,9 +58,10 @@ pushes and runs `/doublecheck` at the end.
 - [x] Merge `dev-next` (#97-#99, periodic variables; CI pin gpyreg `b44634f`) at `8f107be`: with gpyreg `b44634f`, fingerprint `4146a986863602cb`, 1045 passed, oracles `--check` 6/6 and `--against` a dump of `a96cb03` 1056 identical, replay 8/8 identical, dev tests 40, pre-commit clean
 
 ## Round 4 (PI, 2026-09-29: fix the final double-check's findings, optional ones included)
-- [~] G1 tooling: the warmstart log in replay/profile_run/gp_update_failures; `compare` warns on unpaired logs; docstrings; tests of the new paths — worktree `fix-g1`
-- [~] G2 documents: KD-B6-5 and the warmstart README (the rerun's first refit); the README's robustness, recipe and tables; AGENTS.md's arm64 exception; TODO; changelog; optional wording — worktree `fix-g2`
-- [ ] Merge, gates (gpyreg `b44634f`), short check of the fixes
+- [x] G1 tooling (merged `7ce6178`): the warmstart log in replay/profile_run/gp_update_failures; `compare` warns on unpaired logs; docstrings; tests of the new paths — worktree `fix-g1`
+- [x] G2 documents (merged `29c557d`): KD-B6-5 and the warmstart README (the rerun's first refit); the README's robustness, recipe and tables; AGENTS.md's arm64 exception; TODO; changelog; optional wording — worktree `fix-g2`
+- [x] Gates at `f3e43e9` (gpyreg `b44634f`): fingerprint `4146a986863602cb` (1 thread and default); 1045 passed; dev tests 49; oracles `--check` 6/6, `--against` a dump of `76e3f16` 1056 identical; replay vs `76e3f16` 8/8 identical; benchmark check ok; pre-commit clean
+- [~] Short check of the fixes (one Opus reviewer)
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
