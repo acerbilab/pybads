@@ -43,10 +43,11 @@ pushes and runs `/doublecheck` at the end.
 
 ## Fixes after the double-check (PI, 2026-09-29: fix the findings; W2-36 keeps MATLAB's behaviour; the one-point side effects stay with gpyreg)
 - [~] F1 package code: `BADS` reference cycle; stale `BADS.optimize` pointers; changelog gaps (`(f, sd)` message, `FunctionLogger`, one-point entry); comments; tests (stage balance on `output_fcn` exits, one point at level 2, median rule at N = 5) — worktree `fix-code`
-- [~] F2 dev tooling: `profile_suite.py` relative `--out`; replay recorder robustness and `check` warnings; gate recipe in dev/README; population/benchmark guards, thread variables; stage-times note facts; TODO item for shared dev helpers — worktree `fix-tools`
+- [x] F2 dev tooling (merged `8b52d3a`): `profile_suite.py` relative `--out`; replay recorder robustness and `check` warnings; gate recipe in dev/README; population/benchmark guards, thread variables; stage-times note facts; TODO item for shared dev helpers — worktree `fix-tools`
 - [~] F3 oracles: no platform-bound references in fixtures (rebaseline works anywhere); honest `--check --exact`; gpyreg and CPU features in the key; removed options tolerated; hedge margins; AGENTS.md gate sentences; shipped-tests changelog line — worktree `fix-oracles`
-- [ ] Merge F1-F3; F4 records: W2-36 ruling; ledger, wave notes, KD "Settled by", one-point README fixes
-- [ ] Gates on the merged head; focused re-review
+- [x] Merge `dev-next` (#93-#96) at `7949cf6`: fingerprint `4146a986863602cb`, 962 passed; its TODO holds "Checks of option values when `BADS` is created." (open)
+- [~] Merge F1, F3; F4 records (worktree `fix-records`): W2-36 ruling; ledger, wave notes, KD "Settled by", one-point README fixes
+- [ ] Gates on the merged head; second `/doublecheck` (PI asked)
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
