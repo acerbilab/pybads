@@ -2,8 +2,10 @@
 
 Runs one configuration of ``benchmark_targets.py`` at one seed, set up as
 ``population.py`` sets up a run (the same problem, start point, noise
-stream and options, and the same rule for the PyBADS it imports: the
-checkout that holds this script, put first on ``sys.path``), and records:
+stream and options, the same evaluations made before the run for a
+configuration of the ``warmstart`` suite, and the same rule for the PyBADS
+it imports: the checkout that holds this script, put first on
+``sys.path``), and records:
 
 * the result: the wall time of ``optimize()``, its ``total_time``, the
   target's time, ``overhead``, the evaluations, the iterations, the error
@@ -34,7 +36,10 @@ buckets alone.
 Output goes to ``DIR/<tag>/`` (``--out DIR``, by default a new campaign
 directory under ``dev/scripts/runs/profile/``; ``--tag`` by default
 ``<label>_seed<seed>_<plain|cprof>``): ``summary.json``, with the
-provenance of ``population.py``'s records, and the cProfile files.
+provenance of ``population.py``'s records and, as those records hold it,
+the kind, number of rows and digest of the evaluations made before the run
+(``precomputed``), and the cProfile files. The earlier run that makes
+those evaluations is neither timed nor profiled.
 
 Examples, from the repository root::
 
@@ -302,7 +307,7 @@ def main(argv=None):
 
     from pybads import BADS
 
-    bads = BADS(*bads_args, options=options)
+    bads = BADS(*bads_args, options=options, **prob.bads_kwargs())
     prof = cProfile.Profile() if args.cprofile else None
     t0 = time.perf_counter()
     if prof is not None:
@@ -338,6 +343,7 @@ def main(argv=None):
         "problem": prob.name,
         "D": prob.D,
         "noise": prob.noise,
+        "precomputed": pp.precomputed_summary(cfg, prob),
         "requested_options": requested,
         "result": result,
         "stages": None,
