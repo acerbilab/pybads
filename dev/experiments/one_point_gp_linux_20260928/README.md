@@ -199,5 +199,6 @@ target `(x - 1)**2 + 10` with noise of SD 1, `x0 = 0` and the band
   under the priors alone, in MATLAB BADS too by a reading of its code; what
   its fit does with its degenerate priors only MATLAB shows.
 
-The warnings of the refits belong to gpyreg's helpers: `dev/TODO.md`, "For
-gpyreg's maintainers.".
+The warnings of the refits on inputs without spread, and the refit on one
+point at D = 1, stay with gpyreg's helpers, whatever MATLAB computes (PI,
+2026-09-29): `dev/TODO.md`, "For gpyreg's maintainers.".

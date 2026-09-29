@@ -261,9 +261,11 @@ decided on; "the next release" below means it.
   brings `func_count` to 2 > D (27 of 30 runs of a noisy band that leaves
   only `x0` feasible)
   ([experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)).
-  The helpers could centre on the one target for N <= 1 and keep the upper
-  bound of -inf of a column without spread, on which the recommended bounds'
-  refusal of such a column relies (`gaussian_process.py:586-620`).
+  The PI ruled (2026-09-29) that PyBADS leaves both cases to gpyreg's
+  helpers, whatever MATLAB computes. The helpers could centre on the one
+  target for N <= 1 and keep the upper bound of -inf of a column without
+  spread, on which the recommended bounds' refusal of such a column relies
+  (`gaussian_process.py:586-620`).
 - [ ] **Shared helpers of the developer scripts.** Several helpers of the
   developer tooling exist in two or more copies, so that a change to one (a
   thread variable, a field of the provenance) has to be repeated in the
