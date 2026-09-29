@@ -71,11 +71,11 @@ BADS is particularly recommended for problems in which:
 
 .. include:: faq.md
    :parser: myst_parser.sphinx_
-   :start-after: <!-- suited-for: start (index.rst includes this list, README.md copies it) -->
+   :start-after: <!-- suited-for: start -->
    :end-before: <!-- suited-for: end -->
 
-The :ref:`FAQ <faq-which-kind-of-problems-is-pybads-suited-for>` says what
-to use for other problems.
+The :ref:`FAQ <faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem>`
+says what to use for other problems.
 
 How-to
 #############

@@ -108,7 +108,8 @@ without them, from the hard bounds), so give those as arrays.
 
 We recommend PyBADS for problems in which:
 
-<!-- suited-for: start (index.rst includes this list, README.md copies it) -->
+<!-- index.rst includes this list, between the two markers suited-for, which it matches exactly: a changed marker drops the list from the index without failing the build. README.md copies the list. -->
+<!-- suited-for: start -->
 - the objective function landscape is *rough* (nonsmooth), typically due to numerical approximations or noise;
 - the objective function is at least moderately expensive to compute (e.g., more than 0.1 s per function evaluation);
 - the gradient is unavailable;

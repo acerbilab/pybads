@@ -133,19 +133,26 @@ defaults, messages, display labels and result fields, and nothing runs its
 snippets or checks them against the code: a change to one of those is made
 in the FAQ by hand. Its table of contents is written out by hand too,
 `skills/pybads/SKILL.md` names its sections and questions by their titles,
-and other files link its labels: Examples 3 and 4
-`faq-noisy-objective-function`, Example 3
-`faq-can-pybads-handle-any-arbitrary-amount-of-noise-in-the-objective`,
-`README.md`, `index.rst` and Example 1
-`faq-which-kind-of-problems-is-pybads-suited-for`, `quickstart.rst`
-`faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`,
-and Example 6 and the changelog's entry "Periodic variables"
-`faq-does-pybads-support-periodic-variables-such-as-angles`; so a question
-added or renamed, or a label changed, is updated there as well. These
-files link to the FAQ's advice rather than repeat it, but for its list of
-the problems that PyBADS suits: `index.rst` includes the list, between the
-markers `suited-for`, and `README.md` copies it, so a change to the list is
-made in `README.md` too.
+and other files link its labels, so a question added or renamed, or a
+label changed, is updated there as well:
+
+- `faq-which-kind-of-problems-is-pybads-suited-for`: Example 1;
+- `faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem`: `README.md`
+  and `index.rst`;
+- `faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`:
+  `quickstart.rst`;
+- `faq-noisy-objective-function`: Examples 3 and 4;
+- `faq-can-pybads-handle-any-arbitrary-amount-of-noise-in-the-objective`:
+  Example 3;
+- `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6
+  and the changelog's entry "Periodic variables".
+
+Advice that the FAQ gives is linked from elsewhere rather than written out
+again, but for its list of the problems that PyBADS suits: `index.rst`
+includes the list between the markers `suited-for`, which it matches
+exactly (a changed marker drops the list from the index, and the build
+does not fail), and `README.md` copies it, so a change to the list is made
+in `README.md` too.
 Build with `make github` in `docsrc/` (`.\make.bat github` from cmd
 on Windows), which copies the result into `docs/`.
 

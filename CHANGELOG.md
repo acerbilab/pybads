@@ -37,12 +37,13 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `BADS` raises `ValueError` for a `max_fun_evals` that is neither a
   positive integer nor `inf`, such as `30.5`, the string `"200*D"` or a
   NumPy array, `np.array(500)` included.
-- `BADS` raises `ValueError` for a `max_iter` or a `tol_stall_iters` that
-  is neither a positive integer nor `inf`, such as `0`, `2.5` or
-  `np.array([3])`, for a `search_n_try` or a `noise_final_samples` that is
-  not an integer at least 0, such as `-1`, for a `tol_mesh` that is not a
-  positive finite number, such as `0`, and for a `noise_size` that is not
-  one or two real numbers, such as `True`.
+- `BADS` raises `ValueError` for a `max_iter` or a `tol_stall_iters` that is
+  neither a positive integer nor `inf`, such as `0`, `2.5` or `np.array([3])`;
+  for a `search_n_try` or a `noise_final_samples` that is not an integer at
+  least 0, such as `-1`, `2.5` or `True`, also in a run without noise, which
+  takes no final samples; for a `tol_mesh` that is not a positive finite
+  number, such as `0`, `True` or `np.array(1e-6)`; and for a `noise_size` that
+  is not one or two real numbers, such as `True`.
 - `uncertainty_handling` and the options whose default is `True` or
   `False`, except `plot`, take only booleans: `BADS` raises `ValueError` for
   `0`, `1`, `"on"`, `"off"`, a NumPy array such as `np.array(True)`, or any
@@ -158,10 +159,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `output_fcn`, what the log transform of positive variables does, what
   differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
   getting-started page and Examples 3 and 4 point to it in place of the
-  MATLAB BADS wiki, and the getting-started page and Examples 1 and 3 link
-  to its answers on the problems that PyBADS suits, on passing additional
-  data to the objective and on how much noise PyBADS handles, in place of
-  their own versions of them.
+  MATLAB BADS wiki. In place of their own versions of its answers, Example 1
+  links to its answer on the problems that PyBADS suits, the getting-started
+  page to the one on passing additional data to the objective, and Example 3
+  to the one on how much noise PyBADS handles.
 - **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
   coding agent to the parts of the documentation relevant to its task, and
   the README says how to give it to an agent.
@@ -276,25 +277,27 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   names the option when `max_iter` or `tol_stall_iters` is not a positive
   integer or `inf`, which turns the limit off, as for `max_fun_evals`; 1.1.0
   stopped the run at the end of its first iteration with `TypeError` for a
-  string, such as MATLAB's `'200*D'`, and for a `tol_stall_iters` of 0, and
-  with `IndexError` at the end of a later one for a `tol_stall_iters` that is
-  not whole, and ran a `max_iter` of 0, an array or one that is not whole. It
-  raises `ValueError` when `search_n_try`, the number of searches in an
-  iteration, is not an integer at least 0, 0 making a run without searches,
+  string, such as the MATLAB-style `'200*D'`, and for a `tol_stall_iters` of
+  0, and with `IndexError` at the end of a later one for a `tol_stall_iters`
+  that is not whole, and ran a `max_iter` of 0, an array or one that is not
+  whole. It raises `ValueError` when `search_n_try`, the number of searches in
+  an iteration, is not an integer at least 0, 0 making a run without searches,
   whose every iteration is a poll, as in MATLAB BADS; 1.1.0 stopped the run at
-  the end of its first iteration with `TypeError` for a string, ran -1 as 0,
-  and never ended a run whose `search_n_try` is not whole, which after its
-  first round of searches turned without evaluating. It raises `ValueError`
-  when `noise_final_samples` is not an integer at least 0; 1.1.0 stopped a
-  noisy run with `TypeError`, after its last iteration for a value that is not
-  whole and after its initial design for a string, and made one evaluation
-  beyond `max_fun_evals` for -1. It raises `ValueError` when `tol_mesh` is not
-  a positive finite number (a boolean, a string or an array included), and
-  stores it as a float; 1.1.0 stopped the creation of `BADS` with NumPy's
-  `TypeError` for a string, and ran with 0 or a negative value, which the mesh
-  criterion never ends. A float that is a whole number is converted to an
-  integer, and a whole number too large for NumPy's 64-bit integers stands for
-  `inf` in `max_iter` and `tol_stall_iters`.
+  the end of its first iteration with `TypeError` for a string, ran -1 as 0
+  and `True` as 1, and never ended a run whose `search_n_try` is not whole,
+  which after its first round of searches turned without evaluating. It raises
+  `ValueError` when `noise_final_samples` is not an integer at least 0, also
+  in a run without noise, which takes no final samples; 1.1.0 stopped a noisy
+  run with `TypeError`, after its last iteration for a value that is not whole
+  and after its initial design for a string, made one evaluation beyond
+  `max_fun_evals` for -1, and ran a run without noise with a value that is not
+  whole or a string. It raises `ValueError` when `tol_mesh` is not a positive
+  finite number (a boolean, a string or an array included), and stores it as a
+  float; 1.1.0 stopped the creation of `BADS` with NumPy's `TypeError` for a
+  string, ran with an array and with 0 or a negative value, which the mesh
+  criterion never ends, and ran `True` as 1. A float that is a whole number is
+  converted to an integer, and a whole number too large for NumPy's 64-bit
+  integers stands for `inf` in `max_iter` and `tol_stall_iters`.
 - **`None` and boolean options.** A user value of `None` stands for the
   option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
   itself, so that `nonlinear_scaling=None` turned the log transform off and
@@ -491,19 +494,19 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   explains the data as noise, so that `noise_size=0`, which the warning
   proposed, made every refit of the GP a second fit, and runs ended at
   other points.
-- **`noise_size` as a list or a pair.** A list `noise_size`, or MATLAB
-  BADS's pair of the base noise standard deviation and the standard
-  deviation of the prior over its logarithm, made a noisy run fail with
-  `TypeError` or `ValueError`; both are accepted, the values stored as
-  floats. Without `specify_target_noise`, a `noise_size` of 0 or less, as in
-  MATLAB BADS, or not finite, and a finite SD of the prior that is 0 or
-  less, which made the run fail in the prior of the Gaussian process after
-  its initial design, raise `ValueError` that names `noise_size` when `BADS`
-  is created; an SD of the prior that is not finite stands for its default,
-  1, as in MATLAB BADS. A `noise_size` that is not one or two real numbers,
-  such as a string, which stopped a 1.1.0 run with `TypeError` after its
-  initial design, or a boolean, raises `ValueError`, also with
-  `specify_target_noise`.
+- **`noise_size` as a list or a pair.** A list `noise_size`, or MATLAB BADS's
+  pair of the base noise standard deviation and the standard deviation of the
+  prior over its logarithm, made a noisy run fail with `TypeError` or
+  `ValueError`; both are accepted, the values stored as floats. Without
+  `specify_target_noise`, a `noise_size` of 0 or less, as in MATLAB BADS, or
+  not finite, and a finite SD of the prior that is 0 or less, which made the
+  run fail in the prior of the Gaussian process after its initial design,
+  raise `ValueError` that names `noise_size` when `BADS` is created; an SD of
+  the prior that is not finite stands for its default, 1, as in MATLAB BADS. A
+  `noise_size` that is not one or two real numbers raises `ValueError`, also
+  with `specify_target_noise`: a boolean, which 1.1.0 ran as 1, or a string,
+  which stopped a 1.1.0 run with `TypeError` after its initial design, or at
+  the creation of `BADS` with `specify_target_noise`.
 - **Final estimate without user-specified noise.** The returned `fsd` of a
   noisy run is the standard error of the final samples computed from their
   standard deviation normalized by `n - 1`, as MATLAB BADS computes it; it

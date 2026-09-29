@@ -40,12 +40,13 @@ copy the folder again from the PyBADS version you use.
 
 We recommend PyBADS for problems in which:
 
+<!-- This list copies the one of the FAQ's answer "Which kind of problems is PyBADS suited for?" (docsrc/source/faq.md): a change to it is made in both. -->
 - the objective function landscape is *rough* (nonsmooth), typically due to numerical approximations or noise;
 - the objective function is at least moderately expensive to compute (e.g., more than 0.1 s per function evaluation);
 - the gradient is unavailable;
 - the number of input parameters is up to about `D = 20`.
 
-The [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-which-kind-of-problems-is-pybads-suited-for) says what to use for other problems.
+The FAQ says [what to use for other problems](https://acerbilab.github.io/pybads/faq.html#faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem).
 
 ## Installation
 

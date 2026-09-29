@@ -1032,9 +1032,10 @@ class BADS:
         # an int or inf, inf turning the limit off: max_fun_evals, as MATLAB
         # BADS's setupoptions.m checks it, and max_iter and tol_stall_iters,
         # which MATLAB BADS does not check. The loop compares the number of
-        # the iteration with them, and reads the iteration tol_stall_iters
-        # back, which a string, or a tol_stall_iters of 0 or not whole, stops
-        # with TypeError or IndexError at the end of an iteration
+        # evaluations or of the iteration with them, and reads the iteration
+        # tol_stall_iters back, which a string, or a tol_stall_iters of 0 or
+        # not whole, stops with TypeError or IndexError at the end of an
+        # iteration
         for name in ("max_fun_evals", "max_iter", "tol_stall_iters"):
             value = _as_limit(self.options[name])
             if value is None:
@@ -1264,31 +1265,28 @@ class BADS:
             )
 
         # noise_size is a base noise SD, or MATLAB's pair of that base and
-        # the SD of the prior over its logarithm: one or two real numbers,
-        # as a number, a sequence or an array, stored as a float or an array
-        # of two floats
+        # the SD of the prior over its logarithm: one or two real numbers
+        # (_as_real_number), as a number, a sequence or an array, stored as a
+        # float or an array of two floats
         noise_size = self.options["noise_size"]
         if noise_size is not None:
-            try:
-                values = np.ravel(np.asarray(noise_size))
-            except (TypeError, ValueError):  # A ragged sequence
-                values = np.array([], dtype=object)
-            if values.dtype.kind not in "iuf" or values.size not in (1, 2):
+            elements = np.ravel(np.asarray(noise_size, dtype=object))
+            values = [_as_real_number(element) for element in elements]
+            if len(values) not in (1, 2) or None in values:
                 raise ValueError(
                     "options['noise_size'] needs to be a number, or a pair "
                     "of the base noise SD and the SD of the prior over its "
                     f"logarithm, not {noise_size!r}."
                 )
-            values = values.astype(float)
             self.options["noise_size"] = (
-                values.item() if values.size == 1 else values
+                values[0] if len(values) == 1 else np.array(values)
             )
         # Without specify_target_noise, which ignores it, the base is
         # positive, as MATLAB BADS's setupoptions.m checks, and finite, and a
         # finite SD of the prior is positive; one that is not finite stands
-        # for its default, 1, as in MATLAB BADS (gpupdate.m:379-380). The
-        # GP's noise prior, centred at the log of the base with that SD,
-        # refuses the others at its first fit
+        # for its default, 1, as in MATLAB BADS (gpdef/gpdefBads.m:147-151,
+        # private/gpupdate.m:379-381). The GP's noise prior, centred at the
+        # log of the base with that SD, refuses the others at its first fit
         if (
             not self.options["specify_target_noise"]
             and self.options["noise_size"] is not None

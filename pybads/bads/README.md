@@ -371,6 +371,34 @@ which spans the run's own evaluations. The result counts them in
   the review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
   "Open ends"). Kind: deliberate change (interface).
 
+**KD-B1-16. `max_iter`, `tol_stall_iters`, `search_n_try`, `noise_final_samples`, `tol_mesh` and `noise_size` are checked when `BADS` is created.**
+MATLAB BADS checks none of the first five and only that the base of
+`NoiseSize` is positive. PyBADS refuses, with a `ValueError` that names
+the option: a `max_iter` or `tol_stall_iters` that is not a positive
+integer or `inf`, which turns the limit off, as for `max_fun_evals`; a
+`search_n_try` or `noise_final_samples` that is not an integer at least 0
+(0 searches is a run whose every iteration is a poll, on both sides); a
+`tol_mesh` that is not a positive finite real number; and a `noise_size`
+that is not one or two real numbers, or, without `specify_target_noise`,
+whose base is not positive and finite or whose SD of the prior over the
+log noise SD is finite and not positive. Whole-number floats are
+converted to integers. On MATLAB's side, a string such as `'200*nvars'`
+is evaluated; a `SearchNtry` that is not whole ends no round of searches,
+after which its loop turns without evaluating; a `TolStallIters` or a
+`NoiseFinalSamples` that is not whole stops the run at an index or at the
+array of the final samples; a `TolMesh` of 0 never ends a run on the
+mesh; a NaN or infinite base of `NoiseSize` passes its check; and a
+negative SD of the prior runs as its absolute value, since the prior takes
+its square. An SD of the prior that is not finite stands for 1 on both
+sides.
+- PyBADS: `BADS._init_optim_state_`, `_as_limit` (`pybads/bads/bads.py`).
+- MATLAB: `bads.m:441-442`, `516`, `744`, `1067`, `1077-1079`,
+  `1449-1457`; `private/setupvars.m:105`, `173`;
+  `private/setupoptions.m:72-82`; `gpdef/gpdefBads.m:147-151`;
+  `private/gpupdate.m:379-381`.
+- Settled by: the `dev/TODO.md` item on the checks of option values
+  (2026-09-29). Kind: deliberate change.
+
 ### The main loop, termination and the final estimate (B2)
 
 **KD-B2-1. Restarts are not implemented.**

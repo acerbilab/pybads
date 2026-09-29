@@ -298,19 +298,20 @@ def test_noise_size_prior_sd_must_be_positive(noise_size):
         "1.0",
         True,
         np.array([True]),
+        [True, 1.0],
         1.0 + 0j,
         [1.0, "2"],
         [[1.0, 2.0], [3.0]],
         [],
-        2**70,
+        10**400,
     ],
     ids=repr,
 )
 @pytest.mark.parametrize("target_noise", [False, True])
 def test_noise_size_must_be_real_numbers(noise_size, target_noise):
-    """`noise_size` is one or two real numbers, also with
-    `specify_target_noise`, which ignores its values: a string stopped the
-    creation of `BADS` with `TypeError` at the check of its value."""
+    """`noise_size` is one or two real numbers, Python or NumPy integers or
+    floats that are not booleans, also with `specify_target_noise`, which
+    ignores its values: a string failed with an unrelated `TypeError`."""
     make_fun = (
         _noisy_sphere_with_estimated_sd if target_noise else _noisy_sphere
     )
