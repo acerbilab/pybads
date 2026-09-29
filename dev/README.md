@@ -369,14 +369,15 @@ reference's number of seeds.
   stage.
 - [Speed-ups that change no result](results/2026-09-29-bit-identical-speedups.md)
   — gpyreg's kernels, `predict` and the objective of its fits without
-  intermediate arrays or SciPy's layers (acerbilab/gpyreg#63, for 1.4.0),
-  and one line of PyBADS:
-  PyBADS's own time 23 to 28 % lower on the `profile` suite under SciPy
-  1.17 and 19 to 27 % under SciPy 1.18, every result the same to the last
-  bit (the fingerprint, the replay and the oracles' `--against`); and what
-  was measured and not adopted, the changes that move the last bits among
-  it, the direct factorization of the training covariance, whose bits are
-  not SciPy 1.18's, included.
+  intermediate arrays or SciPy's layers (acerbilab/gpyreg#63 and #64, for
+  1.4.0), and one line of PyBADS: PyBADS's own time 23 to 28 % lower on
+  the `profile` suite under SciPy 1.17 and 19 to 27 % under SciPy 1.18,
+  every result the same to the last bit (the fingerprint, the replay and
+  `gpyreg_bitwise.py` under both, the oracles' `--against` under SciPy
+  1.17); and what was measured and not adopted: the factorization of the
+  training covariance by a direct call of LAPACK, whose bits are not
+  SciPy 1.18's, the changes that move the last bits, and the gains too
+  small for their code.
 - [The GP layer's numerical health](results/2026-09-28-gp-health.md) —
   the failed factorizations and gpyreg's noise multiplier, the zero
   predictive SDs, the NaN log priors and the smallest training sets over

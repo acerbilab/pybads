@@ -439,7 +439,11 @@ change that must move nothing shows the same hash of
 `dev/scripts/fingerprint.py` before and after, on one machine, with the
 same gpyreg and the same number of BLAS threads: one thread
 (`OMP_NUM_THREADS=1` and its kin) and the default can give different
-hashes of the same commit, and a recorded hash names its setting.
+hashes of the same commit, and a recorded hash names its setting. Two
+SciPy versions can give different hashes as well: SciPy 1.18, which needs
+Python 3.12, takes its Cholesky factor from another LAPACK routine than
+1.17. A recorded hash names its SciPy, and a change to gpyreg that must
+move nothing is gated under the newest SciPy as well as under the venv's.
 On one machine, a change that must move nothing also shows
 `dev/scripts/replay.py check` identical against the parent commit (the
 first evaluation and GP computation at which two commits' runs part), and
