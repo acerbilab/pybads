@@ -61,7 +61,7 @@ pushes and runs `/doublecheck` at the end.
 - [x] G1 tooling (merged `7ce6178`): the warmstart log in replay/profile_run/gp_update_failures; `compare` warns on unpaired logs; docstrings; tests of the new paths — worktree `fix-g1`
 - [x] G2 documents (merged `29c557d`): KD-B6-5 and the warmstart README (the rerun's first refit); the README's robustness, recipe and tables; AGENTS.md's arm64 exception; TODO; changelog; optional wording — worktree `fix-g2`
 - [x] Gates at `f3e43e9` (gpyreg `b44634f`): fingerprint `4146a986863602cb` (1 thread and default); 1045 passed; dev tests 49; oracles `--check` 6/6, `--against` a dump of `76e3f16` 1056 identical; replay vs `76e3f16` 8/8 identical; benchmark check ok; pre-commit clean
-- [~] Short check of the fixes (one Opus reviewer)
+- [x] Short check of the fixes (one Opus reviewer): every finding resolved, no must-fix; its wording items fixed in the next commit, with `first_refit.py` reproducing the first refits of the warmstart record
 
 ## Success criteria
 Each item fixed, documented or dropped per the rulings; the four TODO items closed or narrowed to what needs MATLAB; suite green.
