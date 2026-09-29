@@ -147,19 +147,26 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   `geometry` (`edgesphere`, `ridge` and `sphere_band`: the gates of W3-1
   and W3-24 of the port review), `thinband` (`sphere_band` at D = 2 and 3
   with inferred noise and with the target's noise, whose GP starts on one
-  point: the gate of a change to that GP) and `profile` (the seven
-  configurations whose time `profile_suite.py` measures). `--list` prints
-  the suites, `--check` verifies each target's minimum, bounds and noise,
-  and the pinned likelihood values of the real-data targets, and `--smoke`
-  runs each configuration of a suite once, in a fresh process as a
-  population does, and prints its wall time with the projected time of 30
-  seeds. The `default` suite runs every configuration at BADS's default
-  budget, 500 D, so that each run ends on BADS's own termination
-  criteria; a population of 30 seeds takes about 80 minutes. The
-  processes that the tools start for their runs have one BLAS thread,
-  with the variables of `THREAD_VARS` (`OMP_NUM_THREADS`,
-  `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`)
-  set to 1, and their records hold those variables.
+  point: the gate of a change to that GP), `warmstart` (the sphere and the
+  ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise, and
+  the sphere at D = 3 with both kinds of noise, each run given as
+  `precomputed_evaluations` the function log of an earlier BADS run: of 15 D
+  evaluations at the run's seed and start, a rerun, whose log holds the
+  run's initial design, or of 20 D at the seed plus 1000; the earlier run is
+  made in the run's process, and the record names its log by a digest; the
+  gate of a change to how a run uses evaluations made before it) and
+  `profile` (the seven configurations whose time `profile_suite.py`
+  measures). `--list` prints the suites, `--check` verifies each target's
+  minimum, bounds and noise, and the pinned likelihood values of the
+  real-data targets, and `--smoke` runs each configuration of a suite once,
+  in a fresh process as a population does, and prints its wall time with the
+  projected time of 30 seeds. The `default` suite runs every configuration
+  at BADS's default budget, 500 D, so that each run ends on BADS's own
+  termination criteria; a population of 30 seeds takes about 80 minutes. The
+  processes that the tools start for their runs have one BLAS thread, with
+  the variables of `THREAD_VARS` (`OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`,
+  `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`) set to 1, and their
+  records hold those variables.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes
@@ -342,6 +349,15 @@ reference's number of seeds.
   and refits print gpyreg's warnings on inputs without spread in a
   coordinate in every run of `sphere_band_D3` and 3 of 30 of
   `sphere_band_D2_hetero`.
+- [experiments/warmstart_gp_linux_20260929/](experiments/warmstart_gp_linux_20260929/README.md)
+  — a first GP fitted on the incumbent's neighbours in the whole log when
+  the run is given evaluations made before it (`58d922a1`, the PI's ruling
+  of 2026-09-29), against its parent, the `warmstart` suite at 90 seeds on
+  Linux: the reruns' first GP holds the start alone in the base and 35 to
+  90 rows of the log in the change; flagged for more evaluations on
+  `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
+  pooled fraction solved 0.90 against 0.88, not significant; not adopted,
+  its diff kept with the record, pending the PI.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

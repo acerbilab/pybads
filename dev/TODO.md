@@ -26,6 +26,23 @@ decided on; "the next release" below means it.
   runs, so it needs the population comparison, and the target's reuse of
   the GP's own posterior (`_get_target_from_gp_`), which relies on
   posteriors computed in full, needs revisiting with it.
+- [ ] **The first GP of a run given evaluations made before it: flagged, for
+  the PI.** The PI's ruling of 2026-09-29 has that GP's hyperparameters
+  fitted on the incumbent's neighbours in the whole log. The change that
+  does so (`58d922a1`, with its tests and records, in
+  `experiments/warmstart_gp_linux_20260929/change_58d922a1.patch`) moves
+  nothing without such evaluations, but its gate, the `warmstart` suite at
+  90 seeds, flags more evaluations on `rosenbrock_D6_rerun` (median 394 to
+  426) at an unchanged error, and it improves no configuration
+  ([experiments/warmstart_gp_linux_20260929/](experiments/warmstart_gp_linux_20260929/README.md)).
+  Without it, a rerun given the log of an earlier run with the same seed and
+  start works on the whole log's neighbours with MATLAB BADS's definition
+  values until its first refit, as MATLAB BADS does, but for the mean: at
+  the start's value, where MATLAB BADS's is the median of the lowest 80 % of
+  the log's values (KD-B6-5). The patch also carries corrections of records
+  that hold either way: KD-B1-15 on the level-2 merge of a start given among
+  the evaluations, AGENTS.md on where the first incumbent's `fsd` is read,
+  and the changelog's cases of a refit on one point at D = 1.
 - [ ] **The old `LinAlgError` crashes and the bound of the GP length
   scales.** `_gp_hyp` bounded each log length scale by `cov_range = min(100,
   10 * (ub - lb) / scale)`, where MATLAB's `gpdefBads.m` bounds it by

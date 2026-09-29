@@ -1,0 +1,149 @@
+{
+ "label": "ellipsoid_D3_rerun",
+ "seed": 27,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -1.6150784012343467,
+  2.37263459200983,
+  -3.300635577494828
+ ],
+ "precomputed": {
+  "kind": "rerun",
+  "rows": 44,
+  "digest": "4ce73dcdb58a57f3"
+ },
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 27
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 27,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.3745408355171094,
+   1.200894378052908,
+   -2.0481443776225206
+  ],
+  "fval": 5.05965046471335e-07,
+  "fsd": 0.0,
+  "true_error": 5.05965046471335e-07,
+  "func_count": 117,
+  "iterations": 12,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 4.538977525000064,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.005806748001759843,
+    "target": 0.0025197000003107095,
+    "init": 0.0007781300000609665,
+    "gp_init": 0.05677434400013226,
+    "poll": 2.9293936590013185,
+    "history": 0.0027985200003968203,
+    "search": 1.5331927509959589
+   },
+   "paths": {
+    "loop": 0.005806748001759843,
+    "target": 0.0025197000003107095,
+    "init": 0.0007781300000609665,
+    "gp_init": 0.0018088799997713068,
+    "gp_init/gp_rebuild": 0.002444470000682486,
+    "gp_init/gp_rebuild/gp_fit": 0.05252099399967847,
+    "poll": 0.058274345999263996,
+    "poll/gp_rebuild": 0.055232830000932154,
+    "poll/target_from_gp": 0.03584758000124566,
+    "history": 0.0027985200003968203,
+    "search": 0.05677554099195755,
+    "search/gp_rebuild": 0.08050282700196476,
+    "search/search_es": 0.5290074540012029,
+    "search/gp_update": 0.02341990200102373,
+    "search/gp_rebuild/gp_fit": 0.19435219699926165,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.6242880230006449,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.024846806999903492,
+    "poll/gp_rebuild/gp_fit": 0.3500150789982399,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 2.3455076989998815,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.08327110500158597,
+    "poll/gp_rebuild/gp_fit/gp_fit_fallback": 0.0012450200001694611
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_rebuild": 1,
+    "gp_init/gp_rebuild/gp_fit": 1,
+    "poll": 11,
+    "poll/gp_rebuild": 19,
+    "poll/target_from_gp": 66,
+    "history": 12,
+    "search": 49,
+    "search/gp_rebuild": 27,
+    "search/search_es": 49,
+    "search/gp_update": 37,
+    "search/gp_rebuild/gp_fit": 3,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 14,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 14,
+    "poll/gp_rebuild/gp_fit": 8,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 46,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 46,
+    "poll/gp_rebuild/gp_fit/gp_fit_fallback": 2
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "58d922a1",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/fix-warm/dev/scripts/runs/worktrees/w_change/pybads",
+   "git": {
+    "sha": "58d922a1",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-29T07:08:34+0000",
+  "finished": "2026-09-29T07:08:40+0000"
+ }
+}

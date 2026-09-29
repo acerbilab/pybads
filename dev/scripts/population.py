@@ -22,7 +22,10 @@ dict into every run's options, ``--budget-scale`` multiplies every
 configuration's budget.
 
 Each run writes ``<label>_seed<seed>.json``: the configuration, the seed,
-the requested and the effective options, ``final`` (the returned point,
+the requested and the effective options, ``precomputed`` (for a
+configuration whose runs are given evaluations made before them, their
+kind, number of rows and digest, which two populations share seed by seed;
+None otherwise), ``final`` (the returned point,
 ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``, ``func_count``,
 ``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception``,
 ``min_noise_var`` and ``stage_times``) and ``meta`` (the provenance: git
@@ -54,6 +57,7 @@ alone: the null check.
 """
 
 import argparse
+import hashlib
 import importlib
 import json
 import os
@@ -314,6 +318,22 @@ def _final(prob, bads, res, exc, wall):
     return out
 
 
+def precomputed_summary(cfg, prob):
+    """What a record keeps of the evaluations made before the run: their
+    kind (``Config.precomputed``), their number of rows and the first 16
+    hex digits of the SHA-256 digest of their arrays; None without them."""
+    if prob.precomputed is None:
+        return None
+    digest = hashlib.sha256()
+    for a in prob.precomputed:
+        digest.update(np.ascontiguousarray(a, dtype=float).tobytes())
+    return {
+        "kind": cfg.precomputed,
+        "rows": int(len(prob.precomputed[1])),
+        "digest": digest.hexdigest()[:16],
+    }
+
+
 def _write_json(path, obj):
     """Write through a temporary file, so that an interrupted write never
     leaves a record that ``run`` would take as done."""
@@ -342,7 +362,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
     bads = res = exc = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options)
+        bads = BADS(*args, options=options, **prob.bads_kwargs())
         res = bads.optimize()
     except Exception as e:  # noqa: BLE001
         exc = {
@@ -366,6 +386,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         "noise": prob.noise,
         "unbounded": cfg.unbounded,
         "x0": prob.x0.tolist(),
+        "precomputed": precomputed_summary(cfg, prob),
         "f_min": prob.f_min,
         "tolerance": prob.tolerance,
         "budget": cfg.budget,

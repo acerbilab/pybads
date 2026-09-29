@@ -81,7 +81,11 @@ per ``(name, D)``, the same in every run. Per run, ``SeedSequence(seed)``
 spawns two streams: the first draws the start point uniformly in the
 plausible box (again until it satisfies a non-box constraint), the second
 the target's noise; BADS gets ``random_seed=seed``. Two populations run with
-the same seeds therefore share each seed's start point and noise stream.
+the same seeds therefore share each seed's start point and noise stream. A
+configuration whose runs are given evaluations made before them
+(``Config.precomputed``, the ``warmstart`` suite) makes them with an earlier
+BADS run, at the run's seed or at another (``earlier_evaluations``); at the
+run's seed, the earlier run's noise comes from a third stream of the seed.
 
 A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
@@ -225,6 +229,9 @@ class Problem:
     # True when the minimum lies on the hard bounds by construction, outside
     # the plausible box (edgesphere)
     min_on_bound: bool = False
+    # Evaluations made before the run, BADS's precomputed_evaluations:
+    # (X, y), or (X, y, y_sd) with the target's noise (Config.precomputed)
+    precomputed: Optional[tuple] = dataclasses.field(default=None, repr=False)
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
     )
@@ -269,6 +276,18 @@ class Problem:
         )
         return args, dict(self.options)
 
+    def bads_kwargs(self):
+        """The keyword arguments of ``BADS`` beside ``options``: the
+        evaluations made before the run, copied, when the problem has
+        them."""
+        if self.precomputed is None:
+            return {}
+        return {
+            "precomputed_evaluations": tuple(
+                a.copy() for a in self.precomputed
+            )
+        }
+
     def feasible(self, X):
         """Boolean array: which rows of ``X`` satisfy the non-box
         constraint (all of them when there is none)."""
@@ -285,7 +304,10 @@ NOISE_KINDS = ("none", "homo", "hetero")
 class Config:
     """One entry of a suite: a target at a dimension, its noise, bounds,
     extra BADS options and evaluation budget (``max_fun_evals`` as a
-    multiple of ``D``)."""
+    multiple of ``D``), and the evaluations made before the run that its
+    runs are given, if any (``precomputed``, from an earlier run of
+    ``precomputed_budget`` times ``D`` evaluations; see
+    ``earlier_evaluations``)."""
 
     name: str
     D: int
@@ -296,6 +318,8 @@ class Config:
     tag: str = ""
     plausible: str = "given"  # or "omitted": BADS gets no plausible bounds
     start: str = "plausible"  # or "lower": x0's first coordinate at lb
+    precomputed: str = ""  # or "rerun", or "other" (earlier_evaluations)
+    precomputed_budget: int = 0
 
     @property
     def label(self):
@@ -308,6 +332,8 @@ class Config:
             s += "_nopb"
         if self.start != "plausible":
             s += "_x0lb"
+        if self.precomputed:
+            s += f"_{self.precomputed}"
         if self.tag:
             s += f"_{self.tag}"
         return s
@@ -321,8 +347,22 @@ class Config:
     def make(self, seed=None, budget_scale=1.0):
         """The problem of one run: start point and noise stream from
         ``seed``; options with ``display="off"``, the budget and
-        ``random_seed=seed``, then the configuration's own options."""
-        prob = make_problem(
+        ``random_seed=seed``, then the configuration's own options; with
+        ``precomputed``, the evaluations of an earlier run, made here
+        (``earlier_evaluations``)."""
+        prob = self._problem(seed)
+        prob.options.update(
+            display="off",
+            max_fun_evals=self.max_fun_evals(budget_scale),
+            random_seed=seed,
+        )
+        prob.options.update(self.options_dict())
+        if self.precomputed:
+            prob.precomputed = earlier_evaluations(self, seed)
+        return prob
+
+    def _problem(self, seed):
+        return make_problem(
             self.name,
             self.D,
             noise=self.noise,
@@ -331,13 +371,59 @@ class Config:
             plausible=self.plausible,
             start=self.start,
         )
-        prob.options.update(
-            display="off",
-            max_fun_evals=self.max_fun_evals(budget_scale),
-            random_seed=seed,
-        )
-        prob.options.update(self.options_dict())
-        return prob
+
+
+# The seed of the earlier run of a configuration with precomputed="other" is
+# the run's seed plus this offset.
+OTHER_SEED_OFFSET = 1000
+
+
+def earlier_evaluations(cfg, seed):
+    """The evaluations made before a run of ``cfg`` at ``seed``: the
+    function log of an earlier BADS run on the same target, with
+    ``cfg.precomputed_budget * D`` evaluations and the configuration's
+    options, as ``(X, y)``, or ``(X, y, y_sd)`` with the target's noise.
+
+    ``"rerun"``: the earlier run has the run's seed, and so its start and
+    its initial design, which the log then holds; its noise is a third
+    stream of the seed, apart from the run's. ``"other"``: the earlier run
+    is the run of the seed ``seed + OTHER_SEED_OFFSET``, with that seed's
+    start and noise. The log holds BADS's rows: without the noise test and
+    the final samples, which it does not record. The earlier run is made
+    by the PyBADS that runs the configuration, and depends on the seed
+    alone.
+    """
+    from pybads import BADS
+
+    if seed is None:
+        raise ValueError(f"{cfg.label} needs a seed for its earlier run")
+    if cfg.precomputed == "rerun":
+        earlier_seed = seed
+        earlier = cfg._problem(seed)
+        if earlier.noise != "none":
+            stream = np.random.SeedSequence(seed).spawn(3)[2]
+            earlier._noise_rng = np.random.default_rng(stream)
+    elif cfg.precomputed == "other":
+        earlier_seed = seed + OTHER_SEED_OFFSET
+        earlier = cfg._problem(earlier_seed)
+    else:
+        raise ValueError(f"unknown precomputed {cfg.precomputed!r}")
+    args, options = earlier.bads_args()
+    options.update(
+        display="off",
+        max_fun_evals=cfg.precomputed_budget * cfg.D,
+        random_seed=earlier_seed,
+    )
+    options.update(cfg.options_dict())
+    bads = BADS(*args, options=options)
+    bads.optimize()
+    logger = bads.function_logger
+    n = logger.Xn + 1
+    X = logger.X_orig[:n].copy()
+    y = logger.Y[:n, 0].copy()
+    if earlier.noise == "hetero":
+        return X, y, logger.S[:n, 0].copy()
+    return X, y
 
 
 # --------------------------------------------------------------------------
@@ -1083,6 +1169,35 @@ _THINBAND = [
     Config("sphere_band", 3, noise="hetero", budget=500),
 ]
 
+# The configurations whose runs are given evaluations made before them
+# (BADS's precomputed_evaluations), the log of an earlier run on the same
+# target (earlier_evaluations): of 15 D evaluations from the run's own seed
+# and start ("rerun"), whose initial design the log holds, so that the run's
+# start and initial design are one point; or of 20 D evaluations from
+# another seed, start and noise ("other"). Deterministic targets at D = 3
+# and 6, and the sphere with both kinds of noise, whose initial design of
+# 32 points the rerun's 45 evaluations cover; with the target's noise, the
+# rerun's start merges with the start given in the log. The gate of a
+# change to how a run uses evaluations made before it.
+_WARMSTART = [
+    Config(
+        name,
+        D,
+        noise=noise,
+        budget=500,
+        precomputed=kind,
+        precomputed_budget=n,
+    )
+    for name, D, noise in (
+        ("sphere", 3, "none"),
+        ("ellipsoid", 3, "none"),
+        ("rosenbrock", 6, "none"),
+        ("sphere", 3, "homo"),
+        ("sphere", 3, "hetero"),
+    )
+    for kind, n in (("rerun", 15), ("other", 20))
+]
+
 # The configurations whose time `profile_suite.py` measures: those of
 # `results/2026-09-28-where-pybads-spends-its-time.md` (three deterministic,
 # two with noise inferred, one with the target's noise), and
@@ -1119,6 +1234,7 @@ SUITES = {
     "bounds": _BOUNDS,
     "geometry": _GEOMETRY,
     "thinband": _THINBAND,
+    "warmstart": _WARMSTART,
     "profile": _subset(_DEFAULT, _PROFILE, "profile"),
 }
 
@@ -1327,7 +1443,7 @@ def _smoke_task(label, seed, budget_scale):
     prob = cfg.make(seed=seed, budget_scale=budget_scale)
     args, options = prob.bads_args()
     t0 = time.perf_counter()
-    res = BADS(*args, options=options).optimize()
+    res = BADS(*args, options=options, **prob.bads_kwargs()).optimize()
     wall = time.perf_counter() - t0
     return {
         "bads_s": wall,
@@ -1429,6 +1545,12 @@ def main(argv=None):
                     f"    {c.label:24s} {c.budget:2d}*D = {evals:3d}"
                     f" evaluations  {notes}"
                     + (f"  options={c.options_dict()}" if c.options else "")
+                    + (
+                        f"  precomputed={c.precomputed}"
+                        f" ({c.precomputed_budget}*D)"
+                        if c.precomputed
+                        else ""
+                    )
                 )
         return 0
     ok = True

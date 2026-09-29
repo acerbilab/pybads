@@ -1,0 +1,155 @@
+{
+ "label": "ellipsoid_D3_other",
+ "seed": 58,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  3.1368059831106034,
+  -1.1207272792933876,
+  0.9654340021361811
+ ],
+ "precomputed": {
+  "kind": "other",
+  "rows": 59,
+  "digest": "149f664ea277bed3"
+ },
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 58
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 58,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.375036282464862,
+   1.2009608512744308,
+   -2.048144433647394
+  ],
+  "fval": 2.9894704111475403e-06,
+  "fsd": 0.0,
+  "true_error": 2.9894704111475403e-06,
+  "func_count": 124,
+  "iterations": 12,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 4.147225110000363,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.007416896000904671,
+    "target": 0.0029157589942135098,
+    "init": 0.0009454779996684566,
+    "gp_init": 0.22107596900059434,
+    "poll": 0.5648922709995448,
+    "history": 0.003103987998656521,
+    "search": 3.3380892850062422
+   },
+   "paths": {
+    "loop": 0.007416896000904671,
+    "target": 0.0029157589942135098,
+    "init": 0.0009454779996684566,
+    "gp_init": 0.00232034800137626,
+    "gp_init/gp_fit": 0.03179254999940895,
+    "gp_init/gp_rebuild": 0.003049526999348018,
+    "gp_init/gp_rebuild/gp_fit": 0.08464608100075566,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 0.0963780059992132,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 0.002889457000492257,
+    "poll": 0.060415879997700116,
+    "poll/gp_rebuild": 0.04147047999958886,
+    "poll/gp_rebuild/gp_fit": 0.36130799100010336,
+    "poll/target_from_gp": 0.03778901200166729,
+    "history": 0.003103987998656521,
+    "search": 0.08149259000114148,
+    "search/gp_rebuild": 0.12120744300045772,
+    "search/search_es": 0.7037474140042832,
+    "search/gp_update": 0.028030643001329736,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 0.06255670700011251,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.0013522010003725882,
+    "search/gp_rebuild/gp_fit": 0.4812717749964577,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 1.8664153590007118,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.05522411400124838,
+    "search/gp_rebuild/gp_fit/gp_fit_fallback": 0.0006999470006121555
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "gp_init/gp_rebuild": 1,
+    "gp_init/gp_rebuild/gp_fit": 1,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 2,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 2,
+    "poll": 11,
+    "poll/gp_rebuild": 14,
+    "poll/gp_rebuild/gp_fit": 4,
+    "poll/target_from_gp": 62,
+    "history": 12,
+    "search": 57,
+    "search/gp_rebuild": 38,
+    "search/search_es": 57,
+    "search/gp_update": 43,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 1,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 1,
+    "search/gp_rebuild/gp_fit": 8,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 28,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 28,
+    "search/gp_rebuild/gp_fit/gp_fit_fallback": 1
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "58d922a1",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/fix-warm/dev/scripts/runs/worktrees/w_change/pybads",
+   "git": {
+    "sha": "58d922a1",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-29T07:44:17+0000",
+  "finished": "2026-09-29T07:44:22+0000"
+ }
+}
