@@ -201,4 +201,9 @@ target `(x - 1)**2 + 10` with noise of SD 1, `x0 = 0` and the band
 
 The warnings of the refits on inputs without spread, and the refit on one
 point at D = 1, stay with gpyreg's helpers, whatever MATLAB computes (PI,
-2026-09-29): `dev/TODO.md`, "For gpyreg's maintainers.".
+2026-09-29): `dev/TODO.md`, "For gpyreg's maintainers." [2026-09-29:
+that item closed by the PI's ruling: the warnings go in gpyreg, every
+value the same (acerbilab/gpyreg#66, in `dev/TODO.md`'s "gpyreg releases
+after 1.3.3."), and the helpers' `[0, 1]` in place of a single target
+stays (`dev/results/2026-09-28-port-correctness-review.md`, "Open
+ends")].

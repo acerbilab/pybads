@@ -14,7 +14,8 @@ before using version-specific features: the
 [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md) says
 what changed in each release, and its "Upgrading from" lists say what to
 check in a script written for the release before. This skill accompanies
-PyBADS 1.5. Prefer documentation from the user's checkout when available. The source links below point to the
+PyBADS 1.5. Prefer documentation from the user's checkout when available.
+The source links below point to the
 [`main` branch](https://github.com/acerbilab/pybads/tree/main), from which
 the published [documentation](https://acerbilab.github.io/pybads/) is built.
 For another version, use the corresponding Git tag and check API signatures

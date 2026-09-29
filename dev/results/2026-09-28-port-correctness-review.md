@@ -409,10 +409,8 @@ items that a ruling left to later work are held by these items of
 |---|---|
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
-| "\"What's new\" at the next release." | W4-1, from wave 4's doublecheck; the release that `skills/pybads/SKILL.md` names |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
-| "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6) |
-| "For gpyreg's maintainers." | gpyreg's hyperparameter helpers on inputs or targets without spread (wave 1's "Found while fixing", wave 2's "Found while verifying", wave 3's "Found while fixing"), which PyBADS's refits still reach |
+| "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6); the warnings of gpyreg's helpers on inputs without spread (acerbilab/gpyreg#66; wave 1's and wave 3's "Found while fixing", wave 2's "Found while verifying"), below |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
 
 The item "The GP on a one-point training set." held W2-37, W3-40, wave
@@ -426,7 +424,18 @@ What gpyreg's helpers do on inputs or targets without spread, which refits
 still reach, went to "For gpyreg's maintainers.", and the PI ruled
 (2026-09-29) that it stays with them, whatever MATLAB computes: the
 refits' warnings on inputs without spread, and the refit on one point at
-D = 1 with the noise test.
+D = 1 with the noise test. The PI then ruled (2026-09-29) that the
+warnings go, in gpyreg, every value the same to the last bit
+(acerbilab/gpyreg#66, which gpyreg's next release is to hold, in "gpyreg
+releases after 1.3.3."), and that the helpers' `[0, 1]` in place of a
+single target, which only a fit on one point reaches, stays: that closed
+"For gpyreg's maintainers.".
+
+The item "\"What's new\" at the next release." held W4-1 until
+`8bd63ee3` (2026-09-29) replaced the list "What's new in PyBADS 1.1" of
+`README.md` and `docsrc/source/index.rst` with that of 1.5, which says
+that `random_seed` decides the initial design, and had
+`skills/pybads/SKILL.md` and the FAQ name PyBADS 1.5.
 
 The item "Prior evaluations (`fun_values`)." held W2-6, W4-10,
 `FunctionLogger.add`'s checks and the final samples' bookkeeping in the
@@ -462,7 +471,7 @@ ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
 | Elements beyond the pair in `search_acq_fcn` or in an entry of `search_method` are ignored | refuse them | refused (KD-B3-1, KD-B3-2) |
 | 76 advanced options read by no code (78 on a closer count: `diagnostics` and `gp_cov_fun` too) | remove those without a MATLAB counterpart, keep and mark the MATLAB-named ones | 66 removed, 12 marked unused (KD-B1-5) |
 | No module of PyBADS imports matplotlib, which `pyproject.toml` requires and gpyreg imports | keep the requirement, with a comment | the comment |
-| `skills/pybads/SKILL.md` names no release | a step of the next release | `TODO.md`'s item on the release's "What's new" |
+| `skills/pybads/SKILL.md` names no release | a step of the next release | `TODO.md`'s item on the release's "What's new", since done (`8bd63ee3`) |
 | `test_transform_inverse_largeN` built `np.ones((10 ^ 6, D))`, 12 rows, since `^` is XOR (wave 2, "Notes on the reports") | build a million | `10**6` |
 
 **The loose ends.** The reports and the fix agents noted a few

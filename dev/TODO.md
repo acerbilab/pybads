@@ -4,7 +4,10 @@ Updated 2026-09-29. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. The release
 waits for the first item of its section, gpyreg 1.4.0, and the last, the
 conda-forge recipe, follows its upload to PyPI; otherwise the order of the
-items is not a priority. Other records name the items by their titles, the
+items is not a priority. `README.md`, the documentation and the skill on
+`dev-next` describe PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes
+the documentation of `main`, so `dev-next` reaches `main` with the release.
+Other records name the items by their titles, the
 port review's ledger
 ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md))
 among them, so a title stays as it is while its item is open.
@@ -112,11 +115,35 @@ among them, so a title stays as it is while its item is open.
     1.18, with the fingerprint, the replay and `gpyreg_bitwise.py`
     identical under both, and the oracles' `--against` under SciPy 1.17
     ([results/2026-09-29-bit-identical-speedups.md](results/2026-09-29-bit-identical-speedups.md)).
-    The move's entry in `CHANGELOG.md` states that speed-up, measured
-    again with the release, and so does the item "Faster Gaussian
-    processes" of "What's new in PyBADS 1.5" in `README.md` and
-    `docsrc/source/index.rst`, whose "a fifth to a quarter" comes from
-    these measurements.
+    These measurements compare with gpyreg `e10120c`, which already holds
+    acerbilab/gpyreg#60's gradients, and include that line of PyBADS's.
+    The release measures PyBADS's own time with gpyreg 1.4.0 against
+    gpyreg 1.3.3, and the move's entry in `CHANGELOG.md` states it; the
+    item "Faster Gaussian processes" of "What's new in PyBADS 1.5"
+    (`README.md`, `docsrc/source/index.rst`) gives no figure until then;
+  - the recommended bounds of the kernels and of `NegativeQuadratic`
+    computed without NumPy's `RuntimeWarning`s on inputs without spread,
+    every value the same to the last bit, on gpyreg's `main` since
+    acerbilab/gpyreg#66 (squash commit `3e56dce`), with the fingerprint, the
+    replay and `gpyreg_bitwise.py` identical against its parent, `1260d68`
+    (Windows, SciPy 1.18.1, one BLAS thread). `fit` computes those bounds
+    even where PyBADS sets every bound, so that under gpyreg up to `1260d68`
+    PyBADS's refits on inputs that a poll leaves without spread in a
+    coordinate print a log of zero, in every run of `sphere_band_D3`, and a
+    refit on one point at D = 1 NumPy's warnings on a sample of one
+    ([experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)).
+    Of 25 runs on Windows (`sphere_band_D3` and `sphere_band_D2_hetero` at
+    seeds 0-9, and that experiment's `band1` at seeds 0-4), 15 print them
+    under `1260d68` and none under gpyreg#66. The move updates, in its
+    commit, what `CHANGELOG.md`'s entry "Targets without spread" says of
+    gpyreg's warnings, KD-B6-5's "gpyreg's recommendations warn"
+    (`pybads/bads/README.md`), and the filter of `RuntimeWarning` in
+    `test_one_point_gp_falls_back_to_fit`, which it no longer needs. The
+    helpers still replace a single target by `[0, 1]`, which centres the
+    constant mean's recommendation at 0.5 whatever the target, and which
+    only a fit on one point reaches (that refit at D = 1, and the fit to
+    which `init_and_train_gp` falls back when the posterior with MATLAB
+    BADS's definition values fails): the PI left it as it is (2026-09-29).
 
   At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's records in
   all 1,080 runs of the `default`, `geometry`, `oned` and `bounds` suites
@@ -227,35 +254,6 @@ all three.
   a harness would take: plain arrays and JSON, with prescribed draws
   (`ScriptedGenerator` in `_oracles.py`), which can be handed to MATLAB as
   arrays. Generating the references needs MATLAB and the BADS toolbox.
-
-## Upstream, in gpyreg
-
-- [ ] **For gpyreg's maintainers.** gpyreg's hyperparameter helpers, the
-  `get_bounds_info` of its kernels, means and noise, which `fit` calls even
-  where the caller sets every bound and prior
-  (`gaussian_process.py:1762-1764`, and `555-557` through the recommended
-  bounds), are degenerate on inputs or targets without spread (1.3.3). The
-  kernels' helper takes the log of each column's width and of its SD with
-  `ddof=1` (`covariance_functions.py:476-480`), which prints
-  `RuntimeWarning`s (a log of zero; on one point also NumPy's "Degrees of
-  freedom <= 0" and an invalid division) on a column without spread and on
-  one point; the three replace a single target by `[0, 1]`
-  (`covariance_functions.py:472`, `mean_functions.py:491`,
-  `noise_functions.py:129`), which centres the constant mean's
-  recommendation at 0.5 whatever the target. PyBADS gives the GP on one
-  point MATLAB BADS's values without a fit (KD-B6-5), but its refits reach
-  the helpers: on inputs that a poll along one axis leaves without spread in
-  a coordinate (every run of `sphere_band_D3` at `73d517a`, whose first
-  refit takes `x0` and two poll points along the third axis, and 3 of 30 of
-  `sphere_band_D2_hetero`), and on one point at D = 1, where the noise test
-  brings `func_count` to 2 > D (27 of 30 runs of a noisy band that leaves
-  only `x0` feasible)
-  ([experiments/one_point_gp_linux_20260928/](experiments/one_point_gp_linux_20260928/README.md)).
-  The PI ruled (2026-09-29) that PyBADS leaves both cases to gpyreg's
-  helpers, whatever MATLAB computes. The helpers could centre on the one
-  target for N <= 1 and keep the upper bound of -inf of a column without
-  spread, on which the recommended bounds' refusal of such a column relies
-  (`gaussian_process.py:586-620`).
 
 ## Not adopted
 

@@ -20,42 +20,46 @@ BADS requires no specific tuning and runs off-the-shelf similarly to other Pytho
 What's new in PyBADS 1.5
 ------------------------
 
-- **Periodic variables.** ``periodic_vars`` names the variables that are
-  periodic, such as angles: BADS wraps each of them around its hard bounds,
-  and the Gaussian process that models the objective is periodic along it
-  (see :doc:`Example 6 <_examples/pybads_example_6_periodic_variables>` and the
+- **Periodic variables.** The option ``periodic_vars`` names the variables
+  that are periodic, such as angles: BADS wraps each of them around its hard
+  bounds, and the Gaussian process that models the objective is periodic
+  along it (see
+  :doc:`Example 6 <_examples/pybads_example_6_periodic_variables>` and the
   :ref:`FAQ <faq-does-pybads-support-periodic-variables-such-as-angles>`).
 - **Fixed variables.** A variable whose four bounds, hard and plausible, are
   equal is fixed at that value, and BADS optimizes the others (see the
   :ref:`FAQ <faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value>`).
 - **Evaluations made before the run.**
   ``BADS(..., precomputed_evaluations=(X, y))`` gives a run evaluations of the
-  target made before it, for instance by an earlier run: they inform its
-  Gaussian process without counting against its budget of evaluations,
-  ``max_fun_evals``.
+  target made before it, for instance by an earlier run. The run still starts
+  from ``x0`` and its initial design, but skips the points of the design that
+  they hold; those nearest the incumbent join its Gaussian process from the
+  first poll on, and none counts against ``max_fun_evals`` (see the
+  :doc:`BADS reference <api/classes/bads>`).
 - **Seeded initial design.** ``random_seed`` decides the initial design of a
   run, as it decides every other random draw; in 1.1.0 the design did not
   depend on the seed. The FAQ says
   :ref:`how to make a run reproducible <faq-how-do-i-make-a-run-reproducible>`.
 - **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB
   BADS 1.1.3, the reference implementation, and follows it more closely in
-  many details, above all with noisy targets. ``BADS`` checks its options
-  when it is created, so that a wrong value fails at once with a message
-  that names it. The FAQ lists
+  many details, above all with noisy targets. The FAQ lists
   :ref:`what differs from MATLAB BADS <faq-i-used-bads-in-matlab-what-is-different-in-pybads>`.
-- **Faster Gaussian processes.** PyBADS requires gpyreg 1.4.0, which computes
-  the same Gaussian processes faster: the time that a run takes besides the
-  target's evaluations is about a fifth to a quarter lower than with gpyreg
-  1.3.3. PyBADS also needs NumPy 2.0, SciPy 1.13 and matplotlib 3.9 or later.
+- **Faster Gaussian processes.** gpyreg 1.4.0, the Gaussian process library
+  that PyBADS builds on, computes the same Gaussian processes faster, so that
+  a run spends less time besides the target's evaluations.
+- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
+  SciPy 1.13 or later and matplotlib 3.9 or later.
 - **FAQ and a coding-agent skill.** The documentation has a
   :doc:`page of frequently asked questions <faq>`, adapted from the MATLAB
   BADS FAQ with further questions on PyBADS, and the
   :mainbranch:`PyBADS skill <skills/pybads/SKILL.md>` points a coding agent
-  to the documentation relevant to its task.
+  to the documentation relevant to its task: give the agent that file, or
+  copy the ``skills/pybads`` folder into its skill directory.
 
 The :mainbranch:`changelog <CHANGELOG.md>` lists what changed since PyBADS
-1.1.0. Results differ from 1.1.0, also with a fixed seed, and ``BADS``
-refuses some option values that 1.1.0 accepted: the changelog's list
+1.1.0. Results differ from 1.1.0, also with a fixed seed. ``BADS`` checks the
+values of many options when it is created and refuses some that 1.1.0
+accepted, and some calls and returned fields change: the changelog's list
 "Upgrading from 1.1.0" says what to check in an existing script.
 
 How does it work?
