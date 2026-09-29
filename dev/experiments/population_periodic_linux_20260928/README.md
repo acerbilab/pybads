@@ -98,9 +98,9 @@ quarter more evaluations with `periodic_vars`. The runs with
 `periodic_vars` take longer per evaluation: 1.05 to 1.33 times the median
 wall time of the same problem without it in the deterministic
 configurations, 2.4 (homo) and 1.9 (hetero) in the noisy ones, which also
-take more evaluations. The cause is not investigated; the periodic kernel's
-gradient recomputes each periodic dimension's term (noted by the review of
-gpyreg's `periods`).
+take more evaluations. The cause, gpyreg's periodic kernel, is measured in
+[`results/2026-09-28-periodic-variables.md`](../../results/2026-09-28-periodic-variables.md),
+"Time per evaluation" (2026-09-29).
 
 `periodic_D3_hetero` is flagged for its evaluations only: its errors are
 not distinguishable (signed-rank p = 0.75), and its fraction solved falls
