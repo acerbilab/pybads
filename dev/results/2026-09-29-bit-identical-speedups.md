@@ -12,12 +12,12 @@ suite, and every result is the same to the last bit.
 - **Where the time is.** gpyreg's calls take 75 to 89 % of a profiled run
   of the `profile` suite, PyBADS's own lines 5 to 14 %, and the NumPy and
   SciPy calls that PyBADS makes itself, with the target, the rest. The
-  gains are in gpyreg, where earlier rounds, for PyVBMC and for PyBADS
-  (acerbilab/gpyreg#60 and #62), had already removed the repeated work: what
-  remained was the cost of intermediate arrays and of SciPy's Python layers
-  around small calls.
+  gains are in gpyreg, where earlier rounds, for PyVBMC
+  (acerbilab/gpyreg#43) and for PyBADS (#60 and #62), had already removed
+  the repeated work: what remained was the cost of intermediate arrays and
+  of SciPy's Python layers around small calls.
 - **The changes**, on gpyreg's branch `perf/bit-identical-speedups`
-  (commit `a79f84b`, on `e10120c`), with the share of PyBADS's own time
+  (`421f1b0`, three commits on `e10120c`), with the share of PyBADS's own time
   that each saves alone on the `profile` suite:
   - the kernel without its gradient, and `predict`, computed in place:
     about six fewer arrays of the size of the training set by the ES
@@ -33,11 +33,13 @@ suite, and every result is the same to the last bit.
     GP), and the Gaussian draws of the space-filling design of `fit`, by
     `scipy.special.ndtr` and `ndtri` (about 1 µs a call) instead of
     `scipy.stats.norm` (about 50 µs); 3 to 7 %;
-  - the Cholesky factorizations of the training covariance, and two
-    triangular solves of the objective, by direct calls of LAPACK, as
-    gpyreg's `_solve_triangular` already made its other solves; 1 to 6 %,
-    most on `ellipsoid_D3`, whose failed fits retry each factorization with
-    a larger noise;
+  - the Cholesky factorizations of the training covariance, and the four
+    triangular solves that still went through SciPy's wrapper (two for the
+    gradient of the objective, two for a posterior in the low-noise
+    representation), by direct calls of LAPACK, as gpyreg's
+    `_solve_triangular` already made its other solves; 1 to 6 %, most on
+    `ellipsoid_D3`, whose failed fits retry each factorization with a
+    larger noise;
   - the gradient of the objective summed in one reused array; up to 4 %.
 
   The gradient's changes reach the squared exponential and Matern
@@ -146,5 +148,19 @@ configurations.
 
 ## Raw data
 
-The profiles, the timings and the comparison scripts were machine-local and
-were not kept.
+The profiles and the timings were machine-local and were not kept. The
+comparison of gpyreg's kernels and Gaussian processes between two versions
+is `dev/scripts/gpyreg_bitwise.py`, whose dumps of `e10120c` and
+`421f1b0` hold 31,974 outputs, every one identical, where `a79f84b`
+differs in 922 (the kernels' outputs on long-double and infinite
+inputs); it supersedes the two sweeps above, whose scripts were not
+kept.
+
+The timings and the first comparisons were taken at the branch's first
+commit, `a79f84b`. The independent review of it found that the broadcast
+and `cdist` differed from `pdist` and `squareform` on inputs that are not
+float64 (a float32 input under NumPy 1.x, a long-double input) and on an
+infinite coordinate; `d53af17` takes `pdist` for the former and sets the
+diagonal to zero for the latter, which changes nothing for finite float64
+inputs, and `421f1b0` imports the SciPy modules that gpyreg uses. At
+`421f1b0`, the fingerprint and the replay are unchanged.

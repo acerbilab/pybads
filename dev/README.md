@@ -44,6 +44,21 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the same hash before and after, on one machine and with the same number
   of BLAS threads: BLAS, its thread count and platform differences can
   change the value.
+- `gpyreg_bitwise.py` compares two versions of gpyreg bit for bit, for a
+  change to gpyreg that must move nothing. `dump OUT`, run with the version
+  on `PYTHONPATH`, computes 31,974 outputs: its kernels (every ARD kernel,
+  with and without periods, at 1 to 10 dimensions and 1 to 150 inputs,
+  with float32, long-double and infinite inputs among them) and whole
+  Gaussian processes (priors, fits, predictions, the objective and its
+  gradient, the low-noise representation, updates, `random_function`, the
+  noise multiplier and a refused factorization), and stores a SHA-256
+  digest of each; `compare A B` names the outputs that differ and exits 1
+  unless none does, and refuses two dumps made under different platform
+  keys. A dump takes about 45 s, one BLAS thread. The comparison reaches
+  what PyBADS's runs do not: at gpyreg's `a79f84b`, whose broadcast
+  differed from `pdist` on long-double and infinite inputs, it names 922
+  outputs of the kernels on those inputs, and nothing else, where the
+  fingerprint and the replay were identical.
 - `replay.py` records short seeded runs step by step and compares two
   recordings exactly. `record` runs eight configurations of the benchmark
   (`sphere_D2`, `ellipsoid_D3`, `rosenbrock_D6`, `sphere_D3` with both
