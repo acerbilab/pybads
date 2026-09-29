@@ -155,11 +155,16 @@ label changed, is updated there as well:
 - `faq-noisy-objective-function`: Examples 3 and 4;
 - `faq-can-pybads-handle-any-arbitrary-amount-of-noise-in-the-objective`:
   Example 3;
-- `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6
-  and the changelog's entry "Periodic variables";
+- `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6,
+  the changelog's entry "Periodic variables" and "What's new" in
+  `README.md` and `index.rst`;
 - `faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`: the
-  changelog's entry "Fixed variables";
-- `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4.
+  changelog's entry "Fixed variables" and "What's new" in `README.md` and
+  `index.rst`;
+- `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4, and "What's
+  new" in `README.md` and `index.rst`;
+- `faq-i-used-bads-in-matlab-what-is-different-in-pybads`: "What's new" in
+  `README.md` and `index.rst`.
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
 again, but for its list of the problems that PyBADS suits: `index.rst`

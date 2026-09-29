@@ -113,7 +113,10 @@ among them, so a title stays as it is while its item is open.
     identical under both, and the oracles' `--against` under SciPy 1.17
     ([results/2026-09-29-bit-identical-speedups.md](results/2026-09-29-bit-identical-speedups.md)).
     The move's entry in `CHANGELOG.md` states that speed-up, measured
-    again with the release.
+    again with the release, and so does the item "Faster Gaussian
+    processes" of "What's new in PyBADS 1.5" in `README.md` and
+    `docsrc/source/index.rst`, whose "a fifth to a quarter" comes from
+    these measurements.
 
   At `1893eff`, with the switch off, `main` gives gpyreg 1.3.3's records in
   all 1,080 runs of the `default`, `geometry`, `oned` and `bounds` suites
@@ -129,23 +132,6 @@ among them, so a title stays as it is while its item is open.
   the three test packages among its run requirements (`recipe/meta.yaml`),
   and its bot merges its version-update PR once a CI that only imports
   gpyreg passes: that PR has them dropped before it merges.
-- [ ] **"What's new" at the next release.** `README.md` and
-  `docsrc/source/index.rst` list under "What's new in PyBADS 1.1" that
-  every random draw of a run comes from one generator created from
-  `random_seed`, which 1.1.0's initial design did not follow (its
-  scrambling was seeded from the start). The list "What's new in PyBADS
-  1.5" replaces it, and says that `random_seed` now decides the initial
-  design (the doublecheck of wave 4 of the port review,
-  `experiments/port_review_20260925/verification/wave4.md`, "Doublecheck"),
-  that periodic variables (`periodic_vars`, Example 6) and fixed variables
-  (four equal bounds) are supported, and that a run takes evaluations made
-  before it (`precomputed_evaluations`).
-  At the same release, `skills/pybads/SKILL.md` and the FAQ
-  (`docsrc/source/faq.md`), which name no release, name 1.5, as PyVBMC's
-  skill and FAQ do. The published documentation follows `main`, so until
-  that release the FAQ describes code that no release has, among it
-  `output_fcn(x, optim_state, state)`, which 1.1.0 calls as `output_fcn(x,
-  "init")`.
 - [ ] **The example notebooks' saved outputs.** No CI job runs the
   notebooks of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their

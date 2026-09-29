@@ -1,7 +1,7 @@
 # PyBADS: Frequently Asked Questions
 
 This FAQ is curated by [Luigi Acerbi](https://lacerbi.github.io/), and in constant expansion.
-It is adapted for PyBADS from the [MATLAB BADS FAQ](https://github.com/acerbilab/bads/wiki),
+It is adapted for PyBADS 1.5 from the [MATLAB BADS FAQ](https://github.com/acerbilab/bads/wiki),
 with further questions on the Python package.
 
 For a tutorial with detailed examples, see the [Jupyter notebook examples](examples.rst).
