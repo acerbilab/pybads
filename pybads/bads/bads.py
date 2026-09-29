@@ -289,8 +289,10 @@ class BADS:
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
-        observation of its own. The arrays are copied. By default ``None``,
-        no evaluations.
+        observation of its own. A point on the upper bound of a periodic
+        variable (``options['periodic_vars']``) is the point on its lower
+        bound. The arrays are copied. By default ``None``, no
+        evaluations.
 
     Attributes
     ----------

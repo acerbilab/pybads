@@ -62,9 +62,8 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   suite once, in a fresh process as a population does, and prints its wall
   time with the projected time of 30 seeds. The `default` suite runs every
   configuration at BADS's default budget, 500 D, so that each run ends on
-  BADS's own termination criteria; a population of 30 seeds takes about 80
-  minutes for its 18 configurations other than the periodic ones, which
-  add about a quarter of an hour.
+  BADS's own termination criteria; a population of 30 seeds takes about 95
+  minutes.
 - `data/` holds the data of the real-data targets, copied from PyVBMC,
   and their reference minima, `reference_optima.json`, against which the
   error of a run on those targets is measured; `data/README.md` describes
@@ -198,8 +197,9 @@ reference's number of seeds.
   30-seed gate belongs to those seeds.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite
-  but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the
-  port review and its doublecheck), with its null check and its comparison
+  but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
+  `a4dcd65`, `dev-next` after wave 4 of the port review and its
+  doublecheck), with its null check and its comparison
   with the pre-review baseline, the net change of the whole review, which
   flags nine configurations: two better, two spheres with slightly larger
   errors far below their tolerance, `ellipsoid_D10` with more evaluations
@@ -224,8 +224,9 @@ reference's number of seeds.
   target noise change, and the other 16 are identical run by run.
 - [experiments/population_linux_wave4_20260927/](experiments/population_linux_wave4_20260927/README.md)
   — the reference population of the benchmark on Linux (default suite but
-  its two periodic configurations, 30 seeds, gpyreg 1.3.3, at the package code of wave 4's fix pass of the
-  port review, `46af65a`, where each seed has its own initial design), with
+  its two periodic configurations, 30 seeds, gpyreg 1.3.3, at the package
+  code of wave 4's fix pass of the port review, `46af65a`, where each seed
+  has its own initial design), with
   its null check and its comparison with the previous Linux reference, the
   net change of the pass, which flags nothing.
 - [experiments/population_linux_wave3_20260927/](experiments/population_linux_wave3_20260927/README.md)

@@ -139,8 +139,8 @@ docs build; nothing runs them, so a change that breaks one goes unnoticed.
 `examples/scripts/*.py` are generated from the notebooks by
 `examples/scripts/Makefile` (GNU Make, with nbconvert, IPython, and black
 and isort at the pre-commit hook versions, in the environment `python`
-names);
-regenerate them with `make -B -C examples/scripts`, do not edit them.
+names); regenerate them with `make -B -C examples/scripts`, do not edit
+them.
 
 ## Architecture
 
@@ -210,14 +210,15 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   (`_poll_step_`); a new source of candidates needs the same, and
   `test_every_source_of_candidates_wraps_them` names them. The
   evaluations made before the run are logged wrapped as well
-  (`_import_precomputed_evaluations_`). `udist` and
-  `ucov` take a periodic difference the shorter way round, and the GP's
-  kernel takes the periods from `_gp_periods` (gpyreg's `periods`), only
-  in a run that has periodic variables: without them the kernel gets no
-  `periods`. The `default` suite reaches this code through its two
-  periodic configurations; the `periodic` suite, with its reference
-  `dev/experiments/population_periodic_linux_20260928`, gates a change to
-  it in detail.
+  (`_import_precomputed_evaluations_`). `udist` and `ucov` take a periodic
+  difference the shorter way round, and the GP's kernel takes the periods
+  from `_gp_periods` (gpyreg's `periods`), only in a run that has periodic
+  variables: without them the kernel gets no `periods`. The gate of a
+  change to this code is the `periodic` suite, against
+  `dev/experiments/population_periodic_linux_20260928` on Linux. The
+  `default` suite holds two of its configurations, which its references
+  lack until gpyreg 1.4.0's (`dev/TODO.md`), so that its comparison does
+  not test them yet.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -334,10 +335,12 @@ provenance, the null check, the positive control and what "no flag" can
 detect at its number of seeds). There is one reference for Windows and one
 for Linux, since pairing by seed holds only on one platform and set of
 versions; `dev/README.md` names both. `compare` tests only the
-configurations that both populations hold, so a configuration added to a
-suite goes ungated, without a word, until the reference holds it too. A
-gate is evidence only if it reaches the changed code: the benchmark exercises the default options, so a change
-behind a non-default option needs a configuration that sets it. Every
+configurations that both populations hold and lists the others on one
+line, outside its verdict and its exit code: a configuration added to a
+suite goes ungated until the reference holds it too. A gate is evidence
+only if it reaches the changed code: the benchmark exercises the default
+options, so a change behind a non-default option needs a configuration
+that sets it. Every
 evidence run selects gpyreg explicitly, with `PYTHONPATH` naming a clone at
 the release tag (`dev/scripts/runs/LOCAL.md` lists them): the editable
 install follows `../gpyreg`, which other work moves. PyBADS is selected in

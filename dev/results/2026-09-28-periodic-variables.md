@@ -6,11 +6,15 @@ catalogue entry KD-B1-6 of `pybads/bads/README.md` states the behaviour
 and its differences from MATLAB BADS, and `AGENTS.md` the call sites that
 wrap points.
 
-## Decisions (PI, 2026-09-28)
+## Decisions (PI, 2026-09-28 and, where dated, 2026-09-29)
 
 - The port goes into 1.5.0, and PyBADS's minimum gpyreg moves to the gpyreg
-  release that carries the kernel's periods (`dev/TODO.md`, "gpyreg
-  releases after 1.3.3").
+  release that carries the kernel's periods, 1.4.0 (2026-09-29;
+  `dev/TODO.md`, "gpyreg releases after 1.3.3").
+- The `default` suite holds two configurations of the `periodic` suite,
+  `periodic_D4` and `periodic_D3_homo`, and its references, which lack
+  them, are extended at gpyreg 1.4.0's release; the Linux reference stays
+  at 30 seeds (2026-09-29).
 - A periodic length scale is in the units of the other variables: gpyreg's
   kernel replaces a periodic squared difference `d**2` by the squared chord
   `(p/pi)**2 * sin(pi*d/p)**2`, which matches it at short range, so the

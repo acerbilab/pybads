@@ -100,7 +100,7 @@ A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
 on BADS's termination criteria, long before the budget, so that the runs
 cover the whole algorithm, from the initial design to the fine mesh and the
-stopping rules. At 30 seeds the suite runs in about 80 minutes as one
+stopping rules. At 30 seeds the suite runs in about 95 minutes as one
 process with a fresh process per run (``population.py run``).
 
 Command line (from the repository root)::
@@ -1080,7 +1080,9 @@ def make_problem(
 # configuration, 2026-09-24) found every run ending on BADS's own
 # termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
 # ellipsoid D10, 200 to 500 for the noisy synthetic targets, 200 to 330 for
-# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise.
+# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise;
+# the runs of the periodic suite (30 seeds, 2026-09-28) ended so after 111
+# to 137 evaluations for periodic_D4 and 182 to 607 for periodic_D3_homo.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [

@@ -4,11 +4,12 @@ The evidence of the port of periodic variables
 ([`results/2026-09-28-periodic-variables.md`](../../results/2026-09-28-periodic-variables.md)),
 and, in its "on" arm, the reference on Linux of the `periodic` suite of
 `dev/scripts/benchmark_targets.py`, the gate of a change to the handling of
-periodic variables, which the `default` suite reaches through two of its
-configurations. The suite's
-six configurations set `periodic_vars` ("on"); the same problems run as
-bounded ones with `--options '{"periodic_vars": null}'` ("off"), paired by
-seed (each seed's start point and noise stream are the same in both).
+periodic variables. The `default` suite holds two of its configurations,
+which the references of the `default` suite lack until gpyreg 1.4.0's
+release (`dev/TODO.md`). The suite's six configurations set `periodic_vars`
+("on"); the same problems run as bounded ones with `--options
+'{"periodic_vars": null}'` ("off"), paired by seed (each seed's start point
+and noise stream are the same in both).
 
 ## Command and provenance
 
@@ -91,16 +92,15 @@ periodic coordinate on a bound, most of them 0.082 from the minimum in the
 target's periodic terms, the median in both (`decompose.txt`); the three
 deterministic configurations are solved in 13 to 47% of their runs. With
 `periodic_vars`, no run of the noisy configurations ends on a bound, and
-every deterministic run is solved. MATLAB BADS's Example 5, whose minima lie on the bounds, is solved
-either way, with a fifth of the error and a quarter more evaluations with
-`periodic_vars`.
-
-The runs with `periodic_vars` take longer per evaluation: 1.05 to 1.33
-times the median wall time of the same problem without it in the
-deterministic configurations, 2.4 (homo) and 1.9 (hetero) in the noisy
-ones, which also take more evaluations. The cause is not investigated;
-the periodic kernel's gradient recomputes each periodic dimension's term
-(noted by the review of gpyreg's `periods`).
+every deterministic run is solved. MATLAB BADS's Example 5, whose minima
+lie on the bounds, is solved either way, with a fifth of the error and a
+quarter more evaluations with `periodic_vars`. The runs with
+`periodic_vars` take longer per evaluation: 1.05 to 1.33 times the median
+wall time of the same problem without it in the deterministic
+configurations, 2.4 (homo) and 1.9 (hetero) in the noisy ones, which also
+take more evaluations. The cause is not investigated; the periodic kernel's
+gradient recomputes each periodic dimension's term (noted by the review of
+gpyreg's `periods`).
 
 `periodic_D3_hetero` is flagged for its evaluations only: its errors are
 not distinguishable (signed-rank p = 0.75), and its fraction solved falls

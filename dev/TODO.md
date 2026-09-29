@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-28. The list describes scope, not priority or execution
+Updated 2026-09-29. The list describes scope, not priority or execution
 order. The next release is 1.5.0 (tag `v1.5.0`), the version the PI has
 decided on; "the next release" below means it.
 
@@ -100,16 +100,15 @@ decided on; "the next release" below means it.
   scrambling was seeded from the start). The list "What's new in PyBADS
   1.5" replaces it, and says that `random_seed` now decides the initial
   design (the doublecheck of wave 4 of the port review,
-  `experiments/port_review_20260925/verification/wave4.md`,
-  "Doublecheck"), that periodic variables (`periodic_vars`, Example 6)
-  are supported, and that a run takes evaluations made before it
-  (`precomputed_evaluations`). At the same release,
-  `skills/pybads/SKILL.md` and the FAQ (`docsrc/source/faq.md`), which
-  name no release, name 1.5, as
-  PyVBMC's skill and FAQ do. The published documentation follows `main`,
-  so until that release the FAQ describes code that no release has, among
-  it `output_fcn(x, optim_state, state)`, which 1.1.0 calls as
-  `output_fcn(x, "init")`.
+  `experiments/port_review_20260925/verification/wave4.md`, "Doublecheck"),
+  that periodic variables (`periodic_vars`, Example 6) are supported, and
+  that a run takes evaluations made before it (`precomputed_evaluations`).
+  At the same release, `skills/pybads/SKILL.md` and the FAQ
+  (`docsrc/source/faq.md`), which name no release, name 1.5, as PyVBMC's
+  skill and FAQ do. The published documentation follows `main`, so until
+  that release the FAQ describes code that no release has, among it
+  `output_fcn(x, optim_state, state)`, which 1.1.0 calls as `output_fcn(x,
+  "init")`.
 - [ ] **Zero predictive SDs: how often MATLAB gives them.** The predictive
   SD of the GP is exactly 0 at about a tenth of the poll's acquisitions
   over the four suites, up to 40% on some configurations, noisy ones
@@ -147,25 +146,28 @@ decided on; "the next release" below means it.
   `pybads/bads/README.md` (KD-B1-7). MATLAB BADS takes a variable whose
   bounds and plausible bounds all equal `x0` as fixed
   (`private/boundscheck.m:39-40`) and runs itself on the other variables
-  (`bads.m:351-382`, `private/fixedbads.m`): the target, `non_box_cons`
-  and the output function receive the full vector (`expandvars`,
-  `bads.m:1480-1488`), `PeriodicVars` is renumbered over the free
-  variables, the points of `FunValues` lose their fixed coordinates
-  (unchecked), and `x` and the points of `optimState` are lifted back to
-  the full dimension. The options' defaults are evaluated at the reduced
-  dimension, so that `MaxFunEvals` is 500 times the number of free
-  variables. PyBADS refuses a variable whose four bounds are equal, whatever
-  `x0` (`BADS._bounds_check_`), and the FAQ's answer "Can I set `lb = ub`
-  for some variable to fix it to a given value?" gives the workaround of a
-  reduced target. A port reduces the problem in `BADS.__init__` before the
-  options are evaluated with `D`; wraps `fun`, `non_box_cons` and
-  `output_fcn`; maps `periodic_vars` and the points of
-  `precomputed_evaluations` to the free variables, whose fixed
-  coordinates it can check; lifts what the result reports in the full
-  space (`x`, `x0`); and decides whether `x0` must equal the bound, as
-  MATLAB asks. Its test is a run with fixed variables that matches, seed
-  for seed, the run of the reduced problem. The two FAQ answers that name
-  fixed variables and KD-B1-7 change with it, and so does the changelog.
+  (`bads.m:351-382`, `private/fixedbads.m`): the target, `non_box_cons` and
+  the output function receive the full vector (`expandvars`,
+  `bads.m:1480-1488`), `PeriodicVars` is renumbered over the free variables
+  (by `eval`, which fails for the numeric value that `bads_examples.m`
+  passes), the points of `FunValues` lose their fixed coordinates
+  (unchecked), and `x` and, with five outputs or more, `optimState.X` are
+  lifted back to the full dimension. The options' defaults are evaluated at
+  the reduced dimension, so that `MaxFunEvals` is 500 times the number of
+  free variables. PyBADS refuses a variable whose four bounds are equal,
+  whatever `x0` (`BADS._bounds_check_`), and the FAQ's answer "Can I set
+  `lb = ub` for some variable to fix it to a given value?" gives the
+  workaround of a reduced target. A port reduces the problem in
+  `BADS.__init__` before the options are evaluated with `D`; wraps `fun`,
+  `non_box_cons` and `output_fcn`; maps `periodic_vars` and the points of
+  `precomputed_evaluations` to the free variables, whose fixed coordinates
+  it can check; lifts what the result and the object report in the full
+  space (`x`, `x0`, `fun` and `non_box_cons` as the user passed them, and
+  the points of the log and of the iteration history); and decides whether
+  `x0` must equal the bound, as MATLAB asks. Its test is a run with fixed
+  variables that matches, seed for seed, the run of the reduced problem.
+  The two FAQ answers that name fixed variables and KD-B1-7 change with it,
+  and so does the changelog.
 - [ ] **The GP on a one-point training set.** When `non_box_cons` leaves
   only `x0` feasible (the thin band of row W2-37 of the port review), the
   GP is fitted on one point: gpyreg's bounds helper replaces the targets by
@@ -200,7 +202,7 @@ decided on; "the next release" below means it.
   rerun goes with the headless run of the examples before the release.
   Example 6 (periodic variables) was run with gpyreg's development branch
   (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
-  the others, with the released gpyreg.
+  the others, with gpyreg 1.4.0.
 - [ ] **Loose ends of the port review.** Observations that the reports and
   the fix agents made outside their findings, which no ruling took up and
   which change no default run, are listed in the consolidated ledger
@@ -239,32 +241,34 @@ decided on; "the next release" below means it.
   (`dev/scripts/population.py compare`) against the current reference
   shows that it has no effect on PyBADS, or explains the one it has. A
   move is a change for users: an entry in `CHANGELOG.md` and a line in its
-  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one,
-  1.4.0 (PI, 2026-09-28 and 09-29), which is to hold:
+  "Upgrading from" list. PyBADS's next release waits for gpyreg's next one
+  (PI, 2026-09-28), 1.4.0 (PI, 2026-09-29), which is to hold:
   - `periods` on the ARD kernels (`SquaredExponential`, `Matern`,
     `RationalQuadraticARD`), on gpyreg's branch
     `claude/todo-discussion-q8c9im`, which PyBADS's `periodic_vars` needs:
     `_gp_periods` passes them to the kernel of a run with periodic
     variables, and a run without them builds its kernel as before, so the
-    comparison of this release is expected to flag nothing. The move is
-    therefore required for 1.5.0, not only allowed: under gpyreg 1.3.3 a
-    run with periodic variables stops with `TypeError` when its GP is
-    built, and the tests of periodic variables fail under the CI pin. The
-    changelog's entry "Requirements" and the line of "Upgrading from
+    comparison of this release is expected to flag nothing on runs
+    without periodic variables. PyBADS 1.5.0 needs the move: under gpyreg
+    1.3.3 a run with periodic variables stops with `TypeError` when its GP
+    is built, and the tests of periodic variables fail under the CI pin.
+    The changelog's entry "Requirements" and the line of "Upgrading from
     1.1.0" name the new minimum. The `default` suite holds two periodic
     configurations, `periodic_D4` and `periodic_D3_homo` (PI, 2026-09-29),
     which its references, the Windows one at 100 seeds and the Linux one
     at 30, lack: `population.py compare` tests only the configurations
-    that both populations hold, so until then it skips them without a
-    word. The release's comparison runs the whole `default` suite with the
-    release's clone on both platforms, at the references' numbers of
-    seeds, and its populations become the new references, the two
-    periodic configurations included (PI, 2026-09-29): on Linux these two
-    are compared with the "on" arm of
+    that both populations hold, and lists the others on one line, outside
+    its verdict and its exit code. The release's comparison runs the whole
+    `default` suite with the release's clone on both platforms, at the
+    references' numbers of seeds, and its populations become the new
+    references, the two periodic configurations included (PI,
+    2026-09-29). The release also runs the whole `periodic` suite, the
+    gate of a change to the handling of periodic variables: on Linux
+    against the "on" arm of
     [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
-    on Windows, which has no run of them, the whole `periodic` suite runs
-    in both arms (with `--options '{"periodic_vars": null}'` for "off"),
-    as on Linux;
+    on Windows, which has no run of it, in both arms (with `--options
+    '{"periodic_vars": null}'` for "off"), whose "on" arm becomes the
+    reference of the suite there;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch
     (acerbilab/gpyreg#56), which stays off in PyBADS (KD-B6-6), both on

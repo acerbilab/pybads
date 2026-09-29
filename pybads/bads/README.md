@@ -194,7 +194,9 @@ before the run on the upper bound is taken on the lower one too. MATLAB
 BADS wraps its design, search and poll candidates only before the grid
 (its `SearchOptimize`, not ported, wraps after it), projects a design or
 search candidate that the grid puts past a bound onto the bound, drops
-such a poll candidate under `ForcePollMesh`, and starts where `x0` lies.
+such a poll candidate under `ForcePollMesh`, starts where `x0` lies, and
+logs the points of `FunValues` where they are given
+(`private/setupvars.m:126-167`, `private/funlogger.m:82`).
 - PyBADS: `BADS._check_periodic_vars_`, `_variable_transformer_`,
   `_init_optim_state_`, `_import_precomputed_evaluations_`, `_init_mesh_`,
   `_search_step_` and `_poll_step_`; `pybads/utils/period_check.py`;
@@ -221,7 +223,7 @@ equal, any other `x0` lies outside them and is refused on both sides.
 - PyBADS: `BADS._bounds_check_`.
 - MATLAB: `private/boundscheck.m:39-40`; `bads.m:351-382`, `1480-1488`
   (`expandvars`); `private/fixedbads.m`.
-- Kind: unported feature.
+- Kind: unported feature (open porting work, above; `dev/TODO.md`).
 
 **KD-B1-8. The result is an `OptimizeResult` dict, not MATLAB's six outputs.**
 PyBADS returns a SciPy-style dict (`x`, `x0`, `fval`, `fsd`, `yval_vec`,

@@ -457,9 +457,9 @@ default run.
 - ES-ell ignores the sum-rule flag of an entry of `search_method`, which
   only ES-wcm reads (non-default); `udist`'s periodic branch indexed the
   distance matrix's rows by variable (unreachable then; the port of
-  periodic variables rewrote it, KD-B1-6); the search
-  step counts the points of the log, where MATLAB counts the GP's training
-  set, equal in practice (wave 3, "Found while verifying").
+  periodic variables rewrote it, KD-B1-6); the search step counts the
+  points of the log, where MATLAB counts the GP's training set, equal in
+  practice (wave 3, "Found while verifying").
 - A 4-D ridge started on its valley stalls at `x0`, since the only descent
   direction is the exact diagonal, which the coordinate poll does not take
   (KD-B4-1); an `ESSearch` built directly with `n_search_iter = 0` returns
