@@ -343,6 +343,15 @@ reference's number of seeds.
   and refits print gpyreg's warnings on inputs without spread in a
   coordinate in every run of `sphere_band_D3` and 3 of 30 of
   `sphere_band_D2_hetero`.
+- [experiments/warmstart_gp_linux_20260929/](experiments/warmstart_gp_linux_20260929/README.md)
+  — a first GP fitted on the incumbent's neighbours in the whole log when
+  the run is given evaluations made before it (`58d922a1`, the PI's ruling
+  of 2026-09-29), against its parent, the `warmstart` suite at 90 seeds on
+  Linux: the reruns' first GP holds the start alone in the base and 35 to
+  90 rows of the log in the change; flagged for more evaluations on
+  `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
+  pooled fraction solved 0.90 against 0.88, not significant; not adopted,
+  its diff kept with the record, pending the PI.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite,
   100 seeds, gpyreg 1.3.3, at `a4dcd65`, `dev-next` after wave 4 of the

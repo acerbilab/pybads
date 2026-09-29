@@ -1,0 +1,595 @@
+From 58d922a1072e91c66ef7b1823e3f93f6ec92c806 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 29 Sep 2026 06:42:39 +0000
+Subject: [PATCH] fix: fit the first GP on the whole log's neighbours with
+ evaluations made before the run
+
+With precomputed_evaluations, the first GP was fitted on the start and
+the initial design alone, and the loop's first rebuild brought the
+evaluations given into its training set under those hyperparameters
+until the first refit, which waits until the run has made more than D
+evaluations. In a rerun given the log of an earlier run with the same
+seed and start, the log holds every point of the initial design, which
+is not evaluated again, so the first GP held the start alone, with MATLAB
+BADS's definition values, beside hundreds of evaluations near it.
+
+The PI's ruling of 2026-09-29: with evaluations made before the run, the
+first GP's hyperparameters are fitted on the incumbent's neighbours in
+the whole log, chosen and capped as a rebuild chooses them.
+_init_optimization_ keeps the initial step (the fit on the start and the
+design, or the definition values on one distinct point) and then,
+within the gp_init stage (as gp_init/gp_rebuild), rebuilds the GP with
+local_gp_fitting and a refit, once. That is the loop's rebuild: it
+re-centres the priors on the training set (the mean's at its 90th
+percentile), starts the refit from the hyperparameters just set, sets
+the refit's geometry, and on a failure hands on the GP of the start and
+the design, marked for a rebuild with a refit at the first poll. The
+refit is not recorded in lastfitgp, so that the loop's refits keep their
+rule (func_count > D), and the schedule of the fits leaves the
+evaluations given out of n_eff as before. Choosing the initial rows as
+the rebuild would and fitting once was not taken: it would need the
+choice of the neighbours outside local_gp_fitting, would fit under the
+definition's priors rather than the rebuild's re-centred ones, and would
+leave out the rebuild's handling of a failure.
+
+Without evaluations made before the run nothing moves: the rebuild, and
+its draws from bads.rng, happen only when the log holds them
+(fingerprint.py 4146a986863602cb with one BLAS thread and with the
+default; replay.py check against f6c13872, 8 of 8 runs identical;
+make_oracle_fixtures.py --check --exact, and --against a --dump of
+f6c13872, pass).
+
+Tests (test_bads_precomputed_evaluations.py): two tests asserted that
+the first GP holds the start and the design alone, and are replaced:
+test_the_gp_holds_the_evaluations_made_before by
+test_the_first_gp_holds_the_evaluations_made_before (the 12 evaluations
+given and the run's 5, with the refit's geometry), and
+test_the_first_fit_leaves_out_many_evaluations by
+test_the_first_gp_takes_the_nearest_of_many_evaluations (of 1000, the
+nearest, capped as a rebuild caps them).
+test_the_training_schedule_leaves_them_out sees two fits, both with
+gp_train_n_init starts. New: test_a_rerun_starts_on_a_fitted_gp and
+test_a_failed_first_rebuild_leaves_the_gp_of_the_design; and, in
+test_stage_times.py, test_stages_with_evaluations_made_before at the
+three uncertainty levels (the _make_bads of test_gp_update_failures.py
+takes precomputed_evaluations).
+
+Records: KD-B1-15 and KD-B6-5, AGENTS.md's FunctionLogger bullet,
+init_and_train_gp's docstring, and the changelog's entries for
+precomputed_evaluations and for targets without spread.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ AGENTS.md                                     |  16 ++-
+ CHANGELOG.md                                  |  36 +++---
+ pybads/bads/README.md                         | 109 +++++++++++------
+ pybads/bads/bads.py                           |  32 ++++-
+ pybads/bads/gaussian_process_train.py         |  23 ++--
+ .../bads/test_bads_precomputed_evaluations.py | 111 +++++++++++++++---
+ .../testing/bads/test_gp_update_failures.py   |   5 +-
+ pybads/testing/bads/test_stage_times.py       |  28 +++++
+ 8 files changed, 270 insertions(+), 90 deletions(-)
+
+diff --git a/AGENTS.md b/AGENTS.md
+index 4f1e7b2c..e084e431 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -253,12 +253,16 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
+   open with evaluations made before the run (`precomputed_evaluations`,
+   added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
+   leaves out. Code that takes the log's rows for the run's own evaluations
+-  leaves them out: `_init_mesh_` chooses the first incumbent (and at level 2
+-  its `fsd`) among the rows that the start and the initial design returned
+-  (`_init_rows`), on which `init_and_train_gp` fits the first GP, and counts
+-  `eff_starting_points` from `func_count`, and `_get_gp_training_options`
+-  subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
+-  reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
++  leaves them out: `_init_mesh_` chooses the first incumbent among the rows
++  that the start and the initial design returned (`_init_rows`; at level 2
++  `_init_optimization_` reads its `fsd` from `_init_incumbent_row`) and
++  counts `eff_starting_points` from `func_count`, and
++  `_get_gp_training_options` subtracts `optim_state["precomputed_n_evals"]`
++  from `n_eff`; new code that reads `Xn`, `X_flag` or `n_evals` as the run's
++  evaluations does the same. `init_and_train_gp` fits the first GP on
++  `_init_rows`; with evaluations made before the run, `_init_optimization_`
++  then rebuilds it on the incumbent's neighbours in the whole log and
++  refits it (`local_gp_fitting`, the stage `gp_init/gp_rebuild`).
+   A repeated point at level 2 is merged into its row by precision weighting,
+   which a run reaches only through those evaluations: `contraints_check`
+   removes the candidates already evaluated, and the noise test and the final
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 35527438..4be5b0dc 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -113,15 +113,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
+   `specify_target_noise=True`, gives a run evaluations of the target made
+   before it, for instance by an earlier run, as MATLAB BADS's option
+-  `FunValues` does. They enter the run's log of evaluations and, around the
+-  incumbent, the training set of its Gaussian process, but do not count as
+-  evaluations of the run (`func_count`, which `max_fun_evals` bounds), and
+-  the run still starts from `x0` and its initial design. `BADS` refuses
+-  points outside the hard bounds or that violate `non_box_cons`, and, unless
+-  `uncertainty_handling` is `True`, two different values at one point. The
+-  result reports the number of evaluations given in
+-  `precomputed_observations`, and of their distinct points in
+-  `precomputed_locations`, when at least one was given.
++  `FunValues` does. They enter the run's log of evaluations, and those
++  nearest the incumbent the training set of its Gaussian process, whose
++  hyperparameters are fitted on that set before the first iteration. They do
++  not count as evaluations of the run (`func_count`, which `max_fun_evals`
++  bounds), and the run starts from `x0` and its initial design all the same,
++  but for the points of the design that they hold, which it does not
++  evaluate again. `BADS` refuses points outside the hard bounds or that
++  violate `non_box_cons`, and, unless `uncertainty_handling` is `True`, two
++  different values at one point. The result reports the number of
++  evaluations given in `precomputed_observations`, and of their distinct
++  points in `precomputed_locations`, when at least one was given.
+ - **FAQ.** The documentation has a [page of frequently asked
+   questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
+   MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
+@@ -601,11 +603,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   it, with gpyreg's `RuntimeWarning`s, and a rebuild of the GP on the one
+   point stopped the run with gpyreg's `ValueError`; with `max_fun_evals=2`,
+   1.1.0 did not keep its initial design within the budget (see "Small
+-  budgets"). A later refit on points that have no spread in a coordinate, as
+-  in a thin feasible band, prints gpyreg's `RuntimeWarning` about a log of
+-  zero, and at D = 1, with `fun_eval_start=0` and the noise test, the first
+-  refit runs on the one point and prints gpyreg's warnings about a log of
+-  zero, degrees of freedom <= 0 and an invalid value in a division.
++  budgets"). A run given evaluations made before it near the starting point
++  (`precomputed_evaluations`) does not start on one point: its first GP is
++  fitted on them. A later refit on points that have no spread in a coordinate,
++  as in a thin feasible band, prints gpyreg's `RuntimeWarning` about a log of
++  zero. At D = 1 the noise test brings the count of evaluations past D, so
++  that a first GP on one point is refitted on it at the first poll, with
++  gpyreg's warnings about a log of zero, degrees of freedom <= 0 and an
++  invalid value in a division: with `fun_eval_start=0` and a deterministic
++  target, and with a noisy target, left to the noise test, whose
++  `non_box_cons` leaves only the starting point feasible in the initial
++  design.
+ - **Small budgets.** A run whose `max_fun_evals` is no larger than its
+   initial design (for instance 5 at D = 2 or 3) no longer stops with
+   `ValueError: cannot convert float NaN to integer`, and with a smaller
+diff --git a/pybads/bads/README.md b/pybads/bads/README.md
+index 692839f6..dcd30709 100644
+--- a/pybads/bads/README.md
++++ b/pybads/bads/README.md
+@@ -291,31 +291,41 @@ evaluations starts at 0 after them, and its first incumbent is the best of
+ the start and the initial design. PyBADS refuses `fun_values` (KD-B1-4)
+ and takes the evaluations as the keyword argument
+ `precomputed_evaluations=(X, y)`, or `(X, y, y_sd)`, PyVBMC's interface,
+-into its log with the same count and the same first incumbent. It also
+-refuses: SDs without `specify_target_noise` and their absence with it,
+-which MATLAB does not check (an `S` without `SpecifyTargetNoise` makes its
+-logger ask the target for two outputs, and the converse fails when it pads
+-`S`); points outside the hard bounds or that violate `non_box_cons`, which
++into its log with the same count and the same rule for the first
++incumbent, the best of the start and the initial design. It also refuses:
++SDs without `specify_target_noise` and their absence with it, which MATLAB
++does not check (an `S` without `SpecifyTargetNoise` makes its logger ask
++the target for two outputs, and the converse fails when it pads `S`);
++points outside the hard bounds or that violate `non_box_cons`, which
+ MATLAB takes; and, unless `uncertainty_handling` is `True`, a point given
+ twice with two different values. The check comes before the noise test, so
+ that an `uncertainty_handling` left empty counts as none, and a point
+ given twice with one value is kept once, where MATLAB adds a row per
+ repeat. With uncertainty handling each repeat is an observation, a row at
+-level 1 and merged into its point's row at level 2 (KD-B7-3). The GP takes
+-them at its first rebuild, among the neighbours of the incumbent, as
+-MATLAB's does: PyBADS's initial fit leaves them out (KD-B6-5), as does the
+-schedule of the GP's fits, PyBADS's own (KD-B5-6), which spans the run's
+-evaluations. The result counts them in `precomputed_observations` and
+-`precomputed_locations` (KD-B1-8).
+-- PyBADS: `BADS.__init__`, `_import_precomputed_evaluations_` and
+-  `_init_mesh_` (`pybads/bads/bads.py`); `FunctionLogger.add`;
+-  `init_and_train_gp` and `_get_gp_training_options`
+-  (`pybads/bads/gaussian_process_train.py`); `OptimizeResult`.
++level 1 and merged into its point's row at level 2 (KD-B7-3). So at level
++2 the run's evaluation of its start merges with an evaluation given at the
++start's point, where MATLAB adds a row: PyBADS's first incumbent takes the
++merged value and its first GP the merged row, MATLAB's first incumbent the
++new observation and its first training set both rows. Neither side
++evaluates a point of the initial design that the log holds, so that a run
++given the log of an earlier run with the same seed and start evaluates its
++start alone. The GP takes the evaluations given among the neighbours of
++the incumbent at a rebuild, as MATLAB's does at its first; PyBADS makes
++that rebuild at once, with a refit, in its initialization (KD-B6-5). The
++schedule of the GP's fits, PyBADS's own (KD-B5-6), spans the run's own
++evaluations, without those given. The result counts those in
++`precomputed_observations` and `precomputed_locations` (KD-B1-8).
++- PyBADS: `BADS.__init__`, `_import_precomputed_evaluations_`,
++  `_init_mesh_` and `_init_optimization_` (`pybads/bads/bads.py`);
++  `FunctionLogger.add`; `init_and_train_gp`, `local_gp_fitting` and
++  `_get_gp_training_options` (`pybads/bads/gaussian_process_train.py`);
++  `OptimizeResult`.
+ - MATLAB: `private/setupvars.m:126-167`; `private/funlogger.m:30-85`;
+-  `private/evalinitmesh.m:120-123`.
+-- Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28), in
+-  the review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
+-  "Open ends"). Kind: deliberate change (interface).
++  `private/evalinitmesh.m:111-123`.
++- Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28) and
++  on the first GP (2026-09-29), in the review's ledger
++  (`dev/results/2026-09-28-port-correctness-review.md`, "Open ends").
++  Kind: deliberate change (interface).
+ 
+ ### The main loop, termination and the final estimate (B2)
+ 
+@@ -840,26 +850,49 @@ a nonzero `warp_func` fails at the first rebuild, without one.
+   `287-291`; `warp/`.
+ - Kind: removed feature.
+ 
+-**KD-B6-5. PyBADS fits a GP on the initial design; MATLAB BADS only defines it.**
++**KD-B6-5. PyBADS fits its first GP; MATLAB BADS only defines it.**
+ PyBADS fits the hyperparameters on the start and the initial design,
+-without the evaluations made before the run (KD-B1-15), under the priors
+-of the definition; MATLAB BADS keeps the definition's values until its
+-first rebuild. Both refit at the first rebuild, so the initial fit reaches
+-a run as one start of that refit and as the hyperparameters of the first
+-target's prediction. On one distinct point (a feasible region too thin for
+-the initial design, `max_fun_evals=2` with the noise test,
+-`fun_eval_start=0`), where the priors alone would decide the fit and
+-gpyreg's recommendations warn, PyBADS does not fit either: the GP holds
+-the definition's values, as MATLAB BADS's does, the log length scales,
+-the log output scale and the log shape at 0, the log noise SD at the log
+-of the noise size and the mean at the point's target. The mean's prior is
+-centred at that target with the SD 1, where MATLAB's definition centres
+-it at 0; both sides re-centre it at each rebuild, before any fit.
+-- PyBADS: `init_and_train_gp`, `_gp_hyp`; `BADS._init_optimization_`.
+-- MATLAB: `bads.m:465-469`; `gpdef/gpdefBads.m:48`, `147-154`, `164-173`,
+-  `219-220`.
+-- Settled by: W1-27; the PI's ruling of 2026-09-28 (one point). Kind:
+-  deliberate change.
++under the priors of the definition; MATLAB BADS keeps the definition's
++values until its first refit. Both refit at their first rebuild once the
++run has made more than D evaluations, as at default options after the
++initial design, so the initial fit reaches a run as one start of that
++refit and as the hyperparameters of the first target's prediction. On one
++distinct point (a feasible region too thin for the initial design,
++`max_fun_evals=2` with the noise test, `fun_eval_start=0`, or a log that
++holds the whole design, KD-B1-15), where the priors alone would decide
++the fit and gpyreg's recommendations warn, PyBADS does not fit either:
++the GP holds the definition's values, as MATLAB BADS's does, the log
++length scales, the log output scale and the log shape at 0, the log noise
++SD at the log of the noise size and the mean at the point's target. The
++mean's prior is centred at that target with the SD 1, where MATLAB's
++definition centres it at 0; both sides re-centre it at each rebuild,
++before any fit.
++
++With evaluations made before the run (KD-B1-15), PyBADS then rebuilds the
++GP in its initialization, as a rebuild of the loop does: on the
++incumbent's neighbours in the whole log, chosen and capped by the rule of
++MATLAB's rebuild, under priors re-centred on them (the mean's at the 90th
++percentile of their targets), and refits it there, from the
++hyperparameters just set and from draws of the priors. That refit leaves
++the rule of the later refits as it is, and its length scales choose the
++neighbours of the next rebuild. MATLAB BADS's first rebuild, at its first
++poll, takes the same neighbours under the definition's values, with the
++mean at the median of the lowest 80 % of the whole log's values, and
++refits only once the run has made more than D evaluations. So in a run
++given the log of an earlier run with the same seed and start, which
++evaluates its start alone (2 evaluations with the noise test), MATLAB
++BADS's GP works on the whole log's neighbours with the definition's
++values until the count passes D, and PyBADS's with hyperparameters fitted
++on them.
++- PyBADS: `init_and_train_gp`, `_gp_hyp`, `local_gp_fitting`;
++  `BADS._init_optimization_`.
++- MATLAB: `bads.m:465-469`, `821-839`; `gpdef/gpdefBads.m:48`, `147-154`,
++  `164-173`, `201`, `219-220`; `private/gpupdate.m:85-110`;
++  `private/setupvars.m:173`.
++- Settled by: W1-27; the PI's rulings of 2026-09-28 (one point) and
++  2026-09-29 (the evaluations made before the run), in the review's
++  ledger (`dev/results/2026-09-28-port-correctness-review.md`, "Open
++  ends"). Kind: deliberate change.
+ 
+ **KD-B6-6. A failed Cholesky factorization multiplies the GP's noise.**
+ gpyreg multiplies the noise by ten per failed attempt, up to ten attempts,
+diff --git a/pybads/bads/bads.py b/pybads/bads/bads.py
+index ccc9a902..01a62a14 100644
+--- a/pybads/bads/bads.py
++++ b/pybads/bads/bads.py
+@@ -1517,7 +1517,8 @@ class BADS:
+         # which the first incumbent is chosen, as in MATLAB BADS
+         # (evalinitmesh.m:120-123), and on which the first GP is trained:
+         # the log may also hold evaluations made before the run
+-        # (precomputed_evaluations)
++        # (precomputed_evaluations), and _init_optimization_ then rebuilds
++        # the GP on the incumbent's neighbours in the whole log
+         self._init_rows = np.array([idx_start])
+         self._init_incumbent_row = idx_start
+ 
+@@ -1668,7 +1669,9 @@ class BADS:
+         It calls the init_mesh, sets the option configurations required by BADS, and initializes the Guassian Process (GP)
+ 
+         A run that ends in the initialization (``max_fun_evals = 1``) trains
+-        no GP: the returned ``gp`` is None.
++        no GP: the returned ``gp`` is None. With evaluations made before the
++        run, the GP trained on the start and the initial design is rebuilt
++        on the incumbent's neighbours in the whole log and refitted there.
+         """
+         gp = None
+         self.reset_gp = False
+@@ -1759,6 +1762,31 @@ class BADS:
+                 rows=self._init_rows,
+                 timer=self._stage_timer,
+             )
++            if self.optim_state["precomputed_n_evals"] > 0:
++                # With evaluations made before the run, the GP is rebuilt on
++                # the incumbent's neighbours in the whole log, chosen and
++                # capped as a rebuild of the loop chooses them, and refitted
++                # there, from the hyperparameters just set. Without it, the
++                # loop's first rebuild would take those neighbours under
++                # hyperparameters of the start and the initial design alone
++                # (MATLAB BADS's definition values in a rerun, whose design
++                # the log already holds) until the first refit. A failed
++                # rebuild leaves the GP of the start and the initial design,
++                # marked for a rebuild with a refit at the first step. The
++                # refit is not recorded (lastfitgp), so that the loop's
++                # refits keep their rule (_is_gp_refit_time_).
++                with self._stage_timer.stage("gp_rebuild"):
++                    gp, _ = local_gp_fitting(
++                        gp,
++                        self.u,
++                        self.function_logger,
++                        self.options,
++                        self.optim_state,
++                        self.iteration_history,
++                        True,
++                        rng=self.rng,
++                        timer=self._stage_timer,
++                    )
+ 
+         self.gp_stats = IterationHistory(
+             [
+diff --git a/pybads/bads/gaussian_process_train.py b/pybads/bads/gaussian_process_train.py
+index a02af459..76cb5513 100644
+--- a/pybads/bads/gaussian_process_train.py
++++ b/pybads/bads/gaussian_process_train.py
+@@ -35,12 +35,14 @@ def init_and_train_gp(
+     """
+     Initialize and train the Gaussian process model.
+ 
+-    A training set of one distinct point, such as a feasible region too
+-    thin for the initial design leaves, is not fitted: the GP takes the
+-    starting hyperparameters (``_gp_hyp``), the values of MATLAB BADS's
+-    definition of its GP, which MATLAB BADS keeps until its first refit
+-    (``gpdefBads.m``). On one point the priors alone would decide the
+-    fit's optimum.
++    A training set that holds one distinct point is not fitted: the GP
++    takes the starting hyperparameters (``_gp_hyp``), the values of MATLAB
++    BADS's definition of its GP, which MATLAB BADS keeps until its first
++    refit (``gpdefBads.m``). On one point the priors alone would decide the
++    fit's optimum. A run's start and initial design are one distinct point
++    when the design adds none to the start: in a feasible region too thin
++    for it, with ``fun_eval_start=0``, with a budget that leaves it no
++    evaluation, or when the log already holds each of its points.
+ 
+     Parameters
+     ==========
+@@ -67,10 +69,11 @@ def init_and_train_gp(
+     rows : ndarray, optional
+         The rows of the function log that the GP is trained on, in the
+         order of the log; if ``None``, every filled row. ``BADS`` trains the
+-        first GP on the rows of the start and the initial design: the
+-        evaluations made before the run (``precomputed_evaluations``), which
+-        can be many, enter the GP at its first local rebuild, among the
+-        neighbours of the incumbent.
++        first GP on the rows of the start and the initial design. When the
++        log also holds evaluations made before the run
++        (``precomputed_evaluations``), ``BADS`` then rebuilds the GP at once
++        on the incumbent's neighbours in the whole log and refits it there
++        (``local_gp_fitting``).
+     timer : pybads.utils.timer.stage_timer.StageTimer, optional
+         The run's stage timer, which times the fits as the stage
+         ``"gp_fit"`` and each fit that raises ``LinAlgError`` as
+diff --git a/pybads/testing/bads/test_bads_precomputed_evaluations.py b/pybads/testing/bads/test_bads_precomputed_evaluations.py
+index 3e0a9cb4..ac294cf2 100644
+--- a/pybads/testing/bads/test_bads_precomputed_evaluations.py
++++ b/pybads/testing/bads/test_bads_precomputed_evaluations.py
+@@ -3,6 +3,7 @@ when `BADS` is created, their import into the function log and the GP's
+ training set, which leaves them out of the count of evaluations and of the
+ choice of the first incumbent, and their counts in the result."""
+ 
++import gpyreg as gpr
+ import numpy as np
+ import pytest
+ 
+@@ -91,33 +92,74 @@ def test_the_first_incumbent_is_never_an_evaluation_made_before():
+     assert not np.any(np.all(bads.var_transf(X) == bads.u, axis=1))
+ 
+ 
+-def test_the_gp_holds_the_evaluations_made_before():
+-    """The first GP is fitted on the start and the initial design, however
+-    many evaluations were given; they enter the GP at its first local
+-    rebuild, among the neighbours of the incumbent (here all of them, fewer
+-    than `n_train_min`)."""
++def _is_row_of(points, X):
++    """Whether each row of ``points`` is a row of ``X``."""
++    return np.array([np.any(np.all(X == u, axis=1)) for u in points])
++
++
++def test_the_first_gp_holds_the_evaluations_made_before():
++    """The first GP is rebuilt on the incumbent's neighbours in the whole
++    log (here all of it, fewer rows than `n_train_min`) and refitted there,
++    in the initialization, which sets the geometry of the refit."""
+     X, y = _evaluations()
+     bads = _make_bads((X, y))
+     gp, _, _, _ = bads._init_optimization_()
+-    assert gp.X.shape[0] == bads.optim_state["eff_starting_points"] == 5
+-    assert np.all(gp.X == bads.function_logger.X[len(X) : len(X) + 5])
++    logger = bads.function_logger
++    assert bads.optim_state["eff_starting_points"] == 5
++    assert gp.X.shape[0] == len(X) + 5 == logger.Xn + 1
++    assert np.all(_is_row_of(logger.X[: logger.Xn + 1], gp.X))
++    assert np.all(_is_row_of(bads.var_transf(X), gp.X))
++    assert np.shape(gp.temporary_data["len_scale"]) == (D,)
++    assert "needs_rebuild" not in gp.temporary_data
++    assert np.all(bads.best_gp_hyp == gp.get_hyperparameters(as_array=True))
++
++
++def test_the_first_gp_takes_the_nearest_of_many_evaluations():
++    """The first GP's training set is capped as a rebuild caps it, at the
++    rows of the log nearest to the incumbent, some of them evaluations made
++    before the run."""
++    bads = _make_bads(_evaluations(n=1000), max_fun_evals=100)
++    gp, _, _, _ = bads._init_optimization_()
++    logger = bads.function_logger
++    n_train = bads.optim_state["ntrain"]
++    assert gp.X.shape[0] == n_train
++    assert bads.options["n_train_min"] <= n_train
++    assert n_train <= bads.options["n_train_max"] < logger.Xn + 1
++    U = logger.X[: logger.Xn + 1]
++    in_train = _is_row_of(U, gp.X)
++    assert np.sum(in_train) == n_train
++    assert np.any(in_train[:1000])
++    distance = np.sum((U - bads.u) ** 2, axis=1)
++    assert np.max(distance[in_train]) <= np.min(distance[~in_train])
++
++
++def test_a_rerun_starts_on_a_fitted_gp():
++    """A rerun with the log of an earlier run of the same seed and start
++    draws the same initial design, which the log already holds: the start
++    alone is evaluated, and the first GP is fitted on its neighbours in the
++    log, where the start alone would take MATLAB BADS's definition values,
++    the log length scales and the log output scale at 0."""
++    earlier = _make_bads(None)
++    earlier.optimize()
++    logger = earlier.function_logger
++    X = logger.X_orig[: logger.Xn + 1]
++    y = logger.Y_orig[: logger.Xn + 1, 0]
+ 
+     bads = _make_bads((X, y))
+-    bads.optimize()
+-    gp = bads.iteration_history["gp"][0]
+-    for u in bads.var_transf(X):
+-        assert np.any(np.all(gp.X == u, axis=1))
+-
+-
+-def test_the_first_fit_leaves_out_many_evaluations():
+-    bads = _make_bads(_evaluations(n=1000), max_fun_evals=100)
+     gp, _, _, _ = bads._init_optimization_()
+-    assert gp.X.shape[0] == 5
++    assert bads.optim_state["eff_starting_points"] == 1
++    assert len(bads._init_rows) == 1
++    assert np.unique(gp.X, axis=0).shape[0] > 1
++    hyp = gp.get_hyperparameters()[0]
++    assert np.all(hyp["covariance_log_lengthscale"] != 0)
++    assert np.all(hyp["covariance_log_outputscale"] != 0)
++    assert np.all(_is_row_of(gp.X, logger.X[: logger.Xn + 1]))
+ 
+ 
+ def test_the_training_schedule_leaves_them_out(monkeypatch):
+-    """The number of starts of the GP's first fit follows the run's own
+-    budget: many evaluations given do not make it the final one."""
++    """The number of starts of the GP's first fit, and of the refit on the
++    whole log's neighbours, follows the run's own budget: many evaluations
++    given do not make it the final one."""
+     seen = []
+     original = gpt._get_gp_training_options
+ 
+@@ -130,7 +172,38 @@ def test_the_training_schedule_leaves_them_out(monkeypatch):
+     bads = _make_bads(_evaluations(n=300), max_fun_evals=100)
+     bads._init_optimization_()
+     assert bads.optim_state["eff_starting_points"] == 5
+-    assert seen[0] == bads.options["gp_train_n_init"]
++    assert seen == [bads.options["gp_train_n_init"]] * 2
++
++
++def test_a_failed_first_rebuild_leaves_the_gp_of_the_design(monkeypatch):
++    """When the rebuild of the initialization fails, with the refit's
++    hyperparameters and with the previous ones, the first GP is that of the
++    start and the initial design, marked for a rebuild with a refit, and the
++    run goes on."""
++    from .test_gp_update_failures import Injector
++
++    injector = Injector(
++        lambda call: call.site == "local_gp_fitting"
++        and call.caller == "_init_optimization_"
++    )
++    for method in ("update", "set_hyperparameters"):
++        monkeypatch.setattr(gpr.GP, method, injector.wrap(method))
++    X, y = _evaluations()
++    bads = _make_bads((X, y))
++    gp, _, _, _ = bads._init_optimization_()
++    assert [call.method for call in injector.failed] == [
++        "update",
++        "set_hyperparameters",
++    ]
++    assert np.all(gp.X == bads.function_logger.X[len(X) : len(X) + 5])
++    assert gp.temporary_data["needs_rebuild"]
++    assert gp.temporary_data["needs_refit"]
++    gp.predict(gp.X)
++
++    bads = _make_bads((X, y))
++    result = bads.optimize()
++    assert result["func_count"] == 30
++    assert len(injector.failed) == 4
+ 
+ 
+ def test_the_arrays_are_copied():
+diff --git a/pybads/testing/bads/test_gp_update_failures.py b/pybads/testing/bads/test_gp_update_failures.py
+index ef65b6ee..abb8e853 100644
+--- a/pybads/testing/bads/test_gp_update_failures.py
++++ b/pybads/testing/bads/test_gp_update_failures.py
+@@ -78,7 +78,9 @@ LEVELS = {
+ }
+ 
+ 
+-def _make_bads(fun, max_fun_evals=60, seed=3, **options):
++def _make_bads(
++    fun, max_fun_evals=60, seed=3, precomputed_evaluations=None, **options
++):
+     opts = {
+         "display": "off",
+         "max_fun_evals": max_fun_evals,
+@@ -93,6 +95,7 @@ def _make_bads(fun, max_fun_evals=60, seed=3, **options):
+         -8 * np.ones(D),
+         12 * np.ones(D),
+         options=opts,
++        precomputed_evaluations=precomputed_evaluations,
+     )
+ 
+ 
+diff --git a/pybads/testing/bads/test_stage_times.py b/pybads/testing/bads/test_stage_times.py
+index f2bb5f97..b802445a 100644
+--- a/pybads/testing/bads/test_stage_times.py
++++ b/pybads/testing/bads/test_stage_times.py
+@@ -108,6 +108,34 @@ def test_stages_and_target_make_total_time(tick_clock, level):
+     assert noisy <= set(calls) if level > 0 else not noisy & set(calls)
+ 
+ 
++@pytest.mark.parametrize("level", [0, 1, 2])
++def test_stages_with_evaluations_made_before(tick_clock, level):
++    """With evaluations made before the run, the first GP is rebuilt and
++    refitted within "gp_init", as its "gp_rebuild", and the stages and the
++    target make `total_time`; the evaluations given take no time of the
++    run."""
++    make_fun, options = LEVELS[level]
++    X = np.random.default_rng(5).uniform(-8, 12, (40, 3))
++    y = np.sum(X**2, axis=1)
++    evaluations = (X, y) if level < 2 else (X, y, np.ones(len(X)))
++    bads = _make_bads(
++        make_fun(),
++        max_fun_evals=80,
++        precomputed_evaluations=evaluations,
++        **options,
++    )
++    result = bads.optimize()
++    _assert_stage_times(bads, result, exact=True)
++    stage_times = bads.optim_state["stage_times"]
++    calls = stage_times["calls"]
++    assert calls["gp_init"] == calls["gp_init/gp_rebuild"] == 1
++    assert calls["gp_init/gp_rebuild/gp_fit"] == 1
++    n_timed = result["func_count"] - (level == 0)
++    assert stage_times["seconds"]["target"] == pytest.approx(
++        n_timed * (TICK + 1e-9), rel=0, abs=1e-9
++    )
++
++
+ class _OutputFcnError(Exception):
+     pass
+ 
+-- 
+2.43.0
+
