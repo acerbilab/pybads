@@ -108,27 +108,32 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   ES search step, and the outputs through the solve of a GP whose
   condition number exceeds 1e8, as it does after a refit on three of the
   six states; for those three, a view with the GP's noise raised to bound
-  the condition number by 1e6 keeps the GP's predictions, the LCB, the
-  training set and the hedge covered on every platform. Every mode reports
-  the outputs it compared and those it left out, and why. `--check
-  --exact` compares bit for bit, with one BLAS thread (the script's
-  default), and refuses under another platform key than the fixtures'; on
-  any machine, `--dump DIR` at the parent commit and `--check --exact
-  --against DIR` at the change compare every output, the platform-bound
-  ones included: the gate for a change that must move nothing. `--rebaseline
-  ORACLE --reason TEXT` replaces one oracle's references, for a change that
-  moves it on purpose, after the check of its decisions' margins that
-  `--write` makes, and records the reason and the commit in the fixtures;
-  `--write --reason TEXT` reruns the recipes, a new baseline, from a clean
-  checkout. An option of a stored state that the code no longer has
-  is dropped when the state is rebuilt, and listed; a key that the code
-  reads from `optim_state` or a GP's `temporary_data` and that a stored
-  state lacks gets a default in `STATE_DEFAULTS` of `_state.py`, in the
-  commit that makes the code read it; `test_every_case_computes` computes
-  every oracle, the platform-bound ones included, and fails on such a key.
-  The oracles gate a component's numbers on fixed inputs, not a run: whole
-  trajectories are `replay.py`'s, on one machine, and the distribution of
-  results the population comparison's.
+  the condition number by 1e6 keeps the arithmetic of the GP's
+  predictions, the LCB, the training set and the hedge covered on every
+  platform, in a smoother regime than the run's GP (a noise SD of 10 to 65
+  against training values of median 0.25 to 5.7; predictions that
+  correlate with the stored view's by 0.69 to 0.998), so that their values
+  in the near-interpolating regime of the run's GP are covered only by
+  `--dump` and `--against`, on one machine. Every mode reports the outputs
+  it compared and those it left out, and why. `--check --exact` compares
+  bit for bit, with one BLAS thread (the script's default), and refuses
+  under another platform key than the fixtures'; on any machine, `--dump
+  DIR` at the parent commit and `--check --exact --against DIR` at the
+  change compare every output, the platform-bound ones included: the gate
+  for a change that must move nothing. `--rebaseline ORACLE --reason TEXT`
+  replaces one oracle's references, for a change that moves it on purpose,
+  after the check of its decisions' margins that `--write` makes, and
+  records the reason and the commit in the fixtures; `--write --reason TEXT`
+  reruns the recipes, a new baseline, from a clean checkout. An option of a
+  stored state that the code no longer has is dropped when the state is
+  rebuilt, and listed; a key that the code reads from `optim_state` or a
+  GP's `temporary_data` and that a stored state lacks gets a default in
+  `STATE_DEFAULTS` of `_state.py`, in the commit that makes the code read
+  it; `test_every_case_computes` computes every oracle, the platform-bound
+  ones included, and fails on such a key. The oracles gate a component's
+  numbers on fixed inputs, not a run: whole trajectories are `replay.py`'s,
+  on one machine, and the distribution of results the population
+  comparison's.
 - `benchmark_targets.py` defines the benchmark problems (shifted sphere,
   ellipsoid, rotated Rosenbrock, Ackley and Rastrigin, with and without
   noise, one with a non-box constraint, one with infinite bounds, a sphere
