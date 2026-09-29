@@ -370,12 +370,18 @@ decided on; "the next release" below means it.
   `make_oracle_fixtures.platform_key`, each with its own `_cpu_model`,
   `_blas_build`, `_openblas_libraries` and `_openblas_runtime`), whose
   versions have diverged: replay's lacks `cpu_count`, `numpy_cpu_features`
-  and gpyreg, which it records in its provenance, where a difference warns
-  instead of refusing; `_median` and `_fmt` (`profile_suite.py` and
-  `profile_compare.py`) and `DEFAULT_CAMPAIGNS` (`profile_suite.py` and
-  `profile_run.py`); and three ways of capturing a run's steps
-  (`replay.py`'s wrappers of the target, the steps and the GP functions,
-  `run_recipe` in `make_oracle_fixtures.py`, and the output function
-  `stop_at_init` of `test_initial_design_pin.py`). A module of
-  `dev/scripts/` can hold all of them but `stop_at_init`, which belongs to
-  the package's tests: they ship in the wheel and cannot import from `dev/`.
+  and gpyreg, and replay records gpyreg in its provenance, where a
+  difference warns instead of refusing, and the other two nowhere; `_median`
+  and `_fmt` (`profile_suite.py` and `profile_compare.py`) and
+  `DEFAULT_CAMPAIGNS` (`profile_suite.py` and `profile_run.py`); and three
+  ways of capturing a run's steps (`replay.py`'s wrappers of the target, the
+  steps and the GP functions, `run_recipe` in `make_oracle_fixtures.py`, and
+  the output function `stop_at_init` of `test_initial_design_pin.py`). A
+  module of `dev/scripts/` can hold all of them but `stop_at_init`, which
+  belongs to the package's tests: they ship in the wheel and cannot import
+  from `dev/`. The scripts kept with an experiment's record are frozen with
+  its evidence and stay copies: `dev/experiments/warmstart_gp_linux_20260929/`,
+  for instance, holds verbatim copies of `pairs.py` (from
+  `one_point_gp_linux_20260928/`) and `w236_pairs.py` (from
+  `w236_linux_20260928/`), and a `first_gp.py` with its own list of the
+  thread variables, its own `parse_seeds` and its own builder of a run.

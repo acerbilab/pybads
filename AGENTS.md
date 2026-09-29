@@ -283,12 +283,13 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
   leaves out. Code that takes the log's rows for the run's own evaluations
   leaves them out: `_init_mesh_` chooses the first incumbent among the rows
-  that the start and the initial design returned (`_init_rows`; at level 2
-  `_init_optimization_` reads its `fsd` from `_init_incumbent_row`), on
-  which `init_and_train_gp` fits the first GP, and counts
-  `eff_starting_points` from `func_count`, and `_get_gp_training_options`
-  subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
-  reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
+  that the start and the initial design returned (`_init_rows`), on which
+  `init_and_train_gp` fits the first GP, and counts `eff_starting_points`
+  from `func_count`; at level 2 `_init_optimization_` reads the first
+  incumbent's `fsd` from its row, `_init_incumbent_row`; and
+  `_get_gp_training_options` subtracts `optim_state["precomputed_n_evals"]`
+  from `n_eff`. New code that reads `Xn`, `X_flag` or `n_evals` as the
+  run's evaluations does the same.
   The evaluations made before the run join the GP at the loop's first
   rebuild, at the first poll, among the incumbent's neighbours.
   A repeated point at level 2 is merged into its row by precision weighting,
@@ -393,19 +394,22 @@ same gpyreg and the same number of BLAS threads: one thread
 hashes of the same commit, and a recorded hash names its setting.
 On one machine, a change that must move nothing also shows
 `dev/scripts/replay.py check` identical against the parent commit (the
-first evaluation and GP computation at which two commits' runs part; not
-on macOS arm64, where two runs of one seed need not match bit for bit), and
+first evaluation and GP computation at which two commits' runs part), and
 `dev/scripts/make_oracle_fixtures.py --check --exact --against` a
 `--dump` of the parent commit identical (the oracles of
 `pybads/testing/oracles/`, PyBADS's components on stored states);
-`dev/README.md` gives the procedures. On every platform, the tests pin the
-initial design, which involves no BLAS work (`test_initial_design_pin.py`,
-whose fixture a change that moves the design on purpose regenerates in the
-same commit), and the oracles' stored references, under tolerances
-measured across BLAS settings. Never loosen an oracle's tolerance or
-regenerate the fixtures to make a change pass: a change that moves an
-oracle on purpose replaces that oracle's references alone, in the same
-commit, with `--rebaseline ORACLE --reason TEXT`.
+`dev/README.md` gives the procedures. The three, the fingerprint, the
+replay and the oracles' `--against`, need a machine that repeats a
+computation bit for bit, which macOS arm64 is not: there Accelerate's
+results depend on the alignment of the arrays, so that two runs of one
+seed need not match (`dev/results/2026-09-28-macos-arm64-repeatability.md`).
+On every platform, the tests pin the initial design, which involves no BLAS
+work (`test_initial_design_pin.py`, whose fixture a change that moves the
+design on purpose regenerates in the same commit), and the oracles' stored
+references, under tolerances measured across BLAS settings. Never loosen an
+oracle's tolerance or regenerate the fixtures to make a change pass: a
+change that moves an oracle on purpose replaces that oracle's references
+alone, in the same commit, with `--rebaseline ORACLE --reason TEXT`.
 
 ## Tests and their traps
 

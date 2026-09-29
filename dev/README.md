@@ -111,8 +111,8 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   the condition number by 1e6 keeps the arithmetic of the GP's
   predictions, the LCB, the training set and the hedge covered on every
   platform, in a smoother regime than the run's GP (a noise SD of 10 to 65
-  against training values of median 0.25 to 5.7; predictions that
-  correlate with the stored view's by 0.69 to 0.998), so that their values
+  against training values of median 0.25 to 5.7; predictions that correlate
+  with those on the state as stored by 0.69 to 0.998), so that their values
   in the near-interpolating regime of the run's GP are covered only by
   `--dump` and `--against`, on one machine. Every mode reports the outputs
   it compared and those it left out, and why. `--check --exact` compares
@@ -369,12 +369,13 @@ reference's number of seeds.
   `sphere_band_D2_hetero`.
 - [experiments/warmstart_gp_linux_20260929/](experiments/warmstart_gp_linux_20260929/README.md)
   — a first GP fitted on the incumbent's neighbours in the whole log when
-  the run is given evaluations made before it (`58d922a1`), against its parent, the `warmstart` suite at 90 seeds on
-  Linux: the reruns' first GP holds the start alone in the base and 35 to
-  90 rows of the log in the change; flagged for more evaluations on
+  the run is given evaluations made before it (`58d922a1`), against its
+  parent, the `warmstart` suite at 90 seeds on Linux: the reruns' first GP
+  holds the start alone in the base and 35 to 90 rows of the log in the
+  change (seeds 0-29); flagged for more evaluations on
   `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
-  pooled fraction solved 0.90 against 0.88, not significant; not adopted
-  (PI, 2026-09-29), its diff kept with the record.
+  pooled fraction solved 0.90 in the base against 0.88 in the change, not
+  significant; not adopted (PI, 2026-09-29), its diff kept with the record.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite
   but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
