@@ -35,12 +35,14 @@ def init_and_train_gp(
     """
     Initialize and train the Gaussian process model.
 
-    A training set of one distinct point, such as a feasible region too
-    thin for the initial design leaves, is not fitted: the GP takes the
-    starting hyperparameters (``_gp_hyp``), the values of MATLAB BADS's
-    definition of its GP, which MATLAB BADS keeps until its first refit
-    (``gpdefBads.m``). On one point the priors alone would decide the
-    fit's optimum.
+    A training set that holds one distinct point is not fitted: the GP
+    takes the starting hyperparameters (``_gp_hyp``), the values of MATLAB
+    BADS's definition of its GP, which MATLAB BADS keeps until its first
+    refit (``gpdefBads.m``). On one point the priors alone would decide the
+    fit's optimum. A run's start and initial design are one distinct point
+    when the design adds none to the start: in a feasible region too thin
+    for it, with ``fun_eval_start=0``, with a budget that leaves it no
+    evaluation, or when the log already holds each of its points.
 
     Parameters
     ==========
@@ -69,8 +71,8 @@ def init_and_train_gp(
         order of the log; if ``None``, every filled row. ``BADS`` trains the
         first GP on the rows of the start and the initial design: the
         evaluations made before the run (``precomputed_evaluations``), which
-        can be many, enter the GP at its first local rebuild, among the
-        neighbours of the incumbent.
+        can be many, enter the GP at its first local rebuild, at the first
+        poll, among the neighbours of the incumbent.
     timer : pybads.utils.timer.stage_timer.StageTimer, optional
         The run's stage timer, which times the fits as the stage
         ``"gp_fit"`` and each fit that raises ``LinAlgError`` as

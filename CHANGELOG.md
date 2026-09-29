@@ -113,10 +113,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
   `specify_target_noise=True`, gives a run evaluations of the target made
   before it, for instance by an earlier run, as MATLAB BADS's option
-  `FunValues` does. They enter the run's log of evaluations and, around the
-  incumbent, the training set of its Gaussian process, but do not count as
-  evaluations of the run (`func_count`, which `max_fun_evals` bounds), and
-  the run still starts from `x0` and its initial design. `BADS` refuses
+  `FunValues` does. They enter the run's log of evaluations and, from the
+  first poll on, those nearest the incumbent the training set of its
+  Gaussian process. They do not count as evaluations of the run
+  (`func_count`, which `max_fun_evals` bounds), and the run starts from
+  `x0` and its initial design all the same, but for the points of the
+  design that they hold, which it does not evaluate again. `BADS` refuses
   points outside the hard bounds or that violate `non_box_cons`, and, unless
   `uncertainty_handling` is `True`, two different values at one point. The
   result reports the number of evaluations given in
@@ -602,11 +604,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   it, with gpyreg's `RuntimeWarning`s, and a rebuild of the GP on the one
   point stopped the run with gpyreg's `ValueError`; with `max_fun_evals=2`,
   1.1.0 did not keep its initial design within the budget (see "Small
-  budgets"). A later refit on points that have no spread in a coordinate, as
-  in a thin feasible band, prints gpyreg's `RuntimeWarning` about a log of
-  zero, and at D = 1, with `fun_eval_start=0` and the noise test, the first
-  refit runs on the one point and prints gpyreg's warnings about a log of
-  zero, degrees of freedom <= 0 and an invalid value in a division.
+  budgets"). A run given the log of an earlier run with the same seed and
+  starting point (`precomputed_evaluations`) evaluates its start alone and
+  starts on one point too. A later refit on points that have no spread in a
+  coordinate, as in a thin feasible band, prints gpyreg's `RuntimeWarning`
+  about a log of zero. At D = 1 the noise test brings the count of
+  evaluations past D, so that a first GP on one point is refitted on it at
+  the first poll, with gpyreg's warnings about a log of zero, degrees of
+  freedom <= 0 and an invalid value in a division: with `fun_eval_start=0`
+  and a deterministic target, and with a noisy target, left to the noise
+  test, whose `non_box_cons` leaves only the starting point feasible in the
+  initial design.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller

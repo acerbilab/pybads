@@ -291,20 +291,28 @@ evaluations starts at 0 after them, and its first incumbent is the best of
 the start and the initial design. PyBADS refuses `fun_values` (KD-B1-4)
 and takes the evaluations as the keyword argument
 `precomputed_evaluations=(X, y)`, or `(X, y, y_sd)`, PyVBMC's interface,
-into its log with the same count and the same first incumbent. It also
-refuses: SDs without `specify_target_noise` and their absence with it,
-which MATLAB does not check (an `S` without `SpecifyTargetNoise` makes its
-logger ask the target for two outputs, and the converse fails when it pads
-`S`); points outside the hard bounds or that violate `non_box_cons`, which
+into its log with the same count and the same rule for the first
+incumbent, the best of the start and the initial design. It also refuses:
+SDs without `specify_target_noise` and their absence with it, which MATLAB
+does not check (an `S` without `SpecifyTargetNoise` makes its logger ask
+the target for two outputs, and the converse fails when it pads `S`);
+points outside the hard bounds or that violate `non_box_cons`, which
 MATLAB takes; and, unless `uncertainty_handling` is `True`, a point given
 twice with two different values. The check comes before the noise test, so
 that an `uncertainty_handling` left empty counts as none, and a point
 given twice with one value is kept once, where MATLAB adds a row per
 repeat. With uncertainty handling each repeat is an observation, a row at
-level 1 and merged into its point's row at level 2 (KD-B7-3). The GP takes
-them at its first rebuild, among the neighbours of the incumbent, as
-MATLAB's does: PyBADS's initial fit leaves them out (KD-B6-5), as does the
-schedule of the GP's fits, PyBADS's own (KD-B5-6), which spans the run's
+level 1 and merged into its point's row at level 2 (KD-B7-3). So at level
+2 the run's evaluation of its start merges with an evaluation given at the
+start's point, where MATLAB adds a row: PyBADS's first incumbent takes the
+merged value and its first GP the merged row, MATLAB's first incumbent the
+new observation and its first training set both rows. Neither side
+evaluates a point of the initial design that the log holds, so that a run
+given the log of an earlier run with the same seed and start evaluates its
+start alone. The GP takes the evaluations given at its first rebuild, at
+the first poll, among the neighbours of the incumbent, as MATLAB's does:
+PyBADS's initial fit leaves them out (KD-B6-5), as does the schedule of
+the GP's fits, PyBADS's own (KD-B5-6), which spans the run's own
 evaluations. The result counts them in `precomputed_observations` and
 `precomputed_locations` (KD-B1-8).
 - PyBADS: `BADS.__init__`, `_import_precomputed_evaluations_` and
@@ -312,7 +320,7 @@ evaluations. The result counts them in `precomputed_observations` and
   `init_and_train_gp` and `_get_gp_training_options`
   (`pybads/bads/gaussian_process_train.py`); `OptimizeResult`.
 - MATLAB: `private/setupvars.m:126-167`; `private/funlogger.m:30-85`;
-  `private/evalinitmesh.m:120-123`.
+  `private/evalinitmesh.m:111-123`.
 - Settled by: W2-6, W4-10; the PI's rulings on the port (2026-09-28), in
   the review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
   "Open ends"). Kind: deliberate change (interface).
@@ -844,21 +852,36 @@ a nonzero `warp_func` fails at the first rebuild, without one.
 PyBADS fits the hyperparameters on the start and the initial design,
 without the evaluations made before the run (KD-B1-15), under the priors
 of the definition; MATLAB BADS keeps the definition's values until its
-first rebuild. Both refit at the first rebuild, so the initial fit reaches
-a run as one start of that refit and as the hyperparameters of the first
-target's prediction. On one distinct point (a feasible region too thin for
-the initial design, `max_fun_evals=2` with the noise test,
-`fun_eval_start=0`), where the priors alone would decide the fit and
-gpyreg's recommendations warn, PyBADS does not fit either: the GP holds
-the definition's values, as MATLAB BADS's does, the log length scales,
-the log output scale and the log shape at 0, the log noise SD at the log
-of the noise size and the mean at the point's target. The mean's prior is
-centred at that target with the SD 1, where MATLAB's definition centres
-it at 0; both sides re-centre it at each rebuild, before any fit.
+first refit. Both rebuild the GP first at the first poll, whose
+neighbours of the incumbent include the evaluations made before the run,
+and refit there once the run has made more than D evaluations, as it has
+after an initial design; so the initial fit reaches a run as one start of
+that refit and as the hyperparameters of the first target's prediction.
+The mean's start and prior come from the start and the design, where
+MATLAB's definition takes the median of the lowest 80 % of the whole
+log's values, the evaluations made before the run included. On one
+distinct point (a feasible region too thin for the initial design,
+`max_fun_evals=2` with the noise test, `fun_eval_start=0`, or a log that
+holds the whole design, KD-B1-15), where the priors alone would decide the
+fit and gpyreg's recommendations warn, PyBADS does not fit either: the GP
+holds the definition's values, as MATLAB BADS's does, the log length
+scales, the log output scale and the log shape at 0, the log noise SD at
+the log of the noise size and the mean at the point's target. The mean's
+prior is centred at that target with the SD 1, where MATLAB's definition
+centres it at 0; both sides re-centre it at each rebuild, before any fit.
+A run given the log of an earlier run with the same seed and start thus
+works, on both sides, on the whole log's neighbours with the definition's
+values until the run's own count passes D. A first GP fitted on the whole
+log's neighbours in the initialization was measured on such runs and not
+adopted: it cost `rosenbrock_D6_rerun` more evaluations and helped no
+configuration (`dev/experiments/warmstart_gp_linux_20260929/`).
 - PyBADS: `init_and_train_gp`, `_gp_hyp`; `BADS._init_optimization_`.
-- MATLAB: `bads.m:465-469`; `gpdef/gpdefBads.m:48`, `147-154`, `164-173`,
-  `219-220`.
-- Settled by: W1-27; the PI's ruling of 2026-09-28 (one point). Kind:
+- MATLAB: `bads.m:465-469`, `821-839`; `gpdef/gpdefBads.m:48`, `147-154`,
+  `164-173`, `219-220`; `private/setupvars.m:173`.
+- Settled by: W1-27; the PI's rulings of 2026-09-28 (one point), in the
+  review's ledger (`dev/results/2026-09-28-port-correctness-review.md`,
+  "Open ends"), and of 2026-09-29 (the first GP of a run given evaluations
+  made before it, `dev/experiments/warmstart_gp_linux_20260929/`). Kind:
   deliberate change.
 
 **KD-B6-6. A failed Cholesky factorization multiplies the GP's noise.**

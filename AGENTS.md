@@ -253,12 +253,15 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   open with evaluations made before the run (`precomputed_evaluations`,
   added through `FunctionLogger.add` in `BADS.__init__`), which `func_count`
   leaves out. Code that takes the log's rows for the run's own evaluations
-  leaves them out: `_init_mesh_` chooses the first incumbent (and at level 2
-  its `fsd`) among the rows that the start and the initial design returned
-  (`_init_rows`), on which `init_and_train_gp` fits the first GP, and counts
+  leaves them out: `_init_mesh_` chooses the first incumbent among the rows
+  that the start and the initial design returned (`_init_rows`; at level 2
+  `_init_optimization_` reads its `fsd` from `_init_incumbent_row`), on
+  which `init_and_train_gp` fits the first GP, and counts
   `eff_starting_points` from `func_count`, and `_get_gp_training_options`
   subtracts `optim_state["precomputed_n_evals"]` from `n_eff`; new code that
   reads `Xn`, `X_flag` or `n_evals` as the run's evaluations does the same.
+  The evaluations made before the run join the GP at the loop's first
+  rebuild, at the first poll, among the incumbent's neighbours.
   A repeated point at level 2 is merged into its row by precision weighting,
   which a run reaches only through those evaluations: `contraints_check`
   removes the candidates already evaluated, and the noise test and the final

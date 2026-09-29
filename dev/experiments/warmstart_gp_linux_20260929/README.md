@@ -1,31 +1,32 @@
 # The first GP with evaluations made before the run, on Linux, gpyreg 1.3.3
 
-The gate of `58d922a1`, the PI's ruling of 2026-09-29: with evaluations
-made before the run (`precomputed_evaluations`), the first GP's
+The gate of `58d922a1`, which the PI asked for on 2026-09-29: with
+evaluations made before the run (`precomputed_evaluations`), the first GP's
 hyperparameters are fitted on the incumbent's neighbours in the whole log,
-chosen and capped as a rebuild chooses them (KD-B6-5). `_init_optimization_`
-keeps the fit on the start and the initial design (MATLAB BADS's definition
-values on one distinct point), then, within `gp_init`, rebuilds the GP with
-`local_gp_fitting` and a refit, once. Before it, the first GP was fitted on
-the start and the design alone, and the loop's first rebuild brought the
-evaluations given into its training set under those hyperparameters until
-the first refit, which waits until the run has made more than D
-evaluations. In a rerun given the log of an earlier run with the same seed
-and start, the log holds the whole initial design, which is not evaluated
-again, so that the first GP held the start alone, with the definition's
-values. No configuration of the other suites gives a run evaluations made
-before it; the `warmstart` suite (`2822c561`) does: the sphere and the
-ellipsoid at D = 3 and Rosenbrock's function at D = 6 without noise, and
-the sphere at D = 3 with inferred noise (`homo`) and with the target's
-noise (`hetero`), each run given the function log of an earlier BADS run on
-the same target, made in the run's process from the seed: of 15 D
-evaluations at the run's seed and start (`_rerun`), or of 20 D at the seed
-plus 1000, with its own start and noise (`_other`). This population
-measures the change against its parent on that suite, 90 seeds, paired by
-seed: the gate's 30 (0-29), then 60 more (30-89), since the gate's pooled
-fraction solved leaned towards the base.
+chosen and capped as a rebuild chooses them (KD-B6-5).
+`_init_optimization_` keeps the fit on the start and the initial design
+(MATLAB BADS's definition values on one distinct point), then, within
+`gp_init`, rebuilds the GP with `local_gp_fitting` and a refit, once.
+Without it, the first GP is fitted on the start and the design alone, and
+the loop's first rebuild, at the first poll, brings the evaluations given
+into its training set and refits there once the run has made more than D
+evaluations, as it has after an initial design; until then the GP keeps the
+initial hyperparameters. In a rerun given the log of an earlier run with
+the same seed and start, the log holds the whole initial design, which is
+not evaluated again, so that the first GP holds the start alone, with the
+definition's values. No configuration of the other suites gives a run
+evaluations made before it; the `warmstart` suite (`2822c561`) does: the
+sphere and the ellipsoid at D = 3 and Rosenbrock's function at D = 6
+without noise, and the sphere at D = 3 with inferred noise (`homo`) and
+with the target's noise (`hetero`), each run given the function log of an
+earlier BADS run on the same target, made in the run's process from the
+seed: of 15 D evaluations at the run's seed and start (`_rerun`), or of 20
+D at the seed plus 1000, with its own start and noise (`_other`). This
+population measures the change against its parent on that suite, 90 seeds,
+paired by seed: the gate's 30 (0-29), then 60 more (30-89), since the
+gate's pooled fraction solved leaned towards the base.
 
-**Outcome: flagged, and not adopted; the PI to rule.** At the gate's 30
+**Outcome: flagged, and not adopted (PI, 2026-09-29).** At the gate's 30
 seeds the comparison flags nothing in 30 tests, but the fraction solved,
 pooled over the ten configurations, falls from 0.91 to 0.86 (14 runs solved
 by the change alone, 27 by the base alone; McNemar p = 0.06, paired
@@ -200,4 +201,7 @@ the run. On the `warmstart` suite it improves no configuration, and at 90
 seeds it is flagged for more evaluations on `rosenbrock_D6_rerun` at an
 unchanged error, with a pooled fraction solved that leans towards the base
 without significance. By the gate's rule a change flagged worse is not
-adopted: the PI rules on it.
+adopted, and the PI ruled so on 2026-09-29: PyBADS keeps the first GP
+fitted on the start and the initial design (KD-B6-5). Why a first GP fitted
+on the log's neighbours costs the Rosenbrock reruns more evaluations is not
+known.
