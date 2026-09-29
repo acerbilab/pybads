@@ -246,6 +246,45 @@ def test_udist_periodic_takes_the_shorter_way_round():
     )
 
 
+@pytest.mark.parametrize("D", [3, 9, 20, 130])
+def test_udist_periodic_adds_every_variable(D):
+    """With periodic variables, `udist` adds the squared differences of every
+    variable, below 8 variables, from 8 to 128 and beyond, the three ranges
+    of its summation, NumPy's pairwise order."""
+    rng = np.random.default_rng(D)
+    lb = -rng.uniform(0.5, 3.0, size=(1, D))
+    ub = rng.uniform(0.5, 3.0, size=(1, D))
+    mask = rng.random(D) < 0.5
+    mask[0] = True
+    U = rng.uniform(lb, ub, size=(5, D))
+    u2 = rng.uniform(lb, ub, size=(4, D))
+    len_scale = rng.uniform(0.5, 2.0, size=D)
+    dist = udist(U, u2, len_scale, lb, ub, 1.0, mask[None, :])
+    np.testing.assert_allclose(
+        dist, _brute_udist(U, u2, len_scale, lb, ub, mask), rtol=1e-12
+    )
+
+
+def test_udist_periodic_wraps_differences_beyond_the_period():
+    """A periodic difference of one period or more, between points on or
+    outside the bounds, is taken modulo the period before the shorter way
+    round: a difference of exactly one period is none. `u2` may be one
+    point, and the length scale one number."""
+    lb = np.array([[-1.0, -3.0]])
+    ub = np.array([[1.0, 3.0]])
+    mask = np.array([[True, False]])
+    a = np.array([[-1.0, 0.0], [2.5, 1.0], [-4.9, -1.0]])
+    b = np.array([[1.0, 0.0], [-0.5, 1.0]])
+    # The first coordinate's period is 2: differences of 2, 0.5, 1.5, 3,
+    # 5.9 and 4.4 are 0, 0.5, 0.5, 1, 0.1 and 0.4 the shorter way round
+    expected = np.array([[0.0, 1.25], [1.25, 1.0], [1.01, 4.16]])
+    dist = udist(a, b, 1.0, lb, ub, 1.0, mask)
+    np.testing.assert_allclose(dist, expected, rtol=1e-12, atol=1e-12)
+    one = udist(a, b[1], np.array([1.0, 1.0]), lb, ub, 1.0, mask)
+    assert one.shape == (3, 1)
+    np.testing.assert_allclose(one[:, 0], expected[:, 1], rtol=1e-12)
+
+
 @pytest.mark.parametrize("shape", [(1, 2), (2,)], ids=["row", "flat"])
 def test_ucov_periodic_shifts_the_shorter_way_round(shape):
     """`ucov` takes a periodic coordinate relative to the centre, the

@@ -142,11 +142,13 @@ length: a least-squares line of the time per evaluation on the number of
 evaluations, fitted to each arm, gives at the median evaluations of the
 runs without `periodic_vars` 1.19 (`homo`) and 1.09 (`hetero`) times the
 value of the line fitted to those runs. Of PyBADS's own code, `udist`'s
-periodic branch builds the `N x M x D` array of differences with
-`np.mod`, where a run without periodic variables takes one `cdist`: 0.84
-against 0.11 ms per call under cProfile, about 0.5 s of the 8.9 s that
-the run of `periodic_D3_homo` at seed 0 takes under cProfile at
-`b44634f` (`dev/TODO.md`, "`udist` on periodic variables").
+periodic branch built the `N x M x D` array of differences with `np.mod`,
+where a run without periodic variables takes one `cdist`: 0.84 against
+0.11 ms per call under cProfile, about 0.5 s of the 8.9 s that the run of
+`periodic_D3_homo` at seed 0 takes under cProfile at `b44634f`. `0a7f7af4`
+computes it one variable at a time, to the same bits, in about a quarter
+of the time
+([experiments/udist_periodic_linux_20260929/](../experiments/udist_periodic_linux_20260929/README.md)).
 
 `0f27db5` and `91ea28e` are on gpyreg's `main` since acerbilab/gpyreg#62
 (merge commit `e10120c`), which gpyreg 1.4.0 is to carry

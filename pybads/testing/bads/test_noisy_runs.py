@@ -252,16 +252,103 @@ def test_noise_size_zero_with_target_noise_changes_nothing():
     assert zero["func_count"] == empty["func_count"]
 
 
-@pytest.mark.parametrize("noise_size", [0.0, -1.0, [0.0, 1.0]], ids=str)
-def test_noise_size_must_be_positive(noise_size):
+@pytest.mark.parametrize(
+    "noise_size",
+    [0.0, -1.0, [0.0, 1.0], np.nan, np.inf, -np.inf, [np.nan, 1.0]],
+    ids=str,
+)
+def test_noise_size_must_be_positive_and_finite(noise_size):
     """Without target noise, `noise_size` sets the prior over the noise of
-    the GP, from its logarithm; as in MATLAB BADS, it must be positive."""
-    with pytest.raises(ValueError, match="noise_size"):
+    the GP, from its logarithm; as in MATLAB BADS, it must be positive, and
+    it must be finite, which the prior requires at the first fit of the
+    GP."""
+    with pytest.raises(
+        ValueError,
+        match=r"options\['noise_size'\], if specified, needs a positive "
+        r"finite base noise SD",
+    ):
         _make_bads(
             _noisy_sphere(0),
             specify_target_noise=False,
             noise_size=noise_size,
         )
+
+
+@pytest.mark.parametrize(
+    "noise_size", [[1.0, 0.0], [1.0, -1.0], (2.0, -1e-300)], ids=str
+)
+def test_noise_size_prior_sd_must_be_positive(noise_size):
+    """A finite SD of the prior over the log noise SD, the second value of
+    `noise_size`, must be positive: the GP's noise prior refused it at the
+    first fit of the GP."""
+    with pytest.raises(
+        ValueError,
+        match=r"options\['noise_size'\] needs a positive SD of the prior",
+    ):
+        _make_bads(
+            _noisy_sphere(0),
+            specify_target_noise=False,
+            noise_size=noise_size,
+        )
+
+
+@pytest.mark.parametrize(
+    "noise_size",
+    [
+        "1.0",
+        True,
+        np.array([True]),
+        [True, 1.0],
+        1.0 + 0j,
+        [1.0, "2"],
+        [[1.0, 2.0], [3.0]],
+        [],
+        10**400,
+    ],
+    ids=repr,
+)
+@pytest.mark.parametrize("target_noise", [False, True])
+def test_noise_size_must_be_real_numbers(noise_size, target_noise):
+    """`noise_size` is one or two real numbers, Python or NumPy integers or
+    floats that are not booleans, also with `specify_target_noise`, which
+    ignores its values: a string failed with an unrelated `TypeError`."""
+    make_fun = (
+        _noisy_sphere_with_estimated_sd if target_noise else _noisy_sphere
+    )
+    with pytest.raises(
+        ValueError, match=r"options\['noise_size'\] needs to be a number"
+    ):
+        _make_bads(
+            make_fun(0),
+            specify_target_noise=target_noise,
+            noise_size=noise_size,
+        )
+
+
+@pytest.mark.parametrize("noise_size", [-1.0, np.nan, [1.0, -1.0]], ids=str)
+def test_noise_size_values_ignored_with_target_noise(noise_size):
+    """With `specify_target_noise`, which ignores `noise_size`, its values
+    are not checked, as in MATLAB BADS."""
+    bads = _make_bads(
+        _noisy_sphere_with_estimated_sd(0), noise_size=noise_size
+    )
+    assert bads.optim_state["uncertainty_handling_level"] == 2
+
+
+@pytest.mark.parametrize(
+    "noise_size, stored",
+    [(2, 2.0), (np.float32(0.5), 0.5), ([3], 3.0), ((2, 1), [2.0, 1.0])],
+    ids=str,
+)
+def test_noise_size_is_stored_as_floats(noise_size, stored):
+    bads = _make_bads(
+        _noisy_sphere(0), specify_target_noise=False, noise_size=noise_size
+    )
+    if np.ndim(stored) == 0:
+        assert type(bads.options["noise_size"]) is float
+    else:
+        assert bads.options["noise_size"].dtype == np.float64
+    assert np.array_equal(bads.options["noise_size"], stored)
 
 
 def _warns_noise_size_too_large(caplog):
@@ -312,8 +399,9 @@ def test_noise_size_takes_at_most_two_values():
         (np.array([2.0]), 1.0),
         ([2.0, 0.5], 0.5),
         ((2.0, np.inf), 1.0),
+        ((2.0, np.nan), 1.0),
     ],
-    ids=["list", "array", "pair", "pair_without_sd"],
+    ids=["list", "array", "pair", "pair_without_sd", "pair_nan_sd"],
 )
 def test_noise_size_forms(noise_size, prior_sd):
     """`noise_size` is a scalar or one value, or MATLAB's pair of the base

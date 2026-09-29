@@ -1,0 +1,16 @@
+base: $R/replay_periodic_parent
+  commit 20fc40f6, gpyreg 1.3.4.dev21+gb44634f2a at /home/user/gpyreg/gpyreg (b44634f)
+  Linux x86_64, Intel(R) Xeon(R) Processor @ 2.10GHz, numpy 2.5.3, scipy 1.18.1, OpenBLAS kernels [('Haswell', 1)]
+new:  $R/replay_periodic_head
+  commit 0a7f7af4, gpyreg 1.3.4.dev21+gb44634f2a at /home/user/gpyreg/gpyreg (b44634f)
+  Linux x86_64, Intel(R) Xeon(R) Processor @ 2.10GHz, numpy 2.5.3, scipy 1.18.1, OpenBLAS kernels [('Haswell', 1)]
+platform: identical
+
+periodic_D2_seed0                  identical  (52 evaluations, 31 steps, 45 GP computations)
+periodic_D3_hetero_seed0           identical  (150 evaluations, 65 steps, 267 GP computations)
+periodic_D3_homo_seed0             identical  (150 evaluations, 64 steps, 246 GP computations)
+periodic_D4_seed0                  identical  (123 evaluations, 55 steps, 82 GP computations)
+periodic_D6_seed0                  identical  (203 evaluations, 78 steps, 121 GP computations)
+periodic_rosenbrock_D4_seed0       identical  (182 evaluations, 94 steps, 145 GP computations)
+
+6 runs compared: 6 identical, 0 differ

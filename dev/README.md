@@ -366,6 +366,13 @@ reference's number of seeds.
   that of the time per evaluation, with the patch of `0f27db5` and its
   gate:
   [experiments/periodic_kernel_linux_20260929/](experiments/periodic_kernel_linux_20260929/README.md).
+- [experiments/udist_periodic_linux_20260929/](experiments/udist_periodic_linux_20260929/README.md)
+  — `udist` on periodic variables one variable at a time (`0a7f7af4`),
+  against its base on Linux: all 180 runs of the `periodic` suite at 30
+  seeds identical, and so are the replays, periodic configurations
+  included, the oracles and 3100 random cases; `udist` about four times
+  faster, a saving of 7.7 and 8.5 % of the own time of the noisy periodic
+  configurations and of about 1 % of the others'.
 - [experiments/w225_linux_20260928/](experiments/w225_linux_20260928/README.md)
   — row W2-25 of the port review (a noisy run's move to an earlier iterate
   takes its location with its value) against its revert, the five noisy

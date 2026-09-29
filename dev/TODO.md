@@ -134,18 +134,6 @@ decided on; "the next release" below means it.
   a harness would take: plain arrays and JSON, with prescribed draws
   (`ScriptedGenerator` in `_oracles.py`), which can be handed to MATLAB as
   arrays. Generating the references needs MATLAB and the BADS toolbox.
-- [ ] **`udist` on periodic variables.** With periodic variables,
-  `udist` (`search/grid_functions.py`) builds the `N x M x D` array of the
-  differences of every pair and wraps the periodic ones with `np.mod`,
-  where a run without them takes one `cdist`. Under cProfile, on seed 0 of
-  `periodic_D3_homo` at gpyreg `b44634f`, it takes 0.84 ms per call
-  against 0.11, about 0.5 s of the run's 8.9 s, nearly all of it in
-  `local_gp_fitting`, whose empirical prior of the length scales takes the
-  distances between all the training inputs
-  ([results/2026-09-28-periodic-variables.md](results/2026-09-28-periodic-variables.md),
-  "Time per evaluation"). A version that keeps its results to the last bit
-  is gated by the identity of the `periodic` suite's records; one that
-  changes them, by its comparison.
 - [ ] **Benchmarking on neurobench**, open porting work listed in
   `pybads/bads/README.md`: PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
@@ -166,32 +154,6 @@ decided on; "the next release" below means it.
   Example 6 (periodic variables) was run with gpyreg's development branch
   (`3f1a732`), before any gpyreg release had `periods`, and is rerun with
   the others, with gpyreg 1.4.0.
-- [ ] **Checks of option values when `BADS` is created.** `BADS` refuses
-  a bad value of some options when it is created, with a `ValueError`
-  that names the option (among them `max_fun_evals`, the options whose
-  default is a boolean, `tol_fun` and `random_seed`), but not of others.
-  Measured on 2026-09-28: a string for `max_iter`, `search_n_try` or
-  `tol_stall_iters` (`"200*D"`, `"D"`, `"5"`) raises a `TypeError` inside
-  `optimize()`, after the initial design has spent its evaluations; a
-  string for `tol_mesh` raises NumPy's `TypeError` at creation, and one
-  for `noise_size` too, at the comparison of its check, neither naming the
-  option; `max_iter=2.5` is taken as it is; and `tol_mesh=-1.0` runs, with
-  a `RuntimeWarning` from its logarithm, and the mesh criterion never ends
-  the run. A check of each when `BADS` is created, with a `ValueError`
-  that names the option, as for `max_fun_evals`, changes what a script
-  written for 1.1.0 gets, so it takes a line of the changelog's "Upgrading
-  from" list, and the FAQ's answer on the differences from MATLAB BADS,
-  which describes the present behaviour, changes with it.
-- [ ] **User documentation written out twice.** Some advice is written
-  out in several places, which can drift apart: the list of the problems
-  that PyBADS suits, in `README.md` ("When should I use PyBADS?"),
-  `docsrc/source/index.rst` ("Should I use PyBADS?"), section 0 of
-  Example 1 and the FAQ ("Which kind of problems is PyBADS suited for?");
-  the passing of additional data to the objective, in the getting-started
-  page (`docsrc/source/quickstart.rst`) and the FAQ; and the amount of
-  noise that PyBADS handles, in the "Remarks" of Example 3 and the FAQ.
-  Each is kept in one place and linked from the others, or the copies are
-  kept in step.
 - [ ] **gpyreg releases after 1.3.3.** PyBADS's minimum gpyreg
   (`pyproject.toml`) is 1.3.3 as of 2026-09-25
   ([assessment](results/2026-09-25-gpyreg-1.3.3.md)), and its CI pin

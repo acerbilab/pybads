@@ -67,12 +67,15 @@ See our paper for more details (`Acerbi and Ma, 2017 <#references>`_).
 Should I use PyBADS?
 --------------------
 
-BADS is particularly recommended when:
+BADS is particularly recommended for problems in which:
 
-- the objective function landscape is rough (nonsmooth), typically due to numerical approximations or noise;
-- the objective function is at least moderately expensive to compute (e.g., more than 0.1 second per function evaluation);
-- the gradient is unavailable (black-box function);
-- the number of input parameters is up to about `D = 20` or so.
+.. include:: faq.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- suited-for: start -->
+   :end-before: <!-- suited-for: end -->
+
+The :ref:`FAQ <faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem>`
+says what to use for other problems.
 
 How-to
 #############

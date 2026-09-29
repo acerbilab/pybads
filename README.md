@@ -38,12 +38,15 @@ copy the folder again from the PyBADS version you use.
 
 ## When should I use PyBADS?
 
-BADS is effective when:
+We recommend PyBADS for problems in which:
 
-- the objective function landscape is rough (nonsmooth), typically due to numerical approximations or noise;
-- the objective function is at least moderately expensive to compute (e.g., more than 0.1 second per function evaluation);
-- the gradient is unavailable (black-box function);
-- the number of input parameters is up to about `D = 20` or so.
+<!-- This list copies the one of the FAQ's answer "Which kind of problems is PyBADS suited for?" (docsrc/source/faq.md): a change to it is made in both. -->
+- the objective function landscape is *rough* (nonsmooth), typically due to numerical approximations or noise;
+- the objective function is at least moderately expensive to compute (e.g., more than 0.1 s per function evaluation);
+- the gradient is unavailable;
+- the number of input parameters is up to about `D = 20`.
+
+The FAQ says [what to use for other problems](https://acerbilab.github.io/pybads/faq.html#faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem).
 
 ## Installation
 
