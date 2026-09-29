@@ -212,9 +212,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   `ucov` take a periodic difference the shorter way round, and the GP's
   kernel takes the periods from `_gp_periods` (gpyreg's `periods`), only
   in a run that has periodic variables: without them the kernel gets no
-  `periods`. The `default` suite does not reach any of this; the gate of
-  a change to it is the `periodic` suite against
-  `dev/experiments/population_periodic_linux_20260928`.
+  `periods`. The `default` suite reaches this code through its two
+  periodic configurations; the `periodic` suite, with its reference
+  `dev/experiments/population_periodic_linux_20260928`, gates a change to
+  it in detail.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`
@@ -321,8 +322,10 @@ under `dev/experiments/` (its `README.md` holds the command, the
 provenance, the null check, the positive control and what "no flag" can
 detect at its number of seeds). There is one reference for Windows and one
 for Linux, since pairing by seed holds only on one platform and set of
-versions; `dev/README.md` names both. A gate is evidence only if it reaches
-the changed code: the benchmark exercises the default options, so a change
+versions; `dev/README.md` names both. `compare` tests only the
+configurations that both populations hold, so a configuration added to a
+suite goes ungated, without a word, until the reference holds it too. A
+gate is evidence only if it reaches the changed code: the benchmark exercises the default options, so a change
 behind a non-default option needs a configuration that sets it. Every
 evidence run selects gpyreg explicitly, with `PYTHONPATH` naming a clone at
 the release tag (`dev/scripts/runs/LOCAL.md` lists them): the editable

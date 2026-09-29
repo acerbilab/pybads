@@ -242,13 +242,20 @@ decided on; "the next release" below means it.
     run with periodic variables stops with `TypeError` when its GP is
     built, and the tests of periodic variables fail under the CI pin. The
     changelog's entry "Requirements" and the line of "Upgrading from
-    1.1.0" name the new minimum. The default suites do not reach the
-    periods, so the release's comparison also runs the `periodic` suite,
-    on Linux against the "on" arm of
-    [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md),
-    and on Windows, which has no reference of the suite, both arms of it
-    (with `--options '{"periodic_vars": null}'` for "off"), as there.
-    gpyreg's release notes list `periods` under "1.3.4 (unreleased)"; a new
+    1.1.0" name the new minimum. The `default` suite holds two periodic
+    configurations, `periodic_D4` and `periodic_D3_homo` (PI, 2026-09-29),
+    which its references, the Windows one at 100 seeds and the Linux one
+    at 30, lack: `population.py compare` tests only the configurations
+    that both populations hold, so until then it skips them without a
+    word. The release's comparison runs the whole `default` suite with the
+    release's clone on both platforms, at the references' numbers of
+    seeds, and its populations become the new references, the two
+    periodic configurations included (PI, 2026-09-29): on Linux these two
+    are compared with the "on" arm of
+    [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
+    on Windows, which has no run of them, the whole `periodic` suite runs
+    in both arms (with `--options '{"periodic_vars": null}'` for "off"),
+    as on Linux. gpyreg's release notes list `periods` under "1.3.4 (unreleased)"; a new
     feature may call for 1.4.0, the maintainers' choice;
   - the fix of the port review's W1-24 (the log prior of a prior far
     outside its bounds, acerbilab/gpyreg#57) and W1-25's switch

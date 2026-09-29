@@ -4,7 +4,8 @@ The evidence of the port of periodic variables
 ([`results/2026-09-28-periodic-variables.md`](../../results/2026-09-28-periodic-variables.md)),
 and, in its "on" arm, the reference on Linux of the `periodic` suite of
 `dev/scripts/benchmark_targets.py`, the gate of a change to the handling of
-periodic variables, which the `default` suite does not reach. The suite's
+periodic variables, which the `default` suite reaches through two of its
+configurations. The suite's
 six configurations set `periodic_vars` ("on"); the same problems run as
 bounded ones with `--options '{"periodic_vars": null}'` ("off"), paired by
 seed (each seed's start point and noise stream are the same in both).

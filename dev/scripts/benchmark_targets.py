@@ -1066,11 +1066,16 @@ def make_problem(
 # Suites
 # --------------------------------------------------------------------------
 
-# The default suite. Its 18 configurations cover every target, dimension (2,
-# 3, 6, and 10 for sphere and ellipsoid; 5 for timing), noise kind and
-# constraint type, not every combination; the ellipsoid at D = 3 appears
-# with finite bounds, infinite bounds and both noise kinds, on the same
-# shifted target, and multisensory_s1 with and without noise. Every budget
+# The default suite. Its 20 configurations cover every target but those
+# kept to the suites below (logsphere, edgesphere, ridge, sphere_band and
+# periodic_rosenbrock), dimension (2, 3, 4, 6, and 10 for sphere and
+# ellipsoid; 5 for timing), noise kind and constraint type, not every
+# combination; the ellipsoid at D = 3 appears with finite bounds, infinite
+# bounds and both noise kinds, on the same shifted target, and
+# multisensory_s1 with and without noise. Two configurations of the
+# `periodic` suite, one deterministic and one noisy, bring periodic
+# variables into every gate; the references of the suite with gpyreg 1.3.3
+# lack them (dev/TODO.md, "gpyreg releases after 1.3.3"). Every budget
 # is BADS's default, 500 D. A calibration at that budget (4 seeds per
 # configuration, 2026-09-24) found every run ending on BADS's own
 # termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
@@ -1097,6 +1102,8 @@ _DEFAULT = [
     Config("timing", 5, budget=500),
     Config("multisensory_s1", 6, budget=500),
     Config("multisensory_s1", 6, noise="homo", budget=500),
+    Config("periodic", 4, budget=500),
+    Config("periodic", 3, noise="homo", budget=500),
 ]
 
 # One configuration per code path: deterministic, inferred noise, specified
@@ -1152,11 +1159,12 @@ _GEOMETRY = [
     Config("sphere_band", 3, budget=500),
 ]
 
-# The configurations with periodic variables (periodic_vars), which no other
-# suite has: minima across the bounds of the periodic variables, one to
-# three of them, with both noise kinds, and MATLAB BADS's Example 5. The
-# gate of a change to the handling of periodic variables; run with
-# --options '{"periodic_vars": null}', the same problems as bounded ones.
+# The configurations with periodic variables (periodic_vars): minima across
+# the bounds of the periodic variables, one to three of them, with both
+# noise kinds, and MATLAB BADS's Example 5; the default suite holds two of
+# them. The gate of a change to the handling of periodic variables; run
+# with --options '{"periodic_vars": null}', the same problems as bounded
+# ones.
 _PERIODIC = [
     Config("periodic", 2, budget=500),
     Config("periodic", 4, budget=500),
