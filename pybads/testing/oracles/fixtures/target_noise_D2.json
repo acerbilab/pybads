@@ -146,36 +146,113 @@
    "search_count": 3,
    "step": "search"
   },
-  "generated": "2026-09-28 22:33:13",
-  "git": {
-   "dirty": true,
-   "sha": "de0f7ce0"
-  },
-  "gp_condition_bound": 48958.19003617749,
-  "gpyreg_git": {
-   "dirty": false,
-   "sha": "98ab5a4"
+  "generated": "2026-09-29 02:09:26",
+  "gp_condition_bound": {
+   "stored": 48958.19003617749
   },
   "non_box_cons": null,
   "note": "the target returns its noise SD (level 2), D = 2: the GP carries the noise variances",
   "oracle_seed": 20260928,
   "platform_key": {
-   "blas_env": {
-    "MKL_NUM_THREADS": "1",
-    "OMP_NUM_THREADS": "1",
-    "OPENBLAS_CORETYPE": null,
-    "OPENBLAS_NUM_THREADS": "1"
+   "blas_build": {
+    "blas": {
+     "name": "scipy-openblas",
+     "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+     "version": "0.3.31.188.0"
+    },
+    "lapack": {
+     "name": "scipy-openblas",
+     "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+     "version": "0.3.31.188.0"
+    }
    },
    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
    "cpu_count": 4,
-   "gpyreg": "1.3.3",
+   "env": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_CORETYPE": null,
+    "OPENBLAS_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": null
+   },
+   "gpyreg": {
+    "git": {
+     "describe": "v1.3.3-0-g98ab5a4",
+     "dirty": false,
+     "sha": "98ab5a4"
+    },
+    "installed_version": "1.3.3",
+    "source": "/home/user/gpyreg/gpyreg"
+   },
+   "libc": "glibc 2.39",
    "machine": "x86_64",
    "numpy": "2.4.6",
-   "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+   "numpy_cpu_features": [
+    "AVX",
+    "AVX2",
+    "AVX512BF16",
+    "AVX512BITALG",
+    "AVX512BW",
+    "AVX512CD",
+    "AVX512DQ",
+    "AVX512F",
+    "AVX512FP16",
+    "AVX512IFMA",
+    "AVX512VBMI",
+    "AVX512VBMI2",
+    "AVX512VL",
+    "AVX512VNNI",
+    "AVX512VPOPCNTDQ",
+    "AVX512_CLX",
+    "AVX512_CNL",
+    "AVX512_ICL",
+    "AVX512_SKX",
+    "AVX512_SPR",
+    "BMI",
+    "BMI2",
+    "CX16",
+    "F16C",
+    "FMA3",
+    "GFNI",
+    "LAHF",
+    "LZCNT",
+    "MMX",
+    "MOVBE",
+    "POPCNT",
+    "SSE",
+    "SSE2",
+    "SSE3",
+    "SSE41",
+    "SSE42",
+    "SSSE3",
+    "VAES",
+    "VPCLMULQDQ",
+    "X86_V2",
+    "X86_V3",
+    "X86_V4"
+   ],
+   "openblas_runtime": [
+    {
+     "corename": "SkylakeX",
+     "library": "libscipy_openblas64_-32a4b2a6.so",
+     "threads": 1
+    },
+    {
+     "corename": "SkylakeX",
+     "library": "libscipy_openblas-6cdc3b4a.so",
+     "threads": 1
+    }
+   ],
+   "os": "Linux",
    "python": "3.11.15",
    "scipy": "1.17.1"
   },
-  "reason": "first generation",
+  "pybads": {
+   "describe": "v1.1.0-89-gf13e0da6",
+   "dirty": false,
+   "sha": "f13e0da6"
+  },
+  "reason": "the fixtures store the portable outputs alone, with noise-floor views of the ill-conditioned snapshots",
   "recipe": "target_noise_D2",
   "target": "sphere_with_sd",
   "target_args": {
@@ -190,12 +267,6 @@
    "random_seed": 5,
    "specify_target_noise": true,
    "uncertainty_handling": true
-  },
-  "versions": {
-   "gpyreg": "1.3.3",
-   "numpy": "2.4.6",
-   "pybads": "1.1.1.dev52+gbec8a57a8",
-   "scipy": "1.17.1"
   },
   "x0": [
    2.5,
@@ -459,15 +530,6 @@
    "iter3_u": "@@npz:ref/es_generations/iter3_u",
    "iter3_z": "@@npz:ref/es_generations/iter3_z"
   },
-  "es_search_step": {
-   "ell_u": "@@npz:ref/es_search_step/ell_u",
-   "ell_z": "@@npz:ref/es_search_step/ell_z",
-   "hedge_chosen": "@@npz:ref/es_search_step/hedge_chosen",
-   "hedge_u": "@@npz:ref/es_search_step/hedge_u",
-   "hedge_z": "@@npz:ref/es_search_step/hedge_z",
-   "wcm_u": "@@npz:ref/es_search_step/wcm_u",
-   "wcm_z": "@@npz:ref/es_search_step/wcm_z"
-  },
   "es_setup": {
    "ell_sqrt_sigma": "@@npz:ref/es_setup/ell_sqrt_sigma",
    "mask_1_5": "@@npz:ref/es_setup/mask_1_5",
@@ -524,13 +586,6 @@
    "fmu": "@@npz:ref/gp_predict/fmu",
    "fs2": "@@npz:ref/gp_predict/fs2",
    "fs2_y": "@@npz:ref/gp_predict/fs2_y"
-  },
-  "gp_refit": {
-   "effective_radius": "@@npz:ref/gp_refit/effective_radius",
-   "exit_flag": "@@npz:ref/gp_refit/exit_flag",
-   "hyp": "@@npz:ref/gp_refit/hyp",
-   "len_scale": "@@npz:ref/gp_refit/len_scale",
-   "poll_scale": "@@npz:ref/gp_refit/poll_scale"
   },
   "gp_training_set": {
    "incumbent_exit_flag": "@@npz:ref/gp_training_set/incumbent_exit_flag",
@@ -621,5 +676,6 @@
    "state": 236027871655140177192962351646031829835
   },
   "uinteger": 3365687172
- }
+ },
+ "schema": 1
 }
