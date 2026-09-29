@@ -98,6 +98,7 @@
   "yval": 0.045984875292051586
  },
  "inputs": {
+  "noise_floor_hyp": "@@npz:inputs/noise_floor_hyp",
   "small_n_train_max": 24
  },
  "logger": {
@@ -150,36 +151,114 @@
    "search_count": 0,
    "step": "search"
   },
-  "generated": "2026-09-28 22:33:14",
-  "git": {
-   "dirty": true,
-   "sha": "de0f7ce0"
-  },
-  "gp_condition_bound": 801113256738404.8,
-  "gpyreg_git": {
-   "dirty": false,
-   "sha": "98ab5a4"
+  "generated": "2026-09-29 02:09:27",
+  "gp_condition_bound": {
+   "noise_floor": 1000000.0,
+   "stored": 801113256738404.8
   },
   "non_box_cons": "disk_violation",
   "note": "a non-box constraint (a disk in the first two variables) that excludes the target's minimum, D = 3",
   "oracle_seed": 20260928,
   "platform_key": {
-   "blas_env": {
-    "MKL_NUM_THREADS": "1",
-    "OMP_NUM_THREADS": "1",
-    "OPENBLAS_CORETYPE": null,
-    "OPENBLAS_NUM_THREADS": "1"
+   "blas_build": {
+    "blas": {
+     "name": "scipy-openblas",
+     "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+     "version": "0.3.31.188.0"
+    },
+    "lapack": {
+     "name": "scipy-openblas",
+     "openblas configuration": "OpenBLAS 0.3.31.188.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+     "version": "0.3.31.188.0"
+    }
    },
    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
    "cpu_count": 4,
-   "gpyreg": "1.3.3",
+   "env": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_CORETYPE": null,
+    "OPENBLAS_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": null
+   },
+   "gpyreg": {
+    "git": {
+     "describe": "v1.3.3-0-g98ab5a4",
+     "dirty": false,
+     "sha": "98ab5a4"
+    },
+    "installed_version": "1.3.3",
+    "source": "/home/user/gpyreg/gpyreg"
+   },
+   "libc": "glibc 2.39",
    "machine": "x86_64",
    "numpy": "2.4.6",
-   "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+   "numpy_cpu_features": [
+    "AVX",
+    "AVX2",
+    "AVX512BF16",
+    "AVX512BITALG",
+    "AVX512BW",
+    "AVX512CD",
+    "AVX512DQ",
+    "AVX512F",
+    "AVX512FP16",
+    "AVX512IFMA",
+    "AVX512VBMI",
+    "AVX512VBMI2",
+    "AVX512VL",
+    "AVX512VNNI",
+    "AVX512VPOPCNTDQ",
+    "AVX512_CLX",
+    "AVX512_CNL",
+    "AVX512_ICL",
+    "AVX512_SKX",
+    "AVX512_SPR",
+    "BMI",
+    "BMI2",
+    "CX16",
+    "F16C",
+    "FMA3",
+    "GFNI",
+    "LAHF",
+    "LZCNT",
+    "MMX",
+    "MOVBE",
+    "POPCNT",
+    "SSE",
+    "SSE2",
+    "SSE3",
+    "SSE41",
+    "SSE42",
+    "SSSE3",
+    "VAES",
+    "VPCLMULQDQ",
+    "X86_V2",
+    "X86_V3",
+    "X86_V4"
+   ],
+   "openblas_runtime": [
+    {
+     "corename": "SkylakeX",
+     "library": "libscipy_openblas64_-32a4b2a6.so",
+     "threads": 1
+    },
+    {
+     "corename": "SkylakeX",
+     "library": "libscipy_openblas-6cdc3b4a.so",
+     "threads": 1
+    }
+   ],
+   "os": "Linux",
    "python": "3.11.15",
    "scipy": "1.17.1"
   },
-  "reason": "first generation",
+  "pybads": {
+   "describe": "v1.1.0-89-gf13e0da6",
+   "dirty": false,
+   "sha": "f13e0da6"
+  },
+  "reason": "the fixtures store the portable outputs alone, with noise-floor views of the ill-conditioned snapshots",
   "recipe": "nonbox_D3",
   "target": "sphere",
   "target_args": {
@@ -193,12 +272,6 @@
    "display": "off",
    "random_seed": 8,
    "uncertainty_handling": false
-  },
-  "versions": {
-   "gpyreg": "1.3.3",
-   "numpy": "2.4.6",
-   "pybads": "1.1.1.dev52+gbec8a57a8",
-   "scipy": "1.17.1"
   },
   "x0": [
    -1.0,
@@ -490,12 +563,13 @@
   "warp_func": 0
  },
  "ref": {
-  "acq_lcb": {
-   "f_mu": "@@npz:ref/acq_lcb/f_mu",
-   "f_s": "@@npz:ref/acq_lcb/f_s",
-   "z": "@@npz:ref/acq_lcb/z",
-   "z_callable": "@@npz:ref/acq_lcb/z_callable",
-   "z_fixed": "@@npz:ref/acq_lcb/z_fixed"
+  "acq_lcb": {},
+  "acq_lcb@noise_floor": {
+   "f_mu": "@@npz:ref/acq_lcb@noise_floor/f_mu",
+   "f_s": "@@npz:ref/acq_lcb@noise_floor/f_s",
+   "z": "@@npz:ref/acq_lcb@noise_floor/z",
+   "z_callable": "@@npz:ref/acq_lcb@noise_floor/z_callable",
+   "z_fixed": "@@npz:ref/acq_lcb@noise_floor/z_fixed"
   },
   "contraints_check": {
    "coarse": "@@npz:ref/contraints_check/coarse",
@@ -516,15 +590,6 @@
    "iter3_sizes": "@@npz:ref/es_generations/iter3_sizes",
    "iter3_u": "@@npz:ref/es_generations/iter3_u",
    "iter3_z": "@@npz:ref/es_generations/iter3_z"
-  },
-  "es_search_step": {
-   "ell_u": "@@npz:ref/es_search_step/ell_u",
-   "ell_z": "@@npz:ref/es_search_step/ell_z",
-   "hedge_chosen": "@@npz:ref/es_search_step/hedge_chosen",
-   "hedge_u": "@@npz:ref/es_search_step/hedge_u",
-   "hedge_z": "@@npz:ref/es_search_step/hedge_z",
-   "wcm_u": "@@npz:ref/es_search_step/wcm_u",
-   "wcm_z": "@@npz:ref/es_search_step/wcm_z"
   },
   "es_setup": {
    "ell_sqrt_sigma": "@@npz:ref/es_setup/ell_sqrt_sigma",
@@ -578,47 +643,63 @@
    "two_prior_sigma": "@@npz:ref/gp_hyp/two_prior_sigma",
    "two_upper_bounds": "@@npz:ref/gp_hyp/two_upper_bounds"
   },
-  "gp_predict": {
-   "fmu": "@@npz:ref/gp_predict/fmu",
-   "fs2": "@@npz:ref/gp_predict/fs2",
-   "fs2_y": "@@npz:ref/gp_predict/fs2_y"
-  },
-  "gp_refit": {
-   "effective_radius": "@@npz:ref/gp_refit/effective_radius",
-   "exit_flag": "@@npz:ref/gp_refit/exit_flag",
-   "hyp": "@@npz:ref/gp_refit/hyp",
-   "len_scale": "@@npz:ref/gp_refit/len_scale",
-   "poll_scale": "@@npz:ref/gp_refit/poll_scale"
+  "gp_predict": {},
+  "gp_predict@noise_floor": {
+   "fmu": "@@npz:ref/gp_predict@noise_floor/fmu",
+   "fs2": "@@npz:ref/gp_predict@noise_floor/fs2",
+   "fs2_y": "@@npz:ref/gp_predict@noise_floor/fs2_y"
   },
   "gp_training_set": {
    "incumbent_exit_flag": "@@npz:ref/gp_training_set/incumbent_exit_flag",
-   "incumbent_fmu": "@@npz:ref/gp_training_set/incumbent_fmu",
-   "incumbent_fs2": "@@npz:ref/gp_training_set/incumbent_fs2",
    "incumbent_ntrain": "@@npz:ref/gp_training_set/incumbent_ntrain",
    "incumbent_prior_mu": "@@npz:ref/gp_training_set/incumbent_prior_mu",
    "incumbent_prior_sigma": "@@npz:ref/gp_training_set/incumbent_prior_sigma",
    "incumbent_rows": "@@npz:ref/gp_training_set/incumbent_rows",
    "small_incumbent_exit_flag": "@@npz:ref/gp_training_set/small_incumbent_exit_flag",
-   "small_incumbent_fmu": "@@npz:ref/gp_training_set/small_incumbent_fmu",
-   "small_incumbent_fs2": "@@npz:ref/gp_training_set/small_incumbent_fs2",
    "small_incumbent_ntrain": "@@npz:ref/gp_training_set/small_incumbent_ntrain",
    "small_incumbent_prior_mu": "@@npz:ref/gp_training_set/small_incumbent_prior_mu",
    "small_incumbent_prior_sigma": "@@npz:ref/gp_training_set/small_incumbent_prior_sigma",
    "small_incumbent_rows": "@@npz:ref/gp_training_set/small_incumbent_rows",
    "small_worst_exit_flag": "@@npz:ref/gp_training_set/small_worst_exit_flag",
-   "small_worst_fmu": "@@npz:ref/gp_training_set/small_worst_fmu",
-   "small_worst_fs2": "@@npz:ref/gp_training_set/small_worst_fs2",
    "small_worst_ntrain": "@@npz:ref/gp_training_set/small_worst_ntrain",
    "small_worst_prior_mu": "@@npz:ref/gp_training_set/small_worst_prior_mu",
    "small_worst_prior_sigma": "@@npz:ref/gp_training_set/small_worst_prior_sigma",
    "small_worst_rows": "@@npz:ref/gp_training_set/small_worst_rows",
    "worst_exit_flag": "@@npz:ref/gp_training_set/worst_exit_flag",
-   "worst_fmu": "@@npz:ref/gp_training_set/worst_fmu",
-   "worst_fs2": "@@npz:ref/gp_training_set/worst_fs2",
    "worst_ntrain": "@@npz:ref/gp_training_set/worst_ntrain",
    "worst_prior_mu": "@@npz:ref/gp_training_set/worst_prior_mu",
    "worst_prior_sigma": "@@npz:ref/gp_training_set/worst_prior_sigma",
    "worst_rows": "@@npz:ref/gp_training_set/worst_rows"
+  },
+  "gp_training_set@noise_floor": {
+   "incumbent_exit_flag": "@@npz:ref/gp_training_set@noise_floor/incumbent_exit_flag",
+   "incumbent_fmu": "@@npz:ref/gp_training_set@noise_floor/incumbent_fmu",
+   "incumbent_fs2": "@@npz:ref/gp_training_set@noise_floor/incumbent_fs2",
+   "incumbent_ntrain": "@@npz:ref/gp_training_set@noise_floor/incumbent_ntrain",
+   "incumbent_prior_mu": "@@npz:ref/gp_training_set@noise_floor/incumbent_prior_mu",
+   "incumbent_prior_sigma": "@@npz:ref/gp_training_set@noise_floor/incumbent_prior_sigma",
+   "incumbent_rows": "@@npz:ref/gp_training_set@noise_floor/incumbent_rows",
+   "small_incumbent_exit_flag": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_exit_flag",
+   "small_incumbent_fmu": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_fmu",
+   "small_incumbent_fs2": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_fs2",
+   "small_incumbent_ntrain": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_ntrain",
+   "small_incumbent_prior_mu": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_prior_mu",
+   "small_incumbent_prior_sigma": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_prior_sigma",
+   "small_incumbent_rows": "@@npz:ref/gp_training_set@noise_floor/small_incumbent_rows",
+   "small_worst_exit_flag": "@@npz:ref/gp_training_set@noise_floor/small_worst_exit_flag",
+   "small_worst_fmu": "@@npz:ref/gp_training_set@noise_floor/small_worst_fmu",
+   "small_worst_fs2": "@@npz:ref/gp_training_set@noise_floor/small_worst_fs2",
+   "small_worst_ntrain": "@@npz:ref/gp_training_set@noise_floor/small_worst_ntrain",
+   "small_worst_prior_mu": "@@npz:ref/gp_training_set@noise_floor/small_worst_prior_mu",
+   "small_worst_prior_sigma": "@@npz:ref/gp_training_set@noise_floor/small_worst_prior_sigma",
+   "small_worst_rows": "@@npz:ref/gp_training_set@noise_floor/small_worst_rows",
+   "worst_exit_flag": "@@npz:ref/gp_training_set@noise_floor/worst_exit_flag",
+   "worst_fmu": "@@npz:ref/gp_training_set@noise_floor/worst_fmu",
+   "worst_fs2": "@@npz:ref/gp_training_set@noise_floor/worst_fs2",
+   "worst_ntrain": "@@npz:ref/gp_training_set@noise_floor/worst_ntrain",
+   "worst_prior_mu": "@@npz:ref/gp_training_set@noise_floor/worst_prior_mu",
+   "worst_prior_sigma": "@@npz:ref/gp_training_set@noise_floor/worst_prior_sigma",
+   "worst_rows": "@@npz:ref/gp_training_set@noise_floor/worst_rows"
   },
   "grid_functions": {
    "force_to_grid": "@@npz:ref/grid_functions/force_to_grid",
@@ -636,15 +717,23 @@
    "chosen": "@@npz:ref/hedge/chosen",
    "draws": "@@npz:ref/hedge/draws",
    "g": "@@npz:ref/hedge/g",
-   "gamma0_chosen": "@@npz:ref/hedge/gamma0_chosen",
-   "gamma0_draws": "@@npz:ref/hedge/gamma0_draws",
-   "gamma0_g": "@@npz:ref/hedge/gamma0_g",
-   "gamma0_phat": "@@npz:ref/hedge/gamma0_phat",
-   "gamma0_prob": "@@npz:ref/hedge/gamma0_prob",
-   "gamma0_searches": "@@npz:ref/hedge/gamma0_searches",
    "phat": "@@npz:ref/hedge/phat",
    "prob": "@@npz:ref/hedge/prob",
    "searches": "@@npz:ref/hedge/searches"
+  },
+  "hedge@noise_floor": {
+   "chosen": "@@npz:ref/hedge@noise_floor/chosen",
+   "draws": "@@npz:ref/hedge@noise_floor/draws",
+   "g": "@@npz:ref/hedge@noise_floor/g",
+   "gamma0_chosen": "@@npz:ref/hedge@noise_floor/gamma0_chosen",
+   "gamma0_draws": "@@npz:ref/hedge@noise_floor/gamma0_draws",
+   "gamma0_g": "@@npz:ref/hedge@noise_floor/gamma0_g",
+   "gamma0_phat": "@@npz:ref/hedge@noise_floor/gamma0_phat",
+   "gamma0_prob": "@@npz:ref/hedge@noise_floor/gamma0_prob",
+   "gamma0_searches": "@@npz:ref/hedge@noise_floor/gamma0_searches",
+   "phat": "@@npz:ref/hedge@noise_floor/phat",
+   "prob": "@@npz:ref/hedge@noise_floor/prob",
+   "searches": "@@npz:ref/hedge@noise_floor/searches"
   },
   "improvement": {
    "sto_flags": "@@npz:ref/improvement/sto_flags",
@@ -679,5 +768,6 @@
    "state": 326378378554118556244265139172293991352
   },
   "uinteger": 3133121420
- }
+ },
+ "schema": 1
 }
