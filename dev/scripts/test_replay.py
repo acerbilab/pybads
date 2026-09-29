@@ -297,8 +297,8 @@ def test_missing_private_name_fails_loudly(monkeypatch):
 
 def test_benchmark_without_thread_variables(monkeypatch):
     """Beside a ``benchmark_targets.py`` without ``THREAD_VARS`` (a commit
-    before c60a5238), the script imports and pins and records the thread
-    variables that ``benchmark_targets.THREAD_VARS`` names."""
+    before c60a5238), the script imports, and it pins and records the
+    thread variables that ``benchmark_targets.THREAD_VARS`` names."""
     import benchmark_targets as bt
 
     older = types.ModuleType("benchmark_targets")

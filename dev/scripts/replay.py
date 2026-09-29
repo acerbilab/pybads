@@ -94,7 +94,7 @@ reports as runs that differ. The copy takes the parent's
 ``benchmark_targets.py`` and ``population.py``, which have what it needs,
 the default configurations included, at every commit from 0d866e84
 (2026-09-27) on; a ``benchmark_targets.py`` from before c60a5238 lacks
-``THREAD_VARS``, for which this script holds the same four variables. At
+``THREAD_VARS``, and this script holds a copy of its four variables. At
 an older commit the recording stops with ``MissingName``: its ``BADS``
 does not set ``poll_moved``, which the recorder reads. ``--repeat 2`` and
 ``check DIR`` find the first computation at which two runs of one process
@@ -144,7 +144,8 @@ DEFAULT_BUDGET_SCALE = 0.1  # of the suites' 500 D: 50 D evaluations
 DEFAULT_RUNS = REPO_ROOT / "dev" / "scripts" / "runs" / "replay"
 # The thread variables pinned and recorded, as the other tools do. The
 # `benchmark_targets.py` of a commit before c60a5238, beside a copy of this
-# script in a worktree at that commit, lacks them: the same four stand in.
+# script in a worktree at that commit, lacks THREAD_VARS: a copy of its
+# four variables stands in.
 THREAD_VARS = getattr(
     bt,
     "THREAD_VARS",
