@@ -368,3 +368,77 @@ def test_bounds_that_are_not_numbers_are_refused(lower_bounds):
     convert, is refused with a message that names it."""
     with pytest.raises(ValueError, match="lower_bounds needs to be a number"):
         VariableTransformer(D, lower_bounds, np.full((1, D), 10.0))
+
+
+def _transformer_with_fixed_values():
+    """A transform of D variables, the first on a log scale, within points
+    of five variables whose first and fourth are fixed."""
+    return VariableTransformer(
+        D,
+        np.array([0.01, -10.0, -10.0]),
+        np.array([100.0, 10.0, 10.0]),
+        np.array([0.1, -5.0, -5.0]),
+        np.array([10.0, 5.0, 5.0]),
+        fixed_values=np.array([2.0, np.nan, np.nan, -1.5, np.nan]),
+    )
+
+
+@pytest.mark.parametrize("shape", [(D,), (1, D), (4, D)])
+def test_fixed_values_are_put_back_by_the_inverse(shape):
+    """With `fixed_values`, the inverse returns points of all the
+    variables, the fixed ones at their values and the others as the
+    transform without them gives them, and the transform takes such points
+    and leaves their fixed coordinates out, for one point or several."""
+    transformer = _transformer_with_fixed_values()
+    without = VariableTransformer(
+        D,
+        transformer.orig_lb,
+        transformer.orig_ub,
+        transformer.orig_plb,
+        transformer.orig_pub,
+    )
+    u = np.random.default_rng(0).uniform(-1, 1, shape)
+    x = transformer.inverse_transf(u)
+    assert x.shape == shape[:-1] + (5,)
+    assert np.all(x[..., [0, 3]] == [2.0, -1.5])
+    x_free = x[..., [1, 2, 4]]
+    assert np.array_equal(x_free, without.inverse_transf(u))
+    assert np.array_equal(transformer(x), without(x_free))
+    assert np.allclose(transformer(x), u)
+    assert np.array_equal(transformer(x.tolist()), transformer(x))
+
+
+@pytest.mark.parametrize(
+    "fixed_values",
+    [
+        np.array([2.0, np.nan, np.nan]),
+        np.array([2.0, np.nan, np.nan, np.nan, np.nan]),
+        np.array([np.inf, np.nan, np.nan, np.nan]),
+        np.array([[2.0, np.nan], [np.nan, np.nan]]),
+        "2, nan, nan, nan",
+    ],
+    ids=["too_few_free", "too_many_free", "infinite", "2d", "string"],
+)
+def test_fixed_values_are_refused_unless_nan_at_the_d_variables(fixed_values):
+    """`fixed_values` is a row, NaN at exactly D variables and finite at the
+    others."""
+    with pytest.raises(ValueError, match="fixed_values needs to be a row"):
+        VariableTransformer(
+            D, -np.ones(D), np.ones(D), fixed_values=fixed_values
+        )
+
+
+def test_fixed_values_of_nan_fix_nothing():
+    """A `fixed_values` of NaN at every variable fixes none: the transform
+    is the one without it, and its original space has its D variables."""
+    bounds = (-np.ones(D), np.ones(D), -0.5 * np.ones(D), 0.5 * np.ones(D))
+    transformer = VariableTransformer(
+        D, *bounds, fixed_values=np.full(D, np.nan)
+    )
+    assert transformer.fixed_values is None
+    assert transformer.D_orig == D
+    u = np.random.default_rng(1).uniform(-1, 1, (4, D))
+    assert np.array_equal(
+        transformer.inverse_transf(u),
+        VariableTransformer(D, *bounds).inverse_transf(u),
+    )

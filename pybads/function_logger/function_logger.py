@@ -16,7 +16,11 @@ class FunctionLogger:
         ``uncertainty_handling_level`` is 2, a tuple of the value and its
         (estimated) SD.
     D : int
-        The number of dimensions that the function takes as input.
+        The number of dimensions of the points that the logger takes, in the
+        transformed space. The function takes as many, unless the
+        ``variable_transformer`` has fixed variables (``fixed_values``): it
+        then takes points of all the variables of the original space, as
+        ``X_orig`` holds them.
     noise_flag : bool
         Whether the logger holds the standard deviations of the noise that
         the function returns (``S``).
@@ -50,7 +54,12 @@ class FunctionLogger:
 
         self.func_count: int = 0
         self.cache_count: int = 0
-        self.X_orig = np.full([cache_size, self.D], np.nan)
+        # The points in the original space hold the fixed variables of the
+        # transform too, which it leaves out of the transformed ones
+        self.D_orig: int = (
+            D if variable_transformer is None else variable_transformer.D_orig
+        )
+        self.X_orig = np.full([cache_size, self.D_orig], np.nan)
         self.Y_orig = np.full([cache_size, 1], np.nan)
         self.X = np.full([cache_size, self.D], np.nan)
         self.Y = np.full([cache_size, 1], np.nan)
@@ -352,7 +361,7 @@ class FunctionLogger:
             resize_amount = int(np.max((np.ceil(self.Xn / 2), 1)))
 
         self.X_orig = np.append(
-            self.X_orig, np.full([resize_amount, self.D], np.nan), axis=0
+            self.X_orig, np.full([resize_amount, self.D_orig], np.nan), axis=0
         )
         self.Y_orig = np.append(
             self.Y_orig, np.full([resize_amount, 1], np.nan), axis=0

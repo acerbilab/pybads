@@ -1039,8 +1039,8 @@ def test_periodic_vars_takes_one_index(periodic_vars):
 @pytest.mark.parametrize(
     "periodic_vars, match",
     [
-        ([3], "outside 0 to D - 1 = 2"),
-        ([-1], "outside 0 to D - 1 = 2"),
+        ([3], "outside 0 to 2, those of the 3 variables"),
+        ([-1], "outside 0 to 2, those of the 3 variables"),
         ([1, 1], "more than once"),
         ([True], "list of the indices"),
         ([0, True], "list of the indices"),

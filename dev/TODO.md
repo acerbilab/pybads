@@ -101,8 +101,9 @@ decided on; "the next release" below means it.
   1.5" replaces it, and says that `random_seed` now decides the initial
   design (the doublecheck of wave 4 of the port review,
   `experiments/port_review_20260925/verification/wave4.md`, "Doublecheck"),
-  that periodic variables (`periodic_vars`, Example 6) are supported, and
-  that a run takes evaluations made before it (`precomputed_evaluations`).
+  that periodic variables (`periodic_vars`, Example 6) and fixed variables
+  (four equal bounds) are supported, and that a run takes evaluations made
+  before it (`precomputed_evaluations`).
   At the same release, `skills/pybads/SKILL.md` and the FAQ
   (`docsrc/source/faq.md`), which name no release, name 1.5, as PyVBMC's
   skill and FAQ do. The published documentation follows `main`, so until
@@ -148,32 +149,6 @@ decided on; "the next release" below means it.
 - [ ] **Benchmarking on neurobench**, open porting work listed in
   `pybads/bads/README.md`: PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
-- [ ] **Fixed variables**, open porting work listed in
-  `pybads/bads/README.md` (KD-B1-7). MATLAB BADS takes a variable whose
-  bounds and plausible bounds all equal `x0` as fixed
-  (`private/boundscheck.m:39-40`) and runs itself on the other variables
-  (`bads.m:351-382`, `private/fixedbads.m`): the target, `non_box_cons` and
-  the output function receive the full vector (`expandvars`,
-  `bads.m:1480-1488`), `PeriodicVars` is renumbered over the free variables
-  (by `eval`, which fails for the numeric value that `bads_examples.m`
-  passes), the points of `FunValues` lose their fixed coordinates
-  (unchecked), and `x` and, with five outputs or more, `optimState.X` are
-  lifted back to the full dimension. The options' defaults are evaluated at
-  the reduced dimension, so that `MaxFunEvals` is 500 times the number of
-  free variables. PyBADS refuses a variable whose four bounds are equal,
-  whatever `x0` (`BADS._bounds_check_`), and the FAQ's answer "Can I set
-  `lb = ub` for some variable to fix it to a given value?" gives the
-  workaround of a reduced target. A port reduces the problem in
-  `BADS.__init__` before the options are evaluated with `D`; wraps `fun`,
-  `non_box_cons` and `output_fcn`; maps `periodic_vars` and the points of
-  `precomputed_evaluations` to the free variables, whose fixed coordinates
-  it can check; lifts what the result and the object report in the full
-  space (`x`, `x0`, `fun` and `non_box_cons` as the user passed them, and
-  the points of the log and of the iteration history); and decides whether
-  `x0` must equal the bound, as MATLAB asks. Its test is a run with fixed
-  variables that matches, seed for seed, the run of the reduced problem.
-  The two FAQ answers that name fixed variables and KD-B1-7 change with it,
-  and so does the changelog.
 - [ ] **The example notebooks' saved outputs.** Nothing runs the notebooks
   of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their

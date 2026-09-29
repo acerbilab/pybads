@@ -395,7 +395,8 @@ KD-B4-3, LTMADS's directions, went with W3-24's revert. The
 gpyreg citations of KD-B5-6 and KD-B6-6 were not read again. The PI's
 rulings on the loose ends ("Open ends") added KD-B2-10 and KD-B7-6, and
 the ruling on the GP on one point changed KD-B6-5; #92 added KD-B3-10
-(W3-2), and #96, the port of `precomputed_evaluations`, KD-B1-15.
+(W3-2) and #96, the port of `precomputed_evaluations`, KD-B1-15; #101,
+the port of fixed variables, rewrote KD-B1-7.
 
 ## Open ends
 
@@ -455,7 +456,7 @@ ruled on the rest at the close (2026-09-28), and #87 carries the rulings:
 | The reports of the log transform and of periodic variables are logged at INFO, and the caution for infinite bounds at WARNING, where MATLAB BADS prints all three from `"notify"` on | as MATLAB BADS | all three at the level of the opening message (KD-B2-3) |
 | `__init__` fills missing plausible bounds without `bads:pbUnspecified` | warn, as MATLAB BADS | the warning (KD-B2-3) |
 | The redraw of a random start tests it before it is put on the mesh (KD-B1-9) | test it on the mesh | the draw moved to where the start is put on the mesh (KD-B1-11) |
-| The test of fixed variables leaves `x0` out (KD-B1-7) | no change: both sides refuse such a problem | KD-B1-7 says so |
+| The test of fixed variables leaves `x0` out (KD-B1-7) | no change: both sides refuse such a problem | KD-B1-7 said so; #101, the port of fixed variables, since fixes such a variable, taking a non-finite `x0` there as the value and refusing a finite one that differs (KD-B1-7) |
 | The floor of the ES search's `mu = n_search / n_search_iter`, kept by the rulings of wave 4's doublecheck | close as ruled | KD-B3-9 |
 | `FunctionLogger.add`'s checks, and the final samples' bookkeeping in the log | with the port of `fun_values` | `TODO.md`'s item of that port, since done (KD-B1-15) |
 | Elements beyond the pair in `search_acq_fcn` or in an entry of `search_method` are ignored | refuse them | refused (KD-B3-1, KD-B3-2) |

@@ -20,9 +20,10 @@ class OptimizeResult(dict):
             - Non-box constraints function (if any), the object passed to
               ``BADS``.
         - x0: np.ndarray
-            - Initial starting point, as given or drawn at random, before it
-              is put on the mesh: the first point evaluated is the point of
-              the mesh nearest to it.
+            - Initial starting point, as given or drawn at random, with the
+              fixed variables at their values, before it is put on the
+              mesh: the first point evaluated is the point of the mesh
+              nearest to it.
         - x: np.ndarray
             - The solution of the optimization.
         - fval: float

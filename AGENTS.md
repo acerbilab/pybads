@@ -135,8 +135,10 @@ in the FAQ by hand. Its table of contents is written out by hand too, and
 `skills/pybads/SKILL.md` names its sections and questions by their titles,
 Examples 3 and 4 link its label `faq-noisy-objective-function`, and
 Example 6 and the changelog's entry "Periodic variables" its label
-`faq-does-pybads-support-periodic-variables-such-as-angles`, so a question
-added or renamed, or a label changed, is updated there as well.
+`faq-does-pybads-support-periodic-variables-such-as-angles`, and the
+changelog's entry "Fixed variables" the label
+`faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`, so a
+question added or renamed, or a label changed, is updated there as well.
 Build with `make github` in `docsrc/` (`.\make.bat github` from cmd
 on Windows), which copies the result into `docs/`.
 
@@ -200,6 +202,21 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   transformed bounds, and so do `optim_state["lb"]`, `["ub"]`, `["plb"]`
   and `["pub"]`, which `gaussian_process_train.py` reads; the original
   ones are in `optim_state["*_orig"]`.
+- **Fixed variables** (four equal bounds) are left out of the run.
+  `BADS.__init__` finds them (`_find_fixed_values`) before the options are
+  evaluated, so that `D` (`self.D`, and the `D` of the options) counts the
+  other variables. `self._fixed_values`, a row of one value per variable,
+  NaN at the free ones (all NaN when none is fixed), goes to
+  `VariableTransformer` as `fixed_values`: its `inverse_transf` returns
+  points of all the variables and its `__call__` takes them. So every point
+  that leaves the run through it (to the target, `non_box_cons` and
+  `output_fcn`, into the log's `X_orig`, `iteration_history["x"]` and the
+  result) has them all, as `self.x0` has, while `optim_state` (its
+  `*_orig` bounds and its `periodic_vars` mask too), the `u` points and the
+  GP cover the free ones. `options["periodic_vars"]` keeps the user's
+  indices, which `_run_indices` maps to the run's variables where the run
+  reads them; `_user_indices` maps back the indices that a message names.
+  New code that hands the user a point takes it through the transformer.
 - **The GP shapes the geometry.** `gp.temporary_data["poll_scale"]`,
   `["len_scale"]` and `["effective_radius"]` are set in
   `gaussian_process_train.py`. `poll_scale` shapes the ES-ell search and
