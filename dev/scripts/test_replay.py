@@ -3,8 +3,9 @@ traces (identical, parted at a known evaluation, generator states that
 differ, a GP computation that differs, a shorter run, platform keys that
 differ, set-ups that differ, the repeats of one recording), the recorder's
 reading of the refit flag, its loud failure on a missing private name and
-on an error of its own code inside a run, and one short real recording
-repeated in one process. Run by path, from the repository root::
+on an error of its own code inside a run, its thread variables beside a
+``benchmark_targets.py`` that does not name them, and one short real
+recording repeated in one process. Run by path, from the repository root::
 
     python -m pytest dev/scripts/test_replay.py
 
@@ -13,7 +14,9 @@ process, in a few seconds.
 """
 
 import copy
+import importlib.util
 import json
+import sys
 import types
 
 import numpy as np
@@ -290,6 +293,26 @@ def test_missing_private_name_fails_loudly(monkeypatch):
     monkeypatch.delattr(bads_module.BADS, "_poll_step_")
     with pytest.raises(rp.MissingName, match="_poll_step_"):
         rp.record_run("sphere_D2", 0, 0.02)
+
+
+def test_benchmark_without_thread_variables(monkeypatch):
+    """Beside a ``benchmark_targets.py`` without ``THREAD_VARS`` (a commit
+    before c60a5238), the script imports and pins and records the thread
+    variables that ``benchmark_targets.THREAD_VARS`` names."""
+    import benchmark_targets as bt
+
+    older = types.ModuleType("benchmark_targets")
+    older.__dict__.update(vars(bt))
+    del older.THREAD_VARS
+    monkeypatch.setitem(sys.modules, "benchmark_targets", older)
+    spec = importlib.util.spec_from_file_location("replay_older", rp.__file__)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.bt is older
+    assert module.THREAD_VARS == bt.THREAD_VARS
+    env, _ = module.pinned_env(1, None, False)
+    assert all(env[k] == "1" for k in bt.THREAD_VARS)
+    assert set(bt.THREAD_VARS) <= set(module.platform_key()["env"])
 
 
 # --------------------------------------------------------------------------

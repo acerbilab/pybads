@@ -62,31 +62,31 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   identical. For a change that must move nothing, record at the parent
   commit, in a worktree at it, and at the change, on one machine, and
   check the two. Both sides record with the change's `replay.py`, copied
-  into the parent's worktree when the parent has an older one or none (a
-  commit from before 2026-09-28): traces written by two versions of the
-  tool can differ in their layout, which `check` reports as runs that
-  differ. The default configurations need a `benchmark_targets.py` that
-  defines them, which every commit from 2026-09-26 on has; for an older
-  parent, copy the change's `benchmark_targets.py` too, or name
-  `--configs` that the parent's defines. `--repeat 2` records each run
-  twice in one process, and `check DIR` compares the repeats. `report DIR`
-  tabulates a recording. The replay is exact only on one machine, one set
-  of versions, one BLAS kernel and one thread count, and not on macOS
+  alone into the parent's worktree when the parent has an older one or
+  none (a commit from before 2026-09-28): traces written by two versions
+  of the tool can differ in their layout, which `check` reports as runs
+  that differ. The copy takes the parent's `benchmark_targets.py` and
+  `population.py`, which have what it needs, the default configurations
+  included, at every commit from `0d866e84` (2026-09-27) on; at an older
+  commit the recording stops with `MissingName`, since its `BADS` does not
+  set `poll_moved`, which the recorder reads. `--repeat 2` records each
+  run twice in one process, and `check DIR` compares the repeats. `report
+  DIR` tabulates a recording. The replay is exact only on one machine, one
+  set of versions, one BLAS kernel and one thread count, and not on macOS
   arm64, where two runs of one seed need not match bit for bit
-  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)). Measured at `948e0d96` on Linux (a
-  container with 4 virtual CPUs, Intel Xeon at 2.10 GHz; NumPy 2.4.6,
-  SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg 1.3.3), a seeded run repeats
-  exactly, in one process and across processes. Under
-  `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first GP
-  fit of every run differs, by 1e-15 to 1e-10, and every run of the
+  ([results/2026-09-28-macos-arm64-repeatability.md](results/2026-09-28-macos-arm64-repeatability.md)).
+  Measured at `948e0d96` on Linux (a container with 4 virtual CPUs, Intel
+  Xeon at 2.10 GHz; NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31, gpyreg
+  1.3.3), a seeded run repeats exactly, in one process and across processes.
+  Under `OPENBLAS_CORETYPE=Sandybridge` (`--coretype Sandybridge`) the first
+  GP fit of every run differs, by 1e-15 to 1e-10, and every run of the
   default set parts after 15 to 40 evaluations, into different decisions
-  (the values of `rosenbrock_D6`, whose target rotates its input by a
-  matrix product, differ from the first evaluation, and its points after
-  24). With four threads, seven of the eight runs part after 22 to 50
-  evaluations, and `sphere_D3_homo` differs only in its GP
-  hyperparameters, by about 1e-10. So it is a developer tool, not a test:
-  the part of a run that involves no BLAS work, the initial design, is
-  pinned on every platform by
+  (the values of `rosenbrock_D6`, whose target rotates its input by a matrix
+  product, differ from the first evaluation, and its points after 24). With
+  four threads, seven of the eight runs part after 22 to 50 evaluations, and
+  `sphere_D3_homo` differs only in its GP hyperparameters, by about 1e-10.
+  So it is a developer tool, not a test: the part of a run that involves no
+  BLAS work, the initial design, is pinned on every platform by
   `pybads/testing/bads/test_initial_design_pin.py`.
 - `make_oracle_fixtures.py` writes and checks the oracles of
   `pybads/testing/oracles/`: the states of six short seeded runs
