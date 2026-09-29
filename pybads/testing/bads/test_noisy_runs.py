@@ -3,6 +3,7 @@ target that returns the standard deviation of its noise
 (`specify_target_noise`)."""
 
 import logging
+import re
 
 import numpy as np
 import pytest
@@ -609,6 +610,8 @@ def test_target_returning_a_pair_without_target_noise_is_refused():
     bads = _make_bads(
         _noisy_sphere_with_estimated_sd(0), specify_target_noise=False
     )
-    with pytest.raises(ValueError, match="specify_target_noise=True"):
+    with pytest.raises(
+        ValueError, match=re.escape('options["specify_target_noise"] = True')
+    ):
         bads.optimize()
     assert bads.function_logger.func_count == 0
