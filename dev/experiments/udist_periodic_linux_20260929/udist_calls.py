@@ -4,13 +4,21 @@ BLAS thread: their number, time and shapes. Run from the repository root.
     python udist_calls.py [LABEL [SEED]]
 """
 import collections
+import os
 import sys
 import time
 
+# One BLAS thread, set before NumPy loads (benchmark_targets imports it)
+for var in (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+):
+    os.environ[var] = "1"
+
 sys.path.insert(0, "dev/scripts")
 import benchmark_targets as bt
-
-bt.single_thread_env()
 import numpy as np
 
 import pybads.bads.bads as bads_mod

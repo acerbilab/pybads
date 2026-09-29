@@ -36,6 +36,14 @@ def comparable(record):
 
 def main(base_dir, new_dir):
     base, new = load(base_dir), load(new_dir)
+    for name, records in (("BASE", base), ("NEW", new)):
+        meta = next(iter(records.values()))["meta"]
+        pybads, gpyreg = meta["pybads_source"], meta["gpyreg_source"]
+        print(
+            f"- {name}: pybads {pybads['git']['sha']} at {pybads['path']}, "
+            f"gpyreg {gpyreg['git']['sha']}"
+        )
+    print()
     same = defaultdict(int)
     total = defaultdict(int)
     ratios = defaultdict(list)

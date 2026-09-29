@@ -98,11 +98,14 @@ def grid_units(x, var_trans: VariableTransformer = None, x0=None, scale=None):
 def _pairwise_sum(terms):
     """
     The sum of ``terms``, a list of arrays of one shape, in the order in
-    which ``np.sum`` adds the elements along an axis, NumPy's pairwise
-    summation: in turn below 8 terms, in 8 partial sums up to 128 terms, and
-    as the sum of two parts beyond, the first a multiple of 8 terms. The
-    result is that of ``np.sum`` over the terms stacked along a last axis,
-    to the last bit, without the stacked array.
+    which ``np.sum`` adds the elements along the last axis of a C-ordered
+    array, NumPy's pairwise summation: in turn below 8 terms, in 8 partial
+    sums up to 128 terms, and as the sum of two parts beyond, the first a
+    multiple of 8 terms. ``udist`` adds its squared differences so, one
+    array per variable, and its distances are those that ``np.sum`` gives
+    over the variables of the ``(N, M, D)`` array of them, to the last bit
+    (for terms that are not ``-0.0``, which no square is), without that
+    array.
     """
     n = len(terms)
     if n < 8:

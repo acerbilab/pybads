@@ -32,8 +32,11 @@ PYTHONPATH=$G .venv/bin/python -u dev/scripts/population.py run --suite periodic
 .venv/bin/python $E/identity.py $R/periodic/parent $R/periodic/head > $E/identity.md
 .venv/bin/python $E/speed.py $R/periodic/parent $R/periodic/head > $E/speed.md
 .venv/bin/python $E/random_cases.py $P/pybads/search/grid_functions.py
-(cd $P && OMP_NUM_THREADS=1 PYTHONPATH=$G <repository>/.venv/bin/python -u <repository>/$E/udist_calls.py periodic_D3_homo 0)
-OMP_NUM_THREADS=1 PYTHONPATH=$G .venv/bin/python -u $E/udist_calls.py periodic_D3_homo 0
+.venv/bin/python $E/random_cases.py --control $P/pybads/search/grid_functions.py
+(cd $P && PYTHONPATH=$G <repository>/.venv/bin/python -u <repository>/$E/udist_calls.py periodic_D3_homo 0)
+PYTHONPATH=$G .venv/bin/python -u $E/udist_calls.py periodic_D3_homo 0
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=$P:$G .venv/bin/python -u dev/scripts/fingerprint.py
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=$G .venv/bin/python -u dev/scripts/fingerprint.py
 ```
 
 - PyBADS: the base `20fc40f6` from the worktree, the change `0a7f7af4`
@@ -41,7 +44,7 @@ OMP_NUM_THREADS=1 PYTHONPATH=$G .venv/bin/python -u $E/udist_calls.py periodic_D
   are the same at both commits.
 - gpyreg at `b44634f`, CI's `GPYREG_PIN` (the kernels' periods), from the
   clone, selected with `PYTHONPATH`. `dev/scripts/fingerprint.py` prints
-  `917c279f2c777dbb` at both commits.
+  `917c279f2c777dbb` at both commits, with one BLAS thread.
 - Linux (a cloud container, kernel `6.18.44-fc-v37`, Intel Xeon at
   2.10 GHz, four virtual CPUs), Python 3.12.3, NumPy 2.5.3, SciPy 1.18.1,
   one BLAS thread per run (OpenBLAS's Haswell kernels for the replays);
@@ -49,13 +52,25 @@ OMP_NUM_THREADS=1 PYTHONPATH=$G .venv/bin/python -u $E/udist_calls.py periodic_D
   and the change from 11:00 to 11:08, on 2026-09-29, nothing else running.
 - The files: `identity.py` and `identity.md`, the populations compared run
   by run; `speed.py` and `speed.md`, the time of the GP's rebuilds, paired
-  by run; `replay_default.txt` and `replay_periodic.txt`; `oracles.txt`;
-  `random_cases.py`, `udist` against the base's on random cases;
+  by run; `replay_default.txt` and `replay_periodic.txt`; `oracles.txt`,
+  whose first line is the header of the `--dump` and the others the output
+  of the `--check`; `random_cases.py`, `udist` against the base's on
+  random cases;
   `udist_calls.py`, the number, time and shapes of the calls of `udist` in
   one run, which runs the `pybads` of the checkout it is started from.
 - The per-run records, traces and dump were not kept: they were written in
   a cloud container that is gone. The commands above regenerate them,
   seeded as they were, on a machine whose fingerprint is the one above.
+
+## What the gates reach
+
+`_pairwise_sum` has three ranges, below 8 terms, from 8 to 128 and above
+128, one term per variable. The fingerprint's runs have no periodic
+variables and never enter the changed branch. The `periodic` suite and the
+periodic replays, at D of 2 to 6, reach the range below 8 alone. The
+random cases reach all three, at D from 1 to 20 and from 129 to 300, and
+`test_udist_periodic_adds_every_variable` (`test_search.py`) checks the sum
+of each range against one computed pair by pair, at D of 3, 9, 20 and 130.
 
 ## Outcome
 
@@ -67,12 +82,12 @@ OMP_NUM_THREADS=1 PYTHONPATH=$G .venv/bin/python -u $E/udist_calls.py periodic_D
   computation (`replay_default.txt`, `replay_periodic.txt`).
 - **Oracles**: all 1056 outputs identical to the base's dump
   (`oracles.txt`); no oracle state has periodic variables.
-- **Random cases**: 3000 of 3000 identical to the base's `udist`, D from 1
-  to 20. The positive control, the same script against a copy of the
-  change that adds the variables' terms in turn instead of in `np.sum`'s
-  order, finds 1088 of 3000 identical, every case at D of 8 or more
-  differing, by up to 9e-16 relative; below 8 terms the two orders are the
-  same.
+- **Random cases**: all 3100 identical to the base's `udist`: 1036 below
+  8 terms, 1964 from 8 to 128 and 100 above. The positive control
+  (`--control`, the change with the variables' terms added in turn instead
+  of in `np.sum`'s order) finds 1036 of 1036 identical below 8 terms, where
+  the two orders are the same, 52 of 1964 from 8 to 128 and 0 of 100 above,
+  the others differing by up to 9e-16 relative.
 - **Time** (`speed.md`): on the two noisy configurations, whose local
   training sets reach 200 points, the GP's rebuilds take 0.68 of the base's
   time, a saving of 7.7 and 8.5 % of the run's own time; on the four

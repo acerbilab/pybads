@@ -246,11 +246,30 @@ def test_udist_periodic_takes_the_shorter_way_round():
     )
 
 
+@pytest.mark.parametrize("D", [3, 9, 20, 130])
+def test_udist_periodic_adds_every_variable(D):
+    """With periodic variables, `udist` adds the squared differences of every
+    variable, below 8 variables, from 8 to 128 and beyond, the three ranges
+    of its summation, NumPy's pairwise order."""
+    rng = np.random.default_rng(D)
+    lb = -rng.uniform(0.5, 3.0, size=(1, D))
+    ub = rng.uniform(0.5, 3.0, size=(1, D))
+    mask = rng.random(D) < 0.5
+    mask[0] = True
+    U = rng.uniform(lb, ub, size=(5, D))
+    u2 = rng.uniform(lb, ub, size=(4, D))
+    len_scale = rng.uniform(0.5, 2.0, size=D)
+    dist = udist(U, u2, len_scale, lb, ub, 1.0, mask[None, :])
+    np.testing.assert_allclose(
+        dist, _brute_udist(U, u2, len_scale, lb, ub, mask), rtol=1e-12
+    )
+
+
 def test_udist_periodic_wraps_differences_beyond_the_period():
-    """A periodic difference of one period or more, between points outside
-    the bounds, is taken modulo the period before the shorter way round: a
-    difference of exactly one period is none. `u2` may be one point, and
-    the length scale one number."""
+    """A periodic difference of one period or more, between points on or
+    outside the bounds, is taken modulo the period before the shorter way
+    round: a difference of exactly one period is none. `u2` may be one
+    point, and the length scale one number."""
     lb = np.array([[-1.0, -3.0]])
     ub = np.array([[1.0, 3.0]])
     mask = np.array([[True, False]])

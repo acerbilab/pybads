@@ -1,3 +1,6 @@
+- BASE: pybads 20fc40f6 at <worktree at 20fc40f6>/pybads, gpyreg b44634f
+- NEW: pybads 0a7f7af4 at <repository>/pybads, gpyreg b44634f
+
 | Configuration | Identical runs | Median wall time ratio |
 |---|---|---|
 | periodic_D2 | 30 of 30 | 0.90 |

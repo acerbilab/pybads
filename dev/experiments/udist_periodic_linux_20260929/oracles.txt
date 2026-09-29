@@ -1,5 +1,5 @@
-[check] gpyreg /home/user/gpyreg/gpyreg, pybads /tmp/claude-0/-home-user-pybads/4e10d46c-5312-5059-8355-27e5aef1067a/scratchpad/parent/pybads, BLAS env {'OPENBLAS_CORETYPE': None, 'OMP_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'VECLIB_MAXIMUM_THREADS': None}, OpenBLAS ['SkylakeX', 'SkylakeX']
-[check] gpyreg /home/user/gpyreg/gpyreg, pybads /home/user/pybads/pybads, BLAS env {'OPENBLAS_CORETYPE': None, 'OMP_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'VECLIB_MAXIMUM_THREADS': None}, OpenBLAS ['SkylakeX', 'SkylakeX']
+[check] gpyreg <gpyreg clone>/gpyreg, pybads <worktree at 20fc40f6>/pybads, BLAS env {'OPENBLAS_CORETYPE': None, 'OMP_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'VECLIB_MAXIMUM_THREADS': None}, OpenBLAS ['SkylakeX', 'SkylakeX']
+[check] gpyreg <gpyreg clone>/gpyreg, pybads <repository>/pybads, BLAS env {'OPENBLAS_CORETYPE': None, 'OMP_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'VECLIB_MAXIMUM_THREADS': None}, OpenBLAS ['SkylakeX', 'SkylakeX']
 [check] ellipsoid_D3       ok (200 compared, 0 not in the dump)
 [check] log_D3             ok (200 compared, 0 not in the dump)
 [check] noisy_sphere_D3    ok (152 compared, 0 not in the dump)
