@@ -457,7 +457,8 @@ class FunctionLogger:
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
                     self.n_evals[idx] += 1
-                    # The merged value can raise or lower the largest
+                    # The merged value can raise or lower the log's largest
+                    # value, Y_max
                     self.Y_max = np.amax(self.Y[self.X_flag])
                     return f_val, idx
 
