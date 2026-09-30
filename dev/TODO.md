@@ -60,7 +60,12 @@ among them, so a title stays as it is while its item is open.
   `dev/TODO.md`, "Review of the tips."). When that review concludes, its
   outcome for the policy or the wording is applied to PyBADS's copy
   (`pybads/bads/_runtime_tips.py`, `_tip_catalog.py`;
-  `dev/plans/runtime-tips.md`).
+  `dev/plans/runtime-tips.md`). The review covers the old-release reminder
+  as well, which shares the tips' slot and switch: its outcome reaches
+  `pybads/bads/_release_reminder.py`, `pybads/_update_check.py`,
+  `dev/plans/version-check.md`, the FAQ's "How do I know whether a newer
+  version of PyBADS exists?", the API page of `check_for_updates` and the
+  changelog's "Update reminders".
 
 ## Waiting on MATLAB BADS
 

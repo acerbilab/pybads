@@ -193,10 +193,11 @@ for its messages and return value.
 
 PyBADS contacts PyPI only when you call that function. Otherwise it knows
 only the date of its own release, shipped with the package: when a run
-starts in an interactive session (output to a terminal or a Jupyter
-notebook, not to a file) and the installed release is more than a year old,
+starts in an interactive session (standard output to a terminal or a
+Jupyter notebook, not to a file) and the installed release is more than a
+year old,
 a reminder takes the place of the [tip](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere)
-before the first iteration line:
+before the first iteration line, and the tip comes at the next run:
 
 ```text
 Note: PyBADS 1.5.0 was released more than a year ago. Run pybads.check_for_updates() to see whether a newer version is available.
@@ -209,11 +210,11 @@ the last. It records the dates of its showings in `update_reminder.json` in
 PyBADS's cache directory: `%LOCALAPPDATA%\pybads` on Windows,
 `~/Library/Caches/pybads` on macOS, `~/.cache/pybads` on Linux (or under
 `$XDG_CACHE_HOME`), or the directory that `PYBADS_CACHE_DIR` names. It
-shows only with the iteration display, as the tips do, and
-`options={"show_tips": False}` turns it off with them; so does setting the
-environment variable `PYBADS_NO_UPDATE_REMINDER`, and `NO_UPDATE_NOTIFIER`
-and `CI` as well. A variable set to an empty value, `0` or `false` counts
-as unset.
+shows only with the iteration display, as the tips do. To turn it off, pass
+`options={"show_tips": False}` to `BADS`, which also turns off the tips, or
+set the environment variable `PYBADS_NO_UPDATE_REMINDER`;
+`NO_UPDATE_NOTIFIER` and `CI` turn it off as well. A variable set to an
+empty value, `0` or `false` counts as unset.
 
 (faq-i-am-having-trouble-installing-pybads-can-you-help)=
 ### I am having trouble installing PyBADS. Can you help?
@@ -1028,8 +1029,9 @@ tip before its first iteration line, with a link to the documentation: the
 first such run of a Python session, then every third, each tip at most
 once per session. In an interactive session, a run of a release more than
 a year old may print instead a reminder to check for a newer version
-([How do I know whether a newer version of PyBADS exists?](#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)).
-`options["show_tips"] = False` turns off the tips and the reminder.
+([How do I know whether a newer version of PyBADS exists?](#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)),
+and the tip comes at the next run. `options["show_tips"] = False` turns off
+the tips and the reminder.
 
 PyBADS prints through Python's `logging` module, with a logger named
 `"BADS"`, and its warnings, such as `bads:pbUnspecified`, are log messages
@@ -1166,8 +1168,9 @@ seeds that global state.
 
 Whether a run prints a
 [tip](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere), and which,
-depends on the runs before it in the Python session, not on the seed; a tip
-does not affect the run.
+depends on the runs before it in the Python session, not on the seed, and a
+[reminder that the installed release is old](#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)
+can take the tip's place; neither affects the run.
 
 The seed does not govern your objective: if your objective is noisy, give it
 a random generator of its own, as explained

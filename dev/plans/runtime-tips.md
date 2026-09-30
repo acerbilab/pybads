@@ -7,7 +7,10 @@ design is PyVBMC's (`acerbilab/pyvbmc`, branch `dev-next`, from
 `1c3d4f25`: `pyvbmc/vbmc/_runtime_tips.py`, `_tip_catalog.py` and its plan
 `dev/plans/runtime-tips.md`), copied, since PyBADS does not import PyVBMC,
 and simplified: PyBADS has no calibration reminder that would share the
-slot, and a `BADS` object runs once, with no save or resume.
+slot, and a `BADS` object runs once, with no save or resume. The
+old-release reminder ([version-check.md](version-check.md)) shares the
+tips' slot and switch: a run that shows it shows no tip and does not
+advance the tips' cadence.
 
 ## Decisions (PI, 2026-09-30)
 

@@ -14,7 +14,8 @@ reminder at three showings per version, at least 90 days apart. A file
 whose content is malformed is started afresh. A process-local flag allows
 one showing per Python session. When the file cannot be read, that flag is
 the only cap; when it can be read but not written, the showings it records
-still count.
+still count. A showing counts when it is logged, wherever the logger's
+handlers send it.
 """
 
 import datetime
@@ -96,14 +97,14 @@ def _cache_root(environ=None, platform=None):
     """PyBADS's user cache directory, or ``None`` when none is found.
 
     The directory that ``PYBADS_CACHE_DIR`` names, or else PyBADS's
-    directory in the user cache, where ``platformdirs.user_cache_dir(
-    "pybads", appauthor=False, opinion=False)`` puts it (PyBADS does not
-    depend on platformdirs): ``%LOCALAPPDATA%\\pybads`` on Windows,
-    ``~/Library/Caches/pybads`` on macOS, ``$XDG_CACHE_HOME/pybads`` or,
-    when that variable is not an absolute path, ``~/.cache/pybads``
-    elsewhere. ``None`` when ``LOCALAPPDATA`` is not an absolute path on
-    Windows, or the home directory cannot be found. The directory is not
-    created.
+    directory in the user cache, at the place where, on a usual setup,
+    ``platformdirs.user_cache_dir("pybads", appauthor=False,
+    opinion=False)`` puts it (PyBADS does not depend on platformdirs):
+    ``%LOCALAPPDATA%\\pybads`` on Windows, ``~/Library/Caches/pybads`` on
+    macOS, ``$XDG_CACHE_HOME/pybads`` or, when that variable is not an
+    absolute path, ``~/.cache/pybads`` elsewhere. ``None`` when
+    ``LOCALAPPDATA`` is not an absolute path on Windows, or the home
+    directory cannot be found. The directory is not created.
     """
     if environ is None:
         environ = os.environ

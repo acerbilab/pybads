@@ -591,6 +591,9 @@ reference's number of seeds.
 - [plans/version-check.md](plans/version-check.md) — the old-release
   reminder and `pybads.check_for_updates()`, after PyVBMC's: where PyBADS
   differs from PyVBMC's design, the records and the gates.
+- [plans/runtime-tips.md](plans/runtime-tips.md) — the runtime tips, after
+  PyVBMC's: the PI's decisions, the behaviour, the catalogue and its
+  wording, and the gates.
 - [plans/2026-09-28-code-work-without-release.md](plans/2026-09-28-code-work-without-release.md)
   — the checklist and worklog of the work that needed no release, the
   PI's rulings on it, and its gates: the port review's loose ends, stage

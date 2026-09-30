@@ -90,8 +90,9 @@ it. Before the pull request that carries it to `main`, the changelog's
 `Unreleased`, and the GitHub release takes that section as its notes.
 The same pull request sets `RELEASE_DATE` in `pybads/_release.py` to that
 date, from which the old-release reminder tells the age of the installed
-release; `pybads/testing/bads/test_release_reminder.py` fails while the
-two disagree.
+release. `pybads/testing/bads/test_release_reminder.py` fails while the two
+disagree; CI runs it on a pull request whose changes touch `pybads/`, as
+those that carry a release to `main` do.
 Before that pull request, too, the example notebooks, whose outputs ship
 with the release and which nothing else runs, are rerun and their outputs
 committed: `make -C examples/scripts run`, with the venv's Python first on

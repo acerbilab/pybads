@@ -103,9 +103,9 @@ class _Distribution:
 
 
 @pytest.fixture(autouse=True)
-def pypi(mocker):
+def pypi(monkeypatch):
     fake = _FakePyPI()
-    mocker.patch("urllib.request.urlopen", side_effect=fake.urlopen)
+    monkeypatch.setattr(urllib.request, "urlopen", fake.urlopen)
     return fake
 
 
@@ -170,6 +170,7 @@ def test_installed_newer_than_pypi(install, pypi, capsys):
     "installed",
     [
         "1.0.5.dev1001+g7bf916e5c",
+        "1.1.1.dev97+g35cc37603.d20260930",
         "1.5.0+g1234abc",
         "1.5.1.dev3",
         "1.5.1rc1",

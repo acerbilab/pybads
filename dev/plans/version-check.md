@@ -23,7 +23,7 @@ The design is PyVBMC's (`acerbilab/pyvbmc`, branch `dev-next`, merged at
 Its plan, `dev/plans/version-check.md` there, holds the survey of the
 update notices of other tools and the PI's rulings (2026-09-30) that this
 copy keeps: the threshold of a year, counted in calendar dates, which
-stands on a release of PyBADS at least once a year (D1); `show_tips` as
+assumes a release of PyBADS at least once a year (D1); `show_tips` as
 the switch (D2); the wording (D4); versions compared as `X.Y.Z` integer
 tuples, with no new dependency (D5); the release date as a tracked
 constant checked against the changelog (D7); and the cap of three
@@ -47,6 +47,12 @@ showings per version, 90 days apart (D8).
 - **The slot.** PyBADS has no calibration reminder: a start considers the
   old-release reminder, then a tip. When the reminder shows, no tip shows
   and the tips' cadence does not advance.
+- **What counts as a showing.** A showing counts when the reminder is
+  logged: logging cannot tell whether a handler delivered the record, and
+  the check of an interactive session reads standard output, not the
+  logger's handlers, so a session that sends the `BADS` logger to a file
+  uses up the showings there. PyVBMC counts a showing only when its
+  `print` succeeded.
 - **The fork hook.** As `_runtime_tips.py` does, a forked child gets a
   lock of its own; it keeps the parent's session flag.
 
@@ -93,10 +99,11 @@ showings per version, 90 days apart (D8).
   `info.version` in a reply without `releases`; one printed message; the
   update command from the distribution's `INSTALLER`; `ValueError` only
   for an invalid `timeout`.
-- `pybads/testing/conftest.py`: an autouse fixture marks the reminder as
-  shown in the session and points its state file into pytest's temporary
-  directory, so that no test depends on the calendar or writes the user's
-  cache directory.
+- `pybads/testing/conftest.py`: autouse fixtures, one for the session
+  (the fixtures of a module or a session are set up before a test's own)
+  and one for each test, mark the reminder as shown and point its state
+  file into pytest's temporary directory, so that no test depends on the
+  calendar or writes the user's cache directory.
 
 ## Records
 
@@ -122,9 +129,10 @@ release's steps, the network access, the FAQ's new label); the skill
 - [x] Tests: `pybads/testing/bads/test_release_reminder.py` and
   `pybads/testing/test_update_check.py`, ported from PyVBMC's (PyVBMC's
   cases for the calibration reminder, resumed runs and the log file
-  dropped: PyBADS has none of them); with them, `_cache_root` raises no
-  more when the home directory cannot be found, and ignores a relative
-  `XDG_CACHE_HOME`.
+  dropped: PyBADS has none of them). The port found that `_cache_root`
+  raised when the home directory could not be found: it returns `None`
+  there, and ignores a relative `XDG_CACHE_HOME`, as the XDG specification
+  asks.
 - [x] Records (above).
 - [x] Gates:
   - [x] the focused tests (with `test_runtime_tips.py`: 180 passed, 2
@@ -142,5 +150,18 @@ release's steps, the network access, the FAQ's new label); the skill
     development install (2026-09-30): "a development version; the latest
     release is 1.1.0", and `import pybads` left `urllib.request`
     unimported.
-- [~] Review (`/doublecheck`), findings resolved.
+- [x] Review (`/doublecheck`, 2026-09-30): three reviewers (the reminder,
+  `check_for_updates()`, the documentation). Resolved: the tests of
+  `check_for_updates()` use pytest's `monkeypatch` rather than
+  pytest-mock's `mocker`, which no other shipped test uses and the
+  conda-forge recipe need not install; the release's steps in
+  `development.rst` set `RELEASE_DATE`; `make -C examples/scripts run`
+  sets `PYBADS_NO_UPDATE_REMINDER`, so that the outputs that ship with a
+  release show no reminder; a session-scoped fixture keeps the reminder
+  inert for the fixtures of a module or a session; the FAQ's
+  reproducibility answer, Example 1's text, `dev/TODO.md`'s item on
+  PyVBMC's review of the tips and the tips' plan name the reminder; what
+  counts as a showing is recorded above; wording. The whole suite after
+  the fixes, 1379 passed, 2 skipped; the documentation built with no
+  warning.
 - [ ] Merge into `dev-next` (PI).
