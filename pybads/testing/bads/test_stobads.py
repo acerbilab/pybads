@@ -1,7 +1,8 @@
 """The poll and the search of Sto-BADS (`stobads=True`), after the rule of
 Sto-MADS: a poll succeeds if some polled point succeeds, and fails for
 certain only if every point does; with `opp_stobads`, an uncertain poll or
-search moves the incumbent only to a point that improves on it."""
+search moves the incumbent only to a point that improves on it. Sto-BADS
+is deprecated, and setting it warns."""
 
 import numpy as np
 import pytest
@@ -87,7 +88,7 @@ def _scripted_first_poll(monkeypatch, outcomes, improvements=None):
     return state
 
 
-def _run(opp_stobads):
+def _make_bads(opp_stobads=True, stobads=True):
     return BADS(
         _noisy_sphere(),
         np.ones(D) * 4,
@@ -100,13 +101,32 @@ def _run(opp_stobads):
             "max_fun_evals": 80,
             "random_seed": 3,
             "uncertainty_handling": True,
-            "stobads": True,
+            "stobads": stobads,
             "opp_stobads": opp_stobads,
             "complete_poll": True,
             # Below its maximum (0), so that a successful poll can expand it
             "init_mesh_size_integer": -2,
         },
-    ).optimize()
+    )
+
+
+def _run(opp_stobads):
+    return _make_bads(opp_stobads).optimize()
+
+
+@pytest.mark.parametrize("stobads", [True, False], ids=["on", "off"])
+def test_stobads_warns_that_it_is_deprecated(stobads, caplog):
+    """Setting `stobads` warns, on the BADS logger, that it is deprecated
+    and not the setting for a noisy target."""
+    with caplog.at_level("WARNING", logger="BADS"):
+        _make_bads(stobads=stobads)
+    warned = any(
+        record.name == "BADS"
+        and "options['stobads'] is deprecated" in record.getMessage()
+        and "options['uncertainty_handling'] = True" in record.getMessage()
+        for record in caplog.records
+    )
+    assert warned == stobads
 
 
 @pytest.mark.parametrize("opp_stobads", [False, True])

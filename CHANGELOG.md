@@ -147,6 +147,15 @@ says where it still differs, and why.
   by more than `tol_fun`, the incumbent moves to that iterate, where 1.1.0,
   like MATLAB BADS, moved only its value.
 
+### Deprecated
+
+- **Sto-BADS.** `stobads`, with `opp_stobads`,
+  `stobads_frame_size_scaling_power` and the argument
+  `gamma_uncertain_interval`, is deprecated and may be removed in a future
+  release: Sto-BADS is experimental and has not been found to improve noisy
+  runs, and a noisy target takes `uncertainty_handling=True` instead.
+  Setting `stobads=True` gives a warning.
+
 ### Fixed
 
 #### Noisy targets

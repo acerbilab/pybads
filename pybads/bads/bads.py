@@ -400,9 +400,10 @@ class BADS:
         ``options['random_seed']`` to a fixed integer (see ``rng`` below).
 
     gamma_uncertain_interval : float, optional, keyword-only
-        With ``options['stobads']``, the multiplier of the half-width of the
-        uncertainty interval of the Sto-BADS success rule. By default
-        ``None``, which is 1.96.
+        Deprecated, with ``options['stobads']``, which is experimental and
+        may be removed in a future release. With ``options['stobads']``, the
+        multiplier of the half-width of the uncertainty interval of the
+        Sto-BADS success rule. By default ``None``, which is 1.96.
 
     precomputed_evaluations : tuple, optional, keyword-only
         Evaluations of ``fun`` made before the run, for instance by an
@@ -1345,6 +1346,16 @@ class BADS:
                 "options['noise_size'] exceeds exp(5), about 148: the GP "
                 "cannot represent a noise SD that large, and its noise will "
                 "sit at that bound. Rescale the target to reduce its noise."
+            )
+        # Sto-BADS, PyBADS's own (KD-S-1), is deprecated: users are to know
+        # that it is not the setting for a noisy target
+        if self.options["stobads"]:
+            self.logger.warning(
+                "options['stobads'] is deprecated and may be removed in a "
+                "future release: Sto-BADS is experimental and has not been "
+                "found to improve noisy runs. For a noisy target, set "
+                "options['uncertainty_handling'] = True and leave "
+                "options['stobads'] off."
             )
         if (
             self.options["specify_target_noise"]

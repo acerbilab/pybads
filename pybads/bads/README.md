@@ -1144,7 +1144,11 @@ Sto-MADS (Audet, Dzahini, Kokkolaras and Le Digabel, 2021), replaces the
 improvement tests of the search and the poll; `opp_stobads` and
 `stobads_frame_size_scaling_power` tune it, and the keyword-only argument
 `gamma_uncertain_interval` of `BADS` sets its interval. It is off by
-default and switched off for a deterministic target. Its rule was measured
+default and switched off for a deterministic target. It is deprecated
+from 1.5.0 and may be removed in a future release (PI, 2026-09-30), so
+that no user takes it for the setting of a noisy target: the descriptions
+of its options and of `gamma_uncertain_interval` say so, and `stobads=True`
+warns. Its rule was measured
 at the close of the review (`dev/results/2026-09-28-stobads-rule.md`):
 the mesh factor of its interval stays, and the description of
 `stobads_frame_size_scaling_power` says what it does (W0-12); an uncertain

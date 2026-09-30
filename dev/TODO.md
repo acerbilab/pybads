@@ -3,8 +3,7 @@
 Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
 ("Setup and commands") gives the release's steps; its section below holds
-the decision on Sto-BADS and the conda-forge recipe, which follows the
-release's upload to PyPI.
+the conda-forge recipe, which follows the release's upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -14,25 +13,6 @@ among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
-- [ ] **Sto-BADS: experimental, not for users.** Sto-BADS (`stobads`,
-  with `opp_stobads`, `stobads_frame_size_scaling_power` and the
-  keyword-only argument `gamma_uncertain_interval` of `BADS`) is PyBADS's
-  own, with no counterpart in MATLAB BADS (KD-S-1 of
-  `pybads/bads/README.md`). The PI (2026-09-30) holds it experimental and
-  wants it kept from users, who could take `stobads=True` for the right
-  setting for a noisy target; what to do with it is to be decided. At
-  default options it brings none of the benchmark's five noisy
-  configurations closer to its minimum than BADS without it, and spends
-  more evaluations on `sphere_D3_homo`
-  ([results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-  Users meet it on the options page, which includes
-  `advanced_bads_options.ini` verbatim and whose description of `stobads`,
-  there since 1.1.0, reads "if True switch to stochastic optimization and
-  uncertain incumbent"; in `BADS`'s docstring, which documents
-  `gamma_uncertain_interval`, undocumented in 1.1.0; and in the
-  `Unreleased` section of `CHANGELOG.md`, the notes of the GitHub release,
-  which names `gamma_uncertain_interval` under "Upgrading from 1.1.0" and
-  the fixes to Sto-BADS under Fixed.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -44,6 +24,26 @@ among them, so a title stays as it is while its item is open.
   requirements of its `recipe/meta.yaml` before it merges: gpyreg 1.4.0
   no longer needs them, and the feedstock's bot merges its update PR
   once a CI that only imports gpyreg passes.
+
+## Later releases
+
+- [ ] **Sto-BADS: experimental, not for users.** Sto-BADS (`stobads`,
+  with `opp_stobads`, `stobads_frame_size_scaling_power` and the
+  keyword-only argument `gamma_uncertain_interval` of `BADS`) is PyBADS's
+  own, with no counterpart in MATLAB BADS (KD-S-1 of
+  `pybads/bads/README.md`). At default options it brings none of the
+  benchmark's five noisy configurations closer to its minimum than BADS
+  without it, and spends more evaluations on `sphere_D3_homo`
+  ([results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
+  The PI (2026-09-30) holds it experimental; its options have been on the
+  options page since 1.1.0, and what matters is that no user takes
+  `stobads=True` for the setting of a noisy target. So 1.5.0 deprecates
+  it: the descriptions of its options and of `gamma_uncertain_interval`
+  say that it is experimental and may be removed in a future release, the
+  changelog lists it under Deprecated, and `stobads=True` warns that a
+  noisy target takes `uncertainty_handling=True` instead. Open: whether a
+  later release removes it; its options would then raise `ValueError` as
+  unknown ones, as the 66 removed in 1.5.0 do.
 
 ## Waiting on MATLAB BADS
 
