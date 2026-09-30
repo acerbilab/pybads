@@ -701,7 +701,12 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   whose `non_box_cons` leaves only the starting point feasible in the
   initial design): gpyreg before 1.4.0 printed NumPy's `RuntimeWarning`s
   on such refits, about a log of zero and, on one point, about degrees of
-  freedom <= 0 and an invalid value in a division.
+  freedom <= 0 and an invalid value in a division. The check of the GP's
+  predictions that decides a refit prints no warning either when the GP
+  predicted its last evaluations exactly, as on a plateau: SciPy's
+  Shapiro-Wilk test then divides zero by zero, and its p-value, NaN,
+  forces no refit, as in MATLAB BADS; 1.1.0 printed NumPy's
+  `RuntimeWarning` about an invalid value in a division.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller

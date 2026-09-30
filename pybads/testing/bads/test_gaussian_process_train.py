@@ -704,7 +704,10 @@ def test_fit_lik_false_refused():
 def test_plateau_initial_design_runs():
     """A target equal on the whole initial design (a plateau outside a small
     ball) runs: the prior of the GP mean takes the SD 1 where the targets
-    have no spread."""
+    have no spread. The GP's predictions of the plateau are exact, and the
+    check of their calibration raises none of NumPy's warnings."""
+    import warnings
+
     D = 3
 
     def fun(x):
@@ -720,7 +723,9 @@ def test_plateau_initial_design_runs():
         2 * np.ones(D),
         options={"display": "off", "max_fun_evals": 100, "random_seed": 0},
     )
-    result = bads.optimize()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        result = bads.optimize()
     n_init = bads.optim_state["eff_starting_points"]
     assert np.all(bads.function_logger.Y[:n_init] == 1e3)
     assert np.isfinite(result["fval"])

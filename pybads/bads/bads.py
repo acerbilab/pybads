@@ -3405,7 +3405,10 @@ class BADS:
                     else:
                         do_gp_calibration = False
                 else:
-                    shapiro_test = shapiro(zscore)
+                    # z-scores without spread give W = 0/0 and a p-value of
+                    # NaN, and no calibration, as MATLAB's swtest.m does
+                    with np.errstate(invalid="ignore", divide="ignore"):
+                        shapiro_test = shapiro(zscore)
                     do_gp_calibration = shapiro_test.pvalue < alpha
 
         func_count = self.function_logger.func_count
