@@ -182,8 +182,9 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   digest, which `population.py compare` checks seed by seed; the gate of
   a change to how a run uses evaluations made before it), `profile` (the
   seven configurations whose time `profile_suite.py` measures) and
-  `periodic` (`periodic_vars`, whose configurations set it; with
-  `--options '{"periodic_vars": null}'` they run as bounded problems).
+  `periodic` (the six configurations of `default` that set
+  `periodic_vars`; with `--options '{"periodic_vars": null}'` they run as
+  bounded problems, the comparison that shows what the option does).
   `--list` prints the suites, `--check` verifies each target's minimum,
   bounds and noise, and the pinned likelihood values of the real-data
   targets, and `--smoke` runs each configuration of a suite once, in a

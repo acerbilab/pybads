@@ -224,6 +224,14 @@ def test_suites_name_known_configurations():
     profile = [c.label for c in bt.SUITES["profile"]]
     assert sorted(profile) == sorted(bt._PROFILE)
     assert [c.label for c in bt.SUITES["smoke"]] == list(bt._SMOKE)
+    periodic = {
+        c.label
+        for c in bt.SUITES["default"]
+        if bt.make_problem(c.name, c.D, reference=False).options.get(
+            "periodic_vars"
+        )
+    }
+    assert periodic == {c.label for c in bt.SUITES["periodic"]}
     with pytest.raises(ValueError, match="sphere_D99"):
         bt._subset(bt._DEFAULT, ("sphere_D2", "sphere_D99"), "profile")
 

@@ -1160,23 +1160,24 @@ def make_problem(
 # Suites
 # --------------------------------------------------------------------------
 
-# The default suite. Its 20 configurations cover every target but those
-# kept to the suites below (logsphere, edgesphere, ridge, sphere_band and
-# periodic_rosenbrock), dimension (2, 3, 6, and 10 for sphere and
-# ellipsoid; 4 for periodic, 5 for timing), noise kind and constraint type, not every
+# The default suite. Its 24 configurations cover every target but those
+# kept to the suites below (logsphere, edgesphere, ridge and sphere_band),
+# dimension (2, 3, 6, and 10 for sphere and ellipsoid; 2, 3, 4 and 6 for
+# periodic, 5 for timing), noise kind and constraint type, not every
 # combination; the ellipsoid at D = 3 appears with finite bounds, infinite
-# bounds and both noise kinds, on the same shifted target, and
-# multisensory_s1 with and without noise. Two configurations of the
-# `periodic` suite, one deterministic and one noisy, bring periodic
-# variables into every gate; the references of the suite with gpyreg 1.3.3
-# lack them (dev/TODO.md, "gpyreg releases after 1.3.3"). Every budget
-# is BADS's default, 500 D. A calibration at that budget (4 seeds per
-# configuration, 2026-09-24) found every run ending on BADS's own
-# termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
-# ellipsoid D10, 200 to 500 for the noisy synthetic targets, 200 to 330 for
-# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise;
-# the runs of the periodic suite (30 seeds, 2026-09-28) ended so after 111
-# to 137 evaluations for periodic_D4 and 182 to 607 for periodic_D3_homo.
+# bounds and both noise kinds, on the same shifted target, multisensory_s1
+# with and without noise, and periodic at D = 3 with both noise kinds. The
+# six configurations with periodic variables (the `periodic` suite) make
+# every gate a gate of periodic variables; the references of the suite with
+# gpyreg 1.3.3, which cannot run them, lack them (dev/TODO.md, "gpyreg
+# releases after 1.3.3"). Every budget is BADS's default, 500 D. A
+# calibration at that budget (4 seeds per configuration, 2026-09-24) found
+# every run ending on BADS's own termination, after 55 to 863 evaluations:
+# 60 at sphere D2, about 800 at ellipsoid D10, 200 to 500 for the noisy
+# synthetic targets, 200 to 330 for timing, about 300 for multisensory_s1
+# and 600 to 830 for it with noise; the runs of the periodic configurations
+# (30 seeds, 2026-09-28) ended so after 52 to 227 evaluations without noise
+# and 182 to 721 with it.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [
@@ -1198,8 +1199,12 @@ _DEFAULT = [
     Config("timing", 5, budget=500),
     Config("multisensory_s1", 6, budget=500),
     Config("multisensory_s1", 6, noise="homo", budget=500),
+    Config("periodic", 2, budget=500),
     Config("periodic", 4, budget=500),
+    Config("periodic", 6, budget=500),
     Config("periodic", 3, noise="homo", budget=500),
+    Config("periodic", 3, noise="hetero", budget=500),
+    Config("periodic_rosenbrock", 4, budget=500),
 ]
 
 # One configuration per code path: deterministic, inferred noise, specified
@@ -1295,20 +1300,19 @@ _WARMSTART = [
     for kind, n in (("rerun", 15), ("other", 20))
 ]
 
-# The configurations with periodic variables (periodic_vars): minima across
-# the bounds of the periodic variables, one to three of them, with both
-# noise kinds, and MATLAB BADS's Example 5; the default suite holds two of
-# them. The gate of a change to the handling of periodic variables; run
+# The configurations of the default suite with periodic variables
+# (periodic_vars): minima across the bounds of the periodic variables, one
+# to three of them, with both noise kinds, and MATLAB BADS's Example 5. Run
 # with --options '{"periodic_vars": null}', the same problems as bounded
-# ones.
-_PERIODIC = [
-    Config("periodic", 2, budget=500),
-    Config("periodic", 4, budget=500),
-    Config("periodic", 6, budget=500),
-    Config("periodic", 3, noise="homo", budget=500),
-    Config("periodic", 3, noise="hetero", budget=500),
-    Config("periodic_rosenbrock", 4, budget=500),
-]
+# ones, the comparison that shows what the option does.
+_PERIODIC = (
+    "periodic_D2",
+    "periodic_D4",
+    "periodic_D6",
+    "periodic_D3_homo",
+    "periodic_D3_hetero",
+    "periodic_rosenbrock_D4",
+)
 
 # The configurations whose time `profile_suite.py` measures: those of
 # `results/2026-09-28-where-pybads-spends-its-time.md` (three deterministic,
@@ -1348,7 +1352,7 @@ SUITES = {
     "thinband": _THINBAND,
     "warmstart": _WARMSTART,
     "profile": _subset(_DEFAULT, _PROFILE, "profile"),
-    "periodic": _PERIODIC,
+    "periodic": _subset(_DEFAULT, _PERIODIC, "periodic"),
 }
 
 

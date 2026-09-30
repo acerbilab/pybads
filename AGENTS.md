@@ -273,12 +273,12 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   made before the run are logged as given. `udist` and `ucov` take a
   periodic difference the shorter way round, and the GP's kernel takes the
   periods from `_gp_periods` (gpyreg's `periods`), only in a run that has
-  periodic variables: without them the kernel gets no `periods`. The gate
-  of a change to this code is the `periodic` suite, against
-  `dev/experiments/population_periodic_linux_20260928` on Linux. The
-  `default` suite holds two of its configurations, which its references
-  lack until gpyreg 1.4.0's (`dev/TODO.md`), so that its comparison does
-  not test them yet.
+  periodic variables: without them the kernel gets no `periods`. The
+  `default` suite holds the six configurations that set `periodic_vars`
+  (the `periodic` suite), which its references lack until gpyreg 1.4.0's
+  (`dev/TODO.md`), so that its comparison does not test them yet; until
+  then, the gate of a change to this code is the `periodic` suite, against
+  `dev/experiments/population_periodic_linux_20260928` on Linux.
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`

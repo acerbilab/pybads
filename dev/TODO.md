@@ -37,22 +37,21 @@ among them, so a title stays as it is while its item is open.
     variables fail. With the minimum at 1.4.0, the check and its test,
     `test_periodic_vars_need_a_gpyreg_with_periods`, can go. The
     changelog's entry "Requirements" and the line of "Upgrading from
-    1.1.0" name the new minimum. The `default` suite holds two periodic
-    configurations, `periodic_D4` and `periodic_D3_homo` (PI, 2026-09-29),
-    which its references, the Windows one at 100 seeds and the Linux one
-    at 30, lack: `population.py compare` tests only the configurations
-    that both populations hold, and lists the others on one line, outside
-    its verdict and its exit code. The release's comparison runs the whole
+    1.1.0" name the new minimum. The `default` suite holds the six
+    configurations of the `periodic` suite (PI, 2026-09-30), which its
+    references, the Windows one at 100 seeds and the Linux one at 30,
+    lack: `population.py compare` tests only the configurations that both
+    populations hold, and lists the others on one line, outside its
+    verdict and its exit code. The release's comparison runs the whole
     `default` suite with the release's clone on both platforms, at the
     references' numbers of seeds, and its populations become the new
-    references, the two periodic configurations included (PI,
-    2026-09-29). The release also runs the whole `periodic` suite, the
-    gate of a change to the handling of periodic variables: on Linux
-    against the "on" arm of
-    [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
-    on Windows, which has no run of it, in both arms (with `--options
-    '{"periodic_vars": null}'` for "off"), whose "on" arm becomes the
-    reference of the suite there;
+    references, the periodic configurations included (PI, 2026-09-29),
+    and the `default` suite the gate of a change to the handling of
+    periodic variables in `AGENTS.md`. On Linux its periodic
+    configurations are compared with the "on" arm of
+    [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md)
+    as well; Windows has no earlier run of them, and runs no "off" arm
+    (PI, 2026-09-30);
   - a periodic kernel that costs less (PI, 2026-09-29). At `b44634f`,
     gpyreg's kernel with periods, which computes an `fmod` and a sine of
     every pair of inputs, takes 2.5 to 3.9 times as long as the same calls
@@ -70,12 +69,11 @@ among them, so a title stays as it is while its item is open.
     "Time per evaluation"). `dev/scripts/fingerprint.py` keeps
     `4146a986863602cb` with `0f27db5` (Linux, SciPy 1.17.1, one BLAS
     thread), and the `periodic` suite at 30 seeds flags nothing against
-    its Linux reference. The periodic runs take other paths from a difference in the
-    kernel's last bits, so the release's comparison of that suite on
-    Linux, above, is a statistical one, not an identity, and a reference
-    that the code at 1.4.0 reproduces run by run is then the release's own
-    population of the suite, which the gate of periodic variables in
-    `AGENTS.md` would name in place of `population_periodic_linux_20260928`.
+    its Linux reference. The periodic runs take other paths from a
+    difference in the kernel's last bits, so the release's comparison of
+    those configurations with that reference, above, is a statistical one,
+    not an identity, and the reference that the code at 1.4.0 reproduces
+    run by run is the release's own population of the `default` suite.
     Both commits are on gpyreg's `main` since acerbilab/gpyreg#62 (merge
     commit `e10120c`), with their evidence in
     [experiments/periodic_kernel_linux_20260929/](experiments/periodic_kernel_linux_20260929/README.md);
