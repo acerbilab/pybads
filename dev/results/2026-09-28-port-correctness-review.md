@@ -25,8 +25,8 @@ review settled are catalogued in
 The five ledgers hold 173 rows. 121 changed the code: a defect or a
 discrepancy fixed, most of them toward MATLAB BADS, or a value that failed
 obscurely refused with a message when `BADS` is created (W1-24's fix is in
-gpyreg 1.4.0, PyBADS's minimum since 2026-09-30; W2-44, kept in wave 2, was fixed by W4-28, and
-the options of W2-35 were removed by #87). 28 kept a behavior as it was,
+gpyreg 1.4.0, PyBADS's minimum since 2026-09-30; W2-44, kept in wave 2,
+was fixed by W4-28, and the options of W2-35 were removed by #87). 28 kept a behavior as it was,
 most of them a deliberate difference from MATLAB BADS, in the catalogue, or
 a behavior that PyBADS shares with MATLAB BADS, in
 `matlab_side_defects.md`. 22 closed without a change of behavior: a record,
@@ -413,7 +413,8 @@ items that a ruling left to later work are held by these items of
 The item "The example notebooks' saved outputs." held wave 2's "Fix
 pass" and "Doublecheck" until the notebooks were rerun on 2026-09-30,
 before the release of 1.5.0, with PyBADS at `3fbdae29` installed as
-1.5.0 and gpyreg 1.4.0 (`make -C examples/scripts run`): their outputs
+1.5.0 and gpyreg 1.4.0 (`make -C examples/scripts run`; Example 4 again
+at `1ecfeb61`, for the final message's wording): their outputs
 no longer show the warning `bads:TooCloseBounds` (W2-4), the old
 termination message on `tol_mesh` or a result without `status` (W2-12,
 W2-13), and what they print agrees with their text.
@@ -442,9 +443,9 @@ still reach, went to "For gpyreg's maintainers.", and the PI ruled
 refits' warnings on inputs without spread, and the refit on one point at
 D = 1 with the noise test. The PI then ruled (2026-09-29) that the
 warnings go, in gpyreg, every value the same to the last bit
-(acerbilab/gpyreg#66, which gpyreg's next release is to hold, in "gpyreg
-releases after 1.3.3."), and that the helpers' `[0, 1]` in place of a
-single target, which only a fit on one point reaches, stays: that closed
+(acerbilab/gpyreg#66, released in gpyreg 1.4.0), and that the helpers'
+`[0, 1]` in place of a single target, which only a fit on one point
+reaches, stays: that closed
 "For gpyreg's maintainers.".
 
 The item "\"What's new\" at the next release." held W4-1 until

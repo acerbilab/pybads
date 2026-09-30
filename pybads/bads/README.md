@@ -974,9 +974,10 @@ the run included. On one distinct point (a feasible region too thin for
 the initial design, `max_fun_evals=2` with the noise test,
 `fun_eval_start=0` at level 0, since uncertainty handling raises it to 20,
 or a log that holds the whole design, KD-B1-15), where the priors alone
-would decide the fit, PyBADS does not fit either: the GP holds the definition's values, as MATLAB BADS's does,
-the log length scales, the log output scale and the log shape at 0, the
-log noise SD at the log of the noise size and the mean at the point's
+would decide the fit, PyBADS does not fit either: the GP holds the
+definition's values, as MATLAB BADS's does, the log length scales, the
+log output scale and the log shape at 0, the log noise SD at the log of
+the noise size and the mean at the point's
 target. The mean's prior is centred at that target with the SD 1, where
 MATLAB's definition centres it at 0; both sides re-centre it at each
 rebuild, before any fit. A run given the log of an earlier run with the

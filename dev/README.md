@@ -456,18 +456,18 @@ reference's number of seeds.
   pooled fraction solved 0.90 in the base against 0.88 in the change, not
   significant; not adopted (PI, 2026-09-29), its diff kept with the record.
 - [experiments/population_linux_gpyreg140_20260930/](experiments/population_linux_gpyreg140_20260930/README.md)
-  — the Linux half of the comparison of gpyreg 1.4.0 (`TODO.md`): the
-  `default` suite's 24 configurations at 30 seeds with gpyreg at
-  `3e56dce`, PyBADS at `60ad9e0f`; no flag against the suite's Linux
+  — the Linux half of the comparison of gpyreg 1.4.0, before PyBADS moved
+  to it: the `default` suite's 24 configurations at 30 seeds with gpyreg
+  at `3e56dce`, PyBADS at `60ad9e0f`; no flag against the suite's Linux
   reference, whose 540 runs it repeats run by run, nor, on its six
   periodic configurations, against the periodic reference, their 180 runs
   equal to those of gpyreg `0f27db5`'s gate. The reference population of
   the benchmark on Linux, the `default` suite's periodic configurations
   included.
 - [experiments/population_gpyreg140_20260930/](experiments/population_gpyreg140_20260930/README.md)
-  — the Windows half of the comparison of gpyreg 1.4.0 (`TODO.md`): the
-  `default` suite's 24 configurations at 100 seeds with gpyreg at
-  `3e56dce`, PyBADS at `bef26ec2`; no flag against the suite's Windows
+  — the Windows half of the comparison of gpyreg 1.4.0, before PyBADS moved
+  to it: the `default` suite's 24 configurations at 100 seeds with gpyreg
+  at `3e56dce`, PyBADS at `bef26ec2`; no flag against the suite's Windows
   reference, whose 1800 runs it repeats run by run, and no crash in the
   600 runs of the periodic configurations, which Windows had not run
   before. The reference population of the benchmark on Windows, the

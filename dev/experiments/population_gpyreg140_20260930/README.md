@@ -65,10 +65,12 @@ All 2400 runs finished; none crashed. The fraction solved ranges from 0.04
 `compare dev/experiments/population_wave4_20260928 <this population>`
 (`comparison.md`) flags no configuration in 54 tests. The 1800 runs of
 the 18 configurations that the previous reference holds are equal to its
-runs, run by run, in every field of their results but the wall time: at
-default options, gpyreg's changes after 1.3.3 leave PyBADS's runs as they
-were, as the fingerprint's identity implies, and as on Linux. The six
-periodic configurations are listed outside the verdict.
+runs, run by run, in every field of their results but the wall time,
+and `precomputed` and the stage times, which the previous reference's
+records predate: at default options, gpyreg's changes after 1.3.3
+leave PyBADS's runs as they were, as the fingerprint's identity
+implies, and as on Linux. The six periodic configurations are listed
+outside the verdict.
 
 ## Checks
 

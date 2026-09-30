@@ -1,10 +1,9 @@
 # PyBADS's own time with gpyreg 1.4.0 against gpyreg 1.3.3 (Windows)
 
-The measurement that the move to gpyreg 1.4.0 states in `CHANGELOG.md`
-([`TODO.md`](../../TODO.md), "gpyreg releases after 1.3.3"): the same
-PyBADS, run under gpyreg 1.3.3 (arm A) and under gpyreg at `3e56dce` (arm
-B), whose code the tag `v1.4.0` carries (the tag adds only the date of the
-release notes). With gpyreg 1.4.0, PyBADS's own time, a run's time less
+The measurement that the move to gpyreg 1.4.0 states in `CHANGELOG.md`:
+the same PyBADS, run under gpyreg 1.3.3 (arm A) and under gpyreg at
+`3e56dce` (arm B), whose code the tag `v1.4.0` carries (the tag adds only
+the date of the release notes). With gpyreg 1.4.0, PyBADS's own time, a run's time less
 its target's evaluations, is 27 to 39 % lower on the seven configurations
 of the `profile` suite (configuration medians of 0.614 to 0.731 of the
 time under 1.3.3), 30 % at the median of the 21 pairs of runs, every run
@@ -34,12 +33,13 @@ python $E/tabulate.py table $E/timing.json > $E/timing.md
   the gpyreg commit of its arm and the worktree at `bef26ec2`, clean.
 - Each run is pinned to one performance core (logical CPU 12) with
   Windows's power throttling off: the machine's Intel Core Ultra 7 155H
-  has performance, efficiency and low-power efficiency cores, and
-  unpinned runs of the same code, under the "Balanced" power plan, took
-  from 0.72 to 1.20 times one another's time, one of them 23 s once and
-  13 s a few minutes later. Pinned, two runs of one arm differ by 2.8 % at
-  the median, and by 30 % in one pair (`ellipsoid_D3_homo` seed 2, arm B);
-  the table takes the faster run of each arm.
+  has performance, efficiency and low-power efficiency cores, and, under
+  the "Balanced" power plan, the slowest of four unpinned runs of the
+  same code, configuration and seed took up to 2.0 times as long as the
+  fastest (1.5 times at the median). Pinned, the slower of the two runs
+  of one arm takes 2.8 % longer than the faster at the median, and 42 %
+  longer in one pair (`ellipsoid_D3_homo` seed 2, arm B); the table takes
+  the faster run of each arm.
 - Windows 11, Python 3.12.6, NumPy 2.5.3, SciPy 1.18.1, the laptop's fan
   profile at "Standard", nothing else running; from 09:54 to 10:06
   (UTC+3) on 2026-09-30.
@@ -60,13 +60,15 @@ python $E/tabulate.py table $E/timing.json > $E/timing.md
 
 The four runs of each configuration and seed give the same number of
 evaluations and the same returned value: gpyreg 1.4.0 computes what 1.3.3
-computes, to the last bit, on these runs as on every run of the benchmark
+computes, to the last bit, on these runs as on the runs of the `default`
+suite without periodic variables
 ([`population_gpyreg140_20260930`](../population_gpyreg140_20260930/README.md)).
 The saving comes from gpyreg's kernels, their gradients, `predict` and the
 objective of `fit` computed with fewer intermediate arrays and without
 SciPy's layers (acerbilab/gpyreg#60, #63 and #64). The earlier
 measurement of #63 and #64 alone, against gpyreg `e10120c`, which already
-held #60, gave 19 to 27 % under SciPy 1.18 on the same configurations
+held #60, gave 19 to 27 % under SciPy 1.18 on the same configurations, in
+a Linux container
 ([`results/2026-09-29-bit-identical-speedups.md`](../../results/2026-09-29-bit-identical-speedups.md));
 that measurement counted PyBADS's one line that takes the priors once per
 rebuild, which both arms here hold.

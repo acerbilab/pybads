@@ -11,8 +11,9 @@ It is compared with the Linux reference of the suite,
 (gpyreg 1.3.3, which cannot run the periodic configurations), and its
 periodic configurations with the "on" arm of
 [`population_periodic_linux_20260928`](../population_periodic_linux_20260928/README.md)
-(gpyreg at `2c9cdfb`). If 1.4.0's tag carries `3e56dce`'s code, it is the
-Linux reference of the `default` suite from the move to 1.4.0 on.
+(gpyreg at `2c9cdfb`). The tag `v1.4.0` (`682585f`) carries `3e56dce`'s
+code, with the release notes dated, and the population is the Linux
+reference of the `default` suite from the move to 1.4.0 on.
 
 ## Command and provenance
 
@@ -41,9 +42,9 @@ per configuration the runs whose start and result (`x`, `fval`, `fsd`,
 `func_count`, `iterations`, `message`) are equal in both populations, and
 of the port review's
 `verification/scripts/wave3/orchestrator/same_fields.py REF NEW`, which
-names every field of the records that differs, the wall time and the
-provenance left out, for the pairs of populations below; `default` and
-`periodic` there are the two populations as run.
+names every field of the records that differs, leaving out the
+provenance (`meta`) and the stage times, for the pairs of populations
+below; `default` and `periodic` there are the two populations as run.
 
 - PyBADS at `60ad9e0f` (`dev-next`), from the main checkout (clean), whose
   package code is that of `e6733592` (#103) and of `bef26ec2`, which moves
@@ -55,8 +56,8 @@ provenance left out, for the pairs of populations below; `default` and
   `1.3.4.dev35+g3e56dce0f`, is that of the venv's editable install of
   `../gpyreg` at the same commit. `dev/scripts/fingerprint.py` prints
   `4146a986863602cb`, the hash of gpyreg 1.3.3 and of the Linux
-  references, with gpyreg at `3e56dce` and at `v1.3.3`, on this machine
-  and one BLAS thread.
+  references, with gpyreg at `3e56dce` and at `v1.3.3`, in this container
+  with one BLAS thread.
 - Linux (a cloud container, kernel `6.18.44-fc-v50`, 4 cores, Intel Xeon
   at 2.10 GHz), Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1, OpenBLAS 0.3.31,
   one BLAS thread per run, a fresh process per run, nothing else running;
@@ -76,17 +77,20 @@ run, in every field but the wall time and the stage times.
 **Against the reference of the suite** (`comparison.md`): no configuration
 flagged in 54 tests. The 540 runs of the 18 configurations that the
 reference holds are equal to the reference's, run by run, in every field
-but the wall time and `precomputed`, a field that the reference's records
-predate (null here): at default options, gpyreg's changes after 1.3.3
+but the wall time, and `precomputed` and the stage times, which the
+reference's records predate (`precomputed` is null here): at default options, gpyreg's changes after 1.3.3
 leave PyBADS's runs as they were, as the fingerprint's identity implies.
 The six periodic configurations, which the reference lacks, are listed
 outside the verdict.
 
 **The periodic configurations against the periodic reference**
 (`compare_periodic.md`): no configuration flagged in 18 tests. 146 of the
-180 runs differ from the reference's (all 30 of `periodic_D4`,
+180 runs end differently from the reference's, in their start or in the
+six result fields of `same_runs.py` (all 30 of `periodic_D4`,
 `periodic_D6` and `periodic_rosenbrock_D4`, 25 of `periodic_D2`, 18 of
-`periodic_D3_homo`, 13 of `periodic_D3_hetero`): the periodic kernel of
+`periodic_D3_homo`, 13 of `periodic_D3_hetero`), and 158 differ in some
+field of their results, the other 12 runs of `periodic_D3_homo` in the
+last digits of `min_noise_var` alone: the periodic kernel of
 gpyreg's `0f27db5` (acerbilab/gpyreg#62), which maps each periodic
 coordinate onto a circle, gives other last bits than `2c9cdfb`'s, and the
 runs take other paths from them. All 180 runs are equal, run by run, to
