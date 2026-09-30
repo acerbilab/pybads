@@ -34,7 +34,7 @@ feature*.
 
 ### Setup, options, bounds, transform and result (B1)
 
-**KD-B1-1. Every random draw comes from one generator, created from `random_seed`.**
+**KD-B1-1. Every random draw of a run comes from one generator, created from `random_seed`.**
 MATLAB BADS has no seed option: it draws with `rand`, `randn`, `randi` and
 `randperm` from MATLAB's global stream and reports the stream's state.
 PyBADS creates one `numpy.random.Generator`, `bads.rng`, when `BADS` is
@@ -474,7 +474,8 @@ once per session.
 - MATLAB: `bads.m:311-328`; `private/setupvars.m:28-39`, `118-123`;
   `private/boundscheck.m:12-16`; `fprintf` throughout.
 - Settled by: W2-15; the PI's rulings at the close of the review (the
-  setup's reports, `bads:pbUnspecified`). Kind: deliberate change.
+  setup's reports, `bads:pbUnspecified`); the tips, the PI (2026-09-30,
+  `dev/plans/runtime-tips.md`). Kind: deliberate change.
 
 **KD-B2-4. When the re-estimate of the current iterate fails, it keeps its estimate.**
 In a noisy run, each iterate is re-estimated from a copy of the working GP
@@ -1155,8 +1156,9 @@ improvement tests of the search and the poll; `opp_stobads` and
 `gamma_uncertain_interval` of `BADS` sets its interval. It is off by
 default and switched off for a deterministic target. Its rule was
 measured at the close of the review
-(`dev/results/2026-09-28-stobads-rule.md`): it brings none of the
-benchmark's noisy configurations closer to its minimum; the mesh factor
+(`dev/results/2026-09-28-stobads-rule.md`): at default options it brings
+none of the benchmark's five noisy configurations closer to its minimum
+than a run without it; the mesh factor
 of its interval stays, and the description of
 `stobads_frame_size_scaling_power` says what it does (W0-12); an uncertain
 search, as an uncertain poll, moves the incumbent only to a point that

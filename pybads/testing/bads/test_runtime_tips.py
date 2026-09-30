@@ -4,6 +4,7 @@ low-frequency tips are spaced, a run that is not eligible neither counts nor
 uses a tip, and a tip changes nothing in the run that shows it."""
 
 import logging
+import os
 import platform
 import random
 import re
@@ -25,7 +26,9 @@ D = 3
 _REPEATS_BIT_FOR_BIT = not (
     sys.platform == "darwin" and platform.machine() == "arm64"
 )
-_FAQ_MD = Path(__file__).resolve().parents[3] / "docsrc" / "source" / "faq.md"
+_REPO = Path(__file__).resolve().parents[3]
+_FAQ_MD = _REPO / "docsrc" / "source" / "faq.md"
+_BLOB = "https://github.com/acerbilab/pybads/blob/main/"
 
 
 @pytest.fixture(autouse=True)
@@ -198,8 +201,8 @@ def test_invalid_catalogues_are_refused(tip_logger):
 
 def test_the_shipped_catalogue():
     """The shipped tips are valid, plain ASCII, and link the published
-    documentation; the FAQ's labels that they link exist (checked where the
-    FAQ's source is at hand, as in a checkout)."""
+    documentation; the FAQ's labels and the repository's files that they
+    link exist (checked where the sources are at hand, as in a checkout)."""
     rt._validate_catalog(TIPS)
     labels = (
         set(
@@ -222,23 +225,62 @@ def test_the_shipped_catalogue():
             faq_url = "https://acerbilab.github.io/pybads/faq.html#"
             if labels is not None and url.startswith(faq_url):
                 assert url[len(faq_url) :] in labels
+            if labels is not None and url.startswith(_BLOB):
+                assert (_REPO / url[len(_BLOB) :]).is_file()
 
 
 def test_a_forked_child_reshuffles(tip_logger):
     """The hook that `os.register_at_fork` runs in a forked child gives it a
-    lock and a generator of its own, and a new shuffle of the tips not
-    shown yet; what the parent has shown stays shown."""
+    lock and a generator of its own, a count of eligible runs from zero and
+    a new shuffle of the tips not shown yet; what the parent has shown stays
+    shown."""
     logger, _ = tip_logger
+    catalog = _catalog("normal", "normal", "normal")
     shown = rt.consider_runtime_tip(
-        logger=logger, enabled=True, catalog=_catalog("normal", "normal")
+        logger=logger, enabled=True, catalog=catalog
     )
+    rt.consider_runtime_tip(logger=logger, enabled=True, catalog=catalog)
     lock, generator = rt._STATE_LOCK, rt._RNG
     rt._after_fork_in_child()
     assert rt._ORDER is None
     assert rt._RNG is not generator
     assert rt._STATE_LOCK is not lock
     assert isinstance(rt._STATE_LOCK, type(threading.Lock()))
+    assert rt._ELIGIBLE_STARTS == 0
     assert rt._SEEN_IDS == {shown.id}
+    # the child's first eligible run shows one of the tips left
+    after = rt.consider_runtime_tip(
+        logger=logger, enabled=True, catalog=catalog
+    )
+    assert after is not None and after.id != shown.id
+
+
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="needs os.fork")
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_the_fork_hook_is_registered(tip_logger):
+    """A real fork runs the hook: the child's state is its own."""
+    logger, _ = tip_logger
+    rt.consider_runtime_tip(
+        logger=logger, enabled=True, catalog=_catalog("normal", "normal")
+    )
+    parent_generator = rt._RNG
+    read_end, write_end = os.pipe()
+    pid = os.fork()
+    if pid == 0:  # the child reports and leaves at once
+        try:
+            reset = (
+                rt._ORDER is None
+                and rt._RNG is not parent_generator
+                and rt._ELIGIBLE_STARTS == 0
+            )
+            os.write(write_end, b"1" if reset else b"0")
+        finally:
+            os._exit(0)
+    os.close(write_end)
+    report = os.read(read_end, 1)
+    os.close(read_end)
+    os.waitpid(pid, 0)
+    assert report == b"1"
 
 
 def _sphere(x):
@@ -330,20 +372,27 @@ def _result_summary(bads, result):
 def test_a_tip_changes_nothing_in_its_run(caplog):
     """A seeded run that shows a tip draws and computes what the same run
     without tips does, and leaves NumPy's global random state and that of
-    the `random` module as it found them."""
-    np.random.seed(7)
-    random.seed(7)
-    np_before, random_before = np.random.get_state(), random.getstate()
-    with caplog.at_level(logging.INFO, logger="BADS"):
-        with_tip = _make_bads()
-        summary_with = _result_summary(with_tip, with_tip.optimize())
-    assert any(m.startswith("Tip: ") for m in _bads_messages(caplog))
-    np_after, random_after = np.random.get_state(), random.getstate()
-    assert np_before[0] == np_after[0]
-    assert np.array_equal(np_before[1], np_after[1])
-    assert np_before[2:] == np_after[2:]
-    assert random_before == random_after
-    without = _make_bads(show_tips=False)
-    summary_without = _result_summary(without, without.optimize())
-    for a, b in zip(summary_with, summary_without):
-        assert np.array_equal(a, b)
+    the `random` module as it found them, the session's own generator of
+    the tips included."""
+    np_saved, random_saved = np.random.get_state(), random.getstate()
+    try:
+        np.random.seed(7)
+        random.seed(7)
+        np_before, random_before = np.random.get_state(), random.getstate()
+        rt._reset_runtime_tip_state()  # the generator that a session uses
+        with caplog.at_level(logging.INFO, logger="BADS"):
+            with_tip = _make_bads()
+            summary_with = _result_summary(with_tip, with_tip.optimize())
+        assert any(m.startswith("Tip: ") for m in _bads_messages(caplog))
+        np_after, random_after = np.random.get_state(), random.getstate()
+        assert np_before[0] == np_after[0]
+        assert np.array_equal(np_before[1], np_after[1])
+        assert np_before[2:] == np_after[2:]
+        assert random_before == random_after
+        without = _make_bads(show_tips=False)
+        summary_without = _result_summary(without, without.optimize())
+        for a, b in zip(summary_with, summary_without):
+            assert np.array_equal(a, b)
+    finally:
+        np.random.set_state(np_saved)
+        random.setstate(random_saved)

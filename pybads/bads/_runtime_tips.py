@@ -8,8 +8,8 @@ private ``random.Random``, which touches no draw of a run and no other
 random state, and which no seed fixes. After a low-frequency tip, the next
 is an ordinary one while one remains. A run that is not eligible (tips off,
 the ``BADS`` logger above INFO, or no tip left) neither advances the count
-nor uses a tip. The state is the process's own: a forked child reshuffles
-the tips that its parent has not shown.
+nor uses a tip. The state is the process's own: a forked child counts its
+eligible runs afresh and reshuffles the tips that its parent has not shown.
 """
 
 import logging
@@ -140,13 +140,16 @@ def _reset_runtime_tip_state(*, rng=None):
 
 
 def _after_fork_in_child():
-    """In a forked child, a lock of its own, a generator of its own and a new
-    shuffle of the tips not shown yet, so that children forked together do
-    not show the same tips."""
-    global _STATE_LOCK, _RNG, _ORDER
+    """In a forked child, a lock and a generator of its own, a count of its
+    eligible runs from zero, so that its first run is eligible for a tip, and
+    a new shuffle of the tips not shown yet, so that children forked together
+    draw their tips independently; the tips that the parent has shown stay
+    shown."""
+    global _STATE_LOCK, _RNG, _ORDER, _ELIGIBLE_STARTS
     _STATE_LOCK = threading.Lock()
     _RNG = random.Random()
     _ORDER = None
+    _ELIGIBLE_STARTS = 0
 
 
 if hasattr(os, "register_at_fork"):

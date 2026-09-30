@@ -122,14 +122,16 @@ commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
 `pyproject.toml` lists every directory of the package, those that hold
 only data (the `.ini` option files, the oracles' fixtures) included, so a
 new subpackage is added there; the build warns "Package would be ignored"
-for one that is missing. A listed package's modules reach the wheel
-through `packages`, and its other files through `include-package-data` and
-setuptools_scm's file finder, which takes only files tracked by git. A
-release ships only committed files, since `build.yml` builds the wheel
-from the sdist, which the file finder fills; a wheel built straight from
-the tree (`pip wheel .`, `python -m build --wheel`) also takes an
-uncommitted module. The tests ship in the
-wheel: the conda-forge recipe runs them from the installed package
+for one that is missing. A listed package's modules reach the sdist and
+the wheel through `packages`, which takes every `.py` file of its
+directory, committed or not; its other files come through
+`include-package-data` and setuptools_scm's file finder, which takes only
+files tracked by git (the notebooks of `pybads.examples` also through the
+pattern of `package-data`). A release ships the files of its commit, with
+the generated `pybads/_version.py`, because `build.yml` builds from a
+fresh checkout; a build from a working tree, `python -m build` included,
+also takes an uncommitted module. The tests ship in the wheel: the
+conda-forge recipe runs them from the installed package
 (`pytest --pyargs pybads`). What they need is the `test` extra, which CI
 installs and `dev` includes; no package module imports pytest.
 
@@ -175,10 +177,13 @@ label changed, is updated there as well:
 
 The runtime tips (`pybads/bads/_tip_catalog.py`) link the published FAQ,
 which is built from `main`, and an installed release keeps its links: a
-label that a released tip links is not renamed.
+label that a released tip links is not renamed. Each tip also restates in
+brief the advice of the answer that it links, with its quantities, so a
+change to that advice is made in the catalogue as well.
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
-again, but for its list of the problems that PyBADS suits: `index.rst`
+again, but for the runtime tips (above) and its list of the problems that
+PyBADS suits: `index.rst`
 includes the list between the markers `suited-for`, which it matches
 exactly (a changed marker drops the list from the index, and the build
 does not fail), and `README.md` copies it, so a change to the list is made
@@ -513,6 +518,11 @@ reason.
   the tolerance.
 - `pybads/testing/bads/scripts/` holds manual scripts that pytest does not
   collect.
+- The runtime tips are the state of the Python session
+  (`pybads/bads/_runtime_tips.py`): a test that reads a run's messages at
+  the iteration display sees a tip or not depending on the tests run
+  before it. `show_tips=False`, or `_reset_runtime_tip_state` in a
+  fixture, isolates it.
 
 ## Conventions
 

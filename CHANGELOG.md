@@ -14,16 +14,12 @@ says where it still differs, and why.
 ### Upgrading from 1.1.0
 
 - PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or
-  later and matplotlib 3.9 or later.
+  later and matplotlib 3.9 or later ("Requirements" under Changed).
 - Results differ from 1.1.0, also with a fixed seed.
 - `BADS` checks the values of many options when it is created and raises
   `ValueError` for some that 1.1.0 accepted, such as `30.5` for
   `max_fun_evals`, `inf` for `accelerate_mesh_steps`, or `1` or `"off"` for
   a boolean option ("Checks of the options" under Changed).
-- `BADS` raises `ValueError` for a `non_box_cons` that, given N points,
-  does not return a NumPy array of shape (N,) or (N, 1); 1.1.0 failed on
-  such an output too, when `BADS` was created or during the run, and on
-  (N, 1) as well.
 - Setting one of the 66 options that had no effect in 1.1.0 and that MATLAB
   BADS does not have, such as `min_iter` or `gp_cov_fun`, raises
   `ValueError` ("Options without effect" under Removed).
@@ -51,20 +47,21 @@ says where it still differs, and why.
   `noise_final_samples=1`, `yval_vec` has shape (2,), not (2, 1).
 - With `uncertainty_handling=False`, a run makes no noise test, and a noisy
   target is optimized as a deterministic one. With it left empty, the
-  option `tol_noise`, the largest difference between the two values at the
-  start that counts as no noise, defaults to `sqrt(eps) * tol_fun`, where
-  it was `eps * tol_fun`.
+  noise test compares the two values at the start with the option
+  `tol_noise`, whose default is `sqrt(eps) * tol_fun`, where it was
+  `eps * tol_fun`: a difference at most that large counts as no noise.
 - `x0` and the plausible bounds are used as given ("Bounds and the starting
   point" under Fixed).
 - A value or a noise SD that the target returns and that is not a finite
   real number raises `ValueError`, a complex one included, even when its
   imaginary part is zero.
-- `pybads.search.ESSearchCMA` is removed; `pybads.init_functions.init_sobol`
-  returns the number of points of its design as its second value, not its
-  base-2 logarithm, and requires `lb` and `ub`; `FunctionLogger` has no
-  `y_max`, a run's function logger holds `S` only with
+- `pybads.init_functions.init_sobol` returns the number of points of its
+  design as its second value, not its base-2 logarithm, and requires `lb`
+  and `ub`; a run's function logger holds `S` only with
   `specify_target_noise=True`, and `FunctionLogger.add` checks a value and
   an SD as those of the target, the SD required at uncertainty level 2.
+  `pybads.search.ESSearchCMA` and `FunctionLogger.y_max` are removed
+  ("Removed").
 
 ### Added
 
@@ -164,6 +161,9 @@ says where it still differs, and why.
   and that MATLAB BADS does not have, most of them leftovers of PyVBMC, are
   removed; the 12 without effect that are named after options of MATLAB
   BADS, such as `poll_method`, stay, described as unused.
+- **`ESSearchCMA` and `y_max`.** `pybads.search.ESSearchCMA`, a CMA-ES
+  search that no `search_method` selected and that failed when called, is
+  removed, and so is `FunctionLogger.y_max`, which 1.1.0 held at -inf.
 
 ### Fixed
 
@@ -201,9 +201,9 @@ says where it still differs, and why.
   10-D ellipsoids with condition number 1e6, the median error falls by a
   factor of 6 to 110.
 - The upper bound of each log length scale of the GP is the logarithm of
-  the largest length scale allowed, where it was that length scale itself,
-  which let the GP take a direction along which the target varies slowly
-  to be flat.
+  min(100, 10 times the variable's range), where it was that number
+  itself, which let the GP take a direction along which the target varies
+  slowly to be flat.
 - The check of the GP's predictions that calls for a refit follows MATLAB
   BADS in its count of the predictions, its chi-square quantiles and its
   scaling of the errors by the SD of an observation; it failed on GPs that
@@ -292,10 +292,15 @@ says where it still differs, and why.
   `"full"`, and every message of a run goes to the `BADS` logger.
 - PyBADS no longer emits `SyntaxWarning` or `DeprecationWarning` on Python
   3.12 and later; NumPy's `RuntimeWarning`s on a GP whose points have no
-  spread in a coordinate or that holds a single point; SciPy's warning when
-  the GP predicted its last evaluations exactly; or an overflow
+  spread in a coordinate or that holds a single point; the warning of the
+  Shapiro-Wilk test when the GP predicted its last evaluations exactly; or
+  an overflow
   `RuntimeWarning` for a variable with a bound above about 700 beside one
   on a log scale. A run leaves NumPy's error handling as it found it.
+- `BADS` checks, when it is created, that `non_box_cons`, given N points,
+  returns a NumPy array of shape (N,) or (N, 1), and raises `ValueError`
+  otherwise; 1.1.0 failed on other outputs with unrelated errors, then or
+  during the run, and on (N, 1) too.
 - `pybads.stats.kde1d` no longer raises `AttributeError` under NumPy 2.
 
 ## [1.1.0] - 2026-09-25

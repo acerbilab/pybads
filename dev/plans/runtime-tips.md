@@ -1,7 +1,7 @@
 # Runtime tips
 
 Created 2026-09-30, for the release of 1.5.0 (`dev/TODO.md`, "Runtime tips,
-as in PyVBMC."). A run with the iteration display may print a short tip,
+as in PyVBMC.", closed with the tips). A run with the iteration display may print a short tip,
 with a link to the documentation, before its first iteration line. The
 design is PyVBMC's (`acerbilab/pyvbmc`, branch `dev-next`, from
 `1c3d4f25`: `pyvbmc/vbmc/_runtime_tips.py`, `_tip_catalog.py` and its plan
@@ -17,9 +17,11 @@ slot, and a `BADS` object runs once, with no save or resume.
   `"full"`, and `show_tips=False` turns them off.
 - Every message of a run goes to the `BADS` logger, the tips too, so a
   handler that a user attaches, such as a file, receives them.
-- A run in a process of its own, as in a script, a cluster job or a pool of
-  workers, is the first of its session and shows a tip; a forked worker
-  reshuffles, so that workers forked together do not show the same one.
+- A process started afresh, as a script, a cluster job or a spawned
+  worker, is a session of its own, whose first eligible run shows a tip; a
+  forked worker counts its eligible runs afresh and reshuffles the tips
+  that its parent has not shown, so that workers forked together draw
+  their tips independently.
 - The example notebooks, rerun before the release, show the tips that
   their runs draw.
 - "What's new" in `README.md` and `index.rst` mentions them.
@@ -49,7 +51,8 @@ slot, and a `BADS` object runs once, with no save or resume.
 - The tip is one INFO record of the `BADS` logger: `Tip: <text>`, each URL
   on a line of its own, and an empty line.
 - `os.register_at_fork` (POSIX) gives a forked child a new generator, a new
-  lock and a new shuffle of the tips its parent has not shown.
+  lock, a count of eligible runs from zero and a new shuffle of the tips
+  its parent has not shown.
 - The catalogue, `pybads/bads/_tip_catalog.py`, is data: a tip's `id`,
   `text` (plain ASCII, no Markdown), `frequency` (`"normal"` or
   `"low_frequency"`) and `urls`. The scheduler,
@@ -57,7 +60,9 @@ slot, and a `BADS` object runs once, with no save or resume.
 
 ## Catalogue
 
-Six ordinary tips and two low-frequency ones. The URLs are those of the
+Six ordinary tips and two low-frequency ones, the wording of 3, 5, 6, 7
+and 8 as the PI approved it after the review of the implementation
+(2026-09-30). The URLs are those of the
 published documentation, built from `main`, so the FAQ's labels that they
 link are coupled with it (`AGENTS.md`).
 
@@ -75,36 +80,40 @@ link are coupled with it (`AGENTS.md`).
 3. `noisy_target`: "If your objective is noisy, for instance a negative
    log-likelihood estimated by simulation, set
    options['uncertainty_handling'] = True rather than relying on PyBADS's
-   noise test at x0. PyBADS works best when the noise SD near the solution
-   is about 1 or less; if you can estimate the SD of each evaluation, set
-   options['specify_target_noise'] = True and return (f, sd)." FAQ, "Noisy
-   objective function".
+   noise test at x0. In many cases a noise SD of about 1 or less near the
+   solution works; if it is larger, reduce it, for instance with more
+   simulations per evaluation. If you can estimate the SD of each
+   evaluation, set options['specify_target_noise'] = True and return (f,
+   sd)." FAQ, "Noisy objective function".
 4. `fixed_variables`: "To hold a parameter at a known value, set its four
    bounds (lb, ub, plb and pub) to that value, and its entry of x0 to the
    same value or NaN. PyBADS optimizes only the other parameters and still
    passes all of them to your objective, so your code needs no change."
    FAQ, "Can I set lb = ub for some variable to fix it to a given value?".
 5. `periodic_vars`: "For angles and other periodic parameters, list their
-   indices (from 0) in options['periodic_vars'], with the period as the
-   hard bounds (e.g. lb = -np.pi, ub = np.pi), usually as the plausible
-   bounds too. PyBADS then treats the two bounds as the same point and can
-   move across them." FAQ, "Does PyBADS support periodic variables, such
+   indices (from 0) in options['periodic_vars'], with the period as their
+   hard bounds (e.g. -np.pi and np.pi for an angle in radians), usually as
+   their plausible bounds too. PyBADS then treats the two bounds as the
+   same point and can move across them." FAQ, "Does PyBADS support periodic variables, such
    as angles?".
 6. `stop_reason`: "The message at the end of the run, also in
    optimize_result['message'], says why it ended. If it used up its budget
-   (max_fun_evals, 500 * D by default, or max_iter) before settling, raise
+   (max_fun_evals, 500 * D by default, D the number of parameters, or
+   max_iter) before settling, raise
    it; if it converged but the solution seems imprecise, the FAQ lists
    options that make it search longer." FAQ, "On some problems, PyBADS
    seems to get stuck and stop too early...".
 7. `pyvbmc` (low frequency): "If your objective is a negative
    log-likelihood, you can also estimate the uncertainty over the
    parameters and the model evidence: run PyVBMC on the same model and
-   data, with PyBADS's solution as its starting point x0." FAQ, "I have
+   data, with a prior over the parameters and PyBADS's solution as its
+   starting point x0." FAQ, "I have
    run PyBADS on my problem. How do I run PyVBMC?".
 8. `agent_skill` (low frequency): "If you work with a coding agent, give it
-   the PyBADS skill from GitHub, or copy its skills/pybads folder into the
-   agent's skill directory: it points the agent to the parts of PyBADS's
-   documentation relevant to your task." The skill on GitHub.
+   the PyBADS skill from GitHub, or copy the skills/pybads folder of
+   PyBADS's repository into the agent's skill directory: it points the
+   agent to the parts of PyBADS's documentation relevant to your task."
+   The skill on GitHub.
 
 ## Records
 
@@ -122,7 +131,9 @@ differences (KD-B1-1, KD-B1-4, KD-B2-3); `dev/TODO.md`.
   are not eligible (tips off, a logger above INFO, a display other than the
   iteration display) neither counting nor using a tip, the record's format,
   the shipped catalogue (unique ids, known frequencies, ASCII text, URLs of
-  the documentation), the fork hook, and whole runs: the tip between the
+  the documentation, and in a checkout the FAQ's labels and the files that
+  they link), the fork hook and, where `os.fork` exists, its registration,
+  and whole runs: the tip between the
   opening message and the column headers, a seeded run with a tip equal to
   the same run without, and NumPy's and the `random` module's states left
   as they were.

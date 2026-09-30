@@ -22,9 +22,10 @@ class Tip:
 # To edit a tip's wording or links, keep its id; give a new topic a new id.
 # Tips are added, removed or moved between the frequencies here alone: the
 # scheduler (_runtime_tips.py) reads no size or id of this catalogue. The
-# text is plain ASCII, which any console encodes, and the URLs are those of
-# the published documentation, so that the FAQ's labels they link are
-# coupled with it (AGENTS.md).
+# text is plain ASCII, which any console encodes. The URLs are those of the
+# published documentation, and each tip restates in brief the advice of the
+# answer that it links, so the FAQ's labels and that advice are coupled with
+# this catalogue (AGENTS.md).
 TIPS = (
     Tip(
         id="multiple_starts",
@@ -56,10 +57,11 @@ TIPS = (
             "If your objective is noisy, for instance a negative "
             "log-likelihood estimated by simulation, set "
             "options['uncertainty_handling'] = True rather than relying on "
-            "PyBADS's noise test at x0. PyBADS works best when the noise SD "
-            "near the solution is about 1 or less; if you can estimate the "
-            "SD of each evaluation, set options['specify_target_noise'] = "
-            "True and return (f, sd)."
+            "PyBADS's noise test at x0. In many cases a noise SD of about 1 "
+            "or less near the solution works; if it is larger, reduce it, for "
+            "instance with more simulations per evaluation. If you can "
+            "estimate the SD of each evaluation, set "
+            "options['specify_target_noise'] = True and return (f, sd)."
         ),
         frequency="normal",
         urls=(f"{_FAQ}#faq-noisy-objective-function",),
@@ -83,10 +85,10 @@ TIPS = (
         id="periodic_vars",
         text=(
             "For angles and other periodic parameters, list their indices "
-            "(from 0) in options['periodic_vars'], with the period as the "
-            "hard bounds (e.g. lb = -np.pi, ub = np.pi), usually as the "
-            "plausible bounds too. PyBADS then treats the two bounds as the "
-            "same point and can move across them."
+            "(from 0) in options['periodic_vars'], with the period as their "
+            "hard bounds (e.g. -np.pi and np.pi for an angle in radians), "
+            "usually as their plausible bounds too. PyBADS then treats the "
+            "two bounds as the same point and can move across them."
         ),
         frequency="normal",
         urls=(
@@ -99,8 +101,8 @@ TIPS = (
         text=(
             "The message at the end of the run, also in "
             "optimize_result['message'], says why it ended. If it used up its "
-            "budget (max_fun_evals, 500 * D by default, or max_iter) before "
-            "settling, raise it; if it converged but the solution seems "
+            "budget (max_fun_evals, 500 * D by default, D the number of "
+            "parameters, or max_iter) before settling, raise it; if it converged but the solution seems "
             "imprecise, the FAQ lists options that make it search longer."
         ),
         frequency="normal",
@@ -115,8 +117,9 @@ TIPS = (
         text=(
             "If your objective is a negative log-likelihood, you can also "
             "estimate the uncertainty over the parameters and the model "
-            "evidence: run PyVBMC on the same model and data, with PyBADS's "
-            "solution as its starting point x0."
+            "evidence: run PyVBMC on the same model and data, with a prior "
+            "over the parameters and PyBADS's solution as its starting point "
+            "x0."
         ),
         frequency="low_frequency",
         urls=(
@@ -127,9 +130,9 @@ TIPS = (
         id="agent_skill",
         text=(
             "If you work with a coding agent, give it the PyBADS skill from "
-            "GitHub, or copy its skills/pybads folder into the agent's skill "
-            "directory: it points the agent to the parts of PyBADS's "
-            "documentation relevant to your task."
+            "GitHub, or copy the skills/pybads folder of PyBADS's repository "
+            "into the agent's skill directory: it points the agent to the "
+            "parts of PyBADS's documentation relevant to your task."
         ),
         frequency="low_frequency",
         urls=(

@@ -1126,9 +1126,10 @@ from NumPy's global random state, so `np.random.seed(42)` before creating the
 `BADS` object also fixes the run. PyBADS otherwise neither draws from nor
 seeds that global state.
 
-The [tips](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere) that a
-run may print come in an order of their own, which the seed does not fix
-and which does not affect the run.
+Whether a run prints a
+[tip](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere), and which,
+depends on the runs before it in the Python session, not on the seed; a tip
+does not affect the run.
 
 The seed does not govern your objective: if your objective is noisy, give it
 a random generator of its own, as explained

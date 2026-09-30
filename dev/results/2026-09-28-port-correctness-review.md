@@ -569,7 +569,7 @@ what PyBADS does; nothing there was run in MATLAB. Its items, as it stands:
 | A zero spread of the training targets gives a degenerate prior (needs MATLAB for what its fit then does) | `gpdef/gpdefBads.m:219-222`, `293-295` | W1-26 | a rebuild keeps the previous prior (KD-B6-2) |
 | At D = 1 the training set's distances are in units of 1, not of the fitted length scale | `private/gpupdate.m:285-292` | W1-17 | the fitted length scale at every D (KD-B5-10) |
 | The transform's self-test refuses valid bounds of large magnitude | `utils/transvars.m:30`, `169-178` | W2-5 | a relative tolerance (KD-B1-10) |
-| A random start that violates the non-box constraints stops the run | `private/setupvars.m:83-85`, `private/evalinitmesh.m:22-26` | W2-11 | drawn again, up to 1000 times (KD-B1-11) |
+| A random start that violates the non-box constraints stops the run | `private/setupvars.m:83-85`, `private/evalinitmesh.m:22-26` | W2-11 | drawn again, up to 1000 draws in all (KD-B1-11) |
 | The noise test is left out of the budget | `private/evalinitmesh.m:37-42`, `98-104` | W2-27 | counted (KD-B2-6) |
 | After the re-estimate, the move to an earlier iterate takes its value and not its location | `bads.m:1111-1118`, `769` | W2-25 | the incumbent moves with its value (KD-B2-7) |
 | With `HedgeGamma` 0, the search hedge fails at its first update | `acq/acqPortfolio.m:40`, `47` | W3-7 | each search scored at the search point (KD-B3-8) |

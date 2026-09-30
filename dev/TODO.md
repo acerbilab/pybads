@@ -23,8 +23,9 @@ among them, so a title stays as it is while its item is open.
   pytest, pytest-rerunfailures and numdifftools from the run
   requirements of its `recipe/meta.yaml` before it merges: gpyreg 1.4.0
   no longer needs them, and the feedstock's bot merges its update PR
-  once a CI that only imports gpyreg passes. The same PyBADS PR raises the
-  recipe's host requirement `setuptools >=45` to `>=77`, which the license
+  once a CI that only imports gpyreg passes. The same PR on
+  `conda-forge/pybads-feedstock` raises the recipe's host requirement
+  `setuptools >=45` to `>=77`, which the license
   field of `pyproject.toml` needs; conda-forge resolves the newest
   setuptools, so builds work meanwhile.
 
@@ -49,6 +50,12 @@ among them, so a title stays as it is while its item is open.
   `stobads_frame_size_scaling_power`: the removal changes that oracle's
   recipe, which takes `--write --reason` (`AGENTS.md`, "Numerical
   gates").
+- [ ] **Tips: PyVBMC's review.** PyBADS's runtime tips copy PyVBMC's,
+  whose tips the PI is to review before PyVBMC's release (PyVBMC's
+  `dev/TODO.md`, "Review of the tips."). When that review concludes, its
+  outcome for the policy or the wording is applied to PyBADS's copy
+  (`pybads/bads/_runtime_tips.py`, `_tip_catalog.py`;
+  `dev/plans/runtime-tips.md`).
 
 ## Waiting on MATLAB BADS
 
