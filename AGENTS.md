@@ -118,9 +118,11 @@ commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
 `git config blame.ignoreRevsFile .git-blame-ignore-revs` hides it from
 `git blame`.
 
-`pyproject.toml` is authoritative; `setup.py` is a shim. It names only
-`pybads` and `pybads.examples` as packages: the subpackages and the `.ini`
-option files reach the wheel through `include-package-data` and
+`pyproject.toml` is authoritative; `setup.py` is a shim. Its `packages`
+lists every directory of the wheel, those that hold only data (the `.ini`
+option files, the oracles' fixtures) included, so a new subpackage is
+added there; the build warns "Package would be ignored" for one that is
+missing. Their files reach the wheel through `include-package-data` and
 setuptools_scm's file finder, which takes only files tracked by git, so a
 new module or data file ships only once committed. The tests ship in the
 wheel: the conda-forge recipe runs them from the installed package

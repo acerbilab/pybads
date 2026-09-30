@@ -5,7 +5,8 @@ name = "PyBADS"
 dynamic = ["version"]  # use git tags for version, via setuptools_scm
 description = "Bayesian Adaptive Direct Search in Python."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 dependencies = [
     "gpyreg >= 1.4.0",
     # No module of PyBADS imports matplotlib, but gpyreg imports it and asks
@@ -19,8 +20,38 @@ requires-python = ">=3.10"
 
 [tool.setuptools]
 include-package-data = true
-# Include examples in binary/wheel distribution:
-packages = ["pybads", "pybads.examples"]
+# Every directory of the wheel, those that hold only data included; the
+# examples are installed as pybads.examples
+packages = [
+    "pybads",
+    "pybads.acquisition_functions",
+    "pybads.bads",
+    "pybads.bads.option_configs",
+    "pybads.decorators",
+    "pybads.examples",
+    "pybads.examples.scripts",
+    "pybads.function_logger",
+    "pybads.init_functions",
+    "pybads.poll",
+    "pybads.search",
+    "pybads.stats",
+    "pybads.testing",
+    "pybads.testing.bads",
+    "pybads.testing.bads.poll",
+    "pybads.testing.bads.scripts",
+    "pybads.testing.bads.search",
+    "pybads.testing.decorators",
+    "pybads.testing.function_logger",
+    "pybads.testing.init_functions",
+    "pybads.testing.oracles",
+    "pybads.testing.oracles.fixtures",
+    "pybads.testing.stats",
+    "pybads.testing.utils",
+    "pybads.testing.variable_transformer",
+    "pybads.utils",
+    "pybads.utils.timer",
+    "pybads.variable_transformer",
+]
 package-dir = {"pybads.examples" = "examples"}
 
 [tool.setuptools.package-data]
@@ -50,7 +81,7 @@ dev = [
 
 [build-system]
 requires = [
-    "setuptools >= 45",
+    "setuptools >= 77",
     "setuptools_scm[toml] >= 6.2",
 ]
 build-backend = "setuptools.build_meta"
