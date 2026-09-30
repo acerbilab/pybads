@@ -136,6 +136,14 @@ differences (KD-B1-1, KD-B1-4, KD-B2-3); `dev/TODO.md`.
 - [x] Catalogue, scheduler, option, call site.
 - [x] Tests: `test_runtime_tips.py`, 17 passed; the whole suite, 1215
   passed (Windows, gpyreg `v1.4.0`).
-- [ ] The gates against the parent commit.
+- [x] The gates, `5dcbd83f` (the tips, `a2e49853`, and a changelog line)
+  against `e36031bf`, on Windows (NumPy 2.5.3, SciPy 1.18.1, OpenBLAS's
+  Haswell kernels, one BLAS thread, gpyreg `v1.4.0`): the fingerprint
+  `093cb1d05a16d889` at both; `replay.py check`, 8 runs of 8 identical;
+  the oracles' `--check --exact --against` a `--dump` of `e36031bf`, 1056
+  outputs of 1056 identical.
 - [x] Records.
-- [ ] Notebooks rerun.
+- [x] Notebooks rerun (`make -C examples/scripts run`, PyBADS at
+  `5dcbd83f` installed as 1.5.0, gpyreg `v1.4.0`, Windows): Examples 1-4
+  and 6 each show one tip, Example 5 (`display="off"`) none; besides the
+  tips, only timings change.
