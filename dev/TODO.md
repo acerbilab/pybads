@@ -44,6 +44,17 @@ among them, so a title stays as it is while its item is open.
   noisy target takes `uncertainty_handling=True` instead. Open: whether a
   later release removes it; its options would then raise `ValueError` as
   unknown ones, as the 66 removed in 1.5.0 do.
+- [ ] **Runtime tips, as in PyVBMC.** The PI (2026-09-30) asks to look
+  at PyVBMC's tips for PyBADS. On PyVBMC's `dev-next`, unreleased (from
+  `1c3d4f25`, 2026-09-10), a run may print a short tip before the
+  iteration display, each at most once per Python session, and
+  `show_tips=False` or `display="off"` turns them off: the scheduler
+  `pyvbmc/vbmc/_runtime_tips.py`, the catalogue of tips
+  `pyvbmc/vbmc/_tip_catalog.py`, the printer `pyvbmc/_user_hints.py`, the
+  option `show_tips` of `basic_vbmc_options.ini` and the tests
+  `pyvbmc/testing/vbmc/test_runtime_tips.py`. PyBADS does not import
+  PyVBMC (`AGENTS.md`), so adopting them means a copy of its own, with a
+  catalogue of PyBADS's tips, for which the FAQ's answers are a source.
 
 ## Waiting on MATLAB BADS
 
