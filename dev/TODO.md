@@ -3,9 +3,7 @@
 Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
 ("Setup and commands") gives the release's steps. The release's section
-below holds the look at PyVBMC's runtime tips, which comes before the
-release's pull request, and the conda-forge recipe, which follows its
-upload to PyPI.
+below holds the conda-forge recipe, which follows its upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -15,21 +13,6 @@ among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
-- [ ] **Runtime tips, as in PyVBMC.** Before the release's pull request,
-  the PI (2026-09-30) asks to look at PyVBMC's tips for 1.5.0. On
-  PyVBMC's `dev-next`, unreleased (from `1c3d4f25`, 2026-09-10), a run may
-  print a short tip before the iteration display, each at most once per
-  Python session, and `show_tips=False` or `display="off"` turns them off:
-  the scheduler `pyvbmc/vbmc/_runtime_tips.py`, the catalogue of tips
-  `pyvbmc/vbmc/_tip_catalog.py`, the printer `pyvbmc/_user_hints.py`, the
-  option `show_tips` of `basic_vbmc_options.ini` and the tests
-  `pyvbmc/testing/vbmc/test_runtime_tips.py`. PyBADS does not import
-  PyVBMC (`AGENTS.md`), so adopting them means a copy of its own, with a
-  catalogue of PyBADS's tips, for which the FAQ's answers are a source.
-  PyVBMC prints its tips with `print()`, where PyBADS sends every message
-  of a run to the `BADS` logger, as the FAQ and the changelog state; and
-  the example notebooks, rerun before the release, would show the tips
-  that their runs draw.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all

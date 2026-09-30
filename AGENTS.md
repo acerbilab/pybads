@@ -153,19 +153,29 @@ label changed, is updated there as well:
   and `index.rst`;
 - `faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`:
   `quickstart.rst`;
-- `faq-noisy-objective-function`: Examples 3 and 4;
+- `faq-how-do-i-run-pybads-from-several-starting-points`,
+  `faq-how-do-i-choose-plb-and-pub` and
+  `faq-on-some-problems-pybads-seems-to-get-stuck-and-stop-too-early-is-there-a-way-to-tune-pybads-to-optimize-towards-a-higher-precision-result-or-to-have-it-optimize-for-longer`:
+  the runtime tips;
+- `faq-noisy-objective-function`: Examples 3 and 4, and the runtime tips;
 - `faq-can-pybads-handle-any-arbitrary-amount-of-noise-in-the-objective`:
   Example 3;
 - `faq-does-pybads-support-periodic-variables-such-as-angles`: Example 6,
-  the changelog's entry "Periodic variables" and "What's new" in
-  `README.md` and `index.rst`;
+  the changelog's entry "Periodic variables", "What's new" in `README.md`
+  and `index.rst`, and the runtime tips;
 - `faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`: the
-  changelog's entry "Fixed variables" and "What's new" in `README.md` and
-  `index.rst`;
+  changelog's entry "Fixed variables", "What's new" in `README.md` and
+  `index.rst`, and the runtime tips;
 - `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4, and "What's
   new" in `README.md` and `index.rst`;
 - `faq-i-used-bads-in-matlab-what-is-different-in-pybads`: "What's new" in
-  `README.md` and `index.rst`.
+  `README.md` and `index.rst`;
+- `faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc`: the runtime
+  tips.
+
+The runtime tips (`pybads/bads/_tip_catalog.py`) link the published FAQ,
+which is built from `main`, and an installed release keeps its links: a
+label that a released tip links is not renamed.
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
 again, but for its list of the problems that PyBADS suits: `index.rst`
@@ -365,6 +375,10 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   generator in `init_sobol`, so that the seed decides the design, whatever
   `x0` is given (a random `x0` is drawn from the generator before it);
   MATLAB BADS derives its design from the start alone, with no random draw.
+  The order of the runtime tips (`pybads/bads/_runtime_tips.py`) is not a
+  draw of a run: a private `random.Random` of the session shuffles them,
+  which no seed fixes and which touches neither `bads.rng` nor the state
+  of NumPy or of the `random` module.
 - **gpyreg internals.** `gaussian_process_train.py` calls the name-mangled
   private `gp._GP__gp_obj_fun`, so a change to gpyreg's private interface
   can break PyBADS.

@@ -27,6 +27,7 @@ from pybads.utils.timer import Timer
 from pybads.utils.timer.stage_timer import NULL_STAGE_TIMER, StageTimer
 from pybads.variable_transformer import VariableTransformer
 
+from ._runtime_tips import consider_runtime_tip
 from .gaussian_process_train import (
     add_and_update_gp,
     init_and_train_gp,
@@ -658,6 +659,8 @@ class BADS:
         self.x0 = x0
 
         self.gamma_uncertain_interval = gamma_uncertain_interval
+        # A BADS object considers one runtime tip, when its run starts
+        self._runtime_tip_considered = False
 
         # Checked before _init_optim_state_ transforms the variables, which
         # never takes a periodic variable to log coordinates, and draws a
@@ -1777,6 +1780,14 @@ class BADS:
             self.logger.log(
                 _LOG_NOTIFY,
                 "Beginning optimization of a DETERMINISTIC objective function\n",
+            )
+
+        # An occasional tip, shown with the iteration lines
+        # (pybads/bads/_runtime_tips.py); its choice touches no draw of the run
+        if not self._runtime_tip_considered:
+            self._runtime_tip_considered = True
+            consider_runtime_tip(
+                logger=self.logger, enabled=self.options["show_tips"]
             )
 
         # set up strings for logging of the iteration

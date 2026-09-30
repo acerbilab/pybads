@@ -42,8 +42,10 @@ created, from `random_seed`, passes it to every draw, and never draws from
 NumPy's global stream, except that `random_seed=None` seeds the generator
 from four draws of it. The scrambling of the initial design draws from a
 generator that SciPy seeds with one integer drawn from `bads.rng`
-(KD-B7-1). The result reports `random_seed`, the option when it is an
-integer and `None` otherwise, not a state. No draw is meant to reproduce
+(KD-B7-1). The order of the runtime tips (KD-B2-3) comes from a private
+`random.Random`, which no seed fixes and which touches no draw of a run.
+The result reports `random_seed`, the option when it is an integer and
+`None` otherwise, not a state. No draw is meant to reproduce
 MATLAB's numbers; what is drawn, and from which distribution, follows
 MATLAB BADS.
 - PyBADS: `pybads/rng.py` (`get_rng`); `BADS.__init__` and `_init_rng_`
@@ -103,7 +105,8 @@ ignores it.
   `fminunc` against `minimizebnd` for the GP's hyperparameters (PyBADS's
   optimizer is gpyreg's, KD-B6-1); `Debug` and
   `TrueMinX`, which only print or plot (`bads.m:161`, `188`, `189`).
-- *PyBADS only, and read:* `random_seed` (KD-B1-1); `stobads`,
+- *PyBADS only, and read:* `random_seed` (KD-B1-1); `show_tips`
+  (KD-B2-3); `stobads`,
   `opp_stobads` and `stobads_frame_size_scaling_power`, deprecated
   (KD-S-1);
   `gp_mean_fun`, `"const"` (MATLAB's fixed `@meanConst`) or `"zero"`, any
@@ -460,9 +463,14 @@ which only PyBADS has, the debug messages too. The reports of the setup
 from `"notify"` on, as MATLAB BADS prints them, and its warnings, such as
 `bads:pbUnspecified`, at every level, as MATLAB's `warning` shows whatever
 `Display` says. The content and format of the other lines may differ.
+PyBADS alone prints an occasional tip with a link to its documentation
+before the first iteration line (`show_tips`), from `"iter"` on: the
+first such run of a Python session, then every third, each tip at most
+once per session.
 - PyBADS: `BADS.__init__`, `BADS._bounds_check_` and
   `BADS._init_optim_state_` (the reports and warnings of the setup), and
-  the display methods of `BADS`; `pybads/bads/gaussian_process_train.py`.
+  the display methods of `BADS`; `pybads/bads/gaussian_process_train.py`;
+  `BADS._init_mesh_` and `pybads/bads/_runtime_tips.py` (the tips).
 - MATLAB: `bads.m:311-328`; `private/setupvars.m:28-39`, `118-123`;
   `private/boundscheck.m:12-16`; `fprintf` throughout.
 - Settled by: W2-15; the PI's rulings at the close of the review (the

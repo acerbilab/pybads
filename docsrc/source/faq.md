@@ -988,7 +988,10 @@ perhaps there are other issues with the model.
 prints a line per step, as described [above](#faq-what-are-the-quantities-displayed-by-pybads-during-optimization);
 `"final"` prints the opening and final messages; `"notify"` the opening
 messages alone; `"off"` nothing but warnings; `"full"` everything, debug
-messages included.
+messages included. With `"iter"` or `"full"`, a run may also print a short
+tip before its first iteration line, with a link to the documentation: the
+first such run of a Python session, then every third, each tip at most
+once per session. `options["show_tips"] = False` turns the tips off.
 
 PyBADS prints through Python's `logging` module, with a logger named
 `"BADS"`, and its warnings, such as `bads:pbUnspecified`, are log messages
@@ -1122,6 +1125,10 @@ If you leave `random_seed` unset, PyBADS derives the generator of the run
 from NumPy's global random state, so `np.random.seed(42)` before creating the
 `BADS` object also fixes the run. PyBADS otherwise neither draws from nor
 seeds that global state.
+
+The [tips](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere) that a
+run may print come in an order of their own, which the seed does not fix
+and which does not affect the run.
 
 The seed does not govern your objective: if your objective is noisy, give it
 a random generator of its own, as explained

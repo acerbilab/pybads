@@ -51,9 +51,11 @@ What's new in PyBADS 1.5
   Windows).
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
   SciPy 1.13 or later and matplotlib 3.9 or later.
-- **FAQ and a coding-agent skill.** The documentation has a
+- **FAQ, tips and a coding-agent skill.** The documentation has a
   :doc:`page of frequently asked questions <faq>`, adapted from the MATLAB
-  BADS FAQ with further questions on PyBADS, and the
+  BADS FAQ with further questions on PyBADS; a run occasionally prints a
+  short tip that links to the relevant answer
+  (``options={"show_tips": False}`` turns them off); and the
   :mainbranch:`PyBADS skill <skills/pybads/SKILL.md>` points a coding agent
   to the documentation relevant to its task: give the agent that file, or
   copy the ``skills/pybads`` folder into its skill directory.

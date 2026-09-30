@@ -96,6 +96,10 @@ says where it still differs, and why.
   frequently asked questions](https://acerbilab.github.io/pybads/faq.html),
   and `skills/pybads/SKILL.md` in the repository points a coding agent to
   the documentation relevant to its task.
+- **Tips.** A run with the iteration display may print a short tip, with
+  a link to the documentation, before its first iteration line: the first
+  such run of a Python session, then every third, each tip at most once
+  per session. `options={"show_tips": False}` turns them off.
 - **Stage times.** A `BADS` object's `iteration_history["timer"]` and
   `optim_state["stage_times"]` hold the seconds that its run has spent in
   each of its stages; their format can change in any release.
