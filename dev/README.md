@@ -464,6 +464,14 @@ reference's number of seeds.
   equal to those of gpyreg `0f27db5`'s gate. The Linux reference of the
   `default` suite, its periodic configurations included, from the move to
   gpyreg 1.4.0 on.
+- [experiments/population_gpyreg140_20260930/](experiments/population_gpyreg140_20260930/README.md)
+  — the Windows half of the comparison of gpyreg 1.4.0 (`TODO.md`): the
+  `default` suite's 24 configurations at 100 seeds with gpyreg at
+  `3e56dce`, PyBADS at `bef26ec2`; no flag against the suite's Windows
+  reference, whose 1800 runs it repeats run by run, and no crash in the
+  600 runs of the periodic configurations, which Windows had not run
+  before. The Windows reference of the `default` suite, its periodic
+  configurations included, from the move to gpyreg 1.4.0 on.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite
   but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at

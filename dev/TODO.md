@@ -171,10 +171,16 @@ among them, so a title stays as it is while its item is open.
   the `default` suite's 24 configurations at 30 seeds flag nothing against
   the Linux reference, whose 540 runs they repeat run by run, and the six
   periodic ones nothing against the periodic reference, their 180 runs
-  equal to those of gpyreg `0f27db5`'s gate; no run crashed. Still open:
-  the Windows half, on the PI's Windows machine (the `default` suite at
-  100 seeds), and the measurement of PyBADS's own time against gpyreg
-  1.3.3 (above), which takes the same clone. The commit of the move names
+  equal to those of gpyreg `0f27db5`'s gate; no run crashed. The Windows
+  half ran on the same day, with PyBADS at `bef26ec2`
+  ([experiments/population_gpyreg140_20260930/](experiments/population_gpyreg140_20260930/README.md)):
+  the `default` suite's 24 configurations at 100 seeds flag nothing
+  against the Windows reference, whose 1800 runs they repeat run by run,
+  and no run crashed. gpyreg 1.4.0 was released on 2026-09-30: its tag,
+  `v1.4.0`, is `682585f`, which differs from `3e56dce` only in the date of
+  the release notes. Still open: the measurement of PyBADS's own time
+  against gpyreg 1.3.3 (above), which takes the same clone, and the move
+  itself. The commit of the move names
   the release's populations as the references of both platforms in
   `dev/README.md`, and the `default` suite as the gate of periodic
   variables in `AGENTS.md`, in place of the `periodic` suite against
