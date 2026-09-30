@@ -6,7 +6,8 @@ own in the campaign directory. The modes are ``plain`` (the stage times)
 and ``cprof`` (the same run under cProfile, for the buckets); ``both`` runs
 every plain run first. A run whose directory holds a ``summary.json`` is
 skipped, so a campaign resumes with the same ``--out``; a relative
-``--out`` is taken from the working directory of the call. At the end, or
+``--out``, and a relative entry of ``PYTHONPATH`` (a gpyreg clone), is
+taken from the working directory of the call. At the end, or
 with ``--aggregate DIR`` alone, it writes ``aggregate.json`` (one row per
 run) and ``aggregate.md`` (medians over the seeds of each configuration)
 in the campaign directory. It exits 1 when a run fails or leaves no
@@ -31,6 +32,7 @@ Arguments after ``--`` go to every ``profile_run.py``, as
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -413,7 +415,15 @@ def main(argv=None):
         return 0
 
     single_thread_env()  # inherited by the runs
-    # absolute: the runs start in REPO_ROOT, not in the caller's directory
+    # absolute: the runs start in REPO_ROOT, not in the caller's directory,
+    # where a relative gpyreg clone on PYTHONPATH would be missing and the
+    # runs would import the installed gpyreg without notice
+    if os.environ.get("PYTHONPATH"):
+        os.environ["PYTHONPATH"] = os.pathsep.join(
+            os.path.abspath(p)
+            for p in os.environ["PYTHONPATH"].split(os.pathsep)
+            if p
+        )
     out_dir = (
         args.out or DEFAULT_CAMPAIGNS / f"campaign_{int(time.time())}"
     ).resolve()
