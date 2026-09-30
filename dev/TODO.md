@@ -72,10 +72,11 @@ among them, so a title stays as it is while its item is open.
     thread), and the `periodic` suite at 30 seeds flags nothing against
     its Linux reference. The periodic runs take other paths from a difference in the
     kernel's last bits, so the release's comparison of that suite on
-    Linux, above, is a statistical one, not an identity, and a reference
-    that the code at 1.4.0 reproduces run by run is then the release's own
-    population of the suite, which the gate of periodic variables in
-    `AGENTS.md` would name in place of `population_periodic_linux_20260928`.
+    Linux, above, is a statistical one, not an identity, and the reference
+    that the code at 1.4.0 reproduces run by run is the release's own
+    population of the suite (below), which the gate of periodic variables in
+    `AGENTS.md` names in place of `population_periodic_linux_20260928`
+    from the move on.
     Both commits are on gpyreg's `main` since acerbilab/gpyreg#62 (merge
     commit `e10120c`), with their evidence in
     [experiments/periodic_kernel_linux_20260929/](experiments/periodic_kernel_linux_20260929/README.md);
@@ -154,24 +155,33 @@ among them, so a title stays as it is while its item is open.
   `dev/scripts/fingerprint.py` gives 1.3.3's hash, `4146a986863602cb`
   (Linux, NumPy 2.4.6, SciPy 1.17.1, one BLAS thread), as the kernel
   change's bit identity implies. The release's own gate, the comparison
-  run with its clone, is therefore expected to flag nothing on Linux, and
-  takes the Windows comparison too. conda-forge's `gpyreg-feedstock` lists
+  run with its clone, flags nothing on Linux (below), and takes the
+  Windows comparison too. conda-forge's `gpyreg-feedstock` lists
   the three test packages among its run requirements (`recipe/meta.yaml`),
   and its bot merges its version-update PR once a CI that only imports
   gpyreg passes: that PR has them dropped before it merges.
 
   Since 2026-09-30 gpyreg's `main` holds all of the above, at `3e56dce`
-  (the squash commit of #66). The next step is the release's comparison,
-  run on that commit before the tag: if the tag adds only the date of the
-  release notes, its populations are the release's own, and a surprise
-  shows before the upload to PyPI. Its clone, listed in
-  `dev/scripts/runs/LOCAL.md` once made, is `git clone
-  https://github.com/acerbilab/gpyreg dev/scripts/runs/gpyreg/main_3e56dce`
-  followed by `git -C dev/scripts/runs/gpyreg/main_3e56dce checkout
-  3e56dce`. The Windows runs go on the PI's Windows machine; where the
-  Linux runs go, a cloud session or the HPC cluster, waits for the PI.
-  The measurement of PyBADS's own time against gpyreg 1.3.3 (above) takes
-  the same clone.
+  (the squash commit of #66). The release's comparison runs on that commit
+  before the tag: if the tag adds only the date of the release notes, its
+  populations are the release's own, and a surprise shows before the
+  upload to PyPI. Its clone, listed in `dev/scripts/runs/LOCAL.md` once
+  made, is `git clone https://github.com/acerbilab/gpyreg
+  dev/scripts/runs/gpyreg/main_3e56dce` followed by `git -C
+  dev/scripts/runs/gpyreg/main_3e56dce checkout 3e56dce`. The Linux half
+  ran on 2026-09-30, in a cloud container, with PyBADS at `60ad9e0f`
+  ([experiments/population_linux_gpyreg140_20260930/](experiments/population_linux_gpyreg140_20260930/README.md)):
+  the `default` suite at 30 seeds flags nothing against the Linux
+  reference, whose 540 runs it repeats run by run, and the `periodic`
+  suite flags nothing against its reference, its 180 runs equal to those
+  of gpyreg `0f27db5`'s gate; no run crashed. Still open: the Windows
+  half, on the PI's Windows machine (the `default` suite at 100 seeds, and
+  the `periodic` suite in both arms), and the measurement of PyBADS's own
+  time against gpyreg 1.3.3 (above), which takes the same clone. The
+  commit of the move names the release's populations as the references:
+  `dev/README.md` those of both platforms, and the gate of periodic
+  variables in `AGENTS.md` the Linux one's `periodic/` in place of
+  `population_periodic_linux_20260928`.
 - [ ] **The example notebooks' saved outputs.** No CI job runs the
   notebooks of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their
