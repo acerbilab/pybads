@@ -229,9 +229,14 @@ def test_cache_directory_elsewhere(home, tmp_path, sys_platform):
 def test_no_cache_directory_without_a_home(
     monkeypatch, tmp_path, sys_platform
 ):
-    # os.path.expanduser leaves "~" as it is when it finds no home, and
-    # Path.expanduser then raises
-    monkeypatch.setattr(os.path, "expanduser", lambda path: path)
+    # Path.expanduser raises RuntimeError when it finds no home; how it
+    # looks for one differs between Python versions, so it is replaced
+    def expanduser(path):
+        if str(path).startswith("~"):
+            raise RuntimeError("Could not determine home directory.")
+        return path
+
+    monkeypatch.setattr(_release_reminder.Path, "expanduser", expanduser)
     cache_root = functools.partial(
         _release_reminder._cache_root, platform=sys_platform
     )
