@@ -164,4 +164,10 @@ release's steps, the network access, the FAQ's new label); the skill
   counts as a showing is recorded above; wording. The whole suite after
   the fixes, 1379 passed, 2 skipped; the documentation built with no
   warning.
-- [ ] Merge into `dev-next` (PI).
+- [x] The CI matrix on `feat-update-reminders`, dispatched runs of
+  `tests.yml`: at `346cc429` (run 36773481112) the three jobs of Python
+  3.10 failed on `test_no_cache_directory_without_a_home`, which faked a
+  missing home through `os.path.expanduser`, which Python 3.10's
+  `Path.expanduser` does not call; at `767b6671`, the test patching
+  `Path.expanduser` itself (run 36774255186), all nine jobs passed.
+- [ ] Merge into `dev-next` (PI, 2026-09-30: when the matrix is green).
