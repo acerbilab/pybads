@@ -27,6 +27,10 @@ slot, and a `BADS` object runs once, with no save or resume.
 - "What's new" in `README.md` and `index.rst` mentions them.
 - No filtering by what the run uses (a tip on periodic variables shows in
   a run that has them).
+- The coding-agent skill stays at `skills/pybads/SKILL.md` in the
+  repository, not in the package, as PyVBMC's does (its
+  `dev/2026-09-02-user-agent-skill.md`: no wheel integration); the skill's
+  tip links it on GitHub.
 - The wording of the tips below.
 
 ## Behaviour

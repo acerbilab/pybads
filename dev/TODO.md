@@ -2,8 +2,13 @@
 
 Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
-("Setup and commands") gives the release's steps. The release's section
-below holds the conda-forge recipe, which follows its upload to PyPI.
+("Setup and commands") gives the release's steps. The PI (2026-09-30)
+holds the release's pull request for further work before it. A change
+before it that alters what a run prints or returns reruns the example
+notebooks again, which also refreshes their timings: those of the rerun
+at `110d8dc6` are longer than the previous rerun's from the state of the
+machine, not the code. The release's section below holds the conda-forge
+recipe, which follows its upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
