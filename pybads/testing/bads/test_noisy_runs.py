@@ -129,6 +129,31 @@ def test_final_estimate_from_one_sample():
     assert result["fsd"] == pytest.approx(sd[0], rel=1e-12)
 
 
+@pytest.mark.parametrize("target_noise", [False, True])
+def test_final_message_names_the_estimate(target_noise, caplog):
+    """The final message calls the estimate from several samples their
+    mean, or their precision-weighted mean with the target's noise SDs."""
+    fun = (
+        _noisy_sphere_with_estimated_sd(0)
+        if target_noise
+        else _noisy_sphere(0)
+    )
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        _make_bads(
+            fun,
+            specify_target_noise=target_noise,
+            max_fun_evals=100,
+            display="iter",
+        ).optimize()
+    (message,) = [
+        record.getMessage()
+        for record in caplog.records
+        if "Estimated function value at minimum" in record.getMessage()
+    ]
+    mean = "precision-weighted mean" if target_noise else "mean"
+    assert message.endswith(f"({mean} ± SEM from 10 samples)")
+
+
 def test_final_message_from_one_sample_prints_a_number(caplog):
     """With one final sample and the target's noise SD, the final message
     gives the sample as a number, as MATLAB BADS's does, not an array."""

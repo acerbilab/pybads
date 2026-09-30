@@ -497,8 +497,10 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
   sample and its standard deviation; before, the incumbent's earlier
   observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
-  The returned `x` and the number of evaluations are unchanged. With one
-  sample, the final message gives it as a number.
+  The returned `x` and the number of evaluations are unchanged. The final
+  message calls the estimate from several samples their precision-weighted
+  mean, where MATLAB BADS's says "mean"; with one sample, it gives the
+  sample as a number.
 - **`specify_target_noise` alone.** With `specify_target_noise=True` and
   `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
   as MATLAB BADS does and as the error message asked; it raised

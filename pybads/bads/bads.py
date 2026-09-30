@@ -2489,9 +2489,16 @@ class BADS:
                     f"Observed function value at minimum: {np.ravel(yval_vec)[0]} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
                 )
             else:
+                # with the target's noise SDs, the samples are weighted by
+                # their precisions (MATLAB's message says "mean" alone)
+                mean = (
+                    "precision-weighted mean"
+                    if self.optim_state["uncertainty_handling_level"] == 2
+                    else "mean"
+                )
                 self.logger.log(
                     _LOG_FINAL,
-                    f"Estimated function value at minimum: {self.fval} ± {self.fsd} (mean ± SEM from {yval_vec.size} samples)",
+                    f"Estimated function value at minimum: {self.fval} ± {self.fsd} ({mean} ± SEM from {yval_vec.size} samples)",
                 )
         else:
             self.logger.log(

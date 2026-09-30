@@ -27,15 +27,15 @@ PyBADS requires no specific tuning and runs off-the-shelf like other Python opti
 - **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB BADS 1.1.3, the reference implementation, and follows it more closely in many details, above all with noisy targets. The FAQ lists [what differs from MATLAB BADS](https://acerbilab.github.io/pybads/faq.html#faq-i-used-bads-in-matlab-what-is-different-in-pybads).
 - **Faster Gaussian processes.** gpyreg 1.4.0, the Gaussian process library that PyBADS builds on, computes the same Gaussian processes faster, so that a run spends about 30 % less time besides the target's evaluations than with gpyreg 1.3.3.
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9 or later.
-- **FAQ and a coding-agent skill.** The documentation has a [page of frequently asked questions](https://acerbilab.github.io/pybads/faq.html), adapted from the MATLAB BADS FAQ with further questions on PyBADS, and the [PyBADS skill](skills/pybads/SKILL.md) points a coding agent to the documentation relevant to its task (see [Documentation](#documentation)).
+- **FAQ and a coding-agent skill.** The documentation has a [page of frequently asked questions](https://acerbilab.github.io/pybads/faq.html), adapted from the MATLAB BADS FAQ with further questions on PyBADS, and the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points a coding agent to the documentation relevant to its task (see [Documentation](#documentation)).
 
-The [changelog](CHANGELOG.md) lists what changed since PyBADS 1.1.0. Results differ from 1.1.0, also with a fixed seed. `BADS` checks the values of many options when it is created and refuses some that 1.1.0 accepted, and some calls and returned fields change: the changelog's list "Upgrading from 1.1.0" says what to check in an existing script.
+The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md) lists what changed since PyBADS 1.1.0. Results differ from 1.1.0, also with a fixed seed. `BADS` checks the values of many options when it is created and refuses some that 1.1.0 accepted, and some calls and returned fields change: the changelog's list "Upgrading from 1.1.0" says what to check in an existing script.
 
 ## Documentation
 
 The full documentation is available at: https://acerbilab.github.io/pybads/
 
-For coding agents, the [PyBADS skill](skills/pybads/SKILL.md) points to the
+For coding agents, the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points to the
 documentation relevant to each task. Give your agent that file, or copy the
 `skills/pybads` folder into its skill directory. To update a copied skill,
 copy the folder again from the PyBADS version you use.
@@ -119,7 +119,7 @@ For a reproducible run, pass an integer seed when creating the `BADS` object, e.
 
 ## Next steps
 
-Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/index.html#examples) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](examples/pybads_example_3_noisy_objective.ipynb).
+Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/index.html#examples) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_3_noisy_objective.ipynb).
 
 For practical recommendations, such as how to set `lower_bounds`, `upper_bounds` and the plausible bounds, how to handle a noisy objective, and what to do when a run goes wrong, check out the [PyBADS FAQ](https://acerbilab.github.io/pybads/faq.html).
 
@@ -194,7 +194,7 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 
 ### License
 
-PyBADS is released under the terms of the [BSD 3-Clause License](LICENSE).
+PyBADS is released under the terms of the [BSD 3-Clause License](https://github.com/acerbilab/pybads/blob/main/LICENSE).
 
 ### Acknowledgments
 
