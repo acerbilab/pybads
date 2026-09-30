@@ -1,6 +1,6 @@
 # PyBADS: open work
 
-Updated 2026-09-29. The next release is 1.5.0 (tag `v1.5.0`), the version
+Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. The release
 waits for the first item of its section, gpyreg 1.4.0, and the last, the
 conda-forge recipe, follows its upload to PyPI; otherwise the order of the
@@ -159,6 +159,19 @@ among them, so a title stays as it is while its item is open.
   the three test packages among its run requirements (`recipe/meta.yaml`),
   and its bot merges its version-update PR once a CI that only imports
   gpyreg passes: that PR has them dropped before it merges.
+
+  Since 2026-09-30 gpyreg's `main` holds all of the above, at `3e56dce`
+  (the squash commit of #66). The next step is the release's comparison,
+  run on that commit before the tag: if the tag adds only the date of the
+  release notes, its populations are the release's own, and a surprise
+  shows before the upload to PyPI. Its clone, listed in
+  `dev/scripts/runs/LOCAL.md` once made, is `git clone
+  https://github.com/acerbilab/gpyreg dev/scripts/runs/gpyreg/main_3e56dce`
+  followed by `git -C dev/scripts/runs/gpyreg/main_3e56dce checkout
+  3e56dce`. The Windows runs go on the PI's Windows machine; where the
+  Linux runs go, a cloud session or the HPC cluster, waits for the PI.
+  The measurement of PyBADS's own time against gpyreg 1.3.3 (above) takes
+  the same clone.
 - [ ] **The example notebooks' saved outputs.** No CI job runs the
   notebooks of `examples/`, and the saved outputs of the first five predate the port
   review, whose fix passes change their numbers, and some of their
