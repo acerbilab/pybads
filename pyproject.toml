@@ -7,7 +7,7 @@ description = "Bayesian Adaptive Direct Search in Python."
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
-    "gpyreg >= 1.3.3",
+    "gpyreg >= 1.4.0",
     # No module of PyBADS imports matplotlib, but gpyreg imports it and asks
     # only for 3.5.1: this floor, set with NumPy 2's, keeps pip from pairing
     # NumPy 2 with an older matplotlib

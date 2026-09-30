@@ -46,7 +46,8 @@ What's new in PyBADS 1.5
   :ref:`what differs from MATLAB BADS <faq-i-used-bads-in-matlab-what-is-different-in-pybads>`.
 - **Faster Gaussian processes.** gpyreg 1.4.0, the Gaussian process library
   that PyBADS builds on, computes the same Gaussian processes faster, so that
-  a run spends less time besides the target's evaluations.
+  a run spends about 30 % less time besides the target's evaluations than
+  with gpyreg 1.3.3.
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
   SciPy 1.13 or later and matplotlib 3.9 or later.
 - **FAQ and a coding-agent skill.** The documentation has a

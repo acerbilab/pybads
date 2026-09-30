@@ -357,24 +357,6 @@ def test_periodic_vars_count_all_the_variables():
         make([5])
 
 
-def test_periodic_fixed_variables_need_no_gpyreg_with_periods(monkeypatch):
-    """A `periodic_vars` that names only fixed variables makes no variable
-    of the run periodic, and needs no gpyreg whose kernels take periods."""
-    import pybads.bads.bads as bads_module
-
-    monkeypatch.setattr(bads_module, "_gpyreg_takes_periods", lambda: False)
-    bads = BADS(
-        _target()[0],
-        X0,
-        LB,
-        UB,
-        PLB,
-        PUB,
-        options={"display": "off", "periodic_vars": [0]},
-    )
-    assert not np.any(bads.optim_state["periodic_vars"])
-
-
 def test_x0_off_a_fixed_value_is_refused():
     """A finite `x0` that differs from the value of a fixed variable is
     refused, with the indices of the variables where it does."""

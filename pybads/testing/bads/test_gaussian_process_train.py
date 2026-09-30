@@ -987,7 +987,8 @@ def test_one_point_gp_with_target_noise(monkeypatch):
 
 def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
     """A GP on one point whose posterior fails with the definition values
-    is left as it was by gpyreg and is fitted instead, with a warning."""
+    is left as it was by gpyreg and is fitted instead, with a warning on the
+    BADS logger and none of NumPy's."""
     import warnings
 
     D = 2
@@ -1004,8 +1005,7 @@ def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
 
     monkeypatch.setattr(gpr.GP, "update", update)
     with warnings.catch_warnings():
-        # gpyreg's helpers warn on the one point that the fit takes
-        warnings.simplefilter("ignore", RuntimeWarning)
+        warnings.simplefilter("error", RuntimeWarning)
         gp, _, _, _ = bads._init_optimization_()
     assert failed
     assert "one training point failed" in caplog.text

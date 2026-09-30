@@ -4,7 +4,6 @@ import math
 import os
 import sys
 
-import gpyreg
 import numpy as np
 from gpyreg.gaussian_process import GP
 from scipy.special import erfc, erfcinv
@@ -35,16 +34,6 @@ from .gaussian_process_train import (
 )
 from .optimize_result import OptimizeResult
 from .options import Options
-
-
-def _gpyreg_takes_periods():
-    """Whether the installed gpyreg's kernels take ``periods`` (gpyreg 1.4.0
-    and later), which periodic variables need."""
-    try:
-        gpyreg.covariance_functions.RationalQuadraticARD(periods=[1.0])
-    except TypeError:
-        return False
-    return True
 
 
 def _is_real(value):
@@ -503,10 +492,6 @@ class BADS:
         of its points lies outside the hard bounds or violates
         ``non_box_cons``, or when a point given twice has two different
         values where a point is kept once.
-    ImportError
-        When ``options['periodic_vars']`` names a variable that is not fixed
-        and the installed gpyreg is older than 1.4.0, whose kernels take the
-        periods.
     ValueError
         When ``options['random_seed']`` is a negative integer.
     TypeError
@@ -1669,13 +1654,6 @@ class BADS:
                 "bounds, which set their period: the bounds of the "
                 f"variables {infinite} of options['periodic_vars'] are not "
                 "finite."
-            )
-        if _run_indices(indices, self._fixed_values) and not (
-            _gpyreg_takes_periods()
-        ):
-            raise ImportError(
-                "Periodic variables need gpyreg 1.4.0 or later, whose "
-                "kernels take periods; the installed gpyreg does not."
             )
         self.options["periodic_vars"] = indices
 

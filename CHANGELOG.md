@@ -7,8 +7,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Upgrading from 1.1.0
 
-- PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9
-  or later.
+- PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or
+  later and matplotlib 3.9 or later.
 - Results differ from 1.1.0, also with a fixed seed.
 - With `specify_target_noise=True`, the returned `fval` and `fsd` weight
   the final samples by the precisions that the target returns, and with
@@ -219,10 +219,16 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unused: `poll_method`, `n_basis`, `skip_poll`, `search_improve_frac`,
   `gp_samples`, `gp_def_fcn`, `gp_method`, `gp_cluster`, `rotate_gp`,
   `poll_acq_fcn`, `chol_attempts` and `gp_svd_iters`.
-- **Requirements.** PyBADS needs NumPy 2.0 or later, SciPy 1.13 or later
-  and matplotlib 3.9 or later (1.1.0 accepted NumPy 1.22.1, SciPy 1.7.3 and
-  matplotlib 3.5.1). The `test` extra no longer lists pytest-rerunfailures,
-  which the tests do not need (gpyreg 1.3.3 still installs it).
+- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or
+  later, SciPy 1.13 or later and matplotlib 3.9 or later (1.1.0 accepted
+  gpyreg 1.3.3, NumPy 1.22.1, SciPy 1.7.3 and matplotlib 3.5.1). The `test`
+  extra no longer lists pytest-rerunfailures, which the tests do not need,
+  and installing PyBADS no longer installs pytest, pytest-rerunfailures
+  and numdifftools, which gpyreg 1.3.3 installed.
+- **Faster Gaussian processes.** gpyreg 1.4.0 computes the same Gaussian
+  processes as 1.3.3, to the last bit, in less time: PyBADS's own time, a
+  run's time less its target's evaluations, is 27 to 39 % lower than with
+  gpyreg 1.3.3 on seven benchmark problems (Windows, one BLAS thread).
 - **GP mean function.** `gp_mean_fun` accepts `"const"`, the default, and
   `"zero"`, and `BADS` refuses any other name when it is created. 1.1.0
   accepted ten more: nine stopped the run when the Gaussian process was
@@ -688,13 +694,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   run with gpyreg's `ValueError`; with `max_fun_evals=2`, 1.1.0 did not
   keep its initial design within the budget (see "Small budgets"). A later
   refit on points that have no spread in a coordinate, as in a thin
-  feasible band, prints gpyreg's `RuntimeWarning` about a log of zero. At
-  D = 1 the noise test brings the count of evaluations past D, so that a
-  first GP on one point is refitted on it at the first poll, with gpyreg's
-  warnings about a log of zero, degrees of freedom <= 0 and an invalid
-  value in a division: with `fun_eval_start=0` and a deterministic target,
-  and with a noisy target, left to the noise test, whose `non_box_cons`
-  leaves only the starting point feasible in the initial design.
+  feasible band, prints no warning either, nor, at D = 1, the refit of a
+  first GP on one point at the first poll, to which the noise test brings
+  the count of evaluations past D (with `fun_eval_start=0` and a
+  deterministic target, and with a noisy target, left to the noise test,
+  whose `non_box_cons` leaves only the starting point feasible in the
+  initial design): gpyreg before 1.4.0 printed NumPy's `RuntimeWarning`s
+  on such refits, about a log of zero and, on one point, about degrees of
+  freedom <= 0 and an invalid value in a division.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller

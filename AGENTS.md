@@ -70,14 +70,9 @@ The test job is defined once, in `.github/workflows/test-matrix.yml`. It
 installs PyBADS, which brings gpyreg from PyPI, and then gpyreg's checkout
 at the commit pinned as `GPYREG_PIN` there, which replaces it whatever
 version the checkout reads from its tags (pip only reports a conflict with
-the minimum in `pyproject.toml`). The pin is normally the tagged commit of
-the release that `pyproject.toml` names as the minimum, and a change that
-needs a newer gpyreg moves both. Until gpyreg 1.4.0 is released, it is a
-commit of gpyreg's `main` that carries the kernels' periods, which
-periodic variables need, while the minimum stays 1.3.3; under a gpyreg
-whose kernels take no periods, `BADS` raises `ImportError` for periodic
-variables (`_gpyreg_takes_periods` in `bads.py`). The release moves the
-pin to its tag and the minimum to 1.4.0 (`dev/TODO.md`).
+the minimum in `pyproject.toml`). The pin is the tagged commit of the
+release that `pyproject.toml` names as the minimum, and a change that
+needs a newer gpyreg moves both.
 `merge-tests.yml` runs the full matrix
 (Ubuntu, Windows, macOS × Python 3.10–3.12) on a PR to `main` or to a
 `dev*` branch, only when its changes against that base touch `pybads/`,
@@ -273,12 +268,9 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   made before the run are logged as given. `udist` and `ucov` take a
   periodic difference the shorter way round, and the GP's kernel takes the
   periods from `_gp_periods` (gpyreg's `periods`), only in a run that has
-  periodic variables: without them the kernel gets no `periods`. The
-  `default` suite holds the six configurations that set `periodic_vars`
-  (the `periodic` suite), which its references lack until gpyreg 1.4.0's
-  (`dev/TODO.md`), so that its comparison does not test them yet; until
-  then, the gate of a change to this code is the `periodic` suite, against
-  `dev/experiments/population_periodic_linux_20260928` on Linux.
+  periodic variables: without them the kernel gets no `periods`. The gate
+  of a change to this code is the `default` suite, which holds the six
+  configurations that set `periodic_vars` (the `periodic` suite).
 - **Options** are layered: `bads/option_configs/basic_bads_options.ini`,
   then the `options=` dict, then `advanced_bads_options.ini`, which skips
   any key the user set. `.ini` values are `eval`'d with `D` bound by `exec`

@@ -410,9 +410,9 @@ reference's number of seeds.
   time per evaluation of periodic runs (2026-09-29), with gpyreg's
   periodic kernel as its cause and gpyreg's commit `0f27db5`
   (acerbilab/gpyreg#62), which maps each periodic coordinate onto a
-  circle. The evidence of the port, also
-  the reference of the `periodic` suite on Linux (gpyreg at `2c9cdfb`,
-  before its release):
+  circle. The evidence of the port, and the reference of the periodic
+  configurations on Linux until gpyreg 1.4.0 (gpyreg at `2c9cdfb`, before
+  its release):
   [experiments/population_periodic_linux_20260928/](experiments/population_periodic_linux_20260928/README.md);
   that of the time per evaluation, with the patch of `0f27db5` and its
   gate:
@@ -461,20 +461,26 @@ reference's number of seeds.
   `3e56dce`, PyBADS at `60ad9e0f`; no flag against the suite's Linux
   reference, whose 540 runs it repeats run by run, nor, on its six
   periodic configurations, against the periodic reference, their 180 runs
-  equal to those of gpyreg `0f27db5`'s gate. The Linux reference of the
-  `default` suite, its periodic configurations included, from the move to
-  gpyreg 1.4.0 on.
+  equal to those of gpyreg `0f27db5`'s gate. The reference population of
+  the benchmark on Linux, the `default` suite's periodic configurations
+  included.
 - [experiments/population_gpyreg140_20260930/](experiments/population_gpyreg140_20260930/README.md)
   — the Windows half of the comparison of gpyreg 1.4.0 (`TODO.md`): the
   `default` suite's 24 configurations at 100 seeds with gpyreg at
   `3e56dce`, PyBADS at `bef26ec2`; no flag against the suite's Windows
   reference, whose 1800 runs it repeats run by run, and no crash in the
   600 runs of the periodic configurations, which Windows had not run
-  before. The Windows reference of the `default` suite, its periodic
-  configurations included, from the move to gpyreg 1.4.0 on.
+  before. The reference population of the benchmark on Windows, the
+  `default` suite's periodic configurations included.
+- [experiments/own_time_gpyreg140_20260930/](experiments/own_time_gpyreg140_20260930/README.md)
+  — PyBADS's own time with gpyreg 1.4.0 against gpyreg 1.3.3, the same
+  PyBADS, on the `profile` suite (Windows, SciPy 1.18.1, one BLAS thread,
+  each run pinned to one performance core, the arms alternating ABBA): 27
+  to 39 % lower, every run giving the same result under both, the figure
+  that `CHANGELOG.md` states.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
-  — the reference population of the benchmark on Windows (default suite
-  but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
+  — the previous reference population of the benchmark on Windows
+  (default suite but its periodic configurations, 100 seeds, gpyreg 1.3.3, at
   `a4dcd65`, `dev-next` after wave 4 of the port review and its
   doublecheck), with its null check and its comparison
   with the pre-review baseline, the net change of the whole review, which
@@ -500,8 +506,8 @@ reference's number of seeds.
   with the one before, which flags nothing: the two configurations with
   target noise change, and the other 16 are identical run by run.
 - [experiments/population_linux_wave4_20260927/](experiments/population_linux_wave4_20260927/README.md)
-  — the reference population of the benchmark on Linux (default suite but
-  its two periodic configurations, 30 seeds, gpyreg 1.3.3, at the package
+  — the previous reference population of the benchmark on Linux (default
+  suite but its periodic configurations, 30 seeds, gpyreg 1.3.3, at the package
   code of wave 4's fix pass of the port review, `46af65a`, where each seed
   has its own initial design), with
   its null check and its comparison with the previous Linux reference, the

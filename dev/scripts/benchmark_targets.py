@@ -1168,16 +1168,14 @@ def make_problem(
 # bounds and both noise kinds, on the same shifted target, multisensory_s1
 # with and without noise, and periodic at D = 3 with both noise kinds. The
 # six configurations with periodic variables (the `periodic` suite) make
-# every gate a gate of periodic variables; the references of the suite with
-# gpyreg 1.3.3, which cannot run them, lack them (dev/TODO.md, "gpyreg
-# releases after 1.3.3"). Every budget is BADS's default, 500 D. A
-# calibration at that budget (4 seeds per configuration, 2026-09-24) found
-# every run ending on BADS's own termination, after 55 to 863 evaluations:
-# 60 at sphere D2, about 800 at ellipsoid D10, 200 to 500 for the noisy
-# synthetic targets, 200 to 330 for timing, about 300 for multisensory_s1
-# and 600 to 830 for it with noise; the runs of the periodic configurations
-# (30 seeds, 2026-09-28) ended so after 52 to 227 evaluations without noise
-# and 182 to 721 with it.
+# every gate a gate of periodic variables. Every budget is BADS's default,
+# 500 D. A calibration at that budget (4 seeds per configuration,
+# 2026-09-24) found every run ending on BADS's own termination, after 55 to
+# 863 evaluations: 60 at sphere D2, about 800 at ellipsoid D10, 200 to 500
+# for the noisy synthetic targets, 200 to 330 for timing, about 300 for
+# multisensory_s1 and 600 to 830 for it with noise; the runs of the
+# periodic configurations (30 seeds, 2026-09-28) ended so after 52 to 227
+# evaluations without noise and 182 to 721 with it.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [

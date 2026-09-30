@@ -25,7 +25,7 @@ review settled are catalogued in
 The five ledgers hold 173 rows. 121 changed the code: a defect or a
 discrepancy fixed, most of them toward MATLAB BADS, or a value that failed
 obscurely refused with a message when `BADS` is created (W1-24's fix is in
-gpyreg, not yet released; W2-44, kept in wave 2, was fixed by W4-28, and
+gpyreg 1.4.0, PyBADS's minimum since 2026-09-30; W2-44, kept in wave 2, was fixed by W4-28, and
 the options of W2-35 were removed by #87). 28 kept a behavior as it was,
 most of them a deliberate difference from MATLAB BADS, in the catalogue, or
 a behavior that PyBADS shares with MATLAB BADS, in
@@ -66,9 +66,8 @@ were found while verifying, fixing or doublechecking. After wave 4, #84
 the PI, and moved no result, and #87 carries the PI's rulings on the rest
 ("Open ends"). Wave 1's gpyreg side is in gpyreg:
 acerbilab/gpyreg#56 (W1-25's switch, off by default) and #57 (W1-24),
-merged into gpyreg's `main` and not released, and #58, a fix of the switch
-that wave 1's doublecheck found; PyBADS keeps gpyreg 1.3.3 as its minimum
-and its CI pin.
+and #58, a fix of the switch that wave 1's doublecheck found, all released
+in gpyreg 1.4.0, PyBADS's minimum and CI pin since 2026-09-30.
 
 Each pull request was squash-merged, so the commits of a wave's branch that
 the ledgers cite are reachable from `refs/pull/<N>/head` on GitHub, and
@@ -201,7 +200,7 @@ histories and the gate.
 | W1-21 | B5 | After a failed fit the retry reads the failed GP's bounds and, with the slice sampler, its data | defect with the slice sampler, inert at default | fixed | `5956c4b` (#74) |
 | W1-22 | B6 | The noise prior's new centre is computed at each rebuild and never written back | port discrepancy | fixed, moves results | `ee9d5d6` (#74) |
 | W1-23 | B6 | The constant mean is bounded all run by the initial design's range while its prior is re-centred, which pins the mean at a bound | port discrepancy | fixed: unbounded, as MATLAB; moves results | `172df00` (#74) |
-| W1-24 | B6 | gpyreg's normalization of a prior far outside its bounds underflows, and the log prior is infinite | defect (gpyreg's), reached through W1-23 | fixed in gpyreg, merged and not released; W1-23 closes PyBADS's route | acerbilab/gpyreg#57; `TODO.md`, "gpyreg releases after 1.3.3." |
+| W1-24 | B6 | gpyreg's normalization of a prior far outside its bounds underflows, and the log prior is infinite | defect (gpyreg's), reached through W1-23 | fixed in gpyreg 1.4.0, PyBADS's minimum; W1-23 closes PyBADS's route | acerbilab/gpyreg#57 |
 | W1-25 | B6 | gpyreg's Cholesky retries multiply the noise and keep the multiplier in the posterior; MATLAB treats a failure as an error | port discrepancy (substituted library) | kept (KD-B6-6); gpyreg's switch (acerbilab/gpyreg#56) stays off in PyBADS after its measurements, the second at the head of the review (PI, 2026-09-28; `2026-09-28-gp-health.md`) | KD-B6-6 |
 | W1-26 | B6 | A plateau of the initial values stops the run in `_gp_hyp` (zero SD of the mean's prior) | port discrepancy; needs MATLAB (the rebuild case) | fixed: a positive fallback, and a rebuild keeps the previous prior (KD-B6-2) | `cd1831f` (#74) |
 | W1-27 | B6 | PyBADS fits a GP on the initial design, where MATLAB only defines it | port discrepancy | kept (PI), on the sheet (KD-B6-5) | — |
@@ -410,8 +409,18 @@ items that a ruling left to later work are held by these items of
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
 | "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
-| "gpyreg releases after 1.3.3." | W1-24 (acerbilab/gpyreg#57), which reaches PyBADS through a release; W1-25's switch comes with it and stays off (KD-B6-6); the warnings of gpyreg's helpers on inputs without spread (acerbilab/gpyreg#66; wave 1's and wave 3's "Found while fixing", wave 2's "Found while verifying"), below |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
+
+The item "gpyreg releases after 1.3.3." held W1-24 (acerbilab/gpyreg#57),
+which reaches PyBADS through a release, W1-25's switch, which comes with it
+and stays off (KD-B6-6), and the warnings of gpyreg's helpers on inputs
+without spread (acerbilab/gpyreg#66; wave 1's and wave 3's "Found while
+fixing", wave 2's "Found while verifying"), until gpyreg 1.4.0, released
+on 2026-09-30 with all three, became PyBADS's minimum and CI pin; under
+it, PyBADS's runs of the benchmark without periodic variables equal those
+under 1.3.3, run by run, on both platforms
+([`population_gpyreg140_20260930`](../experiments/population_gpyreg140_20260930/README.md),
+[`population_linux_gpyreg140_20260930`](../experiments/population_linux_gpyreg140_20260930/README.md)).
 
 The item "The GP on a one-point training set." held W2-37, W3-40, wave
 1's and wave 3's "Found while fixing" and wave 2's "Found while verifying"

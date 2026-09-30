@@ -23,11 +23,8 @@ on:
         default: ''
 
 env:
-  # gpyreg's main at the merge of acerbilab/gpyreg#61, whose kernels take the
-  # periods that periodic variables need. setuptools_scm reads it as
-  # 1.3.4.devN, above the minimum in pyproject.toml, 1.3.3. gpyreg 1.4.0's
-  # release moves the pin to its tag and the minimum to 1.4.0.
-  GPYREG_PIN: b44634f2ae951dd54402e5fa2a8fda2117bb6380
+  # gpyreg 1.4.0 (the tag v1.4.0), the minimum in pyproject.toml.
+  GPYREG_PIN: 682585f72d893824aa1c22951f49d2c52cc6942e
 
 jobs:
   tests:
