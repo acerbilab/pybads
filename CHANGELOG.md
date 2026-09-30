@@ -291,10 +291,11 @@ says where it still differs, and why.
   among them, where 1.1.0 showed everything for any value but `"off"` and
   `"full"`, and every message of a run goes to the `BADS` logger.
 - PyBADS no longer emits `SyntaxWarning` or `DeprecationWarning` on Python
-  3.12 and later, warnings on a GP without spread in its data or that
-  predicts exactly, or an overflow `RuntimeWarning` for a variable with a
-  bound above about 700 beside one on a log scale, and a run leaves NumPy's
-  error handling as it found it.
+  3.12 and later; NumPy's `RuntimeWarning`s on a GP whose points have no
+  spread in a coordinate or that holds a single point; SciPy's warning when
+  the GP predicted its last evaluations exactly; or an overflow
+  `RuntimeWarning` for a variable with a bound above about 700 beside one
+  on a log scale. A run leaves NumPy's error handling as it found it.
 - `pybads.stats.kde1d` no longer raises `AttributeError` under NumPy 2.
 
 ## [1.1.0] - 2026-09-25
