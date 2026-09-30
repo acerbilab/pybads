@@ -5,129 +5,71 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+Changes since PyBADS 1.1.0. Most of the fixes make PyBADS follow MATLAB
+BADS 1.1.3, the reference implementation, with which it was compared line
+by line: the [catalogue of deliberate
+differences](https://github.com/acerbilab/pybads/blob/main/pybads/bads/README.md)
+says where it still differs, and why.
+
 ### Upgrading from 1.1.0
 
 - PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or
   later and matplotlib 3.9 or later.
 - Results differ from 1.1.0, also with a fixed seed.
-- With `specify_target_noise=True`, the returned `fval` and `fsd` weight
-  the final samples by the precisions that the target returns, and with
-  `noise_final_samples=1`, `yval_vec` and `ysd_vec` hold one value.
-- Without `specify_target_noise`, the returned `fsd` of a noisy run is
-  larger by a factor `sqrt(n/(n - 1))`, `n` the number of final samples:
-  1.05 at the default 10.
-- The returned `iterations` is one more than in 1.1.0.
-- `output_fcn` is called as `output_fcn(x, optim_state, state)`, with
-  `state` one of `"init"`, `"iter"` and `"done"`, where 1.1.0 called
-  `output_fcn(x, "init")` once.
-- `gamma_uncertain_interval` is keyword-only and follows `options`: a
-  script that passed it as the 8th positional argument of `BADS` passes it
-  by name.
-- With `uncertainty_handling=False`, a run makes no noise test: it takes one
-  evaluation fewer, and a noisy target is optimized as a deterministic one.
-- `BADS` raises `ValueError` for a `gp_mean_fun` other than `"const"` or
-  `"zero"`, `"negquad"` included.
-- `BADS` raises `ValueError` for a `gp_cov_prior` other than `"iso"`,
-  `"ard"` included, which 1.1.0 accepted and ignored.
-- `BADS` raises `ValueError` when `non_box_cons`, given an N × D array, does
-  not return a NumPy array of shape (N,) or (N, 1).
-- With `uncertainty_handling` left empty, a target whose two evaluations at
-  the starting point differ by at most `sqrt(eps) * tol_fun` is optimized as
-  a deterministic one, without the final samples of a noisy run.
-- `BADS` raises `ValueError` for a `max_fun_evals` that is neither a
-  positive integer nor `inf`, such as `30.5`, the string `"200*D"` or a
-  NumPy array, `np.array(500)` included.
-- `BADS` raises `ValueError` for a `max_iter` or a `tol_stall_iters` that is
-  neither a positive integer nor `inf`, such as `0`, `2.5` or `np.array([3])`;
-  for a `search_n_try` or a `noise_final_samples` that is not an integer at
-  least 0, such as `-1`, `2.5` or `True`, also in a run without noise, which
-  takes no final samples; for a `tol_mesh` that is not a positive finite
-  number, such as `0`, `True` or `np.array(1e-6)`; and for a `noise_size` that
-  is not one or two real numbers, such as `True`.
-- `uncertainty_handling` and the options whose default is `True` or
-  `False`, except `plot`, take only booleans: `BADS` raises `ValueError` for
-  `0`, `1`, `"on"`, `"off"`, a NumPy array such as `np.array(True)`, or any
-  other value. A user value of `None` stands for the option's default:
-  `nonlinear_scaling=None`, for instance, keeps the log transform on.
+- `BADS` checks the values of many options when it is created and raises
+  `ValueError` for some that 1.1.0 accepted, such as `30.5` for
+  `max_fun_evals`, `inf` for `accelerate_mesh_steps`, or `1` or `"off"` for
+  a boolean option ("Checks of the options" under Changed).
+- `BADS` raises `ValueError` for a `non_box_cons` that, given N points,
+  does not return a NumPy array of shape (N,) or (N, 1); 1.1.0 failed on
+  such an output later, and on (N, 1) too.
+- Setting one of the 66 options that had no effect in 1.1.0 and that MATLAB
+  BADS does not have, such as `min_iter` or `gp_cov_fun`, raises
+  `ValueError` ("Options without effect").
+- A user value of `None` stands for the option's default, as an empty
+  value does in MATLAB BADS: `nonlinear_scaling=None`, for instance, keeps
+  the log transform on, where 1.1.0 turned it off.
+- The eighth positional argument of `BADS` is `options`, as in MATLAB BADS,
+  where 1.1.0 took it as `gamma_uncertain_interval` and ignored the
+  options; `gamma_uncertain_interval` is keyword-only.
+- `output_fcn` is called as `output_fcn(x, optim_state, state)`, at the
+  start (`"init"`), after each poll (`"iter"`) and at the end (`"done"`),
+  and a true return value stops the run; 1.1.0 called `output_fcn(x,
+  "init")` once.
 - The result's `success` is False when a run ends on `max_fun_evals` or
-  `max_iter`, or is stopped by `output_fcn`, where 1.1.0 reported True.
-- Without `specify_target_noise` and with `noise_final_samples=1`,
-  `yval_vec` has shape (2,), not (2, 1).
-- `x0` and the plausible bounds are used as given: a start near a hard bound
-  is no longer moved inside it, the plausible bounds are no longer moved
-  away from the hard ones, and a start near a hard bound no longer widens
-  the plausible box.
-- A `search_acq_fcn` whose `sqrt_beta` is zero, negative, boolean or
-  complex, which 1.1.0 accepted as a NumPy scalar or a one-element array,
-  raises `ValueError` when `BADS` is created, and a callable `sqrt_beta`
-  whose value is not a positive finite number raises `ValueError` at the
-  search.
-- `BADS` raises `ValueError` for an `improvement_quantile` that is not a
-  number greater than 0 and less than 1, an array of one element or a
-  complex number included.
-- `BADS` raises `ValueError` for an `accelerate_mesh_steps` that is not a
-  positive integer, `inf` included, which 1.1.0 ran without the accelerated
-  reduction of the mesh: `accelerate_mesh=False` turns it off.
-- `BADS` raises `ValueError` for `acq_hedge=True`, which 1.1.0 accepted and
-  which stopped a run with `UnboundLocalError` at its first improving
-  search.
-- `pybads.search.ESSearchCMA` is removed.
-- `pybads.init_functions.init_sobol` returns the number of points of its
-  design as its second value, not its base-2 logarithm, and takes `lb` and
-  `ub`, which it does not read, as required arguments, which 1.1.0 let a
-  call leave out.
-- `FunctionLogger` has no `y_max`, which 1.1.0 held at -inf, and the
-  function logger of a run with `uncertainty_handling=True` and without
-  `specify_target_noise` has no `S`, which 1.1.0 held, all NaN.
-- A target that returns a value, or with `specify_target_noise=True` a
-  noise SD, of a complex type raises `ValueError`, even when its imaginary
-  part is zero, where 1.1.0 accepted a NumPy complex value or SD whose
+  `max_iter`, or is stopped by `output_fcn`, where 1.1.0 always reported
+  True, and its `iterations`, like the display's iteration column, counts
+  from 1, as in MATLAB BADS, one more than in 1.1.0.
+- With `specify_target_noise=True`, the returned `fval` and `fsd` are the
+  precision-weighted mean of the final samples and its SD, where 1.1.0
+  ignored the SDs that the target returns, and with `noise_final_samples=1`,
+  `yval_vec` and `ysd_vec` hold one value.
+- Without `specify_target_noise`, the returned `fsd` of a noisy run
+  normalizes the SD of the `n` final samples by `n - 1`, not `n`, which
+  makes it larger by `sqrt(n/(n - 1))`, 1.05 at the default 10; with
+  `noise_final_samples=1`, `yval_vec` has shape (2,), not (2, 1).
+- With `uncertainty_handling=False`, a run makes no noise test, and a noisy
+  target is optimized as a deterministic one. With it left empty, a target
+  whose two values at the start differ by at most `sqrt(eps) * tol_fun`,
+  not `eps * tol_fun`, is optimized as a deterministic one.
+- `x0` and the plausible bounds are used as given ("Bounds and the starting
+  point").
+- A value or a noise SD that the target returns and that is not a finite
+  real number raises `ValueError`, a complex one included, even when its
   imaginary part is zero.
-- `BADS` raises `ValueError` for a `hedge_gamma` outside [0, 1/n], n the
-  number of searches in `search_method` (1/2 at default), for a `hedge_beta`
-  that is not a finite number at least 0, and for a `hedge_decay` outside
-  [0, 1], an array of one element or a complex number included.
-- `BADS` raises `ValueError` for a `tol_fun` that is not a positive real
-  number at most e^6 (about 403), a boolean, a string, an array or a complex
-  number included, which 1.1.0 ran when negative (-inf included) unless the
-  default `hedge_beta` fell far below 0, and ran as 1 when `True`; for a
-  `search_method` that is not a non-empty list of pairs naming `"ES-wcm"` or
-  `"ES-ell"`, or a `search_acq_fcn` that is not a pair whose first element is
-  `"acq_LCB"`, which stopped a 1.1.0 run at its first search, or at the first
-  that chose an unknown search; and for an entry of `search_method`, or a
-  `search_acq_fcn`, with more than two elements, whose elements beyond the
-  pair 1.1.0 ignored.
-- The returned `total_time` and `overhead` are timed with
-  `time.perf_counter`, so that on Windows before Python 3.13 `overhead` is
-  no longer inflated by evaluations timed as 0.
-- `BADS` raises `ValueError` for an `n_search` that is not a positive
-  integer, and for an `n_search_iter` that is not a positive integer or is
-  larger than `n_search`.
-- `BADS` raises `ValueError`, as for any unknown option, for the 66
-  options that had no effect in 1.1.0 and that MATLAB BADS does not have,
-  most of them leftovers of PyVBMC, such as `warp_every_iters`,
-  `variational_sampler`, `min_iter`, `diagnostics` and `gp_cov_fun`
-  ("Options without effect" below).
-- `FunctionLogger.add` raises `ValueError` for an evaluation without its
-  noise SD in a logger at uncertainty handling level 2, which 1.1.0
-  recorded with an SD of 1, for a value or an SD that is a string, where
-  1.1.0 raised `TypeError`, and for one of a complex type with a zero
-  imaginary part, which 1.1.0 recorded.
+- `pybads.search.ESSearchCMA` is removed; `pybads.init_functions.init_sobol`
+  returns the number of points of its design as its second value, not its
+  base-2 logarithm, and requires `lb` and `ub`; `FunctionLogger` has no
+  `y_max`, a run's function logger holds `S` only with
+  `specify_target_noise=True`, and `FunctionLogger.add` checks a value and
+  an SD as those of the target, the SD required at uncertainty level 2.
 
 ### Added
 
-- **Periodic variables.** `periodic_vars` names the variables that are
-  periodic, such as angles, by their indices from 0 to D - 1, as MATLAB
-  BADS's `PeriodicVars` does from 1; 1.1.0 refused it. The hard bounds of
-  a periodic variable, which need to be finite, are its period: BADS wraps
-  the variable around them, so that the lower and the upper bound are the
-  same point and a run moves across them, and the Gaussian process that
-  models the objective is periodic along it. A periodic variable is never
-  taken to log coordinates. An empty `periodic_vars`, such as `[]`, names
-  no periodic variable and stands for `None`, as in MATLAB BADS. `BADS`
-  raises `ValueError` for a `periodic_vars` that is not a list of distinct
-  indices, a boolean mask included, or that names a variable with an
-  infinite bound.
+- **Periodic variables.** `periodic_vars` lists the indices, from 0, of
+  the variables that are periodic, such as angles: BADS wraps each of them
+  around its hard bounds, which need to be finite, and the Gaussian process
+  is periodic along it.
   [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html)
   and the
   [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)
@@ -135,908 +77,202 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Evaluations made before the run.** `BADS(...,
   precomputed_evaluations=(X, y))`, or `(X, y, y_sd)` with
   `specify_target_noise=True`, gives a run evaluations of the target made
-  before it, for instance by an earlier run, as MATLAB BADS's option
-  `FunValues` does. They enter the run's log of evaluations and, from the
-  first poll on, those nearest the incumbent the training set of its
-  Gaussian process. They do not count as evaluations of the run
-  (`func_count`, which `max_fun_evals` bounds), and the run starts from
-  `x0` and its initial design all the same, but for the points of the
-  design that they hold, which it does not evaluate again; its first
-  incumbent is the best of the points it evaluates, on which alone its
-  first Gaussian process is fitted. So a run given the log of an earlier
-  run with the same seed and starting point evaluates its start alone, and
-  its first Gaussian process holds that one point, with the values of
-  MATLAB BADS's definition until its first refit ("Targets without
-  spread"). `BADS` refuses points outside the hard bounds or that violate
-  `non_box_cons`, and, unless `uncertainty_handling` is `True`, two
-  different values at one point. The result reports the number of
-  evaluations given in `precomputed_observations`, and of their distinct
-  points in `precomputed_locations`, when at least one was given.
-- **Fixed variables.** A variable whose four bounds, `lb`, `ub`, `plb`
-  and `pub`, are equal is fixed at that value, as in MATLAB BADS; 1.1.0
-  raised `ValueError`. BADS optimizes the other variables, as a run of the
-  problem reduced to them would, and the defaults of the options that
-  depend on the number of variables count only those: `max_fun_evals` is
-  500 times the number of variables that are not fixed, for instance. The target, `non_box_cons` and
-  `output_fcn` receive points of all the variables, with the fixed ones at
-  their values, and the result's `x` and `x0`, the log of evaluations and
-  `iteration_history["x"]` hold them all. `x0` at a fixed variable is its
-  value, or NaN, which stands for it; a message lists the fixed variables
-  from `display="notify"` on. The indices of `periodic_vars` count
-  all the variables, and the points of `precomputed_evaluations` hold them
-  all. `BADS` raises `ValueError` when every variable is fixed. The
+  before it. The run starts from `x0` and its design all the same, but
+  skips the points that they hold; those nearest the incumbent join its
+  Gaussian process from the first poll on, none counts against
+  `max_fun_evals`, and the result counts them in
+  `precomputed_observations` and their points in `precomputed_locations`.
+- **Fixed variables.** A variable whose four bounds, `lb`, `ub`, `plb` and
+  `pub`, are equal is fixed at that value, where 1.1.0 raised `ValueError`:
+  BADS optimizes the others, the defaults that depend on D count only
+  those, and the target, `non_box_cons`, `output_fcn` and the result see
+  points of all the variables. The
   [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)
   shows an example.
-- **FAQ.** The documentation has a [page of frequently asked
-  questions](https://acerbilab.github.io/pybads/faq.html), adapted from the
-  MATLAB BADS FAQ, with further questions on PyBADS: among them how to run
-  several starts, make a run reproducible, monitor or stop a run with
-  `output_fcn`, what the log transform of positive variables does, what
-  differs from MATLAB BADS, and how to go on to PyVBMC. The README, the
-  getting-started page and Examples 3 and 4 point to it in place of the
-  MATLAB BADS wiki. In place of their own versions of its answers, Example 1
-  links to its answer on the problems that PyBADS suits, the getting-started
-  page to the one on passing additional data to the objective, and Example 3
-  to the one on how much noise PyBADS handles.
-- **Coding-agent skill.** `skills/pybads/SKILL.md` in the repository points a
-  coding agent to the parts of the documentation relevant to its task, and
-  the README says how to give it to an agent.
-- **Stage times.** A `BADS` object's `iteration_history["timer"]` holds, at
-  the end of each iteration, the seconds that the run has spent so far in
-  each of its stages (the initial design, the searches, the polls, the fits
-  of the Gaussian process and the others) and in the target's evaluations,
-  and `optim_state["stage_times"]` holds the same for the whole run, which
-  adds up to `total_time`. They serve PyBADS's developer tools, and their
-  format can change in any release.
+- **FAQ and a coding-agent skill.** The documentation has a [page of
+  frequently asked questions](https://acerbilab.github.io/pybads/faq.html),
+  and `skills/pybads/SKILL.md` in the repository points a coding agent to
+  the documentation relevant to its task.
+- **Stage times.** A `BADS` object's `iteration_history["timer"]` and
+  `optim_state["stage_times"]` hold the seconds that its run has spent in
+  each of its stages; their format can change in any release.
 
 ### Changed
 
-- **Options without effect.** The 66 advanced options that had no effect in
-  1.1.0 and that MATLAB BADS does not have, most of them leftovers of PyVBMC,
-  are removed, and setting one raises `ValueError`, as for any unknown option:
-  `acq_hedge_iter_window`, `acqhedge_decay`, `active_sample_gp_update`,
-  `active_search_bound`, `bandwidth`, `box_search_frac`, `cov_sample_thresh`,
-  `diagnostics`, `double_gp`, `empirical_gp_prior`, `gp_cov_fun` (the kernel
-  is always the rational-quadratic ARD one), `gp_length_prior_mean`,
-  `gp_length_prior_std`, `gp_sample_thin`, `gp_sample_widths`,
-  `gp_stochastic_step_size`, `gp_tol_optactive`, `gp_tol_optmcmc`,
-  `gp_tol_optmcmcactive`, `heavy_tail_search_frac`, `hessian_alternate`,
-  `hpd_search_frac`, `incremental_warp_delay`, `init_design`,
-  `integrate_gp_mean`, `k_warmup`, `kl_gauss`, `max_repeated_observations`,
-  `min_fun_evals`, `min_iter`, `mvn_search_frac`, `noise_shaping_factor`,
-  `noise_shaping_threshold`, `ns_search`, `nsgp_max`, `nsgp_maxmain`,
-  `nsgp_maxwarmup`, `out_warp_thresh_base`, `out_warp_thresh_mult`,
-  `out_warp_thresh_tol`, `rank_criterion`, `recompute_lcb_max`,
-  `repeated_acq_discount`, `sample_extra_vp_means`, `search_cache_frac`,
-  `separate_search_gp`, `sgd_step_size`, `stable_gp_samples`,
-  `stable_gp_sampling`, `stable_gp_vpk`, `temperature`, `tol_bound_x`,
-  `tol_cov_weight`, `tol_gp_noise`, `tol_gp_var`, `tol_gp_varmcmc`, `tol_skl`,
-  `tol_stable_warmup`, `upper_gp_length_factor`, `variational_sampler`,
-  `warp_cov_reg`, `warp_every_iters`, `warp_proto_corr_thresh`,
-  `warp_proto_scaling`, `warp_tol_reliability` and `weighted_hyp_cov`. The 12
-  options named after MATLAB BADS's that PyBADS does not use stay, so that
-  setting one is not an error, and their descriptions say that they are
-  unused: `poll_method`, `n_basis`, `skip_poll`, `search_improve_frac`,
-  `gp_samples`, `gp_def_fcn`, `gp_method`, `gp_cluster`, `rotate_gp`,
-  `poll_acq_fcn`, `chol_attempts` and `gp_svd_iters`.
-- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or
-  later, SciPy 1.13 or later and matplotlib 3.9 or later (1.1.0 accepted
-  gpyreg 1.3.3, NumPy 1.22.1, SciPy 1.7.3 and matplotlib 3.5.1). The `test`
-  extra no longer lists pytest-rerunfailures, which the tests do not need,
-  and installing PyBADS no longer installs pytest, pytest-rerunfailures
-  and numdifftools, which gpyreg 1.3.3 installed.
+- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
+  SciPy 1.13 or later and matplotlib 3.9 or later, and installing it no
+  longer installs pytest, pytest-rerunfailures and numdifftools.
 - **Faster Gaussian processes.** gpyreg 1.4.0 computes the same Gaussian
-  processes as 1.3.3, to the last bit, in less time: PyBADS's own time, a
-  run's time less its target's evaluations, is 27 to 39 % lower than with
-  gpyreg 1.3.3 on seven benchmark problems (Windows, one BLAS thread).
-- **GP mean function.** `gp_mean_fun` accepts `"const"`, the default, and
-  `"zero"`, and `BADS` refuses any other name when it is created. 1.1.0
-  accepted ten more: nine stopped the run when the Gaussian process was
-  built, and `"negquad"`, a concave mean made for log densities, has the
-  wrong shape for a minimizer and could stop the run at a failed fit.
-- **Prior over the GP length scales.** `gp_cov_prior` accepts only
-  `"iso"`, the default, and `BADS` refuses any other value when it is
-  created. 1.1.0 accepted MATLAB BADS's `"ard"`, which PyBADS does not
-  implement, and any other value, and then kept the initial prior over the
-  length scales for the whole run.
-- **Acquisition hedge.** `BADS` refuses `acq_hedge=True` when it is
-  created: the acquisition hedge, which MATLAB BADS labels unsupported, is
-  not implemented, and 1.1.0 accepted the option and stopped the run with
-  `UnboundLocalError` at its first improving search.
-- **Large noise.** `BADS` warns when `noise_size` exceeds e^5, about 148,
-  the largest noise standard deviation its Gaussian process can represent
-  (the bound of MATLAB BADS): the noise it infers then stays at that bound,
-  and the target is better rescaled.
-- **Constraint function.** When it is created, `BADS` checks that
-  `non_box_cons`, given an N × D array with one point per row, returns a
-  NumPy array of shape (N,) or (N, 1), one value per point, true or positive
-  where the point violates the constraints, and otherwise raises
-  `ValueError` stating that contract, as MATLAB BADS checks its constraint
-  function. 1.1.0 failed with `AttributeError`, `IndexError` or an unrelated
-  `ValueError`, or accepted an output of the wrong shape and failed later;
-  an output of shape (N, 1), which it failed on during the run, now works.
-  The docstring states the contract, with an example in Python, where
-  1.1.0's was written with MATLAB's `.^`. The docstring also says that a
-  feasible region thinner than the mesh can resolve, such as a narrow band,
-  can end a run early near `x0`, and how to reparametrize it.
-- **Checks of `max_fun_evals`, `improvement_quantile`,
-  `accelerate_mesh_steps`, `n_search` and `n_search_iter`.** `BADS` raises
-  `ValueError` when `max_fun_evals` is not a positive integer (or infinite),
-  as MATLAB BADS does, and converts a float that is a whole number to an
-  integer, a whole number too large for NumPy's 64-bit integers standing for
-  `inf`; 1.1.0 stopped `optimize()` with an unrelated error for 0 or a
-  negative value, and made 31 evaluations for 30.5. An `improvement_quantile`
-  above 0.5 gives MATLAB BADS's warning. An `improvement_quantile` that is
-  not a number greater than 0 and less than 1 raises `ValueError`, as in
-  MATLAB BADS, and one that is not a real number (a Python or NumPy integer
-  or float) too, an array of one element or a complex number included; the
-  value is stored as a float. 1.1.0 ran with a number outside that range: at
-  0, and at 1 without noise, the incumbent never left the best point of the
-  initial design, and a noisy run at 1 moved it at most searches and never
-  ended its first iteration. An `accelerate_mesh_steps` that is not a
-  positive integer raises `ValueError`, and a float that is a whole number is
-  converted to an integer. 1.1.0 stopped the run at a failed poll, with
-  `IndexError` for 0 (from the second iteration on), with `TypeError` for a
-  negative value, and with `IndexError` for a float once the iterations
-  exceeded it, as MATLAB BADS stops for these values; a float larger than
-  every iteration, `inf` included, ran without the accelerated reduction of
-  the mesh, as in MATLAB BADS, and `True` ran as 1; `accelerate_mesh=False`
-  turns the reduction off, and the message says so. An `n_search_iter` that
-  is not a positive integer raises `ValueError`, and a float that is a whole
-  number is converted to an integer; 1.1.0 did not check it and stopped the
-  run at its first search, with `ZeroDivisionError` for 0, `ValueError` for a
-  negative value or NaN and `TypeError` for any other float, whole numbers
-  included, and `True` ran as 1. An `n_search`, the number of candidates of
-  the evolution-strategy search, that is not a positive integer raises
-  `ValueError`, and so does an `n_search_iter` above it, which leaves each
-  generation of the search without a candidate; 1.1.0 did not check them and
-  stopped the run at its first search, with `IndexError` for an `n_search`
-  below 1 or an `n_search_iter` above it, `TypeError` for a string and
-  `ValueError` for NaN, and ran with a fraction such as 2.5.
-- **Checks of `max_iter`, `tol_stall_iters`, `search_n_try`,
-  `noise_final_samples` and `tol_mesh`.** `BADS` raises `ValueError` that
-  names the option when `max_iter` or `tol_stall_iters` is not a positive
-  integer or `inf`, which turns the limit off, as for `max_fun_evals`; 1.1.0
-  stopped the run at the end of its first iteration with `TypeError` for a
-  string, such as the MATLAB-style `'200*D'`, and for a `tol_stall_iters` of
-  0, and with `IndexError` at the end of a later one for a `tol_stall_iters`
-  that is not whole, and ran a `max_iter` of 0, an array or one that is not
-  whole. It raises `ValueError` when `search_n_try`, the number of searches in
-  an iteration, is not an integer at least 0, 0 making a run without searches,
-  whose every iteration is a poll, as in MATLAB BADS; 1.1.0 stopped the run at
-  the end of its first iteration with `TypeError` for a string, ran -1 as 0
-  and `True` as 1, and never ended a run whose `search_n_try` is not whole,
-  which after its first round of searches turned without evaluating. It raises
-  `ValueError` when `noise_final_samples` is not an integer at least 0, also
-  in a run without noise, which takes no final samples; 1.1.0 stopped a noisy
-  run with `TypeError`, after its last iteration for a value that is not whole
-  and after its initial design for a string, made one evaluation beyond
-  `max_fun_evals` for -1, and ran a run without noise with a value that is not
-  whole or a string. It raises `ValueError` when `tol_mesh` is not a positive
-  finite number (a boolean, a string or an array included), and stores it as a
-  float; 1.1.0 stopped the creation of `BADS` with NumPy's `TypeError` for a
-  string, ran with an array and with 0 or a negative value, which the mesh
-  criterion never ends, and ran `True` as 1. A float that is a whole number is
-  converted to an integer, and a whole number too large for NumPy's 64-bit
-  integers stands for `inf` in `max_iter` and `tol_stall_iters`.
-- **`None` and boolean options.** A user value of `None` stands for the
-  option's default, as an empty value does in MATLAB BADS; 1.1.0 used `None`
-  itself, so that `nonlinear_scaling=None` turned the log transform off and
-  a numeric option set to `None` stopped the run. `uncertainty_handling`
-  and the options whose default is `True` or `False` take only `True` or
-  `False` (NumPy booleans included), except `plot`, which also takes the
-  names of MATLAB BADS's plots, and `BADS` raises `ValueError` for any other
-  value; 1.1.0 read any value as true or false by Python's rules, so that
-  MATLAB's `"off"` was true.
-- **`fun_values`.** `BADS` refuses a non-empty `fun_values`, MATLAB BADS's
-  option of the evaluations made before the run, with a message that points
-  to the argument `precomputed_evaluations`, which takes them ("Evaluations
-  made before the run" above); the import never worked, and 1.1.0 stopped
-  with an unrelated `ValueError`.
-- **`FunctionLogger.add`.** `add` checks the value and the noise SD as the
-  logger checks the target's outputs: an array or a list of one element is
-  taken as that element, and a string or a complex value raises
-  `ValueError`. At uncertainty handling level 2, where the target returns
-  the SDs, it requires the SD, as PyVBMC's logger does.
-- **Evaluations that are not recorded.** An evaluation of the function
-  logger with `record_duplicate_data=False`, as the final samples of a
-  noisy run are, leaves the log as it is, as MATLAB BADS's log does: 1.1.0
-  added it to the count of evaluations of its point's row (`n_evals`) and
-  averaged its time into the row's.
-- **`f_vals`.** `BADS` refuses an `f_vals` that holds a finite value, with a
-  message that the option is not supported; in 1.1.0 a run given one value
-  stopped at its first display line, with `display="off"` too, and one given
-  several raised `ValueError` when `BADS` was created. An `f_vals` without a
-  finite value, such as an empty list or NaN, stands for `None`.
-- **`success`.** The result's `success` is False when `max_fun_evals` or
-  `max_iter` ends the run, `output_fcn` stops it or it ends in its
-  initialization, and True when it ends on `tol_mesh` or on the change of
-  the function value (`status > 0`), the convention of MATLAB BADS's exit
-  flags and of scipy; it was always True.
+  processes as 1.3.3, to the last bit, in less time: a run's time besides
+  the target's evaluations is 27 to 39 % lower on seven benchmark problems
+  (Windows, one BLAS thread).
+- **Seeded initial design.** `random_seed` decides the initial design, as
+  it decides every other random draw of a run; in 1.1.0 every start inside
+  the plausible box gave the same design at a given D, whatever the seed.
+- **Options without effect.** The 66 options that had no effect in 1.1.0
+  and that MATLAB BADS does not have, most of them leftovers of PyVBMC, are
+  removed; the 12 without effect that are named after options of MATLAB
+  BADS, such as `poll_method`, stay, described as unused.
+- **Checks of the options.** `BADS` checks these options when it is
+  created and raises `ValueError`, naming the option, for any other value;
+  1.1.0 ran some of these as meant, such as `1` for `True`, and most with
+  wrong results or until an unrelated error. An integer option takes a
+  float that is a whole number; a boolean, a string or a complex number is
+  refused for a number, and so is an array, except in `noise_size` and
+  `sqrt_beta`.
+  - `max_fun_evals`, `max_iter`, `tol_stall_iters`: a positive integer or
+    `inf`; `search_n_try`, `noise_final_samples`: an integer at least 0;
+  - `n_search`, `n_search_iter`, `accelerate_mesh_steps`: a positive
+    integer, `n_search_iter` at most `n_search`;
+  - `tol_mesh`: a positive finite number; `tol_fun`: a positive number at
+    most e^6, about 403; `improvement_quantile`: between 0 and 1, both
+    excluded;
+  - `hedge_gamma`: from 0 to 1/n, n the number of searches in
+    `search_method`; `hedge_beta`: a finite number at least 0;
+    `hedge_decay`: from 0 to 1;
+  - `noise_size`: a number, or MATLAB BADS's pair of the base noise SD and
+    the SD of the prior over its logarithm; unless `specify_target_noise`
+    is set, which ignores it, a positive finite base and a positive SD;
+  - `search_method`: a non-empty list of pairs naming `"ES-wcm"` or
+    `"ES-ell"`; `search_acq_fcn`: a pair `("acq_LCB", sqrt_beta)`, with
+    `sqrt_beta` `None`, a positive finite number or a callable that returns
+    one (checked at each search);
+  - `gp_mean_fun`: `"const"` or `"zero"`; `gp_cov_prior`: `"iso"`;
+    `acq_hedge`: `False`; `fit_lik`: `True`; `f_vals`: no finite value;
+    `fun_values`: empty (`precomputed_evaluations` takes its evaluations);
+  - `uncertainty_handling` and the options whose default is `True` or
+    `False`, except `plot`: `True` or `False`.
 - **Move to an earlier iterate in noisy runs.** When the re-estimation at
-  the end of an iteration of a noisy run finds an earlier iterate better by
-  more than `tol_fun`, the incumbent moves to that iterate, its location
-  with its value, and the next search and poll run around it. In 1.1.0, as
-  in MATLAB BADS, only the value moved, so that the next poll could run
-  around the old incumbent while it was judged by the other iterate's value.
-  Noisy runs change.
-- **LCB parameter of the search.** The second element of `search_acq_fcn`, the
-  `sqrt_beta` of the search's lower confidence bound, can be a plain number
-  such as `2.0`, which stopped the run with `AttributeError`. It is `None`
-  (the default schedule), a callable `sqrt_beta(t, D)` that returns a positive
-  finite number, or a positive finite number. `BADS` raises `ValueError` for
-  any other value when it is created, before any evaluation, and the search
-  raises `ValueError` when the callable returns another value; 1.1.0 ran with
-  a callable that returned −1 or NaN, and stopped with an unrelated error when
-  it returned an array of several values or a string.
-  `pybads.acquisition_functions.check_sqrt_beta` makes the same check. The
-  search scores the point it chooses with that `sqrt_beta` too, as MATLAB BADS
-  does, where it took the default schedule there: only the point's mean is
-  read, so results do not change for a number or a callable whose value
-  depends on `(t, D)` alone. A callable `sqrt_beta` is called once more at
-  each search, which changes a run whose callable keeps a state or draws
-  random numbers.
-- **`ESSearchCMA`.** `pybads.search.ESSearchCMA`, a CMA-ES search that no
-  `search_method` selects and that failed when called, is removed.
-- **Search hedge parameters.** `BADS` raises `ValueError` for a
-  `hedge_gamma` that is not a number from 0 to 1/n, n the number of searches
-  in `search_method` (1/2 at default), a `hedge_beta` that is not a finite
-  number at least 0, and a `hedge_decay` outside [0, 1]; each is a real
-  number (a Python or NumPy integer or float), stored as a float, and an
-  array of one element or a complex number is refused too. 1.1.0, like
-  MATLAB BADS, ran with any number: a `hedge_gamma` above 1/n made the
-  search hedge favor the search of lower gain, and above 1/(n − 1) gave some
-  searches a negative probability, so that they were never chosen; a
-  negative `hedge_beta` inverted the hedge too, and a `hedge_decay` above 1
-  made the searches' gains grow, a negative one alternate in sign. An
-  infinite or NaN `hedge_beta`, one far below 0, a NaN `hedge_decay`, or
-  gains grown until they overflowed stopped the run with `IndexError` at
-  the next search, where MATLAB BADS chooses a search at random; a string
-  stopped it with `TypeError`.
-- **Checks of `tol_fun`, `search_method` and `search_acq_fcn`.** `BADS` raises
-  `ValueError` when it is created for a `tol_fun` that is not a positive real
-  number (a Python or NumPy integer or float) at most e^6 (about 403): a
-  boolean, a string, an array, of one element or none, or a complex number
-  is refused, as for `improvement_quantile` and the hedge's options.
-  1.1.0 stopped with `ZeroDivisionError` for 0 or `False`, at the default
-  `hedge_beta = 1e-3 / tol_fun`, and with an unrelated error at its first fit
-  of the Gaussian process above e^6, where the bounds of the noise of the
-  Gaussian process cross (as in MATLAB BADS), inf included, and for NaN in a
-  deterministic run; it ran with a negative value, -inf included, unless the
-  default `hedge_beta` fell far below 0, which stopped the run with
-  `IndexError` at a search, and with `True` as 1. `BADS` also raises
-  `ValueError` for a `search_method` that is not a non-empty list of pairs
-  (name, sum-rule flag), each name `"ES-wcm"` or `"ES-ell"`, and for a
-  `search_acq_fcn` that is not a pair whose first element is `"acq_LCB"`, the
-  only acquisition function of the search; 1.1.0 stopped with an error at the
-  first search, or at the first that chose an unknown search. A NumPy array,
-  or a NumPy array of one element for a name, is taken as the searches take
-  it, as in 1.1.0. An entry of `search_method`, or a `search_acq_fcn`, with
-  more than two elements is refused too, where 1.1.0 ignored the elements
-  beyond the pair: MATLAB BADS's entries of `SearchMethod` have three.
-- **Cost of the optimization target.** The search no longer computes the
-  optimization target, which MATLAB BADS computes at every search, where only
-  acquisition functions that PyBADS does not have read it; PyBADS's only one,
-  the lower confidence bound, does not. The poll predicts the target from the
-  Gaussian process itself when the best iteration's hyperparameters are its
-  own, as they were at two thirds of the poll's computations of the target
-  over the runs of PyBADS's default benchmark suite (fewer in some runs),
-  instead of from a copy whose posterior it computed again under them. Each
-  saves a copy of the Gaussian process and the computation of a posterior,
-  and results are unchanged. The target that `optim_state` holds, which
-  `output_fcn` receives, is the last poll's.
-- **Cost of removing evaluated candidates.** The initial design, the search
-  and the poll find the candidates already evaluated, and repeated ones
-  (see "Points evaluated again"), with one stable sort of the grid cells
-  that the candidates fall in, instead of two sorts by `np.unique`. Results
-  are unchanged, and the time that PyBADS takes besides the target's
-  evaluations falls by 4 to 24 % on the problems of its benchmark.
-- **Reproducible examples.** Examples 1 to 4 set `random_seed`, as Examples
-  5 and 6 do, and Examples 3 and 4 give their noisy target a random number
-  generator of its own, with a fixed seed, since `random_seed` does not seed
-  the target. In 1.1.0, Examples 1 to 4 gave different results at each run.
+  the end of an iteration of a noisy run finds an earlier iterate better
+  by more than `tol_fun`, the incumbent moves to that iterate, where 1.1.0,
+  like MATLAB BADS, moved only its value.
 
 ### Fixed
 
-- **User-specified noise.** With `specify_target_noise=True`, the Gaussian
-  process treated the noise standard deviations that the target returns as
-  variances after its initial fit, so that it underrated the noise wherever
-  the standard deviation exceeded 1, and overrated it below 1. It now uses
-  their squares, as MATLAB BADS does. Results change in both directions. On
-  the 3-D sphere of PyBADS's tests, whose noise standard deviation is
-  `2 + sqrt(f)`, the median error of 100 seeded runs of 200 evaluations
-  falls from 0.33 to 0.14, and the largest from 2.3 to 0.56. On a 3-D
-  ellipsoid with condition number 1e6 and noise standard deviation
-  `1 + sqrt(f)`, runs end farther from the minimum: over 90 seeds, the
-  median error rises from 0.21 to 0.54.
-- **Repeated points with user-specified noise.** With
-  `specify_target_noise=True`, a point evaluated again was merged with the
-  first earlier evaluation that shared any one of its coordinates, usually
-  that of another point, whose value and noise it then changed.
-  `FunctionLogger` now merges it with its own earlier evaluation; the
-  initial design, the search and the poll no longer evaluate a point again
-  (see "Points evaluated again") and the final samples are not recorded, so
-  that a run of `BADS` merges one only where the evaluations made before it
-  repeat a point ("Evaluations made before the run"). On the 3-D ellipsoid
-  above, run over 90 seeds on Linux, where 54 runs made such a merge, the
-  fix of the merge alone lowered the median error from 0.58 to 0.48, and
-  the number of runs with an error of 1 or more from 31 to 20.
-- **Prior of the GP mean.** At each rebuild of the local Gaussian process,
-  the prior over its constant mean is centred at the 90th percentile of the
-  training targets, with a width set by their spread, as in MATLAB BADS.
-  PyBADS computed that prior and never applied it, so the prior set on the
-  initial design held for the whole run. Results change at default
-  options, most on ill-conditioned targets: on 3-, 6- and 10-D ellipsoids
-  with condition number 1e6, the median error of 30 seeded runs falls by a
-  factor of 6 to 110, with as many evaluations or fewer, and on a 6-D
-  Rosenbrock function the runs that reach the global minimum end 17 times
-  closer to it. The mean itself is unbounded, as in MATLAB BADS: PyBADS
-  bounded it by the range of the initial design's targets, which kept it
-  from following the re-centred prior. The initial fit starts the mean at
-  the median of the lowest 80% of the initial targets, a count rounded up
-  as in MATLAB BADS, where PyBADS rounded it to the nearest.
-- **Length scales of the GP.** The upper bound of each log length scale of
-  the Gaussian process was the largest length scale itself, up to 100,
-  instead of its logarithm, as in MATLAB BADS, so that a length scale
-  could grow far beyond the size of the search space and the GP could
-  treat as flat a direction along which the target varies slowly. Results
-  change at default options. On the 3-D ellipsoid with target noise above,
-  run over 90 seeds on Linux, the median error falls from 0.46 (with the
-  two fixes above) to 0.25, and the number of runs with an error of 1 or
-  more from 20 to 8.
-- **Final estimate with user-specified noise.** With
-  `specify_target_noise=True`, the returned `fval` and `fsd` weight the
-  final samples at the returned point (`yval_vec`) by their precisions, the
-  inverse squares of the standard deviations that the target returns with
-  them (`ysd_vec`), as MATLAB BADS does: `fval` is their precision-weighted
-  mean, and `fsd = 1/sqrt(sum(1/ysd_vec**2))`. They were the plain mean of
-  the samples and its standard error estimated from their spread, whatever
-  standard deviations the target returned. When the target returns the same
-  standard deviation for every sample, `fval` is their mean as before, and
-  `fsd` is that standard deviation divided by the square root of the number
-  of samples. With `noise_final_samples=1`, `fval` and `fsd` are the one
-  sample and its standard deviation; before, the incumbent's earlier
-  observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
-  The returned `x` and the number of evaluations are unchanged. The final
-  message calls the estimate from several samples their precision-weighted
-  mean, and gives one sample, as a number, with its noise SD, where MATLAB
-  BADS's messages say "mean" and "GP mean ± SEM".
-- **`specify_target_noise` alone.** With `specify_target_noise=True` and
-  `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
-  as MATLAB BADS does and as the error message asked; it raised
-  `ValueError` unless `uncertainty_handling=True` was set as well.
-- **Noisy runs that end within their first iteration.** A run with
-  uncertainty handling that ends within its first iteration, for instance
-  with `max_iter=1`, returns its result instead of raising `KeyError:
-  'yval_vec'`. Such a run, which a `max_fun_evals` that the initial design
-  nearly uses up also gives, takes the final samples that it reserves from
-  `max_fun_evals` at the incumbent, as a longer run takes them at the point
-  it returns: `fval` and `fsd` are their estimate, and `yval_vec` and
-  `ysd_vec` hold them. MATLAB BADS takes none then.
-- **`noise_size` with user-specified noise.** With
-  `specify_target_noise=True`, a scalar `noise_size` made the creation of
-  `BADS` fail with `IndexError`. It now gives the warning about
-  `noise_size` that an array gave, and `noise_size` is ignored, as the
-  warning says. It set the threshold of a check for a Gaussian process that
-  explains the data as noise, so that `noise_size=0`, which the warning
-  proposed, made every refit of the GP a second fit, and runs ended at
-  other points.
-- **`noise_size` as a list or a pair.** A list `noise_size`, or MATLAB BADS's
-  pair of the base noise standard deviation and the standard deviation of the
-  prior over its logarithm, made a noisy run fail with `TypeError` or
-  `ValueError`; both are accepted, the values stored as floats. Without
-  `specify_target_noise`, a `noise_size` of 0 or less, as in MATLAB BADS, or
-  not finite, and a finite SD of the prior that is 0 or less, which made the
-  run fail in the prior of the Gaussian process after its initial design,
-  raise `ValueError` that names `noise_size` when `BADS` is created; an SD of
-  the prior that is not finite stands for its default, 1, as in MATLAB BADS. A
-  `noise_size` that is not one or two real numbers raises `ValueError`, also
-  with `specify_target_noise`: a boolean, which 1.1.0 ran as 1, or a string,
-  which stopped a 1.1.0 run with `TypeError` after its initial design, or at
-  the creation of `BADS` with `specify_target_noise`.
-- **Final estimate without user-specified noise.** The returned `fsd` of a
-  noisy run is the standard error of the final samples computed from their
-  standard deviation normalized by `n - 1`, as MATLAB BADS computes it; it
-  was normalized by `n`, which made `fsd` smaller by a factor
-  `sqrt((n - 1)/n)`, 0.95 at the default 10 samples. The final `fval` and
-  `fsd` are recorded in `iteration_history` at the iterate they describe,
-  the returned point, instead of the last iterate. With
-  `noise_final_samples=1`, `yval_vec` holds the sample and the incumbent's
-  observation in an array of shape (2,), one-dimensional as every other
-  `yval_vec`; it had shape (2, 1).
-- **Iteration count.** The returned `iterations` and the iteration column
-  of the display count from 1, as in MATLAB BADS: a run that ends on
-  `max_iter` reports `max_iter` iterations. They were one lower. A run that
-  ends in its initialization reports 0, where MATLAB BADS reports 1.
-- **Output function.** `output_fcn` is called as in MATLAB BADS, as
-  `output_fcn(x, optim_state, state)` at the start (`state="init"`), after
-  each poll (`"iter"`) and at the end (`"done"`), with the incumbent `x` in
-  the original space and a copy of the internal state `optim_state`; a
-  true return value stops the run. It was called once, at the start, as
-  `output_fcn(x, "init")`, and a true return value raised
-  `UnboundLocalError`.
-- **Arguments in MATLAB BADS's order.** `BADS(fun, x0, lb, ub, plb, pub,
-  non_box_cons, options)` passes `options`. They went to the undocumented
-  argument `gamma_uncertain_interval`, which stood before `options`, and
-  were ignored, the seed included. `gamma_uncertain_interval`, the
-  multiplier of the uncertainty interval of Sto-BADS (`stobads=True`), is
-  keyword-only and documented.
-- **Sto-BADS poll and search.** With `stobads=True`, a poll succeeds when
-  one of its points succeeds, as in Sto-MADS, and moves the incumbent to
-  that point; before, the outcome of the last polled point decided, so that
-  a success followed by other points was lost and the mesh contracted. With
-  `opp_stobads`, a poll without a success moves to its best point when that
-  point improves on the incumbent and any of the poll's points is uncertain,
-  not only when the last one is; and a search whose outcome is uncertain
-  moves the incumbent only when the estimate of its point improves on the
-  incumbent's, where it moved on any uncertain outcome, most often to a
-  point estimated worse.
-- **Search without a candidate.** A search that leaves no candidate, for
-  instance under a `non_box_cons` that does not always give the same answer
-  for a point, counts as a failed search, as in MATLAB BADS; the run stopped
-  with `UnboundLocalError` or `IndexError`. The search hedge's gains then
-  decay, as after any failed search and as in MATLAB BADS. When a later
-  generation of the evolution-strategy search leaves no candidate, the
-  search keeps the candidates of the earlier generations and evaluates the
-  best one, as in MATLAB BADS, and a debug message (`display="full"`) says
-  that the generation left no candidate, where 1.1.0 warned that a random
-  search was performed.
-- **`uncertainty_handling=False`.** With `uncertainty_handling=False`, the
-  starting point is not evaluated a second time to test for noise, as in
-  MATLAB BADS; the test ran unless uncertainty handling was on, and a
-  target that it found noisy was optimized as a noisy one although the
-  option declared it deterministic. The test runs when
-  `uncertainty_handling` is left empty.
-- **Random starting point.** Without a finite `x0` (none, or one with an
-  element of `nan`, `inf` or `-inf`), the starting point is drawn uniformly
-  in the transformed plausible box, as in MATLAB BADS: log-uniformly in the
-  original space for a variable on a log scale (all its bounds positive, and
-  `pub/plb >= 10`). It was drawn uniformly in the original plausible box,
-  which put most starting points in the upper decade of such a variable.
-  With `non_box_cons`, a random starting point that violates the
-  constraints, as drawn or once it is put on the mesh, is drawn again, up to
-  1000 draws in all, before `BADS` raises `ValueError`, where 1.1.0 and
-  MATLAB BADS raise at the first. 1.1.0 refused a start
-  with an element of `inf` or `-inf` when the hard bound on that side was
-  finite.
-- **One function evaluation.** A run with `max_fun_evals=1` returns the
-  starting point, where it raised `KeyError: 'eff_starting_points'`. As in
-  MATLAB BADS, the starting point is evaluated a second time when
-  `uncertainty_handling` is left empty, to test for noise.
-- **`kde1d` with NumPy 2.** `pybads.stats.kde1d` no longer raises
-  `AttributeError` under NumPy 2.
-- **Termination message.** A run that ends because the mesh size fell below
-  `tol_mesh` says so; the message spoke of the change in the function
-  value.
-- **Failed GP updates.** A run no longer stops with `LinAlgError`
-  ("Singular matrix for L Cholesky decomposition") when a Gaussian-process
-  update fails while adding a point, predicting the optimization target or
-  rebuilding the local GP. The run carries on, as in MATLAB BADS: a point
-  the GP could not take is included when the local GP is rebuilt at the
-  next step, a target that cannot be predicted under the best
-  hyperparameters is predicted from the current GP, and a point the GP
-  cannot estimate counts as no improvement, with Sto-BADS
-  (`stobads=True`) too. A failed rebuild is retried at the next step with
-  refitted hyperparameters (in the poll, with `poll_training` on or in the
-  first iteration), where MATLAB BADS refits only when its check of the
-  GP's predictions calls for it. Runs without such a failure give the same
-  results.
-- **Re-evaluation of the iterates in noisy runs.** At the end of each
-  iteration of a noisy run, PyBADS re-estimated the target at the iterates
-  and then went on with a Gaussian process of the iteration history as its
-  working GP; the history kept that same GP, which the next refits
-  changed, so that some iterates were re-estimated under another
-  iteration's hyperparameters. As in MATLAB BADS, each iterate is now
-  re-estimated with the hyperparameters recorded at its iteration, the
-  working GP is kept, and `iteration_history` keeps its GPs as they were
-  recorded. An iterate whose Gaussian process fails on its new training
-  set has no estimate, NaN in `iteration_history`, and is left out of the
-  choice of the incumbent and of the returned point, as in MATLAB BADS;
-  when that iterate is the current one, it keeps its estimate. Noisy runs
-  end earlier, more often on `tol_fun`: on the noisy targets of PyBADS's
-  benchmark, 12 to 18% fewer evaluations, with no significant change of the
-  error (over 90 seeds on a 3-D ellipsoid with inferred noise, a median
-  error of 0.080 against 0.076).
-- **Messages on the BADS logger.** PyBADS logs every message of a run to the
-  `BADS` logger, whose level `display` sets; `display="full"` shows the
-  debug messages. The warnings of the GP fits (a failed initial fit, failed
-  hyperparameter optimizations) and the debug message of a stalling run went
-  to `asyncio`'s logger, and the debug messages of failed GP updates to the
-  root logger. PyBADS's warnings no longer come with the
-  `DeprecationWarning` of `Logger.warn`.
-- **Warnings on Python 3.12 and later.** Importing PyBADS no longer emits
-  `SyntaxWarning: invalid escape sequence` (from a docstring), and a run no
-  longer emits a `DeprecationWarning` for `~` applied to a `bool`, an
-  operation that later Python versions remove.
-- **Shipped tests.** The tests that ship with PyBADS
-  (`pytest --pyargs pybads`) give the same result on each run on a given
-  machine: every test whose outcome depends on random draws is seeded. Each
-  optimization test checks a tolerance of its own, tighter than before for
-  most. Two tests of the poll, which pytest did not collect, are renamed so
-  that it does, and a third is added. The shipped tests include a check of
-  the initial design and checks of PyBADS's components on stored states,
-  whose data take about 600 KB. The module `pybads.testing.run_tests`,
-  which failed on import, and six data files that no test read are no
-  longer installed.
-- **Seeded runs on Apple Silicon.** The README and the documentation said
-  that a seeded run gives the same result every time on the same machine.
-  On Apple Silicon Macs, with Apple's Accelerate as the linear algebra
-  library of NumPy and SciPy (as in their wheels on PyPI), the last bits of
-  a result depend on where its arrays lie in memory, so two runs with the
-  same seed make the same random draws but can end at slightly different
-  points. The README, the documentation and the docstring of `BADS` say so,
-  and there the tests that compare two seeded runs compare the start and
-  the initial design, which the seed alone decides.
-- **Refits without poll training.** With `poll_training=False`, a poll
-  after the first iteration skipped a refit of the Gaussian process that was
-  due but counted it as made, which delayed the next refit of the search
-  (MATLAB BADS does the same). The poll now leaves that refit to the search,
-  and its stopping rule reads the calibration of the GP as it is. Results
-  change only with `poll_training=False`.
-- **Fixed noise.** `fit_lik=False`, a fixed noise level, which MATLAB BADS
-  does not support either, is refused when `BADS` is created, with MATLAB
-  BADS's message "Fixed noise not supported"; 1.1.0 stopped the run at its
-  start with gpyreg's "Unknown hyperprior type delta".
-- **Initial fit of the GP.** A run whose initial Gaussian-process fit
-  keeps failing stops after 10 tries with a `RuntimeError` that says so;
-  1.1.0 retried without end.
-- **Targets without spread.** A run no longer stops with `ValueError` from
-  gpyreg when the targets of a Gaussian-process fit are all equal, as on a
-  target flat on the initial design (a penalty plateau over the plausible
-  box): the prior of the GP mean then takes the width 1, and a rebuild keeps
-  the previous centre of the prior of the output scale. A run's first GP
-  holds a single point, the starting point, when `non_box_cons` leaves only
-  that point feasible in the initial design, when `fun_eval_start=0` with a
-  deterministic target, and when `max_fun_evals=2`, which the starting
-  point and the noise test use up. That GP is not fitted, as in MATLAB
-  BADS: until its first refit it holds the values of MATLAB BADS's
-  definition of its GP, with its mean at the point's value, and its
-  initialization prints no warning. 1.1.0 fitted it, with gpyreg's
-  `RuntimeWarning`s, and a rebuild of the GP on the one point stopped the
-  run with gpyreg's `ValueError`; with `max_fun_evals=2`, 1.1.0 did not
-  keep its initial design within the budget (see "Small budgets"). A later
-  refit on points that have no spread in a coordinate, as in a thin
-  feasible band, prints no warning either, nor, at D = 1, the refit of a
-  first GP on one point at the first poll, to which the noise test brings
-  the count of evaluations past D (with `fun_eval_start=0` and a
-  deterministic target, and with a noisy target, left to the noise test,
-  whose `non_box_cons` leaves only the starting point feasible in the
-  initial design): gpyreg before 1.4.0 printed NumPy's `RuntimeWarning`s
-  on such refits, about a log of zero and, on one point, about degrees of
-  freedom <= 0 and an invalid value in a division. The check of the GP's
-  predictions that decides a refit prints no warning either when the GP
-  predicted its last evaluations exactly, as on a plateau, where 1.1.0
-  printed a warning of SciPy's Shapiro-Wilk test (of NumPy's, with SciPy
-  1.18); as in MATLAB BADS, such predictions force no refit.
-- **Small budgets.** A run whose `max_fun_evals` is no larger than its
-  initial design (for instance 5 at D = 2 or 3) no longer stops with
-  `ValueError: cannot convert float NaN to integer`, and with a smaller
-  budget its Gaussian-process fits no longer start from up to 968 random
-  points, above `gp_train_n_init`. A run makes at most `max_fun_evals`
-  evaluations: the initial design keeps within the evaluations left after
-  the starting point and the noise test, and the final samples of a noisy
-  run within those left after the design, where 1.1.0 made 6 evaluations
-  with `max_fun_evals=3` at D = 2. The exception, as in MATLAB BADS, is
-  `max_fun_evals=1` with the noise test, which evaluates the starting point
-  twice.
-- **Retries of a failed GP fit.** A failed fit of the Gaussian process's
-  hyperparameters is retried as in MATLAB BADS. The lower bound of the
-  noise rises by `noise_nudge[1]` at each failure, which is not at all at
-  the default `[1, 0]`; 1.1.0 raised it by 1, then by 2 more, 3 more and so
-  on, and stopped the run with `ValueError` at the fifth failure (the third
-  with `use_slice_sampler=True`). The retries leave out the targets above
-  the 95th percentile as MATLAB BADS computes it, and stop once fewer points
-  than variables remain; when all of them fail, the fit keeps the best of
-  its starting points. The retries, those of the initial fit and the
-  second fit start from draws of the hyperparameters' priors, which 1.1.0
-  drew in the wrong units, far outside the bounds. With
-  `use_slice_sampler=True`, each retry samples its start on the points that
-  it fits, not on all of them.
-- **Prior of the GP noise.** In deterministic runs, the prior over the
-  noise of the Gaussian process is centred at each rebuild at
-  `log(noise_size)` plus `mesh_noise_multiplier` (0.5) times the log of the
-  mesh size, as in MATLAB BADS, so that it falls as the mesh shrinks.
-  PyBADS computed that centre and never applied it. Results change at
-  default options in deterministic runs.
-- **Prior of the GP output scale.** At each rebuild, the prior over the
-  output scale of the Gaussian process is centred at the log of the
-  targets' standard deviation normalized by N - 1, as MATLAB's `std`,
-  where PyBADS normalized it by N.
-- **Calibration check of the GP.** The check of whether the Gaussian
-  process predicts well, which calls for its refits and ends a poll after a
-  successful poll vector when it fails, read the first prediction after a
-  refit as none, and so failed on it, and the periodic refit came one
-  evaluation after the refit period. With one or two predictions, it
-  compared the sum of their squared errors with half the chi-square
-  quantiles, and so failed on GPs that MATLAB BADS accepts. It divided the
-  errors by the standard deviation of the latent function instead of that
-  of an observation, and replaced one near zero by 1e-6, which gave
-  outliers in deterministic runs. It now counts the predictions, uses the
-  quantiles and the standard deviation of an observation, the GP's noise
-  included, as MATLAB BADS does. Results change at default options.
-- **Rebuilds of the local GP.** After the incumbent moved, PyBADS rebuilt
-  the local Gaussian process at every later search of the round and at every
-  step of the poll that followed. It now rebuilds it as MATLAB BADS does:
-  once after a move by the search, and after a move by the poll at every
-  search until a poll that does not move the incumbent. Results change at
-  default options.
-- **Unbounded variables.** In a variable without bounds, the scale that
-  the ES-ell search takes from the length scales of the Gaussian process
-  was a constant, because the lower and upper plausible bounds that stand
-  in for the infinite bounds were swapped; on a problem unbounded in every
-  variable, the search was the same in every direction. It now follows the
-  length scales, as MATLAB BADS does. Results change on problems with an
-  unbounded variable.
-- **One-dimensional problems.** At D = 1, the Gaussian process used a
-  length scale of 1 instead of the fitted one when it chose its training
-  points, a defect shared with MATLAB BADS. It now uses the fitted length
-  scale, as at every other D. Results change on 1-D problems.
-- **Mixed and half-bounded variables.** A problem that mixes bounded
-  variables with unbounded ones (`lb[i] = -inf` and `ub[i] = inf`), as the
-  docstring allows, is accepted, and so is a variable bounded on one side
-  only (`lb[i]` finite with `ub[i] = inf`, or `lb[i] = -inf` with `ub[i]`
-  finite), as in MATLAB BADS: 1.1.0 refused both with `bads:HalfBounds`, any
-  mix because its check looked at all the variables at once. The plausible
-  bound on an infinite side needs to be given. The caution for infinite
-  bounds names the variables that have one.
-- **Scalar bounds.** A scalar `lower_bounds`, `upper_bounds`,
-  `plausible_lower_bounds` or `plausible_upper_bounds` stands for the same
-  bound in every dimension, as the docstring says and MATLAB BADS does; 1.1.0
-  refused it when D > 1. Without `x0`, plausible bounds given as a list or a
-  Python scalar size the random start as NumPy arrays do, where 1.1.0 stopped
-  with `AttributeError`.
-- **Starting point of several rows.** `x0` is a single point: `BADS` refuses
-  an `x0` of more than one row when it is created, as MATLAB BADS does.
-  1.1.0 accepted it, estimated missing plausible bounds from its rows, and
-  then failed in `optimize()`.
-- **Bounds of large magnitude.** `BADS` no longer refuses valid bounds of
-  large magnitude (from about 1e10, or an upper bound from about 1e9 for a
-  variable on a log scale) with "Cannot invert the transform to obtain the
-  identity at the provided boundaries": the check that the transform of the
-  variables can be inverted allows an error relative to the size of the
-  bound, which rounding alone exceeded. The defect is shared with MATLAB
-  BADS.
-- **Noise test.** When `uncertainty_handling` is left empty, the target is
-  taken as noisy when two evaluations at the starting point differ by more
-  than `tol_noise`, now `sqrt(eps) * tol_fun` (1.5e-11 at default), as in
-  MATLAB BADS. 1.1.0 used `eps * tol_fun` (2.2e-19), so that a deterministic
-  target whose value changes in its last digits from call to call, for
-  example a sum taken in varying order, was optimized as a noisy one, with
-  more evaluations and a worse result.
-- **Display levels.** `display` takes MATLAB BADS's levels, read from its
-  first three letters in any case: `"notify"` shows the opening message and
-  the warnings, `"final"` also the final message, `"iter"` (or `"all"`) also
-  the iteration lines, `"off"` (or `"none"`) only the warnings, and
-  `"full"`, PyBADS's own, the debug messages too; 1.1.0 showed everything
-  for any value but `"off"` and `"full"`, `"notify"` and `"final"` included.
-  On the `BADS` logger, the opening and the final messages are at levels 25
-  and 22, between INFO and WARNING. The reports of the setup, the caution
-  for infinite bounds and the list of the variables transformed to log
-  coordinates, are shown from `"notify"` on (level 25), as MATLAB BADS
-  prints them; 1.1.0 showed the caution with `"off"` too.
-- **List of the log-transformed variables.** The report of the variables
-  that PyBADS transforms to log coordinates gives their indices, such as
-  `[0, 2]`, where 1.1.0 printed pairs of indices, `[[0 0] [0 2]]`.
-- **Descriptions of the options.** `str(options)` and `Options.descriptions`
-  no longer cut a description at its first `=` or `:`, as 1.1.0 cut eight of
-  them, that of `noise_size` among them, and give the description of an
-  advanced option that the user set, for which 1.1.0 printed `(None)`. Every
-  option on the options page has a description, without the closing quote of
-  MATLAB's that ended many, and those of `max_iter` and `tol_stall_iters` say
-  that an iteration counts once it has begun. `search_n_try` is an integer.
-  Those of `tol_poi`, `sloppy_improvement` and `gp_rescale_poll` say that an
-  unreliable Gaussian process stops a good poll whatever `tol_poi`, that
-  `sloppy_improvement` also floors the sufficient improvement at `tol_fun`,
-  and that `gp_rescale_poll` shapes only the ES-ell search.
-- **`sloppy_improvement=False`.** A run with `sloppy_improvement=False` no
-  longer stops with `AttributeError` at its first iteration.
-- **Exit status.** The result's `status` is MATLAB BADS's exit flag: 0 when
-  the run ends on `max_fun_evals` or `max_iter`, is stopped by `output_fcn`
-  or ends in its initialization, 1 on `tol_mesh`, 2 when the change of the
-  function value falls below `tol_fun`; `result["status"]` raised
-  `KeyError`. A deterministic run's `fsd` is the float 0.0 instead of the
-  integer 0.
-- **Target and constraint in the result.** The result holds the `fun` and
-  `non_box_cons` passed to `BADS`, not copies: a bound method or callable
-  object whose instance holds a lock or an open file no longer makes
-  `optimize()` raise `TypeError` after its last evaluation.
-- **Overhead of noisy runs.** The returned `overhead` counts the time of the
-  final samples, and with `specify_target_noise=True` of repeated
-  evaluations, in the time of the target, as MATLAB BADS does; leaving them
-  out overstated the overhead of noisy runs.
-- **Resolution of the timings.** The run and the target's evaluations are
-  timed with `time.perf_counter` instead of `time.time`, whose resolution is
-  about 15.6 ms on Windows before Python 3.13: with a fast target, most
-  evaluations were timed as 0, and the returned `overhead` of two
-  near-identical runs could differ by orders of magnitude. The returned
-  `total_time` and `overhead` change accordingly.
-- **Actions column of the display.** The Actions column of a poll's line
-  shows what its iteration did, as in MATLAB BADS: "Train" after a refit of
-  the Gaussian process, "Skip" after a skipped poll, "Train, skip" after
-  both; it could repeat the "Train" of an earlier poll, or show "Skip" alone
-  after both.
-- **Iteration history.** Recording an iteration no longer copies again every
-  Gaussian process that `iteration_history` holds: a run of n iterations
-  made n(n+1)/2 copies (20100, about 1.7 s, for 200).
-- **Scale of the search after failed searches.** A failed search shrinks the
-  scale of the next search by `search_scale_failure` but not below
-  `search_factor_min`, as in MATLAB BADS. `search_factor_min` was ignored,
-  and the late searches of a round of failures ran far below it (at 0.18 of
-  the full scale, against a floor of 0.5, at D = 6). Results change for
-  D ≥ 2: in PyBADS's benchmark, the 10-D ellipsoid takes 5% more
-  evaluations, with no change in its error, and no other problem changes
-  significantly.
-- **Accelerated mesh reduction.** A failed poll shrinks the mesh a second
-  time when the last `accelerate_mesh_steps` iterations improved by less
-  than `tol_fun`, from iteration `accelerate_mesh_steps + 1` on, as in
-  MATLAB BADS; 1.1.0 started one iteration later. In PyBADS's benchmark no
-  run changes; a run that stalls from its start can end with a mesh half as
-  large.
-- **Start and plausible bounds used as given.** BADS no longer moves `x0`,
-  `plausible_lower_bounds` or `plausible_upper_bounds` 0.1% of the range
-  inside the hard bounds, nor widens the plausible box to a start near a
-  hard bound; MATLAB BADS does neither. A start on a hard bound is kept,
-  omitted plausible bounds are exactly the hard bounds (so that a variable
-  on `[1, 10]` is on a log scale), and plausible bounds within 0.1% of the
-  range of a hard bound, which 1.1.0 could refuse with `bads:StrictBounds`,
-  are accepted. The warnings `bads:InitialPointsTooClosePB`,
-  `bads:TooCloseBounds` and `bads:InitialPointsOutsidePB` and the error
-  `bads:StrictBoundsTooClose` are gone, and BADS warns `bads:pbUnspecified`
-  when it takes the hard bounds for omitted plausible bounds, as MATLAB BADS
-  does, where 1.1.0 took them silently. Results change on problems with the
-  plausible bounds omitted or near a hard bound, or with a start near a hard
-  bound. On a 3-D sphere in log-scaled variables, bounded in [1e-3, 1e3]
-  with a plausible box of [0.01, 100], which was shrunk to [1, 100], 73% of
-  noisy runs end within the tolerance, against 33% before; without noise the
-  runs take 82 evaluations instead of 73, with errors below 1e-5 either way.
-  A start on a hard bound of a 3-D sphere takes 77 evaluations instead of
-  91.
-- **Integer bounds.** Bounds and `x0` given as integers, as integer arrays
-  or as an integer scalar such as `lower_bounds=1`, are taken as floats.
-  With integer bounds on a variable that BADS puts on a log scale, 1.1.0
-  truncated the logarithms of the bounds, so that the plausible box and the
-  hard bounds were mapped to the wrong range (the plausible box to [-0.77,
-  1.07] instead of [-1, 1] for `lb=1`, `plb=2`, `pub=500`, `ub=1000`).
-  Results change on such problems. The same holds for `VariableTransformer`
-  used directly, whose copies of the bounds are now floats.
-- **`VariableTransformer` used directly.**
-  `pybads.variable_transformer.VariableTransformer` takes bounds given as
-  arrays of shape (D,), lists or scalars, NumPy's or Python's, a scalar
-  standing for the same bound in each dimension, and a scalar `apply_log_t`,
-  which applies to every variable. 1.1.0 stopped with `IndexError` on a 1-D
-  bound, `TypeError` on a list, `AttributeError` on a Python scalar or a
-  scalar `apply_log_t`, and `ValueError` on a NumPy scalar hard bound whose
-  plausible bound was omitted; NumPy scalars given for all four bounds
-  worked. A bound of another size, or that is not a number, a string included,
-  raises `ValueError` that names it. `BADS`, which gives it rows of D floats,
-  is unchanged.
-- **No overflow warning beside a log-scaled variable.** A variable that is
-  not on a log scale, with a bound above about 700 in magnitude, beside one
-  that is, no longer gives a harmless `RuntimeWarning: overflow encountered
-  in exp` when `BADS` is created or during the run. Results are unchanged.
-- **`hedge_gamma=0`.** A run with `hedge_gamma=0` completes: the search
-  hedge scores the searches it did not choose at the search point, as MATLAB
-  BADS intends; it stopped at the first search with `ValueError`.
-- **`uncertain_incumbent=False`.** On a deterministic target, a run with
-  `uncertain_incumbent=False` no longer stops with `AttributeError` at its
-  first poll; its optimization target is the incumbent's value less
-  `tol_fun`, as in MATLAB BADS.
-- **Rounding to the search grid.** A point halfway between two points of the
-  search grid goes to the one farther from zero, as in MATLAB BADS, where
-  1.1.0 took the even one: `x0 = [1, 3]` in a plausible box `[-2048, 2048]`
-  within wider hard bounds starts at `[2, 4]`, where 1.1.0 started at
-  `[0, 4]`. Once the search grid is fine, the candidates of the search often
-  fall halfway, so results change at default options: in PyBADS's
-  benchmark, 31 of 540 runs change, 29 of them ending at other points, all
-  of them 6-D or 10-D or noisy, with no significant change of their errors
-  or evaluations.
-- **Scale of the evolution-strategy search.** With `n_search_iter` of 3 or
-  more, the scale of each generation of the evolution-strategy search
-  follows the fraction of new candidates among the best, counted as in
-  MATLAB BADS; PyBADS counted older candidates as new from the third
-  generation on, so that the scale grew faster than that of MATLAB BADS, and
-  from about the fifth generation grew where that of MATLAB BADS shrinks.
-  When a generation has one more candidate than a multiple of 4
-  (`n_search` over `n_search_iter`, rounded down: 1365 at `n_search_iter =
-  3`, for instance), the first generation draws the extra candidate at the
-  smaller of its two scales, as MATLAB BADS does, where PyBADS drew it at
-  the larger. The defaults, `n_search = 4096` and `n_search_iter = 2`, are
-  affected by neither.
-- **Root logger.** Creating an evolution-strategy search
-  (`pybads.search.ESSearchWM` or `ESSearchELL`) no longer configures the
-  root logger; `BADS` still configures it when it is created, if nothing
-  else has.
-- **NumPy's error handling.** A run turned off NumPy's warning on division
-  by zero for the rest of the process, unless the root logger was at DEBUG,
-  so that a division by zero in the user's code no longer warned after it; a
-  run now leaves `np.geterr()` as it found it.
-- **NaN acquisition values.** The search and the poll evaluated the first
-  candidate whose acquisition value was NaN, where MATLAB BADS skips NaN;
-  they now skip it, and choose a candidate at random, with a warning, when
-  every value is NaN.
-- **Covariance of the ES-wcm search.** The ES-wcm search estimates its
-  covariance from the best half of the training points of the Gaussian
-  process, ⌊n/2⌋ of n, one per weight, as in MATLAB BADS; it took one point
-  more. Results change at default options.
-- **Offspring in the evolution-strategy search.** Each candidate that the
-  evolution-strategy search keeps has as many offspring as MATLAB BADS gives
-  it; each had those of the candidate ranked before it, and the best one a
-  single offspring. Results change at default options.
-- **Ties in the search.** The evolution-strategy search ranks candidates of
-  equal acquisition value, and ES-wcm the training points of equal value, in
-  their order, as the stable sort of MATLAB BADS does; NumPy's default sort
-  ordered them otherwise.
-- **Points evaluated again.** The initial design, the search and the poll no
-  longer evaluate again a point already evaluated, as in MATLAB BADS. Two
-  points count as the same when they fall in the same cell of a grid of step
-  `tol_mesh / 2`, and a point on the boundary between two cells falls in the
-  one farther from zero, as MATLAB BADS rounds it. In PyBADS's benchmark,
-  with this release's other changes and before this one, a 2-D sphere with
-  its minimum on a bound repeated 137 of its 1411 evaluations over 30 seeded
-  runs, and a 3-D ellipsoid with target noise 100 of 8800; neither repeats
-  any after it. Results change at default options; the rounding of the
-  boundary alone changes 34 of the benchmark's 540 runs, 25 of them ending
-  at other points, with no significant change of their errors or
-  evaluations.
-- **Search hedge in noisy runs.** In a run with noise, the search hedge,
-  which chooses between the ES-wcm and ES-ell searches, rewards a search
-  with its expected improvement, with the standard normal density as in
-  MATLAB BADS; a misplaced parenthesis rewarded a search whose point was
-  worse than the incumbent 2.5 times or more what MATLAB BADS gives, the
-  more the worse the point (424 times at three standard deviations).
-  Results change in noisy runs.
-- **Early stop of the poll.** The probability that no remaining poll point
-  improves, which decides whether the poll stops early, was computed over
-  the last D + 1 points of the poll set in their order, whatever their
-  probabilities of improvement; it is now computed over the D largest, as in
-  MATLAB BADS. At the default `tol_poi` the difference is rare.
-- **Length scales on two points.** A rebuild of the local Gaussian process
-  on two distinct points, which a thin feasible region of `non_box_cons` can
-  leave it, no longer stops the run with gpyreg's `ValueError` for a prior
-  with a zero width: the prior of the length scales stays as it was, its
-  centre and its width.
-- **`init_sobol`'s second value.** `pybads.init_functions.init_sobol`
-  returns the number of points of its design as its second value, as its
-  docstring says, where 1.1.0 returned the base-2 logarithm of that number.
-- **Malformed target outputs.** A value that the target returns, or with
-  `specify_target_noise=True` a noise SD, that is not a finite real number
-  (and, for the SD, a positive one) raises the documented `ValueError`
-  before anything is recorded; an SD of one element, in a list or an array,
-  is taken as that number, as the value already was. The error for a tuple
-  `(f, sd)` that the target returns without `specify_target_noise=True`
-  names that option. 1.1.0 raised `TypeError` or NumPy's own errors for
-  some of them (an SD of `None` or in a list), said that the target had
-  failed for a value of several elements, and accepted a NumPy complex
-  value or SD whose imaginary part is zero.
-- **`FunctionLogger`.** `finalize` trims `n_evals` with the other arrays of
-  the log, and `reset_fun_eval_time` keeps `fun_eval_time` as long as the
-  others, where 1.1.0 left them of unequal lengths. `Y_max`, the largest
-  value of the log, follows the merge of a repeated point at uncertainty
-  level 2 as it follows a new point, where 1.1.0 left it at its value
-  before the merge, and the function logger of a run takes uncertainty
-  level 1 when the noise test finds the target noisy, where 1.1.0's kept
-  level 0. `y_max`, which 1.1.0 set to -inf and never updated, is removed,
-  and the function logger of a run holds the noise SDs, `S`, only with
-  `specify_target_noise=True`, where 1.1.0's also held them, all NaN, with
-  `uncertainty_handling=True` alone.
-- **Initial design.** The scrambling of the initial Sobol design is seeded
-  from the run's generator, so that `random_seed` decides the design, as it
-  decides every other random draw of a run; MATLAB BADS derives its design
-  from the start alone, with no random draw. In 1.1.0 the design did not
-  depend on the seed, and depended on the start only through the integer
-  parts of its normalized coordinates: every start inside the plausible box
-  gave one design for each number of variables, a start on or beyond a
-  plausible upper bound another, and a start on or below a plausible lower
-  bound one that could differ between x86 and arm64 machines. Results
-  change at default options.
-- **Noise test in the schedule of the GP's fits.** The noise test, the
-  second evaluation of the starting point when `uncertainty_handling` is
-  left empty, no longer counts in the schedule of the hyperparameter fits of
-  the Gaussian process, whose number of starting points follows the fraction
-  of the budget used after the initial design: it counts neither among the
-  evaluations used nor in the budget. In 1.1.0 the schedule ran one
-  evaluation ahead. The noise test still counts in `max_fun_evals` and
-  `func_count`. Results change at default options.
+#### Noisy targets
+
+- With `specify_target_noise=True`, the Gaussian process takes the squares
+  of the noise SDs that the target returns as its noise variances, where it
+  took the SDs themselves. Results change in both directions: on PyBADS's
+  benchmark, runs on noisy spheres end closer to the minimum, and runs on a
+  noisy ill-conditioned ellipsoid farther from it.
+- With `specify_target_noise=True`, a point evaluated again is merged with
+  its own earlier evaluation in the log, where it was merged with the first
+  one that shared any of its coordinates, usually another point's.
+- At the end of each iteration of a noisy run, every earlier iterate is
+  re-estimated under the hyperparameters of its own iteration, where some
+  were re-estimated under a later iteration's: noisy runs take 12 to 18 %
+  fewer evaluations on PyBADS's benchmark, with no significant change of
+  their errors.
+- A noisy run that ends within its first iteration returns its result, and
+  `specify_target_noise=True` alone turns uncertainty handling on, where
+  each raised an error.
+- `noise_size` as a list or a pair no longer makes a noisy run fail, and
+  with `specify_target_noise=True` a scalar `noise_size` is ignored, with a
+  warning, where it made the creation of `BADS` fail.
+- In a noisy run, the search hedge rewards a search with its expected
+  improvement, where a misplaced parenthesis over-rewarded a search whose
+  point was worse than the incumbent, the more so the worse the point.
+
+#### The Gaussian process
+
+- At each rebuild of the local Gaussian process, the prior over its mean is
+  centred at the 90th percentile of the training targets, as in MATLAB
+  BADS, a prior that 1.1.0 computed and never applied. Runs on
+  ill-conditioned targets end much closer to the minimum: on 3-, 6- and
+  10-D ellipsoids with condition number 1e6, the median error falls by a
+  factor of 6 to 110.
+- The upper bound of each log length scale is the logarithm of the largest
+  length scale, where it was that length scale itself, so that the GP could
+  take a direction along which the target varies slowly to be flat.
+- The check of the GP's predictions that calls for a refit follows MATLAB
+  BADS in its count of the predictions, its chi-square quantiles and its
+  scaling of the errors by the SD of an observation; it failed on GPs that
+  MATLAB BADS accepts.
+- A failed update of the GP no longer stops the run with `LinAlgError`:
+  the run carries on and rebuilds the GP at its next step.
+- A failed fit of the hyperparameters is retried as in MATLAB BADS, where
+  1.1.0 stopped the run at the fifth failure, and an initial fit that keeps
+  failing stops after 10 tries with a `RuntimeError`, where 1.1.0 retried
+  without end.
+- A GP on targets that are all equal, on one point or on two points, as a
+  penalty plateau or a thin feasible region can give, no longer stops the
+  run with gpyreg's `ValueError`.
+- The GP follows MATLAB BADS in smaller details that change results: its
+  mean is unbounded, the prior over its output scale takes the targets' SD
+  normalized by N - 1, in deterministic runs the prior over its noise
+  follows the mesh size, and after a move it is rebuilt as often as in
+  MATLAB BADS, not at every later step. The noise test no longer counts in
+  the schedule of its fits, at D = 1 it chooses its training points with
+  its fitted length scale, where it took 1, and with `poll_training=False`
+  a poll no longer counts a refit that it skips as made.
+
+#### The search and the poll
+
+- The initial design, the search and the poll no longer evaluate again a
+  point already evaluated, and a point halfway between two points of the
+  search grid goes to the one farther from zero, as in MATLAB BADS.
+- The evolution-strategy search follows MATLAB BADS in the covariance of
+  ES-wcm, the offspring of each candidate, the order of ties, the scale of
+  its generations (with `n_search_iter` of 3 or more) and the floor
+  `search_factor_min` of its scale after failed searches; in a variable
+  without bounds, ES-ell's scale, which was constant, follows the GP's
+  length scales.
+- The search and the poll skip candidates whose acquisition value is NaN,
+  where they evaluated the first one, and a search that leaves no
+  candidate counts as failed, where it stopped the run.
+- The poll's early stop takes the D points of highest probability of
+  improvement, not the last D + 1, and the accelerated reduction of the
+  mesh starts one iteration earlier, as in MATLAB BADS.
+- With `stobads=True`, a poll succeeds when any of its points succeeds,
+  where its last point decided, and with `opp_stobads` an uncertain search
+  moves the incumbent only to a point estimated better.
+- Runs with `hedge_gamma=0`, `uncertain_incumbent=False` or
+  `sloppy_improvement=False` no longer stop with an error.
+
+#### Bounds and the starting point
+
+- `x0` and the plausible bounds are used as given, as in MATLAB BADS, where
+  1.1.0 moved them 0.1 % of the range away from the hard bounds and widened
+  the plausible box to a start near a hard bound. Omitted plausible bounds
+  are the hard bounds, with the warning `bads:pbUnspecified`.
+- A problem that mixes bounded and unbounded variables, or has a variable
+  bounded on one side only, is accepted, where 1.1.0 refused it; the
+  plausible bound on an infinite side is required.
+- A scalar bound stands for the same bound in every variable, and integer
+  bounds are taken as floats, which 1.1.0 mapped to the wrong range on a
+  log scale; bounds from about 1e10 in magnitude are no longer refused.
+  `VariableTransformer` used directly takes bounds as lists, scalars or
+  arrays of shape (D,).
+- Without a finite `x0`, the start is drawn uniformly in the transformed
+  plausible box, so log-uniformly for a variable on a log scale, and a
+  start that violates `non_box_cons` is drawn again, up to 1000 times.
+
+#### Termination and the result
+
+- The result's `status` is MATLAB BADS's exit flag, where
+  `result["status"]` raised `KeyError`.
+- A run whose `max_fun_evals` is 1, or no larger than its initial design,
+  returns its result, where it could raise an error, and makes at most
+  `max_fun_evals` evaluations, except that a budget of 1 with the noise
+  test takes 2.
+- The result holds the `fun` and `non_box_cons` passed to `BADS`, not
+  copies, which failed for a target that holds a lock or an open file.
+- `total_time` and `overhead` are timed with `time.perf_counter`, not
+  `time.time`, which timed fast evaluations as 0 on Windows before Python
+  3.13, and `overhead` counts the final samples in the target's time.
+
+#### Messages, warnings and errors
+
+- `display` takes MATLAB BADS's levels, `"notify"`, `"final"` and `"iter"`
+  among them, where 1.1.0 showed everything for any value but `"off"` and
+  `"full"`, and every message of a run goes to the `BADS` logger.
+- PyBADS no longer emits `SyntaxWarning` or `DeprecationWarning` on Python
+  3.12 and later, warnings on a GP without spread in its data or that
+  predicts exactly, or an overflow `RuntimeWarning` for a variable with a
+  bound above about 700 beside one on a log scale, and a run leaves NumPy's
+  error handling as it found it.
+- `pybads.stats.kde1d` no longer raises `AttributeError` under NumPy 2.
 
 ## [1.1.0] - 2026-09-25
 

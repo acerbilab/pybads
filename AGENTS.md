@@ -504,13 +504,20 @@ reason.
   `dev-next`; after its pull request is squash-merged, `dev-next` is reset
   onto `main`, keeping only the commits made after the merged head, and
   force-pushed, or the next pull request lists the merged commits again.
-- **Changelog.** A change that a user can notice is listed in `CHANGELOG.md`
-  under `Unreleased`, in the commit that makes it, in a sentence written for
-  users and relative to the last release (a fix to a feature that no
-  release has shipped belongs to that feature's entry). A change that can
-  stop a script written for the last release, or change what it returns,
-  also has one line in the "Upgrading from" list that opens the section,
-  kept in step with its entry.
+- **Changelog.** A change to results, to the interface, or to what a
+  script sees or has to handle gets an entry in `CHANGELOG.md` under
+  `Unreleased`, in the commit that makes it; a message's wording, an
+  internal speed-up or a change to the tests gets none. An entry is one or
+  two sentences, written for users, on what a user notices, relative to
+  the last release: a fix to a change that no release has shipped edits
+  that change's entry, and the reasons and the comparison with MATLAB BADS
+  belong in the catalogue (`pybads/bads/README.md`) and the records under
+  `dev/`, to which an entry can point. The fixes are grouped under a few
+  themes (`####` headings under Fixed), and changes of one kind, such as
+  new checks of the options' values, share one entry. A change that can
+  stop a script written for the last release, or change its results, also
+  has a line in the "Upgrading from" list that opens the section, kept in
+  step with its entry; changes of one kind share a line.
 - **Modules.** No general `util`/`misc` modules: a general-purpose function
   goes into the module that fits it or into a module of its own.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use

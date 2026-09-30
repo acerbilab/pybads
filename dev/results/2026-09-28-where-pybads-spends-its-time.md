@@ -137,9 +137,9 @@ cProfile at the head, seed 0:
 - **Removing evaluated candidates.** `contraints_check` removes the
   candidates already evaluated or infeasible. It takes 4.5 to 13 % of the
   run, nearly all of it called by the ES search, and most of that in
-  `np.unique` (its sort) over the candidates. A later change, the entry
-  "Cost of removing evaluated candidates" of `CHANGELOG.md`, replaced its
-  two `np.unique` calls by one stable sort of the candidates' bins, which
+  `np.unique` (its sort) over the candidates. A later change, `bec8a57`
+  (#92), replaced its two `np.unique` calls by one stable sort of the
+  candidates' bins, which
   returns the same candidates in the same order. Both versions were timed
   on every call of the same runs, the old one's output taken: seeds 0-2 of
   the `default`, `oned`, `bounds` and `geometry` suites, on Linux (Python

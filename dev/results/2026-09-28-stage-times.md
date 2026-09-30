@@ -144,9 +144,8 @@ time](2026-09-28-where-pybads-spends-its-time.md), whose "ES candidates"
 is `search_es` and whose "hyperparameter fits" are the fits with their
 failures), the fits' shares agree within 4.3 points, and the ES search's
 are 9 points lower to 2 points higher here, which ran with the faster
-removal of evaluated candidates that that note describes (the entry "Cost
-of removing evaluated candidates" of `CHANGELOG.md`). The own time per
-evaluation is 0.76 to 1.15 times Windows'.
+removal of evaluated candidates that that note describes (`bec8a57`,
+#92). The own time per evaluation is 0.76 to 1.15 times Windows'.
 
 ## cProfile
 
