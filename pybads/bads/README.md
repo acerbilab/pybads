@@ -104,7 +104,8 @@ ignores it.
   optimizer is gpyreg's, KD-B6-1); `Debug` and
   `TrueMinX`, which only print or plot (`bads.m:161`, `188`, `189`).
 - *PyBADS only, and read:* `random_seed` (KD-B1-1); `stobads`,
-  `opp_stobads` and `stobads_frame_size_scaling_power` (KD-S-1);
+  `opp_stobads` and `stobads_frame_size_scaling_power`, deprecated
+  (KD-S-1);
   `gp_mean_fun`, `"const"` (MATLAB's fixed `@meanConst`) or `"zero"`, any
   other name refused when `BADS` is created (W1-34); the options of the
   gpyreg-based GP layer, `gp_train_n_init`, `gp_train_n_init_final`,
@@ -1144,18 +1145,20 @@ Sto-MADS (Audet, Dzahini, Kokkolaras and Le Digabel, 2021), replaces the
 improvement tests of the search and the poll; `opp_stobads` and
 `stobads_frame_size_scaling_power` tune it, and the keyword-only argument
 `gamma_uncertain_interval` of `BADS` sets its interval. It is off by
-default and switched off for a deterministic target. It is deprecated
-from 1.5.0 and may be removed in a future release (PI, 2026-09-30), so
-that no user takes it for the setting of a noisy target: the descriptions
-of its options and of `gamma_uncertain_interval` say so, and `stobads=True`
-warns. Its rule was measured
-at the close of the review (`dev/results/2026-09-28-stobads-rule.md`):
-the mesh factor of its interval stays, and the description of
+default and switched off for a deterministic target. Its rule was
+measured at the close of the review
+(`dev/results/2026-09-28-stobads-rule.md`): it brings none of the
+benchmark's noisy configurations closer to its minimum; the mesh factor
+of its interval stays, and the description of
 `stobads_frame_size_scaling_power` says what it does (W0-12); an uncertain
 search, as an uncertain poll, moves the incumbent only to a point that
-improves on it (W0-13).
+improves on it (W0-13). It is deprecated from 1.5.0 and may be removed in
+a future release (PI, 2026-09-30), so that no user takes it for the
+setting of a noisy target: the descriptions of its options and of
+`gamma_uncertain_interval` say so, and `stobads=True` warns.
 - PyBADS: `BADS._sto_success_improvement_`, and the `stobads` branches of
-  `BADS._search_step_` and `BADS._poll_step_`.
+  `BADS._search_step_` and `BADS._poll_step_`; the warning in
+  `BADS._init_optim_state_`.
 - MATLAB: no counterpart.
 - Kind: Python-only feature.
 

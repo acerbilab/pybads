@@ -20,7 +20,7 @@ requires-python = ">=3.10"
 
 [tool.setuptools]
 include-package-data = true
-# Every directory of the wheel, those that hold only data included; the
+# Every directory of the package, those that hold only data included; the
 # examples are installed as pybads.examples
 packages = [
     "pybads",

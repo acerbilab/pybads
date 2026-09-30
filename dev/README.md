@@ -193,7 +193,8 @@ python -u dev/scripts/<name>.py ... > dev/scripts/runs/<name>_$(date +%s).log 2>
   at BADS's default budget, 500 D, so that each run ends on BADS's own
   termination criteria; four runs at a time, a population of 100 seeds
   took 86 minutes on Windows and one of 30 seeds about 20 minutes on Linux
-  (the references of 2026-09-30).
+  (the references of 2026-09-30), and one run at a time takes about four
+  times as long.
   The processes that the tools start for their runs have one BLAS thread,
   with the variables of `harness.THREAD_VARS` (`OMP_NUM_THREADS`,
   `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS`)

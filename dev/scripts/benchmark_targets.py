@@ -110,7 +110,8 @@ cover the whole algorithm, from the initial design to the fine mesh and the
 stopping rules. With a fresh process per run and four runs at a time
 (``population.py run --workers 4``), 100 seeds of the suite took 86 minutes
 on a Windows laptop and 30 seeds about 20 minutes on a Linux container of
-four cores (2026-09-30, gpyreg 1.4.0).
+four cores (2026-09-30, gpyreg 1.4.0); one run at a time takes about four
+times as long.
 
 Command line (from the repository root)::
 

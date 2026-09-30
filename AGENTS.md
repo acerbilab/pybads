@@ -118,13 +118,17 @@ commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
 `git config blame.ignoreRevsFile .git-blame-ignore-revs` hides it from
 `git blame`.
 
-`pyproject.toml` is authoritative; `setup.py` is a shim. Its `packages`
-lists every directory of the wheel, those that hold only data (the `.ini`
-option files, the oracles' fixtures) included, so a new subpackage is
-added there; the build warns "Package would be ignored" for one that is
-missing. Their files reach the wheel through `include-package-data` and
-setuptools_scm's file finder, which takes only files tracked by git, so a
-new module or data file ships only once committed. The tests ship in the
+`pyproject.toml` is authoritative; `setup.py` is a shim. The `packages` of
+`pyproject.toml` lists every directory of the package, those that hold
+only data (the `.ini` option files, the oracles' fixtures) included, so a
+new subpackage is added there; the build warns "Package would be ignored"
+for one that is missing. A listed package's modules reach the wheel
+through `packages`, and its other files through `include-package-data` and
+setuptools_scm's file finder, which takes only files tracked by git. A
+release ships only committed files, since `build.yml` builds the wheel
+from the sdist, which the file finder fills; a wheel built straight from
+the tree (`pip wheel .`, `python -m build --wheel`) also takes an
+uncommitted module. The tests ship in the
 wheel: the conda-forge recipe runs them from the installed package
 (`pytest --pyargs pybads`). What they need is the `test` extra, which CI
 installs and `dev` includes; no package module imports pytest.
@@ -518,10 +522,13 @@ reason.
   themes (`####` headings under Fixed), and changes of one kind, such as
   new checks of the options' values, share one entry. A change that can
   stop a script written for the last release, or change its results, also
-  has a line in the "Upgrading from" list that opens the section, kept in
-  step with its entry; changes of one kind share a line.
+  has a line in the "Upgrading from" list that opens the section: the
+  change's only mention when that line says all a user needs, and
+  otherwise a pointer to its entry, kept in step with it; changes of one
+  kind share a line.
 - **Modules.** No general `util`/`misc` modules: a general-purpose function
-  goes into the module that fits it or into a module of its own.
+  goes into the module that fits it or into a module of its own. A new
+  subpackage is listed in the `packages` of `pyproject.toml`.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a

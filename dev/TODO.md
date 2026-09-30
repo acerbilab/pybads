@@ -2,9 +2,10 @@
 
 Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
-("Setup and commands") gives the release's steps; its section below holds
-the look at PyVBMC's runtime tips, which comes before the release's pull
-request, and the conda-forge recipe, which follows its upload to PyPI.
+("Setup and commands") gives the release's steps. The release's section
+below holds the look at PyVBMC's runtime tips, which comes before the
+release's pull request, and the conda-forge recipe, which follows its
+upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -25,6 +26,10 @@ among them, so a title stays as it is while its item is open.
   `pyvbmc/testing/vbmc/test_runtime_tips.py`. PyBADS does not import
   PyVBMC (`AGENTS.md`), so adopting them means a copy of its own, with a
   catalogue of PyBADS's tips, for which the FAQ's answers are a source.
+  PyVBMC prints its tips with `print()`, where PyBADS sends every message
+  of a run to the `BADS` logger, as the FAQ and the changelog state; and
+  the example notebooks, rerun before the release, would show the tips
+  that their runs draw.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
@@ -35,27 +40,32 @@ among them, so a title stays as it is while its item is open.
   pytest, pytest-rerunfailures and numdifftools from the run
   requirements of its `recipe/meta.yaml` before it merges: gpyreg 1.4.0
   no longer needs them, and the feedstock's bot merges its update PR
-  once a CI that only imports gpyreg passes.
+  once a CI that only imports gpyreg passes. The same PyBADS PR raises the
+  recipe's host requirement `setuptools >=45` to `>=77`, which the license
+  field of `pyproject.toml` needs; conda-forge resolves the newest
+  setuptools, so builds work meanwhile.
 
 ## Later releases
 
-- [ ] **Sto-BADS: experimental, not for users.** Sto-BADS (`stobads`,
-  with `opp_stobads`, `stobads_frame_size_scaling_power` and the
-  keyword-only argument `gamma_uncertain_interval` of `BADS`) is PyBADS's
-  own, with no counterpart in MATLAB BADS (KD-S-1 of
-  `pybads/bads/README.md`). At default options it brings none of the
-  benchmark's five noisy configurations closer to its minimum than BADS
-  without it, and spends more evaluations on `sphere_D3_homo`
+- [ ] **Sto-BADS: whether to remove it.** Sto-BADS (`stobads`, with
+  `opp_stobads`, `stobads_frame_size_scaling_power` and the keyword-only
+  argument `gamma_uncertain_interval` of `BADS`) is PyBADS's own,
+  experimental, and brings no measured gain
   ([results/2026-09-28-stobads-rule.md](results/2026-09-28-stobads-rule.md)).
-  The PI (2026-09-30) holds it experimental; its options have been on the
-  options page since 1.1.0, and what matters is that no user takes
-  `stobads=True` for the setting of a noisy target. So 1.5.0 deprecates
-  it: the descriptions of its options and of `gamma_uncertain_interval`
-  say that it is experimental and may be removed in a future release, the
-  changelog lists it under Deprecated, and `stobads=True` warns that a
-  noisy target takes `uncertainty_handling=True` instead. Open: whether a
-  later release removes it; its options would then raise `ValueError` as
-  unknown ones, as the 66 removed in 1.5.0 do.
+  The PI (2026-09-30) keeps it where users find it, on the options page
+  since 1.1.0, but deprecated from 1.5.0, so that no user takes
+  `stobads=True` for the setting of a noisy target (KD-S-1 of
+  `pybads/bads/README.md`). Open: whether a later release removes it. Its
+  options would then raise `ValueError` as unknown ones, as the 66 removed
+  in 1.5.0 do, and `gamma_uncertain_interval` a `TypeError`, a break that
+  needs a line under "Upgrading from"; only `stobads=True` warns now, so a
+  script that sets another of these names meets the removal unwarned. The
+  `improvement` oracle computes its `sto_flags` through
+  `BADS._sto_success_improvement_` (`pybads/testing/oracles/_oracles.py`),
+  and `dev/scripts/make_oracle_fixtures.py` reads
+  `stobads_frame_size_scaling_power`: the removal changes that oracle's
+  recipe, which takes `--write --reason` (`AGENTS.md`, "Numerical
+  gates").
 
 ## Waiting on MATLAB BADS
 
