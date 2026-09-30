@@ -1,14 +1,16 @@
 """The scheduling of the runtime tips within a Python session.
 
 A run with the iteration display considers one tip before its first
-iteration line (``BADS._init_mesh_``). The first eligible run of a session
+iteration line (``BADS._init_mesh_``), unless the old-release reminder
+(``_release_reminder``) takes its place. The first eligible run of a session
 shows a tip, then every third; each tip of the catalogue (``_tip_catalog``)
 shows at most once per session, in an order shuffled once per session by a
 private ``random.Random``, which touches no draw of a run and no other
 random state, and which no seed fixes. After a low-frequency tip, the next
 is an ordinary one while one remains. A run that is not eligible (tips off,
 the ``BADS`` logger above INFO, or no tip left) neither advances the count
-nor uses a tip. The state is the process's own: a forked child counts its
+nor uses a tip, and neither does a run that shows the old-release
+reminder. The state is the process's own: a forked child counts its
 eligible runs afresh and reshuffles the tips that its parent has not shown.
 """
 
@@ -85,7 +87,9 @@ def format_tip(tip):
     )
 
 
-def consider_runtime_tip(*, logger, enabled, catalog=TIPS, rng=None):
+def consider_runtime_tip(
+    *, logger, enabled, release_reminder_shown=False, catalog=TIPS, rng=None
+):
     """
     Consider one tip for a run that starts, and log it if it is due.
 
@@ -95,6 +99,9 @@ def consider_runtime_tip(*, logger, enabled, catalog=TIPS, rng=None):
         The logger of the run, which shows the tip at INFO.
     enabled : bool
         ``options['show_tips']``.
+    release_reminder_shown : bool, optional
+        Whether the run showed the old-release reminder, which takes the
+        tip's place without advancing the cadence.
     catalog : sequence of Tip, optional
         The tips, by default those of ``_tip_catalog``.
     rng : random.Random, optional
@@ -109,6 +116,8 @@ def consider_runtime_tip(*, logger, enabled, catalog=TIPS, rng=None):
     global _ELIGIBLE_STARTS, _LAST_FREQUENCY
 
     if not enabled or not logger.isEnabledFor(logging.INFO):
+        return None
+    if release_reminder_shown:
         return None
 
     with _STATE_LOCK:

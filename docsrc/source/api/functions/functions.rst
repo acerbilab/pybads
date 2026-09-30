@@ -8,5 +8,6 @@ Functions
    :caption: Functions:
 
    acquisition_functions
+   check_for_updates
    decorators
    get_hpd

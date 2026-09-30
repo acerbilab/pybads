@@ -27,6 +27,8 @@ all: $(SCRIPTS)
 	@python -m isort $@
 	@python -m black $@
 
+# The outputs that ship with a release show no reminder of an old release
+run: export PYBADS_NO_UPDATE_REMINDER = 1
 run:
 	@python -c "import os, shutil, subprocess, gpyreg, pybads; from importlib.metadata import version as v; print('PyBADS', v('pybads'), pybads.__file__); print('gpyreg', v('gpyreg'), gpyreg.__file__); d = os.path.dirname(os.path.dirname(gpyreg.__file__)); r = subprocess.run(['git', '-C', d, 'describe', '--tags', '--always', '--dirty'], capture_output=True, text=True) if os.path.exists(os.path.join(d, '.git')) and shutil.which('git') else None; r and r.returncode == 0 and print('gpyreg checkout at', r.stdout.strip())"
   # a preprocessor named here runs after the execution, the default one before

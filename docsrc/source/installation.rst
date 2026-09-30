@@ -14,6 +14,9 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
    PyBADS requires Python version 3.10 or newer.
 
+   To learn whether a newer release exists and how to update, see the
+   :ref:`FAQ <faq-how-do-i-know-whether-a-newer-version-of-pybads-exists>`.
+
 2. (Optional): Install `Jupyter Notebook <https://jupyter.org/install>`__ to run the examples. You can skip this step if your environment already has Jupyter Notebook, but be aware that if the wrong ``jupyter`` executable is found on your path then import errors may arise. ::
 
      python -m pip install notebook

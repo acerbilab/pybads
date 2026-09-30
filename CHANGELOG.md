@@ -97,6 +97,12 @@ says where it still differs, and why.
   a link to the documentation, before its first iteration line: the first
   such run of a Python session, then every third, each tip at most once
   per session. `options={"show_tips": False}` turns them off.
+- **Update reminders.** In an interactive session, a run of a release more
+  than a year old shows, in the place of a tip, a note that a newer version
+  may exist, at most three times for each installed version, without a
+  network request (`options={"show_tips": False}` turns it off with the
+  tips). `pybads.check_for_updates()` asks PyPI whether a newer version
+  exists and gives the command that installs it.
 - **Stage times.** A `BADS` object's `iteration_history["timer"]` and
   `optim_state["stage_times"]` hold the seconds that its run has spent in
   each of its stages; their format can change in any release.
