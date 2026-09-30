@@ -1,7 +1,7 @@
-# Compare on (REF) and release140_periodic_20260930 (NEW)
+# Compare on (REF) and population_linux_gpyreg140_20260930 (NEW)
 
 - REF, 180 runs: pybads 12cf2f29, gpyreg 1.3.3 from /home/user/gpyreg/gpyreg at 2c9cdfb
-- NEW, 180 runs: pybads 60ad9e0f, gpyreg 1.3.4.dev35+g3e56dce0f from /home/user/pybads/dev/scripts/runs/gpyreg/main_3e56dce/gpyreg at 3e56dce
+- NEW, 720 runs: pybads 60ad9e0f, gpyreg 1.3.4.dev35+g3e56dce0f from /home/user/pybads/dev/scripts/runs/gpyreg/main_3e56dce/gpyreg at 3e56dce
 
 | config | test | metric | n ref | n new | statistic | p | p Holm | |
 |---|---|---|---|---|---|---|---|---|
@@ -32,6 +32,8 @@
 | periodic_D4 | 30 | -0.003 [-0.218, +0.113] | 1.00 | 1.00 | +0.00 | 0 | 0 |
 | periodic_D6 | 30 | -0.145 [-0.310, +0.168] | 1.00 | 1.00 | +0.00 | 0 | 0 |
 | periodic_rosenbrock_D4 | 30 | -0.061 [-0.342, +0.233] | 1.00 | 1.00 | +0.00 | 0 | 0 |
+
+Only in REF: []; only in NEW: ['ackley_D6', 'ellipsoid_D10', 'ellipsoid_D3', 'ellipsoid_D3_hetero', 'ellipsoid_D3_homo', 'ellipsoid_D3_unbounded', 'ellipsoid_D6', 'multisensory_s1_D6', 'multisensory_s1_D6_homo', 'rastrigin_D3', 'rosenbrock_D2', 'rosenbrock_D6', 'sphere_D10', 'sphere_D2', 'sphere_D3_hetero', 'sphere_D3_homo', 'sphere_nonbox_D3', 'timing_D5'].
 
 Holm family: 18 tests at alpha 0.05. A flag needs p <= 0.0028 for the first step; for 30 vs 30 runs that is a KS statistic of at least 0.467.
 

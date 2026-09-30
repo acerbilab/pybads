@@ -1,6 +1,6 @@
-# Population release140_default_20260930
+# Population population_linux_gpyreg140_20260930
 
-- 600 runs: pybads 60ad9e0f, gpyreg 1.3.4.dev35+g3e56dce0f from /home/user/pybads/dev/scripts/runs/gpyreg/main_3e56dce/gpyreg at 3e56dce
+- 720 runs: pybads 60ad9e0f, gpyreg 1.3.4.dev35+g3e56dce0f from /home/user/pybads/dev/scripts/runs/gpyreg/main_3e56dce/gpyreg at 3e56dce
 
 | config | runs | crashed | true_error | func_count | solved | tolerance | wall s |
 |---|---|---|---|---|---|---|---|
@@ -13,8 +13,12 @@
 | ellipsoid_D6 | 30 | 0 | 7.07e-08 [4.11e-08, 1.35e-07] | 347 [330, 359] | 1.00 | 0.001 | 5.13 [4.79, 5.48] |
 | multisensory_s1_D6 | 30 | 0 | 2.35e-07 [1.15e-07, 6.87e-07] | 285 [269, 299] | 1.00 | 0.5 | 2.83 [2.67, 3.04] |
 | multisensory_s1_D6_homo | 30 | 0 | 0.19 [0.112, 0.278] | 560 [480, 736] | 1.00 | 0.5 | 11 [9.06, 14.6] |
+| periodic_D2 | 30 | 0 | 3.64e-08 [7.27e-09, 5.17e-08] | 54 [54, 56] | 1.00 | 0.001 | 0.375 [0.36, 0.398] |
+| periodic_D3_hetero | 30 | 0 | 0.136 [0.107, 0.243] | 364 [302, 433] | 0.20 | 0.1 | 7.23 [5.95, 9.36] |
 | periodic_D3_homo | 30 | 0 | 0.0264 [0.0205, 0.0461] | 348 [232, 404] | 0.97 | 0.1 | 6.69 [3.88, 8.65] |
 | periodic_D4 | 30 | 0 | 1.92e-08 [1.19e-08, 4.49e-08] | 124 [113, 124] | 1.00 | 0.001 | 0.912 [0.854, 0.982] |
+| periodic_D6 | 30 | 0 | 2.23e-08 [1.73e-08, 4.1e-08] | 203 [203, 203] | 1.00 | 0.001 | 1.76 [1.72, 1.84] |
+| periodic_rosenbrock_D4 | 30 | 0 | 1.41e-07 [7.08e-08, 7.32e-07] | 168 [159, 176] | 1.00 | 0.001 | 1.62 [1.56, 1.72] |
 | rastrigin_D3 | 30 | 0 | 3.48 [1.99, 4.97] | 159 [140, 167] | 0.07 | 0.5 | 1 [0.901, 1.1] |
 | rosenbrock_D2 | 30 | 0 | 2.15e-06 [4.57e-07, 7.03e-06] | 94.5 [87, 108] | 1.00 | 0.001 | 1.07 [0.908, 1.22] |
 | rosenbrock_D6 | 30 | 0 | 3.3e-06 [1.06e-06, 6.43e-06] | 415 [393, 442] | 0.83 | 0.001 | 4.38 [4.08, 4.77] |
