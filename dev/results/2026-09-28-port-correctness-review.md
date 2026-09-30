@@ -407,9 +407,16 @@ items that a ruling left to later work are held by these items of
 | `TODO.md` item | Rows and items |
 |---|---|
 | "Zero predictive SDs: how often MATLAB gives them." | W3-28 and wave 3's "Found while verifying", counted and traced on 2026-09-28 |
-| "The example notebooks' saved outputs." | wave 2's "Fix pass" and "Doublecheck" |
 | "`ellipsoid_D3_hetero` after `020d6a8`." | W3-1's effect on the configuration; W1-23, which fixed the bounds of the GP mean that the item listed as open |
 | "Rank-1 GP update when adding a point: not adopted, to revisit if its terms change." | KD-B5-1 |
+
+The item "The example notebooks' saved outputs." held wave 2's "Fix
+pass" and "Doublecheck" until the notebooks were rerun on 2026-09-30,
+before the release of 1.5.0, with PyBADS at `3fbdae29` installed as
+1.5.0 and gpyreg 1.4.0 (`make -C examples/scripts run`): their outputs
+no longer show the warning `bads:TooCloseBounds` (W2-4), the old
+termination message on `tol_mesh` or a result without `status` (W2-12,
+W2-13), and what they print agrees with their text.
 
 The item "gpyreg releases after 1.3.3." held W1-24 (acerbilab/gpyreg#57),
 which reaches PyBADS through a release, W1-25's switch, which comes with it
