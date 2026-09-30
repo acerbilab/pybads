@@ -1,6 +1,7 @@
 # Update reminders: an old-release reminder and `check_for_updates()`
 
-Created 2026-09-30, for the release of 1.5.0. Users who installed PyBADS
+Created 2026-09-30, for the release of 1.5.0; merged into `dev-next` at
+`9a4b8820` the same day. Users who installed PyBADS
 once and never updated learn that a newer release may exist, without
 PyBADS making a network request they did not ask for:
 
@@ -170,4 +171,5 @@ release's steps, the network access, the FAQ's new label); the skill
   missing home through `os.path.expanduser`, which Python 3.10's
   `Path.expanduser` does not call; at `767b6671`, the test patching
   `Path.expanduser` itself (run 36774255186), all nine jobs passed.
-- [ ] Merge into `dev-next` (PI, 2026-09-30: when the matrix is green).
+- [x] Merge into `dev-next` (PI, 2026-09-30: when the matrix is green):
+  merged at `9a4b8820`; the branch removed locally and on `origin`.
