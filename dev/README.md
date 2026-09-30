@@ -455,6 +455,14 @@ reference's number of seeds.
   `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
   pooled fraction solved 0.90 in the base against 0.88 in the change, not
   significant; not adopted (PI, 2026-09-29), its diff kept with the record.
+- [experiments/population_linux_gpyreg140_20260930/](experiments/population_linux_gpyreg140_20260930/README.md)
+  — the Linux half of the comparison of gpyreg 1.4.0 (`TODO.md`): the
+  `default` and `periodic` suites at 30 seeds with gpyreg at `3e56dce`,
+  PyBADS at `60ad9e0f`; no flag against either suite's Linux reference,
+  the 540 runs of the `default` suite's reference repeated run by run, and
+  the 180 periodic runs equal to those of gpyreg `0f27db5`'s gate. The
+  Linux references of both suites, the `default` suite's two periodic
+  configurations included, from the move to gpyreg 1.4.0 on.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the reference population of the benchmark on Windows (default suite
   but its two periodic configurations, 100 seeds, gpyreg 1.3.3, at
