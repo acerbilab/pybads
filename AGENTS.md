@@ -88,6 +88,10 @@ A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
 it. Before the pull request that carries it to `main`, the changelog's
 `Unreleased` section becomes `[X.Y.Z] - <date>` under a new, empty
 `Unreleased`, and the GitHub release takes that section as its notes.
+The same pull request sets `RELEASE_DATE` in `pybads/_release.py` to that
+date, from which the old-release reminder tells the age of the installed
+release; `pybads/testing/bads/test_release_reminder.py` fails while the
+two disagree.
 Before that pull request, too, the example notebooks, whose outputs ship
 with the release and which nothing else runs, are rerun and their outputs
 committed: `make -C examples/scripts run`, with the venv's Python first on
@@ -153,6 +157,8 @@ label changed, is updated there as well:
 - `faq-which-kind-of-problems-is-pybads-suited-for`: Example 1;
 - `faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem`: `README.md`
   and `index.rst`;
+- `faq-how-do-i-know-whether-a-newer-version-of-pybads-exists`:
+  `installation.rst` and the API page of `check_for_updates`;
 - `faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`:
   `quickstart.rst`;
 - `faq-how-do-i-run-pybads-from-several-starting-points`,
@@ -553,6 +559,14 @@ reason.
 - **Modules.** No general `util`/`misc` modules: a general-purpose function
   goes into the module that fits it or into a module of its own. A new
   subpackage is listed in the `packages` of `pyproject.toml`.
+- **Network access.** The package opens a network connection only in
+  `pybads.check_for_updates()` (`pybads/_update_check.py`), which the user
+  calls, and which imports its networking modules inside the function. The
+  old-release reminder at the start of a run
+  (`pybads/bads/_release_reminder.py`) takes the release date from
+  `pybads/_release.py` and its past showings from its state file,
+  `update_reminder.json` in the user's cache directory, and writes no file
+  but that one.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a

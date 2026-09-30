@@ -27,6 +27,7 @@ from pybads.utils.timer import Timer
 from pybads.utils.timer.stage_timer import NULL_STAGE_TIMER, StageTimer
 from pybads.variable_transformer import VariableTransformer
 
+from ._release_reminder import consider_release_reminder
 from ._runtime_tips import consider_runtime_tip
 from .gaussian_process_train import (
     add_and_update_gp,
@@ -1782,12 +1783,19 @@ class BADS:
                 "Beginning optimization of a DETERMINISTIC objective function\n",
             )
 
-        # An occasional tip, shown with the iteration lines
-        # (pybads/bads/_runtime_tips.py); its choice touches no draw of the run
+        # At most one note before the column headers, and none of them
+        # touches a draw of the run: the reminder that the installed release
+        # is more than a year old (pybads/bads/_release_reminder.py), or else
+        # an occasional tip (pybads/bads/_runtime_tips.py)
         if not self._runtime_tip_considered:
             self._runtime_tip_considered = True
-            consider_runtime_tip(
+            release_reminder_shown = consider_release_reminder(
                 logger=self.logger, enabled=self.options["show_tips"]
+            )
+            consider_runtime_tip(
+                logger=self.logger,
+                enabled=self.options["show_tips"],
+                release_reminder_shown=release_reminder_shown,
             )
 
         # set up strings for logging of the iteration

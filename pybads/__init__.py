@@ -8,6 +8,7 @@ import pybads.search
 import pybads.stats
 import pybads.utils
 
+from ._update_check import check_for_updates
 from .bads import BADS
 from .bads.optimize_result import OptimizeResult
 from .function_examples import (

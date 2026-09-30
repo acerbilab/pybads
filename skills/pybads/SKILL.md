@@ -21,6 +21,11 @@ the published [documentation](https://acerbilab.github.io/pybads/) is built.
 For another version, use the corresponding Git tag and check API signatures
 and docstrings in that version.
 
+When the user reports a problem with PyBADS, run `pybads.check_for_updates()`
+(available from PyBADS 1.5; an earlier version is not the latest release),
+which asks PyPI for the latest release: the fix may be released already. See
+the [`check_for_updates` API](https://github.com/acerbilab/pybads/blob/main/docsrc/source/api/functions/check_for_updates.rst).
+
 ## What to read
 
 Paths are relative to the PyBADS repository root. The links also work when
