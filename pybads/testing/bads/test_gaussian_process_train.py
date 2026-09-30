@@ -705,7 +705,7 @@ def test_plateau_initial_design_runs():
     """A target equal on the whole initial design (a plateau outside a small
     ball) runs: the prior of the GP mean takes the SD 1 where the targets
     have no spread. The GP's predictions of the plateau are exact, and the
-    check of their calibration raises none of NumPy's warnings."""
+    check of their calibration raises no warning of NumPy's or SciPy's."""
     import warnings
 
     D = 3
@@ -725,6 +725,8 @@ def test_plateau_initial_design_runs():
     )
     with warnings.catch_warnings():
         warnings.simplefilter("error", RuntimeWarning)
+        # SciPy's shapiro before 1.18 warns on data without spread
+        warnings.filterwarnings("error", message=".*range zero")
         result = bads.optimize()
     n_init = bads.optim_state["eff_starting_points"]
     assert np.all(bads.function_logger.Y[:n_init] == 1e3)
@@ -1506,6 +1508,19 @@ def test_gp_refit_time_counts_statistics(z, func_count, last_fit, verdict):
     for none, and the periodic refit is due once the statistics number
     the refit period."""
     assert _refit_verdict(z, func_count, last_fit) == verdict
+
+
+def test_gp_refit_time_on_z_scores_without_spread(monkeypatch):
+    """Exact predictions give z-scores without spread, which force no
+    calibration, as MATLAB's swtest.m decides (p = NaN), without SciPy's
+    Shapiro-Wilk test, which warns on them whatever its version."""
+    import pybads.bads.bads as bads_module
+
+    def shapiro(z):
+        raise AssertionError("shapiro called on z-scores without spread")
+
+    monkeypatch.setattr(bads_module, "shapiro", shapiro)
+    assert _refit_verdict(np.zeros(5), 30, 20) == (False, False)
 
 
 # The verdicts are those of MATLAB's IsRefitTime (bads.m) and gppredcheck.m;

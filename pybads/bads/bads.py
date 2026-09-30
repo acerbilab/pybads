@@ -2406,7 +2406,10 @@ class BADS:
             final_idx = 0
 
         # Re-evaluate estimated function value and SD at final point
-        if final_idx is not None and self.options["noise_final_samples"] > 0:
+        final_samples = (
+            final_idx is not None and self.options["noise_final_samples"] > 0
+        )
+        if final_samples:
             # Estimate function value and standard deviation at final point.
             # Note that by default we do *not* use YVAL because it is biased
             # (since it was an incumbent at some iteration, it is more likely to be a
@@ -2483,7 +2486,14 @@ class BADS:
 
         self.logger.log(_LOG_FINAL, msg)
         if self.optim_state["uncertainty_handling_level"] > 0:
-            if np.isscalar(yval_vec) or yval_vec.size == 1:
+            if (np.isscalar(yval_vec) or yval_vec.size == 1) and final_samples:
+                # one final sample, with the target's noise SD (MATLAB's
+                # message calls them a GP mean and SEM)
+                self.logger.log(
+                    _LOG_FINAL,
+                    f"Observed function value at minimum: {self.fval} ± {self.fsd} (1 sample ± the target's noise SD).",
+                )
+            elif np.isscalar(yval_vec) or yval_vec.size == 1:
                 self.logger.log(
                     _LOG_FINAL,
                     f"Observed function value at minimum: {np.ravel(yval_vec)[0]} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
@@ -3411,11 +3421,14 @@ class BADS:
                         do_gp_calibration = True
                     else:
                         do_gp_calibration = False
+                elif np.ptp(zscore) == 0:
+                    # z-scores without spread (the GP predicted its last
+                    # evaluations exactly) give MATLAB's swtest.m W = 0/0,
+                    # a p-value of NaN and no calibration; SciPy's shapiro
+                    # warns on them and returns NaN or 1, by its version
+                    do_gp_calibration = False
                 else:
-                    # z-scores without spread give W = 0/0 and a p-value of
-                    # NaN, and no calibration, as MATLAB's swtest.m does
-                    with np.errstate(invalid="ignore", divide="ignore"):
-                        shapiro_test = shapiro(zscore)
+                    shapiro_test = shapiro(zscore)
                     do_gp_calibration = shapiro_test.pvalue < alpha
 
         func_count = self.function_logger.func_count

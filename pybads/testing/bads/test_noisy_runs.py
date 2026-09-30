@@ -143,6 +143,7 @@ def test_final_message_names_the_estimate(target_noise, caplog):
             fun,
             specify_target_noise=target_noise,
             max_fun_evals=100,
+            noise_final_samples=8,
             display="iter",
         ).optimize()
     (message,) = [
@@ -151,12 +152,13 @@ def test_final_message_names_the_estimate(target_noise, caplog):
         if "Estimated function value at minimum" in record.getMessage()
     ]
     mean = "precision-weighted mean" if target_noise else "mean"
-    assert message.endswith(f"({mean} ± SEM from 10 samples)")
+    assert message.endswith(f"({mean} ± SEM from 8 samples)")
 
 
 def test_final_message_from_one_sample_prints_a_number(caplog):
     """With one final sample and the target's noise SD, the final message
-    gives the sample as a number, as MATLAB BADS's does, not an array."""
+    gives the sample and its SD as numbers, not arrays, and calls them so,
+    where MATLAB BADS's calls them a GP mean and its SEM."""
     with caplog.at_level(logging.INFO, logger="BADS"):
         result = _make_bads(
             _noisy_sphere_with_estimated_sd(0),
@@ -168,10 +170,28 @@ def test_final_message_from_one_sample_prints_a_number(caplog):
         for record in caplog.records
         if "Observed function value at minimum" in record.getMessage()
     ]
-    assert message.startswith(
+    assert message == (
         "Observed function value at minimum: "
-        f"{float(result['yval_vec'][0])} (1 sample)."
+        f"{float(result['yval_vec'][0])} ± {float(result['ysd_vec'][0])}"
+        " (1 sample ± the target's noise SD)."
     )
+
+
+def test_final_message_without_final_samples_gives_the_gp_estimate(caplog):
+    """Without final samples, the final message gives the incumbent's
+    observation and the GP's estimate there, as MATLAB BADS's does."""
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        _make_bads(
+            _noisy_sphere_with_estimated_sd(0),
+            noise_final_samples=0,
+            display="iter",
+        ).optimize()
+    (message,) = [
+        record.getMessage()
+        for record in caplog.records
+        if "Observed function value at minimum" in record.getMessage()
+    ]
+    assert message.endswith("(GP mean ± SEM).")
 
 
 def test_one_final_sample_without_target_noise_adds_the_incumbent():

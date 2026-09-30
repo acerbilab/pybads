@@ -499,8 +499,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   observation was averaged in, and `yval_vec` and `ysd_vec` held two values.
   The returned `x` and the number of evaluations are unchanged. The final
   message calls the estimate from several samples their precision-weighted
-  mean, where MATLAB BADS's says "mean"; with one sample, it gives the
-  sample as a number.
+  mean, and gives one sample, as a number, with its noise SD, where MATLAB
+  BADS's messages say "mean" and "GP mean ± SEM".
 - **`specify_target_noise` alone.** With `specify_target_noise=True` and
   `uncertainty_handling` left empty, PyBADS turns uncertainty handling on,
   as MATLAB BADS does and as the error message asked; it raised
@@ -705,10 +705,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   on such refits, about a log of zero and, on one point, about degrees of
   freedom <= 0 and an invalid value in a division. The check of the GP's
   predictions that decides a refit prints no warning either when the GP
-  predicted its last evaluations exactly, as on a plateau: SciPy's
-  Shapiro-Wilk test then divides zero by zero, and its p-value, NaN,
-  forces no refit, as in MATLAB BADS; 1.1.0 printed NumPy's
-  `RuntimeWarning` about an invalid value in a division.
+  predicted its last evaluations exactly, as on a plateau, where 1.1.0
+  printed a warning of SciPy's Shapiro-Wilk test (of NumPy's, with SciPy
+  1.18); as in MATLAB BADS, such predictions force no refit.
 - **Small budgets.** A run whose `max_fun_evals` is no larger than its
   initial design (for instance 5 at D = 2 or 3) no longer stops with
   `ValueError: cannot convert float NaN to integer`, and with a smaller
