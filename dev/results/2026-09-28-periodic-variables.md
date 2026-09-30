@@ -165,3 +165,15 @@ of the time
   comparison run with its clone becomes the new references on both
   platforms, those two included (`dev/TODO.md`, "gpyreg releases after
   1.3.3").
+
+## Since gpyreg 1.4.0 (2026-09-30)
+
+gpyreg 1.4.0 (tag `v1.4.0`, `682585f`), released on 2026-09-30, carries
+the kernels' periods and is PyBADS's minimum. The `default` suite holds
+all six periodic configurations (`bef26ec2`), and the populations of the
+move to 1.4.0, the references of the suite on both platforms from then on,
+hold them:
+[Windows](../experiments/population_gpyreg140_20260930/README.md), 100
+seeds, the first runs of the periodic configurations on Windows, and
+[Linux](../experiments/population_linux_gpyreg140_20260930/README.md), 30
+seeds.

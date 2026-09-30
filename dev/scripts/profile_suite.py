@@ -415,9 +415,9 @@ def main(argv=None):
         return 0
 
     single_thread_env()  # inherited by the runs
-    # absolute: the runs start in REPO_ROOT, not in the caller's directory,
-    # where a relative gpyreg clone on PYTHONPATH would be missing and the
-    # runs would import the installed gpyreg without notice
+    # absolute, from the caller's directory: the runs start in REPO_ROOT,
+    # where a relative entry (a gpyreg clone) would name another directory,
+    # or none, and the runs would import the installed gpyreg without notice
     if os.environ.get("PYTHONPATH"):
         os.environ["PYTHONPATH"] = os.pathsep.join(
             os.path.abspath(p)

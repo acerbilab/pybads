@@ -107,8 +107,10 @@ A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
 on BADS's termination criteria, long before the budget, so that the runs
 cover the whole algorithm, from the initial design to the fine mesh and the
-stopping rules. At 30 seeds the suite runs in about 95 minutes as one
-process with a fresh process per run (``population.py run``).
+stopping rules. With a fresh process per run and four runs at a time
+(``population.py run --workers 4``), 100 seeds of the suite took 86 minutes
+on a Windows laptop and 30 seeds about 20 minutes on a Linux container of
+four cores (2026-09-30, gpyreg 1.4.0).
 
 Command line (from the repository root)::
 
@@ -1167,15 +1169,15 @@ def make_problem(
 # combination; the ellipsoid at D = 3 appears with finite bounds, infinite
 # bounds and both noise kinds, on the same shifted target, multisensory_s1
 # with and without noise, and periodic at D = 3 with both noise kinds. The
-# six configurations with periodic variables (the `periodic` suite) make
-# every gate a gate of periodic variables. Every budget is BADS's default,
-# 500 D. A calibration at that budget (4 seeds per configuration,
-# 2026-09-24) found every run ending on BADS's own termination, after 55 to
-# 863 evaluations: 60 at sphere D2, about 800 at ellipsoid D10, 200 to 500
-# for the noisy synthetic targets, 200 to 330 for timing, about 300 for
-# multisensory_s1 and 600 to 830 for it with noise; the runs of the
-# periodic configurations (30 seeds, 2026-09-28) ended so after 52 to 227
-# evaluations without noise and 182 to 721 with it.
+# six configurations with periodic variables (the `periodic` suite) make a
+# gate that runs this suite a gate of periodic variables too. Every budget
+# is BADS's default, 500 D. A calibration at that budget (4 seeds per
+# configuration, 2026-09-24) found every run ending on BADS's own
+# termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
+# ellipsoid D10, 200 to 500 for the noisy synthetic targets, 200 to 330 for
+# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise;
+# the runs of the periodic configurations (30 seeds, 2026-09-28) ended so
+# after 52 to 227 evaluations without noise and 182 to 721 with it.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [

@@ -9,7 +9,7 @@ every run ending on BADS's own termination, which set the suite's budgets
 only with a gpyreg whose kernels take ``periods`` (1.4.0 and later), and
 are skipped otherwise. Usage, from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.4.0 python -u dev/scripts/calibrate_budgets.py OUT.json [n_seeds]
 """
 import sys
 from pathlib import Path

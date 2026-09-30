@@ -1,12 +1,9 @@
 # PyBADS: open work
 
 Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
-the PI has decided on; "the next release" below means it. Its section
-holds, in order, the rewrite of the changelog and the loose ends of the
-move to gpyreg 1.4.0, which come before the pull request that carries
-the release to `main` (`AGENTS.md`, "Setup and commands", gives the
-release's steps), and the conda-forge recipe, which follows its upload
-to PyPI.
+the PI has decided on; "the next release" below means it. `AGENTS.md`
+("Setup and commands") gives the release's steps; its section below holds
+the conda-forge recipe, which follows its upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -16,58 +13,6 @@ among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
-- [ ] **The changelog's level of detail.** The `Unreleased` section of
-  `CHANGELOG.md` holds 1,035 lines (about 11,000 words): 32 lines of
-  "Upgrading from 1.1.0", 6 entries under Added, 24 under Changed and 78
-  under Fixed, many a paragraph long with the comparison with MATLAB
-  BADS; 1.1.0's section holds 61 lines. The PI (2026-09-30) finds it too
-  detailed to read, while wanting it more detailed than "What's new" in
-  `README.md`, the summary for users; it is rewritten before the section
-  is dated, on these lines, which the PI approved:
-  - an entry for a change to results, to the interface, or to what a
-    script sees or has to handle; not for a message's wording, an
-    internal speed-up or a change to the tests;
-  - one or two sentences per entry, on what a user notices; the reasons
-    and the comparison with MATLAB BADS live in the catalogue
-    (`pybads/bads/README.md`) and the port review's ledger
-    ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md)),
-    which an entry can point to;
-  - the fixes grouped under a few themes (noisy targets, the checks of
-    the options, the Gaussian process, termination and the result,
-    messages);
-  - "Upgrading from 1.1.0" keeps what can stop a script or change its
-    results, with the checks that raise `ValueError` for an option's
-    value gathered into one line that points to Changed;
-  - about 150 to 250 lines in all.
-  The rule of `AGENTS.md` ("Conventions", "Changelog"), under which a
-  change that a user can notice gets an entry, is rewritten with the
-  same bar, so that the section does not grow back.
-- [ ] **Loose ends of the move to gpyreg 1.4.0.** Found by the doublecheck
-  of the move (2026-09-30), none a blocker:
-  - "about 30 %" in "What's new" (`README.md`, `docsrc/source/index.rst`)
-    names no platform; the figure, 27 to 39 % in `CHANGELOG.md`, was
-    measured on Windows alone
-    ([experiments/own_time_gpyreg140_20260930/](experiments/own_time_gpyreg140_20260930/README.md));
-  - `dev/scripts/calibrate_budgets.py` and `dev/scripts/gp_update_failures.py`
-    give usage lines with the `v1.3.3` clone, under which the six
-    periodic configurations of `default` are skipped;
-  - the comment of the `default` suite in `dev/scripts/benchmark_targets.py`
-    says its periodic configurations make every gate a gate of periodic
-    variables, which holds for the gates that run `default`; its "about
-    95 minutes" for 30 seeds (also in `dev/README.md`) predates the four
-    configurations added, about 10 % more;
-  - the comment on `PYTHONPATH` in `dev/scripts/profile_suite.py`'s `main`
-    reads as if the clone were missing from the caller's directory;
-  - [results/2026-09-28-periodic-variables.md](results/2026-09-28-periodic-variables.md)
-    still says that no gpyreg release has the kernels' periods, that the
-    `default` suite holds two periodic configurations and that Windows
-    has no run of them: a closing line can say what 1.4.0 changed;
-  - the build prints two setuptools warnings: `project.license` as a
-    table is deprecated (builds stop being supported on 2027-02-18;
-    `license = "BSD-3-Clause"` with `license-files = ["LICENSE"]` needs
-    setuptools 77 or later), and "Package would be ignored" for the 26
-    subpackages, which reach the wheel as package data (`AGENTS.md`,
-    "Setup and commands"), complete as the tests of the wheel show.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all

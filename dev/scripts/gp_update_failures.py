@@ -55,8 +55,8 @@ by ``--inject-seed``, the configuration and the seed, never from
 therefore fails again, as a real failure does, so the restore of
 ``local_gp_fitting`` is reached. Usage, from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gp_update_failures.py OUT.json --seeds 0-29 --workers 4 --check DIR
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gp_update_failures.py OUT.json --seeds 0-9 --workers 4 --inject 0.02
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.4.0 python -u dev/scripts/gp_update_failures.py OUT.json --seeds 0-29 --workers 4 --check DIR
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.4.0 python -u dev/scripts/gp_update_failures.py OUT.json --seeds 0-9 --workers 4 --inject 0.02
 """
 
 import argparse
