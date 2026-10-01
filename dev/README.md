@@ -479,8 +479,17 @@ reference's number of seeds.
   — PyBADS's own time with gpyreg 1.4.0 against gpyreg 1.3.3, the same
   PyBADS, on the `profile` suite (Windows, SciPy 1.18.1, one BLAS thread,
   each run pinned to one performance core, the arms alternating ABBA): 27
-  to 39 % lower, every run giving the same result under both, the figure
-  that `CHANGELOG.md` states.
+  to 39 % lower, every run giving the same result under both.
+- [experiments/own_time_v110_20261001/](experiments/own_time_v110_20261001/README.md)
+  — PyBADS's own time at `1ecfeb61` with gpyreg 1.4.0 against PyBADS 1.1.0
+  with gpyreg 1.3.3, on the `profile` suite at 30 seeds (Windows, SciPy
+  1.18.1, one BLAS thread, each run pinned to one performance core, the
+  arms alternating): 0.562 of 1.1.0's summed over the runs, 0.46 to 0.81
+  per configuration, with fewer evaluations, the speed-up that the entry
+  "Speed" of `CHANGELOG.md` states, and "What's new" in `README.md` and
+  `index.rst` as "almost twice as fast"; and the comparison of the two
+  versions' results on the `default` suite, which flags 8 of 18
+  configurations, each in favour of the later code.
 - [experiments/population_wave4_20260928/](experiments/population_wave4_20260928/README.md)
   — the previous reference population of the benchmark on Windows
   (default suite but its periodic configurations, 100 seeds, gpyreg 1.3.3, at

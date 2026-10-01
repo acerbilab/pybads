@@ -109,12 +109,17 @@ says where it still differs, and why.
 
 ### Changed
 
+- **Speed.** PyBADS's own computations, a run's time besides the target's
+  evaluations, take 44 % less time than in 1.1.0 over seven benchmark
+  problems at 30 seeds each, which is 1.8 times as fast, and 19 to 54 %
+  less per problem (Windows, one BLAS thread, against 1.1.0 with gpyreg
+  1.3.3), with equal or better results. Each evaluation costs PyBADS less
+  time, partly because gpyreg 1.4.0 computes the same Gaussian processes
+  as 1.3.3, to the last bit, faster, and runs end after fewer evaluations
+  ([the measurement](https://github.com/acerbilab/pybads/blob/main/dev/experiments/own_time_v110_20261001/README.md)).
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
   SciPy 1.13 or later and matplotlib 3.9 or later, and installing it no
-  longer installs pytest, pytest-rerunfailures and numdifftools. gpyreg
-  1.4.0 computes the same Gaussian processes as 1.3.3, to the last bit, in
-  less time: a run's time besides the target's evaluations is 27 to 39 %
-  lower on seven benchmark problems (Windows, one BLAS thread).
+  longer installs pytest, pytest-rerunfailures and numdifftools.
 - **Seeded initial design.** `random_seed` decides the initial design, as
   it decides every other random draw of a run; in 1.1.0 every start inside
   the plausible box gave the same design at a given D, whatever the seed.

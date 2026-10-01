@@ -543,8 +543,10 @@ reason.
   force-pushed, or the next pull request lists the merged commits again.
 - **Changelog.** A change to results, to the interface, or to what a
   script sees or has to handle gets an entry in `CHANGELOG.md` under
-  `Unreleased`, in the commit that makes it; a message's wording, an
-  internal speed-up or a change to the tests gets none. An entry is one or
+  `Unreleased`, in the commit that makes it, and so does a speed-up that a
+  user notices, with its measured size and a link to its record under
+  `dev/`; a message's wording, a minor speed-up or a change to the tests
+  gets none. An entry is one or
   two sentences, written for users, on what a user notices, relative to
   the last release: a fix to a change that no release has shipped edits
   that change's entry, and the reasons and the comparison with MATLAB BADS

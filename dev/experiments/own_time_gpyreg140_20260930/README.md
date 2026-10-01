@@ -1,7 +1,7 @@
 # PyBADS's own time with gpyreg 1.4.0 against gpyreg 1.3.3 (Windows)
 
-The measurement that the move to gpyreg 1.4.0 states in `CHANGELOG.md`:
-the same PyBADS, run under gpyreg 1.3.3 (arm A) and under gpyreg at
+The time that gpyreg 1.4.0 saves PyBADS, part of the speed-up that the
+entry "Speed" of `CHANGELOG.md` states: the same PyBADS, run under gpyreg 1.3.3 (arm A) and under gpyreg at
 `3e56dce` (arm B), whose code the tag `v1.4.0` carries (the tag adds only
 the date of the release notes). With gpyreg 1.4.0, PyBADS's own time, a run's time less
 its target's evaluations, is 27 to 39 % lower on the seven configurations
