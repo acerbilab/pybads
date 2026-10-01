@@ -1,14 +1,15 @@
 # PyBADS: open work
 
-Updated 2026-09-30. The next release is 1.5.0 (tag `v1.5.0`), the version
+Updated 2026-10-01. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
 ("Setup and commands") gives the release's steps. The PI (2026-09-30)
 holds the release's pull request for further work before it. A change
 before it that alters what a run prints or returns reruns the example
 notebooks again, which also refreshes their timings: those of the rerun
 at `110d8dc6` are longer than the previous rerun's from the state of the
-machine, not the code. The release's section below holds the conda-forge
-recipe, which follows its upload to PyPI.
+machine, not the code. The release's section below holds a check of the
+links to the lab before it, and the conda-forge recipe, which follows its
+upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -18,6 +19,21 @@ among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
+- [ ] **Where the documentation points users.** The lab's website is
+  https://acerbilab.org, and https://acerbilab.org/model-fitting is a
+  landing page for the lab's model-fitting methods (a work in progress,
+  functional on 2026-10-01). Before the release, a pass over what ships or
+  is published decides which links go there instead (PI, 2026-10-01): the
+  University of Helsinki group pages that `README.md`,
+  `docsrc/source/index.rst` and `docsrc/source/about_us.rst` link for the
+  lab and its people, `lacerbi.github.io` at the head of the FAQ, and the
+  places that send a user to the lab's other methods: the FAQ's "What do I
+  do if PyBADS is not suited for my problem?" and "I have run PyBADS on my
+  problem. How do I run PyVBMC?", the runtime tips
+  (`pybads/bads/_tip_catalog.py`) and the skill. The couplings of
+  `AGENTS.md` apply: a tip restates the advice of the answer that it links,
+  `README.md` and `index.rst` carry the same blocks, and a change to a tip
+  changes what a run prints, which reruns the example notebooks.
 - [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
   (`recipe/meta.yaml`) passes `--reruns=5` and requires
   pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
