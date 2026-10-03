@@ -1,0 +1,225 @@
+{
+ "engine": "kokoro",
+ "voice": "am_michael",
+ "speed": 1.12,
+ "defaults": {
+  "lead": 0.5,
+  "gap": 0.28,
+  "tail": 0.6
+ },
+ "scenes": [
+  {
+   "id": "problem",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "1.1",
+     "text": "Which parameters of your model fit your data best?"
+    },
+    {
+     "id": "1.2",
+     "text": "The ones that minimize the error, or make your data most probable.",
+     "gap": 0.25
+    },
+    {
+     "id": "1.3",
+     "text": "This is an optimization problem.",
+     "gap": 0.35
+    },
+    {
+     "id": "1.4",
+     "text": "Picture the error as a landscape: the lower the ground, the better the fit. You want the lowest point.",
+     "gap": 0.26
+    },
+    {
+     "id": "1.5",
+     "text": "But you can't see the landscape. Each evaluation gives the height at a single point.",
+     "gap": 0.3
+    }
+   ],
+   "speed": 1.2
+  },
+  {
+   "id": "bayesopt",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "2.1",
+     "text": "Bayesian optimization fits a surrogate to the points it has seen: a statistical model of the whole landscape."
+    },
+    {
+     "id": "2.2",
+     "text": "It evaluates where the ground looks low, or might be. Then it updates the surrogate, and repeats.",
+     "gap": 0.25
+    },
+    {
+     "id": "2.3",
+     "text": "When the surrogate is accurate, this is smart and fast.",
+     "gap": 0.6
+    },
+    {
+     "id": "2.4",
+     "text": "But the surrogate can be wrong. If the landscape has a shape it can't capture, it keeps pointing to the wrong places.",
+     "gap": 0.6
+    }
+   ],
+   "speed": 1.15
+  },
+  {
+   "id": "direct",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "3.1",
+     "text": "Instead, direct search uses no surrogate."
+    },
+    {
+     "id": "3.2",
+     "text": "From the best point so far, it tries a step in each direction, on a grid called the mesh.",
+     "gap": 0.32
+    },
+    {
+     "id": "3.3",
+     "text": "If a step finds lower ground, it moves there and takes bigger steps. If none does, it takes smaller ones.",
+     "gap": 0.38
+    },
+    {
+     "id": "3.4",
+     "text": "It can't be fooled, and it comes with convergence guarantees. But it is slow.",
+     "gap": 0.51
+    }
+   ]
+  },
+  {
+   "id": "bads",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "4.1",
+     "text": "Bayesian Adaptive Direct Search, or Bads, combines the two.",
+     "caption": "Bayesian Adaptive Direct Search, or BADS, combines the two."
+    },
+    {
+     "id": "4.2",
+     "text": "It alternates a search stage, Bayesian optimization around the best point, and a poll stage, a round of direct search.",
+     "caption": "It alternates a SEARCH stage, Bayesian optimization around the best point, and a POLL stage, a round of direct search.*",
+     "gap": 0.32
+    },
+    {
+     "id": "4.3",
+     "text": "As long as the search finds better points, Bads keeps searching. When it fails several times in a row, Bads polls.",
+     "caption": "As long as the SEARCH finds better points, BADS keeps searching. When it fails several times in a row, BADS polls.",
+     "gap": 0.38
+    },
+    {
+     "id": "4.4",
+     "text": "The two stages help each other.",
+     "gap": 0.38
+    },
+    {
+     "id": "4.5",
+     "text": "When the surrogate fails, the poll moves away from the region it can't model, and the points it collects help build a better surrogate for the next search.",
+     "caption": "When the surrogate fails, the POLL moves away from the region it can't model, and the points it collects help build a better surrogate for the next SEARCH.",
+     "gap": 0.26
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "5.1",
+     "text": "Here is a real Pie-Bads run, on the same landscape.",
+     "caption": "Here is a real PyBADS run, on the same landscape."
+    },
+    {
+     "id": "5.2",
+     "text": "It starts with a few evaluations and fits the surrogate. The search heads downhill fast.",
+     "caption": "It starts with a few evaluations and fits the surrogate. The SEARCH heads downhill fast.",
+     "gap": 0.32
+    },
+    {
+     "id": "5.3",
+     "text": "But the trench is too narrow for the surrogate. From one deep point, it predicts deep ground where there is none, and four searches in a row fail.",
+     "gap": 0.77
+    },
+    {
+     "id": "5.4",
+     "text": "So Pie-Bads polls. One step lands in the trench, far lower than any point before, and the mesh grows.",
+     "caption": "So PyBADS polls. One step lands in the trench, far lower than any point before, and the mesh grows.",
+     "gap": 0.77
+    },
+    {
+     "id": "5.5",
+     "text": "The points from the poll show the surrogate the shape of the trench.",
+     "caption": "The points from the POLL show the surrogate the shape of the trench.",
+     "gap": 0.89
+    },
+    {
+     "id": "5.6",
+     "text": "Now the search is fast again: its next point lands near the bottom of the trench.",
+     "caption": "Now the SEARCH is fast again: its next point lands near the bottom of the trench.",
+     "gap": 0.51
+    },
+    {
+     "id": "5.7",
+     "text": "When no step improves any more, the mesh shrinks, and Pie-Bads settles on the minimum.",
+     "caption": "When no step improves any more, the mesh shrinks, and PyBADS settles on the minimum.",
+     "gap": 0.64
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "lead": 0.4,
+   "tail": 0.3,
+   "lines": [
+    {
+     "id": "6.1",
+     "text": "Pie-Bads never saw the true landscape. Here it is.",
+     "caption": "PyBADS never saw the true landscape. Here it is."
+    },
+    {
+     "id": "6.2",
+     "text": "Smart and fast when the surrogate is right. Slow but steady when it's wrong.",
+     "gap": 0.64
+    }
+   ]
+  },
+  {
+   "id": "record",
+   "lead": 0.4,
+   "tail": 5.0,
+   "lines": [
+    {
+     "id": "7.1",
+     "text": "That landscape had two parameters. Bads works with up to twenty, on rugged or noisy landscapes.",
+     "caption": "That landscape had two parameters. BADS works with up to twenty, on rugged or noisy landscapes."
+    },
+    {
+     "id": "7.2",
+     "text": "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.",
+     "caption": "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.*",
+     "gap": 0.44
+    },
+    {
+     "id": "7.3",
+     "text": "Since then, it has been used in hundreds of studies, from brains and board games to oil wells and wildfires.",
+     "caption": "Since then, it has been used in hundreds of studies, from brains and board games to oil wells and wildfires.*",
+     "gap": 0.51
+    },
+    {
+     "id": "7.4",
+     "text": "Join them.",
+     "gap": 0.64
+    }
+   ]
+  }
+ ]
+}

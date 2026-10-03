@@ -161,3 +161,6 @@ dumps/
 
 # raw output of the developer tooling under dev/scripts/
 dev/scripts/runs/
+# media made from the film's sources in dev/film/ (voice takes, the score,
+# recordings), kept on the machine that made them
+dev/media/

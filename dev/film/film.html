@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyBADS Film</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=STIX+Two+Text:ital@1&display=swap">
+<style>
+  /* One letterboxed 16:9 stage that fills the window. A single dark look. */
+  :root {
+    color-scheme: dark;
+    --bg: #000;
+    --ink: #e4ece7;
+    --dim: #8b9a94;
+    --faint: #4c5a56;
+    --green: #5cf2a6;
+    --amber: #ffad55;
+    --purple: #b78bff;
+    --grey: #a9bbcc;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    --cond: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --serif: "STIX Two Text", "Times New Roman", Times, serif;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; width: min(100vw, 177.78vh); aspect-ratio: 16 / 9; transform: translate(-50%, -50%); background: #000; overflow: hidden; container-type: inline-size; }
+  #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bar { position: absolute; left: 0; right: 0; height: 11%; background: #000; z-index: 2; }
+  .bar.top { top: 0; } .bar.bottom { bottom: 0; }
+  #hud { position: absolute; inset: 0; z-index: 3; pointer-events: none; text-shadow: 0 0 0.5cqw #000, 0 0 0.25cqw #000; }
+  #mark { position: absolute; left: 3cqw; top: 0; height: 11%; display: flex; align-items: center; gap: 1cqw; font-family: var(--cond); letter-spacing: 0.16em; }
+  #mark b { font-weight: 600; font-size: 1.35cqw; color: var(--amber); }
+  #mark span { font-family: var(--sans); font-size: 0.95cqw; color: var(--dim); letter-spacing: 0.06em; }
+  #mode { position: absolute; left: 3cqw; top: 14%; display: grid; gap: 0.6cqw; font-family: var(--cond); opacity: 0; }
+  #mode .words { display: flex; gap: 1.3cqw; font-size: 1.9cqw; font-weight: 600; letter-spacing: 0.2em; }
+  #mode .words span { color: var(--faint); }
+  #mode .words span.on.s { color: var(--green); text-shadow: 0 0 1.2cqw rgba(92, 242, 166, 0.55); }
+  #mode .words span.on.p { color: var(--purple); text-shadow: 0 0 1.2cqw rgba(183, 139, 255, 0.6); }
+  #pips { display: flex; gap: 0.8cqw; font-family: var(--mono); font-size: 1.35cqw; height: 1.8cqw; align-items: center; }
+  #pips i { font-style: normal; width: 1.5cqw; text-align: center; color: var(--faint); }
+  #pips i.miss { color: var(--ink); } #pips i.hit { color: var(--amber); text-shadow: 0 0 0.9cqw rgba(255, 173, 85, 0.7); }
+  #labels { position: absolute; inset: 0; overflow: hidden; clip-path: inset(11% 0 11% 0); }
+  .lab { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  .lab.term { font-family: var(--serif); font-style: italic; font-size: 1.75cqw; color: var(--ink); }
+  .lab.plain { font-family: var(--sans); font-size: 1.25cqw; color: var(--ink); letter-spacing: 0.02em; }
+  .lab.small { font-family: var(--mono); font-size: 0.95cqw; letter-spacing: 0.14em; color: var(--dim); }
+  .lab.g { color: var(--green); } .lab.a { color: var(--amber); } .lab.p { color: var(--purple); } .lab.w { color: var(--ink); } .lab.k { color: var(--grey); }
+  .brk { width: 3.2cqw; height: 3.2cqw; margin: -1.6cqw 0 0 -1.6cqw; }
+  .brk.sm { width: 2.1cqw; height: 2.1cqw; margin: -1.05cqw 0 0 -1.05cqw; }
+  .brk i { position: absolute; width: 28%; height: 28%; border: 0.17cqw solid var(--green); }
+  .brk i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; } .brk i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+  .brk i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; } .brk i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+  #cap { position: absolute; left: 7cqw; right: 7cqw; bottom: 0; height: 11%; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--sans); font-size: 1.9cqw; line-height: 1.25; color: var(--ink); text-wrap: balance; }
+  #foot { position: absolute; right: 3cqw; bottom: calc(11% + 1.3cqw); max-width: 34cqw; margin: 0; text-align: right; font-family: var(--sans); font-size: 1.02cqw; line-height: 1.45; color: var(--dim); opacity: 0; }
+  #diagram { position: absolute; inset: 0; z-index: 3; display: none; pointer-events: none; }
+  #diagram svg { width: 100%; height: 100%; display: block; }
+  #endcard { position: absolute; inset: 11% 0; z-index: 4; display: none; place-content: center; text-align: center; gap: 1.1cqw; background: rgba(0, 0, 0, 0.72); }
+  #endcard .t { font-family: var(--cond); font-weight: 600; font-size: 4.6cqw; letter-spacing: 0.1em; color: var(--amber); }
+  #endcard .t span { color: var(--green); display: inline-block; transform-origin: 0% 75%; }
+  #endcard .s { font-family: var(--sans); font-size: 1.6cqw; color: var(--ink); }
+  #endcard .c { font-family: var(--mono); font-size: 1.5cqw; color: var(--green); letter-spacing: 0.04em; }
+  #endcard .u { font-family: var(--mono); font-size: 1.5cqw; color: var(--ink); }
+  #endcard .r { list-style: none; margin: 0.6cqw 0 0; padding: 0; font-family: var(--serif); font-size: 1.1cqw; color: var(--dim); line-height: 1.6; }
+  #endcard .r i { color: var(--ink); }
+  #endcard .k { margin-top: 0.8cqw; font-family: var(--sans); font-size: 0.82cqw; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); line-height: 2; }
+  #err { position: absolute; left: 1em; bottom: 1em; z-index: 9; font: 12px var(--mono); color: var(--amber); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div class="bar top"></div>
+  <div class="bar bottom"></div>
+  <div id="hud">
+    <div id="mark"><b>PYBADS</b><span>Bayesian Adaptive Direct Search</span></div>
+    <div id="mode">
+      <div class="words"><span id="mSearch" class="s">SEARCH</span><span id="mPoll" class="p">POLL</span></div>
+      <div id="pips"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div id="labels"></div>
+    <div id="cap"></div>
+    <p id="foot"></p>
+  </div>
+  <div id="diagram"></div>
+  <div id="endcard">
+    <div class="t">PyBADS <span>1.5</span></div>
+    <div class="s">Bayesian Adaptive Direct Search</div>
+    <div class="c">pip install pybads</div>
+    <div class="u">acerbilab.org/model-fitting</div>
+    <ol class="r">
+      <li>Singh &amp; Acerbi (2024). <i>PyBADS: Fast and robust black-box optimization in Python.</i> JOSS.</li>
+      <li>Acerbi &amp; Ma (2017). <i>Practical Bayesian optimization for model fitting with Bayesian adaptive direct search.</i> NeurIPS.</li>
+    </ol>
+    <div class="k">Machine and Human Intelligence Group &middot; University of Helsinki<br>Research Council of Finland &middot; ELLIS Institute Finland<br>Directed by Luigi Acerbi &middot; Made with Claude Code &middot; Voice: Kokoro (draft)</div>
+  </div>
+</div>
+<div id="err"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="trace.js"></script>
+<script src="illus.js"></script>
+<script src="bench.js"></script>
+<script src="film_timeline.js"></script>
+<script>
+(async function () {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const fail = (m) => { $("err").textContent += m + "\n"; document.title = "ERROR " + m; };
+window.addEventListener("error", (e) => fail(e.message + " @" + e.lineno));
+const q = new URLSearchParams(location.search);
+const RUN = window.BADS_TRACE, ILL = window.BADS_ILLUS;
+const stage = $("stage");
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const lerp = (a, b, m) => a + (b - a) * m;
+// Time within a shot, in seconds from the start of its line. ramp eases from 0 at a to 1 at b; lin does it linearly;
+// bump rises and falls back between a and b.
+const ease = (x) => { x = clamp01(x); return x * x * (3 - 2 * x); };
+const ramp = (t, a, b) => ease((t - a) / (b - a));
+const lin = (t, a, b) => clamp01((t - a) / (b - a));
+const backOut = (x) => 1 + 2.70158 * (x - 1) ** 3 + 1.70158 * (x - 1) ** 2;      // 0 to 1, overshooting by about 10%
+const bump = (t, a, b) => Math.sin(Math.PI * lin(t, a, b));
+function b64(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+
+// ================================================================ the landscape and its heights
+const TG = RUN.target;
+const DV = [Math.SQRT1_2, Math.SQRT1_2], NV = [Math.SQRT1_2, -Math.SQRT1_2];
+function ftrue(x1, x2) {
+  const r1 = x1 - TG.A[0], r2 = x2 - TG.A[1], d = DV[0] * r1 + DV[1] * r2, n = NV[0] * r1 + NV[1] * r2;
+  return TG.a * d * d + TG.b * n * n - TG.S * Math.max(0, r1) * Math.exp(-0.5 * (r2 / TG.w) ** 2);
+}
+const XMIN = ILL.truth.xmin, FMIN = ILL.truth.fmin;      // the true minimum, found numerically
+// Height: the square root of the value above the minimum, over a range R, levelling off above it, and
+// saturating just below the floor where a surrogate predicts less than the minimum.
+const R = 120, HGT = 0.62, LO = 0.06, HI = 0.25;
+function hmap(f) {
+  const t = (f - FMIN) / R;
+  if (t < 0) return (LO * t) / (LO - t);
+  if (t <= 1) return Math.sqrt(t);
+  return 1 + HI * (1 - Math.exp(-(t - 1) / HI));
+}
+// A panel of scene 4 draws heights with its own map (HM), which stretches the range of values it shows.
+let HM = null;
+const sx = (x1) => x1 / 5, sz = (x2) => -x2 / 5, sy = (f) => (HM ? HM(f) : HGT * hmap(f));
+
+// ================================================================ surrogate states (mean and SD on a 128 x 128 grid)
+// A surface comes quantized and stored as differences (scripts/surface.py): each row sums back from its first value,
+// and the first column from the value above; a 16-bit surface is its low bytes, then its high bytes.
+function undifference(d, n, mask) {
+  const a = new Uint32Array(n * n);
+  for (let j = 0; j < n; j++) {
+    a[j * n] = ((j ? a[(j - 1) * n] : 0) + d[j * n]) & mask;
+    for (let i = 1; i < n; i++) a[j * n + i] = (a[j * n + i - 1] + d[j * n + i]) & mask;
+  }
+  return a;
+}
+function decodeStates(list, grid, muKey, sdKey) {
+  if (grid.code !== "differences") throw new Error("surfaces not in the form of scripts/surface.py");
+  return list.map((s) => {
+    const n = grid.n, bytes = b64(s[muKey]), d16 = new Uint16Array(n * n);
+    for (let i = 0; i < n * n; i++) d16[i] = bytes[i] | (bytes[n * n + i] << 8);
+    const m16 = undifference(d16, n, 0xffff), s8 = undifference(b64(s[sdKey]), n, 0xff);
+    const mu = new Float32Array(n * n), sd = new Float32Array(n * n);
+    for (let i = 0; i < n * n; i++) { mu[i] = grid.z_lo + (m16[i] / 65535) * (grid.z_hi - grid.z_lo); const v = s8[i] / 255; sd[i] = v * v * grid.sd_hi; }
+    return { mu, sd, n, info: s };
+  });
+}
+const RS = decodeStates(RUN.states, RUN.grid, "mu", "sd");
+const BS = decodeStates(ILL.bo.steps, ILL.bo.grid, "mu16", "sd8");
+function sample(st, a, x1, x2) {
+  const n = st.n, gx = Math.min(n - 1.0001, Math.max(0, ((x1 + 5) / 10) * (n - 1))), gy = Math.min(n - 1.0001, Math.max(0, ((x2 + 5) / 10) * (n - 1)));
+  const i = Math.floor(gx), j = Math.floor(gy), fx = gx - i, fy = gy - j, A = st[a];
+  return lerp(lerp(A[j * n + i], A[j * n + i + 1], fx), lerp(A[(j + 1) * n + i], A[(j + 1) * n + i + 1], fx), fy);
+}
+
+// ================================================================ the run: evaluations, steps, the incumbent's path
+const EV = RUN.evals;                                       // [x1, x2, f, stage], evaluation n is EV[n - 1]
+const STEP_OF = {};
+RUN.steps.forEach((s, k) => s.evals.forEach((i) => { STEP_OF[i + 1] = k; }));
+// The incumbent after each step, and which stage moved it there.
+const MOVES = [];                                            // {x1, x2, f, by: "init" | "search" | "poll", n}
+{
+  let best = 0;
+  for (let n = 1; n <= 6; n++) if (EV[n - 1][2] < EV[best][2]) best = n - 1;
+  MOVES.push({ x1: EV[best][0], x2: EV[best][1], f: EV[best][2], by: "init", n: best + 1 });
+  for (const s of RUN.steps) {
+    if (s.x1[0] !== s.x0[0] || s.x1[1] !== s.x0[1]) {
+      const n = s.evals.map((i) => i + 1).find((m) => Math.abs(EV[m - 1][0] - s.x1[0]) < 1e-4 && Math.abs(EV[m - 1][1] - s.x1[1]) < 1e-4);
+      MOVES.push({ x1: s.x1[0], x2: s.x1[1], f: s.f1, by: s.kind, n });
+    }
+  }
+}
+const movesUpTo = (n) => MOVES.filter((m) => m.n <= n);
+
+// ================================================================ renderer and post-processing
+const canvas = $("gl");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
+renderer.setClearColor(0x000000, 1);
+renderer.autoClear = false;
+const GL2 = renderer.capabilities.isWebGL2, HDR = GL2 && renderer.extensions.has("EXT_color_buffer_float"), MSAA = GL2;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const scene = new THREE.Scene();
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 80);
+const ADD = { blending: THREE.AdditiveBlending, transparent: true, depthTest: false, depthWrite: false };
+const C = { green: [0.36, 0.95, 0.65], amber: [1.0, 0.68, 0.33], warm: [1.0, 0.88, 0.7], white: [1, 1, 1], purple: [0.72, 0.55, 1.0], grey: [0.62, 0.7, 0.8], floor: [0.42, 0.4, 0.55] };
+
+let KG = 1;                    // the brightness of everything drawn: below 1 while a shot fades out or in
+function LineBatch(max) {
+  const pos = new Float32Array(max * 6), col = new Float32Array(max * 6), g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  const o = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ ...ADD, vertexColors: true })); o.frustumCulled = false;
+  let n = 0;
+  return { o, begin() { n = 0; },
+    seg(ax, ay, az, bx, by, bz, c, k) { k *= KG; if (n >= max || k < 0.003) return; const i = n * 6;
+      pos[i] = ax; pos[i + 1] = ay; pos[i + 2] = az; pos[i + 3] = bx; pos[i + 4] = by; pos[i + 5] = bz;
+      col[i] = col[i + 3] = c[0] * k; col[i + 1] = col[i + 4] = c[1] * k; col[i + 2] = col[i + 5] = c[2] * k; n++; },
+    end() { g.setDrawRange(0, n * 2); g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; } };
+}
+function PointBatch(max) {
+  const pos = new Float32Array(max * 3), col = new Float32Array(max * 3), size = new Float32Array(max), g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("aCol", new THREE.BufferAttribute(col, 3));
+  g.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+  const m = new THREE.ShaderMaterial({ ...ADD, uniforms: { uPx: { value: 1 } },
+    vertexShader: `attribute vec3 aCol; attribute float aSize; uniform float uPx; varying vec3 vC;
+      void main() { vC = aCol; gl_PointSize = max(aSize * uPx, 1.0); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `varying vec3 vC; void main() { float r = length(gl_PointCoord - 0.5); gl_FragColor = vec4(vC * smoothstep(0.5, 0.1, r), 1.0); }` });
+  const o = new THREE.Points(g, m); o.frustumCulled = false;
+  let n = 0;
+  return { o, m, begin() { n = 0; },
+    pt(x, y, z, c, k, s) { k *= KG; if (n >= max || k < 0.003) return; const i = n * 3; pos[i] = x; pos[i + 1] = y; pos[i + 2] = z; col[i] = c[0] * k; col[i + 1] = c[1] * k; col[i + 2] = c[2] * k; size[n] = s; n++; },
+    end() { g.setDrawRange(0, n); g.attributes.position.needsUpdate = true; g.attributes.aCol.needsUpdate = true; g.attributes.aSize.needsUpdate = true; } };
+}
+// A wireframe sheet: wires along both parameters, each sampled finely; its heights and colours set per shot.
+const WN = 21, WS = 161;
+function Sheet() {
+  const b = LineBatch(2 * WN * (WS - 1));
+  scene.add(b.o);
+  return {
+    draw(valueAt, colorAt, alpha) {
+      b.begin();
+      if (alpha > 0.003) for (let dir = 0; dir < 2; dir++) for (let i = 0; i < WN; i++) {
+        const w = -5 + (10 * i) / (WN - 1);
+        let px, pz, py, pc;
+        for (let j = 0; j < WS; j++) {
+          const u = -5 + (10 * j) / (WS - 1), x1 = dir ? w : u, x2 = dir ? u : w;
+          const v = valueAt(x1, x2), X = sx(x1), Z = sz(x2), Y = sy(v.f), c = colorAt(v, x1, x2);
+          if (j) b.seg(px, py, pz, X, Y, Z, [(pc[0] + c[0]) / 2, (pc[1] + c[1]) / 2, (pc[2] + c[2]) / 2], alpha);
+          px = X; py = Y; pz = Z; pc = c;
+        }
+      }
+      b.end();
+    },
+  };
+}
+const truthSheet = Sheet(), gpSheet = Sheet();
+const L = LineBatch(20000), P = PointBatch(4000);
+scene.add(L.o); scene.add(P.o);
+const fl = (x1, x2, y, bx1, bx2, by, c, k) => L.seg(sx(x1), y, sz(x2), sx(bx1), by, sz(bx2), c, k);
+function ring(x1, x2, y, r, c, k, n = 40) { for (let i = 0; i < n; i++) { const a = (i / n) * 6.2832, b = ((i + 1) / n) * 6.2832; fl(x1 + r * Math.cos(a), x2 + r * Math.sin(a), y, x1 + r * Math.cos(b), x2 + r * Math.sin(b), y, c, k); } }
+function dashed(X, y0, Z, y1, c, k, d = 0.016) { const lo = Math.min(y0, y1), hi = Math.max(y0, y1); for (let y = lo; y < hi; y += 2 * d) L.seg(X, y, Z, X, Math.min(hi, y + d), Z, c, k); }
+
+let W = 0, H = 0, rtS, rt0, rt1a, rt1b, rt2a, rt2b;
+const fsScene = new THREE.Scene(), fsCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), EMPTY = new THREE.Scene();
+const fsMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), null); fsScene.add(fsMesh);
+const FSV = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+const blurMat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { t: { value: null }, d: { value: new THREE.Vector2() } }, vertexShader: FSV,
+  fragmentShader: `uniform sampler2D t; uniform vec2 d; varying vec2 vUv;
+    void main() { vec4 c = texture2D(t, vUv) * 0.227027; c += (texture2D(t, vUv + d * 1.384615) + texture2D(t, vUv - d * 1.384615)) * 0.316216; c += (texture2D(t, vUv + d * 3.230769) + texture2D(t, vUv - d * 3.230769)) * 0.070270; gl_FragColor = c; }` });
+const outMat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { tS: { value: null }, t1: { value: null }, t2: { value: null }, uFade: { value: 1 } }, vertexShader: FSV,
+  fragmentShader: `uniform sampler2D tS, t1, t2; uniform float uFade; varying vec2 vUv;
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main() {
+      vec3 c = texture2D(tS, vUv).rgb + texture2D(t1, vUv).rgb * 0.55 + texture2D(t2, vUv).rgb * 0.8;
+      c = 1.0 - exp(-c * 1.3);
+      vec2 p = vUv - 0.5; float vig = smoothstep(0.95, 0.3, length(p * vec2(1.0, 0.82)));
+      c = c * mix(0.65, 1.0, vig) + vec3(0.008, 0.012, 0.013) * vig;
+      c += (hash(gl_FragCoord.xy) - 0.5) / 255.0;
+      gl_FragColor = vec4(c * uFade, 1.0);
+    }` });
+function alloc() {
+  const w = Math.max(2, Math.round(stage.clientWidth * DPR)), h = Math.max(2, Math.round(stage.clientHeight * DPR));
+  if (w === W && h === H) return;
+  W = w; H = h; renderer.setPixelRatio(1); renderer.setSize(W, H, false);
+  const o = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: HDR ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: false, stencilBuffer: false };
+  for (const r of [rtS, rt0, rt1a, rt1b, rt2a, rt2b]) if (r) r.dispose();
+  rtS = MSAA ? new THREE.WebGLMultisampleRenderTarget(W, H, o) : new THREE.WebGLRenderTarget(W, H, o);
+  const gw = Math.max(8, Math.round(W / DPR)), gh = Math.max(8, Math.round(H / DPR));
+  rt0 = DPR > 1.01 ? new THREE.WebGLRenderTarget(gw, gh, o) : null;
+  rt1a = new THREE.WebGLRenderTarget(gw >> 1, gh >> 1, o); rt1b = new THREE.WebGLRenderTarget(gw >> 1, gh >> 1, o);
+  rt2a = new THREE.WebGLRenderTarget(gw >> 3, gh >> 3, o); rt2b = new THREE.WebGLRenderTarget(gw >> 3, gh >> 3, o);
+}
+function pass(mat, target) { fsMesh.material = mat; renderer.setRenderTarget(target); renderer.render(fsScene, fsCam); }
+function blur(src, a, b, s) {
+  blurMat.uniforms.t.value = src.texture; blurMat.uniforms.d.value.set(s / a.width, 0); pass(blurMat, a);
+  blurMat.uniforms.t.value = a.texture; blurMat.uniforms.d.value.set(0, s / a.height); pass(blurMat, b);
+}
+
+// ================================================================ camera
+function setCamera(c, aspect = W / H) {
+  const az = (c.az * Math.PI) / 180, el = (c.el * Math.PI) / 180;
+  const D = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+  const tx = sx(c.x1), tz = sz(c.x2), ty = c.y, hh = 1.18 / c.zoom;
+  cam.position.set(tx + D.x * 30, ty + D.y * 30, tz + D.z * 30); cam.up.set(0, 1, 0); cam.lookAt(tx, ty, tz);
+  cam.top = hh; cam.bottom = -hh; cam.left = -hh * aspect; cam.right = hh * aspect; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+}
+
+// ================================================================ labels
+const labels = $("labels");
+const V = new THREE.Vector3();
+let VIEW = null;               // the panel being drawn, as a rectangle of the 1280 x 720 frame, or null for the whole frame
+function label(text, cls, at, dx = 0, dy = 0, anchor = "") {
+  const e = document.createElement("div"); e.className = "lab " + cls; e.innerHTML = text; labels.appendChild(e);
+  V.set(at[0], at[1], at[2]).project(cam);
+  const cw = stage.clientWidth, ch = stage.clientHeight, u = cw / 100, r = VIEW || { x: 0, y: 0, w: 1280, h: 720 };
+  const px = ((r.x + (V.x * 0.5 + 0.5) * r.w) * cw) / 1280, py = ((r.y + (-V.y * 0.5 + 0.5) * r.h) * ch) / 720;
+  e.style.transform = `translate(${(px + dx * u).toFixed(1)}px, ${(py + dy * u).toFixed(1)}px)` + anchor;
+  return e;
+}
+const at3 = (x1, x2, f) => [sx(x1), sy(f), sz(x2)];
+
+// ================================================================ the pieces a shot is drawn from
+const ptsRun = (a, b) => EV.slice(a - 1, b).map((e, i) => ({ x1: e[0], x2: e[1], f: e[2], n: a + i })).filter((p) => p.n !== 2);
+const ptsBO = (a, b) => ILL.bo.points.slice(a - 1, b).map((e, i) => ({ x1: e[0], x2: e[1], f: e[2], n: a + i }));
+const ptsMADS = (a, b) => ILL.mads.log.slice(a - 1, b).map((e, i) => ({ x1: e[0], x2: e[1], f: e[2], n: a + i }));
+
+function drawFloor(k) {
+  const c = C.floor;
+  fl(-5, -5, 0, 5, -5, 0, c, 0.4 * k); fl(5, -5, 0, 5, 5, 0, c, 0.4 * k); fl(5, 5, 0, -5, 5, 0, c, 0.4 * k); fl(-5, 5, 0, -5, -5, 0, c, 0.4 * k);
+  for (let i = -4; i <= 4; i++) { fl(i, -5, 0, i, 5, 0, c, 0.07 * k); fl(-5, i, 0, 5, i, 0, c, 0.07 * k); }
+}
+function drawPoints(pts, k = 1, hi = [], stem = 0.035) {
+  for (const p of pts) {
+    const X = sx(p.x1), Z = sz(p.x2), Y = sy(p.f), h = hi.includes(p.n);
+    P.pt(X, Y, Z, h ? C.warm : C.amber, (h ? 1.7 : 1.05) * k, h ? 11 : 7);
+    L.seg(X, 0, Z, X, Y, Z, C.amber, (h ? 0.4 : stem) * k);
+  }
+}
+function drawPath(path, k = 1, colorBy = false) {
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1], b = path[i], c = colorBy ? (b.by === "poll" ? C.purple : b.by === "search" ? C.green : C.amber) : C.amber;
+    fl(a.x1, a.x2, sy(a.f), b.x1, b.x2, sy(b.f), c, (colorBy ? 0.95 : 0.45) * k);
+  }
+}
+function drawBest(p, k = 1, r = 0.32) {
+  const y = sy(p.f);
+  ring(p.x1, p.x2, y, r, C.white, 0.95 * k);
+  P.pt(sx(p.x1), y, sz(p.x2), C.white, 1.4 * k, r < 0.3 ? 9 : 11);
+}
+function drawMesh(c, step, k = 1, reach = 2) {      // the mesh: a grid on the plane through the best point, fading out
+  const y = sy(c.f), r = reach * step, cl = (v) => Math.max(-5, Math.min(5, v));
+  for (let i = -reach; i <= reach; i++) {
+    const fade = 1 - Math.abs(i) / (reach + 0.6);
+    const a1 = c.x1 + i * step, a2 = c.x2 + i * step;
+    if (Math.abs(a1) <= 5.001) fl(a1, cl(c.x2 - r), y, a1, cl(c.x2 + r), y, C.purple, 0.32 * k * fade);
+    if (Math.abs(a2) <= 5.001) fl(cl(c.x1 - r), a2, y, cl(c.x1 + r), a2, y, C.purple, 0.32 * k * fade);
+  }
+  for (let i = -reach; i <= reach; i++) for (let j = -reach; j <= reach; j++) {
+    const x1 = c.x1 + i * step, x2 = c.x2 + j * step;
+    if (Math.abs(x1) > 5.001 || Math.abs(x2) > 5.001 || (i === 0 && j === 0)) continue;
+    P.pt(sx(x1), y, sz(x2), C.purple, 0.6 * k * (1 - (Math.abs(i) + Math.abs(j)) / (2 * reach + 1.5)), 5.5);
+  }
+}
+function drawStuds(c, step, k = 1) {                 // the four neighbours of the best point on the mesh, alone
+  const y = sy(c.f);
+  for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x1 = c.x1 + i * step, x2 = c.x2 + j * step; if (Math.abs(x1) <= 5.001 && Math.abs(x2) <= 5.001) P.pt(sx(x1), y, sz(x2), C.purple, 0.8 * k, 7); }
+}
+// One poll: the cross from the centre to its four steps; evaluated steps drop or rise to the value found.
+function drawPoll(c, arms, k = 1) {
+  const y = sy(c.f);
+  for (const a of arms) {
+    if (a.status === "outside") continue;
+    const hit = a.status.startsWith("hit"), evald = a.f !== undefined && a.status !== "skipped";
+    const kk = (a.status === "skipped" ? 0.25 : hit ? 1.4 : 0.55) * k;
+    fl(c.x1, c.x2, y, a.x[0], a.x[1], y, hit ? C.warm : C.purple, kk);
+    P.pt(sx(a.x[0]), y, sz(a.x[1]), hit ? C.warm : C.purple, kk, 8);
+    if (evald) { dashed(sx(a.x[0]), y, sz(a.x[1]), sy(a.f), hit ? C.warm : C.purple, 0.8 * kk); P.pt(sx(a.x[0]), sy(a.f), sz(a.x[1]), hit ? C.warm : C.amber, hit ? 1.7 * k : 0.9 * k, hit ? 11 : 7); }
+  }
+}
+// A search's try: where the surrogate put it, and where it landed.
+function drawTry(t, k = 1) {
+  const X = sx(t.x1), Z = sz(t.x2), yP = sy(t.mu), yA = sy(t.f);
+  P.pt(X, yP, Z, C.green, 1.3 * k, 8);
+  dashed(X, yP, Z, yA, C.white, 0.75 * k);
+  P.pt(X, yA, Z, t.hit ? C.warm : C.amber, (t.hit ? 1.6 : 1.0) * k, t.hit ? 11 : 8);
+}
+
+// ================================================================ the shots of the storyboard
+const RUN_TRY = (n) => { const s = RUN.steps[STEP_OF[n]]; const e = EV[n - 1]; return { x1: e[0], x2: e[1], f: e[2], mu: s.mu_pick, sd: s.sd_pick, hit: s.status !== "failure", n }; };
+const BO_TRY = (k) => { const s = ILL.bo.steps[k]; return { x1: s.x[0], x2: s.x[1], f: s.y, mu: s.mu, sd: s.sd, hit: false }; };
+const RUN_POLL = RUN.steps[17], MPOLL = ILL.mads.polls;
+const lastRunStep = RUN.steps[RUN.steps.length - 1];
+const truthAt = (x1, x2) => ({ f: ftrue(x1, x2), sd: 0 });
+const gpAt = (st) => (x1, x2) => ({ f: sample(st, "mu", x1, x2), sd: sample(st, "sd", x1, x2) });
+const gpColor = (v) => { const s = 0.1 + 0.9 / (1 + (v.sd / 1.5) ** 2); return [C.green[0] * s, C.green[1] * s, C.green[2] * s]; };
+const greyColor = () => C.grey;
+const best = (pts) => pts.reduce((a, b) => (b.f < a.f ? b : a));
+const pathBest = (pts) => { const out = []; let b = null; for (const p of pts) if (!b || p.f < b.f) { b = p; out.push(p); } return out; };
+const AZ = -40, EL = 35;
+const CAM = {
+  wide: { x1: 0.3, x2: -0.2, y: 0.3, zoom: 1.02, az: AZ, el: EL },
+  valley: { x1: -1.8, x2: -1.9, y: 0.34, zoom: 1.35, az: AZ, el: EL },
+  corner: { x1: -3.3, x2: -3.4, y: 0.36, zoom: 1.75, az: AZ, el: 40 },
+  start: { x1: -3.3, x2: -3.3, y: 0.34, zoom: 2.2, az: AZ, el: 42 },
+  trench: { x1: 1.4, x2: -0.6, y: 0.26, zoom: 1.3, az: AZ, el: EL },
+  poll: { x1: 1.0, x2: -0.5, y: 0.26, zoom: 1.45, az: AZ, el: 50 },
+  bottom: { x1: 3.2, x2: -0.5, y: 0.12, zoom: 1.8, az: AZ, el: 42 },
+  field: { x1: 0, x2: 0, y: 0.0, zoom: 1.05, az: AZ, el: 48 },
+};
+const MID = { x1: 0, x2: -0.5 };
+
+// ---------------------------------------------------------------- motion: what the shots that move are drawn with
+// A shot's cam may be a function of its time, for a move within the shot.
+const camLerp = (a, b, m) => ({ x1: lerp(a.x1, b.x1, m), x2: lerp(a.x2, b.x2, m), y: lerp(a.y, b.y, m), zoom: lerp(a.zoom, b.zoom, m), az: lerp(a.az, b.az, m), el: lerp(a.el, b.el, m) });
+// An evaluation dropping into place from a little above, fading in, as u goes from 0 to 1.
+function dropPt(x1, x2, f, u, c = C.amber, k = 1.05, size = 7, stem = 0.035) {
+  const e = ease(u); if (e < 0.004) return;
+  const X = sx(x1), Z = sz(x2), Y = sy(f) + 0.16 * (1 - e);
+  P.pt(X, Y, Z, c, k * e, size); L.seg(X, 0, Z, X, Y, Z, c, stem * e);
+}
+const dropAll = (pts, t, t0, dt, hi = [], k = 1) => pts.forEach((p, i) => { const h = hi.includes(p.n); dropPt(p.x1, p.x2, p.f, lin(t, t0 + i * dt, t0 + i * dt + 0.35), h ? C.warm : C.amber, (h ? 1.7 : 1.05) * k, h ? 11 : 7, h ? 0.4 : 0.035); });
+// A glide across the plane from a to b, bowing a little to one side.
+const glide = (a, b, u) => { const e = ease(u), w = 0.12 * Math.sin(Math.PI * e); return [lerp(a[0], b[0], e) - w * (b[1] - a[1]), lerp(a[1], b[1], e) + w * (b[0] - a[0])]; };
+const G11 = [[-3.8, 3.4], [-1.5, 2]], GE = [[-1.5, 2], [0.4, 0.2]], G13 = [[0.4, 0.2], [1.6, 1.2]];
+// The error of a setting: a stem from the setting on the floor up to the height of the landscape there, which the
+// viewer has not seen yet; on line 1.4 the landscape rises through it.
+function errorStem(p, k) { if (k < 0.004) return; const X = sx(p[0]), Z = sz(p[1]), Y = sy(ftrue(p[0], p[1])); L.seg(X, 0, Z, X, Y, Z, C.white, 0.55 * k); P.pt(X, Y, Z, C.white, 1.3 * k, 9); }
+const errorLabel = (p, a) => ["error", "plain w", [sx(p[0]), sy(ftrue(p[0], p[1])), sz(p[1])], 1.2, -1.8, "", a];
+// A surface rising out of the floor: r = 0 is flat on the floor, 1 is the surface itself.
+const rise = (valueAt, r) => (x1, x2) => { const v = valueAt(x1, x2); return { f: FMIN + r * (v.f - FMIN), sd: v.sd }; };
+
+// The run, evaluation by evaluation. bestAt(n): the best point after evaluation n. A search's try plays as u goes from
+// 0 to 1: the pick on the surrogate (green), the drop to its value (amber, dashed from the prediction); keep holds the
+// prediction and the dashes at the end.
+const bestAt = (n) => MOVES.filter((m) => m.n <= n).pop();
+function runTry(n, u, k = 1, keep = false) {
+  const T = RUN_TRY(n), X = sx(T.x1), Z = sz(T.x2), yP = sy(T.mu), yA = sy(T.f);
+  const pick = ramp(u, 0, 0.25), drop = ramp(u, 0.25, 0.6), after = keep ? 1 : 1 - ramp(u, 0.8, 1);
+  P.pt(X, yP, Z, C.green, 1.3 * k * pick * after, 8);
+  if (drop > 0) {
+    const y = lerp(yP, yA, drop);
+    dashed(X, yP, Z, y, C.white, 0.75 * k * after);
+    P.pt(X, y, Z, T.hit && drop >= 1 ? C.warm : C.amber, (T.hit ? 1.4 : 1.0) * k, T.hit ? 10 : 8);
+    L.seg(X, 0, Z, X, y, Z, C.amber, 0.035 * k);
+  }
+}
+// A sequence of the run's searches (trace steps j0 to j1), one try every dt seconds from t0: the surrogate morphs into
+// its next state at the end of each try, the best point moves on a success, and the four marks follow the round.
+function runSearches(t, j0, j1, t0, dt, opts = {}) {
+  const steps = RUN.steps.slice(j0, j1 + 1), started = steps.filter((_, i) => t >= t0 + i * dt).length;
+  const jc = started - 1, u = jc >= 0 ? lin(t, t0 + jc * dt, t0 + (jc + 1) * dt) : 0;
+  const cur = jc >= 0 ? steps[jc] : null;
+  const sheet = cur ? gpMix(RS[cur.state], RS[cur.state + 1], ramp(u, 0.8, 1)) : gpAt(RS[steps[0].state]);
+  const nDone = jc >= 0 ? cur.evals[0] + (u >= 0.6 ? 1 : 0) : steps[0].evals[0];            // evaluations landed
+  const prev = bestAt(cur ? cur.evals[0] : steps[0].evals[0]), now = bestAt(nDone);
+  const ring = cur && now !== prev ? { x1: lerp(prev.x1, now.x1, ramp(u, 0.6, 0.8)), x2: lerp(prev.x2, now.x2, ramp(u, 0.6, 0.8)), f: lerp(prev.f, now.f, ramp(u, 0.6, 0.8)) } : now;
+  const marks = [];                                    // the marks of the current round of four
+  if (cur) { const r0 = jc - (cur.count ?? 0); for (let i = Math.max(0, r0); i <= jc; i++) { const done = i < jc || u >= 0.6; if (done) marks.push(steps[i].status === "success" ? "o" : "x"); } }
+  return { sheet, cur, u, nDone, ring, marks: marks.join(""), started };
+}
+const pipsOf = (m) => (m + "····").slice(0, 4).replace(/·/g, ".");
+
+// ---------------------------------------------------------------- line 2.2: the illustration's first seven tries
+// Each try: [pick, end of the pick, end of the drop, start and end of the surrogate's update], in seconds of the line.
+const BO22 = [[3.0, 3.25, 3.7, 4.3, 4.7]]
+  .concat([1, 2, 3, 4, 5].map((j) => { const a = 4.8 + 0.3 * (j - 1); return [a, a + 0.06, a + 0.18, a + 0.2, a + 0.3]; }))
+  .concat([[6.4, 6.65, 7.1, 99, 99]]);
+const gpMix = (a, b, m) => (x1, x2) => ({ f: lerp(sample(a, "mu", x1, x2), sample(b, "mu", x1, x2), m), sd: lerp(sample(a, "sd", x1, x2), sample(b, "sd", x1, x2), m) });
+function bo22(t) {                                  // the surrogate, the tries landed and the try under way at time t
+  let s = 0, cur = -1;
+  BO22.forEach((w, j) => { if (t >= w[4]) s = j + 1; if (t >= w[0]) cur = j; });
+  const w = cur >= 0 ? BO22[cur] : null, m = w ? ramp(t, w[3], w[4]) : 0;
+  const sheet = w && t > w[3] && t < w[4] ? gpMix(BS[cur], BS[cur + 1], m) : gpAt(BS[s]);
+  return { sheet, landed: BO22.filter((v) => t >= v[2]).length, cur, w };
+}
+
+// ---------------------------------------------------------------- the panels of scene 4
+// The SEARCH panel plays the run's first round of SEARCH, four tries around the start (evaluations 9 to 12), on the
+// run's own surrogate. The POLL panel plays three rounds of the direct search of scene 3 (its polls 5 to 7): a step
+// lower, none lower, a step lower. Each panel has its own camera and height map, which stretches the small differences
+// of value near the start so that they show.
+const SRCH = [1, 2, 3, 4].map((k) => { const s = RUN.steps[k], e = EV[s.evals[0]];
+  return { x1: e[0], x2: e[1], f: e[2], mu: s.mu_pick, hit: s.status === "success", state: s.state, from: { x1: s.x0[0], x2: s.x0[1], f: s.f0 } }; });
+const PLL = [4, 5, 6].map((i) => MPOLL[i]);
+const PANEL = {
+  S: { x: 170, y: 188, w: 360, h: 280, cam: { x1: -3.15, x2: -3.25, y: 0.03, zoom: 2.55, az: AZ, el: 60 }, hm: (f) => 0.25 * Math.tanh((f - 1.2) / 3) },
+  P: { x: 750, y: 188, w: 360, h: 280, cam: { x1: -3.6, x2: -3.65, y: 0.0, zoom: 4.0, az: AZ, el: 52 }, hm: (f) => 0.25 * Math.tanh((f - 2) / 1.6) },
+};
+function panelPoint(x1, x2, f, c, k, s = 7) { P.pt(sx(x1), sy(f), sz(x2), c, k, s); }
+// A patch of a surrogate around (c1, c2): wires every `step`, out to `half` in each parameter, bright where the
+// surrogate is sure, fading out towards the patch's edge.
+function patch(valueAt, c1, c2, half, step, k, colorAt = gpColor, edge = 0.3) {
+  const lo1 = Math.max(-5, c1 - half), hi1 = Math.min(5, c1 + half), lo2 = Math.max(-5, c2 - half), hi2 = Math.min(5, c2 + half), ds = step / 6;
+  const fade = (x1, x2) => (edge > 0 ? clamp01((1 - Math.max(Math.abs(x1 - c1), Math.abs(x2 - c2)) / half) / edge) : 1);
+  for (let dir = 0; dir < 2; dir++) {
+    const [wl, wh, ul, uh] = dir ? [lo1, hi1, lo2, hi2] : [lo2, hi2, lo1, hi1];
+    for (let w = Math.ceil(wl / step - 1e-9) * step; w <= wh + 1e-9; w += step) {
+      let pv = null;
+      for (let u = ul; u <= uh + 1e-9; u += ds) {
+        const x1 = dir ? w : u, x2 = dir ? u : w, v = valueAt(x1, x2), c = colorAt(v), a = k * fade(x1, x2), p = [sx(x1), sy(v.f), sz(x2)];
+        if (pv) L.seg(pv[0], pv[1], pv[2], p[0], p[1], p[2], [(pv[3][0] + c[0]) / 2, (pv[3][1] + c[1]) / 2, (pv[3][2] + c[2]) / 2], 0.85 * Math.min(pv[4], a));
+        pv = [p[0], p[1], p[2], c, a];
+      }
+    }
+  }
+}
+// SEARCH at progress u (0 to 4 tries): each try is picked on the surrogate (green), lands (amber) and, if it is lower
+// than the best point, moves the ring there; then the surrogate takes it in.
+function searchPanel(u, k, pulse = 0) {
+  const i = Math.min(3, Math.floor(u)), fr = u - i, T = SRCH[i];
+  patch(gpMix(RS[T.state], RS[T.state + 1], ramp(fr, 0.8, 1)), -2.9, -2.9, 2.3, 0.3, k * (0.62 + 0.5 * pulse));
+  panelPoint(EV[0][0], EV[0][1], EV[0][2], C.amber, 0.9 * k);
+  for (let j = 0; j < i; j++) panelPoint(SRCH[j].x1, SRCH[j].x2, SRCH[j].f, SRCH[j].hit ? C.warm : C.amber, (SRCH[j].hit ? 1.1 : 0.9) * k);
+  const pick = ramp(fr, 0, 0.2), drop = ramp(fr, 0.2, 0.5), verdict = ramp(fr, 0.5, 0.75), after = 1 - ramp(fr, 0.8, 1);
+  const X = sx(T.x1), Z = sz(T.x2), yP = sy(T.mu), yA = sy(T.f);
+  P.pt(X, yP, Z, C.green, 1.5 * k * pick * after, 8);
+  if (drop > 0) {
+    const y = lerp(yP, yA, drop), hot = T.hit && verdict > 0;
+    dashed(X, yP, Z, y, C.white, 0.8 * k * after, 0.007);
+    P.pt(X, y, Z, hot ? C.warm : C.amber, (hot ? 1.6 : 1.0) * k, hot ? 10 : 8);
+  }
+  const inc = T.hit ? { x1: lerp(T.from.x1, T.x1, verdict), x2: lerp(T.from.x2, T.x2, verdict), f: lerp(T.from.f, T.f, verdict) } : T.from;
+  drawBest(inc, k, 0.2);
+  const b = pick * (1 - ramp(fr, 0.5, 0.7));
+  return { bracket: b > 0.01 ? { x1: T.x1, x2: T.x2, mu: T.mu, a: b * Math.min(1, k * 1.2) } : null };
+}
+// POLL at progress v (0 to 3 rounds): the cross grows out of the ring, its steps are tried in turn (the first that lands
+// lower ends the round), and the ring moves and the mesh doubles, or the mesh halves.
+function pollPanel(v, k, glow = 0) {
+  const j = Math.min(2, Math.floor(v)), g = v - j, p = PLL[j], c = { x1: p.center[0], x2: p.center[1], f: p.f };
+  const hitArm = p.arms.find((a) => a.status.startsWith("hit")), to = hitArm ? { x1: hitArm.x[0], x2: hitArm.x[1], f: hitArm.f } : c;
+  const tried = p.arms.filter((a) => a.f !== undefined && a.status !== "skipped");
+  const tv = 0.15 + 0.15 * tried.length, verdict = ramp(g, tv, tv + 0.2), cross = 1 - ramp(g, tv + 0.2, tv + 0.32);
+  const cur = { x1: lerp(c.x1, to.x1, verdict), x2: lerp(c.x2, to.x2, verdict), f: lerp(c.f, to.f, verdict) };
+  drawMesh(cur, lerp(p.step, p.moved ? Math.min(2 * p.step, 4) : p.step / 2, verdict), 0.85 * k, 2);
+  // The points collected so far, each with a faint stem to the plane through the ring: above it, higher than the best point.
+  const kept = 0.9 * k * (1 + glow), yc = sy(cur.f);
+  const keep = (x1, x2, f) => { panelPoint(x1, x2, f, C.amber, kept); fl(x1, x2, yc, x1, x2, sy(f), C.amber, 0.08 * k * (1 + glow)); };
+  keep(PLL[0].center[0], PLL[0].center[1], PLL[0].f);
+  for (let jj = 0; jj < j; jj++) for (const a of PLL[jj].arms) if (a.f !== undefined && a.status !== "skipped") keep(a.x[0], a.x[1], a.f);
+  const y = sy(c.f), grow = ramp(g, 0, 0.12);
+  for (const a of p.arms) {
+    if (a.status === "outside") continue;
+    const m = tried.indexOf(a), hit = a.status.startsWith("hit"), q = m >= 0 ? ramp(g, 0.12 + 0.15 * m, 0.27 + 0.15 * m) : 0, hot = hit && q > 0.6;
+    const ka = k * cross * (a.status === "skipped" ? lerp(0.6, 0.15, ramp(g, tv - 0.1, tv)) : hot ? 1.4 : 0.6);
+    const ex = lerp(c.x1, a.x[0], grow), ez = lerp(c.x2, a.x[1], grow);
+    fl(c.x1, c.x2, y, ex, ez, y, hot ? C.warm : C.purple, ka);
+    P.pt(sx(ex), y, sz(ez), hot ? C.warm : C.purple, ka, 7);
+    if (q > 0) {
+      const ya = lerp(y, sy(a.f), q);
+      dashed(sx(a.x[0]), y, sz(a.x[1]), ya, hit ? C.warm : C.purple, 0.85 * k * cross, 0.007);
+      P.pt(sx(a.x[0]), ya, sz(a.x[1]), hit ? C.warm : C.amber, hit ? 1.6 * k : kept, hit ? 10 : 7);
+    }
+  }
+  drawBest(cur, k, 0.16);
+}
+// ---------------------------------------------------------------- scene 7: the record
+// 7.1: the film's landscape shrinks into the first of three tiles; the other two are illustrations, a rugged landscape
+// (a bowl under many bumps) and a noisy one (the same bowl, seen through noise that changes from frame to frame).
+const TILES = [{ x: 105, y: 190, w: 340, h: 250 }, { x: 470, y: 190, w: 340, h: 250 }, { x: 835, y: 190, w: 340, h: 250 }];
+const TILE_CAM = { x1: 0.3, x2: -0.2, y: 0.22, zoom: 1.02, az: AZ, el: EL };
+const hmTile = (f) => 0.42 * (1 - Math.exp(-f / 18));
+const bowl = (x1, x2) => 0.45 * (x1 * x1 + x2 * x2);
+const ruggedAt = (x1, x2) => ({ f: bowl(x1, x2) + 5 * (2 - Math.cos(2.6 * x1) - Math.cos(2.6 * x2)), sd: 0 });
+const hash = (a, b, c) => { const h = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453; return 2 * (h - Math.floor(h)) - 1; };
+const noisyAt = (seed) => (x1, x2) => ({ f: Math.max(0, bowl(x1, x2) + 1.3 * (hash(x1, x2, seed) + hash(x2, x1, seed + 1))), sd: 0 });
+function drawEnd(k = 1) {                            // line 6.2's picture: the best point's whole path, coloured by stage
+  drawFloor(0.7 * k); truthSheet.draw(truthAt, greyColor, 0.18 * k); drawPoints(ptsRun(1, EV.length), 0.45 * k); drawPath(MOVES, 1.4 * k, true);
+  for (const m of MOVES) P.pt(sx(m.x1), sy(m.f), sz(m.x2), m.by === "poll" ? C.purple : m.by === "search" ? C.green : C.amber, 1.2 * k, 8);
+  drawBest(MOVES[MOVES.length - 1], k);
+}
+function tileViews(s) {        // s: shrink (the film's landscape into its tile), others (the two new tiles), a, seed
+  const m = ease(s.shrink), r0 = TILES[0];
+  const r = { x: lerp(0, r0.x, m), y: lerp(0, r0.y, m), w: lerp(1280, r0.w, m), h: lerp(720, r0.h, m) };
+  const views = [{ rect: r, cam: CAM.wide, hm: null, draw: () => drawEnd(s.a) }];
+  if (s.others > 0.003) {
+    views.push({ rect: TILES[1], cam: TILE_CAM, hm: hmTile, draw: () => truthSheet.draw(ruggedAt, greyColor, 0.5 * s.others * s.a) });
+    views.push({ rect: TILES[2], cam: TILE_CAM, hm: hmTile, draw: () => truthSheet.draw(noisyAt(s.seed), greyColor, 0.3 * s.others * s.a) });
+  }
+  return views;
+}
+function tiles7(s) {           // the tiles' frames and labels, over the three views
+  const R = (v) => String(Math.round(v * 1000) / 1000), INK = "#e4ece7";
+  const names = ["two parameters", "rugged", "noisy"], vis = [ramp(s.shrink, 0.75, 1) * s.a, s.others * s.a, s.others * s.a], lab = [s.lab0 * (1 - (s.swap || 0)), s.lab1, s.lab2];
+  let o = `<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">`;
+  TILES.forEach((r, i) => {
+    if (vis[i] > 0.003) o += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="3" fill="none" stroke="#a9bbcc" stroke-opacity="${R(0.35 * vis[i])}" stroke-width="1.5"/>`;
+    if (lab[i] * s.a > 0.003) o += `<text x="${r.x + r.w / 2}" y="${r.y + r.h + 30}" fill="${INK}" fill-opacity="${R(lab[i] * s.a)}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="18" text-anchor="middle">${names[i]}</text>`;
+  });
+  // On "up to twenty", the first tile's label dissolves into BADS's range.
+  const up = s.lab0 * (s.swap || 0) * s.a, r0 = TILES[0];
+  if (up > 0.003) o += `<text x="${r0.x + r0.w / 2}" y="${r0.y + r0.h + 30}" fill="${INK}" fill-opacity="${R(up)}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="18" text-anchor="middle">up to ~20 parameters</text>`;
+  return o + `</svg>`;
+}
+// 7.2: the six panels of Figs 2 and 3 of the BADS paper, redrawn from the benchmark's caches (bench.js, bench_export.py).
+const BENCH = window.BADS_BENCH;
+function chart7(s) {           // s: show, grey, green, amber (how far each kind of curve is drawn), legend
+  const R = (v) => String(Math.round(v * 100) / 100), AM = "#ffad55", G = "#5cf2a6", GREY = "#8b9a94", INK = "#e4ece7";
+  const PW = 340, PH = 150, PX = [100, 470, 840], PY = [140, 348];
+  const mono = 'font-family="IBM Plex Mono, Consolas, monospace" font-size="13" letter-spacing="1.5"';
+  let o = `<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glA" x="-10%" y="-30%" width="120%" height="160%">` +
+    `<feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g opacity="${R(s.show)}">`;
+  BENCH.studies.forEach((st, i) => {
+    const px = PX[i % 3], py = PY[Math.floor(i / 3)], n = st.x.length;
+    const ux = st.noisy ? (x) => Math.log(10 / x) / Math.log(100) : (x) => Math.log(x / 10) / Math.log(50);
+    o += `<text x="${px}" y="${py - 12}" fill="${INK}" fill-opacity="0.8" ${mono}>${st.title.toUpperCase()}</text>`;
+    o += `<path d="M ${px} ${py} L ${px} ${py + PH} L ${px + PW} ${py + PH}" fill="none" stroke="${GREY}" stroke-opacity="0.45" stroke-width="1.2"/>`;
+    o += `<path d="M ${px} ${py} L ${px + PW} ${py}" stroke="${GREY}" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3 5"/>`;
+    const order = st.algos.filter((a) => a.kind === "other").concat(st.algos.filter((a) => a.kind === "bo"), st.algos.filter((a) => a.kind === "bads"));
+    for (const a of order) {
+      const prog = a.kind === "bads" ? s.amber : a.kind === "bo" ? s.green : s.grey, m = Math.round(prog * (n - 1));
+      if (m < 1) continue;
+      let d = "";
+      for (let j = 0; j <= m; j++) { const y = a.y[j]; if (y === null) continue; d += (d ? " L " : "M ") + (px + ux(st.x[j]) * PW).toFixed(1) + " " + (py + (1 - y) * PH).toFixed(1); }
+      const [c, w, op] = a.kind === "bads" ? [AM, 3, 1] : a.kind === "bo" ? [G, 2, 0.9] : [GREY, 1.3, 0.55];
+      o += `<path d="${d}" fill="none" stroke="${c}" stroke-opacity="${op}" stroke-width="${w}" stroke-linejoin="round"${a.kind === "bads" ? ' filter="url(#glA)"' : ""}/>`;
+    }
+  });
+  // the axes, named once per row; the footnote says the rest
+  o += `<text x="${PX[0] + PW}" y="${PY[0] + PH + 22}" fill="${GREY}" ${mono} text-anchor="end">SOLVED, BY EVALUATIONS &#8594;</text>`;
+  o += `<text x="${PX[0] + PW}" y="${PY[1] + PH + 22}" fill="${GREY}" ${mono} text-anchor="end">SOLVED, BY ERROR TOLERANCE &#8594;</text>`;
+  const lg = [["BADS", AM, 3], ["Bayesian optimization", G, 2], ["other optimizers", GREY, 1.3]];     // the legend, under the top bar
+  let lx = 640 - (lg.reduce((w, [name]) => w + 34 + 8.2 * name.length, 0) + 2 * 30) / 2;
+  for (const [name, c, w] of lg) {
+    o += `<g opacity="${R(s.legend)}"><path d="M ${lx.toFixed(1)} 102 L ${(lx + 26).toFixed(1)} 102" stroke="${c}" stroke-width="${w}"/>` +
+      `<text x="${(lx + 34).toFixed(1)}" y="107" fill="${INK}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="15">${name}</text></g>`;
+    lx += 34 + 8.2 * name.length + 30;
+  }
+  return o + `</g></svg>`;
+}
+// 7.3: the studies that have used BADS, as points on the floor; four of them named, each from a paper that the PyBADS
+// paper cites.
+const FIELD = (() => { let a = 12345; const r = () => ((a = (a * 1664525 + 1013904223) % 4294967296) / 4294967296);
+  return Array.from({ length: 240 }, (_, i) => ({ x1: -4.8 + 9.6 * r(), x2: -4.8 + 9.6 * r(), t: 0.6 + 2.6 * Math.pow(i / 240, 0.7) })); })();
+const NAMED = [["brains", -2.6, 1.9, 2.9], ["board games", 1.6, 2.8, 3.5], ["oil wells", -1.8, -2.9, 4.2], ["wildfires", 2.9, -1.4, 4.9]];
+const YOU = [3.6, -2.6];       // the end card's new point: the viewer's own study
+const FOOT = {
+  mads: "*The SEARCH and POLL stages come from mesh adaptive direct search (MADS; Audet &amp; Dennis 2006).",
+  bench: "*Redrawn from Acerbi &amp; Ma (2017): 36 problems from six studies, 6 to 13 parameters, 50 runs per optimizer and problem, default settings. Fraction of runs solved, by evaluations (top) or, for noisy problems, by error tolerance (bottom).",
+  uses: "*Brains: Cao et al. 2019; Tajima et al. 2019. Board games: van Opheusden et al. 2023. Oil wells: Feng et al. 2022. Wildfires: Nobel et al. 2020.",
+};
+
+// A round of the direct search of scene 3 (an entry of MPOLL) as g goes from 0 to 1: the cross grows out of the ring,
+// its steps are tried in turn (the first that lands lower ends the round), then the ring moves and the mesh doubles,
+// or the mesh halves. meshK dims the mesh (it fades in at line 3.2).
+function pollRound(p, g, k = 1, meshK = 1) {
+  const c = { x1: p.center[0], x2: p.center[1], f: p.f }, hitArm = p.arms.find((a) => a.status.startsWith("hit"));
+  const to = hitArm ? { x1: hitArm.x[0], x2: hitArm.x[1], f: hitArm.f } : c, tried = p.arms.filter((a) => a.f !== undefined && a.status !== "skipped");
+  const tv = 0.15 + 0.15 * tried.length, verdict = ramp(g, tv, tv + 0.2), cross = 1 - ramp(g, tv + 0.2, tv + 0.32);
+  const cur = { x1: lerp(c.x1, to.x1, verdict), x2: lerp(c.x2, to.x2, verdict), f: lerp(c.f, to.f, verdict) };
+  drawMesh(cur, lerp(p.step, p.moved ? Math.min(2 * p.step, 4) : p.step / 2, verdict), k * meshK, 2);
+  const y = sy(c.f), grow = ramp(g, 0, 0.12);
+  for (const a of p.arms) {
+    if (a.status === "outside") continue;
+    const m = tried.indexOf(a), hit = a.status.startsWith("hit"), q = m >= 0 ? ramp(g, 0.12 + 0.15 * m, 0.27 + 0.15 * m) : 0, hot = hit && q > 0.6;
+    const ka = k * cross * (a.status === "skipped" ? lerp(0.5, 0.15, ramp(g, tv - 0.1, tv)) : hot ? 1.4 : 0.55);
+    const ex = lerp(c.x1, a.x[0], grow), ez = lerp(c.x2, a.x[1], grow);
+    fl(c.x1, c.x2, y, ex, ez, y, hot ? C.warm : C.purple, ka); P.pt(sx(ex), y, sz(ez), hot ? C.warm : C.purple, ka, 8);
+    if (q > 0) { const ya = lerp(y, sy(a.f), q); dashed(sx(a.x[0]), y, sz(a.x[1]), ya, hot ? C.warm : C.purple, 0.8 * k * cross); P.pt(sx(a.x[0]), ya, sz(a.x[1]), hot ? C.warm : C.amber, hot ? 1.7 * k : 0.9 * k, hot ? 11 : 7); }
+  }
+  drawBest(cur, k);
+}
+
+// The state of scene 4's diagram at a moment, from the values a shot sets; the rest take their defaults.
+const S4 = (o) => ({ show: 1, names: 1, headS: 1, headP: 1, longS: 1, longP: 1, motto: 1, litS: 1, litP: 1, sp: 0, pp: 0, loop: 0, loopPulse: 0,
+  toPoll: 0, fails: 0, toPollLit: 0, toSearch: 0, dots: 0, whyS: 0, whyP: 0, collect: 0, failFlash: 0, searchPulse: 0, foot: 0, ...o });
+
+const SHOTS = [
+  // ---------------------------------------------------------------- 1. The problem
+  { id: "1.1", line: "Which parameters of your model fit your data best?", cam: CAM.wide, dur: 4,
+    note: "The plane of the two parameters. A point glides across it: each position is one setting of the parameters.",
+    draw(t) { drawFloor(1.4 * ramp(t, 0, 0.8)); const p = glide(G11[0], G11[1], lin(t, 0.6, 3.6)); P.pt(sx(p[0]), 0, sz(p[1]), C.white, 1.6 * ramp(t, 0.5, 1.0), 10); },
+    labels: (t) => { const p = glide(G11[0], G11[1], lin(t, 0.6, 3.6)); return [["parameter 1", "small", at3(0, -5, FMIN), -4, 1.6, "", ramp(t, 0.6, 1.2)], ["parameter 2", "small", at3(5, 0, FMIN), 1.2, 0.6, "", ramp(t, 0.6, 1.2)], ["one setting of the parameters", "plain w", [sx(p[0]), 0, sz(p[1])], 1.4, -2.6, "", ramp(t, 1.2, 1.8)]]; } },
+  { id: "1.2", line: "The ones that minimize the error, or make your data most probable.", cam: CAM.wide, dur: 4.5,
+    note: "The point glides on, and a stem rises from it to that setting's error, labelled “error”: the height of a landscape the viewer has not seen yet. The stem grows and shrinks as the point moves.",
+    draw(t) { drawFloor(1.4); const p = glide(GE[0], GE[1], lin(t, 0.2, 4.2)); P.pt(sx(p[0]), 0, sz(p[1]), C.white, 1.6, 10); errorStem(p, ramp(t, 0.4, 1.2)); },
+    labels: (t) => { const p = glide(GE[0], GE[1], lin(t, 0.2, 4.2)); return [["parameter 1", "small", at3(0, -5, FMIN), -4, 1.6], ["parameter 2", "small", at3(5, 0, FMIN), 1.2, 0.6], ["one setting of the parameters", "plain w", [sx(p[0]), 0, sz(p[1])], 1.4, -2.6, "", 1 - ramp(t, 0, 0.6)], errorLabel(p, ramp(t, 1.0, 1.6))]; } },
+  { id: "1.3", line: "This is an optimization problem.", cam: CAM.wide, dur: 3,
+    note: "Hold on the plane, a little brighter. The point glides on with its error; nothing new appears: the line names the problem that the picture already shows.",
+    draw(t) { drawFloor(lerp(1.4, 1.7, ramp(t, 0, 1))); const p = glide(G13[0], G13[1], lin(t, 0.2, 2.8)); P.pt(sx(p[0]), 0, sz(p[1]), C.white, 1.6, 10); errorStem(p, 1); },
+    labels: (t) => { const p = glide(G13[0], G13[1], lin(t, 0.2, 2.8)); return [["parameter 1", "small", at3(0, -5, FMIN), -4, 1.6], ["parameter 2", "small", at3(5, 0, FMIN), 1.2, 0.6], errorLabel(p, 1)]; } },
+  { id: "1.4", line: "Picture the error as a landscape: the lower the ground, the better the fit. You want the lowest point.", cam: CAM.wide, dur: 6.5,
+    note: "The true landscape rises out of the floor, grey, through the stem of the error, whose top it meets. A long diagonal valley, and a narrow trench that leaves it and runs down to the lowest point.",
+    draw(t) { drawFloor(1); truthSheet.draw(rise(truthAt, ramp(t, 0.2, 2.6)), greyColor, 0.5 * ramp(t, 0, 0.6)); P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * ramp(t, 4.3, 4.8), 11);
+      const e = 1 - ramp(t, 2.6, 3.4); if (e > 0.004) { P.pt(sx(G13[1][0]), 0, sz(G13[1][1]), C.white, 1.6 * e, 10); errorStem(G13[1], e); } },
+    labels: (t) => [errorLabel(G13[1], 1 - ramp(t, 1.8, 2.4)), ["worse fit", "plain w", at3(-3.6, 3.2, ftrue(-3.6, 3.2)), 0, -2.4, " translate(-50%, 0)", ramp(t, 2.4, 3.0)], ["better fit", "plain w", at3(-2.3, -2.3, ftrue(-2.3, -2.3)), -1.5, -3.5, " translate(-100%, 0)", ramp(t, 3.0, 3.6)], ["lowest point", "plain w", at3(XMIN[0], XMIN[1], FMIN), 1.2, -0.4, "", ramp(t, 4.5, 5.1)]] },
+  { id: "1.5", line: "But you can't see the landscape. Each evaluation gives the height at a single point.", cam: CAM.wide, dur: 6,
+    note: "The landscape fades out. One evaluation drops onto the start, at its height, with a line down to the floor.",
+    draw(t) { drawFloor(1); truthSheet.draw(truthAt, greyColor, 0.5 * (1 - ramp(t, 0.2, 1.6))); P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * (1 - ramp(t, 0.2, 1.2)), 11);
+      dropPt(EV[0][0], EV[0][1], EV[0][2], lin(t, 2.4, 3.0), C.warm, 1.7, 11, 0.4); },
+    labels: (t) => [["one evaluation", "plain w", at3(EV[0][0], EV[0][1], EV[0][2]), 1.3, -2.2, "", ramp(t, 3.2, 3.7)]] },
+  // ---------------------------------------------------------------- 2. Bayesian optimization (illustration)
+  { id: "2.1", line: "Bayesian optimization fits a surrogate to the points it has seen: a statistical model of the whole landscape.", cam: CAM.wide, ill: true, dur: 7,
+    note: "Five evaluations drop onto the floor's landscape. The surrogate rises out of them as a green sheet: bright where it is sure, faint where it is not.",
+    draw(t) { drawFloor(0.7); const p = ptsBO(1, 5), f0 = p.reduce((a, q) => a + q.f, 0) / p.length, r = ramp(t, 2.6, 4.4);
+      gpSheet.draw((x1, x2) => { const v = gpAt(BS[0])(x1, x2); return { f: lerp(f0, v.f, r), sd: v.sd }; }, (v) => gpColor(v).map((c) => Math.min(1, c * 1.6 + 0.08)), 0.6 * ramp(t, 2.4, 3.2));
+      dropAll(p, t, 0.4, 0.4, [], 1.2); },
+    labels: (t) => [["surrogate", "term", at3(1.5, 3.2, sample(BS[0], "mu", 1.5, 3.2)), 0, -2.2, " translate(-50%, 0)", ramp(t, 4.6, 5.2)]] },
+  { id: "2.2", line: "It evaluates where the ground looks low, or might be. Then it updates the surrogate, and repeats.", cam: CAM.corner, ill: true, dur: 7.5,
+    note: "Labels name the two kinds of ground: “looks low” where the sheet dips near the start, “might be low” where it is faint, down the valley. The first try goes to the faint edge of the box and lands higher than predicted; the sheet reshapes around it. Five more tries follow quickly, then the seventh, picked where the sheet is low and sure, lands lower than any point before.",
+    draw(t) {
+      drawFloor(0.7); const s = bo22(t); gpSheet.draw(s.sheet, (v) => gpColor(v).map((c) => Math.min(1, c * 1.3 + 0.04)), 0.5); drawPoints(ptsBO(1, 5 + s.landed), 1, [12]);
+      if (s.cur >= 0 && t < (BO22[s.cur + 1] || [99])[0]) { const T = BO_TRY(s.cur), w = s.w, d = ramp(t, w[1], w[2]), X = sx(T.x1), Z = sz(T.x2), yP = sy(T.mu), k = 1 - ramp(t, w[3], w[4]);
+        P.pt(X, yP, Z, C.green, 1.3 * ramp(t, w[0], w[1]) * k, 8);
+        if (d > 0) { const y = lerp(yP, sy(T.f), d); dashed(X, yP, Z, y, C.white, 0.75 * k); if (t < w[2]) P.pt(X, y, Z, C.amber, 1.0, 8); } } },
+    labels(t) {
+      const s = bo22(t), at = (x1, x2) => at3(x1, x2, s.sheet(x1, x2).f), T = BO_TRY(6), out = [];
+      out.push(["might be low", "small g", at(-1.4, -1.4), 1.2, -2.2, "", ramp(t, 2.2, 2.7)]);
+      out.push(["looks low", "small g", at(-4.7, -4.35), -1.2, -2.4, " translate(-100%, 0)", ramp(t, 1.3, 1.8) * (1 - ramp(t, 3.6, 4.0))]);
+      out.push(["looks low", "small g", at3(T.x1, T.x2, T.mu), 2.2, -0.5, "", ramp(t, 6.45, 6.8)]);
+      return out; },
+    bracket(t) { const w0 = BO22[0], w6 = BO22[6];
+      if (t >= w0[0] && t < w0[3]) return { ...BO_TRY(0), a: ramp(t, w0[0], w0[1]) * (1 - ramp(t, w0[2], w0[3])) };
+      if (t >= w6[0]) return { ...BO_TRY(6), a: ramp(t, w6[0], w6[1]) }; return null; } },
+  { id: "2.3", line: "When the surrogate is accurate, this is smart and fast.", cam: (t) => camLerp(CAM.corner, CAM.valley, ramp(t, 0, 1.6)), ill: true, dur: 5,
+    note: "A quick time-lapse: each point lands lower down the valley, and the sheet follows the valley's shape.",
+    draw(t) {         // 2.2 ends with seven tries landed on BS[6]: the sheet takes the seventh in, then the tries 8 to 11, one every 0.9 s
+      drawFloor(0.7); const v = lin(t, 0.8, 4.4) * 4, j = Math.min(3, Math.floor(v)), u = v - j;
+      const sheet = t < 0.8 ? gpMix(BS[6], BS[7], ramp(t, 0.2, 0.8)) : v >= 4 ? gpAt(BS[11]) : gpMix(BS[7 + j], BS[8 + j], ramp(u, 0.6, 1));
+      gpSheet.draw(sheet, gpColor, 0.5); const n = 12 + (t < 0.8 ? 0 : Math.min(4, j + (u >= 0.5 ? 1 : 0))), p = ptsBO(1, n);
+      drawPoints(p); drawPath(pathBest(p), 1.6); drawBest(best(p)); } },
+  { id: "2.4", line: "But the surrogate can be wrong. If the landscape has a shape it can't capture, it keeps pointing to the wrong places.", cam: (t) => camLerp(CAM.valley, CAM.wide, ramp(t, 0, 2.5)), ill: true, dur: 8,
+    note: "The last tries pile up on the valley's floor, where the surrogate keeps pointing. The true landscape appears faintly under the sheet: the trench, which the smooth surrogate has no trace of.",
+    draw(t) {
+      drawFloor(0.7); const v = lin(t, 0.3, 3.5) * 5, j = Math.min(5, Math.floor(v)), u = v - j;            // the sheet BS[11 + j], the tries 12 to 16
+      const sheet = j >= 5 ? gpAt(BS[16]) : gpMix(BS[11 + j], BS[12 + j], ramp(u, 0.6, 1));
+      truthSheet.draw(truthAt, greyColor, 0.22 * ramp(t, 3.2, 4.6)); gpSheet.draw(sheet, gpColor, 0.45);
+      const n = 16 + Math.min(5, j + (u >= 0.5 ? 1 : 0)), p = ptsBO(1, n); drawPoints(p, 1, [17, 18, 19, 20, 21]); drawBest(best(p));
+      P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * ramp(t, 5.6, 6.0), 11); },
+    labels: (t) => [["where the surrogate points", "small g", at3(-0.5, -0.5, 0), -1.5, -2.6, " translate(-100%, 0)", ramp(t, 4.0, 4.6)], ["the trench it cannot see", "small k", at3(4.6, -0.5, ftrue(4.6, -0.5)), 1.2, 0.6, "", ramp(t, 4.8, 5.4)], ["true lowest point", "small w", at3(XMIN[0], XMIN[1], FMIN), 1.2, -1.6, "", ramp(t, 5.6, 6.2)]] },
+  // ---------------------------------------------------------------- 3. Direct search (illustration)
+  { id: "3.1", line: "Instead, direct search uses no surrogate.", cam: CAM.start, ill: true, dur: 3.5,
+    note: "Back to the start. No sheet: only the evaluations, and the best point so far, ringed.",
+    draw(t) { drawFloor(0.7); dropAll(ptsMADS(1, 1), t, 0.2, 0.4); drawBest({ x1: -4, x2: -4, f: ILL.mads.log[0][2] }, ramp(t, 0.8, 1.3)); },
+    labels: (t) => [["best point so far", "plain w", at3(-4, -4, ILL.mads.log[0][2]), 1.4, -2.4, "", ramp(t, 1.3, 1.8)]] },
+  { id: "3.2", line: "From the best point so far, it tries a step in each direction, on a grid called the mesh.", cam: CAM.start, ill: true, dur: 7,
+    note: "The mesh appears as purple studs around the best point. The four steps go out along the parameters, one after another; each lands on the ground it measures. Here, all four are higher.",
+    draw(t) { drawFloor(0.7); pollRound(MPOLL[1], 0.74 * lin(t, 2.0, 5.8), 1, ramp(t, 0.4, 1.4)); },
+    labels: (t) => [["mesh", "term", at3(MPOLL[1].center[0] + 2 * MPOLL[1].step, MPOLL[1].center[1] - 2 * MPOLL[1].step, MPOLL[1].f), 0.8, 0.6, "", ramp(t, 1.0, 1.6)]] },
+  { id: "3.3", line: "If a step finds lower ground, it moves there and takes bigger steps. If none does, it takes smaller ones.", cam: CAM.start, ill: true, dur: 8,
+    note: "One step finds lower ground: the best point moves there and the mesh spreads to twice the spacing. The next round finds nothing, and the mesh tightens again.",
+    draw(t) { drawFloor(0.7); if (t < 4.0) pollRound(MPOLL[4], lin(t, 0.3, 3.8)); else pollRound(MPOLL[5], lin(t, 4.1, 7.6)); },
+    labels: (t) => { const h = MPOLL[4].arms.find((a) => a.status.startsWith("hit")), s = 2 * MPOLL[4].step, a = 1 - ramp(t, 4.0, 4.4);
+      return [["lower ground: move here", "small a", at3(h.x[0], h.x[1], h.f), -1.4, -2.4, " translate(-100%, 0)", ramp(t, 2.2, 2.7) * a], ["steps twice as long", "small p", at3(h.x[0] + 2 * s, h.x[1], h.f), 1, -0.6, "", ramp(t, 3.1, 3.6) * a]]; } },
+  { id: "3.4", line: "It can't be fooled, and it comes with convergence guarantees. But it is slow.", cam: (t) => camLerp(CAM.start, CAM.wide, ramp(t, 0, 3)), ill: true, dur: 7,
+    note: "A time-lapse of the whole run: a staircase of small steps down the valley, then along the trench to the lowest point. Plain direct search needs 68 evaluations to get within 1 of the minimum.",
+    draw(t) { drawFloor(0.7); const N = ILL.mads.log.length, n = 1 + Math.floor((N - 1) * lin(t, 0.3, 5.8)), p = ptsMADS(1, n);
+      drawPoints(p, 0.9, [], 0.06); drawPath(pathBest(p), 1.6); drawBest(best(p)); } },
+  // ---------------------------------------------------------------- 4. BADS (two cards, each over a panel that shows its stage at work)
+  { id: "4.1", line: "Bayesian Adaptive Direct Search, or BADS, combines the two.", cam: CAM.wide, dur: 4.5,
+    note: "The landscape gives way to two panels, side by side, in the look of scenes 2 and 3: on the left a surrogate around the best point, on the right the best point on its mesh. Under them, “Bayesian optimization” and “direct search”.",
+    st: (t) => S4({ show: ramp(t, 0.2, 1.4), names: ramp(t, 1.2, 2.0), headS: 0, headP: 0, longS: 0, longP: 0, motto: 0 }) },
+  { id: "4.2", line: "It alternates a SEARCH stage, Bayesian optimization around the best point, and a POLL stage, a round of direct search.",
+    caption: "It alternates a SEARCH stage, Bayesian optimization around the best point, and a POLL stage, a round of direct search.*", cam: CAM.wide, dur: 8,
+    note: "The SEARCH card lights over the left panel: a try is picked on the surrogate near the best point, lands lower, and the ring moves there. Then the POLL card lights over the right panel: the cross grows out of the ring, its steps are tried in turn, the third lands lower, the ring moves and the mesh doubles. The asterisk’s footnote appears bottom right and stays through the scene.",
+    st: (t) => S4({ headS: ramp(t, 0.8, 1.3), headP: ramp(t, 3.9, 4.4), longS: ramp(t, 1.7, 2.4), longP: ramp(t, 4.9, 5.6), motto: ramp(t, 6.4, 7.1),
+      litS: 1 - ramp(t, 4.0, 4.6), litP: Math.max(1 - ramp(t, 0.6, 1.2), ramp(t, 3.9, 4.4)), sp: lin(t, 1.7, 4.0), pp: lin(t, 4.6, 7.6), foot: ramp(t, 6.6, 7.2) }) },
+  { id: "4.3", line: "As long as the SEARCH finds better points, BADS keeps searching. When it fails several times in a row, BADS polls.", cam: CAM.wide, dur: 8,
+    note: "The SEARCH plays on: a miss, a try that lands lower, a miss. Its four marks read ● ✕ ● ✕, and the loop over its card lights: a better point, search again. Then the arrow to POLL appears, four crosses fill in on it, and on “BADS polls” the POLL card lights and its cross grows.",
+    st: (t) => S4({ litS: ramp(t, 0, 0.4) * (1 - ramp(t, 6.0, 6.5)), litP: Math.max(1 - ramp(t, 0, 0.4), ramp(t, 6.0, 6.5)), sp: 1 + 3 * lin(t, 0.4, 4.6), pp: 1 + 0.27 * lin(t, 6.3, 8.0),
+      loop: ramp(t, 0.6, 1.3), loopPulse: bump(t, 2.6, 3.6) + bump(t, 4.4, 5.2), toPoll: ramp(t, 4.0, 4.6), fails: 4 * lin(t, 4.6, 5.9), toPollLit: ramp(t, 6.0, 6.5), foot: 1 }) },
+  { id: "4.4", line: "The two stages help each other.", cam: CAM.wide, dur: 3.5,
+    note: "The arrow back from POLL to SEARCH appears: the cycle is closed. Meanwhile the POLL finishes its round: none of its four steps lands lower, and the mesh halves.",
+    st: (t) => S4({ litS: ramp(t, 0, 0.5), sp: 4, pp: 1.27 + 0.73 * lin(t, 0, 3.3), loop: 1, toPoll: 1, fails: 4, toPollLit: 1, toSearch: ramp(t, 0.3, 1.1), foot: 1 }) },
+  { id: "4.5", line: "When the surrogate fails, the POLL moves away from the region it can't model, and the points it collects help build a better surrogate for the next SEARCH.", cam: CAM.wide, dur: 11,
+    note: "The SEARCH card dims and its crosses flash. The POLL plays another round: its first step lands lower, the ring moves away and the mesh doubles; under it, “moves on without the surrogate”. Its points glow, travel along the arrow back to SEARCH (“its points: a better surrogate”), and the SEARCH card lights again.",
+    st: (t) => S4({ litS: clamp01(1 - ramp(t, 0.2, 0.8) + ramp(t, 7.8, 8.4)), sp: 4, pp: 2 + lin(t, 1.6, 4.4), loop: 1, toPoll: 1, fails: 4, toPollLit: 1, toSearch: 1, foot: 1,
+      failFlash: bump(t, 0.2, 1.4), whyP: ramp(t, 2.6, 3.2), collect: ramp(t, 4.8, 5.4), dots: lin(t, 5.6, 8.0), whyS: ramp(t, 6.2, 6.8), searchPulse: bump(t, 7.8, 9.6) }) },
+  // ---------------------------------------------------------------- 5. The run (seed 25)
+  { id: "5.1", line: "Here is a real PyBADS run, on the same landscape.", cam: CAM.valley, hud: { mode: "", pips: "" }, dur: 4,
+    note: "Dark landscape, the start, and the stage indicator top left. Nothing lit yet.",
+    draw(t) { drawFloor(0.8 * ramp(t, 0, 0.8)); dropPt(EV[0][0], EV[0][1], EV[0][2], lin(t, 1.4, 2.0), C.warm, 1.7, 11, 0.4); } },
+  { id: "5.2", line: "It starts with a few evaluations and fits the surrogate. The SEARCH heads downhill fast.", cam: CAM.valley, dur: 9,
+    hud: (t) => (t < 3.6 ? { mode: "", pips: "" } : { mode: "s", pips: pipsOf(runSearches(t, 1, 8, 3.6, 0.62).marks) }),
+    note: "The first evaluations drop. The surrogate rises: a smooth valley. Then the SEARCH lights up and the best point runs down the valley, one round of four tries at a time.",
+    draw(t) {
+      drawFloor(0.7); const r = runSearches(t, 1, 8, 3.6, 0.62), init = ptsRun(1, 8), rs = ramp(t, 1.6, 2.8);
+      const sheet = r.cur ? r.sheet : (x1, x2) => { const v = gpAt(RS[1])(x1, x2); return { f: lerp(2, v.f, rs), sd: v.sd }; };
+      gpSheet.draw(sheet, gpColor, 0.5 * ramp(t, 1.4, 2.4));
+      init.forEach((q, i) => dropPt(q.x1, q.x2, q.f, lin(t, i < 5 ? 0.2 + 0.25 * i : 2.8 + 0.3 * (i - 5), (i < 5 ? 0.2 + 0.25 * i : 2.8 + 0.3 * (i - 5)) + 0.35), q.n === 1 ? C.warm : C.amber, q.n === 1 ? 1.4 : 1.05));
+      drawPoints(ptsRun(9, r.nDone)); if (r.cur && r.u < 1) runTry(r.cur.evals[0] + 1, r.u);
+      drawPath(movesUpTo(r.nDone), 1.6); drawBest(r.ring, ramp(t, 0.4, 0.9)); } },
+  { id: "5.3", line: "But the trench is too narrow for the surrogate. From one deep point, it predicts deep ground where there is none, and four searches in a row fail.", cam: (t) => camLerp(CAM.valley, CAM.wide, ramp(t, 0, 3)), dur: 10,
+    hud: (t) => ({ mode: "s", pips: pipsOf(t < 4.2 ? runSearches(t, 9, 12, 0.2, 0.62).marks : runSearches(t, 13, 16, 4.4, 1.1).marks) }),
+    note: "Evaluation 20 lands in the trench's mouth, deep. The surrogate caves in: it now predicts deep ground across whole regions. Four tries follow its predictions, and each lands far above them (white dashes). Four crosses.",
+    draw(t) {
+      drawFloor(lerp(0.7, 0.25, ramp(t, 2.5, 4))); const a = runSearches(t, 9, 12, 0.2, 0.62);
+      if (t < 4.2) { gpSheet.draw(t < 2.8 ? a.sheet : gpMix(RS[12], RS[13], ramp(t, 2.8, 4.0)), gpColor, lerp(0.5, 0.42, ramp(t, 2.8, 4))); drawPoints(ptsRun(1, a.nDone), 0.7, [20]); if (a.cur && a.u < 1) runTry(a.cur.evals[0] + 1, a.u); drawBest(a.ring); }
+      else { const b = runSearches(t, 13, 16, 4.4, 1.1); gpSheet.draw(gpAt(RS[13]), gpColor, 0.42); drawPoints(ptsRun(1, 20), 0.7, [20]);
+        RUN.steps.slice(13, 17).forEach((st, i) => { const u = lin(t, 4.4 + 1.1 * i, 5.5 + 1.1 * i); if (u > 0) runTry(st.evals[0] + 1, u, 1, true); }); drawBest(bestAt(20)); } },
+    labels: (t) => [["one deep point", "small a", at3(EV[19][0], EV[19][1], EV[19][2]), 1.4, -1.2, "", ramp(t, 2.6, 3.1)]] },
+  { id: "5.4", line: "So PyBADS polls. One step lands in the trench, far lower than any point before, and the mesh grows.", cam: (t) => camLerp(CAM.wide, CAM.poll, ramp(t, 0, 1.6)), dur: 8,
+    hud: (t) => ({ mode: "p", pips: [1, 2, 0, 3].map((i, j) => (t >= 2.0 + 0.9 * j + 0.5 ? (RUN_POLL.arms[i].status.startsWith("hit") ? "o" : "x") : ".")) }),
+    note: "The surrogate dims. The cross goes out from the best point; its steps are tried in turn, in the order the surrogate suggests. The step along the trench lands far lower. The best point moves there, and the mesh studs spread to twice the spacing.",
+    draw(t) {
+      drawFloor(0.7); gpSheet.draw(gpAt(RS[17]), gpColor, lerp(0.42, 0.15, ramp(t, 0, 1))); drawPoints(ptsRun(1, 24), 0.5);
+      const c = { x1: RUN_POLL.x0[0], x2: RUN_POLL.x0[1], f: RUN_POLL.f0 }, nb = { x1: RUN_POLL.x1[0], x2: RUN_POLL.x1[1], f: RUN_POLL.f1 }, y = sy(c.f), grow = ramp(t, 1.2, 1.8);
+      const order = [1, 2, 0, 3], mv = ramp(t, 5.6, 6.3);
+      order.forEach((i, j) => { const a = RUN_POLL.arms[i], q = lin(t, 2.0 + 0.9 * j, 2.5 + 0.9 * j), hit = a.status.startsWith("hit"), hot = hit && q >= 1;
+        const ex = lerp(c.x1, a.x[0], grow), ez = lerp(c.x2, a.x[1], grow), ka = (hot ? 1.4 : 0.55) * (1 - 0.5 * mv);
+        fl(c.x1, c.x2, y, ex, ez, y, hot ? C.warm : C.purple, ka); P.pt(sx(ex), y, sz(ez), hot ? C.warm : C.purple, ka, 8);
+        if (q > 0 && a.eval !== null) { const f = EV[a.eval][2], ya = lerp(y, sy(f), ease(q)); dashed(sx(a.x[0]), y, sz(a.x[1]), ya, hot ? C.warm : C.purple, 0.8 * ka); P.pt(sx(a.x[0]), ya, sz(a.x[1]), hot ? C.warm : C.amber, hot ? 1.7 : 0.9, hot ? 11 : 7); } });
+      const r = { x1: lerp(c.x1, nb.x1, mv), x2: lerp(c.x2, nb.x2, mv), f: lerp(c.f, nb.f, mv) };
+      drawStuds(r, lerp(RUN_POLL.mesh * 4, RUN_POLL.mesh1 * 4, ramp(t, 6.3, 7.2)), 0.9 * ramp(t, 0.6, 1.2)); drawBest(r); },
+    labels: (t) => [["the trench", "small k", at3(3.3, -0.5, ftrue(3.3, -0.5)), 1, 1.2, "", ramp(t, 4.4, 5.0)], ["far lower", "small a", at3(RUN_POLL.x1[0], RUN_POLL.x1[1], RUN_POLL.f1), 1.4, -1.4, "", ramp(t, 4.6, 5.2)]] },
+  { id: "5.5", line: "The points from the POLL show the surrogate the shape of the trench.", cam: (t) => camLerp(CAM.poll, CAM.trench, ramp(t, 0, 2)), hud: { mode: "s", pips: "" }, dur: 6,
+    note: "The POLL's points glow. The surrogate refits on them, and a groove opens along the trench.",
+    draw(t) { drawFloor(0.7); gpSheet.draw(gpMix(RS[17], RS[18], ramp(t, 1.2, 4.0)), gpColor, lerp(0.15, 0.55, ramp(t, 1.0, 3.0))); drawPoints(ptsRun(1, 24), 0.7); drawPoints(ptsRun(25, 28), 0.7 + 0.6 * bump(t, 0.2, 3.0), [25, 26, 27, 28]); drawBest({ x1: RUN_POLL.x1[0], x2: RUN_POLL.x1[1], f: RUN_POLL.f1 }); } },
+  { id: "5.6", line: "Now the SEARCH is fast again: its next point lands near the bottom of the trench.", cam: CAM.trench, dur: 6,
+    hud: (t) => ({ mode: "s", pips: t >= 2.4 ? "o" : "" }),
+    note: "One try, picked on the new surrogate, lands near the bottom: the best point jumps along the trench.",
+    draw(t) { drawFloor(0.7); gpSheet.draw(gpAt(RS[18]), gpColor, 0.45); drawPoints(ptsRun(1, 28), 0.6); const u = lin(t, 0.6, 3.2); runTry(29, u, 1, true);
+      const a = bestAt(28), b = bestAt(29), m = ramp(u, 0.6, 0.8), r = { x1: lerp(a.x1, b.x1, m), x2: lerp(a.x2, b.x2, m), f: lerp(a.f, b.f, m) };
+      if (m > 0) drawPath([a, r], 1.6); drawBest(r); },
+    bracket: (t) => ({ ...RUN_TRY(29), a: ramp(t, 0.6, 1.0) }) },
+  { id: "5.7", line: "When no step improves any more, the mesh shrinks, and PyBADS settles on the minimum.", cam: (t) => camLerp(CAM.trench, CAM.bottom, ramp(t, 0, 2.5)), dur: 8,
+    hud: (t) => { const n = 29 + Math.floor((EV.length - 29) * lin(t, 0.3, 6.8)), st = RUN.steps.find((s) => s.evals.includes(n - 1)); return { mode: st && st.kind === "poll" ? "p" : "s", pips: "" }; },
+    note: "A time-lapse of the end: searches that improve little, polls that find nothing, the studs closing in around the best point, until PyBADS stops.",
+    draw(t) {
+      const n = 29 + Math.floor((EV.length - 29) * lin(t, 0.3, 6.8)), st = RUN.steps.find((s) => s.evals.includes(n - 1)) || lastRunStep;
+      drawFloor(0.7); gpSheet.draw(gpAt(RS[Math.min(RS.length - 1, st.state)]), gpColor, 0.3); drawPoints(ptsRun(1, n), 0.6);
+      const polls = RUN.steps.slice(18).filter((s) => s.kind === "poll" && s.evals[0] < n);      // the polls so far after the rescue
+      polls.forEach((s, i) => { const c = { x1: s.x0[0], x2: s.x0[1], f: s.f0 }, step = s.mesh * 4, y = sy(c.f), k = 0.35 + 0.65 * (i / Math.max(1, polls.length - 1));
+        for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const e1 = c.x1 + a * step, e2 = c.x2 + b * step; if (Math.abs(e1) > 5.001 || Math.abs(e2) > 5.001) continue; fl(c.x1, c.x2, y, e1, e2, y, C.purple, 0.75 * k); P.pt(sx(e1), y, sz(e2), C.purple, 0.8 * k, 6); } });
+      drawBest(bestAt(n)); },
+    labels: (t) => [["each failed poll: shorter steps", "small p", at3(XMIN[0] + 2, XMIN[1], FMIN), 1, -1.2, "", ramp(t, 3.5, 4.1)]] },
+  // ---------------------------------------------------------------- 6. The close
+  { id: "6.1", line: "PyBADS never saw the true landscape. Here it is.", cam: (t) => camLerp(CAM.bottom, CAM.wide, ramp(t, 0, 2.2)), dur: 6,
+    note: "The camera pulls back over the surrogate. On “Here it is”, the true landscape rises in grey under it. Along the trench, the two coincide.",
+    draw(t) { drawFloor(0.7); truthSheet.draw(rise(truthAt, ramp(t, 2.6, 4.4)), greyColor, 0.42 * ramp(t, 2.4, 3.2)); gpSheet.draw(gpAt(RS[RS.length - 1]), gpColor, 0.35); drawPoints(ptsRun(1, EV.length), 0.8); } },
+  { id: "6.2", line: "Smart and fast when the surrogate is right. Slow but steady when it's wrong.", cam: CAM.wide, dur: 6.5,
+    note: "The surrogate goes. The best point's whole path draws itself, coloured by the stage that made each move: green for the SEARCH, purple for the POLL.",
+    draw(t) {
+      const fade = ramp(t, 0, 1.2); drawFloor(0.7); truthSheet.draw(truthAt, greyColor, lerp(0.42, 0.18, fade)); gpSheet.draw(gpAt(RS[RS.length - 1]), gpColor, 0.35 * (1 - fade));
+      drawPoints(ptsRun(1, EV.length), lerp(0.8, 0.45, fade)); const m = Math.max(1, Math.round(MOVES.length * lin(t, 0.6, 4.6))), path = MOVES.slice(0, m);
+      drawPath(path, 1.4, true); for (const q of path) P.pt(sx(q.x1), sy(q.f), sz(q.x2), q.by === "poll" ? C.purple : q.by === "search" ? C.green : C.amber, 1.2, 8); drawBest(path[path.length - 1]); },
+    labels: (t) => { const pm = MOVES.find((m) => m.by === "poll"); return [["SEARCH", "small g", at3(-2.4, -2.4, ftrue(-2.4, -2.4)), -1, -2.4, " translate(-100%, 0)", ramp(t, 1.4, 2.0)], ["POLL", "small p", at3(pm.x1, pm.x2, pm.f), 0.8, -2.2, "", ramp(t, 3.4, 4.0)]]; } },
+  // ---------------------------------------------------------------- 7. The record
+  { id: "7.1", line: "That landscape had two parameters. BADS works with up to twenty, on rugged or noisy landscapes.", cam: CAM.wide, dur: 7,
+    note: "The landscape of line 6.2 shrinks into the first of three tiles, labelled “two parameters”; on “up to twenty” the label dissolves into “up to ~20 parameters”. On “rugged or noisy landscapes” two more tiles appear beside it: a bowl under many bumps, “rugged”, and a bowl seen through noise that changes from frame to frame, “noisy”.",
+    tiles: (t) => ({ shrink: lin(t, 0.4, 2.0), others: ramp(t, 3.7, 4.6), a: 1, seed: Math.floor(t * 10), lab0: ramp(t, 1.6, 2.2), swap: ramp(t, 2.9, 3.6), lab1: ramp(t, 4.3, 4.8), lab2: ramp(t, 4.9, 5.4) }) },
+  { id: "7.2", line: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.",
+    caption: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.*", cam: CAM.wide, dur: 6.5,
+    note: "The tiles give way to six charts, the six studies of the BADS paper’s benchmark: fraction of runs solved, by evaluations for the three deterministic studies (top) and by error tolerance for the three noisy ones (bottom). The other optimizers draw in grey, plain Bayesian optimization in green, then BADS in amber, above them in every chart. The footnote gives the source.",
+    tiles: (t) => ({ shrink: 1, others: 1, a: 1 - ramp(t, 0, 0.6), seed: Math.floor(t * 10), lab0: 1, swap: 1, lab1: 1, lab2: 1 }),
+    chart: (t) => ({ show: ramp(t, 0.4, 1.0), grey: lin(t, 0.9, 2.4), green: lin(t, 2.2, 3.0), amber: lin(t, 2.9, 4.3), legend: ramp(t, 4.2, 4.8) }),
+    foot: "bench", footA: (t) => ramp(t, 4.4, 5.0) },
+  { id: "7.3", line: "Since then, it has been used in hundreds of studies, from brains and board games to oil wells and wildfires.",
+    caption: "Since then, it has been used in hundreds of studies, from brains and board games to oil wells and wildfires.*", cam: CAM.field, dur: 7.5,
+    note: "The charts fade. Hundreds of points light up across the floor, one for each study that has used BADS. As the narration names them, four points glow and take labels: “brains”, “board games”, “oil wells”, “wildfires”. The footnote gives a paper for each.",
+    chart: (t) => ({ show: 1 - ramp(t, 0, 0.7), grey: 1, green: 1, amber: 1, legend: 1 }),
+    draw(t) {
+      drawFloor(0.9);
+      for (const p of FIELD) { const a = ramp(t, p.t, p.t + 0.35); if (a > 0.01) P.pt(sx(p.x1), 0.004, sz(p.x2), C.amber, 0.75 * a, 6); }
+      for (const [, x1, x2, t0] of NAMED) { const a = ramp(t, t0, t0 + 0.4); if (a > 0.01) { P.pt(sx(x1), 0.004, sz(x2), C.warm, 1.7 * a, 11); ring(x1, x2, 0.004, 0.22, C.warm, 0.8 * a); } }
+    },
+    labels: (t) => NAMED.map(([name, x1, x2, t0]) => [name, "plain w", [sx(x1), 0.004, sz(x2)], 1.4, -2.4, "", ramp(t, t0, t0 + 0.4)]),
+    foot: "uses", footA: (t) => ramp(t, 5.4, 6.0) },
+  { id: "7.4", line: "Join them.", cam: CAM.field, endcard: true, dur: 5,
+    note: "The field of studies dims and its labels go. On “Join them.” one new point pops in among the others, white. Then the end card fades in over the field: “PyBADS”, then its version, “1.5”, popping in with a short green glow, then the rest of the card.",
+    draw(t) {
+      drawFloor(0.6);
+      for (const p of FIELD) P.pt(sx(p.x1), 0.004, sz(p.x2), C.amber, 0.45, 6);
+      for (const [, x1, x2] of NAMED) P.pt(sx(x1), 0.004, sz(x2), C.warm, 0.75, 8);
+      const a = ramp(t, 0.55, 0.8);
+      if (a > 0.01) { P.pt(sx(YOU[0]), 0.004, sz(YOU[1]), C.white, 2.0 * a, 13); ring(YOU[0], YOU[1], 0.004, 0.22 + 0.3 * (1 - a), C.white, 0.9 * a); }
+    },
+    ec: (t) => ({ bg: ramp(t, 1.3, 2.1), title: ramp(t, 1.6, 2.2), ver: ramp(t, 2.5, 2.62), pop: 0.4 + 0.6 * backOut(lin(t, 2.5, 2.85)),
+      glow: t > 2.5 ? Math.exp(-(t - 2.5) / 0.6) : 0, rest: ramp(t, 2.9, 3.6) }) },
+];
+
+// ================================================================ the diagram of scene 4, over its two panels
+// In the 1280 x 720 frame: each card is a header (SEARCH, POLL) over its panel, with what the stage is under it; the
+// arrows between the headers, the loop over SEARCH and the four marks of a round of tries in the SEARCH panel.
+function diagram4(s) {
+  const G = "#5cf2a6", PU = "#b78bff", INK = "#e4ece7", AM = "#ffad55", PS = PANEL.S, PP = PANEL.P, hy = 140, hh = 48;
+  const R = (v) => String(Math.round(v * 1000) / 1000);
+  const cond = 'font-family="IBM Plex Sans Condensed, Arial Narrow, sans-serif" font-weight="600"', sans = 'font-family="IBM Plex Sans, Arial, sans-serif"';
+  const serif = 'font-family="STIX Two Text, Times, serif" font-style="italic"';
+  const mk = (id, c) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`;
+  const cross = (x, y, r, c, a) => `<path d="M ${x - r} ${y - r} L ${x + r} ${y + r} M ${x - r} ${y + r} L ${x + r} ${y - r}" stroke="${c}" stroke-opacity="${R(a)}" stroke-width="2"/>`;
+  let o = `<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg"><defs>${mk("ahG", G)}${mk("ahP", PU)}${mk("ahW", INK)}` +
+    `<filter id="gl" x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  const card = (P0, c, name, lit, head, short, long, longF, motto) => {
+    const a = 0.3 + 0.7 * lit, cx = P0.x + P0.w / 2, by = P0.y + P0.h, ta = 0.5 + 0.5 * lit;
+    let g = `<g opacity="${R(s.show)}"><rect x="${P0.x}" y="${P0.y}" width="${P0.w}" height="${P0.h}" rx="3" fill="none" stroke="${c}" stroke-opacity="${R(0.2 + 0.35 * lit)}" stroke-width="1.5"/>`;
+    if (head > 0.003) g += `<g opacity="${R(head)}"><rect x="${P0.x}" y="${hy}" width="${P0.w}" height="${hh}" rx="3" fill="#000" fill-opacity="0.6" stroke="${c}" stroke-opacity="${R(a)}" stroke-width="2.5"/>` +
+      `<text x="${cx}" y="${hy + 35}" fill="${c}" fill-opacity="${R(a)}" ${cond} font-size="30" letter-spacing="5" text-anchor="middle"${lit > 0.6 ? ' filter="url(#gl)"' : ""}>${name}</text></g>`;
+    g += `<text x="${cx}" y="${by + 30}" fill="${INK}" fill-opacity="${R(s.names * (1 - longF) * ta)}" ${sans} font-size="17" text-anchor="middle">${short}</text>`;
+    g += `<text x="${cx}" y="${by + 30}" fill="${INK}" fill-opacity="${R(longF * ta)}" ${sans} font-size="17" text-anchor="middle">${long}</text>`;
+    g += `<text x="${cx}" y="${by + 56}" fill="${c}" fill-opacity="${R(s.motto * ta)}" ${serif} font-size="20" text-anchor="middle">${motto}</text>`;
+    return g + `</g>`;
+  };
+  o += card(PS, G, "SEARCH", s.litS, s.headS, "Bayesian optimization", "Bayesian optimization near the best point", s.longS, "smart and fast");
+  o += card(PP, PU, "POLL", s.litP, s.headP, "direct search", "a round of direct search", s.longP, "slow but steady");
+  // The marks of the SEARCH's round, top left in its panel: a dot for a try that lands lower than the best point, a cross for one that does not.
+  if (s.headS > 0.003) for (let j = 0; j < 4; j++) {
+    const x = PS.x + 22 + 22 * j, y = PS.y + 22, on = ramp(s.sp, j + 0.55, j + 0.7), a = s.headS * (0.45 + 0.55 * s.litS);
+    o += `<circle cx="${x}" cy="${y}" r="1.6" fill="${INK}" fill-opacity="${R(0.5 * a * (1 - on))}"/>`;
+    if (on > 0.003) o += SRCH[j].hit ? `<circle cx="${x}" cy="${y}" r="5" fill="${AM}" fill-opacity="${R(on * a)}"/>` : cross(x, y, 5, INK, Math.min(1, on * a * (1 + 1.2 * s.failFlash)));
+  }
+  if (s.loop > 0.003) {
+    const x0 = PS.x + 150, x1 = PS.x + 80, top = hy - 36, pw = 2.2 + 1.6 * Math.min(1, s.loopPulse);
+    o += `<g opacity="${R(s.loop)}"><path d="M ${x0} ${hy - 2} C ${x0} ${top}, ${x1} ${top}, ${x1} ${hy - 5}" fill="none" stroke="${G}" stroke-width="${R(pw)}" marker-end="url(#ahG)"${s.loopPulse > 0.3 ? ' filter="url(#gl)"' : ""}/>` +
+      `<text x="${(x0 + x1) / 2}" y="${top - 6}" fill="${G}" ${sans} font-size="16" text-anchor="middle">a better point: search again</text></g>`;
+  }
+  if (s.toPoll > 0.003) {
+    const y = hy + 16, a = 0.45 + 0.55 * s.toPollLit, mid = (PS.x + PS.w + PP.x) / 2;
+    o += `<g opacity="${R(s.toPoll)}"><path d="M ${PS.x + PS.w + 6} ${y} L ${PP.x - 8} ${y}" stroke="${INK}" stroke-opacity="${R(a)}" stroke-width="2.5" marker-end="url(#ahW)"/>` +
+      `<text x="${mid}" y="${y - 11}" fill="${INK}" fill-opacity="${R(a)}" ${sans} font-size="15" text-anchor="middle">fails 4 times in a row</text>`;
+    for (let i = 0; i < 4; i++) o += cross(mid - 33 + 22 * i, y - 40, 5, INK, clamp01(s.fails - i) * a);
+    o += `</g>`;
+  }
+  if (s.toSearch > 0.003) {
+    const y = hy + 36, mid = (PS.x + PS.w + PP.x) / 2;
+    o += `<g opacity="${R(s.toSearch)}"><path d="M ${PP.x - 6} ${y} L ${PS.x + PS.w + 8} ${y}" stroke="${PU}" stroke-width="2.5" marker-end="url(#ahP)"/>` +
+      `<text x="${mid}" y="${y + 24}" fill="${PU}" fill-opacity="${R(s.whyS)}" ${sans} font-size="15" text-anchor="middle">its points:</text>` +
+      `<text x="${mid}" y="${y + 43}" fill="${PU}" fill-opacity="${R(s.whyS)}" ${sans} font-size="15" text-anchor="middle">a better surrogate</text>`;
+    for (let i = 0; i < 3; i++) {                     // the POLL's points, carried back along the arrow
+      const q = clamp01(s.dots * 1.5 - 0.25 * i);
+      if (q <= 0 || q >= 1) continue;
+      const x = lerp(PP.x - 12, PS.x + PS.w + 14, q), al = Math.sin(Math.PI * q);
+      o += `<circle cx="${R(x)}" cy="${y}" r="10" fill="${AM}" fill-opacity="${R(0.2 * al)}"/><circle cx="${R(x)}" cy="${y}" r="4.5" fill="${AM}" fill-opacity="${R(al)}"/>`;
+    }
+    o += `</g>`;
+  }
+  if (s.whyP > 0.003) o += `<text x="${PP.x + PP.w / 2}" y="${PP.y + PP.h + 84}" fill="${PU}" fill-opacity="${R(s.whyP)}" ${sans} font-size="16" text-anchor="middle">moves on without the surrogate</text>`;
+  return o + `</svg>`;
+}
+function panelViews(s) {
+  const kS = s.show * (0.3 + 0.7 * s.litS), kP = s.show * (0.3 + 0.7 * s.litP);
+  return [
+    { rect: PANEL.S, cam: PANEL.S.cam, hm: PANEL.S.hm, draw: () => searchPanel(s.sp, kS, s.searchPulse) },
+    { rect: PANEL.P, cam: PANEL.P.cam, hm: PANEL.P.hm, draw: () => { pollPanel(s.pp, kP, s.collect); return {}; } },
+  ];
+}
+
+// ================================================================ draw one shot, at time t of its line (by default its end)
+function viewsOf(S, t) {       // the views a shot is drawn in: its panels, its tiles, or the whole frame
+  const s4 = S.st ? S.st(t) : null;
+  const cam = typeof S.cam === "function" ? S.cam(t) : S.cam;
+  const views = s4 ? panelViews(s4) : S.tiles ? tileViews(S.tiles(t)) : [{ rect: null, cam, hm: null, draw: () => { S.draw(t); return {}; } }];
+  return { s4, views };
+}
+// Draw a shot's views into rtS at brightness kg; with labels > 0, also its labels, at that opacity.
+function drawViews(S, t, views, kg, labelsK) {
+  KG = kg;
+  for (const v of views) {
+    HM = v.hm; VIEW = v.rect;
+    if (v.rect) {                                     // a panel: its own viewport of the frame, with its own camera
+      const x = Math.round((v.rect.x * W) / 1280) + 1, y = Math.round(((720 - v.rect.y - v.rect.h) * H) / 720) + 1;
+      const w = Math.round((v.rect.w * W) / 1280) - 2, h = Math.round((v.rect.h * H) / 720) - 2;
+      rtS.viewport.set(x, y, w, h); rtS.scissor.set(x, y, w, h); rtS.scissorTest = true;
+      setCamera(v.cam, w / h);
+    } else { rtS.viewport.set(0, 0, W, H); rtS.scissorTest = false; setCamera(v.cam); }
+    renderer.setRenderTarget(rtS);
+    L.begin(); P.begin();
+    truthSheet.draw(truthAt, greyColor, 0); gpSheet.draw(gpAt(RS[0]), gpColor, 0);
+    const out = v.draw() || {};
+    L.end(); P.end();
+    P.m.uniforms.uPx.value = (W / 1280) * (v.rect ? 1 : Math.sqrt(v.cam.zoom));
+    renderer.render(scene, cam);
+    if (labelsK > 0.003) {   // labels, placed with this view's camera
+      if (!v.rect && S.labels) for (const [text, cls, at, dx, dy, an, a] of S.labels(t)) { const e = label(text, cls, at, dx, dy, an || ""); e.style.opacity = ((a === undefined ? 1 : a) * labelsK).toFixed(3); }
+      const br = v.rect ? out.bracket : S.bracket ? S.bracket(t) : null;
+      if (br) { const e = label("<i></i><i></i><i></i><i></i>", v.rect ? "brk sm" : "brk", at3(br.x1, br.x2, br.mu)); e.style.opacity = ((br.a === undefined ? 1 : br.a) * labelsK).toFixed(3); }
+    }
+  }
+  KG = 1;
+}
+function begin() {
+  alloc();
+  labels.innerHTML = "";
+  rtS.scissorTest = false; rtS.viewport.set(0, 0, W, H); rtS.scissor.set(0, 0, W, H);
+  renderer.setRenderTarget(rtS); renderer.clear();
+}
+function render(k, t) {
+  const S = SHOTS[k];
+  if (!(t >= 0)) t = S.dur || 0;
+  begin();
+  const { s4, views } = viewsOf(S, t);
+  drawViews(S, t, views, 1, 1);
+  finish(S, t, s4, S.caption || S.line, 1);
+}
+// Post-processing and the overlays of shot S at time t: the caption given, and the HUD, diagram, footnote and end card.
+function finish(S, t, s4, caption, overK) {
+  HM = null; VIEW = null;
+  // With multisampling, each render copies the samples into rtS's texture inside the scissor of the moment, so after
+  // panels only their rectangles were copied and the rest of the texture kept an older frame. One empty render without
+  // the scissor copies the whole frame.
+  rtS.viewport.set(0, 0, W, H); rtS.scissor.set(0, 0, W, H); rtS.scissorTest = false;
+  renderer.setRenderTarget(rtS); renderer.render(EMPTY, cam);
+  let glow = rtS;
+  if (rt0) { blurMat.uniforms.t.value = rtS.texture; blurMat.uniforms.d.value.set(0, 0); pass(blurMat, rt0); glow = rt0; }
+  blur(glow, rt1a, rt1b, 1.0); blur(rt1b, rt2a, rt2b, 1.4);
+  outMat.uniforms.tS.value = rtS.texture; outMat.uniforms.t1.value = rt1b.texture; outMat.uniforms.t2.value = rt2b.texture;
+  const ec = S.endcard ? (S.ec ? S.ec(t) : { bg: 1, title: 1, ver: 1, pop: 1, glow: 0, rest: 1 }) : null;
+  outMat.uniforms.uFade.value = ec ? lerp(1, 0.55, ec.bg) : 1;
+  pass(outMat, null);
+  // overlays
+  $("cap").textContent = caption;
+  $("foot").innerHTML = FOOT[s4 ? "mads" : S.foot || "mads"];
+  $("foot").style.opacity = (s4 ? s4.foot : S.footA ? S.footA(t) : 0).toFixed(3);
+  const hud = typeof S.hud === "function" ? S.hud(t) : S.hud;
+  $("mode").style.opacity = hud ? 1 : 0;
+  if (hud) {
+    $("mSearch").classList.toggle("on", hud.mode === "s"); $("mPoll").classList.toggle("on", hud.mode === "p");
+    const pips = [...$("pips").children];
+    if (hud.pips === "poll") pips.forEach((e, i) => { const a = RUN_POLL.arms[[1, 2, 0, 3][i]]; const hit = a.status.startsWith("hit"); e.className = hit ? "hit" : "miss"; e.textContent = hit ? "●" : "✕"; });
+    else if (Array.isArray(hud.pips)) pips.forEach((e, i) => { const c = hud.pips[i]; e.className = c === "x" ? "miss" : c === "o" ? "hit" : ""; e.textContent = c === "x" ? "✕" : c === "o" ? "●" : "·"; });
+    else pips.forEach((e, i) => { const c = hud.pips[i]; e.className = c === "x" ? "miss" : c === "o" ? "hit" : ""; e.textContent = c === "x" ? "✕" : c === "o" ? "●" : "·"; });
+  }
+  const over = s4 ? diagram4(s4) : (S.chart ? chart7(S.chart(t)) : "") + (S.tiles ? tiles7(S.tiles(t)) : "");
+  $("diagram").style.display = over ? "block" : "none";
+  $("diagram").style.opacity = overK.toFixed(3);
+  if (over) $("diagram").innerHTML = over;
+  $("mode").style.opacity = hud ? overK.toFixed(3) : 0;
+  $("endcard").style.display = ec ? "grid" : "none";
+  if (ec) {                    // the card fades in over the scene; its version pops in after the name
+    const card = $("endcard"), v = card.querySelector(".t span");
+    card.style.background = `rgba(0, 0, 0, ${(0.72 * ec.bg).toFixed(3)})`;
+    card.querySelector(".t").style.opacity = ec.title.toFixed(3);
+    v.style.opacity = ec.ver.toFixed(3); v.style.transform = `scale(${ec.pop.toFixed(3)})`;
+    v.style.textShadow = ec.glow > 0.01 ? `0 0 ${(2.4 * ec.glow).toFixed(2)}cqw rgba(92, 242, 166, ${(0.9 * ec.glow).toFixed(3)})` : "none";
+    for (const c of card.querySelectorAll(".s, .c, .u, .r, .k")) c.style.opacity = ec.rest.toFixed(3);
+  }
+}
+
+// ================================================================ the film: the shots on the voice's timeline
+// film_timeline.js (written by voice.py) gives each scene's start and each line's start and length. A shot is on
+// screen from the start of its line to the start of the next; its motion, when it has a dur, is stretched over that
+// time. At every line the shot before fades out as the new one fades in, over XF seconds.
+const FILM = window.BADS_FILM || null, XF = 0.7;
+const CUES = [];
+if (FILM) {
+  for (const sc of FILM.scenes) for (const ln of sc.lines) {
+    const k = SHOTS.findIndex((x) => x.id === ln.id);
+    if (k < 0) throw new Error("the timeline names a line that no shot has: " + ln.id);
+    CUES.push({ k, start: sc.start + ln.start, seconds: ln.seconds, caption: ln.caption });
+  }
+  CUES.forEach((c, i) => { c.span = (i + 1 < CUES.length ? CUES[i + 1].start : FILM.seconds) - c.start; });
+}
+const shotTime = (c, t) => { const d = SHOTS[c.k].dur; return d ? Math.min(d, (Math.max(0, t) * d) / c.span) : t; };
+function renderFilm(T) {
+  let i = 0;
+  while (i + 1 < CUES.length && CUES[i + 1].start <= T) i++;
+  const c = CUES[i], S = SHOTS[c.k], t = T - c.start, m = i > 0 ? ramp(t, 0, XF) : 1, tS = shotTime(c, t);
+  begin();
+  if (m < 1) { const p = CUES[i - 1], Sp = SHOTS[p.k], tp = shotTime(p, p.span); drawViews(Sp, tp, viewsOf(Sp, tp).views, 1 - m, 0); }
+  const { s4, views } = viewsOf(S, tS);
+  drawViews(S, tS, views, m, m);
+  const speaking = t >= -0.05 && t <= c.seconds + 0.35;
+  finish(S, tS, s4, speaking ? c.caption : "", m);
+}
+
+// ================================================================ the events, for the score
+// What each shot shows, as [time in the shot's own seconds (its dur), kind, value]: an evaluation landing ("eval",
+// with its value), a search's try ("hit" or "miss", "big" for the try that lands near the bottom), a step of a poll
+// ("tap" or "taphit"), the mesh growing or shrinking, and the film's moments ("rise", "fooled", "lesson", "reveal",
+// "named", "you", "pop"). badsFilm.events() places them on the film's timeline, as the motion is placed.
+const runTryKind = (n) => (RUN.steps[STEP_OF[n]].status === "success" ? "hit" : "miss");
+const pollTaps = (p, g2t) => {                       // the steps of a round of scene 3's direct search, and its verdict
+  const tried = p.arms.filter((a) => a.f !== undefined && a.status !== "skipped"), tv = 0.15 + 0.15 * tried.length, out = [];
+  tried.forEach((a, m) => out.push([g2t(0.27 + 0.15 * m), a.status.startsWith("hit") ? "taphit" : "tap", a.f]));
+  out.push([g2t(tv + 0.1), p.moved ? "grow" : "shrink", 0]);
+  return out;
+};
+const EVENTS = {
+  "1.4": () => [[0.2, "rise", 0], [4.3, "named", 0]],
+  "1.5": () => [[3.0, "eval", EV[0][2]]],
+  "2.1": () => ptsBO(1, 5).map((q, i) => [0.75 + 0.4 * i, "eval", q.f]).concat([[2.6, "rise", 0]]),
+  "2.2": () => BO22.map((w, j) => [w[2], j === 6 ? "hit" : "eval", BO_TRY(j).f]),
+  "2.3": () => [0, 1, 2, 3].map((j) => [0.8 + 0.9 * j + 0.45, "eval", BO_TRY(7 + j).f]),
+  "2.4": () => [0, 1, 2, 3, 4].map((j) => [0.3 + 0.64 * j + 0.32, "eval", BO_TRY(11 + j).f]).concat([[3.2, "fooled", 0]]),
+  "3.1": () => [[0.55, "eval", ILL.mads.log[0][2]]],
+  "3.2": () => pollTaps(MPOLL[1], (g) => 2.0 + (3.8 * g) / 0.74).slice(0, 4),
+  "3.3": () => pollTaps(MPOLL[4], (g) => 0.3 + 3.5 * g).concat(pollTaps(MPOLL[5], (g) => 4.1 + 3.5 * g)),
+  "3.4": () => ILL.mads.log.slice(1).map((e, k) => [0.3 + (5.5 * (k + 1)) / (ILL.mads.log.length - 1), "tick", e[2]]),
+  "4.2": () => [[2.85, "hit", 0]].concat(pollTaps(PLL[0], (g) => 4.6 + 3 * g)),
+  "4.3": () => [[0.4 + 1.4 * 0.5, "miss", 0], [0.4 + 1.4 * 1.5, "hit", 0], [0.4 + 1.4 * 2.5, "miss", 0], [6.0, "poll", 0]],
+  "4.4": () => pollTaps(PLL[1], (g) => ((g - 0.27) * 3.3) / 0.73).filter((e) => e[0] >= 0),   // the round that 4.3 starts
+  "4.5": () => pollTaps(PLL[2], (g) => 1.6 + 2.8 * g).concat([[5.6, "whoosh", 0], [7.8, "search", 0]]),
+  "5.1": () => [[2.0, "eval", EV[0][2]]],
+  "5.2": () => [0, 2, 3, 4, 5].map((n, i) => [0.55 + 0.25 * i, "eval", EV[n][2]]).concat([[1.6, "rise", 0], [3.15, "tap", EV[6][2]], [3.45, "tap", EV[7][2]]],
+    RUN.steps.slice(1, 9).map((st, j) => [3.6 + 0.62 * j + 0.372, runTryKind(st.evals[0] + 1), EV[st.evals[0]][2]])),
+  "5.3": () => RUN.steps.slice(9, 13).map((st, j) => [0.2 + 0.62 * j + 0.372, st.evals[0] + 1 === 20 ? "deep" : runTryKind(st.evals[0] + 1), EV[st.evals[0]][2]])
+    .concat([[2.8, "fooled", 0]], RUN.steps.slice(13, 17).map((st, j) => [4.4 + 1.1 * j + 0.66, "miss", EV[st.evals[0]][2]])),
+  "5.4": () => [[0.2, "poll", 0]].concat([1, 2, 0, 3].map((i, j) => [2.0 + 0.9 * j + 0.5, RUN_POLL.arms[i].status.startsWith("hit") ? "taphit" : "tap", EV[RUN_POLL.arms[i].eval][2]]), [[6.75, "grow", 0]]),
+  "5.5": () => [[1.2, "lesson", 0]],
+  "5.6": () => [[0.6 + 2.6 * 0.6, "big", EV[28][2]]],
+  "5.7": () => { const out = []; for (let n = 30; n <= EV.length; n++) { const st = RUN.steps[STEP_OF[n]]; out.push([0.3 + (6.5 * (n - 29)) / (EV.length - 29), st && st.kind === "poll" ? "tick" : "eval", EV[n - 1][2]]); } return out; },
+  "6.1": () => [[2.6, "reveal", 0]],
+  "7.2": () => [[2.9, "rise", 0]],
+  "7.3": () => NAMED.map(([, , , t0]) => [t0, "named", 0]),
+  "7.4": () => [[0.55, "you", 0], [2.5, "pop", 0]],
+};
+function filmEvents() {
+  const ev = [], lines = {}, scenes = {};
+  for (const sc of FILM.scenes) scenes[sc.id] = [sc.start, sc.start + sc.seconds];
+  CUES.forEach((c) => {
+    const S = SHOTS[c.k], d = S.dur || c.span, f = EVENTS[S.id];
+    lines[S.id] = [c.start, c.start + c.seconds];
+    if (f) for (const [t, kind, v] of f()) if (t >= 0 && t <= d) ev.push([+(c.start + (t * c.span) / d).toFixed(3), kind, +(+v).toFixed(4), S.id]);
+  });
+  ev.sort((a, b) => a[0] - b[0]);
+  return { seconds: FILM.seconds, lines, scenes, events: ev };
+}
+
+// film.html?shot=K draws shot K at the end of its line; &t=T draws it T seconds into the line (shots with a dur move).
+// film.html?film=1&T=T draws the film at T seconds. badsFilm.frame(T) is the hook a recorder steps.
+window.badsFilm = { shots: SHOTS.map((s) => ({ id: s.id, line: s.line, note: s.note, dur: s.dur || 0 })), render, frame: renderFilm, seconds: FILM ? FILM.seconds : 0, events: filmEvents };
+if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]);
+const filmMode = q.has("film") && FILM;
+const k = Math.max(0, Math.min(SHOTS.length - 1, (parseInt(q.get("shot") || "1", 10) || 1) - 1));
+const t0 = q.has("t") ? parseFloat(q.get("t")) : undefined, T0 = parseFloat(q.get("T") || "0") || 0;
+const draw0 = () => (filmMode ? renderFilm(T0) : render(k, t0));
+draw0();
+new ResizeObserver(draw0).observe(stage);
+document.title = "ready " + (filmMode ? "film" : SHOTS[k].id);
+})();
+</script>
+</body>
+</html>

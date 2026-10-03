@@ -23,6 +23,13 @@ Separate notes are appropriate for genuinely separate topics.
   result, not committed raw. A machine that keeps raw artifacts there lists
   them in the gitignored `scripts/runs/LOCAL.md`; tracked documents point
   at that file and never say "this machine".
+- `film/` holds the narrated film about PyBADS 1.5: the page that draws
+  it, its data, its narration, and the scripts that voice, score and record
+  it, which run from `dev/film/` (its `README.md` says how). What they make
+  (voice takes, the score, recordings) goes to the gitignored
+  `media/film/`, one folder per voice, kept on the machine that made it; a
+  machine lists where it keeps the film's tools (the voice's environment,
+  the models, ffmpeg) in the gitignored `media/film/LOCAL.md`.
 
 A directory is created with its first file. These are maintainer records,
 not user documentation: `docs/` is gitignored Sphinx output published to
