@@ -132,9 +132,9 @@ pictures").
   ● ✕ ● ✕, and the loop over its card lights: "a better point: search
   again". Then the arrow to POLL appears, "fails 4 times in a row", its
   four crosses fill in, and on "BADS polls" the POLL card lights and its
-  cross grows. *Source:* in `pybads/bads/bads.py` a round of SEARCH is
-  `search_n_try` = 4 tries, and BADS polls after a round without a
-  success (NOTES.md, decision 2).
+  cross grows. *Source:* with the default options a round of SEARCH is
+  `search_n_try` = 4 tries for two parameters, and BADS polls after a round
+  without a success (`pybads/bads/bads.py`; NOTES.md, decision 2).
 - **4.4** (shot 17) "The two stages help each other." The arrow back from
   POLL to SEARCH appears: the cycle is closed. Meanwhile the POLL finishes
   its round: none of its four steps lands lower, and the mesh halves.

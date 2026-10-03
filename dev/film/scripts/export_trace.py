@@ -8,7 +8,10 @@ surface.py stores them; the candidates of the searches' generations are recorded
 does not draw them.
 
 Run from the film's folder, dev/film, with the development environment's Python (PyBADS and gpyreg) and one BLAS
-thread. ``trace.js`` is the kept trace: write a new export outside the repository and compare it before replacing it.
+thread. It records the PyBADS that Python imports: the one on PYTHONPATH, else the installed one, which for the
+development environment is the main checkout's editable install, not a worktree's; the trace's meta names the
+revision that ran (pybads_revision). ``trace.js`` is the kept trace: write a new export outside the repository and
+compare it before replacing it.
 
     OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python -u scripts/export_trace.py --out OUT/trace_new.js --check
 """
@@ -307,8 +310,8 @@ def r(v, n=5):
 
 def build(rec, first, last, seed):
     """The trace of the evaluations first..last (1-based, inclusive): every
-    evaluation of the run, and the GP states and candidate clouds of the
-    steps in that window."""
+    evaluation of the run, and the steps in that window with the GP states
+    that they used."""
     ev = rec.evals
     for s in rec.steps:
         for i in s["evals"]:

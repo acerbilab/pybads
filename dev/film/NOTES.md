@@ -20,8 +20,8 @@ section 3, and Singh & Acerbi (2024). The script has 460 words.
 
 ## Decisions
 
-- No argument from the cost of an evaluation. PyBADS's own time is 15 to
-  35 ms per evaluation
+- The film does not motivate PyBADS by the cost of each evaluation:
+  PyBADS's own time is 15 to 35 ms per evaluation
   (`dev/results/2026-09-28-where-pybads-spends-its-time.md`), and gpyreg
   1.4.0 cuts it further (`dev/results/2026-09-29-bit-identical-speedups.md`).
 - The landscape is a valley, lower is better, as PyBADS minimizes
@@ -43,8 +43,7 @@ section 3, and Singh & Acerbi (2024). The script has 460 words.
   (2026-10-03).
 - Scene 4 credits MADS for the SEARCH and POLL stages with a footnote, and
   shows each stage at work in a panel (2026-10-03).
-- The film is about PyBADS 1.5, the release in preparation, and the end
-  card says so (2026-10-03).
+- The film is about PyBADS 1.5, and the end card says so (2026-10-03).
 - The film ends on how BADS performs, then zooms out to the studies that
   have used it, and closes on "Join them." over their field (scene 7,
   2026-10-03). The scope of up to twenty parameters on rugged or noisy
@@ -55,8 +54,8 @@ Settled when the script was locked (2026-10-03):
 1. Scene 5 has no line "The SEARCH still misses, so PyBADS polls again,
    with longer steps.": the run shown polls once before the SEARCH works
    again.
-2. Lines 4.3 and 5.7 keep their wording. Taken literally they do not hold
-   for the whole run: after evaluation 29, eight searches (35, 36, 40, 42,
+2. Lines 4.3 and 5.7 simplify the run: taken literally they do not hold
+   for all of it: after evaluation 29, eight searches (35, 36, 40, 42,
    47, 55, 63 and 72) still lower the best value a little, but PyBADS
    counts each as an *incremental* improvement, smaller than the sufficient
    improvement that makes a search a success, so each of those rounds still
@@ -69,12 +68,14 @@ Settled when the script was locked (2026-10-03):
 
 Still open:
 
-5. Some labels say what is happening ("far lower", "lower ground: move
-   here") rather than name a term, against the rules for the pictures.
+5. Some labels describe what happens ("far lower", "lower ground: move
+   here", "each failed poll: shorter steps", and the captions of scene 4's
+   arrows) rather than name what the narration points at; whether they
+   stay is open.
 6. Conventions proposed on 2026-10-01 and not built: presenting BADS as
-   Bayesian optimization with a safety net; a footnote crediting Bayesian
-   optimization (Jones, Schonlau & Welch 1998) beside the MADS one; italic
-   labels for technical terms.
+   Bayesian optimization with a safety net, and a footnote crediting
+   Bayesian optimization (Jones, Schonlau & Welch 1998) beside the MADS
+   one.
 7. The final voice, after feedback on the animatic.
 
 ## Rules for the pictures
@@ -82,7 +83,7 @@ Still open:
 At every moment it is obvious what the narration is talking about. That
 thing is lit, what gives context is dimmed, and everything else is off.
 Things appear when they are introduced and step back when they are done.
-Clean, but not bare (2026-10-03).
+The frame stays uncluttered without being empty (2026-10-03).
 
 - **Elements, each with one meaning.** Evaluations are amber dots. The
   surrogate is one green wireframe sheet, bright where it is sure and faint
@@ -93,7 +94,8 @@ Clean, but not bare (2026-10-03).
   sheet) and where it landed (amber), joined by a dashed white line.
 - **Text on screen:** SEARCH and POLL at top left, with four marks for the
   current round (a cross for a failed try, a dot for a success), and short
-  labels for what the narration points at. No readouts, no top view, and no
+  labels for what the narration points at; a term that a label introduces
+  ("surrogate", "mesh") is set in italic serif. No readouts, no top view, and no
   numbers beyond what the narration says. A credit is an asterisk on the
   caption and a footnote at the bottom right.
 - **The true landscape** is shown in scene 1, faintly in line 2.4 to show
@@ -124,10 +126,11 @@ level, 17 LU under the voice, was set by ear on 2026-10-03.
 
 ## How PyBADS behaves on this problem
 
-Facts from `pybads/bads/bads.py` that the script and the pictures rely on,
-for two parameters and default options:
+Facts from `pybads/bads/bads.py` and the default options
+(`pybads/bads/option_configs/advanced_bads_options.ini`) that the script
+and the pictures rely on, for two parameters:
 
-- A round of SEARCH is `search_n_try` = 4 tries. If any try in a round is a
+- A round of SEARCH is `search_n_try` = max(D, floor(3 + D/2)) = 4 tries. If any try in a round is a
   success, the next round starts and no POLL runs; after a round without a
   success, BADS polls. The first stage after the initial design is a POLL,
   because the search count starts full.
@@ -139,13 +142,18 @@ for two parameters and default options:
   the order of the surrogate's lower confidence bound. After a success it
   stops early only when the remaining steps have a negligible probability of
   improving (`tol_poi`).
-- The mesh starts at its largest size (`max_poll_grid_number` = 0). A
+- The mesh starts at its largest size (`init_mesh_size_integer` and
+  `max_poll_grid_number` are both 0). A
   successful POLL can grow it only after it has shrunk; a failed POLL halves
   it, and halves it again when the last iterations stalled
   (`accelerate_mesh`).
-- Every evaluation stays in the surrogate's training set (up to 50 points),
-  so the surrogate's locality never shows, and the film does not mention
-  it. The hyperparameters are refitted at intervals, checked at every
+- Up to about 50 evaluations every evaluation is in the surrogate's
+  training set; from then on the training set holds the points nearest the
+  best one, 50 to 60 of them in this run (`n_train_min` = 50, `n_train_max`
+  = 50 + 10·D = 70), so the surrogate of the run's last part, and the one
+  revealed at line 6.1, is fitted around the trench. The film does not
+  mention this locality. The hyperparameters are refitted at intervals,
+  checked at every
   SEARCH and POLL step (`_is_gp_refit_time_`); a POLL's points enter the
   surrogate at its next rebuild.
 
@@ -245,8 +253,7 @@ The charts have no numbers on their axes; the footnote names them.
 
 The animatic plays the whole film on a draft voice (Kokoro, `am_michael`)
 and is judged on whether it reads, not on its look; its timings are drafts.
-v1 ran 3 min 10 s, too slow, the voice above all and the start most of all;
-from v2 the voice is 12 % faster (20 % in scene 1, 15 % in scene 2), with
+v1 ran 3 min 10 s and was too slow, its start above all; from v2 the voice is 12 % faster (20 % in scene 1, 15 % in scene 2), with
 shorter pauses. In v3 every transition between scenes takes the same 0.7 s,
 where v2's took 0.9 to 2.4 s, and the gaps between lines are a quarter
 shorter. v4 opens line 3.1 on "Instead", which tells that another method
@@ -255,7 +262,8 @@ line 1.4; v6 adds the score, and v7 lowers it by 2 dB.
 
 Whisper (`verify_voice.py`) hears most lines of the draft voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for
-"poll"), and the same words with the score under them. Worth a listen: line
+"poll"); a check of each line cut from the mix found the same words with
+the score under them. Worth a listen: line
 3.3, whose second sentence Whisper drops; line 4.3, "keeps" heard as
 "keep"; and line 5.4, where this voice runs "Pie-Bads polls" together. The
 final voice will be another, so the script stays as it is.
@@ -265,8 +273,8 @@ final voice will be another, so the script stays as it is.
 - **The style frame (2026-10-02).** Forty seconds of an earlier run (seed
   21 on the earlier landscape below), with the surrogate as dashed contour
   lines, hard cuts on the beat, a HUD with readouts and a top view, and
-  short captions. It was judged incomprehensible and cluttered, and its
-  narration vague: a review of implementation details (for instance, that
+  short captions. It did not explain the method, the screen was cluttered,
+  and its narration was vague: a review of implementation details (for instance, that
   the POLL orders its steps by the surrogate) had turned its captions into
   hedged fragments. The narration tells the paper's story plainly; a detail
   enters only when the story needs it. Kept from the style frame: the

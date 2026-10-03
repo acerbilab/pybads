@@ -106,6 +106,7 @@
 const $ = (id) => document.getElementById(id);
 const fail = (m) => { $("err").textContent += m + "\n"; document.title = "ERROR " + m; };
 window.addEventListener("error", (e) => fail(e.message + " @" + e.lineno));
+window.addEventListener("unhandledrejection", (e) => fail(String((e.reason && e.reason.message) || e.reason)));   // a throw in this function
 const q = new URLSearchParams(location.search);
 const RUN = window.BADS_TRACE, ILL = window.BADS_ILLUS;
 const stage = $("stage");
@@ -555,7 +556,7 @@ function pollPanel(v, k, glow = 0) {
 }
 // ---------------------------------------------------------------- scene 7: the record
 // 7.1: the film's landscape shrinks into the first of three tiles; the other two are illustrations, a rugged landscape
-// (a bowl under many bumps) and a noisy one (the same bowl, seen through noise that changes from frame to frame).
+// (a bowl under many bumps) and a noisy one (the same bowl, seen through noise redrawn every tenth of a second).
 const TILES = [{ x: 105, y: 190, w: 340, h: 250 }, { x: 470, y: 190, w: 340, h: 250 }, { x: 835, y: 190, w: 340, h: 250 }];
 const TILE_CAM = { x1: 0.3, x2: -0.2, y: 0.22, zoom: 1.02, az: AZ, el: EL };
 const hmTile = (f) => 0.42 * (1 - Math.exp(-f / 18));
@@ -836,7 +837,7 @@ const SHOTS = [
     labels: (t) => { const pm = MOVES.find((m) => m.by === "poll"); return [["SEARCH", "small g", at3(-2.4, -2.4, ftrue(-2.4, -2.4)), -1, -2.4, " translate(-100%, 0)", ramp(t, 1.4, 2.0)], ["POLL", "small p", at3(pm.x1, pm.x2, pm.f), 0.8, -2.2, "", ramp(t, 3.4, 4.0)]]; } },
   // ---------------------------------------------------------------- 7. The record
   { id: "7.1", line: "That landscape had two parameters. BADS works with up to twenty, on rugged or noisy landscapes.", cam: CAM.wide, dur: 7,
-    note: "The landscape of line 6.2 shrinks into the first of three tiles, labelled “two parameters”; on “up to twenty” the label dissolves into “up to ~20 parameters”. On “rugged or noisy landscapes” two more tiles appear beside it: a bowl under many bumps, “rugged”, and a bowl seen through noise that changes from frame to frame, “noisy”.",
+    note: "The landscape of line 6.2 shrinks into the first of three tiles, labelled “two parameters”; on “up to twenty” the label dissolves into “up to ~20 parameters”. On “rugged or noisy landscapes” two more tiles appear beside it: a bowl under many bumps, “rugged”, and a bowl seen through noise redrawn every tenth of a second, “noisy”.",
     tiles: (t) => ({ shrink: lin(t, 0.4, 2.0), others: ramp(t, 3.7, 4.6), a: 1, seed: Math.floor(t * 10), lab0: ramp(t, 1.6, 2.2), swap: ramp(t, 2.9, 3.6), lab1: ramp(t, 4.3, 4.8), lab2: ramp(t, 4.9, 5.4) }) },
   { id: "7.2", line: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.",
     caption: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.*", cam: CAM.wide, dur: 6.5,
@@ -1054,9 +1055,10 @@ function renderFilm(T) {
 
 // ================================================================ the events, for the score
 // What each shot shows, as [time in the shot's own seconds (its dur), kind, value]: an evaluation landing ("eval",
-// with its value), a search's try ("hit" or "miss", "big" for the try that lands near the bottom), a step of a poll
-// ("tap" or "taphit"), the mesh growing or shrinking, and the film's moments ("rise", "fooled", "lesson", "reveal",
-// "named", "you", "pop"). badsFilm.events() places them on the film's timeline, as the motion is placed.
+// with its value; "tick" in a fast run), a search's try ("hit" or "miss"; "deep" for evaluation 20, "big" for the try
+// that lands near the bottom), a step of a poll ("tap" or "taphit"), the mesh growing or shrinking ("grow", "shrink"),
+// and the film's moments ("rise", "named", "fooled", "poll", "whoosh", "search", "lesson", "reveal", "you", "pop").
+// badsFilm.events() places them on the film's timeline, as the motion is placed.
 const runTryKind = (n) => (RUN.steps[STEP_OF[n]].status === "success" ? "hit" : "miss");
 const pollTaps = (p, g2t) => {                       // the steps of a round of scene 3's direct search, and its verdict
   const tried = p.arms.filter((a) => a.f !== undefined && a.status !== "skipped"), tv = 0.15 + 0.15 * tried.length, out = [];

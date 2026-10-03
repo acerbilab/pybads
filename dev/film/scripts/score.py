@@ -15,14 +15,22 @@ search that lands near the bottom of the trench, where the harmony lifts
 to C major 7 and the lead enters; and the lift returns for the record and
 resolves to E minor as the version pops on the end card.
 
-The tempo flexes from section to section so that each scene starts on a
-downbeat, and so do the search near the bottom of the trench, the reveal of
-the true landscape and the version's pop, which a ritardando reaches. Every
+The tempo flexes from section to section so that the search near the
+bottom of the trench, the reveal of the true landscape and the version's
+pop, which a ritardando reaches, fall on a downbeat, and so does the start
+of every scene but the sixth, whose section starts at the reveal. Every
 event that the film shows sounds on the nearest thirty-second note: an
 evaluation as a glassy tick pitched by the height of its ground, a search
 that succeeds as a bell pitched by how low it lands, one that fails as a
 thud with a dissonant stab, a step of a poll as a dry tap, an octave lower
 while the mesh is large. The score ducks under the voice.
+
+The sections start at lines and events of the film, so they follow a new
+take of the voice; the bars inside them were fitted to the draft voice's
+lines. ``check_form`` warns when a switch to the POLL, a return to the
+SEARCH, the lesson or a fooled surrogate falls in a bar of another kind:
+re-fit SONG where it does, with score_plan.txt, which lists every bar with
+the events in it.
 
 V is the folder of a voice's media. Reads V/events.json (``node
 scripts/record.mjs V/events.json --film``) and V/narration.wav (voice.py).
@@ -259,16 +267,30 @@ FADE_OUT = 1.6  # seconds, to the end of the film
 
 
 def anchors(ev):
-    """The start of every section, and the end of the film."""
+    """The start of every section, and the end of the film. An anchor names
+    a line, whose start it takes, or a kind of event, whose first event it
+    takes."""
     first = {}
     for t, kind, _, _ in ev["events"]:
         first.setdefault(kind, t)
     out = {}
     for name, a in ANCHORS.items():
         if isinstance(a, tuple):
-            a = ev["lines"][a[1]][0] if a[0] == "line" else first[a[1]]
+            table = ev["lines"] if a[0] == "line" else first
+            if a[1] not in table:
+                raise SystemExit(
+                    f"section {name}: the film has no {a[0]} {a[1]}"
+                )
+            a = table[a[1]][0] if a[0] == "line" else table[a[1]]
         out[name] = float(a)
-    return out, float(ev["seconds"])
+    end = float(ev["seconds"])
+    starts = list(out.items())
+    for (name, t0), t1 in zip(starts, [t for _, t in starts[1:]] + [end]):
+        if not t0 < t1:
+            raise SystemExit(
+                f"section {name} starts at {t0:.3f} s, not before the next at {t1:.3f} s"
+            )
+    return out, end
 
 
 class Grid:
@@ -631,7 +653,7 @@ def play_film_events(film_cues, grid, events, drums, fx):
     return ducks
 
 
-def effects(grid, fx, drums, events, film_cues):
+def effects(grid, fx, drums, events):
     """The swells, crashes and falls at the changes of section, and the
     steady taps of line 6.2."""
     at = grid.at
@@ -820,7 +842,7 @@ def play(grid, film_cues):
     lead.send = ms.SEND["lead"] * lead.dry
 
     ducks = play_film_events(film_cues, grid, events, drums, fx)
-    effects(grid, fx, drums, events, film_cues)
+    effects(grid, fx, drums, events)
 
     for name, depth in ms.SIDECHAIN.items():
         stems[name].scale(ms.duck_curve(kicks, depth))
@@ -862,6 +884,66 @@ def speech_mask(ev, n):
 
 def write(path, x):
     sf.write(str(path), x.astype(np.float32), SR, subtype="FLOAT")
+
+
+# Where the film's moments must fall: the kinds of bar that may hold each
+# (a switch may also land on the bar that follows it).
+MOMENTS = {
+    "poll": {"poll"},
+    "search": {"search"},
+    "lesson": {"build"},
+    "fooled": {"fooled", "break"},
+}
+
+
+def check_form(grid, film_cues):
+    """Warnings where a moment of the film falls in a bar of another kind."""
+    out = []
+    for c in film_cues:
+        want = MOMENTS.get(c["kind"])
+        if not want:
+            continue
+        bar = grid.bar_of(c["t"])
+        i = grid.bars.index(bar)
+        later = grid.bars[min(i + 1, len(grid.bars) - 1)]
+        if bar[4][0] not in want and later[4][0] not in want:
+            out.append(
+                f"warning: {c['kind']} of line {c['shot']} at {c['t']:.2f} s falls in "
+                f"a {bar[4][0]} bar ({bar[0]} {bar[1]}), not in a {' or '.join(sorted(want))} bar"
+            )
+    return out
+
+
+def check_song(film_cues):
+    """Stop before the synthesis when the form names what does not exist."""
+    problems = []
+    for name, rows in SONG.items():
+        for j, (mode, chord, drums, bass, arp, levels) in enumerate(rows):
+            where = f"{name} bar {j}"
+            if mode not in MODES:
+                problems.append(f"{where}: no mode {mode}")
+            if chord is not None and chord not in CHORDS:
+                problems.append(f"{where}: no chord {chord}")
+            if drums and drums not in DRUMS:
+                problems.append(f"{where}: no drum pattern {drums}")
+            if bass and (bass not in BASS or chord is None):
+                problems.append(f"{where}: no bass {bass} over {chord}")
+            if arp and (
+                arp not in ARP
+                or chord not in CHORDS
+                or CHORDS[chord][2] is None
+            ):
+                problems.append(f"{where}: no arpeggio {arp} over {chord}")
+            unknown = set(levels) - set(MODES["intro"]) - {"beats"}
+            if unknown:
+                problems.append(f"{where}: unknown levels {sorted(unknown)}")
+    named = sum(c["kind"] == "named" and c["shot"] != "1.4" for c in film_cues)
+    if named > len(NAME_NOTES):
+        problems.append(
+            f"{named} named fields, {len(NAME_NOTES)} notes for them"
+        )
+    if problems:
+        raise SystemExit("the form does not hold:\n  " + "\n  ".join(problems))
 
 
 def plan(grid, film_cues):
@@ -912,6 +994,9 @@ def main():
         f"{1000 * np.abs(offsets).max():.0f} ms, {1000 * np.abs(offsets).mean():.0f} ms on average",
         flush=True,
     )
+    for warning in check_form(grid, film_cues):
+        print(warning, flush=True)
+    check_song(film_cues)
 
     print("playing ...", flush=True)
     stems, kicks = play(grid, film_cues)

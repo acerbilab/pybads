@@ -4,8 +4,8 @@
 
 Two passes of ffmpeg's EBU R128 loudness normalization bring the sound to
 -16 LUFS integrated and -1.5 dBTP true peak, the level that video
-platforms play at. The video stream is copied, and the sound is cut to the
-video's length. ffmpeg is FFMPEG, else the one that imageio-ffmpeg installs
+platforms play at. The video stream is copied, and the film ends with the
+shorter of the two streams. ffmpeg is FFMPEG, else the one that imageio-ffmpeg installs
 into the environment that runs this script, else ffmpeg on the PATH.
 """
 
@@ -44,8 +44,11 @@ def measure(ffmpeg, path):
         ],
         capture_output=True,
         text=True,
-        check=True,
     )
+    if p.returncode:
+        raise SystemExit(
+            f"ffmpeg could not measure {path}:\n{p.stderr[-2000:]}"
+        )
     return json.loads(
         p.stderr[p.stderr.rindex("{") : p.stderr.rindex("}") + 1]
     )
