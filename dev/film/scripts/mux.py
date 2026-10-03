@@ -5,7 +5,8 @@
 Two passes of ffmpeg's EBU R128 loudness normalization bring the sound to
 -16 LUFS integrated and -1.5 dBTP true peak, the level that video
 platforms play at. The video stream is copied, and the sound is cut to the
-video's length. ffmpeg is FFMPEG, or ffmpeg on the PATH.
+video's length. ffmpeg is FFMPEG, else the one that imageio-ffmpeg installs
+into the environment that runs this script, else ffmpeg on the PATH.
 """
 
 import argparse
@@ -14,6 +15,17 @@ import os
 import subprocess
 
 TARGET = "I=-16:TP=-1.5:LRA=11"
+
+
+def ffmpeg_exe():
+    if os.environ.get("FFMPEG"):
+        return os.environ["FFMPEG"]
+    try:
+        import imageio_ffmpeg
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return "ffmpeg"
 
 
 def measure(ffmpeg, path):
@@ -45,7 +57,7 @@ def main():
     ap.add_argument("audio")
     ap.add_argument("out")
     args = ap.parse_args()
-    ffmpeg = os.environ.get("FFMPEG", "ffmpeg")
+    ffmpeg = ffmpeg_exe()
     m = measure(ffmpeg, args.audio)
     print(f"measured {m['input_i']} LUFS, {m['input_tp']} dBTP", flush=True)
     loudnorm = (

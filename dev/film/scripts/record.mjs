@@ -1,10 +1,10 @@
 // Record film.html through its hooks: a clip of one shot as an MP4 (badsFilm.render(k, t)), stills of it at chosen
 // times as PNGs, the whole film on its timeline (badsFilm.frame(T)), or the film's events (badsFilm.events()).
 //
-//   node scripts/record.mjs OUT --shot K [--fps N] [--size WxH] [--from S] [--to S] [--crf N]   one shot, t from S to S, as OUT.mp4
-//   node scripts/record.mjs DIR --shot K --times T1,T2,...                                      stills at those times, DIR/sK_T.png
-//   node scripts/record.mjs OUT --film [--audio WAV] [--from S] [--to S] ...                    the whole film on its timeline
-//   node scripts/record.mjs OUT.json --film                                                       the film's events, for the score
+//   node scripts/record.mjs OUT.mp4 --shot K [--fps N] [--size WxH] [--from S] [--to S] [--crf N]   one shot, t from S to S
+//   node scripts/record.mjs DIR --shot K --times T1,T2,...                                          stills at those times, DIR/sK_T.png
+//   node scripts/record.mjs OUT.mp4 --film [--audio WAV] [--from S] [--to S] ...                    the whole film on its timeline
+//   node scripts/record.mjs OUT.json --film                                                         the film's events, for the score
 //
 // K counts shots from 1, as film.html?shot=K does. The clip runs from --from (default 0) to --to (default the shot's
 // dur, the draft length of its line) at --fps (default 25), and holds its last frame for --hold seconds (default 0.6).
@@ -23,7 +23,8 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pos = [], opt = {};
 for (const argv = process.argv.slice(2); argv.length;) { const a = argv.shift(); if (a === "--film") opt.film = true; else if (a.startsWith("--")) opt[a.slice(2)] = argv.shift(); else pos.push(a); }
-if (pos.length !== 1 || !(opt.shot || opt.film)) { console.error("usage: node scripts/record.mjs OUT --shot K [--fps N] [--size WxH] [--from S] [--to S] [--times T1,T2] [--hold S] [--crf N]"); process.exit(2); }
+if (pos.length !== 1 || !(opt.shot || opt.film)) { console.error("usage: node scripts/record.mjs OUT.mp4|DIR|OUT.json (--shot K | --film) [--fps N] [--size WxH] [--from S] [--to S] [--times T1,T2] [--hold S] [--crf N] [--audio WAV]"); process.exit(2); }
+if (!opt.times && !(opt.film && pos[0].endsWith(".json")) && !pos[0].endsWith(".mp4")) { console.error(`a recording is written as an MP4: ${pos[0]} does not end in .mp4`); process.exit(2); }
 const out = resolve(pos[0]), K = Number(opt.shot), FPS = Number(opt.fps || 25), [W, H] = (opt.size || "1280x720").split("x").map(Number);
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const FFMPEG = process.env.FFMPEG || "ffmpeg";

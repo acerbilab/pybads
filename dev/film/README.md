@@ -160,7 +160,9 @@ What each script needs:
 - `verify_voice.py`: faster-whisper, whose model `small.en` comes the same
   way.
 - `score.py` and `mux.py`: NumPy, SciPy and soundfile; `mux.py` also an
-  ffmpeg with `loudnorm`, which that of `imageio-ffmpeg` has.
+  ffmpeg with `loudnorm`, which that of `imageio-ffmpeg` has: `FFMPEG`, else
+  the one that `imageio-ffmpeg` installs into the environment that runs it,
+  else `ffmpeg` on the `PATH`.
 - `export_trace.py` and `illustrations.py`: the repository's development
   environment, with gpyreg selected as `AGENTS.md` says, and one BLAS thread
   (`OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1`).
