@@ -53,7 +53,7 @@
   #cap { position: absolute; left: 7cqw; right: 7cqw; bottom: 0; height: 11%; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--sans); font-size: 1.9cqw; line-height: 1.25; color: var(--ink); text-wrap: balance; }
   #foot { position: absolute; right: 3cqw; bottom: calc(11% + 1.3cqw); max-width: 34cqw; margin: 0; text-align: right; font-family: var(--sans); font-size: 1.02cqw; line-height: 1.45; color: var(--dim); opacity: 0; }
   #diagram { position: absolute; inset: 0; z-index: 3; display: none; pointer-events: none; }
-  #diagram svg { width: 100%; height: 100%; display: block; }
+  #diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #endcard { position: absolute; inset: 11% 0; z-index: 4; display: none; place-content: center; text-align: center; gap: 1.1cqw; background: rgba(0, 0, 0, 0.72); }
   #endcard .t { font-family: var(--cond); font-weight: 600; font-size: 4.6cqw; letter-spacing: 0.1em; color: var(--amber); }
   #endcard .t span { color: var(--green); display: inline-block; transform-origin: 0% 75%; }
@@ -310,7 +310,7 @@ const labels = $("labels");
 const V = new THREE.Vector3();
 let VIEW = null;               // the panel being drawn, as a rectangle of the 1280 x 720 frame, or null for the whole frame
 function label(text, cls, at, dx = 0, dy = 0, anchor = "") {
-  const e = document.createElement("div"); e.className = "lab " + cls; e.innerHTML = text; labels.appendChild(e);
+  const e = document.createElement("div"); e.className = "lab " + cls; e.innerHTML = text; e.dataset.key = cls + "|" + text; labels.appendChild(e);
   V.set(at[0], at[1], at[2]).project(cam);
   const cw = stage.clientWidth, ch = stage.clientHeight, u = cw / 100, r = VIEW || { x: 0, y: 0, w: 1280, h: 720 };
   const px = ((r.x + (V.x * 0.5 + 0.5) * r.w) * cw) / 1280, py = ((r.y + (-V.y * 0.5 + 0.5) * r.h) * ch) / 720;
@@ -786,7 +786,10 @@ const SHOTS = [
     note: "Evaluation 20 lands in the trench's mouth, deep. The surrogate caves in: it now predicts deep ground across whole regions. Four tries follow its predictions, and each lands far above them (white dashes). Four crosses.",
     draw(t) {
       drawFloor(lerp(0.7, 0.25, ramp(t, 2.5, 4))); const a = runSearches(t, 9, 12, 0.2, 0.62);
-      if (t < 4.2) { gpSheet.draw(t < 2.8 ? a.sheet : gpMix(RS[12], RS[13], ramp(t, 2.8, 4.0)), gpColor, lerp(0.5, 0.42, ramp(t, 2.8, 4))); drawPoints(ptsRun(1, a.nDone), 0.7, [20]); if (a.cur && a.u < 1) runTry(a.cur.evals[0] + 1, a.u); drawBest(a.ring); }
+      // The surrogate fitted with evaluation 20 caves in from 2.8 s, slowly, and not at the end of that evaluation's try
+      // as runSearches would morph it.
+      const sheet = a.cur === RUN.steps[12] ? gpMix(RS[12], RS[13], ramp(t, 2.8, 4.0)) : a.sheet;
+      if (t < 4.2) { gpSheet.draw(sheet, gpColor, lerp(0.5, 0.42, ramp(t, 2.8, 4))); drawPoints(ptsRun(1, a.nDone), 0.7, [20]); if (a.cur && a.u < 1) runTry(a.cur.evals[0] + 1, a.u); drawBest(a.ring); }
       else { const b = runSearches(t, 13, 16, 4.4, 1.1); gpSheet.draw(gpAt(RS[13]), gpColor, 0.42); drawPoints(ptsRun(1, 20), 0.7, [20]);
         RUN.steps.slice(13, 17).forEach((st, i) => { const u = lin(t, 4.4 + 1.1 * i, 5.5 + 1.1 * i); if (u > 0) runTry(st.evals[0] + 1, u, 1, true); }); drawBest(bestAt(20)); } },
     labels: (t) => [["one deep point", "small a", at3(EV[19][0], EV[19][1], EV[19][2]), 1.4, -1.2, "", ramp(t, 2.6, 3.1)]] },
@@ -961,10 +964,11 @@ function drawViews(S, t, views, kg, labelsK) {
     L.end(); P.end();
     P.m.uniforms.uPx.value = (W / 1280) * (v.rect ? 1 : Math.sqrt(v.cam.zoom));
     renderer.render(scene, cam);
-    if (labelsK > 0.003) {   // labels, placed with this view's camera
-      if (!v.rect && S.labels) for (const [text, cls, at, dx, dy, an, a] of S.labels(t)) { const e = label(text, cls, at, dx, dy, an || ""); e.style.opacity = ((a === undefined ? 1 : a) * labelsK).toFixed(3); }
+    if (labelsK > 0.003) {   // labels, placed with this view's camera; each keeps its own opacity in data-a
+      const show = (e, a) => { e.dataset.a = (a === undefined ? 1 : a).toFixed(3); e.style.opacity = (+e.dataset.a * labelsK).toFixed(3); };
+      if (!v.rect && S.labels) for (const [text, cls, at, dx, dy, an, a] of S.labels(t)) show(label(text, cls, at, dx, dy, an || ""), a);
       const br = v.rect ? out.bracket : S.bracket ? S.bracket(t) : null;
-      if (br) { const e = label("<i></i><i></i><i></i><i></i>", v.rect ? "brk sm" : "brk", at3(br.x1, br.x2, br.mu)); e.style.opacity = ((br.a === undefined ? 1 : br.a) * labelsK).toFixed(3); }
+      if (br) show(label("<i></i><i></i><i></i><i></i>", v.rect ? "brk sm" : "brk", at3(br.x1, br.x2, br.mu)), br.a);
     }
   }
   KG = 1;
@@ -981,10 +985,17 @@ function render(k, t) {
   begin();
   const { s4, views } = viewsOf(S, t);
   drawViews(S, t, views, 1, 1);
-  finish(S, t, s4, S.caption || S.line, 1);
+  finish(S, t, overlaysOf(S, t, s4), S.caption || S.line, 1, 1);
 }
-// Post-processing and the overlays of shot S at time t: the caption given, and the HUD, diagram, footnote and end card.
-function finish(S, t, s4, caption, overK) {
+// The overlays of shot S at time t: the SVG over the frame (scene 4's diagram, scene 7's tiles and charts), the HUD's
+// state, and the footnote with its opacity.
+function overlaysOf(S, t, s4) {
+  return { over: s4 ? diagram4(s4) : (S.chart ? chart7(S.chart(t)) : "") + (S.tiles ? tiles7(S.tiles(t)) : ""),
+    hud: (typeof S.hud === "function" ? S.hud(t) : S.hud) || null, foot: s4 ? "mads" : S.foot || "", footA: s4 ? s4.foot : S.footA ? S.footA(t) : 0 };
+}
+// Post-processing, the end card of shot S at time t, and the overlays o with the caption given; overK and hudK are the
+// opacities of the SVG and the HUD.
+function finish(S, t, o, caption, overK, hudK) {
   HM = null; VIEW = null;
   // With multisampling, each render copies the samples into rtS's texture inside the scissor of the moment, so after
   // panels only their rectangles were copied and the rest of the texture kept an older frame. One empty render without
@@ -1000,10 +1011,9 @@ function finish(S, t, s4, caption, overK) {
   pass(outMat, null);
   // overlays
   $("cap").textContent = caption;
-  $("foot").innerHTML = FOOT[s4 ? "mads" : S.foot || "mads"];
-  $("foot").style.opacity = (s4 ? s4.foot : S.footA ? S.footA(t) : 0).toFixed(3);
-  const hud = typeof S.hud === "function" ? S.hud(t) : S.hud;
-  $("mode").style.opacity = hud ? 1 : 0;
+  $("foot").innerHTML = FOOT[o.foot] || "";
+  $("foot").style.opacity = o.footA.toFixed(3);
+  const hud = o.hud;
   if (hud) {
     $("mSearch").classList.toggle("on", hud.mode === "s"); $("mPoll").classList.toggle("on", hud.mode === "p");
     const pips = [...$("pips").children];
@@ -1011,11 +1021,10 @@ function finish(S, t, s4, caption, overK) {
     else if (Array.isArray(hud.pips)) pips.forEach((e, i) => { const c = hud.pips[i]; e.className = c === "x" ? "miss" : c === "o" ? "hit" : ""; e.textContent = c === "x" ? "✕" : c === "o" ? "●" : "·"; });
     else pips.forEach((e, i) => { const c = hud.pips[i]; e.className = c === "x" ? "miss" : c === "o" ? "hit" : ""; e.textContent = c === "x" ? "✕" : c === "o" ? "●" : "·"; });
   }
-  const over = s4 ? diagram4(s4) : (S.chart ? chart7(S.chart(t)) : "") + (S.tiles ? tiles7(S.tiles(t)) : "");
-  $("diagram").style.display = over ? "block" : "none";
+  $("diagram").style.display = o.over ? "block" : "none";
   $("diagram").style.opacity = overK.toFixed(3);
-  if (over) $("diagram").innerHTML = over;
-  $("mode").style.opacity = hud ? overK.toFixed(3) : 0;
+  if (o.over) $("diagram").innerHTML = o.over;
+  $("mode").style.opacity = hud ? hudK.toFixed(3) : 0;
   $("endcard").style.display = ec ? "grid" : "none";
   if (ec) {                    // the card fades in over the scene; its version pops in after the name
     const card = $("endcard"), v = card.querySelector(".t span");
@@ -1030,7 +1039,8 @@ function finish(S, t, s4, caption, overK) {
 // ================================================================ the film: the shots on the voice's timeline
 // film_timeline.js (written by voice.py) gives each scene's start and each line's start and length. A shot is on
 // screen from the start of its line to the start of the next; its motion, when it has a dur, is stretched over that
-// time. At every line the shot before fades out as the new one fades in, over XF seconds.
+// time. At every line the shot before fades out as the new one fades in, over XF seconds, and so do their labels and
+// overlays, but for a label or an overlay that both shots show, which stays as the new shot draws it.
 const FILM = window.BADS_FILM || null, XF = 0.7;
 const CUES = [];
 if (FILM) {
@@ -1047,11 +1057,27 @@ function renderFilm(T) {
   while (i + 1 < CUES.length && CUES[i + 1].start <= T) i++;
   const c = CUES[i], S = SHOTS[c.k], t = T - c.start, m = i > 0 ? ramp(t, 0, XF) : 1, tS = shotTime(c, t);
   begin();
-  if (m < 1) { const p = CUES[i - 1], Sp = SHOTS[p.k], tp = shotTime(p, p.span); drawViews(Sp, tp, viewsOf(Sp, tp).views, 1 - m, 0); }
+  let po = null, pl = [];
+  if (m < 1) {                 // the shot before, at its end, with its labels and overlays
+    const p = CUES[i - 1], Sp = SHOTS[p.k], tp = shotTime(p, p.span), pv = viewsOf(Sp, tp);
+    drawViews(Sp, tp, pv.views, 1 - m, 1 - m);
+    po = overlaysOf(Sp, tp, pv.s4); pl = [...labels.children];
+  }
   const { s4, views } = viewsOf(S, tS);
   drawViews(S, tS, views, m, m);
+  const o = overlaysOf(S, tS, s4);
+  let overK = m, hudK = m;
+  if (po) {
+    for (const e of [...labels.children].slice(pl.length)) {        // a label of both shots: the new one, at its own opacity
+      const j = pl.findIndex((q) => q && q.dataset.key === e.dataset.key);
+      if (j >= 0) { pl[j].remove(); pl[j] = null; e.style.opacity = e.dataset.a; }
+    }
+    if (o.over && po.over) overK = 1; else if (po.over) { o.over = po.over; overK = 1 - m; }
+    if (o.hud && po.hud) hudK = 1; else if (po.hud) { o.hud = po.hud; hudK = 1 - m; }
+    if (po.foot !== o.foot && po.footA > 0.003 && o.footA <= 0.003) { o.foot = po.foot; o.footA = po.footA * (1 - m); }
+  }
   const speaking = t >= -0.05 && t <= c.seconds + 0.35;
-  finish(S, tS, s4, speaking ? c.caption : "", m);
+  finish(S, tS, o, speaking ? c.caption : "", overK, hudK);
 }
 
 // ================================================================ the events, for the score

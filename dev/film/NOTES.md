@@ -263,7 +263,14 @@ shorter. v4 opens line 3.1 on "Instead", which tells that another method
 follows line 2.4; v5 adds line 1.2 and names the landscape "the error" at
 line 1.4; v6 adds the score, and v7 lowers it by 2 dB. v8 voices line 7.3
 again, with quantum computers as its second field, and lights each of its
-labels as its word is spoken.
+labels as its word is spoken. In v9 the labels and overlays fade with their
+shots at every line change: until v8, the labels of the shot before
+vanished as a line started, and an overlay that both shots showed (scene
+4's diagram, the HUD of scene 5, scene 7's tiles and charts) blinked off and
+came back; in line 7.2 the tiles' frames and labels were hidden. In v10
+the surrogate of line 5.3 caves in once, from 2.8 s into its shot, where
+the score's fooled surrogate begins: until v9 it took its new shape at the
+end of evaluation 20's try, went back to the old one, and then caved in.
 
 Whisper (`verify_voice.py`) hears most lines of the draft voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for

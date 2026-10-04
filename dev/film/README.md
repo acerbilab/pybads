@@ -35,6 +35,7 @@ after feedback on the animatic.
 | `scripts/synth.py` | The instruments and the mix that `score.py` uses. Run alone, it renders the 40-second piece of the film's style frame into the folder it is given. |
 | `scripts/mux.py` | Puts the mix under a recorded video at −16 LUFS. |
 | `scripts/check.mjs` | Syntax-checks the page's inline script with node. |
+| `scripts/transitions.mjs` | Checks the film's line changes in headless Chrome: lists every label or overlay that vanishes in one frame or blinks as a line starts. |
 
 ## How the page works
 
@@ -51,7 +52,11 @@ On the timeline (`film_timeline.js`) a shot is on screen from the start of
 its line to the start of the next, and its motion is stretched over that
 span. At every line the shot before fades out while the new one fades in,
 over 0.7 s (`XF`), both drawn into one frame: `KG` is the brightness of
-everything drawn. A caption shows while its line is spoken. A shot may move
+everything drawn. Their labels and overlays (the HUD, the SVG of scene 4's
+diagram or of scene 7's tiles and charts, the footnote) fade the same way,
+but for one that both shots show, which stays as the new shot draws it: a
+shot that keeps an overlay or a label of the shot before starts it as that
+shot ended it. A caption shows while its line is spoken. A shot may move
 its camera (`cam` as a function of time) and its HUD. The run's shots replay
 the trace step by step (`runSearches`, `runTry`), scene 3 replays its direct
 search round by round (`pollRound`), scene 4 draws two panels in viewports
@@ -138,6 +143,7 @@ node scripts/record.mjs V/film_silent.mp4 --film --crf 23     # the film at 1280
 python scripts/mux.py V/film_silent.mp4 V/mix.wav V/film.mp4  # the sound under it, at -16 LUFS
 node scripts/record.mjs DIR --shot 13 --times 2,5             # stills of shot 13, 2 s and 5 s into its motion
 node scripts/check.mjs                                        # syntax check of film.html's script
+node scripts/transitions.mjs                                  # labels and overlays at every line change
 python -u scripts/export_trace.py --out OUT/trace_new.js --check   # the run again, compared bit for bit
 python -u scripts/illustrations.py                            # illus.js
 python -u scripts/bench_export.py --data DIR                  # bench.js
@@ -167,12 +173,13 @@ its line), and a shot's last frame held for 0.6 s.
 
 What each script needs:
 
-- `record.mjs` and `check.mjs`: Node 22 or later. `record.mjs` also needs
-  Chrome (`CHROME`, or its default install location on Windows), ffmpeg
-  (`FFMPEG`, or `ffmpeg` on the `PATH`; `pip install --target DIR
-  imageio-ffmpeg` puts one under `DIR/imageio_ffmpeg/binaries/` without
-  touching an environment), and network access, for three.js and the
-  fonts. It serves `dev/film/` itself; no server needs to run.
+- `record.mjs`, `transitions.mjs` and `check.mjs`: Node 22 or later.
+  `record.mjs` and `transitions.mjs` also need Chrome (`CHROME`, or its
+  default install location on Windows) and network access, for three.js and
+  the fonts, and `record.mjs` needs ffmpeg (`FFMPEG`, or `ffmpeg` on the
+  `PATH`; `pip install --target DIR imageio-ffmpeg` puts one under
+  `DIR/imageio_ffmpeg/binaries/` without touching an environment). Both
+  serve `dev/film/` themselves; no server needs to run.
 - `voice.py`: kokoro 0.9.4 or later, soundfile and SciPy, in an environment
   of its own (Python 3.12, CPU torch). Kokoro fetches its weights from the
   Hugging Face hub into `HF_HOME`.
@@ -239,6 +246,13 @@ the two streams.
 
 - `node scripts/check.mjs` after every edit of `film.html`, and stills of
   the shots changed.
+- `node scripts/transitions.mjs` after a change to a shot's labels or
+  overlays, or to the timeline: it steps from just before each line starts
+  through the line's first 0.76 s and lists each label or overlay that
+  vanishes in one frame or blinks off and back, and each label that two
+  consecutive shots share but place apart, and exits with status 1 when it
+  lists any. Stills of a shot (`?shot=K`) do not show these, as they draw
+  the shot alone, without the crossfade.
 - `verify_voice.py` after voicing: it lists the lines whose words differ
   from the script, ignoring case and punctuation and taking the voice's
   spellings and Whisper's ways of writing them ("PyBADS", "pie bads",
