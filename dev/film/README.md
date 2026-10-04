@@ -148,18 +148,22 @@ line or its scene by id (`--only 3.1`, `--only direct`), or with `--all`.
 The pace is the narration's `speed`, 1.12, which a scene's `speed`
 overrides: 1.2 in scene 1, 1.15 in scene 2. Voicing a line again moves every
 line after it, and the page places its events relative to the lines, so
-they move with them. `film_timeline.js` holds the timeline of the voice last
-timed, so `voice.py V` comes first when the film changes voice. After any
-change to the timing or to a shot's motion, export the events and make the
-score again. The score's sections start at lines and events, so they follow
-the new timing, but the bars inside a section were fitted to the draft
-voice's lines: `score.py` warns when a switch to the POLL, a return to the
-SEARCH, the lesson or a fooled surrogate falls in a bar of another kind,
-and `SONG` is then fitted again with `V/score_plan.txt`, which lists every
-bar with the events in it. The header of `record.mjs` lists its options:
-the size (default 1280 × 720), the frame rate (25), the span of a shot (in
-the shot's own seconds, which the film stretches over its line), and a
-shot's last frame held for 0.6 s.
+they move with them. A moment set on a word within its line, such as each
+label of line 7.3, which `NAMED` lights 0.35 s before its word, is placed
+in the shot's own seconds against the take, so a new take of the line
+needs it placed again; faster-whisper gives the words' times in a clip
+(`word_timestamps=True`). `film_timeline.js` holds the timeline of the
+voice last timed, so `voice.py V` comes first when the film changes voice.
+After any change to the timing or to a shot's motion, export the events and
+make the score again. The score's sections start at lines and events, so
+they follow the new timing, but the bars inside a section were fitted to
+the draft voice's lines: `score.py` warns when a switch to the POLL, a
+return to the SEARCH, the lesson or a fooled surrogate falls in a bar of
+another kind, and `SONG` is then fitted again with `V/score_plan.txt`,
+which lists every bar with the events in it. The header of `record.mjs`
+lists its options: the size (default 1280 × 720), the frame rate (25), the
+span of a shot (in the shot's own seconds, which the film stretches over
+its line), and a shot's last frame held for 0.6 s.
 
 What each script needs:
 
@@ -216,7 +220,7 @@ the ritardando into the pop, and 83 on the end card. So those three events
 fall on a downbeat, and so does the start of every scene but the sixth,
 whose section starts at the reveal, 1.6 s after its first line. Every event
 sounds on the nearest thirty-second note, at most half of one from the
-picture (40.5 ms at worst on the draft voice, 19 ms on average); a fast
+picture (40.5 ms at worst on the draft voice, 20 ms on average); a fast
 run keeps one event per thirty-second note. An evaluation sounds as a glassy tick pitched
 by the height of its ground, a search that succeeds as a bell (the lower it
 lands, the higher the bell), one that fails as a thud with a dissonant stab,

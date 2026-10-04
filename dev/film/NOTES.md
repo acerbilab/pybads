@@ -48,6 +48,9 @@ section 3, and Singh & Acerbi (2024). The script has 460 words.
   have used it, and closes on "Join them." over their field (scene 7,
   2026-10-03). The scope of up to twenty parameters on rugged or noisy
   landscapes is that of BADS, of which PyBADS is a port.
+- Line 7.3 names a field only for studies whose own text shows that they
+  used BADS or PyBADS, and its footnote cites them; a study that only
+  cites BADS does not count (2026-10-04).
 
 Settled when the script was locked (2026-10-03):
 
@@ -258,7 +261,9 @@ shorter pauses. In v3 every transition between scenes takes the same 0.7 s,
 where v2's took 0.9 to 2.4 s, and the gaps between lines are a quarter
 shorter. v4 opens line 3.1 on "Instead", which tells that another method
 follows line 2.4; v5 adds line 1.2 and names the landscape "the error" at
-line 1.4; v6 adds the score, and v7 lowers it by 2 dB.
+line 1.4; v6 adds the score, and v7 lowers it by 2 dB. v8 voices line 7.3
+again, with quantum computers as its second field, and lights each of its
+labels as its word is spoken.
 
 Whisper (`verify_voice.py`) hears most lines of the draft voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for

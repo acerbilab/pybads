@@ -23,7 +23,7 @@ On the draft voice the scenes start and last:
 | 4. BADS | 4.1–4.5 | 14–18 | 63.0 | 30.1 |
 | 5. A real run | 5.1–5.7 | 19–25 | 93.1 | 40.0 |
 | 6. Close | 6.1–6.2 | 26–27 | 133.1 | 8.6 |
-| 7. The record | 7.1–7.4 | 28–31 | 141.7 | 26.2 |
+| 7. The record | 7.1–7.4 | 28–31 | 141.7 | 26.7 |
 
 ## 1. The problem
 
@@ -239,20 +239,25 @@ the same landscape (NOTES.md, "The run").
   BADS has the highest mean curve in all six studies (NOTES.md, "The
   record").
 - **7.3** (shot 30) "Since then, it has been used in hundreds of studies,
-  from brains and board games to oil wells and wildfires.\*" The charts
-  fade. Hundreds of points light up across the floor, one for each study
-  that has used BADS. As the narration names them, four points glow and
-  take labels: "brains", "board games", "oil wells", "wildfires". Footnote:
-  "\*Brains: Cao et al. 2019; Tajima et al. 2019. Board games: van
-  Opheusden et al. 2023. Oil wells: Feng et al. 2022. Wildfires: Nobel et
-  al. 2020." *Sources:* "hundreds of studies" is the count, by BADS's
-  authors, of the studies that have used it. The four fields are uses of
-  BADS that the PyBADS paper (Singh & Acerbi 2024) cites: Cao et al. 2019,
-  *Neuron*; Tajima et al. 2019, *Nature Neuroscience*; van Opheusden et al.
-  2023, *Nature*, planning in a board game; Feng et al. 2022, *Petroleum
-  Science*, the optimization of a well's production; Nobel et al. 2020,
-  *Journal of Environmental Economics and Management*, the impact of
-  wildfires on the recreational value of heathland.
+  from brains and quantum computers to oil wells and wildfires.\*" The
+  charts fade. Hundreds of points light up across the floor, one for each
+  study that has used BADS. As the narration names them, four points glow
+  and take labels: "brains", "quantum computers", "oil wells",
+  "wildfires". Footnote: "\*Brains: Cao et al. 2019; Tajima et al. 2019.
+  Quantum computers: Than et al. 2025. Oil wells: Feng et al. 2022.
+  Wildfires: Nobel et al. 2020." *Sources:* "hundreds of studies" is the
+  count, by BADS's authors, of the studies that have used it. For each
+  field the footnote cites studies whose own text shows that they used
+  BADS or PyBADS: Cao et al. 2019, *Neuron*, fitted models of multisensory
+  causal inference with BADS; Tajima et al. 2019, *Nature Neuroscience*,
+  tuned a model of multi-alternative decisions in simulation, with an
+  optimization that its Methods credit to the BADS paper; Than et al.
+  2025, *Nature Communications*, optimized with PyBADS a variational
+  quantum algorithm run on an ion-trap quantum computer; Feng et al. 2022,
+  *Petroleum Science*, optimized a well's production with BADS; Nobel et
+  al. 2020, *Journal of Environmental Economics and Management*, estimated
+  with BADS a model of the impact of wildfires on the recreational value
+  of heathland.
 - **7.4** (shot 31, the end card) "Join them." The field of studies dims
   and its labels go. On "Join them." one new point pops in among the
   others, white. Then the end card fades in over the field: "PyBADS", then
