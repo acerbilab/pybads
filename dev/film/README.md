@@ -249,3 +249,21 @@ the two streams.
   faster or slower take can push a section's tempo out of the 90s.
 - `mux.py` prints the loudness and true peak it measured and those of the
   film it wrote.
+
+## Known limitations
+
+- `EVENTS` repeats timing constants of the shots' motion (the tries of
+  line 4.3, the steps of the POLL panels, the first evaluations of line
+  5.2), so the two are changed together.
+- A search's try counts as a hit in two ways: `RUN_TRY`, which draws a try,
+  takes every status but `failure`, while `runTryKind` and the HUD's marks
+  take only `success`. They agree on every try that the film draws, none of
+  which is an incremental improvement.
+- An event's value 0 means "no value" to the score (a search hit of scene
+  4 is pitched as a fixed note), and a real value of 0 is read the same way.
+- `synth.py` times its echoes and the drone's swell at 96 BPM, so they
+  drift a little against the tempo map of `score.py`.
+- `score.py` does not check that `events.json` and `narration.wav` come
+  from the same take of the voice.
+- `record.mjs` picks Chrome's DevTools port at random between 9300 and
+  9899, and its default Chrome path is Windows'.
