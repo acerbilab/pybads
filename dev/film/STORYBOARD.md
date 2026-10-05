@@ -4,11 +4,13 @@ The film line by line: the narration, what each shot shows, and where the
 narration's claims come from. Shot K is `film.html?shot=K`;
 [README.md](README.md) says how the page plays the shots, and
 [NOTES.md](NOTES.md) why the film is as it is. The script was locked on
-2026-10-03.
+2026-10-03, and line 1.5 rewritten on 2026-10-05.
 
-The captions below are the narration word for word, but for two things.
+The captions below are the narration word for word, but for three things.
 The captions of lines 4.2, 7.2 and 7.3 end in an asterisk, which calls a
-footnote at the bottom right. And `narration.json` spells some words as the
+footnote at the bottom right. The caption of line 1.5, too long for the
+two lines of the lower bar, shows in two parts, the second from "so its
+slope". And `narration.json` spells some words as the
 voice should say them: "Pie-Bads" for PyBADS and "Bads" for BADS, and
 "search" and "poll" in lower case, so that the voice does not spell them
 out.
@@ -17,13 +19,13 @@ On the draft voice the scenes start and last:
 
 | Scene | Lines | Shots | Starts (s) | Lasts (s) |
 |---|---|---|---|---|
-| 1. The problem | 1.1–1.5 | 1–5 | 0.0 | 19.8 |
-| 2. Bayesian optimization | 2.1–2.4 | 6–9 | 19.8 | 23.0 |
-| 3. Direct search | 3.1–3.4 | 10–13 | 42.8 | 20.2 |
-| 4. BADS | 4.1–4.5 | 14–18 | 63.0 | 30.1 |
-| 5. A real run | 5.1–5.7 | 19–25 | 93.1 | 40.0 |
-| 6. Close | 6.1–6.2 | 26–27 | 133.1 | 8.6 |
-| 7. The record | 7.1–7.4 | 28–31 | 141.7 | 26.7 |
+| 1. The problem | 1.1–1.5 | 1–5 | 0.0 | 27.4 |
+| 2. Bayesian optimization | 2.1–2.4 | 6–9 | 27.4 | 23.0 |
+| 3. Direct search | 3.1–3.4 | 10–13 | 50.5 | 20.2 |
+| 4. BADS | 4.1–4.5 | 14–18 | 70.7 | 30.1 |
+| 5. A real run | 5.1–5.7 | 19–25 | 100.7 | 40.0 |
+| 6. Close | 6.1–6.2 | 26–27 | 140.7 | 8.6 |
+| 7. The record | 7.1–7.4 | 28–31 | 149.3 | 28.7 |
 
 ## 1. The problem
 
@@ -43,9 +45,30 @@ On the draft voice the scenes start and last:
   out of the floor, grey, through the stem, whose top it meets: a long
   diagonal valley, and a narrow trench that leaves it and runs down to the
   lowest point.
-- **1.5** (shot 5) "But you can't see the landscape. Each evaluation gives
-  the height at a single point." The landscape fades out. One evaluation
-  drops onto the start, at its height, with a line down to the floor.
+- **1.5** (shot 5) "But you can't see the landscape. For many computational
+  models, the error is approximated numerically, or noisy, so its slope is
+  no guide, and each evaluation can take seconds: they are black boxes."
+  The landscape fades out, the floor dims, and two small landscapes
+  appear above it, in the look of the tiles of line 7.1. On
+  "approximated numerically" the first lights, a bowl under bumps,
+  labelled "approximated numerically"; on "noisy" the second, a bowl seen
+  through noise redrawn every tenth of a second, labelled "noisy". On
+  "slope" each bowl's bottom shows as a white point, and a white arrow,
+  labelled "slope", points the way the local slope goes down: on the
+  bumps, away from the bottom, down a bump's flank; on the noise, wherever
+  the noise of the moment sends it, four times a second. On "each
+  evaluation" the two step back, and one evaluation drops slowly onto the
+  start, at its height, with a line down to the floor; on "black boxes"
+  the empty floor takes the label *black box*. *Sources:* the FAQ's
+  list of the problems that PyBADS suits (`docsrc/source/faq.md`, also in
+  `README.md`): a landscape that is "rough (nonsmooth), typically due to
+  numerical approximations or noise", and an objective "at least
+  moderately expensive to compute (e.g., more than 0.1 s per function
+  evaluation)". A slope can be computed or estimated, but on such a
+  landscape it reflects the approximation or the noise, not the direction
+  of the valley. The line speaks of many models, not all, nor of the
+  film's landscape, which is smooth; line 7.1 shows rugged and noisy
+  ones.
 
 ## 2. Bayesian optimization: smart and fast, but brittle
 
@@ -225,19 +248,32 @@ the same landscape (NOTES.md, "The run").
   or beat sixteen other optimizers.\*" The tiles give way to six charts,
   the six studies of the BADS paper's benchmark: the fraction of runs
   solved, by evaluations for the three deterministic studies (top) and by
-  error tolerance for the three noisy ones (bottom). The other optimizers
-  draw in grey, plain Bayesian optimization in green, then BADS in amber,
-  above them in every chart. Footnote: "\*Redrawn from Acerbi & Ma (2017):
-  36 problems from six studies, 6 to 13 parameters, 50 runs per optimizer
-  and problem, default settings. Fraction of runs solved, by evaluations
-  (top) or, for noisy problems, by error tolerance (bottom)." *Sources:*
+  error tolerance for the three noisy ones (bottom). The curves draw in
+  turn, and each name of the legend at the top comes in as its curves
+  start: the other optimizers faint in grey, then two of them named,
+  CMA-ES in white and gradient-based in light blue, then plain Bayesian
+  optimization in green, and BADS last, in amber, above them all in every
+  chart. The finished charts hold for 2.5 s after the line. Footnote:
+  "\*Redrawn from Acerbi & Ma (2017): 36 problems from six studies, 6 to
+  13 parameters, 50 runs per optimizer and problem, default settings.
+  Fraction of runs solved, by evaluations (top) or, for noisy problems, by
+  error tolerance (bottom). CMA-ES and gradient-based (fmincon): the best
+  of their variants in each study." *Sources:*
   Acerbi & Ma (2017), section 4 and Figs 2 and 3: "Besides BADS, we tested
   16 optimization algorithms", plain Bayesian optimization besides, and "In
   all problems, BADS consistently performs on par with or outperforms all
   other tested optimizers, even when accounting for its extra algorithmic
   cost." In the charts redrawn from the benchmark's data (`bench.js`),
   BADS has the highest mean curve in all six studies (NOTES.md, "The
-  record").
+  record"). The two named optimizers are drawn in each study by the best
+  of their variants, by mean curve: CMA-ES with active covariance
+  adaptation (in its version for noisy problems in the noisy studies) in
+  all six, and MATLAB's gradient-based `fmincon` in five, all but
+  combinatorial game playing (interior point in the three deterministic
+  studies; active set, the only variant run, in two noisy ones).
+  One of the two is the best of the others in every study: CMA-ES in
+  causal inference and the three noisy studies, `fmincon` in Bayesian
+  confidence and neuronal selectivity.
 - **7.3** (shot 30) "Since then, it has been used in hundreds of studies,
   from brains and quantum computers to oil wells and wildfires.\*" The
   charts fade. Hundreds of points light up across the floor, one for each

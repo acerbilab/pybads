@@ -16,14 +16,30 @@ is Bayesian optimization near the best point. When the SEARCH fails several
 times in a row, its POLL stage takes a round of direct search, which moves
 on without the surrogate and collects the points that help build a better
 surrogate for the next SEARCH. The story follows Acerbi & Ma (2017),
-section 3, and Singh & Acerbi (2024). The script has 460 words.
+section 3, and Singh & Acerbi (2024). The script has 478 words.
 
 ## Decisions
 
-- The film does not motivate PyBADS by the cost of each evaluation:
-  PyBADS's own time is 15 to 35 ms per evaluation
-  (`dev/results/2026-09-28-where-pybads-spends-its-time.md`), and gpyreg
-  1.4.0 cuts it further (`dev/results/2026-09-29-bit-identical-speedups.md`).
+- Line 1.5 says why the problem needs a method like BADS: for many
+  computational models the error is approximated numerically, or noisy,
+  so its slope is no guide, and each evaluation can take seconds; such
+  models are black boxes (2026-10-05). The line gives the reason a slope
+  fails, not that it is missing: a slope can be computed, by hand or by
+  automatic differentiation, or estimated from nearby points, and a model
+  whose error has a reliable slope suits a gradient method, as the FAQ
+  says. "Many" makes it a property of some models; "computational" and
+  "the error" take the modeller's terms, likelihoods included (line 1.2
+  makes "the error" stand for both). The claim stays at the level of the
+  FAQ's list of the problems that PyBADS suits, "rough (nonsmooth),
+  typically due to numerical approximations or noise" and "at least
+  moderately expensive". It does not speak of the film's landscape, which
+  is smooth: on it, SciPy's BFGS (`scipy.optimize.minimize`, default
+  options, SciPy 1.18.1) finds the minimum from 145 of 200 random starts in
+  the plausible box.
+  PyBADS's own time, 15 to 35 ms per evaluation
+  (`dev/results/2026-09-28-where-pybads-spends-its-time.md`), which gpyreg
+  1.4.0 cuts further (`dev/results/2026-09-29-bit-identical-speedups.md`),
+  is small beside an evaluation that takes seconds.
 - The landscape is a valley, lower is better, as PyBADS minimizes
   (2026-10-01).
 - Scenes 2 and 3, which show Bayesian optimization and direct search on
@@ -79,7 +95,7 @@ Still open:
    Bayesian optimization with a safety net, and a footnote crediting
    Bayesian optimization (Jones, Schonlau & Welch 1998) beside the MADS
    one.
-7. The final voice, after feedback on the animatic.
+7. The final voice.
 
 ## Rules for the pictures
 
@@ -92,13 +108,15 @@ The frame stays uncluttered without being empty (2026-10-03).
   surrogate is one green wireframe sheet, bright where it is sure and faint
   where it is not, shown while it is in use. The best point so far is a
   white ring. The POLL is a purple cross of four steps on the mesh, drawn on
-  the plane through the best point. The true landscape is a grey wireframe.
+  the plane through the best point. The true landscape is a grey wireframe,
+  and so are the small landscapes of lines 1.5 and 7.1; in line 1.5 a
+  landscape's local slope is a white arrow, and its bottom a white point.
   A search's try shows where the surrogate put it (a green dot on the
   sheet) and where it landed (amber), joined by a dashed white line.
 - **Text on screen:** SEARCH and POLL at top left, with four marks for the
   current round (a cross for a failed try, a dot for a success), and short
   labels for what the narration points at; a term that a label introduces
-  ("surrogate", "mesh") is set in italic serif. No readouts, no top view, and no
+  ("black box", "surrogate", "mesh") is set in italic serif. No readouts, no top view, and no
   numbers beyond what the narration says. A credit is an asterisk on the
   caption and a footnote at the bottom right.
 - **The true landscape** is shown in scene 1, faintly in line 2.4 to show
@@ -249,6 +267,11 @@ film shows BADS's curve without its overhead correction, as the paper's
 headline curve. Each chart shows between 6 and 13 other optimizers, and
 plain Bayesian optimization (MATLAB's `bayesopt`), whose curve stays at zero
 in four studies: the three deterministic ones and word recognition memory.
+Two of the other optimizers have their own colours and names in the
+legend, in every study where they ran: CMA-ES and `fmincon`, named
+"gradient-based", each drawn by the best of its variants in the study; one
+of the two is the best of the others in every study, and the others are
+faint (STORYBOARD.md, line 7.2).
 
 The charts have no numbers on their axes; the footnote names them.
 
@@ -271,6 +294,25 @@ came back; in line 7.2 the tiles' frames and labels were hidden. In v10
 the surrogate of line 5.3 caves in once, from 2.8 s into its shot, where
 the score's fooled surrogate begins: until v9 it took its new shape at the
 end of evaluation 20's try, went back to the old one, and then caved in.
+v11 (2 min 56 s) rewrites line 1.5 to say why the problem needs a method
+like BADS (the first of the decisions above): the model is a black box,
+which gives only heights, and each evaluation can take seconds; and in
+line 7.2 it names the best of the other optimizers in each chart, brings
+the legend in with BADS's curve rather than near the line's end, and holds
+the finished charts 2.5 s after the line, instead of 0.5 s. v11 named the
+best of the others in a key beside each chart's title, under a legend that
+named BADS and Bayesian optimization alone, and the names went unseen;
+in v12 the legend names CMA-ES and gradient-based too, each in its own
+colour in every chart, and builds up as the curves draw. v13 (2 min 58 s)
+gives line 1.5 its present wording: v11 and v12 said "To the optimizer, your
+model is a black box: each evaluation gives only the height at a single
+point, not the slope, and can take seconds.", which read as true of every
+model and left open why the slope is not computed. Its caption, too long
+for the lower bar, shows in two parts. In v14 line 1.5 shows what it says,
+where v13 held an empty floor for 7 s: two small landscapes, one under
+bumps and one under noise, each with its bottom and an arrow for its local
+slope, and the evaluation dropping slowly as each evaluation "can take
+seconds".
 
 Whisper (`verify_voice.py`) hears most lines of the draft voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for

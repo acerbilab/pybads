@@ -34,8 +34,15 @@
     },
     {
      "id": "1.5",
-     "text": "But you can't see the landscape. Each evaluation gives the height at a single point.",
-     "gap": 0.3
+     "text": "But you can't see the landscape. For many computational models, the error is approximated numerically, or noisy, so its slope is no guide, and each evaluation can take seconds: they are black boxes.",
+     "gap": 0.3,
+     "caption": [
+      "But you can't see the landscape. For many computational models, the error is approximated numerically, or noisy,",
+      "so its slope is no guide, and each evaluation can take seconds: they are black boxes."
+     ],
+     "caption_at": [
+      6.4
+     ]
     }
    ],
    "speed": 1.2
@@ -212,7 +219,7 @@
      "id": "7.3",
      "text": "Since then, it has been used in hundreds of studies, from brains and quantum computers to oil wells and wildfires.",
      "caption": "Since then, it has been used in hundreds of studies, from brains and quantum computers to oil wells and wildfires.*",
-     "gap": 0.51
+     "gap": 2.5
     },
     {
      "id": "7.4",

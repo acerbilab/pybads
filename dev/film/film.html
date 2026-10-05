@@ -579,6 +579,48 @@ function tileViews(s) {        // s: shrink (the film's landscape into its tile)
   }
   return views;
 }
+// Line 1.5: two landscapes of computational models above the empty floor, in the look of line 7.1's tiles: a bowl
+// under bumps, as a numerical approximation leaves it, and a bowl under noise. In each, the bowl's bottom is a white
+// point, and a white arrow, level at its point's height like a compass needle, points the way that the local slope
+// goes down: on the bumps, off down a bump's flank, away from the bottom; on the noise, wherever the noise of the
+// moment sends it.
+const TILES15 = [{ x: 287, y: 112, w: 340, h: 250 }, { x: 653, y: 112, w: 340, h: 250 }];
+function slopeArrow(f, y, x1, x2, k, len = 1.9) {     // f gives the slope at (x1, x2); y is the height the arrow is drawn at
+  const h = 0.12, gx = (f(x1 + h, x2).f - f(x1 - h, x2).f) / (2 * h), gy = (f(x1, x2 + h).f - f(x1, x2 - h).f) / (2 * h);
+  const n = Math.hypot(gx, gy) || 1, d1 = -gx / n, d2 = -gy / n, up = 0.025;
+  const at = (u, v) => [sx(u), sy(y) + up, sz(v)];
+  let a = at(x1, x2);
+  for (let i = 1; i <= 8; i++) { const u = (i / 8) * len, b = at(x1 + u * d1, x2 + u * d2); L.seg(...a, ...b, C.white, k); a = b; }
+  const e1 = x1 + len * d1, e2 = x2 + len * d2;
+  for (const s of [-1, 1]) { const c = Math.cos(2.6 * s), sn = Math.sin(2.6 * s), r1 = c * d1 - sn * d2, r2 = sn * d1 + c * d2;
+    L.seg(...at(e1, e2), ...at(e1 + 0.5 * r1, e2 + 0.5 * r2), C.white, k); }
+  P.pt(...at(x1, x2), C.white, 0.9 * k, 8);
+  return at(x1, x2);
+}
+function insets15(t) {
+  const on = ramp(t, 1.9, 2.6) * (1 - ramp(t, 7.9, 8.4)), lit = [ramp(t, 3.9, 4.4), ramp(t, 5.6, 6.0)], arr = ramp(t, 6.5, 6.9) * on;
+  if (on < 0.003) return [];
+  const seed = Math.floor(t * 10), aseed = 1000 + Math.floor(t * 4);
+  return [
+    { rect: TILES15[0], cam: TILE_CAM, hm: hmTile, draw: () => { truthSheet.draw(ruggedAt, greyColor, (0.12 + 0.38 * lit[0]) * on);
+      if (arr < 0.003) return {}; P.pt(sx(0), sy(0) + 0.025, sz(0), C.white, 1.4 * arr, 10);
+      const p = slopeArrow(ruggedAt, ruggedAt(1.9, -1.9).f, 1.9, -1.9, 1.7 * arr);
+      return { labels: [["slope", "plain w", p, 0.8, -2.6, "", arr]] }; } },
+    { rect: TILES15[1], cam: TILE_CAM, hm: hmTile, draw: () => { truthSheet.draw(noisyAt(seed), greyColor, (0.08 + 0.22 * lit[1]) * on);
+      if (arr < 0.003) return {}; P.pt(sx(0), sy(0) + 0.025, sz(0), C.white, 1.4 * arr, 10);
+      const p = slopeArrow(noisyAt(aseed), bowl(2.4, -1.6), 2.4, -1.6, 1.7 * arr);
+      return { labels: [["slope", "plain w", p, 0.8, -2.6, "", arr]] }; } },
+  ];
+}
+function over15(t) {           // the frames of line 1.5's tiles, and their names
+  const R = (v) => String(Math.round(v * 1000) / 1000), on = ramp(t, 1.9, 2.6) * (1 - ramp(t, 7.9, 8.4)), lit = [ramp(t, 3.9, 4.4), ramp(t, 5.6, 6.0)];
+  if (on < 0.003) return "";
+  let o = `<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">`;
+  ["approximated numerically", "noisy"].forEach((name, i) => { const r = TILES15[i];
+    o += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="3" fill="none" stroke="#a9bbcc" stroke-opacity="${R((0.2 + 0.25 * lit[i]) * on)}" stroke-width="1.5"/>`;
+    if (lit[i] * on > 0.003) o += `<text x="${r.x + r.w / 2}" y="${r.y + r.h + 30}" fill="#e4ece7" fill-opacity="${R(lit[i] * on)}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="18" text-anchor="middle">${name}</text>`; });
+  return o + `</svg>`;
+}
 function tiles7(s) {           // the tiles' frames and labels, over the three views
   const R = (v) => String(Math.round(v * 1000) / 1000), INK = "#e4ece7";
   const names = ["two parameters", "rugged", "noisy"], vis = [ramp(s.shrink, 0.75, 1) * s.a, s.others * s.a, s.others * s.a], lab = [s.lab0 * (1 - (s.swap || 0)), s.lab1, s.lab2];
@@ -594,35 +636,47 @@ function tiles7(s) {           // the tiles' frames and labels, over the three v
 }
 // 7.2: the six panels of Figs 2 and 3 of the BADS paper, redrawn from the benchmark's caches (bench.js, bench_export.py).
 const BENCH = window.BADS_BENCH;
-function chart7(s) {           // s: show, grey, green, amber (how far each kind of curve is drawn), legend
-  const R = (v) => String(Math.round(v * 100) / 100), AM = "#ffad55", G = "#5cf2a6", GREY = "#8b9a94", INK = "#e4ece7";
-  const PW = 340, PH = 150, PX = [100, 470, 840], PY = [140, 348];
+const CH = { PW: 340, PH: 150, PX: [100, 470, 840], PY: [140, 348] };       // the six panels' size and places, in the SVG's units
+const chartUx = (st) => (st.noisy ? (x) => Math.log(10 / x) / Math.log(100) : (x) => Math.log(x / 10) / Math.log(50));
+// Two of the other optimizers, named in every study where they ran: CMA-ES and the gradient-based fmincon, each by the
+// best of its variants in the study (by mean curve, as BADS's lead is measured). One of the two is the best of the
+// others in every study.
+const RIVALS7 = BENCH.studies.map((st) => {
+  const best = (pre) => st.algos.filter((a) => a.kind === "other" && a.id.startsWith(pre)).reduce((p, a) => (!p || a.mean > p.mean ? a : p), null);
+  return { cma: best("cmaes"), grad: best("fmincon") };
+});
+function chart7(s) {           // s: show, and how far each kind of curve is drawn: grey (the others), rivals, green, amber
+  const R = (v) => String(Math.round(v * 100) / 100), AM = "#ffad55", G = "#5cf2a6", GREY = "#8b9a94", INK = "#e4ece7", CMA = "#f4f7f5", GRAD = "#6fb6ff";
+  const { PW, PH, PX, PY } = CH;
   const mono = 'font-family="IBM Plex Mono, Consolas, monospace" font-size="13" letter-spacing="1.5"';
   let o = `<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glA" x="-10%" y="-30%" width="120%" height="160%">` +
     `<feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g opacity="${R(s.show)}">`;
   BENCH.studies.forEach((st, i) => {
-    const px = PX[i % 3], py = PY[Math.floor(i / 3)], n = st.x.length;
-    const ux = st.noisy ? (x) => Math.log(10 / x) / Math.log(100) : (x) => Math.log(x / 10) / Math.log(50);
+    const px = PX[i % 3], py = PY[Math.floor(i / 3)], n = st.x.length, ux = chartUx(st), rv = RIVALS7[i];
     o += `<text x="${px}" y="${py - 12}" fill="${INK}" fill-opacity="0.8" ${mono}>${st.title.toUpperCase()}</text>`;
     o += `<path d="M ${px} ${py} L ${px} ${py + PH} L ${px + PW} ${py + PH}" fill="none" stroke="${GREY}" stroke-opacity="0.45" stroke-width="1.2"/>`;
     o += `<path d="M ${px} ${py} L ${px + PW} ${py}" stroke="${GREY}" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3 5"/>`;
-    const order = st.algos.filter((a) => a.kind === "other").concat(st.algos.filter((a) => a.kind === "bo"), st.algos.filter((a) => a.kind === "bads"));
+    // the others faint behind, then the two rivals, plain Bayesian optimization and BADS on top
+    const others = st.algos.filter((a) => a.kind === "other" && a !== rv.cma && a !== rv.grad);
+    const order = others.concat([rv.grad, rv.cma].filter(Boolean), st.algos.filter((a) => a.kind === "bo"), st.algos.filter((a) => a.kind === "bads"));
     for (const a of order) {
-      const prog = a.kind === "bads" ? s.amber : a.kind === "bo" ? s.green : s.grey, m = Math.round(prog * (n - 1));
+      const rival = a === rv.cma || a === rv.grad, prog = a.kind === "bads" ? s.amber : a.kind === "bo" ? s.green : rival ? s.rivals : s.grey, m = Math.round(prog * (n - 1));
       if (m < 1) continue;
+      const [c, w, op] = a.kind === "bads" ? [AM, 3, 1] : a.kind === "bo" ? [G, 2, 0.9] : a === rv.cma ? [CMA, 2, 0.95] : a === rv.grad ? [GRAD, 2, 0.95] : [GREY, 1.2, 0.3];
       let d = "";
       for (let j = 0; j <= m; j++) { const y = a.y[j]; if (y === null) continue; d += (d ? " L " : "M ") + (px + ux(st.x[j]) * PW).toFixed(1) + " " + (py + (1 - y) * PH).toFixed(1); }
-      const [c, w, op] = a.kind === "bads" ? [AM, 3, 1] : a.kind === "bo" ? [G, 2, 0.9] : [GREY, 1.3, 0.55];
       o += `<path d="${d}" fill="none" stroke="${c}" stroke-opacity="${op}" stroke-width="${w}" stroke-linejoin="round"${a.kind === "bads" ? ' filter="url(#glA)"' : ""}/>`;
     }
   });
   // the axes, named once per row; the footnote says the rest
   o += `<text x="${PX[0] + PW}" y="${PY[0] + PH + 22}" fill="${GREY}" ${mono} text-anchor="end">SOLVED, BY EVALUATIONS &#8594;</text>`;
   o += `<text x="${PX[0] + PW}" y="${PY[1] + PH + 22}" fill="${GREY}" ${mono} text-anchor="end">SOLVED, BY ERROR TOLERANCE &#8594;</text>`;
-  const lg = [["BADS", AM, 3], ["Bayesian optimization", G, 2], ["other optimizers", GREY, 1.3]];     // the legend, under the top bar
-  let lx = 640 - (lg.reduce((w, [name]) => w + 34 + 8.2 * name.length, 0) + 2 * 30) / 2;
-  for (const [name, c, w] of lg) {
-    o += `<g opacity="${R(s.legend)}"><path d="M ${lx.toFixed(1)} 102 L ${(lx + 26).toFixed(1)} 102" stroke="${c}" stroke-width="${w}"/>` +
+  // the legend, under the top bar: each name comes in as its curves start to draw
+  const lg = [["BADS", AM, 3, s.amber], ["CMA-ES", CMA, 2, s.rivals], ["gradient-based", GRAD, 2, s.rivals], ["Bayesian optimization", G, 2, s.green], ["other optimizers", GREY, 1.2, s.grey]];
+  let lx = 640 - (lg.reduce((w, [name]) => w + 34 + 8.2 * name.length, 0) + (lg.length - 1) * 30) / 2;
+  for (const [name, c, w, prog] of lg) {
+    const a = clamp01(4 * prog);
+    if (a > 0.003) o += `<g opacity="${R(a)}"><path d="M ${lx.toFixed(1)} 102 L ${(lx + 26).toFixed(1)} 102" stroke="${c}" stroke-width="${w}"/>` +
       `<text x="${(lx + 34).toFixed(1)}" y="107" fill="${INK}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="15">${name}</text></g>`;
     lx += 34 + 8.2 * name.length + 30;
   }
@@ -637,7 +691,7 @@ const NAMED = [["brains", -2.6, 1.9, 2.86], ["quantum computers", 1.6, 2.8, 3.56
 const YOU = [3.6, -2.6];       // the end card's new point: the viewer's own study
 const FOOT = {
   mads: "*The SEARCH and POLL stages come from mesh adaptive direct search (MADS; Audet &amp; Dennis 2006).",
-  bench: "*Redrawn from Acerbi &amp; Ma (2017): 36 problems from six studies, 6 to 13 parameters, 50 runs per optimizer and problem, default settings. Fraction of runs solved, by evaluations (top) or, for noisy problems, by error tolerance (bottom).",
+  bench: "*Redrawn from Acerbi &amp; Ma (2017): 36 problems from six studies, 6 to 13 parameters, 50 runs per optimizer and problem, default settings. Fraction of runs solved, by evaluations (top) or, for noisy problems, by error tolerance (bottom). CMA-ES and gradient-based (fmincon): the best of their variants in each study.",
   uses: "*Brains: Cao&nbsp;et&nbsp;al.&nbsp;2019; Tajima&nbsp;et&nbsp;al.&nbsp;2019. Quantum computers: Than&nbsp;et&nbsp;al.&nbsp;2025. Oil wells: Feng&nbsp;et&nbsp;al.&nbsp;2022. Wildfires: Nobel&nbsp;et&nbsp;al.&nbsp;2020.",
 };
 
@@ -685,11 +739,15 @@ const SHOTS = [
     draw(t) { drawFloor(1); truthSheet.draw(rise(truthAt, ramp(t, 0.2, 2.6)), greyColor, 0.5 * ramp(t, 0, 0.6)); P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * ramp(t, 4.3, 4.8), 11);
       const e = 1 - ramp(t, 2.6, 3.4); if (e > 0.004) { P.pt(sx(G13[1][0]), 0, sz(G13[1][1]), C.white, 1.6 * e, 10); errorStem(G13[1], e); } },
     labels: (t) => [errorLabel(G13[1], 1 - ramp(t, 1.8, 2.4)), ["worse fit", "plain w", at3(-3.6, 3.2, ftrue(-3.6, 3.2)), 0, -2.4, " translate(-50%, 0)", ramp(t, 2.4, 3.0)], ["better fit", "plain w", at3(-2.3, -2.3, ftrue(-2.3, -2.3)), -1.5, -3.5, " translate(-100%, 0)", ramp(t, 3.0, 3.6)], ["lowest point", "plain w", at3(XMIN[0], XMIN[1], FMIN), 1.2, -0.4, "", ramp(t, 4.5, 5.1)]] },
-  { id: "1.5", line: "But you can't see the landscape. Each evaluation gives the height at a single point.", cam: CAM.wide, dur: 6,
-    note: "The landscape fades out. One evaluation drops onto the start, at its height, with a line down to the floor.",
-    draw(t) { drawFloor(1); truthSheet.draw(truthAt, greyColor, 0.5 * (1 - ramp(t, 0.2, 1.6))); P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * (1 - ramp(t, 0.2, 1.2)), 11);
-      dropPt(EV[0][0], EV[0][1], EV[0][2], lin(t, 2.4, 3.0), C.warm, 1.7, 11, 0.4); },
-    labels: (t) => [["one evaluation", "plain w", at3(EV[0][0], EV[0][1], EV[0][2]), 1.3, -2.2, "", ramp(t, 3.2, 3.7)]] },
+  { id: "1.5", line: "But you can't see the landscape. For many computational models, the error is approximated numerically, or noisy, so its slope is no guide, and each evaluation can take seconds: they are black boxes.", cam: CAM.wide, dur: 12.6,
+    note: "The landscape fades out. Above the dimmed floor two small landscapes appear: on “approximated numerically” a bowl under bumps lights, on “noisy” a bowl under noise. On “slope” a white arrow in each shows where the local slope points: on the bumps, away from the bowl's bottom; on the noise, wherever the noise sends it. They go, and on “each evaluation” one evaluation drops slowly onto the start, at its height, with a line down to the floor. Then the empty floor is labelled “black box”.",
+    draw(t) { drawFloor(1 - 0.65 * ramp(t, 1.9, 2.6) * (1 - ramp(t, 7.9, 8.4))); truthSheet.draw(truthAt, greyColor, 0.5 * (1 - ramp(t, 0.2, 1.6))); P.pt(sx(XMIN[0]), sy(FMIN), sz(XMIN[1]), C.white, 1.6 * (1 - ramp(t, 0.2, 1.2)), 11);
+      dropPt(EV[0][0], EV[0][1], EV[0][2], lin(t, 8.4, 10.0), C.warm, 1.7, 11, 0.4); },
+    insets: insets15, over: over15,
+    // On the voice's take, "approximated" starts 4.00 s into the line, "noisy" 5.82 s, "slope" 6.86 s, "each" 8.34 s,
+    // "evaluation" ends at 9.14 s and "black" starts at 10.86 s.
+    labels: (t) => [["one evaluation", "plain w", at3(EV[0][0], EV[0][1], EV[0][2]), 1.3, -2.2, "", ramp(t, 8.7, 9.2)],
+      ["black box", "term", at3(0.5, 0.5, FMIN), 0, -1.2, " translate(-50%, 0)", ramp(t, 10.5, 10.9)]] },
   // ---------------------------------------------------------------- 2. Bayesian optimization (illustration)
   { id: "2.1", line: "Bayesian optimization fits a surrogate to the points it has seen: a statistical model of the whole landscape.", cam: CAM.wide, ill: true, dur: 7,
     note: "Five evaluations drop onto the floor's landscape. The surrogate rises out of them as a green sheet: bright where it is sure, faint where it is not.",
@@ -844,15 +902,15 @@ const SHOTS = [
     note: "The landscape of line 6.2 shrinks into the first of three tiles, labelled “two parameters”; on “up to twenty” the label dissolves into “up to ~20 parameters”. On “rugged or noisy landscapes” two more tiles appear beside it: a bowl under many bumps, “rugged”, and a bowl seen through noise redrawn every tenth of a second, “noisy”.",
     tiles: (t) => ({ shrink: lin(t, 0.4, 2.0), others: ramp(t, 3.7, 4.6), a: 1, seed: Math.floor(t * 10), lab0: ramp(t, 1.6, 2.2), swap: ramp(t, 2.9, 3.6), lab1: ramp(t, 4.3, 4.8), lab2: ramp(t, 4.9, 5.4) }) },
   { id: "7.2", line: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.",
-    caption: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.*", cam: CAM.wide, dur: 6.5,
-    note: "The tiles give way to six charts, the six studies of the BADS paper’s benchmark: fraction of runs solved, by evaluations for the three deterministic studies (top) and by error tolerance for the three noisy ones (bottom). The other optimizers draw in grey, plain Bayesian optimization in green, then BADS in amber, above them in every chart. The footnote gives the source.",
+    caption: "On dozens of real model-fitting problems, it matched or beat sixteen other optimizers.*", cam: CAM.wide, dur: 8,
+    note: "The tiles give way to six charts, the six studies of the BADS paper’s benchmark: fraction of runs solved, by evaluations for the three deterministic studies (top) and by error tolerance for the three noisy ones (bottom). The other optimizers draw in grey, plain Bayesian optimization in green, then BADS in amber, above them in every chart, as the legend appears. Then the best of the others in each chart lights and takes its name, “CMA-ES” or “gradient-based”. The footnote gives the source, and the finished charts hold.",
     tiles: (t) => ({ shrink: 1, others: 1, a: 1 - ramp(t, 0, 0.6), seed: Math.floor(t * 10), lab0: 1, swap: 1, lab1: 1, lab2: 1 }),
-    chart: (t) => ({ show: ramp(t, 0.4, 1.0), grey: lin(t, 0.9, 2.4), green: lin(t, 2.2, 3.0), amber: lin(t, 2.9, 4.3), legend: ramp(t, 4.2, 4.8) }),
-    foot: "bench", footA: (t) => ramp(t, 4.4, 5.0) },
+    chart: (t) => ({ show: ramp(t, 0.4, 1.0), grey: lin(t, 0.9, 1.9), rivals: lin(t, 1.5, 2.7), green: lin(t, 2.3, 3.0), amber: lin(t, 2.9, 4.3) }),
+    foot: "bench", footA: (t) => ramp(t, 4.6, 5.2) },
   { id: "7.3", line: "Since then, it has been used in hundreds of studies, from brains and quantum computers to oil wells and wildfires.",
     caption: "Since then, it has been used in hundreds of studies, from brains and quantum computers to oil wells and wildfires.*", cam: CAM.field, dur: 7.5,
     note: "The charts fade. Hundreds of points light up across the floor, one for each study that has used BADS. As the narration names them, four points glow and take labels: “brains”, “quantum computers”, “oil wells”, “wildfires”. The footnote gives a paper for each.",
-    chart: (t) => ({ show: 1 - ramp(t, 0, 0.7), grey: 1, green: 1, amber: 1, legend: 1 }),
+    chart: (t) => ({ show: 1 - ramp(t, 0, 0.7), grey: 1, rivals: 1, green: 1, amber: 1 }),
     draw(t) {
       drawFloor(0.9);
       for (const p of FIELD) { const a = ramp(t, p.t, p.t + 0.35); if (a > 0.01) P.pt(sx(p.x1), 0.004, sz(p.x2), C.amber, 0.75 * a, 6); }
@@ -943,7 +1001,7 @@ function panelViews(s) {
 function viewsOf(S, t) {       // the views a shot is drawn in: its panels, its tiles, or the whole frame
   const s4 = S.st ? S.st(t) : null;
   const cam = typeof S.cam === "function" ? S.cam(t) : S.cam;
-  const views = s4 ? panelViews(s4) : S.tiles ? tileViews(S.tiles(t)) : [{ rect: null, cam, hm: null, draw: () => { S.draw(t); return {}; } }];
+  const views = s4 ? panelViews(s4) : S.tiles ? tileViews(S.tiles(t)) : [{ rect: null, cam, hm: null, draw: () => { S.draw(t); return {}; } }].concat(S.insets ? S.insets(t) : []);
   return { s4, views };
 }
 // Draw a shot's views into rtS at brightness kg; with labels > 0, also its labels, at that opacity.
@@ -967,6 +1025,7 @@ function drawViews(S, t, views, kg, labelsK) {
     if (labelsK > 0.003) {   // labels, placed with this view's camera; each keeps its own opacity in data-a
       const show = (e, a) => { e.dataset.a = (a === undefined ? 1 : a).toFixed(3); e.style.opacity = (+e.dataset.a * labelsK).toFixed(3); };
       if (!v.rect && S.labels) for (const [text, cls, at, dx, dy, an, a] of S.labels(t)) show(label(text, cls, at, dx, dy, an || ""), a);
+      if (v.rect && out.labels) for (const [text, cls, at, dx, dy, an, a] of out.labels) show(label(text, cls, at, dx, dy, an || ""), a);
       const br = v.rect ? out.bracket : S.bracket ? S.bracket(t) : null;
       if (br) show(label("<i></i><i></i><i></i><i></i>", v.rect ? "brk sm" : "brk", at3(br.x1, br.x2, br.mu)), br.a);
     }
@@ -985,12 +1044,13 @@ function render(k, t) {
   begin();
   const { s4, views } = viewsOf(S, t);
   drawViews(S, t, views, 1, 1);
-  finish(S, t, overlaysOf(S, t, s4), S.caption || S.line, 1, 1);
+  const c = CUES.find((q) => q.k === k);         // a caption in parts shows the part of the moment
+  finish(S, t, overlaysOf(S, t, s4), c && c.parts ? capOf(c, S.dur ? (t * c.span) / S.dur : t) : S.caption || S.line, 1, 1);
 }
 // The overlays of shot S at time t: the SVG over the frame (scene 4's diagram, scene 7's tiles and charts), the HUD's
 // state, and the footnote with its opacity.
 function overlaysOf(S, t, s4) {
-  return { over: s4 ? diagram4(s4) : (S.chart ? chart7(S.chart(t)) : "") + (S.tiles ? tiles7(S.tiles(t)) : ""),
+  return { over: s4 ? diagram4(s4) : (S.chart ? chart7(S.chart(t)) : "") + (S.tiles ? tiles7(S.tiles(t)) : "") + (S.over ? S.over(t) : ""),
     hud: (typeof S.hud === "function" ? S.hud(t) : S.hud) || null, foot: s4 ? "mads" : S.foot || "", footA: s4 ? s4.foot : S.footA ? S.footA(t) : 0 };
 }
 // Post-processing, the end card of shot S at time t, and the overlays o with the caption given; overK and hudK are the
@@ -1047,10 +1107,12 @@ if (FILM) {
   for (const sc of FILM.scenes) for (const ln of sc.lines) {
     const k = SHOTS.findIndex((x) => x.id === ln.id);
     if (k < 0) throw new Error("the timeline names a line that no shot has: " + ln.id);
-    CUES.push({ k, start: sc.start + ln.start, seconds: ln.seconds, caption: ln.caption });
+    CUES.push({ k, start: sc.start + ln.start, seconds: ln.seconds, caption: ln.caption, parts: ln.parts || null });
   }
   CUES.forEach((c, i) => { c.span = (i + 1 < CUES.length ? CUES[i + 1].start : FILM.seconds) - c.start; });
 }
+// A cue's caption t seconds into its line: a caption too long for the lower bar comes in parts, each from its time.
+const capOf = (c, t) => (c.parts ? c.parts.reduce((p, [a, text]) => (t >= a ? text : p), c.parts[0][1]) : c.caption);
 const shotTime = (c, t) => { const d = SHOTS[c.k].dur; return d ? Math.min(d, (Math.max(0, t) * d) / c.span) : t; };
 function renderFilm(T) {
   let i = 0;
@@ -1077,7 +1139,7 @@ function renderFilm(T) {
     if (po.foot !== o.foot && po.footA > 0.003 && o.footA <= 0.003) { o.foot = po.foot; o.footA = po.footA * (1 - m); }
   }
   const speaking = t >= -0.05 && t <= c.seconds + 0.35;
-  finish(S, tS, o, speaking ? c.caption : "", overK, hudK);
+  finish(S, tS, o, speaking ? capOf(c, t) : "", overK, hudK);
 }
 
 // ================================================================ the events, for the score
@@ -1095,7 +1157,7 @@ const pollTaps = (p, g2t) => {                       // the steps of a round of 
 };
 const EVENTS = {
   "1.4": () => [[0.2, "rise", 0], [4.3, "named", 0]],
-  "1.5": () => [[3.0, "eval", EV[0][2]]],
+  "1.5": () => [[10.0, "eval", EV[0][2]]],
   "2.1": () => ptsBO(1, 5).map((q, i) => [0.75 + 0.4 * i, "eval", q.f]).concat([[2.6, "rise", 0]]),
   "2.2": () => BO22.map((w, j) => [w[2], j === 6 ? "hit" : "eval", BO_TRY(j).f]),
   "2.3": () => [0, 1, 2, 3].map((j) => [0.8 + 0.9 * j + 0.45, "eval", BO_TRY(7 + j).f]),

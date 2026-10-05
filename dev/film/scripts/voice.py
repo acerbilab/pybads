@@ -11,7 +11,9 @@ and length, and each line's start, length and caption, in seconds), and into V, 
 
 A scene lasts lead + its lines and the gaps before them + tail. A line's "text" is what the voice says; its "caption",
 when given, is what the screen shows (the voice reads "Pie-Bads" for PyBADS, and "search" and "poll" in lower case,
-so as not to spell them). The narration's "speed" sets the voice's pace, and a scene's "speed" overrides it. Kokoro voices each line on its own and does not give the same take twice, so voicing a line
+so as not to spell them). A caption too long for the two lines of the lower bar is a list of parts, shown in turn, with
+"caption_at" the seconds into the take at which each part after the first starts; they are set on the take's words,
+so a new take of the line needs them set again. The narration's "speed" sets the voice's pace, and a scene's "speed" overrides it. Kokoro voices each line on its own and does not give the same take twice, so voicing a line
 again moves the timeline; a line is voiced when V has no clip of it, when --only names it or its scene, or with
 --all. Needs kokoro (0.9.4 or later), soundfile and SciPy; Kokoro fetches its weights from the Hugging Face hub into
 HF_HOME.
@@ -130,16 +132,25 @@ def main():
             path = clips / f"{ln['id']}.wav"
             dur = sf.info(path).duration
             cap = ln.get("caption", ln["text"])
+            parts = None
+            # a caption in parts: shown in turn, from the times of caption_at
+            if isinstance(cap, list):
+                at = [0.0] + ln["caption_at"]
+                parts = [[round(a, 3), p] for a, p in zip(at, cap)]
+                cap = " ".join(cap)
             lines.append(
                 {
                     "id": ln["id"],
                     "caption": cap,
                     "start": round(t, 3),
                     "seconds": round(dur, 3),
+                    **({"parts": parts} if parts else {}),
                 }
             )
             placed.append((t0 + t, path))
-            captions.append((t0 + t, t0 + t + dur, cap))
+            for k, (a, p) in enumerate(parts or [[0.0, cap]]):
+                b = parts[k + 1][0] if parts and k + 1 < len(parts) else dur
+                captions.append((t0 + t + a, t0 + t + b, p))
             t += dur
         t += sc.get("tail", dflt["tail"])
         length = max(t, sc.get("min", 0.0))

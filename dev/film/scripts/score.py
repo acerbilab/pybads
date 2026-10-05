@@ -110,7 +110,7 @@ MODES = {
 # what it changes: "beats" when it has fewer than four, levels of MODES.
 # fmt: off
 SONG = {
-    "problem": [  # 1.1-1.5: the question, the landscape, the first evaluation
+    "problem": [  # 1.1-1.5: the question, the landscape, the black box and the first evaluation
         ("intro", "Em", None, None, None, dict(pad=(0, 0.28), pcut=(300, 400), drone=(0, 1.0))),
         ("intro", "Em", None, None, None, dict(pad=0.3)),
         ("intro", "Em", None, None, None, dict(pad=(0.3, 0.38), pcut=(420, 560))),
@@ -118,6 +118,9 @@ SONG = {
         ("pulse", "Em", "pulse", "hint", None, dict(pad=(0.5, 0.85), pcut=(800, 1700), bass=0.5, bright=0.3, drone=(1.0, 0.7))),
         ("pulse", "Em", "pulse", "hint", None, dict(pad=0.85, pcut=1700, bass=0.5, bright=0.3, drone=0.7)),
         ("intro", "Em", None, None, None, dict(pad=(0.85, 0.4), pcut=(1700, 450), drone=(0.7, 1.0))),
+        ("intro", "Em", None, None, None, dict(pad=0.4, pcut=450, drone=1.0)),
+        ("intro", "Em", None, None, None, dict(pad=0.4, pcut=450, drone=1.0)),
+        ("pulse", "Em", None, "hint", None, dict(pad=0.4, pcut=(450, 520), bass=0.35, bright=0.2, drone=1.0)),
         ("pulse", "Em", "pickup", "hint", "pickup", dict(pad=0.4, pcut=(450, 900), arp=0.5, acut=(900, 1700), bass=0.45, bright=0.3, drone=(1.0, 0.5))),
     ],
     "bayesopt": [  # 2.1-2.4: a surrogate, trusted, then fooled
@@ -190,6 +193,7 @@ SONG = {
         ("lift", "Em", "A16", "sixteenths", "roll", {}),
         ("lift", "Cmaj7", "B16", "sixteenths", "roll", {}),
         ("lift", "G", "A16", "sixteenths", "roll", {}),
+        ("lift", "Dsus2", "B16", "sixteenths", "roll", {}),
         ("lift", "Dsus2", "build", "build", "roll", {}),
     ],
     "join": [  # 7.4: "Join them.", slowing
