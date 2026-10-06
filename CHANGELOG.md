@@ -39,6 +39,9 @@ says where it still differs, and why.
   `max_iter`, or is stopped by `output_fcn`, where 1.1.0 always reported
   True, and its `iterations`, like the display's iteration column, counts
   from 1, as in MATLAB BADS, one more than in 1.1.0.
+- A second call of `optimize()` on the same `BADS` object raises
+  `RuntimeError`, where 1.1.0 ran again from the state that the first call
+  had left, past `max_fun_evals`: create a new `BADS` object for each run.
 - With `specify_target_noise=True`, the returned `fval` and `fsd` are the
   precision-weighted mean of the final samples and its SD, where 1.1.0
   ignored the SDs that the target returns, and with `noise_final_samples=1`,

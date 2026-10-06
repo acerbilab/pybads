@@ -323,7 +323,8 @@ tol_mesh` or a stall over `tol_stall_iters`, and returns an
   description is the last comment line above the option, so it fits on one
   line. Options stay mutable: a noisy run rewrites several of them
   (`tol_stall_iters`, `n_train_min`, `n_train_max`, `max_fun_evals` and
-  others) at the start of `optimize()`, so a `BADS` object runs once.
+  others) at the start of `optimize()`, so a `BADS` object runs once: a
+  second call of `optimize()` raises `RuntimeError`.
 - **Some options do nothing.** Twelve are named after MATLAB BADS's
   options and read by no code (`poll_method`, `poll_acq_fcn`, `gp_samples`,
   among others), kept so that a user's setting is not an error, with

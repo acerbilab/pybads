@@ -633,6 +633,9 @@ class BADS:
         # The stage timer of a run, created by optimize(); the steps called
         # outside it time nothing
         self._stage_timer = NULL_STAGE_TIMER
+        # Set by the first call of optimize(): a run rewrites the options and
+        # fills the function log, so a BADS object runs once
+        self._optimize_called = False
 
         # set up BADS logger, from the first three letters of the display
         # option, lower case, as in MATLAB BADS (bads.m): "off" and "none"
@@ -2021,6 +2024,9 @@ class BADS:
         A history of the optimization problem can be found in the
         ``iteration_history`` attribute of the ``BADS`` object.
 
+        A ``BADS`` object runs a single optimization: create a new one for
+        each run.
+
         Returns
         -------
         optimize_result : OptimizeResult
@@ -2028,7 +2034,21 @@ class BADS:
             documentation of the ``OptimizeResult`` class for more details.
             For example, retrieve the final solution and its value with the
             attributes ``optimize_result.x`` and ``optimize_result.fval``.
+
+        Raises
+        ------
+        RuntimeError
+            If ``optimize`` has already been called on this object, whether
+            or not that run completed.
         """
+        if self._optimize_called:
+            raise RuntimeError(
+                "optimize() has already been called on this BADS object, "
+                "which runs a single optimization: create a new BADS object "
+                "for another run."
+            )
+        self._optimize_called = True
+
         # The stage timer of the run times each stage, exclusive of the
         # stages nested in it and of the target's evaluations, which form
         # the pseudo-stage "target": together they make total_time. It stays

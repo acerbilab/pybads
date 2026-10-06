@@ -133,6 +133,32 @@ def test_output_fcn_stops_run_after_a_poll():
     )
 
 
+def test_second_optimize_raises():
+    """A BADS object runs once: a second call of `optimize` raises
+    `RuntimeError` and evaluates nothing, after a run that completed and
+    after one that the target stopped with an error."""
+    bads = _make_bads()
+    result = bads.optimize()
+    n_evals = bads.function_logger.func_count
+    with pytest.raises(RuntimeError, match="already been called"):
+        bads.optimize()
+    assert bads.function_logger.func_count == n_evals == result["func_count"]
+
+    def fail_late(x):
+        fail_late.calls += 1
+        if fail_late.calls > 20:
+            raise ArithmeticError("the target failed")
+        return _sphere(x)
+
+    fail_late.calls = 0
+    bads = _make_bads(fun=fail_late)
+    with pytest.raises(ArithmeticError):
+        bads.optimize()
+    with pytest.raises(RuntimeError, match="already been called"):
+        bads.optimize()
+    assert fail_late.calls == 21
+
+
 @pytest.mark.parametrize("max_iter", [1, 2, 4])
 def test_iterations_count_from_one(max_iter):
     """A run that ends on `max_iter` reports `max_iter` iterations, as
