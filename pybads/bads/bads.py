@@ -188,26 +188,33 @@ def _bounds_as_rows(x0, lb, ub, plb, pub, x0_source=None):
             "The starting point x0 (or, without it, the bounds that give "
             "its size) needs at least one element."
         )
-    # A single starting point, as in MATLAB BADS (boundscheck.m)
-    if N0 > 1:
-        raise ValueError(
-            "The starting point x0 needs to be a single point, a "
-            f"one-dimensional array with one element per variable; x0 has "
-            f"{N0} rows."
-        )
-    shapes = tuple(np.shape(bound) for bound in (lb, ub, plb, pub))
-    lb, ub, plb, pub = (
-        np.full((1, D), bound) if bound.size == 1 else bound
-        for bound in map(np.atleast_2d, (lb, ub, plb, pub))
-    )
-    # check that all bounds are row vectors with D elements; D is the size
-    # of x0, or, without it, of the bounds named by x0_source
     names = (
         "lower_bounds",
         "upper_bounds",
         "plausible_lower_bounds",
         "plausible_upper_bounds",
     )
+    shapes = tuple(np.shape(bound) for bound in (lb, ub, plb, pub))
+    # A single starting point, as in MATLAB BADS (boundscheck.m); without
+    # x0, its shape is that of the bounds named by x0_source
+    if N0 > 1:
+        if x0_source is not None:
+            raise ValueError(
+                f"{x0_source} needs to be a scalar or a one-dimensional "
+                "array, one element per variable; its shape is "
+                f"{dict(zip(names, shapes))[x0_source]}."
+            )
+        raise ValueError(
+            "The starting point x0 needs to be a single point, a "
+            f"one-dimensional array with one element per variable; x0 has "
+            f"{N0} rows."
+        )
+    lb, ub, plb, pub = (
+        np.full((1, D), bound) if bound.size == 1 else bound
+        for bound in map(np.atleast_2d, (lb, ub, plb, pub))
+    )
+    # check that all bounds are row vectors with D elements; D is the size
+    # of x0, or, without it, of the bounds named by x0_source
     for name, bound, shape in zip(names, (lb, ub, plb, pub), shapes):
         if bound.shape != (1, D):
             source = "x0" if x0_source is None else x0_source
@@ -1015,7 +1022,10 @@ class BADS:
 
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
-            raise ValueError("x0 lies outside lower_bounds and upper_bounds.")
+            raise ValueError(
+                "The start on the initial grid lies outside lower_bounds "
+                "and upper_bounds."
+            )
 
         # Report variable transformation, from "notify" on, as MATLAB BADS
         # does (setupvars.m:118-120), with the indices of the variables

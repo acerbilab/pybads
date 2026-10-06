@@ -1,11 +1,14 @@
 import dataclasses
+import re
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 from pybads.function_examples import rosenbrocks_fcn
 from pybads.function_logger import FunctionLogger
+from pybads.function_logger.function_logger import _FAQ_FINITE_VALUE
 from pybads.variable_transformer import VariableTransformer
 
 non_noisy_function = lambda x: np.sum(x + 2)
@@ -395,6 +398,8 @@ def test_call_function_error_that_refuses_a_note():
     with pytest.raises(FrozenError) as err:
         f_logger(np.array([3, 4, 5]))
     assert err.value.code == 7
+    if sys.version_info >= (3, 11):
+        assert not hasattr(err.value, "__notes__")
     assert f_logger.Xn == -1
 
 
@@ -512,6 +517,7 @@ def test_call_malformed_output_raises_value_error_and_records_nothing(
     Y = f_logger.Y.copy()
     with pytest.raises(ValueError, match=message) as err:
         f_logger(np.ones(2))
+    assert "at x = [1.0, 1.0]" in str(err.value)
     assert not getattr(err.value, "__notes__", None)
     assert f_logger.Xn == 0
     assert f_logger.X_max_idx == 0
@@ -557,3 +563,19 @@ def test_call_other_sequences_do_not_name_the_target_noise_option(output):
     with pytest.raises(ValueError, match=_VALUE) as err:
         f_logger(np.zeros(2))
     assert _PAIR not in str(err.value)
+
+
+def test_value_error_links_an_faq_answer_that_exists():
+    """The error for a value that is not a finite real scalar links the FAQ
+    answer on it, a link that a released version keeps: the label exists
+    (checked where the sources are at hand, as in a checkout)."""
+    f_logger = FunctionLogger(lambda x: np.nan, 2, False, 0)
+    with pytest.raises(ValueError) as err:
+        f_logger(np.zeros(2))
+    assert _FAQ_FINITE_VALUE in str(err.value)
+    faq = Path(__file__).resolve().parents[3] / "docsrc" / "source" / "faq.md"
+    if faq.is_file():
+        labels = re.findall(
+            r"^\((faq-[^)]+)\)=$", faq.read_text("utf-8"), re.M
+        )
+        assert _FAQ_FINITE_VALUE.split("#", 1)[1] in labels

@@ -1067,8 +1067,7 @@ PyBADS prints through Python's `logging` module, with a logger named
 `"BADS"`, and its warnings, such as the one for unspecified plausible
 bounds, are log messages too, not Python warnings (the libraries it calls,
 such as NumPy and gpyreg, can still issue Python warnings of their own).
-Creating a `BADS` object
-calls `logging.basicConfig`, which sends the messages to the standard output
+Creating a `BADS` object calls `logging.basicConfig`, which sends the messages to the standard output
 unless your program has configured `logging` before; a `logging.basicConfig`
 call of your own after that takes effect only with `force=True`. To write
 PyBADS's messages to a file instead:

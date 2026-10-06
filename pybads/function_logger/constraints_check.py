@@ -61,8 +61,7 @@ def contraints_check(
     if non_box_cons is not None:
         if function_logger is None:
             raise ValueError(
-                "contraints_check: function_logger not passed, non bondcons "
-                "requires it."
+                "A function logger is needed to check non_box_cons."
             )
         X = function_logger.variable_transformer.inverse_transf(U_new)
         # one violation per point, of shape (N,) or (N, 1)

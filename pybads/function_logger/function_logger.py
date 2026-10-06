@@ -194,7 +194,8 @@ class FunctionLogger:
         # Check function value
         if not _is_finite_real_scalar(fval_orig):
             error_message = (
-                f"The target function returned {fval_orig} at x = {x_orig.tolist()}. "
+                f"The target function returned the value {fval_orig} at x = "
+                f"{x_orig.tolist()}. "
                 "The returned function value must be a finite real-valued "
                 f"scalar; see {_FAQ_FINITE_VALUE}"
             )

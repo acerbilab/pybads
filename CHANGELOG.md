@@ -12,7 +12,7 @@ Changes since PyBADS 1.5.0.
 ### Upgrading from 1.5.0
 
 - An exception that the objective function raises reaches the caller with
-  its `args` as raised, where 1.5.0 added a second element to them; from
+  its `args` as raised, where 1.5.0 appended an element to them; from
   Python 3.11 on, it carries a note with the point at which it was raised.
 - Messages no longer begin with identifiers such as `bads:pbUnspecified`
   or `FunctionLogger:InvalidFuncValue`: a script that matched them matches

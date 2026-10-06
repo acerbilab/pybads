@@ -47,6 +47,8 @@ def test_messages_on_bads_logger(caplog):
         "optimization is stalling" in record.getMessage() for record in records
     )
     assert {record.name for record in records} == {"BADS"}
+    # Messages carry no MATLAB-style identifiers such as bads:pbUnspecified
+    assert not any("bads:" in record.getMessage() for record in records)
 
 
 def _kind(message):
@@ -200,7 +202,9 @@ def test_plausible_bounds_omitted_warn(omitted, caplog):
         record
         for record in caplog.records
         if record.name == "BADS"
-        and "Plausible lower/upper bounds not specified" in record.getMessage()
+        and record.getMessage().startswith(
+            "Plausible lower/upper bounds not specified"
+        )
     ]
     assert len(warnings) == (1 if omitted else 0)
     assert all(record.levelno == logging.WARNING for record in warnings)
