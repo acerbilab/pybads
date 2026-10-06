@@ -1,0 +1,20 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+budget 38                          L1 it=1 fc=38 pts=38 status=0 nfs=5 yval_vec=(5,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+max_iter 1                         L1 it=1 fc=47 pts=47 status=0 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+mesh (tol_mesh=2)                  L1 it=1 fc=19 pts=19 status=1 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+output_fcn stops at first iter     L1 it=1 fc=47 pts=47 status=0 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+budget 33 (none reserved)          L1 it=1 fc=33 pts=33 status=0 nfs=0 yval_vec=None fsd=1.0 noise_size=1.0
+budget 34 (one reserved)           L1 it=1 fc=34 pts=34 status=0 nfs=1 yval_vec=(2,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+noise_final_samples 0, max_iter 1  L1 it=1 fc=37 pts=37 status=0 nfs=0 yval_vec=None fsd=1.0 noise_size=1.0
+output_fcn stops at init           L1 it=0 fc=33 pts=33 status=0 nfs=10 yval_vec=(1,) fsd=1.0 noise_size=1.0
+budget 38                          L2 it=1 fc=38 pts=38 status=0 nfs=5 yval_vec=(5,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+max_iter 1                         L2 it=1 fc=47 pts=47 status=0 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+mesh (tol_mesh=2)                  L2 it=1 fc=19 pts=19 status=1 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+output_fcn stops at first iter     L2 it=1 fc=47 pts=47 status=0 nfs=10 yval_vec=(10,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+budget 33 (none reserved)          L2 it=1 fc=33 pts=33 status=0 nfs=0 yval_vec=None fsd=0.5 noise_size=1.0
+budget 34 (one reserved)           L2 it=1 fc=34 pts=34 status=0 nfs=1 yval_vec=(1,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+noise_final_samples 0, max_iter 1  L2 it=1 fc=37 pts=37 status=0 nfs=0 yval_vec=None fsd=0.5 noise_size=1.0
+output_fcn stops at init           L2 it=0 fc=33 pts=33 status=0 nfs=10 yval_vec=(1,) fsd=0.5 noise_size=1.0
+noise test finds noise, budget 38  L1 it=1 fc=38 pts=38 status=0 nfs=4 yval_vec=(4,) samples at x=True fval ok=True fsd ok=True hist[0]==result=True
+noise test finds noise, budget 34  L1 it=1 fc=34 pts=34 status=0 nfs=0 yval_vec=None fsd=1.0 noise_size=1.0

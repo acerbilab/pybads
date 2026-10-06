@@ -1,0 +1,15 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+x0 given=0.01: x0 used=[1.000999] plb/pub used=[[1.000999], [100.]] log=[ True] lb_u=[-4.00108434] ub_u=[2.00021687]
+   first evals: [ 1.001   1.5693 23.4033]; result x=[0.0100003] fval=1.68e-10 func_count=30 result x0=[1.000999]
+bads:InitialPointsTooClosePB: The starting points X0 are on or numerically too close to the hard bounds lower_bounds and upper_bounds. Moving the initial points more inside...
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+bads:InitialPointsOutsidePB. The starting points X0 are not inside the provided plausible bounds (plausible_lower_bounds and plausible_upper_bounds). Expanding the plausible bounds...
+x0 given=0.5: x0 used=[1.000999] plb/pub used=[[1.000999], [100.]] log=[ True] lb_u=[-4.00108434] ub_u=[2.00021687]
+   first evals: [ 1.001   1.5693 23.4033]; result x=[0.0100003] fval=1.68e-10 func_count=30 result x0=[1.000999]
+bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+x0 given=2.0: x0 used=[2.] plb/pub used=[[1.000999], [100.]] log=[ True] lb_u=[-4.00108434] ub_u=[2.00021687]
+   first evals: [ 2.0006  5.6905 24.812 ]; result x=[0.0100003] fval=1.68e-10 func_count=28 result x0=[2.]

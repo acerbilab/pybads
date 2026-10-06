@@ -1,0 +1,9 @@
+aniso_D2_level1_seed3: rows 190 vs 190, every evaluated point, value and result identical: True
+aniso_D2_level1_seed4: rows 186 vs 186, every evaluated point, value and result identical: True
+aniso_D2_level1_seed5: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level1_seed3: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level1_seed4: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level1_seed5: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level2_seed3: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level2_seed4: rows 190 vs 190, every evaluated point, value and result identical: True
+flat_D3_level2_seed5: rows 190 vs 190, every evaluated point, value and result identical: True

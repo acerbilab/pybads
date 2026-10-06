@@ -1,0 +1,688 @@
+FFFFFFFFFFF.....FFFFFFFFFFF....................                          [100%]
+=================================== FAILURES ===================================
+______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1.0] ______
+
+hedge_beta = -1.0
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+_____ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1e-12] _____
+
+hedge_beta = -1e-12
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+____ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1000.0] _____
+
+hedge_beta = -1000.0
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[nan] _______
+
+hedge_beta = nan
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[inf] _______
+
+hedge_beta = inf
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-inf] ______
+
+hedge_beta = -inf
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[True] ______
+
+hedge_beta = True
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+_______ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[1] ________
+
+hedge_beta = '1'
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+_____ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[(1+0j)] _____
+
+hedge_beta = (1+0j)
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+__ test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[hedge_beta9] ___
+
+hedge_beta = array([1., 2.])
+
+    @pytest.mark.parametrize(
+        "hedge_beta",
+        [
+            -1.0,
+            -1e-12,
+            -1000.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+            True,
+            "1",
+            1 + 0j,
+            np.array([1.0, 2.0]),
+        ],
+    )
+    def test_hedge_beta_not_a_finite_number_at_least_zero_is_refused(hedge_beta):
+        """A `hedge_beta` that is not a finite number at least 0 is refused when
+        `BADS` is created: below 0 the hedge favors the search of lower gain,
+        and at inf or NaN its probabilities and gains are NaN, so that every
+        choice is at random; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError,
+            match=r"hedge_beta'\] needs to be a finite number greater than or "
+            r"equal to 0",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:506: Failed
+__________________ test_hedge_beta_refusal_names_its_default ___________________
+
+    def test_hedge_beta_refusal_names_its_default():
+        """A negative `tol_fun` makes the default `hedge_beta`, `1e-3 / tol_fun`,
+        negative, and the refusal names that default."""
+>       with pytest.raises(
+            ValueError,
+            match=r"not -1\.0; its default is 1e-3 / options\['tol_fun'\]",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:517: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[-0.1] ______________
+
+hedge_decay = -0.1
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+_____________ test_hedge_decay_outside_zero_one_is_refused[-1e-12] _____________
+
+hedge_decay = -1e-12
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+_________ test_hedge_decay_outside_zero_one_is_refused[1.000000000001] _________
+
+hedge_decay = 1.000000000001
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[2.0] _______________
+
+hedge_decay = 2.0
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[50.0] ______________
+
+hedge_decay = 50.0
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[nan] _______________
+
+hedge_decay = nan
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[inf] _______________
+
+hedge_decay = inf
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[True] ______________
+
+hedge_decay = True
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+______________ test_hedge_decay_outside_zero_one_is_refused[0.5] _______________
+
+hedge_decay = '0.5'
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+____________ test_hedge_decay_outside_zero_one_is_refused[(0.5+0j)] ____________
+
+hedge_decay = (0.5+0j)
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+_________ test_hedge_decay_outside_zero_one_is_refused[hedge_decay10] __________
+
+hedge_decay = array([0.5, 0.6])
+
+    @pytest.mark.parametrize(
+        "hedge_decay",
+        [
+            -0.1,
+            -1e-12,
+            1 + 1e-12,
+            2.0,
+            50.0,
+            np.nan,
+            np.inf,
+            True,
+            "0.5",
+            0.5 + 0j,
+            np.array([0.5, 0.6]),
+        ],
+    )
+    def test_hedge_decay_outside_zero_one_is_refused(hedge_decay):
+        """A `hedge_decay` outside [0, 1] is refused when `BADS` is created:
+        above 1 the hedge's gains grow until they overflow, and below 0 they
+        alternate in sign; MATLAB BADS runs with them."""
+>       with pytest.raises(
+            ValueError, match=r"hedge_decay'\] needs to lie between 0 and 1"
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+pybads/testing/bads/test_bads_inputs.py:550: Failed
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1.0]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1e-12]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-1000.0]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[nan]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[inf]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[-inf]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[True]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[1]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[(1+0j)]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_not_a_finite_number_at_least_zero_is_refused[hedge_beta9]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_beta_refusal_names_its_default
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[-0.1]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[-1e-12]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[1.000000000001]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[2.0]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[50.0]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[nan]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[inf]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[True]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[0.5]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[(0.5+0j)]
+FAILED pybads/testing/bads/test_bads_inputs.py::test_hedge_decay_outside_zero_one_is_refused[hedge_decay10]
+22 failed, 25 passed, 96 deselected in 2.08s

@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+run: fval=1.85e-05 n=152 (55.5s including the counterfactuals)
+refit | time port | time C:0->1 | -logpost port | -logpost C:0->1 | max|dhyp| | max|dmean| at 5 training pts
+    0 |     7.60s |       0.05s |      33938.56 |        33938.65 |     0.239 | 1.85e-05
+    1 |    18.83s |       0.05s |       1492.51 |         3000.93 |    11.238 | 0.000977
+    2 |     3.91s |       0.04s |      47429.97 |        47290.72 |     3.000 | 0.000327
+    3 |     0.30s |       0.01s |     938171.94 |       938167.66 |     0.303 | 1.27e-05
+    4 |    11.50s |       0.01s |   13266085.24 |     13266232.14 |     2.298 | 2.74e-05
+    5 |    11.57s |       0.01s |  166145459.64 |    166145459.92 |     0.178 | 2.5e-06

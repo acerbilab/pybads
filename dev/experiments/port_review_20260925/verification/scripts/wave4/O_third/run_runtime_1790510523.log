@@ -1,0 +1,27 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D=3 noisy=False extra=None: fval=8.399e-06 evals=81
+   {'refits': 8, 'geom_maxdiff': 0.0, 'hedge': 33, 'hedge_maxdiff': 0.0}
+    ('optimize', 1509) {'n': 9, 'base_is_incumbent': 0, 'q': {0.5}}
+    ('_search_step_', 1981) {'n': 33, 'base_is_incumbent': 33, 'q': {0.5}}
+    ('_poll_step_', 2392) {'n': 42, 'base_is_incumbent': 42, 'q': {0.5}}
+    ('_poll_step_', 2500) {'n': 4, 'base_is_incumbent': 0, 'q': {0.5}}
+D=3 noisy=True extra=None: fval=-0.2417 evals=150
+   {'refits': 11, 'geom_maxdiff': 0.0, 'hedge': 64, 'hedge_maxdiff': 0.0}
+    ('optimize', 1575) {'n': 7, 'base_is_incumbent': 7, 'q': {0.5}}
+    ('_search_step_', 1981) {'n': 64, 'base_is_incumbent': 64, 'q': {0.5}}
+    ('_poll_step_', 2392) {'n': 43, 'base_is_incumbent': 43, 'q': {0.5}}
+    ('_poll_step_', 2500) {'n': 5, 'base_is_incumbent': 0, 'q': {0.5}}
+D=1 noisy=False extra=None: fval=0 evals=27
+   {'refits': 3, 'geom_maxdiff': 0.0, 'hedge': 13, 'hedge_maxdiff': 0.0}
+    ('optimize', 1509) {'n': 4, 'base_is_incumbent': 0, 'q': {0.5}}
+    ('_search_step_', 1981) {'n': 13, 'base_is_incumbent': 13, 'q': {0.5}}
+    ('_poll_step_', 2392) {'n': 10, 'base_is_incumbent': 10, 'q': {0.5}}
+    ('_poll_step_', 2500) {'n': 2, 'base_is_incumbent': 0, 'q': {0.5}}
+D=2 noisy=True extra={'improvement_quantile': 0.2}: fval=-0.2203 evals=150
+   {'refits': 11, 'geom_maxdiff': 0.0, 'hedge': 56, 'hedge_maxdiff': 0.0}
+    ('optimize', 1509) {'n': 16, 'base_is_incumbent': 0, 'q': {0.2}}
+    ('optimize', 1575) {'n': 13, 'base_is_incumbent': 13, 'q': {0.2}}
+    ('_search_step_', 1981) {'n': 56, 'base_is_incumbent': 56, 'q': {0.2}}
+    ('_poll_step_', 2392) {'n': 51, 'base_is_incumbent': 51, 'q': {0.2}}
+    ('_poll_step_', 2500) {'n': 11, 'base_is_incumbent': 1, 'q': {0.2}}

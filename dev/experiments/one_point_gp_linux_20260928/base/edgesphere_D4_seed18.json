@@ -1,0 +1,133 @@
+{
+ "label": "edgesphere_D4",
+ "seed": 18,
+ "problem": "edgesphere",
+ "D": 4,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  2.5247276914965617,
+  6.490558261464317,
+  1.6833053384704089,
+  4.595408033737859
+ ],
+ "f_min": 2.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 2000,
+  "random_seed": 18
+ },
+ "effective_options": {
+  "max_fun_evals": 2000,
+  "max_iter": 800,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 6,
+  "n_train_min": 50,
+  "n_train_max": 90,
+  "random_seed": 18,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   0.0,
+   0.0,
+   5.083718214184046,
+   5.843702346086502
+  ],
+  "fval": 2.00000234264582,
+  "fsd": 0.0,
+  "true_error": 2.3426458199971023e-06,
+  "func_count": 91,
+  "iterations": 8,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 0.9665012579998802,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.004420302998369152,
+    "target": 0.001396188004079247,
+    "init": 0.01622933900161602,
+    "gp_init": 0.05236497399982909,
+    "poll": 0.20634615200154705,
+    "history": 0.0015234360007525538,
+    "search": 0.6757892589930846
+   },
+   "paths": {
+    "loop": 0.004420302998369152,
+    "target": 0.001396188004079247,
+    "init": 0.01622933900161602,
+    "gp_init": 0.004070186999342695,
+    "gp_init/gp_fit": 0.048294787000486394,
+    "poll": 0.02928610499887773,
+    "poll/gp_rebuild": 0.021989337000377418,
+    "poll/gp_rebuild/gp_fit": 0.1403320650006208,
+    "poll/target_from_gp": 0.014738645001671102,
+    "history": 0.0015234360007525538,
+    "search": 0.04098981499375739,
+    "search/gp_rebuild": 0.06212273899654974,
+    "search/search_es": 0.30413304400372,
+    "search/gp_update": 0.0130800150000141,
+    "search/gp_rebuild/gp_fit": 0.25546364599904337
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 7,
+    "poll/gp_rebuild": 8,
+    "poll/gp_rebuild/gp_fit": 3,
+    "poll/target_from_gp": 40,
+    "history": 8,
+    "search": 41,
+    "search/gp_rebuild": 25,
+    "search/search_es": 41,
+    "search/gp_update": 33,
+    "search/gp_rebuild/gp_fit": 6
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "07280f79",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/p3_base/pybads",
+   "git": {
+    "sha": "07280f79",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-28T21:31:00+0000",
+  "finished": "2026-09-28T21:31:02+0000"
+ }
+}

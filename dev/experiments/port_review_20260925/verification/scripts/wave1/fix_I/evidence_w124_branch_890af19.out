@@ -1,0 +1,6 @@
+gpyreg.__file__ = /home/user/gpyreg-wt/logmass/gpyreg/__init__.py
+changed case gaussian z=75: mass 0.000e+00, log posterior -186.722106738
+identical-group items 223
+TOTAL 670f05f67ee1df7d086676d85e858bed2bbd3b49aad37252ae403c478a5fecbe
+changed case z=38.0: mass 0.000e+00, log posterior -17.5109329769, gradient finite True, design finite True, design in bounds True
+changed case z=60.0: mass 0.000e+00, log posterior -28.0545883151, gradient finite True, design finite True, design in bounds True

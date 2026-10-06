@@ -1,0 +1,28 @@
+fix: a start with an infinite element is replaced by a random point, as one with a NaN, also within finite bounds (W2-4)
+
+A start with an element of inf or -inf and a finite hard bound on that
+side was refused by the check "x0 within the hard bounds" of
+_bounds_check_ (bads:InitialPointsNotInsideBounds), since inf > ub. A
+NaN passed that check, as every comparison with it is false, and
+__init__ then replaced the start by a random point in the transformed
+plausible box, which it does for any start that is not all finite.
+MATLAB BADS replaces any non-finite start by such a point before it
+tests the start against the hard bounds (setupvars.m:79-85, then
+95-99), and so accepts an infinite one too (the B1 verifier's N4).
+
+The check now applies to a finite start only, and a start that is not
+finite goes on to the draw of __init__, as in MATLAB. As there, the
+other elements of such a start are not tested either: [nan, 100] or
+[inf, 100] with ub = 2 is drawn at random, where [nan, 100] was refused.
+The docstring of x0 says that a non-finite element leads to the draw.
+
+Test: test_bads_inputs.py::test_infinite_x0_is_drawn_at_random, a start
+of [inf, 0] and one of [0, -inf] within finite hard bounds: each is
+accepted, and replaced by the finite point in the plausible box that a
+missing x0 draws with the same seed. Both fail at the parent
+(bads:InitialPointsNotInsideBounds) and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

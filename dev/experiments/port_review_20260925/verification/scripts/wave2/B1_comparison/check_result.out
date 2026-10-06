@@ -1,0 +1,13 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+keys: ['algorithm', 'fsd', 'fun', 'func_count', 'fval', 'iterations', 'mesh_size', 'message', 'non_box_cons', 'overhead', 'problem_type', 'random_seed', 'success', 'target_type', 'total_time', 'version', 'x', 'x0', 'ysd_vec', 'yval_vec']
+missing from whitelist: ['status']
+r['status'] -> KeyError 'status'
+r.status -> AttributeError status
+success: True message: Optimization terminated: change in the function value less than options['tol_fun'].
+iterations: 7 optim_state iter: 6 func_count: 55 logger Xn+1: 54
+x: [-0.00042295 -0.00106287] fval: 1.3085832506476436e-06 fsd: 0 mesh_size: 0.00390625 problem_type: bound constraints target_type: deterministic
+x0: [[1. 1.]]  first evaluated point: [1. 1.]  yval_vec: None ysd_vec: None
+f(x)==fval: True
+noisy: func_count 80 rows 70 n_evals sum 80.0 total_fun_eval_time 0.1511 sum row times 0.1728
+noisy: yval_vec size 10 fsd 0.2512021189609697 iterations 5 status/exit: None Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].

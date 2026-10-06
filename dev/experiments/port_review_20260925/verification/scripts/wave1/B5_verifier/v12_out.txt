@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 41 {'calls': 86, 'refit': 10, 'm2': 0, 'm2_refit': 0, 'restored': 0}
+ell4 40 {'calls': 125, 'refit': 14, 'm2': 0, 'm2_refit': 0, 'restored': 0}
+ell4 41 {'calls': 129, 'refit': 14, 'm2': 0, 'm2_refit': 0, 'restored': 0}
+ell2 40 {'calls': 53, 'refit': 6, 'm2': 0, 'm2_refit': 0, 'restored': 0}

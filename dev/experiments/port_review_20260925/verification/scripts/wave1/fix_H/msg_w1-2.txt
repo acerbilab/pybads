@@ -1,0 +1,7 @@
+fix: a move of the incumbent asks for one rebuild of the GP, not one per step (W1-2)
+
+reset_gp, set when a search improves on the incumbent and at the end of a poll that moves it, asks the next search or poll step to rebuild the local GP. Nothing cleared it at that rebuild: only the start of the run and the end of the next poll set it to false, so after a move every later search of the round and every iteration of the poll rebuilt the GP. MATLAB BADS asks by emptying the posterior (gpstruct.post = [], bads.m:707 and 1049), and the rebuild fills it (bads.m:525-536 and 829-839, private/gpupdate.m:343), so a move makes one rebuild. The search and the poll now clear reset_gp at the rebuild. A rebuild that fails is marked already (temporary_data["needs_rebuild"]), which asks again at the next step, as MATLAB's posterior stays empty (gpupdate.m:349). This moves results at default options: among other things, the points of a deterministic poll no longer enter the GP through a rebuild at each of its iterations, as in MATLAB.
+
+_probe in test_gp_update_failures.py takes the reset_gp to probe with. test_search_rebuild_answers_move: after a move, a search that does not move the incumbent rebuilds once and leaves reset_gp false (it stayed true). test_poll_rebuilds_once_after_move: after a move, a complete poll rebuilds once (it rebuilt at each of its 6 iterations). Fingerprint c0639f00f056a030 (from bfbc6d6737e99d88).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

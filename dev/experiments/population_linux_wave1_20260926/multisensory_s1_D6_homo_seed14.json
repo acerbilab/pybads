@@ -1,0 +1,94 @@
+{
+ "label": "multisensory_s1_D6_homo",
+ "seed": 14,
+ "problem": "multisensory_s1",
+ "D": 6,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  29.78925332458714,
+  34.88682926756213,
+  12.360792074728725,
+  18.520932212629052,
+  11.298681810282009,
+  0.15741343701924293
+ ],
+ "f_min": 483.5133436051275,
+ "tolerance": 0.5,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 3000,
+  "random_seed": 14
+ },
+ "effective_options": {
+  "max_fun_evals": 2990,
+  "max_iter": 1200,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 14,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 14,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   7.227933578026209,
+   0.6509631555952977,
+   2.192658224200543,
+   8.13973140617457,
+   10.15762245810348,
+   0.011284884083443204
+  ],
+  "fval": 484.38843368312655,
+  "fsd": 0.22570366116327975,
+  "true_error": 0.9132282892051649,
+  "func_count": 605,
+  "iterations": 25,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 16.344069438000588,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.8543821400636786
+ },
+ "meta": {
+  "git": {
+   "sha": "6e22d32",
+   "dirty": true
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev45+g3e9646c05",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/h_6e22d32/pybads",
+   "git": {
+    "sha": "6e22d32",
+    "dirty": true
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T13:45:06+0000",
+  "finished": "2026-09-26T13:45:23+0000"
+ }
+}

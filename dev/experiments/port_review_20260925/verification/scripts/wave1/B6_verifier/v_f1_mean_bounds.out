@@ -1,0 +1,56 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- sphere2 seed 0: fval=1.55e-06 n=55 it=7 time=0.6s rebuilds=29 refits=5
+   bounds of the mean: [0.2365, 3.202] (constant over the run: True)
+   prior centre outside the bounds at 26/29 rebuilds; max z=4.7 SD; normalization constant 0 at 0 rebuilds (0 refits); log(0) warnings: 0
+   refit   0: prior N(6.974, 0.943) z=4.0 C=3.16e-05 fitted m=3.202 local y in [0.9778, 6.974]
+   refit   8: prior N(7.775, 1.22) z=3.8 C=8.43e-05 fitted m=3.202 local y in [0.001612, 50]
+   refit  19: prior N(7.615, 1.33) z=3.3 C=0.000443 fitted m=3.202 local y in [1.55e-06, 50]
+   refit  19: prior N(7.615, 1.33) z=3.3 C=0.000443 fitted m=3.202 local y in [1.55e-06, 50]
+   refit  24: prior N(5.62, 1.11) z=2.2 C=0.0148 fitted m=3.202 local y in [1.55e-06, 50]
+   refit  27: prior N(2.38, 0.469) z=0.0 C=0.96 fitted m=2.306 local y in [1.55e-06, 50]
+--- sphere2 seed 0 [mean unbounded]: fval=9.429e-08 n=55 it=7 time=0.6s rebuilds=39 refits=5
+   bounds of the mean: [-inf, inf] (constant over the run: True)
+   prior centre outside the bounds at 0/39 rebuilds; max z=0.0 SD; normalization constant 0 at 0 rebuilds (0 refits); log(0) warnings: 0
+   refit   0: prior N(6.974, 0.943) z=0.0 C=1 fitted m=6.609 local y in [0.9778, 6.974]
+   refit   8: prior N(7.695, 1.32) z=0.0 C=1 fitted m=7.704 local y in [0.00312, 7.775]
+   refit  19: prior N(6.071, 1.16) z=0.0 C=1 fitted m=5.995 local y in [2.339e-06, 7.775]
+   refit  19: prior N(6.071, 1.16) z=0.0 C=1 fitted m=5.995 local y in [2.339e-06, 7.775]
+   refit  29: prior N(2.4, 0.468) z=0.0 C=1 fitted m=2.376 local y in [9.993e-07, 7.775]
+   refit  34: prior N(2.228, 0.442) z=0.0 C=1 fitted m=2.395 local y in [9.429e-08, 7.775]
+--- ackley6 seed 0: fval=0.01935 n=200 it=9 time=3.2s rebuilds=123 refits=15
+   bounds of the mean: [9.964, 16.72] (constant over the run: True)
+   prior centre outside the bounds at 37/123 rebuilds; max z=26.1 SD; normalization constant 0 at 0 rebuilds (0 refits); log(0) warnings: 0
+   refit   0: prior N(15.5, 0.253) z=0.0 C=1 fitted m=15.47 local y in [11.65, 15.7]
+   refit   2: prior N(15.56, 0.342) z=0.0 C=1 fitted m=15.64 local y in [8.592, 15.92]
+   refit  15: prior N(15.2, 0.675) z=0.0 C=0.988 fitted m=14.79 local y in [3.721, 15.92]
+   refit  91: prior N(4.307, 0.344) z=16.5 C=3.3e-61 fitted m=9.964 local y in [0.4562, 6.809]
+   refit 102: prior N(3.492, 0.26) z=24.9 C=1.53e-137 fitted m=9.964 local y in [0.05172, 4.335]
+   refit 115: prior N(3.319, 0.303) z=21.9 C=4.67e-107 fitted m=9.964 local y in [0.01935, 4.335]
+--- ackley6 seed 0 [mean unbounded]: fval=0.01376 n=200 it=9 time=2.8s rebuilds=170 refits=15
+   bounds of the mean: [-inf, inf] (constant over the run: True)
+   prior centre outside the bounds at 0/170 rebuilds; max z=0.0 SD; normalization constant 0 at 0 rebuilds (0 refits); log(0) warnings: 0
+   refit   0: prior N(15.5, 0.253) z=0.0 C=1 fitted m=15.47 local y in [11.65, 15.7]
+   refit   2: prior N(15.56, 0.342) z=0.0 C=1 fitted m=15.64 local y in [8.592, 15.92]
+   refit  15: prior N(15.2, 0.675) z=0.0 C=1 fitted m=14.88 local y in [3.425, 15.92]
+   refit 137: prior N(3.511, 0.39) z=0.0 C=1 fitted m=3.566 local y in [0.03253, 5.997]
+   refit 150: prior N(3.142, 0.385) z=0.0 C=1 fitted m=2.844 local y in [0.01491, 4.095]
+   refit 163: prior N(2.486, 0.336) z=0.0 C=1 fitted m=2.439 local y in [0.01491, 3.604]
+--- rosen4_3 seed 0: fval=1.851e-05 n=152 it=14 time=55.1s rebuilds=123 refits=14
+   bounds of the mean: [1753, 1.431e+05] (constant over the run: True)
+   prior centre outside the bounds at 47/123 rebuilds; max z=21259.5 SD; normalization constant 0 at 39 rebuilds (6 refits); log(0) warnings: 0
+   refit   0: prior N(1.18e+05, 7.41e+03) z=0.0 C=1 fitted m=1.115e+05 local y in [3.709e+04, 1.18e+05]
+   refit  11: prior N(1.051e+05, 1.85e+04) z=0.0 C=0.98 fitted m=1.132e+05 local y in [808.7, 1.18e+05]
+   refit  22: prior N(7.637e+04, 1.49e+04) z=0.0 C=1 fitted m=1.132e+05 local y in [7.521, 1.18e+05]
+   refit 108: prior N(6.398, 1.27) z=1369.9 C=0 fitted m=1753 local y in [2.274e-05, 53.22]
+   refit 111: prior N(1.707, 0.34) z=5151.0 C=0 fitted m=1753 local y in [2.274e-05, 31.04]
+   refit 118: prior N(0.483, 0.0961) z=18228.9 C=0 fitted m=1753 local y in [1.853e-05, 8.18]
+--- rosen4_3 seed 0 [mean unbounded]: fval=2.876e-07 n=122 it=11 time=1.8s rebuilds=103 refits=11
+   bounds of the mean: [-inf, inf] (constant over the run: True)
+   prior centre outside the bounds at 0/103 rebuilds; max z=0.0 SD; normalization constant 0 at 0 rebuilds (0 refits); log(0) warnings: 0
+   refit   0: prior N(1.18e+05, 7.41e+03) z=0.0 C=1 fitted m=1.115e+05 local y in [3.709e+04, 1.18e+05]
+   refit  11: prior N(1.051e+05, 1.85e+04) z=0.0 C=1 fitted m=1.139e+05 local y in [808.7, 1.18e+05]
+   refit  22: prior N(7.637e+04, 1.49e+04) z=0.0 C=1 fitted m=1.139e+05 local y in [7.521, 1.18e+05]
+   refit  73: prior N(943.7, 188) z=0.0 C=1 fitted m=1173 local y in [0.0003623, 3906]
+   refit  84: prior N(159.7, 31.8) z=0.0 C=1 fitted m=137.9 local y in [0.0001294, 922.5]
+   refit  94: prior N(28.96, 5.77) z=0.0 C=1 fitted m=31.61 local y in [1.469e-06, 756.9]

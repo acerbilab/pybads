@@ -9,9 +9,10 @@ from .es_search import ESSearchELL, ESSearchWM
 
 class ESSearchHedge:
     """
-    It performs a hedging search, that chooses between different evolution strategies.
-    It tracks the record of cumulative improvements of all the search strategies according to the Hedge algorithm [1] (default).
-    It currently handles two different search strategies: ES-wcm and ES-ell.
+    It performs a hedging search, that chooses between different evolution
+    strategies. It tracks the record of cumulative improvements of all the
+    search strategies according to the Hedge algorithm [1]_ (default). It
+    currently handles two different search strategies: ES-wcm and ES-ell.
 
     Parameters
     ----------
@@ -19,18 +20,23 @@ class ESSearchHedge:
         Array of search strategies to use in the hedge search.
     options_dict : dict
         Options for the hedge search
-    non_box_cons: callable function
-        A given non-bound constraints function. e.g : lambda x: np.sum(x.^2, 1) > 1
+    non_box_cons : callable
+        A given non-bound constraints function, for example
+        ``lambda x: np.sum(x**2, axis=1) > 1``.
     rng : numpy.random.Generator, optional
         Generator of the random draws of the hedge and of the searches it
         runs. If ``None``, a generator is derived from NumPy's global random
         state (``pybads.rng.get_rng``).
 
-    ----------
     References
-    [1]. Hoffman, M. D., Brochu, E., & de Freitas, N. (2011). Portfolio Allocation for Bayesian Optimization. In *UAI* (pp. 327-336). ([link](https://pdfs.semanticscholar.org/1a7f/d7b566697c9b69e64b27b68db4384314d925.pdf))
-    [2]. Hansen, N., Müller, S. D., & Koumoutsakos, P. (2003). Reducing the time complexity of the derandomized evolution strategy with covariance matrix adaptation (CMA-ES). *Evolutionary Computation*, **11**(1), 1-18. ([link](https://www.lri.fr/~hansen/evco_11_1_1_0.pdf))
-
+    ----------
+    .. [1] Hoffman, M. D., Brochu, E., & de Freitas, N. (2011). Portfolio
+       Allocation for Bayesian Optimization. In *UAI* (pp. 327-336).
+       https://pdfs.semanticscholar.org/1a7f/d7b566697c9b69e64b27b68db4384314d925.pdf
+    .. [2] Hansen, N., Müller, S. D., & Koumoutsakos, P. (2003). Reducing the
+       time complexity of the derandomized evolution strategy with
+       covariance matrix adaptation (CMA-ES). *Evolutionary Computation*,
+       11(1), 1-18. https://www.lri.fr/~hansen/evco_11_1_1_0.pdf
     """
 
     def __init__(
@@ -69,9 +75,12 @@ class ESSearchHedge:
         self.prob = self.prob * (1 - self.n_funs * self.gamma) + self.gamma
 
         rand_uni = self.rng.random()
-        self.chosen_hedge = np.argwhere(rand_uni < np.cumsum(self.prob))[0]
-        if len(self.chosen_hedge) == 0:
-            self.chosen_hedge = self.rng.integers(0, self.n_funs)
+        chosen = np.flatnonzero(rand_uni < np.cumsum(self.prob))
+        if chosen.size == 0:
+            # Rounding can leave the cumulative sum just below rand_uni
+            self.chosen_hedge = self.rng.integers(0, self.n_funs, size=1)
+        else:
+            self.chosen_hedge = chosen[:1]
 
         if self.gamma == 0:
             self.phat = np.ones(self.g.shape)
@@ -117,18 +126,32 @@ class ESSearchHedge:
 
     def update_hedge(self, u_search, fval_old, f, fs, gp: GP, mesh_size):
         """
-        Update the probability of improvement which will be used for updating the weight of the hedge strategy
-        """
+        Update the gains of the hedge's searches with the expected reward of
+        the search point, which set the probabilities of the next choice.
 
+        An empty search set (``u_search`` is ``None``) is a failed search:
+        every gain decays, with no reward and no point scored.
+        """
+        if u_search is None:
+            # MATLAB BADS scores the previous search's point here, and gives
+            # the chosen search a reward of 0 and the others none
+            self.g *= self.decay
+            return
+
+        # Every search is scored at the search point, taken as a row, as
+        # MATLAB BADS's u(min(iHedge,end),:) takes its single row
+        u_rows = np.atleast_2d(u_search)
         for i_hedge in range(self.n_funs):
-            u_hedge = u_search[np.minimum(i_hedge, len(u_search) - 1) :].copy()
+            i_row = np.minimum(i_hedge, len(u_rows) - 1)
+            u_hedge = u_rows[i_row : i_row + 1].copy()
 
             if i_hedge == self.chosen_hedge:
                 f_hedge = f
                 fs_hedge = fs
             elif self.gamma == 0:
                 f_hedge, fs_hedge = gp.predict(u_hedge)
-                fs_hedge = np.sqrt(fs_hedge)
+                f_hedge = f_hedge.item()
+                fs_hedge = np.sqrt(fs_hedge).item()
             else:
                 f_hedge = 0
                 fs_hedge = 1
@@ -148,7 +171,7 @@ class ESSearchHedge:
                 # Expected reward
                 er = fs_hedge * (
                     gamma_z * fpi
-                    + np.exp(-0.5 * (gamma_z**2) / np.sqrt(2 * np.pi))
+                    + np.exp(-0.5 * (gamma_z**2)) / np.sqrt(2 * np.pi)
                 )
             else:
                 er = 0

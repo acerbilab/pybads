@@ -1,0 +1,24 @@
+fix: remove ESSearchCMA, which no search method reaches and which could not run (W3-13)
+
+ESSearchCMA, the port of MATLAB's active 'ES-cma+' search
+(search/searchES.m, method 5), was exported by pybads.search but
+reached by nothing: ESSearchHedge builds only ES-wcm and ES-ell, and
+refuses any other name of search_method. It could not run either: the
+active branch of ESSearchWM._initialize_, which only it switched on,
+slices with a float index (U[y_idx[-1 : -1 : len(y_idx) - np.floor(mu)
++ 1]], a TypeError), a slice that would also be empty and reversed, and
+calls ucov with 4 of its 7 arguments.
+
+The class is removed, with its export in pybads/search/__init__.py, and
+so are the active branch and the active_flag attribute of ESSearchWM,
+which served only it, and the local nvars, read only by that branch.
+ES-wcm is unchanged. AGENTS.md, "Extension points are hard-coded", no
+longer names the class. Nothing else imports it.
+
+Test: none beyond the existing ones (test_search.py and
+test_empty_search.py pass); the class could not be called.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

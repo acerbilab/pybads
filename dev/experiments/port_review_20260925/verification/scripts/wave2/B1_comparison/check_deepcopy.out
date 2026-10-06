@@ -1,0 +1,4 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+optimize() raised at the end: TypeError cannot pickle '_thread.lock' object | target calls made: 30 | b.x = [ 0.00158691 -0.00073242]
+callable object: result fun is user's object: False ; copy ncalls: 30

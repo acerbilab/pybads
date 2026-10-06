@@ -1,0 +1,5 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+level 0 (noise test): level 0; done x == result x: True; state fval == result fval: True; fsd 0.0 vs 0.0; state u == b.u: True
+level 0 (uh=False): level 0; done x == result x: True; state fval == result fval: True; fsd 0.0 vs 0.0; state u == b.u: True
+level 1 nfs=0: level 1; done x == result x: True; state fval == result fval: True; fsd 0.06067729370581432 vs 0.06067729370581432; state u == b.u: True

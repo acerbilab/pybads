@@ -1,0 +1,14 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+
+== 1-D log, x0 = optimum 0.01, plb=1e-2, pub=1e2
+  pybads   plb [1.001] pub [100.] first x [1.001] f(first) 4; final fval 5.18e-12 in 31 evals; first eval with f<1e-4: 11
+  no-move  plb [0.01] pub [100.] first x [0.01] f(first) 0; final fval 0 in 20 evals; first eval with f<1e-4: 1
+
+== 3-D log, x0 = 1, plb/pub omitted
+  pybads   plb [1.001 1.001 1.001] pub [999. 999. 999.] first x [1.001 1.001 1.001] f(first) 12; final fval 4.9e-06 in 74 evals; first eval with f<1e-4: 33
+  no-move  plb [0.001 0.001 0.001] pub [1000. 1000. 1000.] first x [1. 1. 1.] f(first) 12; final fval 2.63e-07 in 75 evals; first eval with f<1e-4: 44
+
+== 2-D linear, optimum at lb=-5, plb/pub omitted
+  pybads   plb [-4.99 -4.99] pub [4.99 4.99] first x [0. 0.] f(first) 50; final fval 1.29e-07 in 39 evals; first eval with f<1e-4: 10
+  no-move  plb [-5. -5.] pub [5. 5.] first x [0. 0.] f(first) 50; final fval 0 in 39 evals; first eval with f<1e-4: 10

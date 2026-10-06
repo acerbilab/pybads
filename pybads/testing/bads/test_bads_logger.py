@@ -1,0 +1,292 @@
+"""The messages of a run go to the `BADS` logger, whose level the `display`
+option sets."""
+
+import logging
+import re
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+import pybads
+from pybads import BADS
+
+D = 3
+
+
+def _sphere(x):
+    return float(np.sum(np.atleast_2d(x) ** 2))
+
+
+# With the root logger at DEBUG, the poll leaves NumPy's warnings on, and its
+# probability of improvement divides by a zero predicted SD.
+@pytest.mark.filterwarnings("ignore:divide by zero:RuntimeWarning")
+def test_messages_on_bads_logger(caplog):
+    """Every message that PyBADS's modules log during this seeded run comes
+    from the `BADS` logger, including the debug message of a stalling run,
+    which the run reaches. The root logger is at DEBUG, so that a message on
+    another logger would be captured too."""
+    bads = BADS(
+        _sphere,
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "full", "max_fun_evals": 100, "random_seed": 0},
+    )
+    with caplog.at_level(logging.DEBUG):
+        bads.optimize()
+    package_dir = Path(pybads.__file__).resolve().parent
+    records = [
+        record
+        for record in caplog.records
+        if package_dir in Path(record.pathname).resolve().parents
+    ]
+    assert any(
+        "optimization is stalling" in record.getMessage() for record in records
+    )
+    assert {record.name for record in records} == {"BADS"}
+
+
+def _kind(message):
+    """The kind of a message of the display: the opening message, an
+    iteration line (or their header), the final message, or None."""
+    if message.startswith("Beginning optimization"):
+        return "opening"
+    if message.startswith(" Iteration") or re.match(
+        r"\s*\d+\s+\d+\s", message
+    ):
+        return "iteration"
+    if message.startswith("Optimization terminated") or (
+        "value at minimum" in message
+    ):
+        return "final"
+    return None
+
+
+def _display_levels(display, caplog):
+    """The levels of the records of each kind that a short run with the
+    given `display` logs, by kind."""
+    bads = BADS(
+        _sphere,
+        np.ones(D) * 4,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": display, "max_fun_evals": 30, "random_seed": 0},
+    )
+    caplog.clear()
+    bads.optimize()
+    levels = {}
+    for record in caplog.records:
+        kind = _kind(record.getMessage())
+        if record.name == "BADS" and kind is not None:
+            levels.setdefault(kind, set()).add(record.levelno)
+    return levels
+
+
+def test_display_message_levels(caplog):
+    """The opening message and the final message are logged above the
+    iteration lines, at INFO, and below the warnings."""
+    levels = _display_levels("iter", caplog)
+    assert levels["iteration"] == {logging.INFO}
+    (final,) = levels["final"]
+    (opening,) = levels["opening"]
+    assert logging.INFO < final < opening < logging.WARNING
+
+
+# The kinds of messages that each display shows, besides the warnings
+_SHOWN = {
+    "off": set(),
+    "notify": {"opening"},
+    "final": {"opening", "final"},
+    "iter": {"opening", "iteration", "final"},
+    "full": {"opening", "iteration", "final"},
+    "none": set(),
+    "OFF": set(),
+    "Final": {"opening", "final"},
+    "all": {"opening", "iteration", "final"},
+}
+
+
+@pytest.mark.parametrize("display", list(_SHOWN))
+def test_display_levels(display, caplog):
+    """`display` is read from its first three letters, lower case, as in
+    MATLAB BADS (`bads.m`): "off" or "none" shows no message but the
+    warnings, "notify" the opening message, "final" also the final message,
+    "iter" or "all" also the iteration lines, and "full" the debug messages
+    too."""
+    assert set(_display_levels(display, caplog)) == _SHOWN[display]
+    if display == "full":
+        assert logging.getLogger("BADS").level == logging.DEBUG
+
+
+@pytest.mark.parametrize(
+    "display, shown",
+    [("off", False), ("notify", True), ("final", True), ("iter", True)],
+)
+def test_setup_reports_from_notify_on(display, shown, caplog):
+    """The reports of the setup, the caution for infinite bounds and the
+    variables transformed to log coordinates, are shown from "notify" on,
+    as MATLAB BADS prints them (`setupvars.m:28-39`, `118-120`), and not
+    with "off"."""
+    caplog.set_level(logging.DEBUG)
+    BADS(
+        _sphere,
+        np.array([1.0, 0.5]),
+        np.array([1e-3, -np.inf]),
+        np.array([1e3, np.inf]),
+        np.array([0.1, -1.0]),
+        np.array([10.0, 1.0]),
+        options={"display": display, "random_seed": 0},
+    )
+    reports = [
+        record
+        for record in caplog.records
+        if record.name == "BADS"
+        and (
+            "infinite bound" in record.getMessage()
+            or "log coordinates" in record.getMessage()
+        )
+    ]
+    if shown:
+        assert len(reports) == 2
+        assert {record.levelno for record in reports} == {25}
+    else:
+        assert reports == []
+
+
+def test_log_transform_report_lists_the_variable_indices(caplog):
+    """The report of the variables transformed to log coordinates lists
+    their indices, here 0 and 2, as the report of infinite bounds does."""
+    caplog.set_level(logging.DEBUG)
+    BADS(
+        _sphere,
+        np.array([1.0, 0.5, 1.0]),
+        np.array([1e-3, -2.0, 1e-3]),
+        np.array([1e3, 2.0, 1e3]),
+        np.array([0.1, -1.0, 0.1]),
+        np.array([10.0, 1.0, 10.0]),
+        options={"display": "notify", "random_seed": 0},
+    )
+    messages = [
+        record.getMessage()
+        for record in caplog.records
+        if "log coordinates" in record.getMessage()
+    ]
+    assert messages == [
+        "Variables (index) internally transformed to log coordinates: [0, 2]."
+    ]
+
+
+@pytest.mark.parametrize("omitted", [True, False], ids=["omitted", "given"])
+def test_plausible_bounds_omitted_warn(omitted, caplog):
+    """Plausible bounds that are omitted are the hard bounds, with the
+    warning `bads:pbUnspecified`, once, with `display="off"` too, as MATLAB
+    BADS warns whenever it fills them (`boundscheck.m:12-16`)."""
+    caplog.set_level(logging.DEBUG)
+    plausible = (None, None) if omitted else (-np.ones(D), np.ones(D))
+    BADS(
+        _sphere,
+        np.ones(D) * 0.5,
+        -2 * np.ones(D),
+        2 * np.ones(D),
+        *plausible,
+        options={"display": "off", "random_seed": 0},
+    )
+    warnings = [
+        record
+        for record in caplog.records
+        if record.name == "BADS"
+        and "bads:pbUnspecified" in record.getMessage()
+    ]
+    assert len(warnings) == (1 if omitted else 0)
+    assert all(record.levelno == logging.WARNING for record in warnings)
+
+
+def _poll_lines(monkeypatch, caplog, max_refit_checks=None, **options):
+    """Run on the sphere with `display="iter"`, and return, for each poll,
+    whether it refitted the GP, whether it was skipped, and its line.
+    `max_refit_checks` allows refits only at the first checks."""
+    n_checks = [0]
+    original_refit_time = BADS._is_gp_refit_time_
+
+    def refit_time(self, alpha, refit_allowed=True):
+        n_checks[0] += 1
+        refit, calibrate = original_refit_time(self, alpha, refit_allowed)
+        if max_refit_checks is not None and n_checks[0] > max_refit_checks:
+            refit = False
+        return refit, calibrate
+
+    polls = []
+    original_poll = BADS._poll_step_
+
+    def poll(self, gp):
+        out = original_poll(self, gp)
+        polls.append(
+            (
+                self.gp_refitted_flag,
+                self.last_skipped == self.optim_state["iter"],
+                caplog.records[-1].getMessage(),
+            )
+        )
+        return out
+
+    monkeypatch.setattr(BADS, "_is_gp_refit_time_", refit_time)
+    monkeypatch.setattr(BADS, "_poll_step_", poll)
+    opts = {"display": "iter", "max_fun_evals": 100, "random_seed": 3}
+    opts.update(options)
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        BADS(
+            _sphere,
+            np.ones(D) * 4,
+            -100 * np.ones(D),
+            100 * np.ones(D),
+            -8 * np.ones(D),
+            12 * np.ones(D),
+            options=opts,
+        ).optimize()
+    return polls
+
+
+def test_poll_actions_without_a_refit(monkeypatch, caplog):
+    """The Actions column of a poll's line is built at each poll, as in
+    MATLAB BADS: a poll that refits no GP shows no "Train", whatever the
+    poll before it did. Refits are allowed only at the first three checks,
+    and without searches every poll follows a poll."""
+    polls = _poll_lines(
+        monkeypatch, caplog, max_refit_checks=3, search_n_try=0
+    )
+    assert any(trained for trained, _, _ in polls)
+    assert any(not trained for trained, _, _ in polls)
+    for trained, skipped, line in polls:
+        assert not skipped
+        assert line.rstrip().endswith("Train") == trained
+
+
+def test_poll_actions_of_a_poll_that_trains_and_skips(monkeypatch, caplog):
+    """A poll that refits the GP and is skipped shows both, "Train, skip",
+    as in MATLAB BADS; one that is only skipped shows "Skip". Skipping is
+    allowed from the first failed poll step (`min_failed_poll_steps=1`), and
+    a poll is skipped when no vector improves with probability above
+    `1 - tol_poi`."""
+    polls = _poll_lines(
+        monkeypatch,
+        caplog,
+        search_n_try=0,
+        min_failed_poll_steps=1,
+        tol_poi=0.5,
+    )
+    assert any(trained and skipped for trained, skipped, _ in polls)
+    for trained, skipped, line in polls:
+        action = line.rstrip()
+        if trained and skipped:
+            assert action.endswith("Train, skip")
+        elif skipped:
+            assert action.endswith("Skip") and "Train" not in action
+        elif trained:
+            assert action.endswith("Train")
+        else:
+            assert not action.endswith(("Train", "skip", "Skip"))

@@ -1,0 +1,29 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+max_fun_evals 38: level 1, target calls 34, func_count 34, iterations 1, noise_final_samples reserved 4, max_fun_evals after the reserve 34, yval_vec [0.14349133], fval 0.1435, fsd 1, message: "Optimization terminated: reached maximum number of function evaluations options['max_fun_evals']."
+
+budget | calls | iterations | reserved | final samples taken
+ 34 |  34 |  1 |  0 | False (unused budget 0)
+ 36 |  34 |  1 |  2 | False (unused budget 2)
+ 38 |  34 |  1 |  4 | False (unused budget 4)
+ 40 |  34 |  1 |  6 | False (unused budget 6)
+ 42 |  34 |  1 |  8 | False (unused budget 8)
+ 44 |  34 |  1 | 10 | False (unused budget 10)
+ 46 |  36 |  1 | 10 | False (unused budget 10)
+ 48 |  38 |  1 | 10 | False (unused budget 10)
+ 50 |  50 |  2 | 10 | True (unused budget 0)
+ 52 |  52 |  2 | 10 | True (unused budget 0)
+ 54 |  54 |  2 | 10 | True (unused budget 0)
+ 56 |  56 |  2 | 10 | True (unused budget 0)
+ 60 |  60 |  3 | 10 | True (unused budget 0)
+ 70 |  70 |  4 | 10 | True (unused budget 0)
+
+MATLAB's arithmetic at D = 2 (design Ninit = min(max(20, D), MaxFunEvals - 1), noise test counted after the cap):
+MaxFunEvals 30: after the design funccount 22, reserve 8, MaxFunEvals for the loop 22: the design alone ends the run in its first iteration: True
+MaxFunEvals 32: after the design funccount 22, reserve 10, MaxFunEvals for the loop 22: the design alone ends the run in its first iteration: True
+MaxFunEvals 34: after the design funccount 22, reserve 10, MaxFunEvals for the loop 24: the design alone ends the run in its first iteration: False
+MaxFunEvals 36: after the design funccount 22, reserve 10, MaxFunEvals for the loop 26: the design alone ends the run in its first iteration: False
+MaxFunEvals 38: after the design funccount 22, reserve 10, MaxFunEvals for the loop 28: the design alone ends the run in its first iteration: False
+MaxFunEvals 40: after the design funccount 22, reserve 10, MaxFunEvals for the loop 30: the design alone ends the run in its first iteration: False
+MaxFunEvals 44: after the design funccount 22, reserve 10, MaxFunEvals for the loop 34: the design alone ends the run in its first iteration: False
+MaxFunEvals 48: after the design funccount 22, reserve 10, MaxFunEvals for the loop 38: the design alone ends the run in its first iteration: False

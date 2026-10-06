@@ -1,0 +1,24 @@
+fix: the search hedge's expected reward uses the standard normal density, as MATLAB BADS (W3-6)
+
+The hedge rewards a search whose estimate at its point has an SD with the
+expected improvement over the previous incumbent, sigma * (gamma *
+Phi(gamma) + phi(gamma)). The port's parenthesis put the division by
+sqrt(2*pi) inside the exponential, exp(-0.5*gamma**2/sqrt(2*pi)), not the
+density exp(-0.5*gamma**2)/sqrt(2*pi) of MATLAB BADS (acqPortfolio.m:64,
+correct since 2017): the reward was 2.51 times MATLAB's at gamma = 0 and
+424 times at gamma = -3, so a search whose point was worse than the
+incumbent was still rewarded. The expression now follows MATLAB's.
+
+Only runs with noise (levels 1 and 2) reach this branch: a deterministic
+run's estimate has SD 0 and takes the max(0, fval_old - f) branch, where
+the two agree.
+
+Test: test_hedge_reward_is_the_expected_improvement, the chosen search's
+reward for four estimates and SDs equals sigma * (gamma * Phi(gamma) +
+phi(gamma)) computed with scipy.stats.norm (at the parent it is 1.594
+against 0.396 at gamma = -0.5, and 0.162 against 0.000382 at gamma = -3).
+Fingerprint 3a76e9f501ca0dbb (from dc11118754b18b47): its three
+deterministic runs and two of its noisy ones are unchanged, the noisy run
+of seed 2 moves.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

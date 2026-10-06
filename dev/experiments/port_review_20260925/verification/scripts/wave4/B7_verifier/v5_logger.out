@@ -1,0 +1,24 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+
+(a) total_fun_eval_time with 1 s per call
+level 0 (noise test): level 0, func_count 51, rows 50, total target time 50 s, calls by path {'new row': 50, 'unrecorded (repeat)': 1}, sum n_evals 51, n_evals>1 at rows [0]
+level 1 (noise test, final samples): level 1, func_count 100, rows 89, total target time 99 s, calls by path {'new row': 89, 'unrecorded (repeat)': 11}, sum n_evals 100, n_evals>1 at rows [0, 40]
+level 2 (final samples): level 2, func_count 100, rows 90, total target time 100 s, calls by path {'new row': 90, 'unrecorded (repeat)': 10}, sum n_evals 100, n_evals>1 at rows [86]
+level 1 with uncertainty_handling=True (no noise test): level 1, func_count 100, rows 90, total target time 100 s, calls by path {'new row': 90, 'unrecorded (repeat)': 10}, sum n_evals 100, n_evals>1 at rows [89]
+
+(b) row 0 after the noise test, and init_N at the first fit
+n_evals[0] 2, fun_eval_time[0] 1.5 (calls timed 1 s and 2 s), fun_eval_time[1] 3.0, total target time 19.0 (rows 0..4: 19 expected without the noise test)
+after 0 more evaluations: n_eff 6, eff_starting_points 5, n_budget 65: init_N 123 (counting rows only: 128)
+after 10 more evaluations: n_eff 16, eff_starting_points 5, n_budget 65: init_N 77 (counting rows only: 81)
+
+(c) calls that repeat a logged point, by path, D = 3, 200 evaluations
+level 0 seed 0: func_count 77, rows 76, distinct rows 76, calls by path {'new row': 76, 'unrecorded (repeat)': 1}
+level 0 seed 1: func_count 77, rows 76, distinct rows 76, calls by path {'new row': 76, 'unrecorded (repeat)': 1}
+level 0 seed 2: func_count 77, rows 76, distinct rows 76, calls by path {'new row': 76, 'unrecorded (repeat)': 1}
+level 1 seed 0: func_count 165, rows 154, distinct rows 154, calls by path {'new row': 154, 'unrecorded (repeat)': 11}
+level 1 seed 1: func_count 175, rows 164, distinct rows 164, calls by path {'new row': 164, 'unrecorded (repeat)': 11}
+level 1 seed 2: func_count 171, rows 160, distinct rows 160, calls by path {'new row': 160, 'unrecorded (repeat)': 11}
+level 2 seed 0: func_count 200, rows 190, distinct rows 190, calls by path {'new row': 190, 'unrecorded (repeat)': 10}
+level 2 seed 1: func_count 190, rows 180, distinct rows 180, calls by path {'new row': 180, 'unrecorded (repeat)': 10}
+level 2 seed 2: func_count 200, rows 190, distinct rows 190, calls by path {'new row': 190, 'unrecorded (repeat)': 10}

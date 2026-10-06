@@ -95,9 +95,13 @@ class IterationHistory(MutableMapping, dict):
     def _expand_array(self, key: str, resize_amount: int):
         """
         A private method to expand the array for a given key by a resize_amount.
+        The grown array holds the recorded objects themselves: they were
+        copied when recorded, and are not copied again.
         """
-        self[key] = np.append(
-            self[key], np.full([resize_amount], None), axis=0
+        dict.__setitem__(
+            self,
+            key,
+            np.append(self[key], np.full([resize_amount], None), axis=0),
         )
 
     def record_iteration(

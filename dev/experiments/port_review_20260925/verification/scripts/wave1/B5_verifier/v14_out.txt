@@ -1,0 +1,16 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D=2 max_fun_evals=2: RAISED ValueError: cannot convert float NaN to integer; (init_N, eff_starting_points) seen []
+D=2 max_fun_evals=3: ok, func_count 6; (init_N, eff_starting_points) seen [(413, 5)]
+D=2 max_fun_evals=4: ok, func_count 6; (init_N, eff_starting_points) seen [(968, 5)]
+D=2 max_fun_evals=5: RAISED ValueError: cannot convert float NaN to integer; (init_N, eff_starting_points) seen []
+D=2 max_fun_evals=6: ok, func_count 6; (init_N, eff_starting_points) seen [(8, 5)]
+D=2 max_fun_evals=7: ok, func_count 7; (init_N, eff_starting_points) seen [(23, 5)]
+D=2 max_fun_evals=8: ok, func_count 8; (init_N, eff_starting_points) seen [(44, 5)]
+D=3 max_fun_evals=2: RAISED ValueError: cannot convert float NaN to integer; (init_N, eff_starting_points) seen []
+D=3 max_fun_evals=3: RAISED ValueError: cannot convert float NaN to integer; (init_N, eff_starting_points) seen []
+D=3 max_fun_evals=4: ok, func_count 6; (init_N, eff_starting_points) seen [(968, 5)]
+D=3 max_fun_evals=5: RAISED ValueError: cannot convert float NaN to integer; (init_N, eff_starting_points) seen []
+D=3 max_fun_evals=6: ok, func_count 6; (init_N, eff_starting_points) seen [(8, 5)]
+D=3 max_fun_evals=7: ok, func_count 7; (init_N, eff_starting_points) seen [(23, 5)]
+D=3 max_fun_evals=8: ok, func_count 8; (init_N, eff_starting_points) seen [(44, 5)]

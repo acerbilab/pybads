@@ -1,0 +1,38 @@
+fix: the start and the plausible bounds are used as given, without effective bounds 1e-3 of the range inside the hard bounds (W2-4)
+
+_bounds_check_ computed "effective" bounds 1e-3 of the linear range
+inside each finite hard bound (1e-3 of 1e3 for an infinite range),
+refused hard bounds that this margin left empty, moved an x0 within the
+margin inside it, moved plb and pub inside it, and expanded the
+plausible box to an x0 that lay within the margin. MATLAB BADS never
+moves x0 or the plausible bounds: boundscheck.m sets PLB = LB and
+PUB = UB when they are omitted, and setupvars.m tests the order
+LB <= PLB < PUB <= UB (lines 6-9) and that the start is within the hard
+bounds (lines 95-99), then puts it on the grid. So with plb and pub
+omitted PyBADS lost part of the plausible box (three decades of
+[1e-3, 1e3]), [1, 10] lost its log transform (9.991 / 1.009 < 10), a
+start at the optimum 0.01 of [1e-3, 1e3] started at 1.001, and
+[0, 1] with plb = 1e-4, pub = 5e-4 was refused.
+
+The block is removed, and MATLAB's two checks stay: x0 within the hard
+bounds, and the order of the bounds, once (the first of its two copies
+went with the block, and with it the message that said < where the
+test is <=). A start outside the plausible box is kept where it is and
+the box is not expanded to it, as in MATLAB (the direction that the
+internal review's I-F3 proposed is not adopted: outside the margin
+PyBADS already equalled MATLAB).
+
+Test: test_bads_inputs.py::test_start_and_plausible_bounds_are_kept,
+eight cases of one variable (plausible bounds omitted, a start on a
+hard bound, a start within the old margin outside the plausible box,
+[1, 10] and [1e-3, 1e3] log-transformed, plausible bounds close to a
+hard bound on either side), each with MATLAB's start, plausible bounds,
+log flag, transformed hard bounds and start on the grid, as the B1
+verifier's transcription of boundscheck.m and setupvars.m gives them
+(v_bounds.out). All 8 fail at the parent (6 on a moved value, 2
+refused) and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+91f947f78e1087c2, unchanged; its runs keep clear of the margin.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

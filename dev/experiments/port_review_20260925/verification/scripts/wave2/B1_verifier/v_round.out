@@ -1,0 +1,7 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+u = +0.5 h: numpy -> +0 h, MATLAB -> +1 h
+u = +1.5 h: numpy -> +2 h, MATLAB -> +2 h
+u = +2.5 h: numpy -> +2 h, MATLAB -> +3 h
+u = -0.5 h: numpy -> -0 h, MATLAB -> -1 h
+x0 = 1 in plausible box [-2048, 2048]: u = x0/2048 = 2^-11 = h/2; PyBADS u0 = [0.]  MATLAB u0 = [0.00097656] -> evaluated x0: [0.] vs [2.]

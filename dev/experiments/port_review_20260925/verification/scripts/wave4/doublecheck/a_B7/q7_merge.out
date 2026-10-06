@@ -1,0 +1,8 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+{'max_fun_evals': 200} 0 fc 200 rows 190 merges 0 yval_vec (10,)
+{'max_fun_evals': 200} 1 fc 200 rows 190 merges 0 yval_vec (10,)
+{'max_iter': 1} 0 fc 49 rows 39 merges 0 yval_vec (10,)
+{'max_iter': 1} 1 fc 49 rows 39 merges 0 yval_vec (10,)
+{'max_fun_evals': 40} 0 fc 40 rows 33 merges 0 yval_vec (7,)
+{'max_fun_evals': 40} 1 fc 40 rows 33 merges 0 yval_vec (7,)

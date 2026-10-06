@@ -1,0 +1,1 @@
+final.wall_s: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.9030882030001521' -> '1.597424455001601'

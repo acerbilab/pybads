@@ -43,7 +43,8 @@ and 341 evaluations). In both, `local_gp_fitting`
 caught; seed 13 reaches it from the search step, seed 26 from the poll
 step. The baseline's two crashes (`ellipsoid_D3` seed 20, `ellipsoid_D10`
 seed 7) came from two other unguarded GP updates; under the generator
-those seeds follow other trajectories and finish (`dev/TODO.md`).
+those seeds follow other trajectories and finish
+(`dev/results/2026-09-23-codebase-survey.md`; guarded from `676083d`).
 
 ## Comparison with the baseline
 

@@ -1,0 +1,26 @@
+fix: the LCB takes a plain number as sqrt_beta, and refuses what is not a positive finite number, a callable or None (W3-10)
+
+acq_fcn_lcb checked a given sqrt_beta with sqrt_beta.size, so a Python
+number, such as search_acq_fcn = ('acq_LCB', 2.0), stopped the search with
+AttributeError, while a NumPy scalar or a one-element array passed,
+whatever its value: zero, negative, boolean and complex values ran, and an
+array of more than one element or a name failed with NumPy's messages.
+MATLAB's acqLCB.m:10-21 takes empty (the schedule), a function handle or a
+name, or any numeric scalar. As ruled, sqrt_beta is now None (the
+schedule), a callable, called as before with (t, n_vars), or a positive
+finite real number: a Python or NumPy scalar, or an array of one element,
+used as a scalar. Anything else, a schedule's name included, raises a
+ValueError that says what is accepted.
+
+The docstring said that the third output is the GP variance; it is the
+SD, and the outputs are at xi, not at z. It now says so, with the
+accepted values of sqrt_beta.
+
+Tests: test_lcb_accepts_a_positive_number_as_sqrt_beta,
+test_lcb_sqrt_beta_schedule_and_callable and
+test_lcb_refuses_other_values_of_sqrt_beta (at the parent, a Python float
+or int raises AttributeError, zero and negative NumPy values, booleans and
+complex values are accepted, and the other refusals give other messages).
+Fingerprint dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

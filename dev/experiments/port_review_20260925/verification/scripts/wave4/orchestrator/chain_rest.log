@@ -1,0 +1,38 @@
+trim trailing whitespace.............................(no files to check)Skipped
+fix end of files.....................................(no files to check)Skipped
+isort................................................(no files to check)Skipped
+black-jupyter........................................(no files to check)Skipped
+pycln................................................(no files to check)Skipped
+retagged: b78f782 fix: periodic_vars is refused before the variables are transformed, and an empty one is take
+ok replace_bullet
+ok replace_bullet
+bd793f2 fix: refuse a hedge_beta that is not a finite number at least 0 and a hedge_decay outside [0, 1] when BADS is created (W4-29)
+suite at bd793f2: 608 passed, 20 warnings in 139.48s (0:02:19)
+bd793f2 fix: refuse a hedge_beta that is not a finite number at least 0 and a hedge_decay  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+done
+ok
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+isort....................................................................Passed
+black-jupyter............................................................Passed
+pycln....................................................................Passed
+4b84a2d docs: the description of fsd says what a noisy run that output_fcn stops in its initializati
+suite at 4b84a2d: 608 passed, 20 warnings in 138.30s (0:02:18)
+4b84a2d docs: the description of fsd says what a noisy run that output_fcn stops in its in | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+done
+ok fixed
+efe5e95 fix: the initial design is seeded from the run's generator, so that random_seed decides it (W4-1)
+suite at efe5e95: 610 passed, 21 warnings in 141.27s (0:02:21)
+efe5e95 fix: the initial design is seeded from the run's generator, so that random_seed de | /home/user/pybads-fp/pybads/__init__.py 663b49edc9320c55
+done
+ok fixed
+e7bd01d fix: the noise test leaves the start's row of the log as it was, so that n_eff counts what eff_starting_points counts (W4-6)
+suite at e7bd01d: 1 failed, 268 passed, 6 warnings in 68.64s (0:01:08)
+SUITE FAILED at e7bd01d
+STOP at W4-6
+w41 at efe5e95 (default): 16:45 to 17:11 UTC
+Holm family: 54 tests at alpha 0.05. A flag needs p <= 0.00093 for the first step; for 30 vs 30 runs that is a KS statistic of at least 0.500.
+**no configuration flagged (54 tests)**
+final.fval: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.0000010627523184' -> '1.0000044686906018'
+final.true_error: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.0627523183703858e-06' -> '4.468690601777681e-06'
+final.wall_s: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '2.954717036999682' -> '1.6298984899995048'

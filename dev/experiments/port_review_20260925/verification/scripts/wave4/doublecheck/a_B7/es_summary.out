@@ -1,0 +1,6 @@
+es_w421.jsonl            mean 47.0 range 46-49 distinct 4 sd 0.56 counts [(np.int64(46), 3), (np.int64(47), 24), (np.int64(48), 2), (np.int64(49), 1)] err median 4.2e-08 max 4.9e-07; sobol seeds: 1 distinct {(948,): 30}
+es_w41_force948.jsonl    mean 47.0 range 46-49 distinct 4 sd 0.56 counts [(np.int64(46), 3), (np.int64(47), 24), (np.int64(48), 2), (np.int64(49), 1)] err median 4.2e-08 max 4.9e-07; sobol seeds: 1 distinct {(948,): 30}
+es_w41.jsonl             mean 48.5 range 46-55 distinct 7 sd 2.34 counts [(np.int64(46), 8), (np.int64(47), 1), (np.int64(48), 7), (np.int64(49), 10), (np.int64(51), 1), (np.int64(52), 1), (np.int64(55), 2)] err median 3.6e-08 max 2.1e-07; sobol seeds: 30 distinct
+es_w41_force2.jsonl      mean 47.6 range 46-53 distinct 7 sd 2.25 counts [(np.int64(46), 17), (np.int64(48), 4), (np.int64(49), 4), (np.int64(50), 1), (np.int64(51), 1), (np.int64(52), 1), (np.int64(53), 2)] err median 4.4e-08 max 7.9e-07; sobol seeds: 1 distinct {(2,): 30}
+es_w41_force500.jsonl    mean 48.6 range 48-55 distinct 3 sd 1.89 counts [(np.int64(48), 27), (np.int64(52), 1), (np.int64(55), 2)] err median 1.1e-09 max 1.7e-07; sobol seeds: 1 distinct {(500,): 30}
+W4-1 forced 948 (no draw) equals W4-21 in 30 of 30 (func_count, x, fval)

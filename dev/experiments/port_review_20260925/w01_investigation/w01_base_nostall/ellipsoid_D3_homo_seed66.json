@@ -1,0 +1,89 @@
+{
+ "label": "ellipsoid_D3_homo",
+ "seed": 66,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  -4.299624164875102,
+  3.2274435324225887,
+  0.9691469987861057
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 66,
+  "tol_stall_iters": 100000
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 200000,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 66,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.237919569015503,
+   1.2058031558990479,
+   -2.0480740070343018
+  ],
+  "fval": 0.38046883010351484,
+  "fsd": 0.3045413227792981,
+  "true_error": 0.047622746689858046,
+  "func_count": 529,
+  "iterations": 33,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 14.193341600010172,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.019657455706879868
+ },
+ "meta": {
+  "git": {
+   "sha": "010eeb4",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.0.7.dev11+g0b3a65bfd.d20260924",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\worktrees\\w0_groupA\\pybads",
+   "git": {
+    "sha": "010eeb4",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\v1.3.3\\gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T11:11:15+0300",
+  "finished": "2026-09-26T11:11:29+0300"
+ }
+}

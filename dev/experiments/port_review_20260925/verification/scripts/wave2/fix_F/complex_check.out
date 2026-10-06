@@ -1,0 +1,10 @@
+== parent
+/tmp/claude-0/-home-user-pybads/d2562ae8-2eb6-54ba-872b-e5b256bbba2c/scratchpad/fix/F/parent_HEAD/pybads/__init__.py
+complex x0: ValueError ['All', 'input', 'vectors', '(x0,', 'lower_bounds,', 'upper_bounds,']
+complex x0, zero imaginary part: accepted, x0 [[0.5+0.j 0.2+0.j]] complex128 []
+float32: float32 float32 float32
+== commit
+/home/user/pybads-fix-F/pybads/__init__.py
+complex x0: ValueError ['All', 'input', 'vectors', '(x0,', 'lower_bounds,', 'upper_bounds,']
+complex x0, zero imaginary part: accepted, x0 [[0.5 0.2]] float64 ['ComplexWarning']
+float32: float64 float64 float64

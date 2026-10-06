@@ -1,0 +1,17 @@
+fix: remove three unused imports (W4-22)
+
+grid_functions.py imported matplotlib.pyplot's axis (its "axis" are
+keyword arguments of NumPy), constraints_check.py imported
+multiprocessing.sharedctypes' Value, and poll_mads_2n.py imported
+gpyreg's GP; nothing reads them. pycln keeps them, since it cannot prove
+that importing a third-party name has no side effects, so they are
+removed by hand. Nothing relies on pyplot being imported with
+pybads.search: nothing in the package or its tests uses matplotlib but
+bads.py, which imports pyplot itself before pybads.search.
+
+No test: the change removes imports.
+
+Fingerprint (Linux, one BLAS thread, gpyreg v1.3.3): 360971bf1f0ba6cb,
+unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

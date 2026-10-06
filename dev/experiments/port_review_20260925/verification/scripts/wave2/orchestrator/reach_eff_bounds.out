@@ -1,0 +1,6 @@
+/home/user/pybads/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sphere_D3_nopb                           ['plb/pub']
+sphere_D3_x0lb                           ['x0']
+logsphere_D3                             ['plb/pub', 'x0']
+logsphere_D3_nopb                        ['plb/pub', 'x0']
+logsphere_D3_homo                        ['plb/pub', 'x0']

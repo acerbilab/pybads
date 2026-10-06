@@ -30,6 +30,7 @@ bads = BADS(
     upper_bounds,
     plausible_lower_bounds,
     plausible_upper_bounds,
+    options={"random_seed": 0},  # Makes the run reproducible
 )
 optimize_result = bads.optimize()
 

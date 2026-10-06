@@ -29,7 +29,7 @@ Running the optimizer in step 3 only involves a couple of lines of code:
 with input arguments:
 
 - ``target``: the target function, it takes as input a vector and returns its function evaluation;
-- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is randomly drawn from the problems bounds;
+- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);
 - ``lb`` and ``ub``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
 - ``plb`` and ``pub``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable non-bound constraints function.
@@ -45,23 +45,13 @@ The ``optimize_result`` object contains more information about the optimization 
 
 **Additional data/parameters in the target function?**
 
-In case the ``target`` function requires additional data/parameters, they can be easily handled using an anonymous function. For example:
-
-.. code-block:: python
-
-  data = None # define your data
-  extra_params = None # define your function-specific parameters
-
-  def fun_for_pybads(x):
-    return fun(x, data, extra_params)
-
-  # Pass fun_for_pybads to PyBADS
-
-where ``fun`` is the function to optimize, note that ``fun_for_pybads`` only depends on ``x`` now, ``data`` and ``extra_params`` are given in the outer scope.
+If the ``target`` function requires additional data or parameters, the
+:ref:`FAQ <faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads>`
+shows how to pass them.
 
 Examples & FAQ
 =================
 
 See the :ref:`Examples` for more detailed information. The :ref:`Basic options` may also be useful.
 
-In addition, checkout the `BADS FAQ <https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions>`__ page for practical recommendations, such as how to set `lower_bounds` and `upper_bounds`, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS.
+In addition, check out the :doc:`FAQ <faq>` for practical recommendations, such as how to set ``lower_bounds`` and ``upper_bounds``, and other practical insights.

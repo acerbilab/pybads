@@ -1,0 +1,14 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+  lower_bounds[0:D] = np.log(width) + np.log(tol)
+  upper_bounds[0:D] = np.log(width * 10)
+  plausible_lower_bounds[0:D] = np.log(width) + 0.5 * np.log(tol)
+  plausible_upper_bounds[0:D] = np.log(width)
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+  ret = um.true_divide(
+band |x1-x2|<=0.05: fval=3.074e-06 evals=57 ES calls=33 ES warnings=0 ES calls returning an empty set=0
+   emptied generations (0-based) per affected call: []
+   first 3 calls, (in, out) per generation: [[(2048, 78), (78, 8)], [(2048, 73), (73, 5)], [(2048, 114), (114, 16)]]
+band |x1-x2|<=0.01: fval=2.898e-05 evals=44 ES calls=29 ES warnings=3 ES calls returning an empty set=3
+   emptied generations (0-based) per affected call: [(1,), (1,), (1,)]
+   first 3 calls, (in, out) per generation: [[(2048, 12), (12, 0)], [(2048, 31), (31, 1)], [(2048, 37), (37, 1)]]

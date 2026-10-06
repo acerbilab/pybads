@@ -1,0 +1,85 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sloppy_improvement=False -> AttributeError 'float' object has no attribute 'copy' | at pybads/bads/bads.py 1349
+f_vals=[2.0], display off -> ValueError Unknown format code 'f' for object of type 'str' | at pybads/bads/bads.py 2886
+display='off': logger level WARNING, records emitted 0
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               2               1                                 Uncertainty test
+     0           6         1.21193               1         Initial mesh            Initial points
+     1          10         1.21193             0.5         Refine grid             Train
+     2          11       0.0689995             0.5     Successful search (ES-wcm)
+     2          12       0.0181007             0.5     Incremental search (ES-wcm)
+     2          13       0.0124092             0.5     Incremental search (ES-wcm)
+     2          14       0.0105462             0.5     Incremental search (ES-wcm)
+     2          15      0.00853372             0.5     Incremental search (ES-wcm)
+     2          17     6.60419e-05             0.5     Incremental search (ES-ell)
+     2          22     6.60419e-05            0.25         Refine grid
+     3          23     7.45058e-06            0.25     Incremental search (ES-ell)
+     3          25     3.05474e-06            0.25     Incremental search (ES-ell)
+     3          30     3.05474e-06           0.125         Refine grid             Train
+Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].
+Function value at minimum: 3.0547380447387695e-06
+
+display='notify': logger level INFO, records emitted 17
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               2               1                                 Uncertainty test
+     0           6         1.21193               1         Initial mesh            Initial points
+     1          10         1.21193             0.5         Refine grid             Train
+     2          11       0.0689995             0.5     Successful search (ES-wcm)
+     2          12       0.0181007             0.5     Incremental search (ES-wcm)
+     2          13       0.0124092             0.5     Incremental search (ES-wcm)
+     2          14       0.0105462             0.5     Incremental search (ES-wcm)
+     2          15      0.00853372             0.5     Incremental search (ES-wcm)
+     2          17     6.60419e-05             0.5     Incremental search (ES-ell)
+     2          22     6.60419e-05            0.25         Refine grid
+     3          23     7.45058e-06            0.25     Incremental search (ES-ell)
+     3          25     3.05474e-06            0.25     Incremental search (ES-ell)
+     3          30     3.05474e-06           0.125         Refine grid             Train
+Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].
+Function value at minimum: 3.0547380447387695e-06
+
+display='final': logger level INFO, records emitted 17
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               2               1                                 Uncertainty test
+     0           6         1.21193               1         Initial mesh            Initial points
+     1          10         1.21193             0.5         Refine grid             Train
+     2          11       0.0689995             0.5     Successful search (ES-wcm)
+     2          12       0.0181007             0.5     Incremental search (ES-wcm)
+     2          13       0.0124092             0.5     Incremental search (ES-wcm)
+     2          14       0.0105462             0.5     Incremental search (ES-wcm)
+     2          15      0.00853372             0.5     Incremental search (ES-wcm)
+     2          17     6.60419e-05             0.5     Incremental search (ES-ell)
+     2          22     6.60419e-05            0.25         Refine grid
+     3          23     7.45058e-06            0.25     Incremental search (ES-ell)
+     3          25     3.05474e-06            0.25     Incremental search (ES-ell)
+     3          30     3.05474e-06           0.125         Refine grid             Train
+Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].
+Function value at minimum: 3.0547380447387695e-06
+
+display='iter': logger level INFO, records emitted 17
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               2               1                                 Uncertainty test
+     0           6         1.21193               1         Initial mesh            Initial points
+     1          10         1.21193             0.5         Refine grid             Train
+     2          11       0.0689995             0.5     Successful search (ES-wcm)
+     2          12       0.0181007             0.5     Incremental search (ES-wcm)
+     2          13       0.0124092             0.5     Incremental search (ES-wcm)
+     2          14       0.0105462             0.5     Incremental search (ES-wcm)
+     2          15      0.00853372             0.5     Incremental search (ES-wcm)
+     2          17     6.60419e-05             0.5     Incremental search (ES-ell)
+     2          22     6.60419e-05            0.25         Refine grid
+     3          23     7.45058e-06            0.25     Incremental search (ES-ell)
+     3          25     3.05474e-06            0.25     Incremental search (ES-ell)
+     3          30     3.05474e-06           0.125         Refine grid             Train
+Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].
+Function value at minimum: 3.0547380447387695e-06
+
+display='full': logger level DEBUG, records emitted 17

@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 seed 100: poll-stop checks at n=1: 3; python unreliable 3, MATLAB-rule unreliable 0; with a good poll 0; decisions that differ 0
+ell4 seed 100: poll-stop checks at n=1: 7; python unreliable 7, MATLAB-rule unreliable 3; with a good poll 0; decisions that differ 0
+ell2 seed 100: poll-stop checks at n=1: 2; python unreliable 2, MATLAB-rule unreliable 1; with a good poll [1]; decisions that differ 1
+rosen2 seed 100: poll-stop checks at n=1: 3; python unreliable 3, MATLAB-rule unreliable 1; with a good poll 0; decisions that differ 0

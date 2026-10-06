@@ -1,0 +1,54 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== F7: effective radius r_e = sqrt(a (exp(1/a) - 1)) (gaussian_process_train.py:504; MATLAB gpupdate.m:317)
+   log a= -5: r_e=inf; k(sqrt2*r_e)=nan (e^-1=0.367879); k(r_e)=0.000
+   log a= -2: r_e=14.79; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.404
+   log a= -1: r_e=2.282; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.464
+   log a=  0: r_e=1.311; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.538
+   log a=  1: r_e=1.099; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.579
+   log a=  3: r_e=1.013; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.603
+   log a=  5: r_e=1.002; k(sqrt2*r_e)=0.367879 (e^-1=0.367879); k(r_e)=0.606
+   matern1 root/sqrt2=0.707106781186638 (MATLAB 1/sqrt(2)=0.707106781186547)
+   matern3 root/sqrt2=0.876179713323453 (MATLAB 0.876179713323485)
+   matern5 root/sqrt2=0.918524648109246 (MATLAB 0.918524648109253)
+   SE (GPML exp(-r^2/2)) root/sqrt2=1.000000 (MATLAB 'otherwise' 1)
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== F9: upper_gp_length_factor
+   factor 0: length-scale bounds [[-13.17  -13.17 ]
+ [  3.912   3.912]]
+   factor 0.05: length-scale bounds [[-13.17  -13.17 ]
+ [  3.912   3.912]]
+   factor 5.0: length-scale bounds [[-13.17  -13.17 ]
+ [  3.912   3.912]]
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== F8: fit_lik=False
+   raises ValueError - Unknown hyperprior type delta
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== F10: gp_mean_fun
+   se: raises ValueError - Unknown mean function!
+   negquadse: raises ValueError - Unknown mean function!
+   zero: ran, fval=4.74e-07
+   negquad rosenbrock D=2 s1: raises TypeError - 'NoneType' object is not subscriptable
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== C-F6: gp_cov_prior
+   iso: ran; distinct length-scale prior centres over rebuilds: 12 e.g. [(np.float64(-3.61), np.float64(-3.61)), (np.float64(-3.509), np.float64(-3.509)), (np.float64(-3.425), np.float64(-3.425))]
+   ard: ran; distinct length-scale prior centres over rebuilds: 1 e.g. [(np.float64(-1.0), np.float64(-1.0))]
+   foo: ran; distinct length-scale prior centres over rebuilds: 1 e.g. [(np.float64(-1.0), np.float64(-1.0))]
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== C-F7: log std with ddof 0 vs ddof 1, 0.5*log(N/(N-1))
+   N=6: 0.0912 (prior SD 2)
+   N=10: 0.0527 (prior SD 2)
+   N=25: 0.0204 (prior SD 2)
+   N=50: 0.0101 (prior SD 2)
+   N=110: 0.0046 (prior SD 2)
+   N=200: 0.0025 (prior SD 2)
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+== F6 / C-F4: a target flat on the initial design
+   D=2: raises ValueError - The prior of mean_const has a sigma that is zero or negative. A prior needs a finite location, with a <= b for a smooth box, and a finite, positive sigma; a hyperparameter without a prior is set to `None`, and a coordinate of a block without a prior has NaN for both its location and its sigma.
+   D=3: raises ValueError - The prior of mean_const has a sigma that is zero or negative. A prior needs a finite location, with a <= b for a smooth box, and a finite, positive sigma; a hyperparameter without a prior is set to `None`, and a coordinate of a block without a prior has NaN for both its location and its sigma.

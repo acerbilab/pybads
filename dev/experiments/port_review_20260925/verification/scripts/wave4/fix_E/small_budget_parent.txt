@@ -1,0 +1,15 @@
+>       assert all(n == bads.options["gp_train_n_init_final"] for n in seen)
+E       assert False
+E        +  where False = all(<generator object test_get_gp_training_options_small_budget.<locals>.<genexpr> at 0x7f202fffda80>)
+
+pybads/testing/bads/test_gaussian_process_train.py:268: AssertionError
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-2]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-3]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-4]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[2-5]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[3-2]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[3-3]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[3-4]
+FAILED pybads/testing/bads/test_gaussian_process_train.py::test_get_gp_training_options_small_budget[3-5]
+8 failed, 54 deselected in 2.11s

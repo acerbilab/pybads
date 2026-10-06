@@ -140,6 +140,9 @@ def test_add_record_stats():
 
 
 def test_record_duplicate():
+    # An evaluation that is not recorded (the noise test, the final samples)
+    # leaves the row of its point as it is, as MATLAB's funlogger 'single'
+    # does: its count of evaluations and its time; only the total time grows
     x = np.array([3, 4, 5])
     lb = np.array([[-3, -4, -5]])
     ub = np.array([[13, 14, 15]])
@@ -152,11 +155,12 @@ def test_record_duplicate():
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.n_evals[0] == 1
-    assert f_logger.n_evals[1] == 2
+    assert f_logger.n_evals[1] == 1
     assert np.all(f_logger.X[1] == x)
     assert f_logger.Y[1] == 18
     assert f_logger.Y_orig[1] == 18
-    assert f_logger.fun_eval_time[1] == 5
+    assert f_logger.fun_eval_time[1] == 9
+    assert f_logger.total_fun_eval_time == 19
 
 
 def test_record_duplicate_fsd():
@@ -172,7 +176,7 @@ def test_record_duplicate_fsd():
     assert idx == 1
     assert f_logger.Xn == 1
     assert f_logger.n_evals[0] == 1
-    assert f_logger.n_evals[1] == 2
+    assert f_logger.n_evals[1] == 1
     assert np.all(f_logger.X[1] == x)
     assert np.isclose(f_logger.Y[1], 9, rtol=1e-12, atol=1e-14)
     assert np.isclose(f_logger.Y_orig[1], 9, rtol=1e-12, atol=1e-14)
@@ -199,6 +203,59 @@ def test_record_duplicate_with_user_noise_returns_scalar():
     assert np.isclose(f_logger.S[0, 0], 1 / np.sqrt(tau_1 + tau_2))
 
 
+def test_record_duplicate_with_user_noise_merges_into_its_own_row():
+    # A repeated point is merged into the row that matches it in every
+    # coordinate, not into an earlier row that shares one coordinate.
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x_other = np.array([3.0, 0.0, 0.0])
+    x = np.array([3.0, 4.0, 5.0])
+    f_logger._record(x_other, x_other, 1.0, 1.0, 1)
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    fval, idx = f_logger._record(x, x, 12.0, 1.0, 1)
+    tau_1, tau_2 = 1 / 2.0**2, 1 / 1.0**2
+    assert idx == 1
+    assert f_logger.Xn == 1
+    assert f_logger.Y[0, 0] == 1.0
+    assert f_logger.S[0, 0] == 1.0
+    assert f_logger.n_evals[0] == 1
+    assert np.isclose(
+        f_logger.Y[1, 0], (tau_1 * 9.0 + tau_2 * 12.0) / (tau_1 + tau_2)
+    )
+    assert np.isclose(f_logger.S[1, 0], 1 / np.sqrt(tau_1 + tau_2))
+    assert f_logger.n_evals[1] == 2
+    assert np.isclose(fval, f_logger.Y[1, 0])
+
+
+def test_record_duplicate_with_user_noise_updates_the_largest_value():
+    # Y_max follows a merge that raises the largest value and one that
+    # lowers it below another row's.
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x = np.array([3.0, 4.0, 5.0])
+    f_logger._record(x, x, 9.0, 2.0, 1)
+    f_logger._record(x * 2, x * 2, 5.0, 1.0, 1)
+    assert f_logger.Y_max == 9.0
+    fval, _ = f_logger._record(x, x, 12.0, 1.0, 1)
+    assert fval > 9.0
+    assert f_logger.Y_max == fval == np.amax(f_logger.Y[f_logger.X_flag])
+    fval, _ = f_logger._record(x, x, 0.0, 0.1, 1)
+    assert fval < 5.0
+    assert f_logger.Y_max == 5.0
+
+
+def test_record_duplicate_adds_its_time_to_the_total():
+    # Every evaluation counts in the target's time, as in MATLAB's
+    # funlogger: a repeat merged into its row (level 2) and an evaluation
+    # that is not recorded too.
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    f_logger._record(x, x, 9.0, 2.0, 1.0)
+    f_logger._record(x, x, 12.0, 1.0, 2.0)
+    f_logger._record(x, x, 10.0, 1.0, 4.0, record_duplicate_data=False)
+    f_logger._record(x * 2, x * 2, 10.0, 1.0, 8.0, record_duplicate_data=False)
+    assert f_logger.Xn == 0
+    assert f_logger.total_fun_eval_time == 15.0
+
+
 def test_finalize():
     x = np.array([3, 4, 5])
     f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
@@ -220,6 +277,8 @@ def test_finalize():
     assert f_logger.Y.shape[0] == 10
     assert f_logger.X_flag.shape[0] == 10
     assert f_logger.fun_eval_time.shape[0] == 10
+    assert f_logger.n_evals.shape[0] == 10
+    assert np.all(f_logger.n_evals[f_logger.X_flag] == 1)
 
     # noise level 2
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
@@ -230,6 +289,32 @@ def test_finalize():
     assert f_logger.S[0] == fsd
     assert f_logger.Y_orig[0] == fval
     assert f_logger.S.shape[0] == 10
+
+
+def test_finalize_then_call_keeps_arrays_equal_in_length():
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0, cache_size=3)
+    for i in range(4):
+        f_logger(x * i)
+    f_logger.finalize()
+    f_logger(x * 4)
+    n_rows = f_logger.X.shape[0]
+    assert f_logger.n_evals.shape[0] == n_rows
+    assert f_logger.fun_eval_time.shape[0] == n_rows
+    assert np.all(f_logger.n_evals[f_logger.X_flag] == 1)
+
+
+def test_reset_fun_eval_time_after_growth():
+    x = np.array([3, 4, 5])
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0, cache_size=3)
+    for i in range(6):
+        f_logger(x * i)
+    assert f_logger.X.shape[0] > 3
+    f_logger.reset_fun_eval_time()
+    assert f_logger.fun_eval_time.shape == (f_logger.X.shape[0], 1)
+    assert np.all(np.isnan(f_logger.fun_eval_time))
+    f_logger(x * 6)
+    assert f_logger.fun_eval_time.shape[0] == f_logger.X.shape[0]
 
 
 def test_call_parameter_transform_no_constraints():
@@ -254,9 +339,6 @@ def test_add_parameter_transform():
     assert np.all(f_logger.X[0] == f_logger.X_orig[0])
     assert np.all(f_logger.Y[0] == f_logger.Y_orig[0])
     assert np.all(f_logger.Y_orig[0] == fval_orig)
-
-
-test_add_parameter_transform()
 
 
 def test_call_invalid_func_value():
@@ -313,3 +395,137 @@ def test_add_invalid_sd_value():
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
     with pytest.raises(ValueError):
         f_logger.add(x, 3, np.inf)
+
+
+def test_add_requires_the_sd_at_level_2():
+    # Where the target returns the SDs, an evaluation added without one is
+    # refused, as in PyVBMC's logger, rather than given an SD of 1
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    with pytest.raises(ValueError, match="FunctionLogger:MissingNoiseValue"):
+        f_logger.add(np.array([3, 4, 5]), 3.0)
+    assert f_logger.Xn == -1
+
+
+def test_add_ignores_an_sd_without_sds():
+    f_logger = FunctionLogger(non_noisy_function, 3, False, 0)
+    fval, fsd, idx = f_logger.add(np.array([3, 4, 5]), 3.0, 0.5)
+    assert (fval, fsd, idx) == (3.0, None, 0)
+
+
+def test_add_takes_what_call_takes():
+    # The value and the SD are checked as the target's outputs are: one
+    # element of an array or a list is taken, and a string or a complex
+    # number is refused with the logger's ValueError
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    fval, fsd, _ = f_logger.add(np.array([3, 4, 5]), np.array([3.0]), [0.5])
+    assert (fval, fsd) == (3.0, 0.5)
+    for value, sd, message in [
+        ("a", 0.5, _VALUE),
+        (1 + 0j, 0.5, _VALUE),
+        (np.array([1.0, 2.0]), 0.5, _VALUE),
+        (1.0, "a", _SD),
+        (1.0, 1 + 0j, _SD),
+        (1.0, 0.0, _SD),
+    ]:
+        with pytest.raises(ValueError, match=message):
+            f_logger.add(np.array([1, 2, 3]), value, sd)
+    assert f_logger.Xn == 0
+
+
+def test_add_merges_a_repeat_at_level_2():
+    f_logger = FunctionLogger(noisy_function, 3, True, 2)
+    x = np.array([3, 4, 5])
+    f_logger.add(x, 9.0, 2.0)
+    fval, fsd, idx = f_logger.add(x, 12.0, 1.0)
+    tau_1, tau_2 = 1 / 2.0**2, 1 / 1.0**2
+    assert (fsd, idx) == (1.0, 0)
+    assert np.isclose(fval, (tau_1 * 9.0 + tau_2 * 12.0) / (tau_1 + tau_2))
+    assert f_logger.n_evals[0] == 2
+    assert f_logger.func_count == 0
+
+
+_VALUE = "FunctionLogger:InvalidFuncValue"
+_SD = "FunctionLogger:InvalidNoiseValue"
+_FORMAT = "The `specify_target_noise` option has been set to `True`"
+
+
+@pytest.mark.parametrize(
+    "level, output, message",
+    [
+        (0, np.array([1.0, 2.0]), _VALUE),
+        (0, "a", _VALUE),
+        (0, None, _VALUE),
+        (0, 1 + 0j, _VALUE),
+        (0, np.complex128(1 + 0j), _VALUE),
+        (0, 1 + 1j, _VALUE),
+        (0, np.nan, _VALUE),
+        (0, (1.0, 0.5), _VALUE),
+        (2, (1.0, None), _SD),
+        (2, (1.0, "a"), _SD),
+        (2, (1.0, [0.5, 0.6]), _SD),
+        (2, (1.0, np.array([0.5, 0.6])), _SD),
+        (2, (1.0, 1 + 0j), _SD),
+        (2, (1.0, 0.0), _SD),
+        (2, (1.0, np.inf), _SD),
+        (2, [1.0, 0.5], _FORMAT),
+        (2, np.array([1.0, 0.5]), _FORMAT),
+    ],
+)
+def test_call_malformed_output_raises_value_error_and_records_nothing(
+    level, output, message
+):
+    """A value or an SD that is not a finite real scalar (an SD also
+    positive) raises the documented ValueError, with no note that blames the
+    target, and leaves the log as it was."""
+    outputs = iter([(1.0, 0.5) if level == 2 else 1.0, output])
+    f_logger = FunctionLogger(lambda x: next(outputs), 2, level == 2, level)
+    f_logger(np.zeros(2))
+    X = f_logger.X.copy()
+    Y = f_logger.Y.copy()
+    with pytest.raises(ValueError, match=message) as err:
+        f_logger(np.ones(2))
+    assert "FunctionLogger:FuncError" not in str(err.value)
+    assert f_logger.Xn == 0
+    assert f_logger.X_max_idx == 0
+    assert f_logger.func_count == 1
+    assert np.array_equal(f_logger.X, X, equal_nan=True)
+    assert np.array_equal(f_logger.Y, Y, equal_nan=True)
+
+
+@pytest.mark.parametrize("sd", [np.array([0.5]), [0.5], np.array([[0.5]])])
+def test_call_one_element_sd_taken_as_a_number(sd):
+    f_logger = FunctionLogger(lambda x: ([1.0], sd), 2, True, 2)
+    fval, fsd, idx = f_logger(np.zeros(2))
+    assert fval == 1.0 and fsd == 0.5 and idx == 0
+    assert np.isscalar(fsd)
+    assert f_logger.S[0, 0] == 0.5
+
+
+_PAIR = 'needs options["specify_target_noise"] = True.'
+
+
+@pytest.mark.parametrize("level", [0, 1])
+def test_call_pair_without_target_noise_names_the_option(level):
+    """A tuple (f, sd) at a level that takes no SD is refused as a value
+    that is not a scalar, and the message names specify_target_noise=True;
+    MATLAB's funlogger drops the SD. The logger is built as `BADS` builds
+    it, holding SDs only at level 2."""
+    f_logger = FunctionLogger(noisy_function, 3, level > 1, level)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.array([3, 4, 5]))
+    assert _PAIR in str(err.value)
+    assert f_logger.Xn == -1
+
+
+@pytest.mark.parametrize(
+    "output",
+    [np.array([1.0, 0.5]), [1.0, 0.5], (1.0, 0.5, 0.1)],
+    ids=["array", "list", "triple"],
+)
+def test_call_other_sequences_do_not_name_the_target_noise_option(output):
+    """Only a tuple of two elements, the form that specify_target_noise=True
+    takes, has its message name the option."""
+    f_logger = FunctionLogger(lambda x: output, 2, False, 0)
+    with pytest.raises(ValueError, match=_VALUE) as err:
+        f_logger(np.zeros(2))
+    assert _PAIR not in str(err.value)

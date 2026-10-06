@@ -1,0 +1,37 @@
+# Slice part: B3, the search
+
+Title of the report: `# B3 <track> review: search`, with `<track>` "internal" or "comparison".
+
+## The slice
+
+Your slice is **B3, the search stage**: how the search set is generated (the hedge that chooses between two evolution strategies, each strategy's covariance, scale, iterations, selection and reproduction), put on the search grid and checked against the search bounds, the points already evaluated and `non_box_cons`; how one candidate is chosen by the lower confidence bound (LCB) of the GP, evaluated and judged (success, incremental improvement or failure); how the hedge's rewards, the search factor and the search statistics are updated; and the search bounds on the search grid. The poll, the target and the improvement function are slice B4, the GP's training set and refits B5, the GP model B6, and the main loop that calls the search B2, reviewed at the same time by others or in earlier waves: read them where you need them to judge the search (what the search receives from them, what state it leaves them), but report on them only where the search depends on them.
+
+Python (`{PYBADS_REVIEW}`):
+- `pybads/bads/bads.py`: `_search_step_`, `_update_search_bounds_`, `_update_search_stats_`; in `optimize`, the head of the loop where the search mesh, the search bounds and the sufficient improvement are set and the search is called (read as far as the search depends on it);
+- `pybads/search/search_hedge.py` (`ESSearchHedge`: `__call__`, `update_hedge`);
+- `pybads/search/es_search.py` (`ESSearch`, `ESSearchWM`, `ESSearchELL`, `ucov`; `ESSearchCMA` cannot be selected);
+- `pybads/search/grid_functions.py`: `force_to_grid` and `udist` (`grid_units` is slice B1's);
+- `pybads/acquisition_functions/acq_fcn_lcb.py`;
+- `pybads/function_logger/constraints_check.py` (`contraints_check`, which the poll calls too);
+- the options these read (grep the code), in `pybads/bads/option_configs/*.ini`.
+
+MATLAB counterparts (`{BADS}`), for the comparison track:
+- `bads.m`: the search stage (from `%% Search stage` to `%% Poll stage`), the subfunctions `UpdateSearch` and `updateSearchBounds`, and the head of the optimization loop where the search mesh, the search bounds and the sufficient improvement are set;
+- `search/searchHedge.m`, `search/searchES.m` (methods 1, `ES-wcm`, and 2, `ES-ell`; method 5 only as far as `ESSearchCMA` goes), `acq/acqLCB.m`, `acq/acqPortfolio.m` (its `'upd'` branch, ported as `update_hedge`; the `'acq'` branch is unported), `utils/ESupdate.m`, `utils/uCheck.m`, `utils/force2grid.m`, `utils/udist.m`, `utils/ucov.m`;
+- unported and unused by MATLAB's defaults: `search/searchWCM.m` (not the counterpart of `ESSearchWM`, which is `searchES` method 1), `search/private/*`, `utils/xCheck.m`, `acq/acqHedge.m` and the other search and acquisition functions (the sheet has the entries).
+
+## How PyBADS reaches this code at default options
+
+Every run, from the first iteration after the initial design. Each pass of the loop runs a search while the round's `search_count` is below `search_n_try` (`max(D, floor(3 + D/2))`) and more than D points have been evaluated. The search rebuilds the local GP at the first search of a round and whenever a refit, a move or a failed rebuild asks for it (slice B5's), predicts the target at the incumbent (slice B4's `_get_target_from_gp_`), and then `ESSearchHedge` draws one of the two strategies of `search_method` by the Hedge probabilities: `ES-wcm`, whose covariance is weighted from the GP's best training points around the incumbent, or `ES-ell`, whose covariance is the diagonal of the GP's `poll_scale`. The strategy draws `n_search` candidates over `n_search_iter` iterations, scaled by the mesh size and the `search_factor`, puts them on the search grid (`search_mesh_size`), projects them into the search bounds, removes duplicates, points already evaluated and points that violate `non_box_cons` (`contraints_check`), and returns the best by LCB. The step then evaluates it, adds it to the GP except at the round's last search, estimates it from a rebuilt copy of the GP in a noisy run, and decides a success (an improvement above the sufficient improvement, from `tol_improvement` and `forcing_exponent`) or an incremental improvement (any improvement, with `sloppy_improvement`, on by default), which moves the incumbent. It updates the hedge's rewards and scales the `search_factor` (`search_scale_success`, `search_scale_incremental`, `search_scale_failure`, the last floored at `search_factor_min`), which is reset at the end of the round. A successful search skips the round's poll (`skip_poll_after_search`; slice B2's). At uncertainty level 1 or 2 the incumbent's and the candidate's values are GP estimates, and the improvement takes `improvement_quantile`. Say for every finding whether a default run reaches it, at which uncertainty level (0 deterministic, 1 noise inferred, 2 `specify_target_noise`), and which option or input reaches it otherwise.
+
+## First questions
+
+Answer each under its own heading:
+1. **The search set.** Do `ESSearchHedge.__call__` and `ESSearch` generate the candidates as `searchHedge.m` and `searchES.m` (methods 1 and 2) do: the choice of the strategy (the Hedge probabilities from the rewards, `hedge_gamma` and `hedge_beta`, the random draw), each strategy's covariance (for `ES-wcm`, which training points, their weights, `ucov` about the incumbent, the eigen-rescaling, the jitter and the sum rule; for `ES-ell`, the normalized `poll_scale`), the scale (mesh size, `search_factor`, `es_start`, `es_beta` and the fraction of new points), the number of candidates and iterations, the selection and reproduction (`ESupdate`), the ordering of the candidates, and what is returned (the best candidate, or an empty set)? On the internal track: is it what the docstrings, the option descriptions and the BADS paper describe (the search as an evolution strategy that the GP guides)?
+2. **The grid and the checks.** Do `force_to_grid`, `_update_search_bounds_` and `contraints_check` do what `force2grid.m`, `updateSearchBounds` and `uCheck.m` do: the rounding to the grid, the projection onto the search bounds, the removal of duplicates and of points already evaluated (within which tolerance, and what remains), and the removal of points that violate `non_box_cons`? Does `udist` compute what `udist.m` does?
+3. **The choice, the evaluation and the decision.** Does `_search_step_` choose among the candidates by LCB (`acq_fcn_lcb` against `acqLCB.m`: the schedule of `sqrt_beta`, the SD it uses, what a failed or non-finite prediction gives), evaluate the chosen point and add it to the GP, estimate it in a noisy run, and decide success, incremental improvement and failure (the sufficient improvement, `_eval_improvement_` as the search uses it, `sloppy_improvement`) as the search stage of `bads.m` does, and what a failed GP computation or an empty search set leaves?
+4. **The hedge's rewards and the search statistics.** Does `update_hedge` compute the rewards as the `'upd'` branch of `acqPortfolio.m` does (the expected reward, the decay, the division by the probability and by the mesh size, which strategies are updated and from which prediction)? Does `_update_search_stats_` scale, floor and reset the `search_factor`, and change `sd_level` under `adaptive_incumbent_shift`, as `UpdateSearch` does?
+
+---
+
+The rest of the prompt is `wave3_common.md` (from "You are a reviewer") and the part of your track.

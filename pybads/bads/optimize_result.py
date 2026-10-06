@@ -14,37 +14,92 @@ class OptimizeResult(dict):
     Attributes:
 
         - fun: callable
-            - The objective function to be minimized.
+            - The objective function to be minimized, the object passed to
+              ``BADS``.
         - non_box_cons: callable
-            - Non-box constraints function (if any).
+            - Non-box constraints function (if any), the object passed to
+              ``BADS``.
         - x0: np.ndarray
-            - Initial starting point.
+            - Initial starting point, as given or drawn at random, with the
+              fixed variables at their values, before it is put on the
+              mesh: the first point evaluated is the point of the mesh
+              nearest to it.
         - x: np.ndarray
             - The solution of the optimization.
         - fval: float
             - Value of objective function at solution.
         - fsd: float
             - Standard deviation of objective function at solution (0 if noiseless).
-        - yval_vec: np.ndarray
-            - Final sampled observations at the solution.
-        - ysd_vec: np.ndarray
-            - Standard deviations of the final sampled observations (``"yval_vec"``).
+              For a noisy run that ends in its initialization or its first
+              iteration without final samples (``output_fcn`` stops it in
+              its initialization, ``noise_final_samples = 0``, or its
+              ``max_fun_evals`` leaves no evaluation for them after the
+              initial design), it is not an estimate: ``noise_size``
+              without ``specify_target_noise``, and otherwise the standard
+              deviation that the target returned at the incumbent.
+        - yval_vec: np.ndarray or None
+            - Final sampled observations at the solution; the incumbent's
+              observation alone if ``output_fcn`` stops the run in its
+              initialization.
+              None for a run without uncertainty handling, with
+              ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves
+              no evaluation for a final sample after the initial design.
+        - ysd_vec: np.ndarray or None
+            - Standard deviations of the final sampled observations
+              (``"yval_vec"``) that the target returns with
+              ``specify_target_noise``; None otherwise, and when no final
+              sample was taken.
         - mesh_size: float
             - Final mesh size.
         - func_count: int
             - Number of evaluations of the objective functions.
+              The evaluations made before the run
+              (``precomputed_evaluations``) are not counted.
+        - precomputed_observations: int
+            - Number of evaluations made before the run that ``BADS`` was
+              given (``precomputed_evaluations``); present only when it was
+              given at least one.
+        - precomputed_locations: int
+            - Number of distinct points among them; present with
+              ``precomputed_observations``.
         - iterations: int
             - Number of iterations performed by the optimizer.
+        - success: bool
+            - True when the run ended on one of its convergence criteria,
+              ``tol_mesh`` or the stall criterion (``status`` 1 or 2), which
+              prevail when ``max_fun_evals``, ``max_iter`` or the
+              ``output_fcn`` ends the same iteration; False when one of
+              those ended it alone, or it ended in its initialization
+              (``status`` 0): the convention of MATLAB's exit flags and of
+              ``scipy.optimize``.
+        - status: int
+            - The exit flag of MATLAB BADS, the criterion that ended the
+              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the
+              ``output_fcn`` stopped it or it ended in its initialization; 1
+              when the mesh size fell below ``tol_mesh``; 2 when the
+              improvement over the last ``tol_stall_iters`` iterations fell
+              below ``tol_fun``.
         - message: str
             - Termination message.
         - problem_type: str
             - Type of problem (unconstrained, bound constraints, non-box constraints).
+        - target_type: str
+            - ``"deterministic"``, ``"stochastic"`` for a noisy target
+              whose noise BADS infers, or ``"stochastic (specified
+              noise)"`` with ``specify_target_noise``.
         - total_time: float
-            - Total time taken by the optimizer.
+            - Time taken by ``optimize()``, in seconds; the setup made when
+              ``BADS`` is created is not counted.
         - overhead: float
             - Fractional overhead taken by the optimizer, compared to function time.
+              The second evaluation of the starting point that tests the
+              target for noise (with ``uncertainty_handling`` left empty)
+              counts as the optimizer's time, since the function time leaves
+              it out, as in MATLAB BADS.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
+        - algorithm: str
+            - ``"Bayesian adaptive direct search"``.
         - version: str
             - Version of the optimizer.
 
@@ -61,6 +116,8 @@ class OptimizeResult(dict):
         "message",
         "fun",
         "func_count",  # Number of evaluations of the objective functions
+        "precomputed_observations",  # Evaluations made before the run
+        "precomputed_locations",  # Their distinct points
         "iterations",  # Number of iterations performed by the optimizer.
         "target_type",
         "problem_type",
@@ -110,8 +167,17 @@ class OptimizeResult(dict):
         else:
             self["problem_type"] = "non-box constraints"
 
-        self["iterations"] = bads.optim_state["iter"]
+        # optim_state["iter"] counts from 0, and is -1 during initialization
+        self["iterations"] = bads.optim_state["iter"] + 1
         self["func_count"] = bads.function_logger.func_count
+        # As PyVBMC reports them, only for a run given evaluations
+        if bads.optim_state["precomputed_observations"] > 0:
+            self["precomputed_observations"] = bads.optim_state[
+                "precomputed_observations"
+            ]
+            self["precomputed_locations"] = bads.optim_state[
+                "precomputed_locations"
+            ]
         self["mesh_size"] = bads.mesh_size
         self["overhead"] = bads.optim_state["overhead"]
         self["algorithm"] = "Bayesian adaptive direct search"
@@ -138,6 +204,7 @@ class OptimizeResult(dict):
         self["total_time"] = bads.optim_state["total_time"]
 
         self["random_seed"] = bads.optim_state["random_seed"]
+        self["status"] = bads.optim_state["exit_flag"]
 
         try:
             __version__ = version("pybads")
@@ -149,9 +216,9 @@ class OptimizeResult(dict):
 
         self["version"] = __version__
 
-        self[
-            "success"
-        ] = True  # TODO: In our case when an error occurs, the application just stops.
+        # A positive exit flag, the convention of MATLAB and scipy: False
+        # when a limit (max_fun_evals, max_iter) or output_fcn ends the run
+        self["success"] = self["status"] > 0
         self["message"] = bads.optim_state["termination_msg"]
 
     def __getattr__(self, name):
@@ -175,5 +242,10 @@ class OptimizeResult(dict):
     def __setitem__(self, key: str, val: object):
         if key not in OptimizeResult._keys:
             raise ValueError("""The key is not part of OptimizeResult._keys""")
+        elif key in ("fun", "non_box_cons"):
+            # The callables are kept by reference: a copy of a bound method
+            # or a callable object copies its instance, which may hold what
+            # cannot be copied (a lock, an open file)
+            dict.__setitem__(self, key, val)
         else:
             dict.__setitem__(self, key, copy.deepcopy(val))

@@ -1,0 +1,33 @@
+fix: the retries of a failed GP fit follow MATLAB BADS's percentile, minimum of points and exit flag (W1-14)
+
+Three details of _robust_gp_fit_'s retries differed from MATLAB's
+gpHyperOptimize.m:
+
+(a) From the second failure, a retry removes the points above the 95th
+percentile of the targets. The port computed it with NumPy's linear
+interpolation, where MATLAB's prctile1 is NumPy's method="hazen"
+(gpHyperOptimize.m:137): the port removed 1 point where MATLAB removes 0 at
+5 and 10 points, and 3 against 2 at 50 (the B5 verifier's
+v17_percentile.py). It now uses "hazen".
+
+(b) MATLAB stops the tries of a start once fewer training points than
+variables remain (gpHyperOptimize.m:71), before a fit, and the start then
+counts as failed: it is returned if it is the best, with exit flag -1
+(179-209). The port went on removing points until the removal itself raised
+ValueError on an empty set. The tries now stop there too, and end as when
+every try fails (W1-13).
+
+(c) A fit that succeeded after retries had exit flag 0, where MATLAB's is 1
+(0 is for a fit of some of its starts only, and gpyreg fits all of them at
+once). It is now 1. The flag is read only by the display, which marks a
+negative one.
+
+(a) moves default deterministic runs, where removals start at the second
+failure (B5 verifier: in 10 of 53 refits); (b) is not reached with the
+default n_train_min of 50. Tests:
+test_robust_fit_removes_points_above_matlab_percentile (two failures: the
+points the third try is given, and exit flag 1) and
+test_robust_fit_stops_below_D_points (a fit that always raises on 5 points
+at D = 3). Fingerprint 395558ea21e5c213 (3a1c15091c801614 at the parent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

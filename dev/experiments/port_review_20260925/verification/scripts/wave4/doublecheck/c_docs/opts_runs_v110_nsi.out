@@ -1,0 +1,15 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+-- nsi
+n_search_iter=0                                        optimize: ZeroDivisionError: division by zero [search/search_hedge.py:58]
+n_search_iter=-1                                       optimize: ValueError: negative dimensions are not allowed [.venv/lib/python3.11/site-packages/numpy/_core/numeric.py:232]
+n_search_iter=-2.5                                     optimize: ValueError: negative dimensions are not allowed [.venv/lib/python3.11/site-packages/numpy/_core/numeric.py:232]
+n_search_iter=0.5                                      optimize: TypeError: 'float' object cannot be interpreted as an integer [search/es_search.py:141]
+n_search_iter=2.0                                      optimize: TypeError: 'float' object cannot be interpreted as an integer [search/es_search.py:141]
+n_search_iter=2.5                                      optimize: TypeError: 'float' object cannot be interpreted as an integer [search/es_search.py:141]
+n_search_iter=inf                                      optimize: TypeError: 'float' object cannot be interpreted as an integer [search/es_search.py:141]
+n_search_iter=nan                                      optimize: ValueError: cannot convert float NaN to integer [search/search_hedge.py:58]
+n_search_iter=1e-300                                   optimize: UFuncTypeError: <ufunc 'subtract'> same_kind object float64 0 [.venv/lib/python3.11/site-packages/numpy/_core/function_base.py:141]
+n_search_iter=True                                     completed: func_count=59 fval=8.16e-07 iterations=6
+n_search_iter=False                                    optimize: ZeroDivisionError: division by zero [search/search_hedge.py:58]
+n_search_iter='2'                                      optimize: TypeError: unsupported operand type(s) for /: 'int' and 'str' [search/search_hedge.py:58]
+n_search_iter=np.int64(3)                              completed: func_count=59 fval=5.45e-07 iterations=6

@@ -1,7 +1,13 @@
 # Reference population: the default suite, 30 seeds, gpyreg 1.3.3
 
-The reference for `dev/scripts/population.py compare` until a later
-reference replaces it: 18 configurations of the `default` suite of
+Replaced as the reference on Windows by
+[`population_targetnoise_20260925`](../population_targetnoise_20260925/README.md),
+after `020d6a8` changed the runs of the two configurations with target
+noise.
+
+The reference on Windows for `dev/scripts/population.py compare` until a
+later reference replaces it (the one on Linux is
+[`population_linux_20260925`](../population_linux_20260925/README.md)): 18 configurations of the `default` suite of
 `dev/scripts/benchmark_targets.py` × seeds 0-29, each run at BADS's default
 budget (500 D) and ending on BADS's own termination criteria, every random
 draw through the run's `numpy.random.Generator`, with gpyreg 1.3.3, the

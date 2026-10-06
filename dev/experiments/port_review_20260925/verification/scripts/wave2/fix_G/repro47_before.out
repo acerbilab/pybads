@@ -1,0 +1,17 @@
+/home/user/pybads-fix-G/pybads/__init__.py
+int, all given [[True, False]] ['int64', 'int64', 'int64', 'int64']
+  u bounds [[-1.0, -2.0], [1.302585, 2.0], [-0.768951, -1.0], [1.071536, 1.0]]
+  transform [[-0.23247163566865137, 0.6]] inverse [[10.000000000000002, 3.0]]
+int, plausible omitted [[True, False]] ['int64', 'int64', 'int64', 'int64']
+  u bounds [[-1.0, -1.0], [1.302585, 1.0], [-1.0, -1.0], [1.302585, 1.0]]
+  transform [[-0.23247163566865137, 0.3]] inverse [[10.000000000000002, 3.0]]
+float, all given [[True, False]] ['float64', 'float64', 'float64', 'float64']
+  u bounds [[-1.251074, -2.0], [1.251074, 2.0], [-1.0, -1.0], [1.0, 1.0]]
+  transform [[-0.41702461128449697, 0.6]] inverse [[10.000000000000002, 3.0]]
+float, plausible omitted [[True, False]] ['float64', 'float64', 'float64', 'float64']
+  u bounds [[-1.0, -1.0], [1.0, 1.0], [-1.0, -1.0], [1.0, 1.0]]
+  transform [[-0.33333333333333326, 0.3]] inverse [[10.000000000000002, 3.0]]
+numpy float scalars ok (1, 2) (1, 2) float64 [[-1.251074, -1.251074], [1.251074, 1.251074]]
+numpy int scalars ok (1, 2) (1, 2) float64 [[-1.251074, -1.251074], [1.251074, 1.251074]]
+1-D arrays raised IndexError too many indices for array: array is 1-dimensional, but 2 were indexed
+float32 ok (1, 2) (1, 2) float32 [[-1.251073956489563, -2.0], [1.251073956489563, 2.0]]

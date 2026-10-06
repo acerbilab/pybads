@@ -1,0 +1,5 @@
+/home/user/pybads-review/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+int log [ True  True] plb/pub in u: [-0.76895094 -0.76895094] [1.07153603 1.07153603] lb/ub in u: [-1. -1.] [1.30258509 1.30258509]
+int x [10.0008 10.0007] fval 1.9697453680589285e-09 evals 57
+float log [ True  True] plb/pub in u: [-1. -1.] [1. 1.] lb/ub in u: [-1.25107383 -1.25107383] [1.25107383 1.25107383]
+float x [ 9.9991 10.0026] fval 1.4632180609460894e-08 evals 57

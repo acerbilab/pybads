@@ -1,7 +1,10 @@
 """Two PyBADS-side GP issues, under the gpyreg that ``PYTHONPATH`` selects.
 
 1. The known-noise path: one run of ``ellipsoid_D3`` (seed 0) with
-   ``fit_lik=False``; records how it ends and where it raises.
+   ``fit_lik=False``; records how it ends and where it raises. Since row
+   W1-32 of the port review, ``BADS`` refuses ``fit_lik=False`` when it is
+   created, as MATLAB BADS does, so the check records that refusal and no
+   longer reaches gpyreg's missing ``"delta"`` prior.
 2. ``_robust_gp_fit_``: for each call, the number of ``gp.fit`` calls that
    raise ``LinAlgError`` before one succeeds, and how the call ends; over
    the ``default`` suite of ``benchmark_targets.py``, seeds 0-9, in-process
@@ -13,17 +16,21 @@ configurations, draws through NumPy's global stream) and under 1.3.3
 (2026-09-25: all 18 configurations, draws through ``bads.rng``). Usage,
 from the repository root::
 
-    PYTHONPATH=dev/scripts/runs/gpyreg/v1.3.3 python -u dev/scripts/gpyreg_issue_checks.py OUT.json
+    PYTHONPATH=dev/scripts/runs/gpyreg/v1.4.0 python -u dev/scripts/gpyreg_issue_checks.py OUT.json
 """
 import json
 import sys
 import traceback
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "dev/scripts")
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 import benchmark_targets as bt  # noqa: E402
 import gpyreg  # noqa: E402
+from harness import build_run  # noqa: E402
 
 import pybads.bads.gaussian_process_train as gtrain  # noqa: E402
 from pybads import BADS  # noqa: E402
@@ -32,11 +39,9 @@ print(gpyreg.__file__, flush=True)
 out = {"gpyreg": gpyreg.__file__}
 
 # 1. fit_lik=False
-prob = bt.find_config("ellipsoid_D3").make(seed=0)
-args, options = prob.bads_args()
-options["fit_lik"] = False
+run = build_run("ellipsoid_D3", 0, extra_options={"fit_lik": False})
 try:
-    r = BADS(*args, options=options).optimize()
+    r = BADS(*run.args, options=run.options, **run.kwargs).optimize()
     out["fit_lik_false"] = {"outcome": "finished", "fval": float(r["fval"])}
 except Exception as e:  # noqa: BLE001
     tb = traceback.extract_tb(e.__traceback__)
@@ -86,12 +91,15 @@ gpyreg.GP.fit = counting_fit
 gtrain._robust_gp_fit_ = counting_robust
 
 runs = []
-for cfg in bt.suite_configs("default"):
+configs, skipped = bt.runnable_configs("default")
+if skipped:
+    print(f"skipped, this gpyreg has no periods: {skipped}", flush=True)
+for cfg in configs:
     for seed in range(10):
         n0 = len(calls)
-        args, options = cfg.make(seed=seed).bads_args()
+        run = build_run(cfg, seed)
         try:
-            BADS(*args, options=options).optimize()
+            BADS(*run.args, options=run.options, **run.kwargs).optimize()
             outcome = "finished"
         except Exception as e:  # noqa: BLE001
             outcome = f"{type(e).__name__}: {str(e)[:120]}"

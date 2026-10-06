@@ -1,0 +1,38 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search_iter': 5000} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search_iter': 4097} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search_iter': 1180591620717411303424} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search': 0} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search': -1} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+{'n_search': 2.5} -> ran: func_count=60 fval=6.59e-05
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search': 1} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+{'n_search': '4096'} -> stopped: TypeError: unsupported operand type(s) for /: 'str' and 'int'
+{'n_search': nan} -> stopped: ValueError: cannot convert float NaN to integer
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search': True} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+bads:es_search: Something went wrong with the acquisition function, random search is performed
+{'n_search': 10, 'n_search_iter': 11} -> stopped: IndexError: index -1 is out of bounds for axis 0 with size 0
+{'n_search': 10, 'n_search_iter': 10} -> ran: func_count=60 fval=0.000114
+{'max_fun_evals': 1180591620717411303424} -> stopped: OverflowError: Python int too large to convert to C long
+{'accelerate_mesh_steps': 1180591620717411303424} -> ran: func_count=55 fval=1.15e-06
+/home/user/pybads/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+{'n_search_iter': 5000} -> ran: func_count=60 fval=0
+{'n_search_iter': 4097} -> ran: func_count=60 fval=0
+{'n_search_iter': 1180591620717411303424} -> refused at creation: TypeError: ufunc 'isfinite' not supported for the input types, and the inputs cou
+{'n_search': 0} -> ran: func_count=60 fval=0
+{'n_search': -1} -> ran: func_count=60 fval=0
+{'n_search': 2.5} -> ran: func_count=60 fval=1.14e-05
+{'n_search': 1} -> ran: func_count=60 fval=0
+{'n_search': '4096'} -> stopped: TypeError: unsupported operand type(s) for /: 'str' and 'int'
+{'n_search': nan} -> stopped: ValueError: cannot convert float NaN to integer
+{'n_search': True} -> ran: func_count=60 fval=0
+{'n_search': 10, 'n_search_iter': 11} -> ran: func_count=60 fval=0
+{'n_search': 10, 'n_search_iter': 10} -> ran: func_count=55 fval=4.22e-07
+{'max_fun_evals': 1180591620717411303424} -> refused at creation: TypeError: ufunc 'isfinite' not supported for the input types, and the inputs cou
+{'accelerate_mesh_steps': 1180591620717411303424} -> refused at creation: TypeError: ufunc 'isfinite' not supported for the input types, and the inputs cou

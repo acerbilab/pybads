@@ -1,0 +1,13 @@
+pybads /home/user/pybads-review/pybads/__init__.py gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+level 0 cache_size 500: x [0.29999685 0.3000651 ], fval 1.6962e-08, func_count 55, rows 54, array lengths {'X': 500, 'Y': 500, 'X_orig': 500, 'Y_orig': 500, 'X_flag': 500, 'n_evals': 500, 'fun_eval_time': 500}
+level 0 cache_size 3: x [0.29999685 0.3000651 ], fval 1.6962e-08, func_count 55, rows 54, array lengths {'X': 62, 'Y': 62, 'X_orig': 62, 'Y_orig': 62, 'X_flag': 62, 'n_evals': 62, 'fun_eval_time': 62}
+level 0: same result for cache_size 500 and 3: True
+level 2 cache_size 500: x [0.31115723 0.3182373 ], fval 0.0219175, func_count 80, rows 70, array lengths {'X': 500, 'Y': 500, 'X_orig': 500, 'Y_orig': 500, 'X_flag': 500, 'n_evals': 500, 'fun_eval_time': 500, 'S': 500}
+level 2 cache_size 3: x [0.31115723 0.3182373 ], fval 0.0219175, func_count 80, rows 70, array lengths {'X': 93, 'Y': 93, 'X_orig': 93, 'Y_orig': 93, 'X_flag': 93, 'n_evals': 93, 'fun_eval_time': 93, 'S': 93}
+level 2: same result for cache_size 500 and 3: True
+after finalize: X (3, 2) X_flag (3,) n_evals (10, 1)
+n_evals[X_flag] after finalize -> IndexError boolean index did not match indexed array along axis 0; size of axis is 10 but size of corresponding
+call after finalize: rows 4 X (5, 2) n_evals (12, 1) X_flag (5,)
+add returns (3.0, 1, 0) X_orig row [ 1. -2.] X row [ 0.5 -1. ] S row [1.] func_count 0 cache_count 1
+add with a one-element array value -> ValueError FunctionLogger:InvalidFuncValue:
+            The returned function value must be

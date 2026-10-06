@@ -1,0 +1,4 @@
+/home/user/pybads-v1.1.0/pybads/__init__.py /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+hedge_decay=1e+10: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]; hedge updates=31, largest |g| inf, first inf at update 30
+hedge_decay=1e+30: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]; hedge updates=11, largest |g| inf, first inf at update 10
+hedge_decay=1e+100: IndexError: index 0 is out of bounds for axis 0 with size 0 [search/search_hedge.py:72]; hedge updates=4, largest |g| inf, first inf at update 3

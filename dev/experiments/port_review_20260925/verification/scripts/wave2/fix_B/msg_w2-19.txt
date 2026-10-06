@@ -1,0 +1,39 @@
+fix: a user option of None stands for its default, and the boolean options take only booleans (W2-19)
+
+A user value of None replaced the default (options.py), where MATLAB
+BADS's empty value stands for it (setupoptions.m:5-9): nonlinear_scaling
+None turned the log transform off, and a numeric option of None, such as
+max_fun_evals, stopped the run with a TypeError. And the options were used
+verbatim with no check of their type, so that a MATLAB-style string was
+truthy: uncertainty_handling="off" gave a noisy run, and
+nonlinear_scaling="off" kept the log transform.
+
+(i) Options.__init__ leaves a user option of None unset, and out of
+useroptions, so that its default holds; for the options whose default is
+None nothing changes. Its name is kept in unset_user_options, which
+validate_option_names checks, so that a misspelt name given None is still
+refused.
+
+(ii) The new Options.validate_boolean_options, which BADS calls after the
+name check, refuses with a ValueError that names the option and asks for
+True or False any user value other than a bool or a NumPy bool of the
+boolean options: those whose default in the option files is True or
+False, and uncertainty_handling. MATLAB's 'on' and 'off' are not
+converted, since user values are used verbatim (KD-B1-3). plot is left
+out: its default is False, but its description lists the names of
+MATLAB's plots, "profile" and "scatter", and it is read only by a branch
+that does nothing (KD-B1-5 (e)).
+
+Tests (test_options.py): test_none_stands_for_the_default
+(nonlinear_scaling=None keeps the log transform; "assert None is True" at
+the parent), test_none_budget_is_the_default_budget (max_fun_evals=None
+runs with 500 * D; refused at the parent),
+test_none_for_an_unknown_option_is_refused,
+test_boolean_options_refuse_other_values ("off", "on", 0 and 1 for
+uncertainty_handling and nonlinear_scaling; "DID NOT RAISE" at the
+parent), test_boolean_options_take_booleans (True, False, np.True_,
+np.False_) and test_plot_takes_the_names_of_plots.
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

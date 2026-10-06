@@ -1,0 +1,33 @@
+== /home/user/pybads-v1.1.0
+pybads /home/user/pybads-v1.1.0/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+accelerate_mesh_steps=0 seed 0: IndexError: index 1 is out of bounds for axis 0 with size 1 at line 2243; polls done 2, first failed poll iter 0
+accelerate_mesh_steps=-1 seed 0: TypeError: 'NoneType' object is not subscriptable at line 2243; polls done 1, first failed poll iter 0
+accelerate_mesh_steps=2.5 seed 0: IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`)  at line 2243; polls done 4, first failed poll iter 0
+accelerate_mesh_steps=3.0 seed 0: IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`)  at line 2243; polls done 5, first failed poll iter 0
+  z = sigma * x0 + mu
+improvement_quantile=0 seed 0: completed, fval 2.43, x [-0.7031  1.4941], func_count 100; polls done 12, first failed poll iter 0
+improvement_quantile=1 seed 0: completed, fval 2.43, x [-0.7031  1.4941], func_count 100; polls done 12, first failed poll iter 0
+improvement_quantile=0.5 seed 0: completed, fval 7.59e-07, x [0.3008 0.2998], func_count 55; polls done 6, first failed poll iter 0
+accelerate_mesh_steps=0 seed 1: IndexError: index 1 is out of bounds for axis 0 with size 1 at line 2243; polls done 2, first failed poll iter 0
+accelerate_mesh_steps=-1 seed 1: TypeError: 'NoneType' object is not subscriptable at line 2243; polls done 1, first failed poll iter 0
+accelerate_mesh_steps=2.5 seed 1: IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`)  at line 2243; polls done 4, first failed poll iter 0
+accelerate_mesh_steps=3.0 seed 1: IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`)  at line 2243; polls done 5, first failed poll iter 0
+improvement_quantile=0 seed 1: completed, fval 2.43, x [-0.7031  1.4941], func_count 100; polls done 12, first failed poll iter 0
+improvement_quantile=1 seed 1: completed, fval 2.43, x [-0.7031  1.4941], func_count 100; polls done 12, first failed poll iter 0
+improvement_quantile=0.5 seed 1: completed, fval 2.82e-07, x [0.2995 0.3002], func_count 55; polls done 6, first failed poll iter 0
+== /home/user/pybads-review
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-pybads/cec8ef42-ff6e-5789-9637-a276f362470b/scratchpad/dc/b_B4/v110_runs.py", line 62, in <module>
+    run("accelerate_mesh_steps", v, seed)
+  File "/tmp/claude-0/-home-user-pybads/cec8ef42-ff6e-5789-9637-a276f362470b/scratchpad/dc/b_B4/v110_runs.py", line 35, in run
+    b = BADS(
+        ^^^^^
+  File "/home/user/pybads-review/pybads/bads/bads.py", line 357, in __init__
+    self.optim_state = self._init_optim_state_()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads-review/pybads/bads/bads.py", line 834, in _init_optim_state_
+    raise ValueError(
+ValueError: options['accelerate_mesh_steps'] needs to be a positive integer, not 0.

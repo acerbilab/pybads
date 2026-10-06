@@ -37,7 +37,6 @@ on ``timing`` (about 40 ms per evaluation)::
 import argparse
 import hashlib
 import json
-import platform
 import sys
 import time
 import zlib
@@ -50,7 +49,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 import benchmark_targets as bt  # noqa: E402
-import population as pp  # noqa: E402  (provenance helpers)
+from harness import code_meta, jsonable, timestamp  # noqa: E402
 
 START_SEED = 20260925
 NELDER_MEAD_MAXFEV = 200  # per dimension
@@ -139,30 +138,18 @@ def _sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def _now():
-    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
-
-
 def _provenance():
-    return {
-        "git": pp.git_info(),
-        "python": sys.version.split()[0],
-        "platform": platform.platform(),
-        "numpy": np.__version__,
-        "scipy": pp.pkg_version("scipy"),
-        "pybads": pp.pkg_version("pybads"),
-        "pybads_source": pp.module_source("pybads"),
-        "gpyreg": pp.pkg_version("gpyreg"),
-        "gpyreg_source": pp.module_source("gpyreg"),
-        "data_sha256": {
+    return dict(
+        code_meta(),
+        data_sha256={
             f.name: _sha256(f) for f in sorted(bt.DATA_DIR.glob("*.npz"))
         },
-    }
+    )
 
 
 def reference(name, D, n_restarts, budget, n_polish):
     """The entry of one target in ``reference_optima.json``."""
-    started = _now()
+    started = timestamp()
     t_start = time.perf_counter()
     prob = bt.make_problem(name, D, seed=0, reference=False)
     tag = f"[{name}]"
@@ -271,7 +258,7 @@ def reference(name, D, n_restarts, budget, n_polish):
         "nelder_mead_maxfev": NELDER_MEAD_MAXFEV * D,
     }
     entry["provenance"] = _provenance()
-    entry["provenance"].update(started=started, finished=_now())
+    entry["provenance"].update(started=started, finished=timestamp())
     entry["elapsed_s"] = time.perf_counter() - t_start
     print(f"{tag} done in {entry['elapsed_s'] / 60:.1f} min", flush=True)
     return entry
@@ -322,7 +309,7 @@ def main(argv=None):
         doc["targets"] = dict(sorted(doc["targets"].items()))
         tmp = args.out.with_suffix(".json.tmp")
         tmp.write_text(
-            json.dumps(pp.jsonable(doc), indent=1) + "\n", encoding="utf-8"
+            json.dumps(jsonable(doc), indent=1) + "\n", encoding="utf-8"
         )
         tmp.replace(args.out)
         print(f"[make_reference_optima] wrote {args.out}", flush=True)

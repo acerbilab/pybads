@@ -1,10 +1,13 @@
 # From github.com/dfm/tinygp
 name: merge-tests
 
+# Every PR into main or a development branch (dev-next and its successors)
+# runs the full matrix when it touches the package.
 on:
   pull_request:
     branches:
       - main
+      - 'dev*'
 
 jobs:
   check_changes:
@@ -23,9 +26,9 @@ jobs:
         run: |
           cd ./pybads
           echo "=============== list modified files ==============="
-          git diff --name-only origin/main
+          git diff --name-only origin/${{ github.base_ref }}...HEAD
           echo "========== check paths of modified files =========="
-          git diff --name-only origin/main > files.txt
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > files.txt
           echo "run_job=false" >> $GITHUB_OUTPUT
           changes=false
           while IFS= read -r file

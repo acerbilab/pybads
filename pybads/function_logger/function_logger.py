@@ -12,13 +12,18 @@ class FunctionLogger:
     ----------
     fun : callable
         The function to be logged.
-        `fun` must take a vector input and return a scalar value and,
-        optionally, the (estimated) SD of the returned value (if the
-        function fun is stochastic).
+        `fun` must take a vector input and return a scalar value, or, when
+        ``uncertainty_handling_level`` is 2, a tuple of the value and its
+        (estimated) SD.
     D : int
-        The number of dimensions that the function takes as input.
+        The number of dimensions of the points that the logger takes, in the
+        transformed space. The function takes as many, unless the
+        ``variable_transformer`` has fixed variables (``fixed_values``): it
+        then takes points of all the variables of the original space, as
+        ``X_orig`` holds them.
     noise_flag : bool
-        Whether the function fun is stochastic or not.
+        Whether the logger holds the standard deviations of the noise that
+        the function returns (``S``).
     uncertainty_handling_level : {0, 1, 2}
         The uncertainty handling level which can be one of
         (0: none; 1: unknown noise level; 2: user-provided noise).
@@ -49,7 +54,12 @@ class FunctionLogger:
 
         self.func_count: int = 0
         self.cache_count: int = 0
-        self.X_orig = np.full([cache_size, self.D], np.nan)
+        # The points in the original space hold the fixed variables of the
+        # transform too, which it leaves out of the transformed ones
+        self.D_orig: int = (
+            D if variable_transformer is None else variable_transformer.D_orig
+        )
+        self.X_orig = np.full([cache_size, self.D_orig], np.nan)
         self.Y_orig = np.full([cache_size, 1], np.nan)
         self.X = np.full([cache_size, self.D], np.nan)
         self.Y = np.full([cache_size, 1], np.nan)
@@ -63,11 +73,8 @@ class FunctionLogger:
         self.X_max_idx = -1  # Last filled entry in the cache memory.
         # Use 1D array since this is a boolean mask.
         self.X_flag = np.full((cache_size,), False, dtype=bool)
-        self.y_max = float("-Inf")
         self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
         self.total_fun_eval_time = 0.0
-
-        # TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.
 
     def __call__(self, x: np.ndarray, record_duplicate_data: bool = True):
         """
@@ -76,25 +83,35 @@ class FunctionLogger:
         Parameters
         ----------
         x : np.ndarray
-            The point at which the function will be evaluated. The shape of x
-            should be (1, D) or (D,).
+            The point at which the function will be evaluated, in the
+            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The
+            logger maps it back to the original space with its
+            ``variable_transformer``, if it has one, and evaluates the
+            function there; without one, the two spaces are the same.
 
         record_duplicate_data : bool, optional (default True)
-            Flag to indicate whether the data is added to training data.
+            Whether the evaluation is recorded in the log. One that is not
+            leaves the log as it is: it adds only its time to
+            ``total_fun_eval_time``, and counts in ``func_count``.
 
         Returns
         -------
         fval : float
             The result of the evaluation.
-        SD : float
-            The (estimated) SD of the returned value.
-        idx : int
-            The index of the last updated entry.
+        SD : float or None
+            The (estimated) SD that the function returned, None when the
+            logger takes none (``uncertainty_handling_level`` below 2).
+        idx : int or None
+            The index of the last updated entry, None when an evaluation
+            that is not recorded (``record_duplicate_data=False``) is of a
+            point that the log does not hold.
 
         Raises
         ------
         ValueError
-            Raise if the function value is not a finite real-valued scalar.
+            Raise if the function value is not a finite real-valued scalar,
+            as a tuple ``(f, sd)`` is not when ``uncertainty_handling_level``
+            is below 2.
         ValueError
             Raise if the (estimated) SD (second function output)
             is not a finite, positive real-valued scalar.
@@ -133,13 +150,6 @@ class FunctionLogger:
             else:
                 fval_orig = fun_res
                 fsd = None
-
-            if isinstance(fval_orig, np.ndarray):
-                # fval_orig can only be an array with size 1 since we support just single evaluation
-                fval_orig = fval_orig.item()
-            if isinstance(fsd, np.ndarray):
-                # fsd can only be an array with size 1 since we support just single evaluation
-                fsd = fsd.item()
         except Exception as err:
             if wrong_format_target_function:
                 err.args = (error_message,)
@@ -153,24 +163,38 @@ class FunctionLogger:
                 )
             raise
 
-        # if fval is an array with only one element, extract that element
-        if not np.isscalar(fval_orig) and np.size(fval_orig) == 1:
-            fval_orig = np.array(fval_orig).flat[0]
+        # A pair (f, sd) where the logger takes no SD is refused as a value
+        # that is not a scalar, with the option that takes the SD named
+        returned_pair = (
+            not self.he_noise_flag
+            and type(fval_orig) is tuple
+            and len(fval_orig) == 2
+        )
+
+        # An array or a list of one element, as the value or the SD, is taken
+        # as that element. The conversion and the checks are the logger's,
+        # out of the try above, whose note is for the target's own errors,
+        # and come before anything is recorded
+        fval_orig = _as_scalar(fval_orig)
+        if self.he_noise_flag:
+            fsd = _as_scalar(fsd)
 
         # Check function value
-        if np.any(
-            not np.isscalar(fval_orig)
-            or not np.isfinite(fval_orig)
-            or not np.isreal(fval_orig)
-        ):
+        if not _is_finite_real_scalar(fval_orig):
             error_message = """FunctionLogger:InvalidFuncValue:
             The returned function value must be a finite real-valued scalar
             (returned value {})"""
+            if returned_pair:
+                error_message += (
+                    "\nA target that returns its value and the SD of its "
+                    "noise, as a tuple (f, sd), needs "
+                    'options["specify_target_noise"] = True.'
+                )
             raise ValueError(error_message.format(str(fval_orig)))
 
         # Check returned function SD
-        if self.he_noise_flag and (
-            not np.isfinite(fsd) or not np.isreal(fsd) or fsd <= 0.0
+        if self.he_noise_flag and not (
+            _is_finite_real_scalar(fsd) and fsd > 0.0
         ):
             error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)
@@ -200,18 +224,33 @@ class FunctionLogger:
         fun_eval_time=np.nan,
     ):
         """
-        Add a previously evaluated function to the function cache.
+        Add an evaluation of the function made elsewhere to the log, without
+        counting it in ``func_count``: ``BADS`` adds the evaluations made
+        before its run (``precomputed_evaluations``) this way.
+
+        The evaluation is recorded as one of the logger's own: at a point
+        that the log holds, a logger that holds SDs merges it into the
+        point's row by precision weighting, and one that does not adds a
+        row.
 
         Parameters
         ----------
         x : np.ndarray
-            The point at which the function has been evaluated. The shape of x
-            should be (1, D) or (D,).
+            The point at which the function has been evaluated, in the
+            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The
+            logger maps it back to the original space with its
+            ``variable_transformer``, if it has one, and records both; without
+            one, the two spaces are the same.
         fval_orig : float
-            The result of the evaluation of the function.
+            The result of the evaluation of the function, a finite real
+            scalar, or an array or a list of one element.
         fsd : float, optional
-            The (estimated) SD of the returned value (if heteroskedastic noise
-            handling is on) of the evaluation of the function, by default None.
+            The (estimated) SD of the result, a finite positive real scalar,
+            or an array or a list of one element. A logger that holds SDs
+            (``noise_flag``) requires it at uncertainty handling level 2,
+            where the target returns them, and records a missing one as 1
+            below it; a logger that does not hold SDs ignores it. By default
+            None.
         fun_eval_time : float
             The duration of the time it took to evaluate the function,
             by default np.nan.
@@ -219,9 +258,12 @@ class FunctionLogger:
         Returns
         -------
         fval : float
-            The result of the evaluation.
-        SD : float
-            The (estimated) SD of the returned value.
+            The value that the log holds at the point: ``fval_orig``, merged
+            with the earlier evaluations at the point for a logger that holds
+            SDs.
+        SD : float or None
+            The SD recorded for this evaluation: ``fsd``, or 1 for a missing
+            one, and None when the logger holds no SDs.
         idx : int
             The index of the last updated entry.
 
@@ -230,8 +272,9 @@ class FunctionLogger:
         ValueError
             Raise if the function value is not a finite real-valued scalar.
         ValueError
-            Raise if the (estimated) SD (second function output)
-            is not a finite, positive real-valued scalar.
+            Raise if the logger holds SDs and ``fsd`` is missing at
+            uncertainty handling level 2, or is not a finite, positive
+            real-valued scalar.
         """
         if x.ndim > 1:
             x = x.squeeze()
@@ -246,34 +289,33 @@ class FunctionLogger:
         else:
             x_orig = x
 
-        if self.noise_flag:
-            if fsd is None:
-                fsd = 1
-        else:
-            fsd = None
-
-        # Check function value
-        if (
-            not np.isscalar(fval_orig)
-            or not np.isfinite(fval_orig)
-            or not np.isreal(fval_orig)
-        ):
+        # The checks of __call__, on the value and on the SD. At level 2 the
+        # SD of an evaluation is its caller's to give, as the target gives
+        # it, and PyVBMC's logger requires it too
+        fval_orig = _as_scalar(fval_orig)
+        if not _is_finite_real_scalar(fval_orig):
             error_message = """FunctionLogger:InvalidFuncValue:
             The returned function value must be a finite real-valued scalar
             (returned value {})"""
             raise ValueError(error_message.format(str(fval_orig)))
 
-        # Check returned function SD
-        if self.noise_flag and (
-            not np.isscalar(fsd)
-            or not np.isfinite(fsd)
-            or not np.isreal(fsd)
-            or fsd <= 0.0
-        ):
-            error_message = """FunctionLogger:InvalidNoiseValue
+        if self.noise_flag:
+            if fsd is None:
+                if self.he_noise_flag:
+                    raise ValueError(
+                        "FunctionLogger:MissingNoiseValue: at uncertainty "
+                        "handling level 2, an evaluation is added with the "
+                        "SD of its noise (fsd)."
+                    )
+                fsd = 1.0
+            fsd = _as_scalar(fsd)
+            if not (_is_finite_real_scalar(fsd) and fsd > 0.0):
+                error_message = """FunctionLogger:InvalidNoiseValue
                 The returned estimated SD (second function output)
                 must be a finite, positive real-valued scalar (returned SD:{}"""
-            raise ValueError(error_message.format(str(fsd)))
+                raise ValueError(error_message.format(str(fsd)))
+        else:
+            fsd = None
 
         self.cache_count += 1
         fval, idx = self._record(x_orig, x, fval_orig, fsd, fun_eval_time)
@@ -286,7 +328,8 @@ class FunctionLogger:
         self.X_orig = self.X_orig[: self.Xn + 1]
         self.Y_orig = self.Y_orig[: self.Xn + 1]
 
-        # in the original matlab version X and Y get deleted
+        # MATLAB's funlogger 'done' trims X, Y, S and the evaluation times
+        # too, and removes U, the transformed points (PyBADS's X)
         self.X = self.X[: self.Xn + 1]
         self.Y = self.Y[: self.Xn + 1]
 
@@ -294,9 +337,14 @@ class FunctionLogger:
             self.S = self.S[: self.Xn + 1]
         self.X_flag = self.X_flag[: self.Xn + 1]
         self.fun_eval_time = self.fun_eval_time[: self.Xn + 1]
+        self.n_evals = self.n_evals[: self.Xn + 1]
 
     def reset_fun_eval_time(self):
-        self.fun_eval_time = np.full([self.cache_size, 1], np.nan)
+        """
+        Set every entry of ``fun_eval_time`` to NaN, keeping its length that
+        of the other arrays.
+        """
+        self.fun_eval_time = np.full([self.X.shape[0], 1], np.nan)
 
     def _expand_arrays(self, resize_amount: int = None):
         """
@@ -313,7 +361,7 @@ class FunctionLogger:
             resize_amount = int(np.max((np.ceil(self.Xn / 2), 1)))
 
         self.X_orig = np.append(
-            self.X_orig, np.full([resize_amount, self.D], np.nan), axis=0
+            self.X_orig, np.full([resize_amount, self.D_orig], np.nan), axis=0
         )
         self.Y_orig = np.append(
             self.Y_orig, np.full([resize_amount, 1], np.nan), axis=0
@@ -378,19 +426,22 @@ class FunctionLogger:
             Raise if there is more than one match for a duplicate entry.
         """
 
-        # Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).
+        # Every evaluation counts in the target's time, whether its point is
+        # new, merged into its row or not recorded, as in MATLAB's funlogger
+        # (funlogger.m:130)
+        if not np.isnan(fun_eval_time):
+            self.total_fun_eval_time += fun_eval_time
+
+        # An evaluation that is not recorded, the noise test's and the final
+        # samples', leaves the log as it is, its time aside: the row of its
+        # point keeps its count of evaluations and its time. MATLAB's
+        # funlogger evaluates the final samples so ('single',
+        # funlogger.m:117-130), and MATLAB BADS calls the target directly for
+        # the noise test
         if not record_duplicate_data:
             duplicate_flag = np.all(self.X == x, axis=1)
             if np.any(duplicate_flag):
-                # Since we do not record the new duplicate point in the training set
-                # and we might have more than one duplicate points (e.g for NON-heteroskedastic cases)
-                # we register the function evaluation time and increase the counter of function evaluations in the last duplicate
                 last_idx = np.argwhere(duplicate_flag)[-1].item()
-                N = self.n_evals[last_idx]
-                self.fun_eval_time[last_idx] = (
-                    N * self.fun_eval_time[last_idx] + fun_eval_time
-                ) / (N + 1)
-                self.n_evals[last_idx] += 1
                 return fval_orig, last_idx
             else:
                 return fval_orig, None
@@ -399,13 +450,13 @@ class FunctionLogger:
             # check if the noise is heteroskedastic
             if fsd is not None:
                 # Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations
-                duplicate_flag = self.X == x
-                if np.any(duplicate_flag.all(axis=1)):
-                    if np.sum(duplicate_flag.all(axis=1)) > 1:
+                duplicate_flag = np.all(self.X == x, axis=1)
+                if np.any(duplicate_flag):
+                    if np.sum(duplicate_flag) > 1:
                         raise ValueError(
                             "More than one match for duplicate entry."
                         )
-                    idx = np.argwhere(duplicate_flag)[0, 0]
+                    idx = np.flatnonzero(duplicate_flag)[0]
                     N = self.n_evals[idx]
 
                     # if fsd is not None: # We already in the case of the heteroskedastic noise
@@ -425,6 +476,9 @@ class FunctionLogger:
                         N * self.fun_eval_time[idx] + fun_eval_time
                     ) / (N + 1)
                     self.n_evals[idx] += 1
+                    # The merged value can raise or lower the log's largest
+                    # value, Y_max
+                    self.Y_max = np.amax(self.Y[self.X_flag])
                     return f_val, idx
 
             # Add the new point
@@ -435,7 +489,6 @@ class FunctionLogger:
             # record function time
             if not np.isnan(fun_eval_time):
                 self.fun_eval_time[self.Xn] = fun_eval_time
-                self.total_fun_eval_time += fun_eval_time
 
             self.X_max_idx = np.minimum(self.X_max_idx + 1, self.X.shape[0])
             self.X_orig[self.Xn] = x_orig.copy()
@@ -450,3 +503,26 @@ class FunctionLogger:
             self.n_evals[self.Xn] = np.maximum(1, self.n_evals[self.Xn] + 1)
             self.Y_max = np.amax(self.Y[self.X_flag])
             return fval, self.Xn
+
+
+def _as_scalar(value):
+    """Return the element of an array or a sequence of one element, and any
+    other value unchanged."""
+    if np.isscalar(value):
+        return value
+    try:
+        array = np.asarray(value)
+    except ValueError:  # A ragged sequence
+        return value
+    return array.item() if array.size == 1 else value
+
+
+def _is_finite_real_scalar(value):
+    """Whether ``value`` is a finite scalar of a boolean, integer or floating
+    type: a value of a complex type is not real, whatever its imaginary part,
+    as for MATLAB's ``isreal``."""
+    return (
+        np.isscalar(value)
+        and np.asarray(value).dtype.kind in "biuf"
+        and bool(np.isfinite(value))
+    )

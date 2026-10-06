@@ -162,9 +162,9 @@ Tests can be run with::
 
     pytest test_filename.py
     pytest
-    pytest --reruns 5 --cov=. --cov-report html:cov_html
+    pytest --cov=. --cov-report html:cov_html
 
-The final command creates an html folder with a full report on coverage -- double-check it from time to time. Some tests are stochastic and occasionally fail: Tests can be automatically rerun by specifying e.g. ``--reruns 3``.
+The final command creates an html folder with a full report on coverage -- double-check it from time to time. A test that draws random numbers sets its seed (the ``random_seed`` option for a BADS run, a generator of its own for the noise of a target), so that a failure repeats when the test is rerun.
 
 A few comments about testing:
 
@@ -179,4 +179,4 @@ A few comments about testing:
 Releases
 --------
 
-Each change that a user can notice is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag: the ``release.yml`` workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package is updated separately, in its feedstock.
+Each change to results, to the interface, or to what a script sees is listed in ``CHANGELOG.md`` under ``Unreleased`` when it is made, in one or two sentences written for users. A release is a tag ``vX.Y.Z`` on ``main`` and a GitHub release published from that tag. Before the pull request that carries the release to ``main``, the changelog's ``Unreleased`` section becomes ``[X.Y.Z] - <date>`` under a new, empty ``Unreleased``, and the GitHub release takes that section as its notes. The same pull request sets ``RELEASE_DATE`` in ``pybads/_release.py`` to that date, from which the reminder shown by a release more than a year old tells its age; ``pybads/testing/bads/test_release_reminder.py`` checks that the two agree. Before that pull request, too, the example notebooks, whose outputs ship with the release, are rerun with ``make -C examples/scripts run`` and their outputs committed. Example 5 shows the version of the PyBADS that ran it, and the release's tag does not exist yet, so for the run PyBADS is installed under the release's version, ``SETUPTOOLS_SCM_PRETEND_VERSION=X.Y.Z pip install -e . --no-deps`` in a POSIX shell (Git Bash on Windows), and reinstalled afterwards with ``pip install -e . --no-deps``, which takes the version from the tags again. When the GitHub release is published, the ``release.yml`` workflow builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package follows: the version bot of the `pybads feedstock <https://github.com/conda-forge/pybads-feedstock>`__ opens an update pull request after the upload and merges it once its build and tests pass. A feedstock maintainer steps in only when that pull request fails, for example when PyBADS requires a gpyreg release that conda-forge does not have yet.

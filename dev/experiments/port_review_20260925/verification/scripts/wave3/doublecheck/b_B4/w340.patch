@@ -1,0 +1,47 @@
+commit a14524d4f1309781228fe235f6470dd7318d513d
+Author: Claude <noreply@anthropic.com>
+Date:   Sun Sep 27 09:27:05 2026 +0000
+
+    fix: a rebuild of the local GP on two points keeps the prior of the length scales (W3-40)
+    
+    At each rebuild of the local GP, the empirical prior of the log length
+    scales is centred between the logs of the largest and the smallest
+    pairwise distance of the training set, with a sigma of half their
+    difference (gaussian_process_train.py, as MATLAB's gpdefBads.m:240-251).
+    On two distinct points, the two are equal and the sigma is 0, which
+    gpyreg 1.3.3 refuses with ValueError, so the run stopped; MATLAB computes
+    the same zero sigma. W3-24's tilted poll reached it on the thin bands of
+    the geometry suite, 3 of 60 runs at their third evaluation (reverted in
+    b03a320); MATLAB's coordinate poll reaches it in no run of the
+    benchmark, and any run whose local GP holds two distinct points at a
+    rebuild did.
+    
+    Distances without spread now keep the previous prior, as a rebuild on
+    targets without spread keeps the previous width of the GP mean's prior
+    (KD-B6-2) and the previous centre of the output scale's (W1-26). Found by
+    wave 3's gate of W3-24; the PI asked for the fix after its ruling.
+    
+    Test: test_gaussian_process_train.py::
+    test_rebuild_on_two_points_keeps_length_scale_prior[False, True]: a
+    rebuild on the log's first two distinct points keeps the previous prior
+    and gives finite predictions; at the parent both raise gpyreg's
+    ValueError. On W3-24's code with this fix, the three runs of the thin
+    bands that crashed end at errors of 1e-7, 3e-10 and 1.2e-5.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+diff --git a/pybads/bads/gaussian_process_train.py b/pybads/bads/gaussian_process_train.py
+index 65c5a9e..73e3e80 100644
+--- a/pybads/bads/gaussian_process_train.py
++++ b/pybads/bads/gaussian_process_train.py
+@@ -369,7 +369,9 @@ def local_gp_fitting(
+         )
+         dist = dist.flatten()
+         dist = dist[dist != 0]
+-        if dist.size > 0:
++        # Distances without spread (two distinct points) keep the previous
++        # prior, whose sigma would be 0, as MATLAB's gpdefBads.m computes it
++        if dist.size > 0 and np.max(dist) > np.min(dist):
+             uu = 0.5 * np.log(np.max(dist))
+             ll = 0.5 * np.log(np.min(dist))
+ 

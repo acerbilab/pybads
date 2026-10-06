@@ -1,0 +1,47 @@
+fix: integer-typed bounds and x0 are taken as floats, so that the log transform of a bound is not truncated (W2-45)
+
+_bounds_check_ passed the bounds on with the dtype they were given.
+VariableTransformer copies them and writes the log of the bounds of a
+log-scaled variable into those copies in place, so an integer-typed
+array was truncated: with lb = 1, ub = 1000, plb = 2, pub = 500 as
+integer arrays at D = 2, the plausible box mapped to [-0.769, 1.072]
+in u space instead of [-1, 1], and the hard bounds to [-1, 1.303]
+instead of [-1.251, 1.251], and the GP, the mesh and the start on the
+grid all followed. Since W2-3, a scalar bound is broadcast with its
+dtype, so an integer scalar bound such as lower_bounds=1, refused at
+D > 1 before, met the defect too. MATLAB BADS has no such case: its
+numeric literals are doubles.
+
+_bounds_check_ now converts x0 and the four bounds to float arrays,
+with np.asarray(..., dtype=float), right after the test that they are
+real valued, which a cast placed before it would defeat (a complex x0
+is still refused). The checks before that point (shapes, a single
+starting point, finite plausible bounds, real values) do not depend on
+the dtype; every step after it, the other checks, non_box_cons's call
+on the plausible bounds and VariableTransformer included, takes
+floats. A float64 input is passed on as before, without a copy, so a
+run with float bounds moves nothing.
+
+Nothing in the setup writes into the arrays that the user passes, before
+or after this change: __init__ copies x0, and the plausible bounds when
+it defaults them to the hard ones; _bounds_check_ returns float bounds
+as views of the user's arrays, which no step writes into, and
+_init_optim_state_ replaces them by copies of VariableTransformer's,
+which copies its inputs. Checked with 1-D and 2-D, float and integer
+arrays, with and without plausible bounds: the user's arrays are equal
+to their copies after BADS(...) and after optimize().
+
+Test: test_bads_inputs.py::test_integer_bounds_are_taken_as_floats:
+integer arrays (with the plausible bounds given and omitted, for a
+log-scaled variable beside a linear one) and integer scalars at D = 2
+(both variables log-scaled, both linear), with an integer x0, give the
+same log flags, original and transformed bounds, x0 and start on the
+grid as the same values as floats, all of them float arrays. All 4 fail
+at the parent (the transformed bounds differ in the 3 cases with a
+log-scaled variable, the returned arrays are integer in the linear one)
+and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

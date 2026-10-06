@@ -1,0 +1,10 @@
+cProfile of periodic_D3_homo, seed 0, gpyreg b44634f, one BLAS thread:
+PyBADS's udist, period_check and local_gp_fitting (calls, own time s, cumulative s)
+on: total 8.94 s
+  local_gp_fitting      300 calls  own 0.038  cum 3.235  (10.78 ms per call)
+  udist                 697 calls  own 0.418  cum 0.586  (0.84 ms per call)
+  period_check          598 calls  own 0.054  cum 0.069  (0.12 ms per call)
+off: total 12.13 s
+  local_gp_fitting      794 calls  own 0.103  cum 5.975  (7.52 ms per call)
+  udist                1776 calls  own 0.061  cum 0.199  (0.11 ms per call)
+  period_check          595 calls  own 0.004  cum 0.011  (0.02 ms per call)

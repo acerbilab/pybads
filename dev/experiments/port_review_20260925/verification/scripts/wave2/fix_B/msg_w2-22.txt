@@ -1,0 +1,26 @@
+fix: an option's description keeps its whole comment line, an = or a : included (W2-22)
+
+_read_config_file (options.py) read the comment lines of the option files
+as keys without values (comment_prefixes="", allow_no_value=True), so
+that configparser split each at its first "=" or ":": Options.descriptions
+and str(options) cut 8 descriptions, those of noise_size, periodic_vars,
+stobads_frame_size_scaling_power, gp_samples ("Hyperparameters samples
+(0"), gp_sample_widths, stable_gp_samples, upper_gp_length_factor and
+temperature. Reading comments as keys also made two equal comment lines
+in a section a parse error (a duplicate option).
+
+configparser now skips the comment lines and splits the values at "="
+only, and the descriptions are read apart from the values, from the
+file's lines: an option's description is the whole last comment line
+above it, as before. The keys and values read are unchanged for every
+option of both files; only the 8 descriptions change, to their whole
+lines.
+
+Test: test_descriptions_are_whole_comment_lines (test_options.py), on
+noise_size, periodic_vars, gp_samples and
+stobads_frame_size_scaling_power; at the parent noise_size's reads
+"Base observation noise magnitude (SD), e.g. noise_size".
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

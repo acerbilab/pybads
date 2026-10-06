@@ -1,0 +1,23 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+chi2 bounds, v=1: python [np.float64(1.9634954084938847e-13), np.float64(12.631910363033432)]  true [np.float64(3.9269908169877694e-13), np.float64(25.263820726066864)]
+chi2 bounds, v=2: python [np.float64(5.000001250000414e-07), np.float64(14.508657738606486)]  true [np.float64(1.0000002500000828e-06), np.float64(29.01731547721297)]
+n=1, z=0.1 (min_refit_time not passed)   python (refit, unrel)=(False, True)  MATLAB=(False, False)
+n=1, z=0.1 (min_refit_time passed)       python (refit, unrel)=(True, False)  MATLAB=(False, False)
+n=2, z=(3,3.2)                           python (refit, unrel)=(False, True)  MATLAB=(False, False)
+n=2, z=(3,3.2), refit allowed            python (refit, unrel)=(True, False)  MATLAB=(False, False)
+n=10 calibrated, D=2 (period 10)         python (refit, unrel)=(False, False)  MATLAB=(True, False)
+n=11 calibrated, D=2                     python (refit, unrel)=(True, False)  MATLAB=(True, False)
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_verifier/matlab_transcriptions.py:65: RuntimeWarning: divide by zero encountered in divide
+  z = (np.asarray(fval, float) - np.asarray(ymu, float)) / np.asarray(ys, float)
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_verifier/matlab_transcriptions.py:9: RuntimeWarning: invalid value encountered in subtract
+  return np.mean((x - m) ** 4) / np.mean((x - m) ** 2) ** 2
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_verifier/matlab_transcriptions.py:45: RuntimeWarning: invalid value encountered in subtract
+  W = (weights @ x) ** 2 / ((x - x.mean()) @ (x - x.mean()))
+n=5 with one exact-zero SD               python (refit, unrel)=(False, False)  MATLAB=(False, False)
+t(1.5), n=10: MATLAB swtest rejects 0/2000, scipy rejects 38/2000, disagree 38
+t(1.5), n=20: MATLAB swtest rejects 204/2000, scipy rejects 276/2000, disagree 72
+t(1.5), n=40: MATLAB swtest rejects 877/2000, scipy rejects 949/2000, disagree 72
+N(0,1)+outlier 8, n=20: MATLAB rejects 3/2000, scipy rejects 34/2000, disagree 31
+N(0,1)+outlier 8, n=40: MATLAB rejects 857/2000, scipy rejects 1306/2000, disagree 449
+platykurtic: max |log p_transcription - log p_scipy| = 1.8783881117201418e-08 over 492 samples

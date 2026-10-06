@@ -1,0 +1,6 @@
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_bads_seed.py::test_seeded_run_leaves_global_state_untouched[deterministic_random_x0]
+FAILED pybads/testing/bads/test_bads_seed.py::test_seeded_run_leaves_global_state_untouched[inferred_noise]
+FAILED pybads/testing/bads/test_bads_seed.py::test_seeded_run_leaves_global_state_untouched[prior_samples]
+FAILED pybads/testing/bads/test_bads_seed.py::test_seeded_run_leaves_global_state_untouched[slice_sampler]
+4 failed, 15 deselected in 5.43s

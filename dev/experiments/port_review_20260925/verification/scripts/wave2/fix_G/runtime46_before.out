@@ -1,0 +1,4 @@
+/home/user/pybads-fix-G/pybads/__init__.py
+init warnings [('overflow encountered in exp', '/home/user/pybads-fix-G/pybads/variable_transformer/variables_transformer.py', 203), ('overflow encountered in exp', '/home/user/pybads-fix-G/pybads/variable_transformer/variables_transformer.py', 203)]
+run warnings [('overflow encountered in exp', 'variables_transformer.py', 203)]
+[  2.7182509  800.02441406] 5.973411871606842e-08

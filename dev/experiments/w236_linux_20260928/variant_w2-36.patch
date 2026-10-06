@@ -1,0 +1,22 @@
+diff --git a/pybads/bads/bads.py b/pybads/bads/bads.py
+index 769def89..2e69a904 100644
+--- a/pybads/bads/bads.py
++++ b/pybads/bads/bads.py
+@@ -1538,6 +1538,17 @@ class BADS:
+         )
+         self.best_gp_hyp = gp.get_hyperparameters(as_array=True)
+ 
++        if self.optim_state["uncertainty_handling_level"] > 0:
++            # W2-36's variant: the first incumbent's value and SD are the
++            # initial GP's prediction at it; yval stays the observation
++            f_mu, f_s2 = gp.predict(np.atleast_2d(self.u))
++            f_mu, f_s = f_mu.item(), np.sqrt(f_s2).item()
++            if np.isfinite(f_mu) and np.isfinite(f_s):
++                self.fval, self.fsd = f_mu, f_s
++                self.optim_state["fval"] = self.fval
++                self.optim_state["fsd"] = self.fsd
++                self.optim_state["fsuccess"] = self.fval
++
+         return (
+             gp,
+             Ns_gp,

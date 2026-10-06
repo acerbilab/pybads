@@ -1,0 +1,9 @@
+final.wall_s: 540 runs; e.g. sphere_nonbox_D3_seed4.json: '1.7215893620004863' -> '1.712848428000143'
+final.fval: 325 runs; e.g. sphere_D10_seed16.json: '9.034805386557287e-08' -> '8.713306732067752e-08'
+final.true_error: 299 runs; e.g. sphere_D10_seed16.json: '9.034805386557287e-08' -> '8.713306732067752e-08'
+final.x: 299 runs; e.g. sphere_D10_seed16.json: '[2.3471553041040494, 0.1665795314603713, -0.6449496234169061' -> '[2.3471580779300183, 0.166575068706436, -0.6449579592066357,'
+final.func_count: 214 runs; e.g. ellipsoid_D3_hetero_seed14.json: '215' -> '318'
+final.iterations: 161 runs; e.g. ellipsoid_D3_hetero_seed14.json: '16' -> '24'
+final.fsd: 112 runs; e.g. ellipsoid_D3_hetero_seed0.json: '0.5720039598314602' -> '0.5599263322089797'
+final.min_noise_var: 73 runs; e.g. ellipsoid_D3_hetero_seed14.json: '0.7264258173070953' -> '1.1515071741932181'
+final.message: 44 runs; e.g. ellipsoid_D3_hetero_seed14.json: 'Optimization terminated: change in the function value less t' -> "Optimization terminated: mesh size less than options['tol_me"

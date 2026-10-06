@@ -1,0 +1,23 @@
+fix: with hedge_gamma = 0 the hedge scores each search at the search point, as a row (W3-7)
+
+With hedge_gamma = 0 the hedge rewards the searches it did not choose at
+the GP's prediction there, and update_hedge took that point as
+u_search[min(i, len(u_search) - 1):], a slice of the 1-D search point's
+coordinates: the second search was predicted at D - 1 values, and the run
+stopped at its first search with gpyreg's ValueError on the input
+dimension. MATLAB BADS takes u(min(iHedge,end),:) of its single row
+(acqPortfolio.m:40), the same point for every search, and then fails on
+gpstructnew, undefined there (acqPortfolio.m:47). update_hedge now scores
+each search at the search point taken as a row (np.atleast_2d), MATLAB's
+intent, with the prediction as floats.
+
+hedge_gamma had no description of its own: the comment above it was its
+section's header. It now says what it is, the minimum probability of each
+search in the hedge's choice.
+
+Test: test_hedge_gamma_zero_scores_each_search_at_the_search_point, a
+seeded run of 60 evaluations with hedge_gamma = 0 completes (at the parent
+it raises the ValueError at the first search). Fingerprint
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

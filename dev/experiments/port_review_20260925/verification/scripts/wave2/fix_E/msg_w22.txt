@@ -1,0 +1,46 @@
+fix: a variable bounded on one side only is accepted, as in MATLAB BADS (W2-2)
+
+_bounds_check_ refused a variable with one finite and one infinite
+hard bound (bads:HalfBounds, "Variables bounded only below/above are
+not supported"). MATLAB BADS accepts it: boundscheck.m has no such
+test, setupvars.m:27-38 only prints a caution for infinite bounds, and
+bads.m documents LB(i) = -Inf and UB(i) = Inf separately. The refusal
+could not be lifted while the effective bounds replaced the infinite
+range by 1e3 and moved x0 and plb by a unit (W2-4, two commits back).
+
+The refusal is removed. The rest of the setup and of the run already
+takes the bounds variable by variable: VariableTransformer maps an
+infinite bound to an infinite u, and log-transforms a variable with
+ub = inf whose other bounds are positive and pub / plb >= 10, as
+transvars.m does (bit for bit, B1-C); lb_search and ub_search stay
+infinite on that side; the checks of the search and the poll compare
+elementwise; W1-1's geometry in gaussian_process_train.py takes the
+plausible bound in place of an infinite one for the poll scale, and
+the GP's maximum length scale is capped at 100 for an infinite range.
+The docstring of BADS says that lb[i] = -inf and ub[i] = inf are set
+separately, and that plb (pub) needs to be given when lb (ub) has an
+infinite bound, since a missing plausible bound defaults to the hard
+one; the warning for infinite bounds also names the variables that
+have one.
+
+Test: test_bads_inputs.py::test_half_bounded_variables replaces
+test_half_bounded_variable_is_refused: a problem of D = 2 bounded below
+only, one bounded above only, and one bounded below only with both
+variables log-transformed (a variable bounded above only cannot be),
+each accepted with its infinities and log flags, and a run of at most
+100 evaluations finds the minimum within 0.05 (errors of at most
+0.0046 over seeds 0-19). All 3 fail at the parent (bads:HalfBounds) and
+pass here.
+
+Checked before the commit (not a gate): a problem of D = 3 with a
+variable bounded below only, one bounded above only and one bounded
+below only in log, 200 evaluations at most, seeds 0-4, with x0 given,
+with x0 = None, with the minimum on the finite bounds, beyond the
+plausible box on the unbounded sides, and with noise: all 25 runs end
+on tol_fun near the minimum (within 0.004, 0.031 with noise), with
+every evaluation finite and within the bounds.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

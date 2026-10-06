@@ -1,0 +1,30 @@
+>       assert np.isfinite(log_prior)
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <ufunc 'isfinite'>(np.float64(inf))
+E        +    where <ufunc 'isfinite'> = np.isfinite
+>       assert np.isfinite(log_prior)
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <ufunc 'isfinite'>(np.float64(inf))
+E        +    where <ufunc 'isfinite'> = np.isfinite
+>       assert np.isfinite(log_prior)
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <ufunc 'isfinite'>(np.float64(inf))
+E        +    where <ufunc 'isfinite'> = np.isfinite
+>       assert np.isfinite(log_prior)
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <ufunc 'isfinite'>(np.float64(inf))
+E        +    where <ufunc 'isfinite'> = np.isfinite
+>       assert np.all(np.isfinite(X))
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <function all at 0x7f58d43523f0>(array([[ True],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n      ...alse],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False]]))
+E        +    where <function all at 0x7f58d43523f0> = np.all
+E        +    and   array([[ True],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n      ...alse],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False]]) = <ufunc 'isfinite'>(array([[43.],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n      ...[inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf],\n       [inf]]))
+E        +      where <ufunc 'isfinite'> = np.isfinite
+>       assert np.all(np.isfinite(X))
+E       AssertionError: assert np.False_
+E        +  where np.False_ = <function all at 0x7f58d43523f0>(array([[False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n      ...alse],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [ True]]))
+E        +    where <function all at 0x7f58d43523f0> = np.all
+E        +    and   array([[False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n      ...alse],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [False],\n       [ True]]) = <ufunc 'isfinite'>(array([[-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf]...      [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-inf],\n       [-43.]]))
+E        +      where <ufunc 'isfinite'> = np.isfinite
+>       assert np.all(np.isfinite(X))
+E       AssertionError: assert np.False_

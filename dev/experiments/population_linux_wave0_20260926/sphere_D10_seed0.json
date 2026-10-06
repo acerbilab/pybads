@@ -1,0 +1,101 @@
+{
+ "label": "sphere_D10",
+ "seed": 0,
+ "problem": "sphere",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  4.429375528828794,
+  -1.8366284761450191,
+  2.2234258864982532,
+  -3.7439691456730673,
+  -0.7702363748502989,
+  1.4803809758728281,
+  -4.433227579693981,
+  3.1891703640517903,
+  -2.3130327941158324,
+  1.7924735686709825
+ ],
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 0
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 0,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   2.347161860081428,
+   0.16652948916686228,
+   -0.6452091658880477,
+   0.7426715554555585,
+   -2.344657446584506,
+   -2.2768742260586805,
+   1.3421376733032275,
+   1.6521822761819749,
+   0.7229128055158185,
+   1.7286441685425302
+  ],
+  "fval": 6.433237000430895e-08,
+  "fsd": 0.0,
+  "true_error": 6.433237000430895e-08,
+  "func_count": 459,
+  "iterations": 15,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 8.946520339000017,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07
+ },
+ "meta": {
+  "git": {
+   "sha": "ac3dfed",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev45+g3e9646c05",
+  "pybads_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/worktrees/baseline_ac3dfed/pybads",
+   "git": {
+    "sha": "ac3dfed",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg-v1.3.3/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  },
+  "started": "2026-09-26T09:23:52+0000",
+  "finished": "2026-09-26T09:24:02+0000"
+ }
+}

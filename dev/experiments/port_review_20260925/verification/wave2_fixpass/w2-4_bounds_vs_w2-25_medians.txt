@@ -1,0 +1,5 @@
+logsphere_D3               err 1.8e-07 -> 8.6e-07   evals 73 -> 82   ends {'Optimization termi': 30} -> {'Optimization termi': 30}
+logsphere_D3_homo          err 0.14 -> 0.047   evals 324 -> 294   ends {'Optimization termi': 30} -> {'Optimization termi': 30}
+logsphere_D3_nopb          err 9.1e-07 -> 1.1e-06   evals 83 -> 81   ends {'Optimization termi': 30} -> {'Optimization termi': 30}
+sphere_D3_nopb             err 1.5e-06 -> 2.1e-06   evals 98 -> 98   ends {'Optimization termi': 30} -> {'Optimization termi': 30}
+sphere_D3_x0lb             err 2.8e-06 -> 5e-06   evals 91 -> 77   ends {'Optimization termi': 30} -> {'Optimization termi': 30}

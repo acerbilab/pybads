@@ -1,0 +1,143 @@
+{
+ "label": "periodic_D4",
+ "seed": 13,
+ "problem": "periodic",
+ "D": 4,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  4.203272457960854,
+  2.39554356279937,
+  -2.9300309606699737,
+  -4.1604708746384835
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "periodic_vars": [
+   0,
+   1
+  ],
+  "display": "off",
+  "max_fun_evals": 2000,
+  "random_seed": 13
+ },
+ "effective_options": {
+  "max_fun_evals": 2000,
+  "max_iter": 800,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 6,
+  "n_train_min": 50,
+  "n_train_max": 90,
+  "random_seed": 13,
+  "display": "off",
+  "periodic_vars": [
+   0,
+   1
+  ]
+ },
+ "final": {
+  "x": [
+   6.1119888520914945,
+   0.1456423893329677,
+   -0.5417660810053349,
+   -0.5240749195218086
+  ],
+  "fval": 4.2311578253477944e-08,
+  "fsd": 0.0,
+  "true_error": 4.2311578253477944e-08,
+  "func_count": 113,
+  "iterations": 9,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 1.014389799995115,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.0037338000256568193,
+    "target": 0.003010412191817799,
+    "init": 0.019347991030731784,
+    "gp_init": 0.03243970000767149,
+    "poll": 0.25679483778938367,
+    "history": 0.0015838000108487904,
+    "search": 0.6830030589262818
+   },
+   "paths": {
+    "loop": 0.0037338000256568193,
+    "target": 0.003010412191817799,
+    "init": 0.019347991030731784,
+    "gp_init": 0.0019253000209573656,
+    "gp_init/gp_fit": 0.030514399986714125,
+    "poll": 0.06549193790695344,
+    "poll/gp_rebuild": 0.02106820000335574,
+    "poll/gp_rebuild/gp_fit": 0.13345219995244406,
+    "poll/target_from_gp": 0.03678249992663041,
+    "history": 0.0015838000108487904,
+    "search": 0.06417515900832156,
+    "search/gp_rebuild": 0.03765949999797158,
+    "search/search_es": 0.4563740000303369,
+    "search/gp_update": 0.01574609987437725,
+    "search/gp_rebuild/gp_fit": 0.10904830001527444
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 8,
+    "poll/gp_rebuild": 13,
+    "poll/gp_rebuild/gp_fit": 6,
+    "poll/target_from_gp": 62,
+    "history": 9,
+    "search": 41,
+    "search/gp_rebuild": 24,
+    "search/search_es": 41,
+    "search/gp_update": 33,
+    "search/gp_rebuild/gp_fit": 5
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "bef26ec2",
+   "dirty": false
+  },
+  "python": "3.12.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "1.1.1.dev62+g618652d64.d20260929",
+  "pybads_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\worktrees\\winref_bef26ec2\\pybads",
+   "git": {
+    "sha": "bef26ec2",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "C:\\Users\\luigi\\Documents\\GitHub\\pybads\\dev\\scripts\\runs\\gpyreg\\main_3e56dce\\gpyreg",
+   "git": {
+    "sha": "3e56dce",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-30T09:27:53+0300",
+  "finished": "2026-09-30T09:27:55+0300"
+ }
+}

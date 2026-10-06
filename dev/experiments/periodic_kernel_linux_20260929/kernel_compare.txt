@@ -1,0 +1,13 @@
+timing (ms), RQ-ARD, D=3 with periods [2, 2, inf] (periodic_D3's layout)
+  cross N=50 M=2048: old 8.042  new 2.534  no periods 2.210
+  grad  N=50:        old 0.375  new 0.355  no periods 0.258
+  cross N=100 M=2048: old 16.014  new 5.449  no periods 4.163
+  grad  N=100:        old 1.149  new 0.515  no periods 0.528
+  cross N=200 M=2048: old 36.717  new 9.973  no periods 9.432
+  grad  N=200:        old 4.185  new 1.555  no periods 1.683
+agreement, new against old: max |K_new - K_old| / sf2, and of dK / max|dK|
+  SquaredExponential     K 1.74e-15  dK 1.51e-15
+  Matern1                K 2.09e-15  dK 2.09e-15
+  Matern3                K 1.54e-15  dK 1.14e-15
+  Matern5                K 1.74e-15  dK 1.35e-15
+  RationalQuadraticARD   K 1.14e-15  dK 9.53e-16

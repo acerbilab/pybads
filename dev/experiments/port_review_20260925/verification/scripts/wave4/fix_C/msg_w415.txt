@@ -1,0 +1,43 @@
+fix: with opp_stobads, an uncertain poll moves only to a polled point that improves on the incumbent (W4-15)
+
+With stobads and opp_stobads, a poll without a success and with an
+uncertain point moved the incumbent to u_poll_best, the polled point of
+the largest positive improvement, and marked the poll as moved. When no
+polled point improved on the incumbent, u_poll_best was still the
+incumbent itself, so the poll "moved" the incumbent to itself and was
+marked as moved, and every search of the next round rebuilt the local
+GP (the reset after a moved poll), search_n_try - 1 rebuilds more than
+an unmarked poll gives. The comment above the branch, and the
+changelog, say that such a poll moves to its best polled point.
+
+The branch now also requires poll_best_improvement > 0: an uncertain
+poll moves, and is marked as moved, only to a polled point that
+improves on the incumbent; otherwise it neither moves nor is marked, as
+a failed poll. Sto-BADS has no counterpart in MATLAB BADS, whose poll
+moves only on a positive improvement (bads.m:951-958). Whether an
+uncertain outcome that does not improve should move at all is W0-13's
+question, which this leaves open.
+
+Tests: test_stobads.py::
+test_uncertain_poll_without_improvement_does_not_move, new: an
+uncertain first poll whose points are all scripted as worse than the
+incumbent leaves it in place and unmarked; at the parent it moves it to
+itself. test_uncertain_poll_moves_only_with_opp_stobads asserted only
+that _update_incumbent_ was called, which the self-move satisfied (in
+its seeded run every polled point is worse): it now scripts an
+uncertain point that improves and asserts that the incumbent moves to
+it and the poll is marked, with opp_stobads only. The helper
+_scripted_first_poll scripts the improvements and records the
+incumbent and the mark.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's. Under stobads=True, the nine
+runs of the O verifier's v_f1_selfmove.py (which hold the three of
+v_f1_bitwise.py: a flat noisy target at D = 3, levels 1 and 2, and an
+anisotropic one at D = 2, seeds 3 to 5, 200 evaluations), without its
+patches, before and after: the six runs at D = 3 had one self-move each
+before and none after, three fewer rebuilds of the local GP by the
+search each, and every evaluated point and value, and the result, are
+identical bit for bit in all nine.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

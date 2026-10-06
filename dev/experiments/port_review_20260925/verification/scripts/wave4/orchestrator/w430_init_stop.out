@@ -1,0 +1,5 @@
+/home/user/pybads-fix-C/pybads/__init__.py
+specify_target_noise=False noise_size=1.0: iterations=0 func_count=33 fval=0.8829 fsd=1.0 yval_vec=[0.88294713] ysd_vec=None
+specify_target_noise=False noise_size=2.5: iterations=0 func_count=33 fval=0.8829 fsd=2.5 yval_vec=[0.88294713] ysd_vec=None
+specify_target_noise=True noise_size=1.0: iterations=0 func_count=33 fval=0.8829 fsd=0.7 yval_vec=[0.88294713] ysd_vec=None
+specify_target_noise=True noise_size=1.0: iterations=0 func_count=33 fval=0.8829 fsd=0.7 yval_vec=[0.88294713] ysd_vec=None

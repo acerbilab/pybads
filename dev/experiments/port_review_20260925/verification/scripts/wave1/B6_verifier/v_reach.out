@@ -1,0 +1,18 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- sphere D=2 s0: fval=1.55e-06 n=55
+   factorizations 808: inflated 18 (max x1e+04), failed after 10 attempts 1
+   GP states handed on 53: sn2_mult distribution {1.0: 49, 10.0: 4}
+   prior sampler from _robust_gp_fit_: 1 draws, log sf drawn [-2.9]...; share above the upper bound 20.7: 0.00
+--- rosenbrock D=2 s1: fval=2.29e-05 n=87
+   factorizations 1725: inflated 609 (max x1e+09), failed after 10 attempts 7
+   GP states handed on 116: sn2_mult distribution {1.0: 43, 10.0: 47, 100.0: 26}
+   prior sampler from _robust_gp_fit_: 7 draws, log sf drawn [1396.2 1249.  1053.8 1045.3]...; share above the upper bound 20.7: 1.00
+--- rosenbrock D=4 s0: fval=2.24e-07 n=199
+   factorizations 2263: inflated 555 (max x1e+09), failed after 10 attempts 5
+   GP states handed on 252: sn2_mult distribution {1.0: 170, 10.0: 47, 100.0: 13, 1000.0: 13, 10000.0: 9}
+   prior sampler from _robust_gp_fit_: 5 draws, log sf drawn [189.4 182.7  57.1   1.5]...; share above the upper bound 20.7: 0.60
+--- ackley D=6 s0: fval=0.0193 n=200
+   factorizations 1573: inflated 2 (max x1e+06), failed after 10 attempts 0
+   GP states handed on 213: sn2_mult distribution {1.0: 213}
+   prior sampler from local_gp_fitting: 6 draws, log sf drawn [-11.2 -10.6  -1.6  -5.2]...; share above the upper bound 20.7: 0.00

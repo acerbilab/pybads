@@ -8,6 +8,8 @@
 [![docs](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/docs.yml?branch=main&label=docs)](https://github.com/acerbilab/pybads/actions/workflows/docs.yml)
 [![build](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/build.yml?branch=main&label=build)](https://github.com/acerbilab/pybads/actions/workflows/build.yml)
 
+PyBADS is one of the [open-source tools for fitting models to data](https://acerbilab.org/model-fitting/) from [Luigi Acerbi's group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki. Check out our other tools, such as [PyVBMC](https://github.com/acerbilab/pyvbmc) for the posterior and the model evidence and [PyIBS](https://github.com/acerbilab/pyibs) for models that can only be simulated.
+
 ## What is it?
 
 PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and mildly expensive optimization problems, originally implemented [in MATLAB](https://github.com/acerbilab/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
@@ -16,29 +18,41 @@ In a benchmark with real model-fitting problems from computational and cognitive
 
 PyBADS requires no specific tuning and runs off-the-shelf like other Python optimizers (e.g., `scipy.optimize.minimize`).
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/).
 
-## What's new in PyBADS 1.1
+## What's new in PyBADS 1.5
 
-- **Reproducible runs.** Every random draw of a run comes from one NumPy random generator, created from the `random_seed` option, so a seeded run gives the same result every time on the same machine and leaves NumPy's global random state untouched (see [Quick start](#quick-start)).
-- **More precise results with gpyreg 1.3.3.** PyBADS requires gpyreg 1.3.3, whose Gaussian process predictions are more accurate when the noise is very small; on several benchmark problems with deterministic targets, runs end closer to the minimum.
-- **A fix for user-specified noise.** A run with `specify_target_noise=True` no longer stops with a `ValueError` when a point is evaluated a second time.
-- **Requirements.** PyBADS needs Python 3.10 or newer; the test dependencies are an optional extra, `pybads[test]`.
+- **Faster, with equal or better results.** On our benchmark problems, PyBADS's own computations run almost **twice as fast** as in PyBADS 1.1.0, because each step is faster and runs need fewer evaluations, and it finds equal or better minima.
+- **Periodic variables.** The option `periodic_vars` names the variables that are periodic, such as angles: BADS wraps each of them around its hard bounds, and the Gaussian process that models the objective is periodic along it (see [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html) and the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)).
+- **Fixed variables.** A variable whose four bounds, hard and plausible, are equal is fixed at that value, and BADS optimizes the others (see the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)).
+- **Evaluations made before the run.** `BADS(..., precomputed_evaluations=(X, y))` gives a run evaluations of the target made before it, for instance by an earlier run. The run still starts from `x0` and its initial design, but skips the points of the design that they hold; those nearest the incumbent join its Gaussian process from the first poll on, and none counts against `max_fun_evals` (see the [`BADS` reference](https://acerbilab.github.io/pybads/api/classes/bads.html)).
+- **Seeded initial design.** `random_seed` decides the initial design of a run, as it decides every other random draw; in 1.1.0 the design did not depend on the seed. The FAQ says [how to make a run reproducible](https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-make-a-run-reproducible).
+- **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB BADS 1.1.3, the reference implementation, and follows it more closely in many details, above all with noisy targets. The FAQ lists [what differs from MATLAB BADS](https://acerbilab.github.io/pybads/faq.html#faq-i-used-bads-in-matlab-what-is-different-in-pybads).
+- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9 or later.
+- **FAQ, tips and a coding-agent skill.** The documentation has a [page of frequently asked questions](https://acerbilab.github.io/pybads/faq.html), adapted from the MATLAB BADS FAQ with further questions on PyBADS; a run occasionally prints a short tip with a link to the documentation (`options={"show_tips": False}` turns them off); and the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points a coding agent to the documentation relevant to its task (see [Documentation](#documentation)).
 
-The [changelog](CHANGELOG.md) lists what changed since PyBADS 1.0.6, including why results differ from earlier versions and what to check in an existing script.
+The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md) lists what changed since PyBADS 1.1.0. Results differ from 1.1.0, also with a fixed seed. `BADS` checks the values of many options when it is created and refuses some that 1.1.0 accepted, and some calls and returned fields change: the changelog's list "Upgrading from 1.1.0" says what to check in an existing script.
 
 ## Documentation
 
 The full documentation is available at: https://acerbilab.github.io/pybads/
 
+For coding agents, the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points to the
+documentation relevant to each task. Give your agent that file, or copy the
+`skills/pybads` folder into its skill directory. To update a copied skill,
+copy the folder again from the PyBADS version you use.
+
 ## When should I use PyBADS?
 
-BADS is effective when:
+We recommend PyBADS for problems in which:
 
-- the objective function landscape is rough (nonsmooth), typically due to numerical approximations or noise;
-- the objective function is at least moderately expensive to compute (e.g., more than 0.1 second per function evaluation);
-- the gradient is unavailable (black-box function);
-- the number of input parameters is up to about `D = 20` or so.
+<!-- This list copies the one of the FAQ's answer "Which kind of problems is PyBADS suited for?" (docsrc/source/faq.md): a change to it is made in both. -->
+- the objective function landscape is *rough* (nonsmooth), typically due to numerical approximations or noise;
+- the objective function is at least moderately expensive to compute (e.g., more than 0.1 s per function evaluation);
+- the gradient is unavailable;
+- the number of input parameters is up to about `D = 20`.
+
+The FAQ says [what to use for other problems](https://acerbilab.github.io/pybads/faq.html#faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem).
 
 ## Installation
 
@@ -90,7 +104,7 @@ optimize_result = bads.optimize()
 with input arguments:
 
 - ``target``: the target function, it takes as input a vector and returns its function evaluation;
-- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds;
+- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);
 - ``lower_bounds`` and ``upper_bounds``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
 - ``plausible_lower_bounds`` and ``plausible_upper_bounds``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable function that denotes non-box constraint violations.
@@ -103,13 +117,13 @@ The outputs are:
 
 For a full list and description of the entries of the ``optimize_result`` object, see the [OptimizeResult](https://acerbilab.github.io/pybads/api/classes/optimize_result.html) class documentation.
 
-For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; the seed is read when the object is created. For independent runs, leave `random_seed` unset or use different seeds. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately.
+For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; the seed is read when the object is created. On Apple Silicon Macs, two runs with the same seed make the same random draws but can end at slightly different points: with Apple's Accelerate as the linear algebra library of NumPy and SciPy (as in their wheels on PyPI), the last bits of a result depend on where its arrays lie in memory. For independent runs, leave `random_seed` unset or use different seeds. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately.
 
 ## Next steps
 
-Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/index.html#examples) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](examples/pybads_example_3_noisy_objective.ipynb).
+Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/examples.html) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_3_noisy_objective.ipynb).
 
-For practical recommendations, such as how to set `lower_bounds`, `upper_bounds` and the plausible bounds, check out the FAQ on the [BADS wiki](https://github.com/acerbilab/bads/wiki). Even though the FAQ refers to the MATLAB version of BADS, most of the concepts apply equally to PyBADS.
+For practical recommendations, such as how to set `lower_bounds`, `upper_bounds` and the plausible bounds, how to handle a noisy objective, and what to do when a run goes wrong, check out the [PyBADS FAQ](https://acerbilab.github.io/pybads/faq.html).
 
 ## How does it work?
 
@@ -118,7 +132,7 @@ PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/ab
 - In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
 - In the **search** stage, a [Gaussian process](https://distill.pub/2019/visual-exploration-gaussian-processes/) (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
-**Fig 1: BADS procedure** ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
+**Fig 1: BADS procedure.** The poll's steps are equal in the normalized coordinates in which BADS works, where the plausible box spans [-1, 1] in every variable, and scale with the plausible box in the original coordinates, drawn here; in a variable that BADS maps through a log (positive bounds, and a plausible box that spans a factor of 10 or more), they grow with its value. ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
 
 See [here](https://github.com/lacerbi/optimviz) for a visualization of several optimizers at work, including BADS.
 
@@ -151,7 +165,7 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 - Follow Luigi Acerbi on [X](https://x.com/AcerbiLuigi) or [Bluesky](https://bsky.app/profile/lacerbi.bsky.social) for updates about BADS/PyBADS and other projects;
 - Tell us about your model-fitting problem and your experience with PyBADS (positive or negative) in the lab's [Discussions forum](https://github.com/orgs/acerbilab/discussions).
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/).
 
 ### BibTeX
 
@@ -182,9 +196,9 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 
 ### License
 
-PyBADS is released under the terms of the [BSD 3-Clause License](LICENSE).
+PyBADS is released under the terms of the [BSD 3-Clause License](https://github.com/acerbilab/pybads/blob/main/LICENSE).
 
 ### Acknowledgments
 
-PyBADS is developed by [members](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people) (past and current) of the [Machine and Human Intelligence Group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/) at the University of Helsinki and [ELLIS Institute Finland](https://www.ellisinstitute.fi/). Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's [Claude Opus 5.5](https://www.anthropic.com/claude-opus-5-5).
+PyBADS is developed by members (past and current) of the [Machine and Human Intelligence Group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki and [ELLIS Institute Finland](https://www.ellisinstitute.fi/). Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's [Claude Opus 5.5](https://www.anthropic.com/claude-opus-5-5).
 Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: [Finnish Center for Artificial Intelligence FCAI](https://fcai.fi/).

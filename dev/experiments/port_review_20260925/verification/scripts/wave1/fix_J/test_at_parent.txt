@@ -1,0 +1,5 @@
+E   TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'
+/home/user/gpyreg-v1.3.3/gpyreg/gaussian_process.py:2786: TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'
+=========================== short test summary info ============================
+FAILED pybads/testing/bads/test_gp_update_failures.py::test_noisy_re_estimate_after_failed_rebuild
+1 failed, 52 deselected in 1.56s

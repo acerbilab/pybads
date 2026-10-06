@@ -1,0 +1,35 @@
+fix: the ES scale follows the fraction of new candidates among the best, counted as in MATLAB BADS (W3-8)
+
+From the second generation of the ES search, the scale of the next
+generation is multiplied by exp(es_beta * (frac - 0.2)), where frac is
+the fraction of new candidates among the best ntest of the pool. The
+port miscounted it: z_idx[0 : ntest + 1] > nold looked at one entry too
+many and missed the index nold, and since the port's pool is not
+trimmed to lambda, as MATLAB's is, nold (the number of candidates kept)
+is not where the generation starts from the third generation on, so
+older candidates counted as new: on the same values, 0.56, 0.77, 0.87,
+0.93 for generations 2 to 5, against MATLAB's 0.56, 0.43, 0.39, 0.37.
+The scale grew where MATLAB's shrinks. The update runs only for
+n_search_iter >= 3 (never at the default 2), and the count matters from
+4 on.
+
+The count is now MATLAB's (search/searchES.m:170-193): among the best
+ntest candidates of the pool, those of the generation just added, which
+are the last rows of the port's pool, with ntest the smaller of the
+generation's size and the number of candidates kept before it (none
+before the first generation, where the fraction is not used). The pool
+is built and sorted as before. The guard for ntest == 0, where MATLAB
+gets 0/0, is W3-9's: the scale is then left as it is.
+
+Test: test_search.py::
+test_es_scale_follows_the_fraction_of_new_candidates: an ES at
+n_search_iter = 4 with LCB values drawn per generation, each better on
+average; its scale equals es_start times the exponentials of the true
+shares of each generation among the best ntest of the candidates kept
+before it and its own. It fails at the parent (scale 0.617, expected
+0.446) and passes here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

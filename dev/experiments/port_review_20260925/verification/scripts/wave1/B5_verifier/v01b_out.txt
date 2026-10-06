@@ -1,0 +1,5 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+as is log10 fval: [-5.61 -5.54 -4.94 -5.49 -4.9  -4.68]
+fixed log10 fval: [-4.68 -4.04 -5.13 -4.9  -5.52 -5.58]
+as is minus fixed (log10): [-0.93 -1.49  0.19 -0.59  0.62  0.9 ] worse as is in 3 of 6

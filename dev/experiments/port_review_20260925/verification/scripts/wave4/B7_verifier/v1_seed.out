@@ -1,0 +1,78 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+numpy 2.4.6
+
+== 1. PyBADS seed for a start inside the plausible box ==
+D= 1 seeds over 20 random interior starts [49]; int64 product 48 (exact 48, wraps: False); int32 seed 49 (product 48)
+D= 2 seeds over 20 random interior starts [948]; int64 product 73728 (exact 73728, wraps: False); int32 seed 948 (product 73728)
+D= 3 seeds over 20 random interior starts [967]; int64 product 113246208 (exact 113246208, wraps: False); int32 seed 967 (product 113246208)
+D= 4 seeds over 20 random interior starts [241]; int64 product 173946175488 (exact 173946175488, wraps: False); int32 seed 515 (product -2147483648)
+D= 5 seeds over 20 random interior starts [748]; int64 product 267181325549568 (exact 267181325549568, wraps: False); int32 seed 1 (product 0)
+D= 6 seeds over 20 random interior starts [843]; int64 product 410390516044136448 (exact 410390516044136448, wraps: False); int32 seed 1 (product 0)
+D= 7 seeds over 20 random interior starts [431]; int64 product 3170534137668829184 (exact 630359832643793584128, wraps: True); int32 seed 1 (product 0)
+D= 8 seeds over 20 random interior starts [1]; int64 product 0 (exact 968232702940866945220608, wraps: True); int32 seed 1 (product 0)
+D= 9 seeds over 20 random interior starts [1]; int64 product 0 (exact 1487205431717171627858853888, wraps: True); int32 seed 1 (product 0)
+D=10 seeds over 20 random interior starts [1]; int64 product 0 (exact 2284347543117575620391199571968, wraps: True); int32 seed 1 (product 0)
+D=11 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=12 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=13 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=14 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=15 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=16 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=17 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=18 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=19 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+D=20 seeds over 20 random interior starts [1]; int64 product 0 (exact 3508757826228596152920882542542848, wraps: True); int32 seed 1 (product 0)
+
+== 2. Designs for different starts and generators (D=3) ==
+interior starts give the same design: True
+start with u=-1 gives a different design: True
+start with u=+1 gives a different design: True
+second return value: 2 for 4 rows
+
+== 3. The float -> uint64 cast on this machine ==
+ -0.50 -> 0  warnings: []
+ -0.99 -> 0  warnings: []
+ -1.00 -> 18446744073709551615  warnings: []
+ -1.50 -> 18446744073709551615  warnings: []
+ -2.00 -> 18446744073709551614  warnings: []
+ -2.50 -> 18446744073709551614  warnings: []
+  0.99 -> 0  warnings: []
+  1.00 -> 1  warnings: []
+  1.50 -> 1  warnings: []
+u0=[-1.0, 0.5]: string '18446744073709551615                    0', int64 product 0, seed 1
+u0=[-1.5, 0.5]: string '18446744073709551615                    0', int64 product 0, seed 1
+u0=[-1.0]: string '18446744073709551615', int64 product 4251923356592373760, seed 957
+u0=[-1.0, 0.0, 0.0]: string '18446744073709551615                    0                    0', int64 product 0, seed 1
+u0=[0.0, 0.5]: string '0 0', int64 product 73728, seed 948
+saturating cast, D=1: seed of '0 ... 0' = 49
+saturating cast, D=2: seed of '0 ... 0' = 948
+saturating cast, D=3: seed of '0 ... 0' = 967
+
+== 4. MATLAB initSobol.m:10-12, transcribed ==
+D= 1 num2str='0'                                              double product exact: True  seed (fmod) 49, (naive mod) 49, (exact integers) 49, (saturating uint64) 49; PyBADS 49
+D= 2 num2str='0  0'                                           double product exact: True  seed (fmod) 395, (naive mod) 395, (exact integers) 395, (saturating uint64) 395; PyBADS 948
+D= 3 num2str='0  0  0'                                        double product exact: True  seed (fmod) 161, (naive mod) 161, (exact integers) 161, (saturating uint64) 161; PyBADS 967
+D=10 num2str='0  0  0  0  0  0  0  0  0  0'                   double product exact: True  seed (fmod) 110, (naive mod) 1, (exact integers) 110, (saturating uint64) 961; PyBADS 1
+D= 2 num2str='0.25         -0.5'                              double product exact: True  seed (fmod) 966, (naive mod) 1, (exact integers) 966, (saturating uint64) 961; PyBADS 948
+D= 2 num2str='0.2998      0.7002'                             double product exact: True  seed (fmod) 793, (naive mod) 1, (exact integers) 793, (saturating uint64) 961; PyBADS 948
+D= 2 num2str='0.2998      0.7002'                             double product exact: True  seed (fmod) 793, (naive mod) 1, (exact integers) 793, (saturating uint64) 961; PyBADS 948
+D= 2 num2str='-0.2002       0.4502'                           double product exact: True  seed (fmod) 398, (naive mod) 1, (exact integers) 398, (saturating uint64) 961; PyBADS 948
+D= 2 num2str='-1          0.5'                                double product exact: True  seed (fmod) 137, (naive mod) 1, (exact integers) 137, (saturating uint64) 961; PyBADS 1
+D= 2 num2str='-0.8291     -0.52637'                           double product exact: False seed (fmod) 17, (naive mod) 1, (exact integers) 957, (saturating uint64) 961; PyBADS 948
+D= 2 num2str='0.60254     0.16406'                            double product exact: False seed (fmod) 143, (naive mod) 1, (exact integers) 974, (saturating uint64) 961; PyBADS 948
+D= 3 num2str='-0.81152     -0.13379    -0.041992'             double product exact: False seed (fmod) 571, (naive mod) -10889035741470030830827987437816582766592, (exact integers) 342, (saturating uint64) 961; PyBADS 967
+D= 3 num2str='-0.68066      0.46875     -0.77246'             double product exact: False seed (fmod) 708, (naive mod) 1, (exact integers) 692, (saturating uint64) 961; PyBADS 967
+D= 5 num2str='-0.21777     0.033203     -0.13867      0.17'   double product exact: False seed (fmod) 875, (naive mod) 1, (exact integers) 859, (saturating uint64) 961; PyBADS 748
+D= 5 num2str='0.91211     -0.43164      0.29688      0.392'   double product exact: False seed (fmod) 257, (naive mod) 1, (exact integers) 419, (saturating uint64) 961; PyBADS 748
+D=10 num2str='-0.99707      0.94727     -0.40332     -0.37'   double product exact: False seed (fmod) 94, (naive mod) 1, (exact integers) 212, (saturating uint64) 961; PyBADS 1
+D=10 num2str='-0.25195     -0.81836      0.32129      0.86'   double product exact: False seed (fmod) 89, (naive mod) 1, (exact integers) 785, (saturating uint64) 961; PyBADS 1
+D=20 num2str='0.66016      0.31543      0.36523      0.640'   double product exact: False seed (fmod) 151, (naive mod) 1, (exact integers) 134, (saturating uint64) 961; PyBADS 1
+D=20 num2str='-0.63965      0.49414      0.50488      0.13'   double product exact: False seed (fmod) 101, (naive mod) 1, (exact integers) 515, (saturating uint64) 961; PyBADS 1
+mod(2^64-1, 997)+1 = 961 ; mod(2^64, 997)+1 = 962
+
+== 5. MATLAB seeds over random interior starts ==
+D= 2: 180 distinct seeds (fmod reading) in 200 random starts on the grid
+D= 3: 184 distinct seeds (fmod reading) in 200 random starts on the grid
+D= 5: 183 distinct seeds (fmod reading) in 200 random starts on the grid
+D=10: 185 distinct seeds (fmod reading) in 200 random starts on the grid

@@ -1,0 +1,6 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 seed 60: as is 51 rebuilds, 27 triggered only by reset_gp, fval 1.442e-04 | cleared after rebuild: 25 rebuilds, fval 1.442e-04 | log10 ratio +0.00
+rosen3 seed 61: as is 82 rebuilds, 52 triggered only by reset_gp, fval 5.508e-06 | cleared after rebuild: 44 rebuilds, fval 1.734e-05 | log10 ratio -0.50
+ell4 seed 60: as is 104 rebuilds, 68 triggered only by reset_gp, fval 1.885e-06 | cleared after rebuild: 57 rebuilds, fval 2.972e-08 | log10 ratio +1.80
+ell4 seed 61: as is 140 rebuilds, 102 triggered only by reset_gp, fval 3.465e-08 | cleared after rebuild: 53 rebuilds, fval 8.860e-07 | log10 ratio -1.41

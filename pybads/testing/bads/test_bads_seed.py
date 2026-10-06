@@ -1,7 +1,16 @@
 """Reproducibility of seeded runs: the `random_seed` option fixes a run, and
 `np.random.seed` before construction fixes a run without it. Every draw of a
 run comes from its generator `bads.rng`, so that after construction a run
-draws nothing from NumPy's global random state."""
+draws nothing from NumPy's global random state.
+
+On macOS arm64, NumPy's and SciPy's linear algebra (Accelerate) gives results
+whose last bits depend on where the arrays lie in memory, so two runs of one
+seed need not match once the first Gaussian process is computed: there, runs
+are compared on what the seed alone decides, the start and the initial
+design."""
+
+import platform
+import sys
 
 import numpy as np
 import pytest
@@ -9,6 +18,9 @@ import pytest
 from pybads import BADS
 
 D = 3
+_REPEATS_BIT_FOR_BIT = not (
+    sys.platform == "darwin" and platform.machine() == "arm64"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -70,6 +82,9 @@ def _summary(bads, result):
         "yval_vec": None if yval_vec is None else np.asarray(yval_vec).copy(),
         "X": logger.X[logger.X_flag].copy(),
         "Y": logger.Y[logger.X_flag].copy(),
+        # the rows of the start and the initial design, which the log holds
+        # before the first Gaussian process is computed
+        "n_start": bads.optim_state["eff_starting_points"],
     }
 
 
@@ -79,6 +94,11 @@ def _run(fun, seed, **options):
 
 
 def _same(a, b):
+    if not _REPEATS_BIT_FOR_BIT:
+        n = a["n_start"]
+        return n == b["n_start"] and all(
+            np.array_equal(a[k][:n], b[k][:n]) for k in ("X", "Y")
+        )
     return all(
         (a[k] is None and b[k] is None)
         or (
@@ -114,6 +134,34 @@ def unseeded_run():
 def test_seed_fixes_run(seeded_run):
     assert _same(seeded_run, _run(_sphere, 42))
     assert not _same(seeded_run, _run(_sphere, 43))
+
+
+def _initial_design(seed, x0):
+    """The points of the initial design of a seeded run from `x0`: the rows
+    of the log after the start's (the noise test records none)."""
+    bads = BADS(
+        _sphere,
+        x0,
+        -100 * np.ones(D),
+        100 * np.ones(D),
+        -8 * np.ones(D),
+        12 * np.ones(D),
+        options={"display": "off", "max_fun_evals": 10, "random_seed": seed},
+    )
+    bads.optimize()
+    n_design = bads.optim_state["eff_starting_points"]
+    return bads.function_logger.X[1:n_design].copy()
+
+
+def test_seed_decides_initial_design():
+    """The seed decides the initial design, and the start does not: starts
+    inside the plausible box and on its lower bound give one design for one
+    seed, and two seeds give two designs."""
+    design = _initial_design(42, np.ones(D) * 4)
+    assert design.shape == (4, D)
+    for x0 in (np.array([-5.0, 0.0, 10.0]), -8 * np.ones(D)):
+        assert np.array_equal(_initial_design(42, x0), design)
+    assert not np.array_equal(_initial_design(43, np.ones(D) * 4), design)
 
 
 def test_seed_ignores_global_draws(seeded_run):
@@ -222,12 +270,18 @@ def test_seeded_run_leaves_global_state_untouched(make_fun, options):
     `bads.rng`: NumPy's global random state is the same before and after,
     so no draw site of PyBADS and no gpyreg call (the GP fits, the slice
     sampler) uses it. `double_refit` makes each refit draw a second starting
-    point, from the priors or from the slice sampler."""
+    point, from the priors or from the slice sampler. NumPy's handling of
+    floating-point errors (`np.geterr()`), from its defaults, is the same
+    before and after too."""
     np.random.seed(7)
     before = np.random.get_state()
-    bads = _make_bads(make_fun(0), 3, **options)
-    bads.optimize()
+    with np.errstate(all="warn", under="ignore"):
+        err_before = np.geterr()
+        bads = _make_bads(make_fun(0), 3, **options)
+        bads.optimize()
+        err_after = np.geterr()
     after = np.random.get_state()
     assert before[0] == after[0]
     assert np.array_equal(before[1], after[1])
     assert before[2:] == after[2:]
+    assert err_after == err_before

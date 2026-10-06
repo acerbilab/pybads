@@ -12,24 +12,68 @@ class VariableTransformer:
     D : int
         The dimension of the space.
     lower_bounds : np.ndarray, optional
-        The lower bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set
-        of strict lower and upper bounds for each variable, given in the
-        original space. By default `None`.
+        The lower bounds of the space. ``lower_bounds`` and ``upper_bounds``
+        define a set of strict lower and upper bounds for each variable,
+        given in the original space. By default `None`, which is ``-inf``.
     upper_bounds : np.ndarray, optional
-        The upper bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set
-        of strict lower and upper bounds for each variable, given in the
-        original space. By default `None`.
+        The upper bounds of the space. ``lower_bounds`` and ``upper_bounds``
+        define a set of strict lower and upper bounds for each variable,
+        given in the original space. By default `None`, which is ``inf``.
     plausible_lower_bounds : np.ndarray, optional
-        The plausible lower bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
-        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
-        for each variable, given in the original space. By default `None`.
+        The plausible lower bounds such that ``lower_bounds <=
+        plausible_lower_bounds < plausible_upper_bounds <= upper_bounds``.
+        ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a
+        "plausible" range for each variable, given in the original space,
+        and need to be finite. By default `None`, which is
+        ``lower_bounds``.
     plausible_upper_bounds : np.ndarray, optional
-        The plausible upper bounds such that ``lower_bounds < plausible_lower_bounds < plausible_upper_bounds <
-        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range
-        for each variable, given in the original space. By default `None`.
+        The plausible upper bounds such that ``lower_bounds <=
+        plausible_lower_bounds < plausible_upper_bounds <= upper_bounds``.
+        ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a
+        "plausible" range for each variable, given in the original space,
+        and need to be finite. By default `None`, which is
+        ``upper_bounds``.
     apply_log_t : np.ndarray, optional
-        A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation.
-        By default `None`, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.
+        A boolean array of shape ``(1, D)`` that indicates the variables to
+        which the non-linear log transformation applies; a scalar applies to
+        every variable. By default `None`, in which case the log
+        transformation is applied if the bounds are all positive and the
+        plausible box spans at least one order of magnitude
+        (``pub/plb >= 10``), as it is to a variable whose entry is NaN.
+    fixed_values : np.ndarray, optional
+        The values of the fixed variables of a problem, when the transform
+        is of its other variables: one value per variable of the original
+        space, of shape ``(1, D_orig)`` or ``(D_orig,)``, NaN at each of the
+        ``D`` variables that the bounds describe, in their order, and the
+        value elsewhere. ``inverse_transf`` then returns points of the
+        ``D_orig`` variables, with the fixed ones at their values, and
+        ``__call__`` takes such points and transforms their other
+        coordinates. By default `None`, which, as a row of NaN, fixes no
+        variable: the original space has the ``D`` variables of the bounds.
+
+    Each bound is an array of ``D`` elements, of shape ``(1, D)`` or
+    ``(D,)``, or a scalar or an array of one element, which stands for the
+    same bound in each dimension; bounds of integers are taken as floats.
+
+    Attributes
+    ----------
+    D_orig : int
+        The number of variables of the original space: ``D`` and the fixed
+        variables.
+    fixed_values : np.ndarray or None
+        ``fixed_values`` as a row of shape ``(1, D_orig)``, or None when it
+        fixes no variable.
+
+    Raises
+    ------
+    ValueError
+        When a bound is not a number or an array of numbers, or is neither a
+        scalar nor an array of one or ``D`` elements, when the plausible
+        bounds are not finite or the bounds are out of the order above, or
+        when the transform cannot be inverted at the bounds.
+    ValueError
+        When ``fixed_values`` is not a row of numbers, NaN at exactly ``D``
+        of them and finite at the others.
     """
 
     def __init__(
@@ -40,49 +84,32 @@ class VariableTransformer:
         plausible_lower_bounds: np.ndarray = None,
         plausible_upper_bounds: np.ndarray = None,
         apply_log_t=None,
+        fixed_values: np.ndarray = None,
     ):
         # Empty lb and ub are Infs
         if lower_bounds is None:
-            lower_bounds = np.ones((1, D)) * -np.inf
+            lower_bounds = -np.inf
         if upper_bounds is None:
-            upper_bounds = np.ones((1, D)) * np.inf
+            upper_bounds = np.inf
 
         # Empty plausible bounds equal hard bounds
         if plausible_lower_bounds is None:
-            plausible_lower_bounds = np.copy(lower_bounds)
+            plausible_lower_bounds = lower_bounds
         if plausible_upper_bounds is None:
-            plausible_upper_bounds = np.copy(upper_bounds)
+            plausible_upper_bounds = upper_bounds
 
-        lb = (
-            lower_bounds.copy()
-            if lower_bounds is not None
-            else np.ones((1, D)) * -np.inf
+        # Float copies of shape (1, D), into which the log of a log-scaled
+        # variable's bounds is written in place, so that integer bounds are
+        # not truncated
+        lb, ub, plb, pub = (
+            _bound_as_row(bound, name, D)
+            for bound, name in (
+                (lower_bounds, "lower_bounds"),
+                (upper_bounds, "upper_bounds"),
+                (plausible_lower_bounds, "plausible_lower_bounds"),
+                (plausible_upper_bounds, "plausible_upper_bounds"),
+            )
         )
-        ub = (
-            upper_bounds.copy()
-            if upper_bounds is not None
-            else np.ones((1, D)) * np.inf
-        )
-
-        plb = (
-            lower_bounds.copy()
-            if (plausible_lower_bounds is None)
-            else plausible_lower_bounds.copy()
-        )
-        pub = (
-            upper_bounds.copy()
-            if (plausible_upper_bounds is None)
-            else plausible_upper_bounds.copy()
-        )
-
-        if np.isscalar(lb):
-            lb = lb * np.ones((1, D))
-        if np.isscalar(ub):
-            ub = ub * np.ones((1, D))
-        if np.isscalar(plb):
-            plb = plb * np.ones((1, D))
-        if np.isscalar(pub):
-            pub = pub * np.ones((1, D))
 
         # Save original vectors
         self.orig_ub = ub.copy()
@@ -96,15 +123,42 @@ class VariableTransformer:
         self.pub = pub
 
         self.D = D
-        # Nonlinear log transform
+        # The fixed variables, which the transform leaves out of its points
+        # and inverse_transf puts back at their values; self._free marks the
+        # variables of the bounds among the D_orig of the original space. A
+        # row of NaN, which fixes nothing, is None
+        self.D_orig = D
+        self.fixed_values = None
+        self._free = None
+        if fixed_values is not None:
+            try:
+                values = np.array(fixed_values, dtype=float, ndmin=2)
+            except (TypeError, ValueError):
+                values = None
+            if (
+                values is None
+                or values.ndim != 2
+                or values.shape[0] != 1
+                or np.sum(np.isnan(values)) != D
+                or np.any(np.isinf(values))
+            ):
+                raise ValueError(
+                    "fixed_values needs to be a row of one number per "
+                    f"variable of the original space, NaN at exactly D={D} "
+                    "of them and finite at the others, not "
+                    f"{fixed_values!r}."
+                )
+            if not np.all(np.isnan(values)):
+                self.fixed_values = values
+                self._free = np.isnan(values[0])
+                self.D_orig = values.shape[1]
+        # Nonlinear log transform: NaN marks a variable whose transform is
+        # decided from its bounds, and a scalar applies to every variable
         if apply_log_t is None:
-            self.apply_log_t = np.full((1, self.D), np.nan)
-        elif np.isscalar(apply_log_t):
-            self.apply_log_t = (
-                self.apply_log_t * np.ones((1, self.D))
-            ).astype(bool)
-        else:
-            self.apply_log_t = apply_log_t.copy()
+            apply_log_t = np.nan
+        self.apply_log_t = np.array(apply_log_t, ndmin=2)
+        if self.apply_log_t.size == 1:
+            self.apply_log_t = np.full((1, self.D), self.apply_log_t.item())
 
         (
             self.lb,
@@ -197,12 +251,17 @@ class VariableTransformer:
             )
         else:
             g = lambda x: z(x) + zlog(x)
-            ginv = lambda y: maskindex(
-                gamma * y + mu, ~self.apply_log_t
-            ) + maskindex(
-                np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
-                self.apply_log_t,
-            )
+
+            def ginv(y):
+                # The exponential of a linear variable, masked out, overflows
+                # at a value above about 709, harmlessly
+                with np.errstate(over="ignore"):
+                    x_log = np.minimum(
+                        np.finfo(np.float64).max, np.exp(gamma * y + mu)
+                    )
+                return maskindex(
+                    gamma * y + mu, ~self.apply_log_t
+                ) + maskindex(x_log, self.apply_log_t)
 
         # check that the transform works correctly in the range
         lbtest = self.orig_lb.copy()
@@ -215,16 +274,14 @@ class VariableTransformer:
             np.logical_and((~np.isfinite(self.orig_ub)), self.apply_log_t)
         ] = 1e6
 
-        numeps = 1e-6  # accepted numerical error
+        # accepted numerical error, relative to a bound larger than 1 in
+        # magnitude (MATLAB BADS's transvars.m takes 1e-6 in absolute terms,
+        # which rounding alone exceeds at bounds of large magnitude)
+        numeps = 1e-6
         tests = np.zeros(4)
-        tests[0] = np.all(np.abs(ginv(g(lbtest)) - lbtest) < numeps)
-        tests[1] = np.all(np.abs(ginv(g(ubtest)) - ubtest) < numeps)
-        tests[2] = np.all(
-            np.abs(ginv(g(self.orig_plb)) - self.orig_plb) < numeps
-        )
-        tests[3] = np.all(
-            np.abs(ginv(g(self.orig_pub)) - self.orig_pub) < numeps
-        )
+        for i, b in enumerate([lbtest, ubtest, self.orig_plb, self.orig_pub]):
+            tol = numeps * np.maximum(1.0, np.abs(b))
+            tests[i] = np.all(np.abs(ginv(g(b)) - b) < tol)
         if not np.all(tests):
             raise ValueError(
                 "Cannot invert the transform to obtain the identity at the provided boundaries."
@@ -250,13 +307,16 @@ class VariableTransformer:
         ----------
         input : np.ndarray
             A N x D array, where N is the number of input data
-            and D is the number of dimensions
+            and D is the number of dimensions; N x D_orig with
+            ``fixed_values``, whose fixed coordinates are left out.
 
         Returns
         -------
         u : np.ndarray
             The variables transformed.
         """
+        if self.fixed_values is not None:
+            input = np.asarray(input)[..., self._free]
         y = self.g(input)
         y = np.minimum(
             np.maximum(y, self.lb), self.ub
@@ -276,15 +336,48 @@ class VariableTransformer:
         Returns
         -------
         x : np.ndarray
-            The original variables retrieved by the inverse transform.
+            The original variables retrieved by the inverse transform; with
+            ``fixed_values``, all ``D_orig`` of them, the fixed ones at
+            their values.
         """
         x = self.ginv(input)
         x = np.minimum(
             np.maximum(x, self.orig_lb), self.orig_ub
         )  # Force to stay within bounds
         x = x.reshape(input.shape)
+        if self.fixed_values is not None:
+            full = np.empty(x.shape[:-1] + (self._free.size,))
+            full[...] = self.fixed_values[0]
+            full[..., self._free] = x
+            x = full
 
         return x
+
+
+def _bound_as_row(bound, name, D):
+    """A float copy of ``bound`` of shape ``(1, D)``: an array of ``D``
+    elements, of shape ``(1, D)`` or ``(D,)``, or a scalar or an array of one
+    element, replicated in each dimension. A bound that is not a number, or
+    an array of numbers, is refused, a string included."""
+    try:
+        array = np.asarray(bound)
+        if array.dtype.kind in "USV":
+            raise TypeError("a string or bytes")
+        row = np.array(array, dtype=float, ndmin=2)
+    except (TypeError, ValueError) as err:
+        raise ValueError(
+            f"{name} needs to be a number or an array of numbers, not "
+            f"{bound!r}."
+        ) from err
+    if row.size == 1:
+        row = np.full((1, D), row.item())
+    if row.shape != (1, D):
+        raise ValueError(
+            f"{name} needs to be a scalar or an array of D={D} elements, of "
+            f"shape (1, D) or (D,), not an array of shape "
+            f"{np.shape(bound)}."
+        )
+    return row
 
 
 def maskindex(vector, bool_index):

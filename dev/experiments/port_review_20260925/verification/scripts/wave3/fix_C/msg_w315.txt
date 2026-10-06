@@ -1,0 +1,37 @@
+fix: the ES search ranks tied candidates and training points in their order, with MATLAB's stable sort (W3-15)
+
+The ES search ranks its pool of candidates by acquisition value, and
+ES-wcm the GP's training points by value, with np.argsort, whose
+default quicksort does not keep the order of equal values; MATLAB's
+sort is stable. Ties are common in the pool: far candidates whose
+predictions equal the GP's prior exactly, and they rank near the top.
+Which of the tied candidates are kept, and the order of the parents,
+which decides their offspring, then depended on NumPy's sort (and
+possibly on the CPU, if its SIMD sort orders ties differently).
+
+Both sorts are now stable (kind="stable"), at the pool of the ES
+(__call__) and at ES-wcm's best training points (_initialize_), so that
+equal values keep their order in the pool (earlier generations first,
+contraints_check's order within each) and in the training set, as in
+MATLAB's searchES (sort(z) and sort(Y,'ascend')). With the pool
+untrimmed (W3-8), the order among ties matches MATLAB's up to the
+second generation; from the third, a candidate that MATLAB trimmed at a
+tie could still rank before the new ones of equal value.
+
+Test: test_search.py::
+test_es_wcm_ranks_tied_training_points_in_their_order (training values
+in {0, 1, 2}: the best points passed to ucov are those of Python's
+stable sort, in its order) and
+test_es_search_ranks_tied_candidates_in_their_order (acquisition values
+in {-1, 0}: the search returns the first of the best in the pool). Both
+fail at the parent and pass here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+3a6c31fe4f430b0b, the parent's (W3-5): the six runs meet ties that the
+two sorts order differently (at 87 of 294 pools, 38 of them in the
+first generation), but their whole evaluation histories are unchanged.
+The change does move runs: three seeded runs of a 3-D Rosenbrock
+function (bounds [-5, 5], 120 evaluations) all have other histories,
+two of them another final value.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

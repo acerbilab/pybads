@@ -1,0 +1,34 @@
+fix: the noise test leaves the start's row of the log as it was, so that n_eff counts what eff_starting_points counts (W4-6)
+
+When uncertainty_handling is left empty, _init_mesh_ evaluates x0 a
+second time, as the noise test, through the function logger with
+record_duplicate_data=False. That path records no row, and _init_mesh_
+already restored total_fun_eval_time after it, but the path still added
+1 to the start's n_evals and averaged the test's time into the start's
+fun_eval_time. n_eff, the sum of n_evals over the log's rows
+(gaussian_process_train.py, _get_gp_training_options), then counted the
+test, where eff_starting_points, the rows after the design, does not, so
+the fraction of the budget used after the initial design, from which
+init_N (the number of prior draws of a refit) follows, ran one
+evaluation ahead in every run with the noise test (at D = 2, 123 draws
+instead of 128 at the first refit). MATLAB BADS calls the target directly
+for the test (evalinitmesh.m:41), which touches no record.
+
+_init_mesh_ now saves the start's n_evals and fun_eval_time before the
+test and restores them after it, beside total_fun_eval_time. The call
+still goes through the logger, so its checks of the value stay (W4-13).
+
+Test: test_run_control.py::test_noise_test_leaves_the_start_row_as_it_was,
+a run of 10 evaluations at level 0 with a timer that times the k-th
+evaluation at k s: the start's row keeps n_evals 1 and its own time, 1 s,
+and the rows' counts sum to the number of rows, one less than
+func_count. At the parent n_evals[0] is 2 (and its time 1.5 s, the sum
+10 for 9 rows); here 1 and 1 s, 9 for 9.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): c91725823bc62b29, from W4-1's 663b49edc9320c55: its three
+deterministic runs, which take the noise test, move; its three noisy
+runs (uncertainty_handling=True, no noise test) are the same, run for
+run. The gate is the default suite's population comparison.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

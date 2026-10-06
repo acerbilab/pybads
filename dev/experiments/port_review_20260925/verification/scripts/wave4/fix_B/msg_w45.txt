@@ -1,0 +1,16 @@
+docs: AGENTS.md says that only a direct use of FunctionLogger reaches its merge of a repeated point (W4-5)
+
+AGENTS.md's FunctionLogger bullet says that a repeated point at level 2
+is merged into its row by precision weighting, which reads as something
+a run does. No run reaches the merge at any option: every point a run
+records after x0 has passed contraints_check, which removes the
+candidates already evaluated (as MATLAB's uCheck does, since W3-1), a run
+at level 2 has no noise test, and the final samples take
+record_duplicate_data=False, which records no row; FunctionLogger.add has
+no caller. The bullet now says that only a direct use of the logger
+reaches the merge, and why. The merge stays, a documented behavior of
+the class, as ruled.
+
+A record only; no test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

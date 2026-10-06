@@ -1,0 +1,7 @@
+/home/user/pybads-fix-D/pybads/__init__.py
+False 0 7 [(0, 1, None), (1, 1, None), (2, 1, None), (3, 1, np.float64(32.7077)), (4, 1, np.float64(0.3541)), (5, 2, np.float64(0.0005)), (6, 2, np.float64(0.0002))]
+False 1 7 [(0, 1, None), (1, 1, None), (2, 1, None), (3, 1, np.float64(32.7075)), (4, 1, np.float64(0.3101)), (5, 2, np.float64(0.0004)), (6, 2, np.float64(0.0004))]
+False 2 7 [(0, 1, None), (1, 1, None), (2, 1, None), (3, 1, np.float64(32.7077)), (4, 1, np.float64(0.3444)), (5, 2, np.float64(0.0002)), (6, 2, np.float64(0.0002))]
+True 0 4 [(0, 1, None), (1, 1, None), (2, 1, None), (3, 1, np.float64(3.4032))]
+True 1 4 [(0, 1, None), (1, 1, None), (2, 1, None)]
+True 2 4 [(0, 1, None), (1, 1, None), (2, 1, None), (3, 1, np.float64(3.6536))]

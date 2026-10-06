@@ -1,0 +1,92 @@
+diff --git a/pybads/bads/gaussian_process_train.py b/pybads/bads/gaussian_process_train.py
+index c08d3ee..d2a2416 100644
+--- a/pybads/bads/gaussian_process_train.py
++++ b/pybads/bads/gaussian_process_train.py
+@@ -671,18 +671,25 @@ def _robust_gp_fit_(
+                 new_hyp = old_hyp_gp
+ 
+             nudge = options["noise_nudge"]
+-            if nudge is None or len(nudge) == 0:
++            if nudge is None or np.size(nudge) == 0:
+                 nudge = np.array([0, 0])
+-            elif len(nudge) == 1:
+-                nudge = np.vstack((nudge, 0.5 * nudge[0]))
++            elif np.size(nudge) == 1:
++                # Half of it for the bound, as MATLAB completes it
++                # (gpHyperOptimize.m:7)
++                nudge = np.ravel(nudge)[0] * np.array([1, 0.5])
+ 
+             # Try increase starting point of noise
+             noise_nudge = noise_nudge + nudge[0]
+ 
+-            # Increase gp noise hyp lower bounds
+-            bounds = tmp_gp.get_bounds()
++            # Increase gp noise hyp lower bounds, by nudge[1] per failure
++            # from the bound at entry, which `gp` holds (MATLAB:
++            # gpHyperOptimize.m:163-164)
++            bounds = gp.get_bounds()
+             noise_bound = bounds["noise_log_scale"]
+-            noise_bound = (noise_bound[0] + noise_nudge, noise_bound[1])
++            noise_bound = (
++                noise_bound[0] + (i_try + 1) * nudge[1],
++                noise_bound[1],
++            )
+             bounds["noise_log_scale"] = noise_bound
+             tmp_gp.set_bounds(bounds)
+ 
+diff --git a/pybads/testing/bads/test_gaussian_process_train.py b/pybads/testing/bads/test_gaussian_process_train.py
+index 4dce178..309d7cc 100644
+--- a/pybads/testing/bads/test_gaussian_process_train.py
++++ b/pybads/testing/bads/test_gaussian_process_train.py
+@@ -567,3 +567,51 @@ def test_robust_fit_every_try_failed_returns_best_start(
+     _, hyp, _, flag = _robust_fit(refit_case, starts, noise_nudge=nudge)
+     assert flag == -1
+     assert np.array_equal(hyp, in_bounds[:1])
++
++
++@pytest.mark.parametrize(
++    "noise_nudge, bound_nudge",
++    [(np.array([1, 0]), 0.0), (np.array([1]), 0.5)],
++    ids=["default", "one_element"],
++)
++def test_robust_fit_noise_nudge(
++    monkeypatch, refit_case, noise_nudge, bound_nudge
++):
++    """After each failure, the start of the noise is raised by the
++    cumulative `noise_nudge[0]`, and its lower bound from the bound at entry
++    by `noise_nudge[1]` per failure, as in MATLAB's gpHyperOptimize.m, which
++    completes a one-element nudge with half of it for the bound. At the
++    default [1, 0] the bound stays in place, and the fifth failure no longer
++    raises the bound above the upper one."""
++    _, gp, _ = refit_case
++    i_noise = gp.covariance.hyperparameter_count(gp.D)
++    lb0 = gp.lower_bounds[i_noise]
++    hyp = gp.get_hyperparameters(as_array=True)
++    # Each retry starts from the previous hyperparameters, and its noise
++    # from theirs plus the nudge
++    monkeypatch.setattr(
++        gaussian_process_train,
++        "_get_random_samples_from_priors_",
++        lambda gp, rng=None: hyp.copy(),
++    )
++    calls = _inject_fit_failures(monkeypatch, 6)
++    _robust_fit(refit_case, noise_nudge=noise_nudge)
++    assert len(calls) == 7
++    for k, call in enumerate(calls):
++        assert np.isclose(call["lower_bounds"][i_noise], lb0 + k * bound_nudge)
++        assert np.isclose(call["hyp0"][0, i_noise], hyp[0, i_noise] + k)
++
++
++def test_robust_fit_slice_sampler_starts_within_bounds(
++    monkeypatch, refit_case
++):
++    """With `use_slice_sampler`, the start of each retry lies within the
++    bounds: the lower bound of the noise no longer rises faster than its
++    start, which stopped the run at the third consecutive failure, when the
++    slice sampler refused its start ("The initial starting point X0 is
++    outside the bounds")."""
++    calls = _inject_fit_failures(monkeypatch, 4)
++    _robust_fit(refit_case, use_slice_sampler=True)
++    assert len(calls) == 5
++    for call in calls:
++        assert np.all(call["hyp0"] >= call["lower_bounds"])

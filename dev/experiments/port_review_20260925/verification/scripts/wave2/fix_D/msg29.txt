@@ -1,0 +1,24 @@
+fix: the accelerated mesh reduction is tested from MATLAB's iteration (W2-29)
+
+After a failed poll, the mesh shrinks once more when the iterate
+accelerate_mesh_steps iterations back is not improved on by tol_fun. MATLAB
+BADS tests it when iter > AccelerateMeshSteps (bads.m:976-982), with iter
+counted from 1; PyBADS tested optim_state["iter"] > accelerate_mesh_steps
+with its count from 0, one iteration late (MATLAB's iter > steps + 1).
+8e59038 gave max_iter and the stall criterion this shift, not this test.
+The test is now optim_state["iter"] >= accelerate_mesh_steps; the base
+index, iter - accelerate_mesh_steps, is already MATLAB's iterate and stays.
+Default runs change where a failed poll at 0-based iteration 3 follows
+three iterations without improvement.
+
+Test: test_run_control.py::
+test_accelerated_mesh_reduction_counts_iterations_from_one, a sphere
+started at its minimum, where every poll fails and every test of the
+reduction applies it: the polls shrink the mesh by 1, 1, 1, 2, 2 steps at
+0-based iterations 0 to 4 (at the parent, 1, 1, 1, 1, 2).
+
+Fingerprint: dc11118754b18b47, unchanged from the parent: in its six runs
+every failed poll at iteration 3 improves on iteration 0 by more than
+tol_fun (by 3.4 to 32.7), so the test the fix adds shrinks no mesh there.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

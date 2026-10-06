@@ -1,0 +1,11 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+edge_D2 seed 0: 0d866e8 fval 2 evals 43; MATLAB's round fval 2 evals 43; same final state True; first evaluation that differs 36
+rosen_D3 seed 0: 0d866e8 fval 1.81141e-05 evals 110; MATLAB's round fval 1.81141e-05 evals 110; same final state True; first evaluation that differs None
+noisy_D2 seed 0: 0d866e8 fval -0.294286 evals 184; MATLAB's round fval -0.294286 evals 184; same final state True; first evaluation that differs 125
+edge_D2 seed 1: 0d866e8 fval 2 evals 43; MATLAB's round fval 2 evals 43; same final state True; first evaluation that differs 35
+rosen_D3 seed 1: 0d866e8 fval 2.48179e-05 evals 109; MATLAB's round fval 2.48179e-05 evals 109; same final state True; first evaluation that differs None
+noisy_D2 seed 1: 0d866e8 fval -0.17578 evals 200; MATLAB's round fval -0.17578 evals 200; same final state True; first evaluation that differs None
+edge_D2 seed 2: 0d866e8 fval 2 evals 43; MATLAB's round fval 2 evals 43; same final state True; first evaluation that differs 35
+rosen_D3 seed 2: 0d866e8 fval 3.38729e-05 evals 120; MATLAB's round fval 3.38729e-05 evals 120; same final state True; first evaluation that differs None
+noisy_D2 seed 2: 0d866e8 fval 0.146724 evals 200; MATLAB's round fval 0.146724 evals 200; same final state True; first evaluation that differs 180

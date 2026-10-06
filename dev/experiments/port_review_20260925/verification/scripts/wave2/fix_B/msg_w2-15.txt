@@ -1,0 +1,32 @@
+fix: the display option follows MATLAB BADS's display levels, "notify" and "final" included (W2-15)
+
+display was compared as an exact string (bads.py): "off" set the BADS
+logger to WARNING, "iter" to INFO and "full" to DEBUG, and every other
+value, "notify" and "final" included, which the option's description
+lists, and "none", "OFF" or "Iter", left it at INFO, the full display.
+MATLAB BADS reads the first three letters, lower case (bads.m:312-328):
+off/none 0, notify 1, final 2, iter/all 3, and any other value 1; it
+prints its opening line from 1 on (evalinitmesh.m:52), the iteration
+lines at 3 (evalinitmesh.m:65-83, bads.m:1022) and its final message from
+2 on (bads.m:1172).
+
+The logger's level is now set from the first three letters of display,
+lower case: "off" and "none" WARNING, "notify" (and any value not listed,
+as in MATLAB) the opening message's level, "final" the final message's,
+"iter" and "all" INFO, and "full", PyBADS's own, DEBUG, as before. The
+opening message ("Beginning optimization of a ... objective function") is
+logged at 25, the level of the message of a random starting point, which
+MATLAB also prints from 1 on (setupvars.m:80), and the final message at
+22, both between the iteration lines (INFO) and the warnings. The option's
+description names "full".
+
+Tests (test_bads_logger.py): test_display_message_levels (the iteration
+lines at INFO < the final message < the opening message < WARNING; the
+parent logs all at INFO) and test_display_levels (the kinds of messages
+logged at "off", "notify", "final", "iter", "full", "none", "OFF",
+"Final" and "all"; "notify", "final", "none", "OFF" and "Final" fail at
+the parent).
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

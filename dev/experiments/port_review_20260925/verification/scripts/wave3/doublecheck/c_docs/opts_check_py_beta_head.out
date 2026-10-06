@@ -1,0 +1,14 @@
+pybads /home/user/pybads-review/pybads/__init__.py
+gpyreg /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+sqrt_beta=2.0: ran; fval 2.09e-06, x [ 0.0013 -0.0007], func_count 54, iterations 7
+sqrt_beta=2: ran; fval 2.09e-06, x [ 0.0013 -0.0007], func_count 54, iterations 7
+sqrt_beta=np.float64(2.0): ran; fval 2.09e-06, x [ 0.0013 -0.0007], func_count 54, iterations 7
+sqrt_beta=np.float64(0.0): at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=np.float64(-1.0): at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=np.True_: at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=np.complex128(1+0j): at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=array([0.]): at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=array([2.]): ran; fval 2.09e-06, x [ 0.0013 -0.0007], func_count 54, iterations 7
+sqrt_beta=inf: at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta=True: at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])
+sqrt_beta='x': at optimize(): ValueError: acq_fcn_lcb: sqrt_beta needs to be None (the default schedule), a callable sqrt_beta(t, n_vars) or a positive finite rea (iter 1, func_count 9; ['__call__:90', '__call__:155', 'acq_fcn_lcb:59'])

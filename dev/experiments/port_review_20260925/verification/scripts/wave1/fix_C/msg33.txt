@@ -1,0 +1,5 @@
+fix: remove the length-scale bounds from upper_gp_length_factor, which the next lines overwrote (W1-33)
+
+_gp_hyp set the bounds of the GP log length scales from upper_gp_length_factor when it was positive, and a few lines later set them unconditionally to the logs of tol_mesh and of the maximum length scale (gpdefBads.m), so the option had no effect at any value: the bounds of the initial GP are the same at 0, 0.05 and 5 (the B6 verifier's v_misc.py F9, and again here). The option is PyBADS's own (MATLAB BADS has none) and comes from PyVBMC; the overwritten branch is removed, and the option stays in advanced_bads_options.ini, read by no code. No behavior changes, so no test can fail before the change. Fingerprint bfbc6d6737e99d88, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

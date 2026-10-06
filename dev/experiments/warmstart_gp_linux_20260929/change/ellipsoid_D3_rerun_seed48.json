@@ -1,0 +1,153 @@
+{
+ "label": "ellipsoid_D3_rerun",
+ "seed": 48,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -3.916488295153935,
+  4.785355079895794,
+  0.2131080622950492
+ ],
+ "precomputed": {
+  "kind": "rerun",
+  "rows": 44,
+  "digest": "2a0fc9686bb2c13b"
+ },
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 48
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 48,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.3736002622172236,
+   1.2009428685996681,
+   -2.04814386786893
+  ],
+  "fval": 2.94284495717032e-06,
+  "fsd": 0.0,
+  "true_error": 2.94284495717032e-06,
+  "func_count": 125,
+  "iterations": 11,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 4.730795269999362,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.006886356999530108,
+    "target": 0.0028701229979941085,
+    "init": 0.0007560040007668906,
+    "gp_init": 0.1673651159999281,
+    "poll": 1.384652668002969,
+    "history": 0.002256736000163073,
+    "search": 3.158661968998553
+   },
+   "paths": {
+    "loop": 0.006886356999530108,
+    "target": 0.0028701229979941085,
+    "init": 0.0007560040007668906,
+    "gp_init": 0.0017562209995958256,
+    "gp_init/gp_rebuild": 0.0021934509995844564,
+    "gp_init/gp_rebuild/gp_fit": 0.04788237900083914,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 0.11252389699984633,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 0.0030091680000623455,
+    "poll": 0.04830469300061451,
+    "poll/gp_rebuild": 0.043405775000792346,
+    "poll/target_from_gp": 0.017325179001090873,
+    "history": 0.002256736000163073,
+    "search": 0.07290617899774972,
+    "search/gp_rebuild": 0.12205905000246275,
+    "search/search_es": 0.6751892379961646,
+    "search/gp_update": 0.026691287002904573,
+    "search/gp_rebuild/gp_fit": 0.21677481599999737,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 1.9618340519973572,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.08193123700220895,
+    "search/gp_rebuild/gp_fit/gp_fit_fallback": 0.0012761099997078418,
+    "poll/gp_rebuild/gp_fit": 0.24357510000209004,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 0.9972068229990327,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.03483509799934836
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_rebuild": 1,
+    "gp_init/gp_rebuild/gp_fit": 1,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 2,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 2,
+    "poll": 10,
+    "poll/gp_rebuild": 15,
+    "poll/target_from_gp": 59,
+    "history": 11,
+    "search": 65,
+    "search/gp_rebuild": 44,
+    "search/search_es": 65,
+    "search/gp_update": 49,
+    "search/gp_rebuild/gp_fit": 7,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 43,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 43,
+    "search/gp_rebuild/gp_fit/gp_fit_fallback": 2,
+    "poll/gp_rebuild/gp_fit": 5,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 18,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 18
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "58d922a1",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/fix-warm/dev/scripts/runs/worktrees/w_change/pybads",
+   "git": {
+    "sha": "58d922a1",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-29T07:42:32+0000",
+  "finished": "2026-09-29T07:42:38+0000"
+ }
+}

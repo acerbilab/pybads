@@ -1,0 +1,9 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+problem          variant  searches   <0.5 min factor         fval  evals
+rosenbrock D=2   pybads         37    11%     0.3536   2.5177e-06     71
+rosenbrock D=2   floor          37     0%     0.5000   1.3242e-06     71
+ellipsoid D=6    pybads        102     0%     0.5000   0.00031165    200
+ellipsoid D=6    floor         102     0%     0.5000   0.00031165    200
+rosenbrock D=6   pybads        138    27%     0.1768       4.0228    200
+rosenbrock D=6   floor         106     0%     0.5000      0.24675    200

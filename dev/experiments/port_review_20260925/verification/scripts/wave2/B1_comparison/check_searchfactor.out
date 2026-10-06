@@ -1,0 +1,5 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosenbrock D=2: search_n_try=4.0, searches=49, factor<0.5 used in 4 (8%), min factor=0.3536; fval=2e-07 evals=94
+ellipsoid D=6: search_n_try=6.0, searches=37, factor<0.5 used in 18 (49%), min factor=0.1768; fval=0 evals=130
+rosenbrock D=6: search_n_try=6.0, searches=131, factor<0.5 used in 19 (15%), min factor=0.1768; fval=0.292 evals=200

@@ -1,0 +1,157 @@
+{
+ "label": "ellipsoid_D3_other",
+ "seed": 9,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -2.339101397987368,
+  -0.5076223142960217,
+  3.7123995905210165
+ ],
+ "precomputed": {
+  "kind": "other",
+  "rows": 59,
+  "digest": "6fe7d1081301768a"
+ },
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 9
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 9,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.3750785211086622,
+   1.2009080714597076,
+   -2.048143953361432
+  ],
+  "fval": 2.561698525603104e-08,
+  "fsd": 0.0,
+  "true_error": 2.561698525603104e-08,
+  "func_count": 143,
+  "iterations": 14,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 5.110241136999775,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.006913766001162003,
+    "target": 0.0028728660005537085,
+    "init": 0.0010083120004691056,
+    "gp_init": 0.5221125059997576,
+    "poll": 2.54639327799861,
+    "history": 0.0026690709992180928,
+    "search": 2.0196321320002344
+   },
+   "paths": {
+    "loop": 0.006913766001162003,
+    "target": 0.0028728660005537085,
+    "init": 0.0010083120004691056,
+    "gp_init": 0.0025241429998459353,
+    "gp_init/gp_fit": 0.02704225600018617,
+    "gp_init/gp_rebuild": 0.002464393999616732,
+    "gp_init/gp_rebuild/gp_fit": 0.0008522550010638952,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 0.4726212659998055,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 0.01616148799939765,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_fallback": 0.00044670399984170217,
+    "poll": 0.0650971169981097,
+    "poll/gp_rebuild": 0.05254990500043277,
+    "poll/gp_rebuild/gp_fit": 0.35653665599920714,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 1.958851080000386,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.06836814800089996,
+    "poll/gp_rebuild/gp_fit/gp_fit_fallback": 0.0009325019996140327,
+    "poll/target_from_gp": 0.04405786999996053,
+    "history": 0.0026690709992180928,
+    "search": 0.06662642700147511,
+    "search/gp_rebuild": 0.09281126199857681,
+    "search/search_es": 0.6633325689995218,
+    "search/gp_update": 0.027586892999806878,
+    "search/gp_rebuild/gp_fit": 0.3022835809993012,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.8407420900002762,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.02624931000127617
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "gp_init/gp_rebuild": 1,
+    "gp_init/gp_rebuild/gp_fit": 1,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 10,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 10,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_fallback": 1,
+    "poll": 13,
+    "poll/gp_rebuild": 19,
+    "poll/gp_rebuild/gp_fit": 7,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 42,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 42,
+    "poll/gp_rebuild/gp_fit/gp_fit_fallback": 2,
+    "poll/target_from_gp": 77,
+    "history": 14,
+    "search": 61,
+    "search/gp_rebuild": 32,
+    "search/search_es": 61,
+    "search/gp_update": 46,
+    "search/gp_rebuild/gp_fit": 7,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 16,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 16
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "58d922a1",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/fix-warm/dev/scripts/runs/worktrees/w_change/pybads",
+   "git": {
+    "sha": "58d922a1",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-29T07:08:53+0000",
+  "finished": "2026-09-29T07:09:00+0000"
+ }
+}

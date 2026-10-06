@@ -1,0 +1,16 @@
+************* Module pybads.bads.bads
+/home/user/pybads-review/pybads/bads/bads.py:1430:8: W0612: Unused variable 'hyp_dict' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1438:12: W0612: Unused variable 'Ns_gp' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1438:19: W0612: Unused variable 'sn2hpd' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1472:12: W0612: Unused variable 'action_txt' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1524:20: W0612: Unused variable 'u_search' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1525:20: W0612: Unused variable 'search_dist' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1526:20: W0612: Unused variable 'f_mu_search' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1527:20: W0612: Unused variable 'f_sd_search' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:1898:20: W0612: Unused variable 'do_gp_calibration' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:2016:35: W0612: Unused variable 'idx' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:2485:31: W0612: Unused variable 'f_idx_new' (unused-variable)
+/home/user/pybads-review/pybads/bads/bads.py:6:0: W0611: Unused matplotlib.pyplot imported as plt (unused-import)
+
+-----------------------------------
+Your code has been rated at 9.90/10

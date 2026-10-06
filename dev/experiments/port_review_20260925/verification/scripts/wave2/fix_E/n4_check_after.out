@@ -1,0 +1,9 @@
+/home/user/pybads-fix-E/pybads/__init__.py
+[inf, 0.0] [-2.0, -2.0] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+[-inf, 0.0] [-2.0, -2.0] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+[nan, 0.0] [-2.0, -2.0] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+Detected fully unconstrained optimization.
+[inf, 0.0] [-inf, -inf] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+[nan, 100.0] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+[inf, 100.0] -> accepted, x0 = [[-0.82870167 -0.52637899]]
+[0.0, 100.0] -> refused: ValueError bads:InitialPointsNotInsideBounds: The starting

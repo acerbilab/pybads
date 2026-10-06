@@ -1,0 +1,17 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+D=2 det   max_fun_evals=  3: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 3, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 4, nfs None, MaxFunEvals after 3
+D=2 det   max_fun_evals=  4: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 4, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 4, nfs None, MaxFunEvals after 4
+D=2 det   max_fun_evals=  5: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 5, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 4, nfs None, MaxFunEvals after 5
+D=2 det   max_fun_evals=  6: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 6, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 4, nfs None, MaxFunEvals after 6
+D=3 det   max_fun_evals=  4: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 4, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 5, nfs None, MaxFunEvals after 4
+D=3 det   max_fun_evals=  5: PyBADS target calls   6, func_count   6, design points   4, nfs after 10, max_fun_evals after 5, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 5, nfs None, MaxFunEvals after 5
+D=5 det   max_fun_evals=  7: PyBADS target calls  10, func_count  10, design points   8, nfs after 10, max_fun_evals after 7, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 7, nfs None, MaxFunEvals after 7
+D=5 det   max_fun_evals=  9: PyBADS target calls  10, func_count  10, design points   8, nfs after 10, max_fun_evals after 9, iterations 1, fsd 0.0, yval_vec None | MATLAB init evals 7, nfs None, MaxFunEvals after 9
+D=2 noisy max_fun_evals= 10: PyBADS target calls  18, func_count  18, design points  16, nfs after -8, max_fun_evals after 18, iterations 1, fsd 1.0, yval_vec None | MATLAB init evals 11, nfs -1, MaxFunEvals after 11
+D=2 noisy max_fun_evals= 25: PyBADS target calls  34, func_count  34, design points  32, nfs after -9, max_fun_evals after 34, iterations 1, fsd 1.0, yval_vec None | MATLAB init evals 22, nfs 3, MaxFunEvals after 22
+D=2 noisy max_fun_evals= 34: PyBADS target calls  34, func_count  34, design points  32, nfs after 0, max_fun_evals after 34, iterations 1, fsd 1.0, yval_vec None | MATLAB init evals 22, nfs 10, MaxFunEvals after 24
+D=2 noisy max_fun_evals= 38: PyBADS target calls  34, func_count  34, design points  32, nfs after 4, max_fun_evals after 34, iterations 1, fsd 1.0, yval_vec 1 | MATLAB init evals 22, nfs 10, MaxFunEvals after 28
+D=2 noisy max_fun_evals= 40: PyBADS target calls  34, func_count  34, design points  32, nfs after 6, max_fun_evals after 34, iterations 1, fsd 1.0, yval_vec 1 | MATLAB init evals 22, nfs 10, MaxFunEvals after 30
+D=2 noisy max_fun_evals= 44: PyBADS target calls  34, func_count  34, design points  32, nfs after 10, max_fun_evals after 34, iterations 1, fsd 1.0, yval_vec 1 | MATLAB init evals 22, nfs 10, MaxFunEvals after 34
+D=2 noisy max_fun_evals= 50: PyBADS target calls  50, func_count  50, design points  32, nfs after 10, max_fun_evals after 40, iterations 2, fsd 0.3257115587607414, yval_vec 10 | MATLAB init evals 22, nfs 10, MaxFunEvals after 40

@@ -1,0 +1,1147 @@
+# Plan: independent correctness review of PyBADS and its MATLAB port
+
+Started 2026-09-25 as the plan of the item "Bug hunt and verification
+against MATLAB BADS" of `TODO.md`; closed 2026-09-28 by #87, which removed
+the item. This file holds the design, the reviewer brief, the working rules
+and the worklog. The records of the review (the known-differences sheet,
+the counterpart map, the reviewers' reports, the verification scripts and
+the per-wave ledgers) are kept under `experiments/port_review_20260925/`;
+the consolidated ledger, written at the close, is
+`results/2026-09-28-port-correctness-review.md`.
+
+The design follows PyVBMC's review of its own port
+(`../pyvbmc/dev/plans/port-correctness-review.md`, 2026-09-19 to 09-24),
+scaled to a smaller package: about 5,400 lines of numerical code, 60% of
+them in `pybads/bads/bads.py` and `pybads/bads/gaussian_process_train.py`.
+
+## Purpose
+
+Several independent reviewers read the PyBADS code for errors and latent
+defects, half of them checking internal correctness and half comparing the
+code with MATLAB BADS, with a third reader on the formulas of the
+improvement, the acquisition and the GP geometry. The survey
+(`results/2026-09-23-codebase-survey.md`) found defects by one reading and
+checked few of them against MATLAB; its candidate table is the evidence that
+a systematic pass is needed, not the pass itself. Passing tests and the
+fingerprint pin the current behavior; they do not establish that the port
+is right.
+
+Coverage follows the categories of PyVBMC's review: formulas, indexing and
+array shapes, defaults, control flow, random draws, state and caching, and
+cross-module behavior.
+
+## Decisions (PI, 2026-09-25)
+
+- gpyreg's internals are out of scope: PyVBMC's review read them (its waves
+  6 and 7, gpyreg 1.2.1 to 1.3.3). How PyBADS uses gpyreg is in scope,
+  compared with how MATLAB BADS uses GPML. That includes gpyreg's
+  `RationalQuadraticARD`, the only kernel PyBADS uses: it has no `gplite`
+  counterpart, PyVBMC never reaches it, and PyVBMC's review read it on the
+  internal track alone. Its reference is GPML's `covRQard` as BADS calls it
+  (`gpml_fast/covRQard_fast.m`).
+- The MATLAB comparison target is the latest `master` of `acerbilab/bads`,
+  v1.1.3 (below), so that the review also finds what moved in MATLAB after
+  the port and was never carried over.
+- Reviewers are Opus agents. Fable is used only on request.
+- At most four agents run at a time, as a guide against runaway fan-outs.
+- Agents may run small checks: short scripts, single function calls, and
+  `BADS.optimize()` runs of at most 200 evaluations, one at a time, with
+  one BLAS thread. They do not run the test suite, populations, sweeps,
+  installs, or anything else that competes for the one heavy-compute slot,
+  which the orchestrator holds.
+- No MATLAB run is planned. A run is written up, for a developer with
+  MATLAB to perform, only if a finding is classified **needs MATLAB** and
+  its disposition depends on what MATLAB computes.
+- Confirmed findings are brought to the PI for triage before any fix.
+- A fix may make an interface stricter: a value that was accepted and now
+  fails with a clear message costs a user one correction in one place. A
+  fix must not change behavior silently.
+- Five waves (below).
+
+**Terminology.** The records and the agent prompts use the vocabulary of
+code review and debugging: review, reviewer, finding, discrepancy, defect,
+reproduction, disposition. They avoid the vocabulary of computer security,
+which automated content classifiers have misread in earlier debugging
+sessions.
+
+## Reference revisions
+
+| Code | Location | Revision |
+| --- | --- | --- |
+| PyBADS under review | this repository, `dev-next` | `ab4dded` for wave 0; `95da7f1` for wave 1 (the freeze: `dev-next` after #70 and #71); `fef6c14` for wave 2 (`dev-next` after the fix passes of waves 0 and 1, #72 to #74; PI, 2026-09-26); `8aecb6a` for wave 3 (`dev-next` after wave 2's fix pass, #76; PI, 2026-09-26); `0d866e8` for wave 4 (`dev-next` after wave 3's fix pass, #77; PI, 2026-09-27) |
+| gpyreg | the clone `dev/scripts/runs/gpyreg/v1.3.3` | `98ab5a4` (v1.3.3) |
+| MATLAB BADS, comparison target | `../bads`, `master` | `74919c0` (v1.1.3, 2025-12-05; equal to the remote `master` on 2026-09-25) |
+
+Reviewers read PyBADS in a detached worktree at the revision of their wave,
+outside this repository (`../pybads-review`), so that the orchestrator's
+edits in the main checkout do not reach them.
+
+The port has no single MATLAB source revision. PyBADS's first commit,
+`9e63b0f`, is dated 2022-02-11; the first ported algorithm is `c7c88ab`
+(2022-06-02), the noisy version `8e59038` (2022-06-03), the full version
+with Sto-BADS `9037851` (2022-09-22), and v1.0.0 was tagged on 2023-06-10.
+MATLAB has eight commits touching code since 2022-02-11, which slice M
+checks one by one:
+
+| MATLAB commit | Date | Change |
+| --- | --- | --- |
+| `8515191` | 2022-05-06 | `~isempty` check on `gpstruct.s` (`utils/gpHyperOptimize.m`) |
+| `bfe8e22` | 2022-05-06 | removal of points for stability with user-specified noise (`bads.m`, `utils/gpHyperOptimize.m`) |
+| `75ec49f` | 2022-05-09 | uncertainty handling and user-specified noise, printing (`bads.m`, `private/bads_output.m`, `private/evalinitmesh.m`, `private/setupoptions.m`) |
+| `c4d2b9a` | 2022-10-30 | `bads.m` update |
+| `d4fead5` | 2022-10-31 | v1.1.0: `utils/gpTrainingSet.m` rewritten as `private/gpupdate.m`; `setupoptions.m`, `setupvars.m`, `gpHyperOptimize.m`; `updatehess.m` and `multibayes.m` removed |
+| `a21f2ee` | 2022-10-31 | v1.1.1, updated defaults (`bads.m`, `private/evalinitmesh.m`), among them `Ninit` from `nvars` to `10 + nvars`, which `019f0b4` set back |
+| `019f0b4` | 2022-11-14 | v1.1.2, fixes with user-specified noise (`bads.m`, `private/bads_output.m`, `private/setupvars.m`); `Ninit` back to `nvars` |
+| `74919c0` | 2025-12-05 | v1.1.3, `error_index` to `err_index` in `private/gpupdate.m` |
+
+A discrepancy is dated during verification: the verifier reads the history
+of the MATLAB lines (`git log -L` in `../bads`) and of the Python lines, and
+records whether the Python ever matched MATLAB, whether MATLAB changed after
+the module was ported, or whether the two never agreed.
+
+Two facts about the GP layer shape slices B5 and B6:
+
+- MATLAB BADS's GP is GPML 3.6 (`gpml-matlab-v3.6-2015-07-07/`, third-party
+  and out of scope as a library) with BADS's own fast replacements
+  (`gpml_fast/`) and its training and prediction code (`gpdef/gpdefBads.m`,
+  `private/gpupdate.m`, `utils/gpHyperOptimize.m`, `utils/minimizebnd.m`,
+  `utils/mygp.m`, `utils/gppred.m`, `utils/update_posterior.m`,
+  `utils/likGaussHe.m`). The port maps these onto gpyreg objects, whose
+  parameterizations need not match GPML's: every hyperparameter, bound and
+  prior is compared in the units both sides use.
+- `gaussian_process_train.py` calls gpyreg's name-mangled private
+  `gp._GP__gp_obj_fun`.
+
+## Slices
+
+Each slice gets two reviewers, one per track, except M and S (one each) and
+O (a third reader that combines both tracks: re-derive, then compare with
+MATLAB). MATLAB files marked *unported* have no Python counterpart; the
+comparison reviewer confirms that and spends no more time on them.
+
+| Slice | Python | MATLAB counterparts |
+| --- | --- | --- |
+| **B1** Setup, options, defaults, bounds, transform, result | `bads.py`: `__init__`, `_bounds_check_`, `_init_optim_state_`, `_init_rng_`; `options.py`, `option_configs/` (the two option files, `options_confs.py`; `test_options*.ini` are test fixtures shipped in the package), `variable_transformer/`, `optimize_result.py`, `rng.py`, `search/grid_functions.py:grid_units`, the package's `__init__.py` files (exports) | `bads.m` up to the main loop (`defopts`, the setup), `private/setupvars.m`, `private/setupoptions.m`, `private/boundscheck.m`, `utils/transvars.m`, `utils/origunits.m`, `utils/gridunits.m`, `utils/maskindex.m`, `utils/evalbool.m` (no counterpart), `private/bads_output.m`. The comparison report holds the full defaults table: every `defopts` entry against the `.ini` files, at several `D` |
+| **B2** Main loop, termination, noisy re-evaluation, final estimate | `bads.py`: `_init_mesh_`, `_init_optimization_`, `optimize`, `_re_evaluate_history_`, `_check_mesh_overflow_`, the display; `utils/iteration_history.py` | `bads.m` from the main loop to the end, its subfunctions `reevaluateIterList`, `FinalEstimate`, `meshOverflowCheck`; `private/evalinitmesh.m`. Unported: `private/fixedbads.m` and `expandvars` (fixed variables, which PyBADS refuses), `private/scatterplot.m` (plotting) |
+| **B3** Search | `bads.py`: `_search_step_`, `_update_search_bounds_`, `_update_search_stats_`; `search/es_search.py`, `search/search_hedge.py`, `search/grid_functions.py` (`force_to_grid`, `udist`), `acquisition_functions/acq_fcn_lcb.py`, `function_logger/constraints_check.py` (`ESSearchCMA` is unreachable) | the subfunctions `UpdateSearch` and `updateSearchBounds` of `bads.m`; `search/searchHedge.m`, `search/searchES.m`, `acq/acqLCB.m`, `acq/acqPortfolio.m` (its `'upd'` branch, ported as `update_hedge`), `utils/ESupdate.m`, `utils/uCheck.m`, `utils/force2grid.m`, `utils/udist.m`, `utils/ucov.m`. Unported and unused by MATLAB's defaults: `search/searchWCM.m` (not the counterpart of `ESSearchWM`, which is `searchES` method 1), `search/private/*`, `utils/xCheck.m`, `acq/acqHedge.m` and the other search and acquisition functions |
+| **B4** Poll, mesh, incumbent, target | `bads.py`: `_poll_step_`, `_eval_improvement_`, `_is_poll_stop_`, `_get_target_from_gp_`, `_update_incumbent_`; `poll/poll_mads_2n.py`. Sto-BADS belongs to S | `poll/pollMADS2N.m`, the poll stage of `bads.m` and its subfunctions `EvalImprovement`, `UpdateIncumbent`, `UpdateTarget`. Unused by MATLAB's defaults: `poll/private/*`, `private/covmatadapt.m` |
+| **B5** GP training set and refit policy | `gaussian_process_train.py`: `local_gp_fitting`, `get_grid_search_neighbors`, `add_and_update_gp`, `_robust_gp_fit_`, `_get_gp_training_options`, `_get_fevals_data`, `_estimate_noise_` (from PyVBMC; its result is unused); `bads.py`: `_is_gp_refit_time_` (which inlines `gppredcheck`), `_save_gp_stats_`, `_record_gp_refit_` | the subfunctions `IsRefitTime` and `savegpstats` of `bads.m`; `private/gpupdate.m`, `utils/gppredcheck.m`, `utils/swtest.m` (substituted by `scipy.stats.shapiro`), `utils/gpHyperOptimize.m` (the policy: starting points, nudges, refit conditions); `utils/update_posterior.m`, compared against its absence (the rank-1 path is not taken). Unported and unused by MATLAB's defaults: `utils/gpHyperSVGD.m`, `utils/gpHyperSample.m` (not the counterpart of `_get_samples_from_slice_sampler_`) |
+| **B6** GP model and its gpyreg objects | `gaussian_process_train.py`: `init_and_train_gp`, `_gp_hyp`, the prior and bound updates of `local_gp_fitting`, `_meanfun_name_to_mean_function`, `_cov_identifier_to_covariance_function`, the samplers of the priors; `stats/get_hpd.py` (from PyVBMC, read only by `_gp_hyp`); gpyreg's `RationalQuadraticARD`, `ConstantMean`, `NegativeQuadratic`, `GaussianNoise` and the `fit`/`update`/`predict` calls as PyBADS makes them | `gpdef/gpdefBads.m`, `gpml_fast/covRQard_fast.m`, `gpml_fast/infPrior_fast.m`, `gpml_fast/infExact_fastrobust.m`, `gpml_fast/sq_dist_fast.m`, `utils/likGaussHe.m`, `utils/minimizebnd.m`, `utils/mygp.m`, `utils/gppred.m`, `utils/gppriorrnd.m`, `utils/gpset.m`, `utils/prctile1.m`; GPML's `priorGauss`, `meanConst`, `sq_dist` and `solve_chol` as the reference for the priors, the mean and the factorization (out of scope as library code). Unused by MATLAB's defaults: `gpdef/private/gpdefStationaryNew.m`, `gpml_fast/exact_inference_*.m`, `gpml_fast/infExact_fast.m`, `utils/private/fminbayes.m`, the other kernels of `gpml_fast/` |
+| **B7** Function logger, initial design, utilities | `function_logger/function_logger.py`, `init_functions/init_sobol.py`, `utils/period_check.py` | `private/funlogger.m`, `init/initSobol.m`, `init/private/i4_sobol*.m`, `init/private/i4_bit_hi1.m`, `init/private/i4_bit_lo0.m`, `utils/periodCheck.m`. Unported: `init/initLHS.m` (also `initSobol`'s fallback), `init/initRand.m` |
+| **M** MATLAB changes since the port began (comparison track) | whichever PyBADS code corresponds | the eight commits above, one by one |
+| **S** Sto-BADS (internal track only) | `bads.py`: `_sto_success_improvement_` and the `stobads` and `opp_stobads` branches of `_search_step_` and `_poll_step_` | none: Sto-BADS is PyBADS's own. The specification is the options' descriptions, the docstrings and the Sto-MADS rule it adapts (Audet, Dzahini, Kokkolaras and Le Digabel, 2021) |
+| **O** Third reader: improvement, acquisition and geometry | `_eval_improvement_`, `_sto_success_improvement_`, the final quantile selection and the historic improvement of `optimize`, `acq_fcn_lcb`, the Hedge reward of `search_hedge.py`, `poll_scale`, `len_scale` and `effective_radius` in `gaussian_process_train.py` and their use in `poll_mads_2n.py` and `es_search.py` | `bads.m` (`EvalImprovement`, the final selection), `acq/acqLCB.m`, `acq/acqPortfolio.m`, `private/gpupdate.m`, `poll/pollMADS2N.m`, `search/searchES.m` |
+
+Out of scope as unused or non-numerical: `stats/kde1d.py` and
+`stats/kldiv_mvn.py` (PyVBMC leftovers that no PyBADS code calls: candidates
+for removal, not review), `bads/bads_dump.py`, `function_examples.py`,
+`utils/timer/`, `__main__.py`, `decorators/` (imported, never applied),
+the plotting code, `warp/` (unsupported on both sides); on the MATLAB side
+`bads_examples.m`, `hetsphere.m`, `rosenbrocks.m`, `install.m`,
+`private/checklist.m`, `private/runtest.m` (the source of the tests'
+problems) and `gpml_fast/test_*.m`. The slice table follows the
+corrections of the counterpart map
+(`experiments/port_review_20260925/prep_report.md`).
+
+That is 17 reviewer runs: seven two-track slices (14), M, S and O, plus the
+preparatory agent, and verification agents as findings accumulate.
+
+## Waves
+
+| Wave | Agents | Slices |
+| --- | --- | --- |
+| 0 | 3 | the preparatory agent; S; then M, once the sheet exists |
+| 1 | 4 | B5 and B6, both tracks: the GP, where the survey's defects cluster |
+| 2 | 4 | B2 and B1, both tracks |
+| 3 | 4 | B3 and B4, both tracks |
+| 4 | 3 | B7, both tracks; O |
+
+Each wave stops for the PI's triage. Fix passes may be batched over two
+waves into one pull request.
+
+## Preparatory agent: the known-differences sheet and the counterpart map
+
+One agent, run before any comparison-track reviewer, writes the sheet and
+the map. Its sources are `AGENTS.md`, `CHANGELOG.md`,
+`pybads/bads/README.md`, `dev/plans/gp-update-guards.md`,
+`dev/plans/tooling-and-rng.md`, the entries of the survey's candidate table
+marked fixed, "by design" or "tested, not adopted", the READMEs under
+`dev/experiments/`, the "Missing port", "TODO" and "Matlab" comments in the
+package, and the documentation under `docsrc/`. An entry is a *settled*
+deliberate difference from MATLAB, in this form: Python location; MATLAB
+location; what differs; why, with the record that decided it; kind
+(deliberate change, unported feature, removed feature, substituted
+library). Open findings and undecided questions, the survey's open rows
+among them, do not go on the sheet. Every entry is a claim a reviewer may
+challenge.
+
+The same agent builds the counterpart map mechanically: every `*.m` file of
+`../bads` outside `gpml-matlab-v3.6-2015-07-07/` searched for across
+`pybads/` and the documents above, reconciled against the slice table.
+Mismatches (a MATLAB file with a counterpart in another slice, a Python
+file with no slice, a counterpart the table misses) go into its report and
+are fixed in the table before the comparison-track waves start.
+
+## The survey and the reviewers
+
+Reviewers do not see the survey, so that their findings are independent of
+it. Verification matches every finding to the survey's rows ("also in the
+survey" in the ledger), and the ledger closes every open row of the
+candidate table: a row that no reviewer reached is verified on its own in
+the wave of its slice.
+
+## Reviewer brief
+
+Every reviewer is a fresh general-purpose agent, never a fork. It does not
+open any file under `dev/` except the sheet. `CLAUDE.md` and `AGENTS.md` are
+loaded into every agent by the harness, so the brief says that `AGENTS.md`
+describes intended behavior, is not the specification, and that its
+pointers into `dev/` are not to be followed. Each reviewer receives:
+
+- the slice: the Python files and, on the comparison track, the MATLAB
+  files, with the comparison revision and how to read a file's history
+  (`git log -L<start>,<end>:<path>` in `../bads`);
+- the track: *internal correctness* (does the code do what its docstrings,
+  the option descriptions, the BADS paper (Acerbi and Ma, 2017, NeurIPS) and
+  the mathematics require) or *MATLAB comparison* (line by line, does the
+  Python do what the MATLAB does, and where not, is the difference on the
+  sheet);
+- how PyBADS uses the slice's code at default options, so that every
+  finding says whether a default run reaches it;
+- the sheet (comparison track and O);
+- the categories and the finding format below;
+- the terminology rule;
+- the working rules: tracked files in every repository are read-only;
+  scripts and outputs go only into the scratchpad directory given in the
+  prompt; small checks as in "Decisions"; tests may be read to judge
+  whether they would catch an error, but a test is not the specification;
+- the interpreter: `.venv/Scripts/python.exe` of this repository, with
+  `PYTHONPATH` naming the review worktree and the gpyreg clone, every
+  script printing `pybads.__file__` and `gpyreg.__file__` once, and
+  `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` set to 1.
+
+The reviewer returns its report as its final message; the orchestrator
+saves that text verbatim. The report has three parts: **coverage** (what was
+read completely, what was skimmed, what was not reached), **findings** in
+the format below, and **test adequacy notes**. A reviewer with no findings
+says so; the coverage section is then the deliverable.
+
+Finding format:
+
+```
+### F<n>. <one-line title>
+- Location: <python path>:<line>; MATLAB: <path>:<line> or "no counterpart"
+- Category: formula | indexing/shape | defaults | control flow |
+  random draws | state/caching | cross-module
+- Proposed classification: port discrepancy | suspected defect in both |
+  possibly intentional | unsure
+- Confidence: high | medium | low
+- Reached at default options: yes | no (which option or input reaches it)
+- History (comparison track): did the MATLAB lines change after
+  2022-02-11? Cite the commit if so.
+- What the code does, what it should do, and why (derivation, paper
+  equation, or the MATLAB lines).
+- Consequence if real: effect on results, when it triggers, how large.
+- Suggested reproduction: the smallest check that would settle it.
+- Test adequacy: would an existing test have caught it? Which one?
+```
+
+Reviewers do not propose or make fixes.
+
+## Verification and the ledger
+
+Every finding is verified before it enters the ledger, by a small script or
+a second reading of the MATLAB source by a different agent, kept under
+`experiments/port_review_20260925/verification/`. The classifications:
+
+- **confirmed port discrepancy** (PyBADS differs from MATLAB and MATLAB is
+  right, or the difference is unintended);
+- **confirmed shared defect** (both are wrong);
+- **intentional difference** (missing from the sheet, which is then
+  updated);
+- **listed as intentional, but the justification does not hold**;
+- **needs MATLAB**;
+- **not a defect**.
+
+The per-wave ledger (`verification/wave<N>.md`) records, per finding: an
+identifier (`W<N>-<k>`), the slice, both locations, the category, the
+classification, the dating from both histories, the evidence, the survey
+row if any, the PI's disposition and the fix commit. Durable entries of the
+sheet are consolidated at the close into `pybads/bads/README.md`, which
+becomes the catalogue of deliberate differences. Defects found on the
+MATLAB side are collected in
+`experiments/port_review_20260925/matlab_side_defects.md`.
+
+## Fixes and gates
+
+Fixes wait for the PI's triage. They go on the branch of the wave,
+`dev-port-review-w<N>`, cut from `dev-next`, one commit per finding, each
+with a regression test that would have caught it, and reach `dev-next`
+through a pull request. Changes to gpyreg go to gpyreg on its own branch
+and pull request.
+
+The gates are those of `AGENTS.md`, "Numerical gates":
+
+- A fix that must move nothing shows the same hash of
+  `dev/scripts/fingerprint.py` before and after, on one machine, with the
+  same gpyreg clone.
+- A fix that moves results is gated by the population comparison against
+  the reference of its platform (`dev/README.md`), with a configuration that
+  reaches the changed code when it lies behind a non-default option.
+- A fix to the guarded GP updates also runs
+  `dev/scripts/gp_update_failures.py --inject`.
+- A fix that changes a seeded test's tolerance or seed measures the errors
+  over the seeds with `dev/scripts/tolerance_sweep.py` first.
+- The suite, and a changelog line for every change a user of the last
+  release can notice, checked against the tag of that release (a defect that
+  an earlier commit of the pass brought in never reached a user).
+- After a fix pass, the full CI matrix on the pull request into `dev-next`.
+
+## Working rules
+
+- At most four agents at a time; the orchestrator holds the heavy-compute
+  slot.
+- Reviewers read the review worktree, which the orchestrator moves only
+  between waves.
+- An agent that changes code works in its own git worktree, commits one
+  finding at a time and does not push; the orchestrator reviews each diff
+  and cherry-picks it onto the wave's branch. Scripts under `dev/scripts/`
+  that import the benchmark put their own checkout first on `sys.path`
+  (`AGENTS.md`); the others import PyBADS from `PYTHONPATH`, so every
+  command in an agent's brief names the worktree there and prints
+  `pybads.__file__`.
+- The review proceeds one wave at a time. After every wave the orchestrator
+  reports the wave's findings to the PI, who decides what follows.
+- After every wave: `git status --porcelain --ignored` in this repository,
+  the review worktree, `../bads` and the gpyreg clone, ignoring `.venv/` and
+  `docs/`; anything a reviewer left is removed. Reports are saved as
+  `experiments/port_review_20260925/reviews/<slice>_<track>.md`, the
+  reports of fix agents under `fixes/`.
+- An agent's report exists only as its final message. A long one is kept
+  by the harness in the session's `tool-results` directory; a short one is
+  taken from the agent's transcript (`subagents/agent-<id>.jsonl`), as the
+  last string of the agent's own output that holds the report's title.
+  PyVBMC's `dev/experiments/port_review_20260919/extract_report.py` does
+  that.
+- A ruling that leaves an item to a later slice says whether that slice
+  still has a pass ahead; an item left to a slice already taken gets its own
+  line in `TODO.md`, or is fixed.
+- The heavy gates run one after the other, unbuffered and straight into a
+  log file, and each leaves a record that is checked before the next
+  statement about it is written.
+
+## Wave 1 pickup
+
+For a session that runs wave 1 away from the orchestrator's machine, in a
+cloud sandbox (PI, 2026-09-26), while W0-1 is investigated there.
+Everything it needs is in this repository and in two public ones; nothing
+of `dev/scripts/runs/` (machine-local) is needed. It runs the reviews and
+their verification of slices B5 and B6, writes the ledger, and stops for
+the PI's triage: no fix, no population, no change to the package, no pull
+request.
+
+1. **Setup** (Linux; the paths are examples):
+
+   ```console
+   git clone https://github.com/acerbilab/pybads && cd pybads
+   git switch dev-port-review && git switch -c dev-port-review-w1
+   git worktree add --detach ../pybads-review 95da7f1
+   git clone https://github.com/acerbilab/bads ../bads
+   git -C ../bads checkout 74919c0
+   git clone https://github.com/acerbilab/gpyreg ../gpyreg-v1.3.3
+   git -C ../gpyreg-v1.3.3 checkout v1.3.3
+   python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+   PYTHONPATH=../pybads-review:../gpyreg-v1.3.3 .venv/bin/python -c "import pybads, gpyreg; print(pybads.__file__, gpyreg.__file__)"
+   ```
+
+   The last line prints the review worktree's `pybads` and the clone's
+   `gpyreg`; the reviewers' scripts select both the same way.
+2. **The reviewers.** Four fresh general-purpose Opus agents at once, never
+   forks: B5 internal, B5 comparison, B6 internal, B6 comparison. Each
+   prompt is the slice part (`experiments/port_review_20260925/briefs/wave1_B5.md`
+   or `wave1_B6.md`), then `briefs/wave1_common.md` from "You are a
+   reviewer" to its first rule, then the part of the track, with the
+   placeholders of `wave1_common.md` replaced; each reviewer has a scratch
+   directory of its own outside the repositories.
+3. **Saving.** Each report is saved verbatim as
+   `experiments/port_review_20260925/reviews/<slice>_<track>.md`, under a
+   header comment that says what it read and when, with
+   `experiments/port_review_20260925/extract_report.py` from the agent's
+   transcript (see "Working rules"). The sandbox is not kept, so each
+   reviewer's scratch directory is copied into
+   `experiments/port_review_20260925/verification/scripts/wave1/<slice>_<track>/`.
+4. **Verification.** Once both reports of a slice are saved, one fresh Opus
+   verifier for the slice (`briefs/wave1_verifier.md`), which did not write
+   either report; its report saved as `verification/wave1_<slice>_verifier.md`,
+   its scripts beside the reviewers'. The verifier of a slice also receives,
+   quoted in its prompt, the open rows (status "seen", "not looked at" or
+   "seen (MATLAB side read)") of the candidate table of
+   `results/2026-09-23-codebase-survey.md` that belong to the slice and that
+   neither report covers, and verifies them as findings.
+5. **The ledger.** `verification/wave1.md`, rows W1-1 onwards, in the form
+   of `verification/wave0.md`: source, what, classification, default run,
+   dating, survey row, proposed disposition, gate; then "Found while
+   verifying". Two sources of the orchestrator are not given to reviewers or
+   verifiers and are only checked against the reports: the list "Seen in
+   passing" of `prep_report.md` (whether a reviewer found an item of B5 or
+   B6 by itself), and the rows of `verification/wave0.md` that wave 1's fix
+   pass takes, W0-7 (the starting GP mean, B6) and W0-8 (the stable sort of
+   the training set, B5): a finding that repeats one is marked "also W0-7"
+   or "also W0-8".
+6. **Close.** `git status --porcelain --ignored` in every checkout, and
+   nothing a reviewer left; a line in the worklog below ("wave 1 run and
+   verified, cloud session"); commit on `dev-port-review-w1`, push, and
+   report to the PI. The orchestrator merges the branch into
+   `dev-port-review` after the PI's triage.
+
+## Wave 2 pickup
+
+For the session that starts wave 2, slices B1 and B2 on both tracks, on
+the orchestrator's machine or in a cloud sandbox as wave 1 ran. Everything
+it needs is in this repository at `dev-next` and in the public repositories
+of MATLAB BADS and gpyreg. The one record of the review that only the
+orchestrator's machine holds is the check scripts of wave 0's agents
+(`dev/scripts/runs/LOCAL.md`); no brief hands them to an agent, and wave
+0's reports and ledger are tracked.
+
+1. **The revision under review**, the PI's decision at the kickoff: the
+   freeze `95da7f1`, or `fef6c14`, `dev-next` after the fix passes of waves
+   0 and 1, which add 425 lines to the package and remove 240, most of
+   them in `bads.py` and `gaussian_process_train.py` (B2's
+   `_re_evaluate_history_` among them, W0-1). A new revision moves the
+   review worktree, the table "Reference revisions" and the briefs; the
+   sheet's citations are carried to it with `refresh_citations.py --base
+   95da7f1`, and the entries that wave 1's rulings added are read against
+   it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w2` and the review
+   worktree at the revision of step 1.
+3. **The briefs**, `briefs/wave2_*.md`, made from wave 1's:
+   `wave1_common.md` and `wave1_verifier.md` with the revision, and a slice
+   part for B1 and one for B2 in the form of `wave1_B5.md` (the files of the
+   slice table, how a default run reaches them, the first questions).
+4. **Kept from the reviewers**, for the verifiers or to check the reports
+   against: the open rows of the survey's candidate table in B1 and B2, the
+   items of `prep_report.md`'s "Seen in passing" that belong to them, and
+   what waves 0 and 1 left to these slices (the sections "Found while
+   verifying" of `verification/wave0.md` and `verification/wave1.md`).
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 2's names: the
+   reports `reviews/B1_<track>.md` and `reviews/B2_<track>.md`, the scripts
+   under `verification/scripts/wave2/`, the verifiers' reports
+   `verification/wave2_<slice>_verifier.md`, the ledger
+   `verification/wave2.md` from W2-1, and the branch `dev-port-review-w2`,
+   pushed at the close for the PI's triage.
+6. **The gates of the fix pass.** On Linux the reference is
+   `experiments/population_linux_wave1_20260926/`, which pairs by seed only
+   in its environment (Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1), where
+   `dev/scripts/fingerprint.py` at `fef6c14` with gpyreg 1.3.3 prints
+   `91f947f78e1087c2`; a box that prints another hash computes differently
+   and needs those versions or a reference of its own. On Windows the
+   reference, `population_gpfixes_20260925` at `ab4dded`, predates waves 0
+   and 1, and a gate there first needs a new reference at `fef6c14`; the
+   fingerprint at `fef6c14` on the orchestrator's machine is
+   `3411ef0625d24b22`.
+
+## Wave 3 pickup
+
+For the session that starts wave 3, slices B3 and B4 on both tracks, in a
+cloud sandbox as waves 1 and 2 ran; the steps of "Wave 2 pickup" with wave
+3's names (PI, 2026-09-26).
+
+1. **The revision under review**: `8aecb6a`, `dev-next` after wave 2's fix
+   pass (#76), which changed code of both slices (W2-16 in the search's
+   `_update_search_stats_`, W2-29 in the poll's accelerated mesh reduction)
+   and B3's `contraints_check` (W2-10); the reviewers read the fixed code.
+   The sheet's citations are carried with `refresh_citations.py --base
+   fef6c14`, and the entries of wave 2's rulings are read against it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w3`, the venv as
+   `AGENTS.md` says, and the review worktree at `8aecb6a`.
+   `dev/scripts/fingerprint.py` at `8aecb6a` with gpyreg 1.3.3 prints
+   `dc11118754b18b47` in the Linux reference's environment
+   (`population_linux_wave2_20260926`: Python 3.11.15, NumPy 2.4.6, SciPy
+   1.17.1); another hash means that the reference does not pair by seed.
+3. **The briefs**, `briefs/wave3_*.md`, made from wave 2's.
+4. **Kept from the reviewers**: the open rows of the survey's candidate
+   table in B3 and B4, the items of `prep_report.md`'s "Seen in passing"
+   that belong to them, and what waves 0 to 2 left to them under "Found
+   while verifying" and "Found while fixing".
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 3's names: the
+   reports `reviews/B3_<track>.md` and `reviews/B4_<track>.md`, the scripts
+   under `verification/scripts/wave3/`, the verifiers' reports
+   `verification/wave3_<slice>_verifier.md`, the ledger
+   `verification/wave3.md` from W3-1, and the branch `dev-port-review-w3`,
+   pushed at the close for the PI's triage.
+6. **The gates of the fix pass**: `verification/wave2.md`, "Fix pass", is
+   the procedure, against the Linux reference
+   `experiments/population_linux_wave2_20260926/`, with the whole fast
+   suite after every cherry-pick (fix agents run only their own test
+   files), and CI checked after every push that touches `pybads/`.
+
+## Wave 4 pickup
+
+For the session that starts wave 4, the last of the review: slice B7 on
+both tracks and slice O, the third reader, in a cloud sandbox as waves 1 to
+3 ran; the steps of "Wave 3 pickup" with wave 4's names (PI, 2026-09-27).
+Wave 3's records are the model: its worklog lines below and
+`verification/wave3.md`, "Rulings" and "Fix pass".
+
+1. **The revision under review**: `0d866e8`, `dev-next` after wave 3's
+   fix pass (#77), which changed code that slice O reads (the hedge's
+   reward and update, W3-6, W3-7 and W3-11; `acq_fcn_lcb`'s `sqrt_beta`,
+   W3-10; the range of `improvement_quantile`, W3-31; the historic
+   improvement of the accelerated mesh reduction, W3-36 and W3-39; the ES
+   search that takes `poll_scale`, W3-4, W3-5, W3-8, W3-9 and W3-15;
+   `poll_mads_2n`'s docstring after W3-24's revert) and B7's neighbours
+   (W3-1's `contraints_check`, W3-14's `force_to_grid`); the reviewers
+   read the fixed code. The table "Reference revisions" gains `0d866e8`, the sheet's
+   citations are carried with `refresh_citations.py --base 8aecb6a`, and
+   the entries of wave 3's rulings are read against it.
+2. **Setup**: step 1 of "Wave 1 pickup", with
+   `git switch dev-next && git switch -c dev-port-review-w4`, the venv as
+   `AGENTS.md` says, and the review worktree at `0d866e8`.
+   `dev/scripts/fingerprint.py` at `0d866e8` with gpyreg 1.3.3 and one
+   BLAS thread (`OMP_NUM_THREADS=1` and its kin) prints `360971bf1f0ba6cb`
+   in the Linux reference's environment
+   (`population_linux_wave3_20260927`: Python 3.11.15, NumPy 2.4.6, SciPy
+   1.17.1); another hash means that the reference does not pair by seed.
+3. **The briefs**, `briefs/wave4_*.md`, made from wave 3's: B7's two
+   tracks, O's brief, which combines them (re-derive, then compare with
+   MATLAB), and the verifier's. O's code was reviewed as B3 and B4 in wave
+   3, so its brief names wave 3's rulings (W3-24 reverted, W3-6, W3-7,
+   W3-10, W3-11, W3-25, W3-31) and the sheet's entries, which it does not
+   report again.
+4. **Kept from the reviewers** (`briefs/wave4_kept_B7.md` and
+   `wave4_kept_O.md`): the open rows of the survey's candidate table in B7
+   and O, among them `init_sobol`'s seed from the integer parts of `u0`,
+   with the doublecheck of wave 2's note that a start on a lower bound
+   with the plausible bounds omitted gives `u0 = -1` (`verification/wave2.md`,
+   "Doublecheck"); the items of `prep_report.md`'s "Seen in passing" that
+   belong to them; and what waves 0 to 3 left to them under "Found while
+   verifying" and "Found while fixing". Whether MATLAB's `uint64` product
+   saturates is settled from MATLAB's documented integer arithmetic, since
+   no step runs MATLAB.
+5. **Then** steps 2 to 6 of "Wave 1 pickup", with wave 4's names: three
+   reviewers (B7 internal, B7 comparison, O), the reports
+   `reviews/B7_<track>.md` and `reviews/O_third.md` (the track names of
+   `M_comparison.md` and `S_internal.md`), the scripts under
+   `verification/scripts/wave4/`, one verifier per slice
+   (`verification/wave4_<slice>_verifier.md`), the ledger
+   `verification/wave4.md` from W4-1, and the branch `dev-port-review-w4`,
+   pushed at the close for the PI's triage.
+6. **The fix pass**: `verification/wave3.md`, "Fix pass", is the procedure,
+   against the Linux reference `experiments/population_linux_wave3_20260927/`:
+   the whole fast suite and the fingerprint after every cherry-pick (fix
+   agents run only their own test files), CI checked after every push that
+   touches `pybads/`, each row that moves results gated by the default
+   suite against the step before, and the head's population as the new
+   Linux reference; then a pull request to `dev-next`. Its first row is the
+   rounding of `contraints_check`'s bins, which the PI ruled after wave
+   3's doublecheck (`verification/wave3.md`, "Doublecheck"): fixed as
+   MATLAB BADS rounds, with the split of the ES search's first population,
+   and gated alone by the `default` and `geometry` suites against
+   `population_linux_wave3_20260927`. Three lessons of
+   wave 3's pass:
+   - the fingerprint's runs are small, so it misses changes that reach
+     only 6-D, 10-D, noisy or long runs: the batch that moves nothing is
+     gated by the default suite against the reference too, and every run
+     that moves is attributed to its commit before the batch counts as
+     moving nothing;
+   - conflicts of tests appended at the end of a file are resolved by
+     keeping both sides in full where their common base is empty
+     (`verification/scripts/wave3/orchestrator/resolve_appends.py`); a
+     union merge driver drops lines;
+   - a change aimed at one geometry needs a suite that reaches it (wave 3
+     added `geometry` to `benchmark_targets.py`), and a flagged worsening
+     of a departure from MATLAB comes back to the PI.
+
+   The plan's "Close" item follows wave 4 in a session of its own.
+
+## Close pickup
+
+For the session that closes the review, in a cloud sandbox as the waves
+ran, on a branch `dev-port-review-close` cut from `dev-next`. The Close
+writes records and moves no code, so it runs no fix pass and no benchmark;
+it ends with a pull request into `dev-next`. Every fix of the review is on
+`dev-next`: the waves' fix passes and doublechecks (#72 to #81), and #84
+(`79697835`), which fixed the minor items that needed no choice of the
+PI, the resolution of `Timer`, the target's copy of the GP and a
+coding-agent skill. Squash merges leave the commits of a wave's branch
+reachable only from `refs/pull/<N>/head`: records cite the pull request
+and its squash commit (for #84, `79697835`).
+
+1. **The consolidated ledger**, `results/<date>-port-correctness-review.md`
+   (the opening of this plan): every row of `verification/wave0.md` to
+   `wave4.md`, with its classification, the PI's disposition, and its fix
+   (pull request and squash commit) or the `TODO.md` item that holds it;
+   the net effect of the review on the benchmark, from
+   `experiments/population_wave4_20260928/README.md` (Windows, 100 seeds,
+   against `population_prereview_20260927`, the code before the review)
+   and from `population_linux_gpfixes_20260925` against
+   `population_linux_wave4_20260927` (Linux, 30 seeds); and pointers to the
+   per-wave ledgers, which stay as written.
+2. **The catalogue**: the durable entries of `known_differences.md`
+   consolidated into `pybads/bads/README.md`, the catalogue of deliberate
+   differences ("Verification and the ledger"), beside the open porting
+   work that it lists.
+3. **The survey's rows closed**: each row of the candidate table of
+   `results/2026-09-23-codebase-survey.md` takes its verdict and its ledger
+   row or fix, or stays open with its `TODO.md` item.
+4. **`TODO.md`**: the item "Bug hunt and verification against MATLAB
+   BADS" closes; the items that wait for its end ("Exact step-by-step
+   replay and numerical oracles") or for the fix passes to land ("The
+   example notebooks' saved outputs") say that the wait is over. The two
+   "Minor items" entries hold the PI's open choices as #84 left them: keep
+   their text, apart from rulings the Close records.
+5. **Notes on records that describe the code before #84.** Each takes a
+   note of what changed and where; the history stays as written.
+   - KD-B4-2 in `known_differences.md`, and `verification/wave3.md` near
+     its lines 194 and 346, say that `_get_target_from_gp_` deep-copies the
+     GP and recomputes its posterior at every search and poll step. Since
+     #84:
+     - the search computes the target only for an acquisition function
+       listed in `_SEARCH_ACQ_FCNS_READING_TARGET` (`bads.py`), which is
+       empty, since none of MATLAB's acquisition functions that read the
+       target (`acqNegEI`, `acqNegPI`, `acqNegEQI`, `acqNegSqEI`,
+       `acqNegEIMin`, `acqNegPIMin`) is ported;
+     - the poll stores the target through `_update_target_`;
+     - `_get_target_from_gp_` predicts from the GP itself when `hyp_best`
+       equals the GP's own hyperparameters, with the same bits as the
+       recomputed copy (checked at 6,399 calls of distinct runs), and
+       otherwise from a deep copy recomputed under `hyp_best`, with the
+       `LinAlgError` fallback unchanged.
+
+     KD-B4-2's settled claim (the recomputation under `hyp_best`, and the
+     fallback) still holds; the reuse and the search's part are added to
+     it.
+   - The survey's row on `_get_target_from_gp_` (line 223 of the survey,
+     verdict "kept") says that it recomputes the posterior of a copy;
+     under the GP's own hyperparameters it now reuses the GP's posterior.
+   - `verification/scripts/wave2/check_fvals.py:35`, `v_runs.py:90` and
+     `fvals.py:44` read `optim_state["cache_active"]`, which #84 removed
+     (it was always False once `f_vals` was refused): run at a later
+     commit, they raise `KeyError`, so they run at the commit they were
+     written for.
+6. **The ledgers' open ends.** "Found while fixing" of `wave2.md` and
+   `wave4.md`, and "Doublecheck" of `wave2.md`, list minor items: #84
+   fixed those that needed no choice, and the rest are the two "Minor
+   items" entries of `TODO.md`. The consolidated ledger says so rather
+   than listing them twice.
+7. **`matlab_side_defects.md`** goes into the consolidated ledger as it
+   stands, its last item added with the measurement of the rank-1 update
+   (`results/2026-09-28-where-pybads-spends-its-time.md`).
+8. A worklog line, the Close item ticked, and the pull request into
+   `dev-next`.
+
+## Worklog
+
+- [x] 2026-09-25: design discussed and decided with the PI (decisions
+  above): the slices and waves, the target v1.1.3 (`../bads` fast-forwarded
+  from v1.1.2 to `74919c0`), short capped `optimize()` runs as small checks,
+  the freeze of `dev-next` after the session's two pull requests, wave 0
+  allowed to start before it.
+- [x] 2026-09-25 and 09-26: wave 0 run. The preparatory agent: the sheet
+  (`known_differences.md`, 30 entries and 8 claims of the records that did
+  not check out), the counterpart map (`counterpart_map.md`, the 114 MATLAB
+  files outside GPML) and its report (`prep_report.md`, the corrections of
+  the slice table, applied above, and seven differences seen in passing,
+  kept from the reviewers as a check of the later waves). S internal (7
+  findings) and M comparison (10 findings), fresh Opus reviewers by the
+  brief, reading `ab4dded` in `../pybads-review`; M after the sheet. The
+  reports are saved verbatim under `reviews/`, the check scripts on the
+  orchestrator's machine (`dev/scripts/runs/LOCAL.md`). The sweep after the
+  wave was clean. Three of M's findings (the final `fsd`, the history slot
+  of the final estimate, the iteration count) are fixed in `7b50a3a` (#71), made
+  before the reports from the survey's rows. Nothing is verified yet.
+- [x] 2026-09-26: wave 0 verified (PI: go). Two fresh read-only Opus
+  verifiers, one for S and one for M and the claims C1 to C8, each checking
+  at `95da7f1` and `ab4dded`; their reports under `verification/`
+  (`wave0_S_verifier.md`, `wave0_M_verifier.md`), the ledger
+  `verification/wave0.md`, rows W0-1 to W0-21. Every finding holds as
+  reported but for corrections of detail (the NaN state of S-F2 is shorter
+  than reported; S-F6 and S-F7 have MATLAB counterparts; M-F5 is not a
+  defect of MATLAB at `74919c0`). Three rows were fixed by #71 before the
+  wave; two are design questions of Sto-BADS; the rest await the PI's
+  triage. The verifiers found two of the differences kept from the
+  reviewers (`search_factor_min`; a budget below the initial design),
+  left to their slices' waves.
+- [x] 2026-09-26: wave 0 triaged (PI; the rulings in
+  `verification/wave0.md`) and fixed: the fix pass on `dev-port-review`,
+  one commit per row, the fingerprint unchanged at each, the suite passing,
+  and the benchmark unchanged (`verification/wave0.md`, "Fixes"); W0-7 and
+  W0-8 go to the GP fix pass of wave 1; the design of Sto-BADS's rule
+  (W0-12, W0-13) is a `TODO.md` item. W0-1, a commit of its own
+  (`d6e3f61`, local branch `w0-1-investigation`), flagged the number of
+  evaluations of three noisy configurations and raised the median error
+  of `ellipsoid_D3_homo`, not significantly; under investigation on the
+  orchestrator's machine (PI): which of its parts moves the runs, and the
+  error at an equal number of evaluations. Wave 1 starts meanwhile in a
+  cloud session (PI), from "Wave 1 pickup" below.
+- [x] 2026-09-26: W0-1 investigated and ruled (`w01_investigation/`): on
+  `ellipsoid_D3_homo` over 90 seeds, no significant change of the error,
+  with or without the stall criterion, and 14 to 18% fewer evaluations,
+  most of them from the removal of the drift; the rise over seeds 0-29 was
+  not in seeds 30-89. PI: W0-1 stays, in a pull request of its own.
+- [x] 2026-09-26: wave 1 run and verified, cloud session (from "Wave 1
+  pickup", on `dev-port-review-w1`). Four fresh Opus reviewers, B5 and B6 on
+  both tracks, reading `95da7f1` in `../pybads-review` (B5 internal 14
+  findings, B5 comparison 12, B6 internal 10, B6 comparison 7), then one
+  fresh Opus verifier per slice, which also verified the survey's open rows
+  of its slice that neither report covered (B5-R1 to B5-R3, B6-R1). The
+  reports and the verifications are saved verbatim with `extract_report.py`,
+  the scripts of all six agents under `verification/scripts/wave1/`,
+  formatted by the pre-commit hooks. The ledger `verification/wave1.md`,
+  rows W1-1 to W1-34, closes the 13 open survey rows of B5 and B6. The
+  reviewers found both differences seen in passing that belong to these
+  slices, (d) and (f); W0-7 and W0-8 recur, not as findings. The sweep after
+  the wave was clean (only `__pycache__`, removed). The import check of step
+  1 must run outside the repository's root, whose `pybads/` comes first on
+  `sys.path`; the reviewers' scripts ran from their scratch directories.
+- [x] 2026-09-26: wave 1 triaged (PI; the rulings in
+  `verification/wave1.md`). The orchestrator's proposals accepted, with the
+  PI's amendments: W1-25 is measured behind a switch in gpyreg that is off
+  by default, W1-27 (the GP fit at initialization) is kept, and W1-8 and
+  W1-17, which MATLAB shares, are fixed; W1-6, W1-28 and W1-34 as proposed.
+  The fix pass is not started.
+- [x] 2026-09-26: the records of wave 1 rebased onto `dev-next` at
+  `e004c79` (wave 0 and W0-1; `dev-port-review` superseded), and step 0 of
+  wave 1's fix pass, its baseline on Linux: the reference
+  `experiments/population_linux_wave0_20260926/`, which flags W0-1's
+  evaluations as on Windows, and the fingerprint `bfbc6d6737e99d88` at
+  `ac3dfed` (`verification/wave1.md`, "Fix pass").
+- [x] 2026-09-26: wave 1's fix pass (`verification/wave1.md`, "Fix pass").
+  Every row ruled for a fix is committed on `dev-port-review-w1`, by fix
+  agents in worktrees of their own, reviewed and cherry-picked, with W0-7
+  and W0-8, and W1-35, found while fixing: W0-1's re-estimate crashed
+  every noisy run whose rebuild failed (PI: a failed iterate drops out of
+  the choices, as MATLAB, and the incumbent keeps its estimate). The rows
+  that move nothing kept the fingerprint; the three batches, W1-2 and W1-1
+  compare without a worsening flag, the two flags, lower errors, traced to
+  W1-23 and W1-4 by their steps, and W1-17 on a new 1-D suite. The net
+  change against the baseline flags only `ackley_D6`, a lower error; the
+  pass ends in the Linux reference
+  `experiments/population_linux_wave1_20260926/`. The gpyreg side is
+  merged (acerbilab/gpyreg#56, the switch, and #57, W1-24), with no
+  release for now (PI). W1-25's switch, measured, stays off in PyBADS, to
+  be revisited after all the fixes (PI; `TODO.md`). One pull request into
+  `dev-next` carries the records and the fixes.
+- [x] 2026-09-26: wave 1 doublechecked after its merge (PI): four fresh
+  read-only Opus reviewers, of the fixes in `bads.py`, those in
+  `gaussian_process_train.py`, the records, and gpyreg's side, reporting
+  only substantial mistakes. Every fix implements its ruling. Found: with
+  gpyreg's switch on, a fit's second optimization could start from a design
+  point whose factorization had failed, and end the fit (acerbilab/gpyreg#58,
+  bit-identical with the switch off; W1-25's measurement predates it); the
+  changelog's W1-17 entry named the search's steps, which the length scale
+  never set; `AGENTS.md` still had the re-estimate read every stored GP,
+  which W0-1 changed; and `TODO.md` still listed follow-ups of the
+  GP-update guards that W0-1, W1-12, W1-13 and W1-20 fixed. The survey's
+  `_re_evaluate_history_` row, fixed by W0-1 and W1-35 and still open, is
+  wave 2's W2-40.
+- [x] 2026-09-26: the freeze. `dev-next` at `95da7f1`, after #70 (the
+  Windows reference, `2210046`) and #71 (the small defects of the noise
+  options, the final estimate, the iteration count, `output_fcn` and
+  `max_fun_evals=1`); `dev-port-review` cut from it; the review worktree
+  `../pybads-review` moved to it. The sheet's Python line citations are at
+  `ab4dded`; before a comparison reviewer of waves 1 to 4 receives the
+  sheet, its citations, entry KD-B1-8 and the claims C1 and C2 are checked
+  against `95da7f1`, which #71 changed in `bads.py`,
+  `gaussian_process_train.py` and `optimize_result.py`.
+- [x] 2026-09-26: the sheet carried to `95da7f1`. `refresh_citations.py`
+  (PyVBMC's, with a fixed base commit and the bare backticked line numbers
+  that follow a path on its line) moved 60 citations and found none whose
+  line #71 changed; the 15 citations of a file without its `pybads/` path
+  were mapped by the same diff (8 moved), and a sample of the moves read
+  against both revisions. KD-B1-8 no longer leaves the count in
+  `iterations` open. C1 and C2 still hold at `95da7f1`; their verification
+  is under way.
+- [x] 2026-09-26: wave 1 merged: #74 squash-merged into `dev-next` as
+  `fef6c14`, on W0-1 (#73, `e004c79`); gpyreg's side (acerbilab/gpyreg#56
+  and #57) merged into gpyreg's `main` (`33e3165`) without a release, both
+  bit-identical by default, with gpyreg 1.3.3 still PyBADS's minimum and
+  CI pin. On the orchestrator's machine at `fef6c14`, the suite passes (273
+  tests) and the fingerprint with the gpyreg 1.3.3 clone is
+  `3411ef0625d24b22`. The review worktree stays at `95da7f1` until wave 2's
+  kickoff ("Wave 2 pickup").
+- [x] 2026-09-26: wave 2's kickoff, cloud session (from "Wave 2 pickup",
+  on `dev-port-review-w2`, cut from `dev-next` at `95a87bc`, whose package
+  code is `fef6c14`'s). PI: wave 2 reviews `fef6c14`, `dev-next` after the
+  fix passes of waves 0 and 1; the table "Reference revisions" says so. The
+  review worktree `../pybads-review` is at `fef6c14`, `../bads` at
+  `74919c0`, gpyreg at v1.3.3 (`98ab5a4`), on Python 3.11.15, NumPy 2.4.6
+  and SciPy 1.17.1, where `dev/scripts/fingerprint.py` at `fef6c14` prints
+  `91f947f78e1087c2`, the Linux reference's. The sheet is carried to
+  `fef6c14` (`refresh_citations.py --base 95da7f1`: 89 citations moved; of
+  the 23 it leaves to a reading by hand, the 11 in entries mapped by the
+  same diff, the 2 of gpyreg left at v1.3.3 and the 10 of the claims C1 to
+  C8 left at `95da7f1`, under a note that wave 0 settled them; two
+  citations already wrong at `95da7f1` corrected, the seed's
+  `optimize_result.py:151`, now `147`, and a guard of KD-B5-3, `621`, now
+  `673`), and the entries of wave 1's rulings read against it, all of
+  which hold.
+- [x] 2026-09-26: wave 2 run and verified, cloud session (from "Wave 2
+  pickup", on `dev-port-review-w2`). Four fresh Opus reviewers, B1 and B2
+  on both tracks, reading `fef6c14` in `../pybads-review` (B1 internal 13
+  findings, B1 comparison 13, B2 internal 13, B2 comparison 13), then one
+  fresh Opus verifier per slice, which also verified the items kept from
+  the reviewers (B1-K1 to B1-K8, B2-K1 to B2-K9: the survey's open rows, the
+  differences seen in passing and what waves 0 and 1 left to these slices,
+  their found-while-fixing items of B1 and B2 among them). The reports and
+  the verifications are saved verbatim with `extract_report.py`, the scripts
+  of all six agents under `verification/scripts/wave2/`, formatted by the
+  pre-commit hooks. The clone was shallow (oldest commit `ce3a0b3`) when the
+  reviewers began; the complete history was fetched during their run, the
+  comparison reviewers were told, the B1 comparison reviewer re-dated its
+  lines (`reviews/B1_comparison_history.md`), and the verifiers dated every
+  row on it. The ledger `verification/wave2.md`, rows W2-1 to W2-44, closes
+  the 6 open survey rows of B1 and B2. The reviewers found every difference
+  seen in passing that belongs to these slices, (b) and (g), and (a), which
+  is B3's; (c) no longer holds. Two findings are in later slices' code
+  (W2-16, B3; W2-29, B4) and are proposed for this wave's fix pass. The
+  sweep after the wave was clean (only `__pycache__`, removed).
+- [x] 2026-09-26: wave 2 triaged (PI; the rulings in
+  `verification/wave2.md`). The orchestrator set out the ten rows left open
+  with a recommendation each and revised two proposals (W2-5 to a relative
+  tolerance, W2-9 to keep accepting a missing `x0` with only hard bounds);
+  the PI accepted every recommendation. W2-25 moves the incumbent with its
+  value, a departure from MATLAB under a comparison of the noisy
+  configurations; W2-16 and W2-29, in slices B3 and B4, are fixed in this
+  wave's pass; W2-4's gate needs a suite of its own. Two `TODO.md` lines:
+  the port of `fun_values`, and the GP on a one-point training set (B6).
+  The fix pass is not started.
+- [x] 2026-09-26: wave 2's fix pass (PI: "Start the fixes"), on
+  `dev-port-review-w2` (the ledger's "Fix pass"). Seven fresh Opus fix
+  agents, one worktree each, one commit per row, reviewed and cherry-picked
+  by the orchestrator with the changelog lines: every row ruled "fix", W2-45
+  (integer-typed bounds, found by fix agent A, approved by the PI during the
+  pass), and W2-46 and W2-47 (an overflow warning and
+  `VariableTransformer`'s integer copies, approved after the gates),
+  included. The rows that move nothing keep the fingerprint at every commit,
+  and their batch reproduces the Linux reference run for run; W2-16 moves it
+  to `dc11118754b18b47`, and nothing after it moves it again. The gates:
+  W2-16 flags more evaluations on `ellipsoid_D10` (643 → 676, its error
+  unchanged); W2-29 changes no run of the benchmark (where it binds, only
+  the mesh at the end); W2-25 flags nothing; W2-4, on a `bounds` suite of
+  its own, flags four of five configurations, a noisy log-scaled problem
+  solved in 73% of the runs against 33%, and its deterministic counterpart
+  with more evaluations and a higher error far below its tolerance, the cost
+  of searching the plausible box as given. The sheet gains seven entries and
+  has five corrected, `matlab_side_defects.md` six items, and the survey's
+  six rows of these slices are closed. The suite passes (380 tests) and the
+  pre-commit hooks pass on the whole tree. `dev-next`'s doublecheck of wave
+  1 (`4c38da8`) is merged in. New Linux reference:
+  `experiments/population_linux_wave2_20260926/`. The rerun of two example
+  notebooks whose saved outputs the pass made stale is a `TODO.md` line, for
+  the release.
+- [x] 2026-09-26: wave 2 merged: #76, with W2-4 and its flagged worsening,
+  squash-merged into `dev-next` as `8aecb6a` (PI). On the orchestrator's
+  machine at `8aecb6a`, the suite passes (380 tests), and the fingerprint
+  with the gpyreg 1.3.3 clone is `6825faa249798851` with the default BLAS
+  threads and `8d8552d1f5bee1e6` with one.
+- [x] 2026-09-26: wave 3's kickoff, cloud session (from "Wave 3 pickup",
+  on `dev-port-review-w3`, cut from `dev-next` at `8aecb6a`). PI: wave 3
+  reviews `8aecb6a`, `dev-next` after wave 2's fix pass (#76); the table
+  "Reference revisions" says so. The review worktree `../pybads-review` is
+  at `8aecb6a`, `../bads` at `74919c0`, gpyreg at v1.3.3 (`98ab5a4`) in
+  `../gpyreg-v1.3.3`, the venv as `AGENTS.md` says (gpyreg's `main` in
+  `../gpyreg`, editable), on Python 3.11.15, NumPy 2.4.6 and SciPy 1.17.1,
+  where `dev/scripts/fingerprint.py` at `8aecb6a` with the v1.3.3 clone
+  prints `dc11118754b18b47`, the Linux reference's
+  (`population_linux_wave2_20260926`), so the reference pairs by seed here.
+  The clone was shallow; the complete history was fetched before any agent
+  began. The sheet is carried to `8aecb6a` (`refresh_citations.py --base
+  fef6c14`: 61 citations moved; of the 14 it leaves to a reading by hand,
+  the 2 of `bads.py` whose lines wave 2 rewrote, the random `x0` and the
+  logger, mapped by the same diff, the 2 of gpyreg left at v1.3.3 and the
+  10 of the claims C1 to C8 left at `95da7f1`; the four citations of wave
+  2's entries labelled `fef6c14` carried by hand). The script read the
+  commit `0889426` in KD-B1-5 as a line number and moved it; the hash is
+  restored, and the script now takes a bare backticked line number of at
+  most five digits (the same run on the uncarried sheet gives the sheet as
+  committed). The entries of wave 2's rulings (KD-B1-3 to KD-B1-5, KD-B1-8
+  to KD-B1-11, KD-B2-3 to KD-B2-7) read against `8aecb6a`: all hold. The
+  briefs `briefs/wave3_*.md`, with the items kept from the reviewers in
+  `wave3_kept_B3.md` (B3-K1 to B3-K13) and `wave3_kept_B4.md` (B4-K1 to
+  B4-K11).
+- [x] 2026-09-26: wave 3 run and verified, cloud session (from "Wave 3
+  pickup", on `dev-port-review-w3`). Four fresh Opus reviewers, B3 and B4
+  on both tracks, reading `8aecb6a` in `../pybads-review` (B3 internal 9
+  findings, B3 comparison 10, B4 internal 10, B4 comparison 7), then one
+  fresh Opus verifier per slice, which also verified the kept items. The
+  reports and the verifications are saved verbatim with
+  `extract_report.py`, the scripts of all six agents under
+  `verification/scripts/wave3/`, formatted by the pre-commit hooks. Two
+  reviewers handed their report back more than once, and the B3 verifier
+  printed its report as text before handing it back; each time the last
+  hand-back is kept, identical to the earlier ones but for one sentence
+  naming a scratch directory (B4 comparison). The B3 internal reviewer's
+  closing message quotes its report's title, so a new extraction from its
+  transcript must name the candidate. The ledger `verification/wave3.md`, rows W3-1 to W3-38,
+  closes the 11 open survey rows of B3 and B4 (four of them, three ledger
+  rows, fixed by wave 0 without the survey saying so). The reviewers found the preparatory
+  agent's (e), `p_less` (W3-19); its (a) is W2-16's fix, which holds as
+  MATLAB's (W3-16), as W2-29's does (W3-37). One finding, W3-29, finds
+  that W1-2's premise missed a line of `bads.m` (MATLAB's rebuilds persist
+  after a poll move), and the changelog says otherwise. The sweep after
+  the wave was clean (only `__pycache__`, removed).
+- [x] 2026-09-27: wave 3 triaged (PI; the rulings in
+  `verification/wave3.md`). W3-24 (b), after a clarification: the poll
+  draws LTMADS directions, a departure from MATLAB, whose `pollMADS2N.m`
+  inverts the ratio that bounds its basis, so that its poll is a
+  coordinate poll; gated last in the pass, and back to the PI on a flagged
+  worsening. Every other proposal accepted as written.
+- [x] 2026-09-27: wave 2 doublechecked after its merge (PI), as wave 1: four
+  fresh read-only Opus reviewers, of the fixes of B1, those of B2 with
+  W2-16, W2-29 and W2-25, the user-facing documentation, and the records,
+  gates and tooling, and the suite and the fingerprints on Windows, which
+  repeat Linux's pattern. Every fix implements its ruling. Found and fixed
+  on `dev-next`: an `f_vals` without a finite value, refused by W2-7 (it
+  stands for `None`); false statements of the changelog (a run never above
+  `max_fun_evals`; a noisy count of `fef6c14` given as 1.1.0's), of
+  `AGENTS.md`, of docstrings and descriptions, of example 2, of the sheet
+  and of the records; the fingerprint's dependence on the number of BLAS
+  threads, which `AGENTS.md` states. Left to wave 3's ledger, a row for
+  `accelerate_mesh_steps=0` (B4); to wave 4, the Sobol seed at `u0 = -1`
+  (B7); the rest to `TODO.md` (`verification/wave2.md`, "Doublecheck").
+- [x] 2026-09-27: wave 3's fix pass (`verification/wave3.md`, "Fix
+  pass"), on `dev-port-review-w3`: four fresh Opus fix agents (A to D) in
+  worktrees of their own, one commit per row, each picked with the whole
+  fast suite and the fingerprint after it, and CI's smoke run after every
+  push that touched the package. `dev-next`'s doublecheck of wave 2
+  (`68d4516`) merged at `4f50376`, the fingerprint unchanged. The gates
+  (default suite, seeds 0-29, each against the step before; the
+  `geometry` suite for W3-1 and W3-24): batch 1 moves 31 runs, all by
+  W3-14, whose rounding of halves reaches the search's candidates at a fine
+  mesh, unflagged; the ES batch, W3-1, W3-6, W3-19 and W3-29 flag nothing.
+  W3-24 was flagged (higher errors on the deterministic configurations,
+  far below their tolerances, the thin band at D = 3 worse, no gain on the
+  ridges) and exposed a crash of the GP layer on two points; back to the
+  PI, who ruled to revert it (`b03a320`), to fix W3-39 (`5d711bf`, from the
+  doublecheck of wave 2) and the two-point prior as W3-40 (`a14524d`). The
+  head's runs equal W3-29's; they are the new Linux reference,
+  `population_linux_wave3_20260927`, whose comparison with the previous one
+  flags nothing.
+- [x] 2026-09-27: wave 3 merged: #77 squash-merged into `dev-next` as
+  `0d866e8` (PI), after the full matrix passed on its head (Ubuntu,
+  Windows and macOS, Python 3.10 to 3.12), the first run of wave 3's tests
+  off Linux. "Wave 4 pickup" written for the session that starts wave 4.
+- [x] 2026-09-27: wave 4's kickoff, cloud session (from "Wave 4 pickup",
+  on `dev-port-review-w4`, cut from `dev-next` at `ed82ec0`, whose package
+  code is `0d866e8`'s). PI: wave 4 reviews `0d866e8`, `dev-next` after wave
+  3's fix pass (#77); the table "Reference revisions" says so. The review
+  worktree `../pybads-review` is at `0d866e8`, `../bads` at `74919c0`,
+  gpyreg at v1.3.3 (`98ab5a4`) in `../gpyreg-v1.3.3`, the venv as
+  `AGENTS.md` says (gpyreg's `main` in `../gpyreg`, editable), on Python
+  3.11.15, NumPy 2.4.6 and SciPy 1.17.1, where `dev/scripts/fingerprint.py`
+  at `0d866e8` with the v1.3.3 clone and one BLAS thread prints
+  `360971bf1f0ba6cb`, the Linux reference's
+  (`population_linux_wave3_20260927`), so the reference pairs by seed here.
+  The clone was shallow; the complete history, the branches
+  `dev-port-review-w2` and `dev-port-review-w3` and the heads of the pull
+  requests #67, #71, #72, #74, #76 and #77, which hold commits that the
+  sheet and the kept items cite, were fetched before any agent began. The
+  sheet is carried to `0d866e8` (`refresh_citations.py --base 8aecb6a`: 96
+  citations moved, each checked to cite the same text; of the 17 it leaves
+  to a reading by hand, the 5 whose lines wave 3's fix pass rewrote, 4
+  mapped by the same diff (the acquisition's call sites in KD-B3-2 and
+  KD-B5-2, whose label `8aecb6a` goes, and the empty search set in
+  KD-B3-5) and the ES search's fallback draw in KD-B1-1, which W3-9
+  removed, dropped; the 2 of gpyreg left at v1.3.3 and the 10 of the claims
+  C1 to C8 left at `95da7f1`). The entries of wave 3's rulings (KD-B3-1,
+  KD-B3-3, KD-B3-5, KD-B3-6, KD-B4-1, KD-B4-2, KD-B5-2, KD-B5-9, KD-B6-2)
+  read against `0d866e8`: all hold. The briefs `briefs/wave4_*.md`, with
+  the track part of the third reader in `wave4_common.md`; O's brief names
+  wave 3's rulings on its code (W3-24 reverted, W3-6, W3-25), the sheet's
+  entries, and the two design questions of Sto-BADS's rule that wave 0 left
+  to a measurement (W0-12, W0-13), which it does not report again. The
+  items kept from the reviewers are in `wave4_kept_B7.md` (B7-K1 to B7-K9)
+  and `wave4_kept_O.md` (O-K1 to O-K5); none of the preparatory report's
+  differences seen in passing belongs to B7 or O, and the survey has no
+  open row in O's code.
+- [x] 2026-09-27: wave 4 run and verified, cloud session (from "Wave 4
+  pickup", on `dev-port-review-w4`). Three fresh Opus reviewers reading
+  `0d866e8` in `../pybads-review`: B7 on both tracks (B7 internal 11
+  findings, B7 comparison 7) and O, the third reader (1 finding, in
+  Sto-BADS; every other formula of the slice matches MATLAB BADS and its own
+  derivation); then one fresh Opus verifier per slice, which also verified
+  the kept items. The reports and the verifications are saved verbatim with
+  `extract_report.py`, each agent's hand-back its one candidate, and the
+  scripts of all five agents under `verification/scripts/wave4/`, formatted
+  by the pre-commit hooks, with their `.log` outputs added past the `*.log`
+  rule of `.gitignore` and without the B7 verifier's copy of v1.1.0's
+  package. The B7 verifier's closing turn hit the session's usage limit
+  seconds after it had handed back its report, which is complete. The
+  ledger `verification/wave4.md`, rows W4-1 to W4-20, closes the 2 open
+  survey rows of B7 (O has none). The reviewers found every kept item of
+  B7 but the small noisy budget (B7-K5) and W2-20's fix (B7-K8, which holds
+  as MATLAB's, W4-7), and O-K1 of O's; W0-18's doubling is set out for the
+  PI's decision (W4-3), and the seed of the design (W4-1) is decided by
+  PyBADS's own contract whatever MATLAB's `mod` gives, which only MATLAB can
+  say. Wave 2's note that W2-4 made the undefined cast reachable does not
+  hold: 1.1.0 reached it too (W4-2). The sweep after the wave was clean
+  (only `__pycache__`, removed).
+- [x] 2026-09-27: wave 4 triaged (PI; the rulings in
+  `verification/wave4.md`). W4-1 (a): the design is seeded from the run's
+  generator, so that `random_seed` decides it, whatever MATLAB's own seed
+  gives; W4-3: the design's doubling kept at every D, where the proposal
+  was to remove it; W4-14 (a): the reserved final samples taken at the
+  incumbent when a noisy run ends in its first iteration. Every other
+  proposal accepted as written. The fix pass is not started.
+- [x] 2026-09-27: wave 3 doublechecked after its merge (PI), as waves 1
+  and 2, in a cloud session on a branch from `dev-next` at `ed82ec0`: four
+  fresh read-only Opus reviewers, of the fixes of B3, those of B4, the
+  user-facing documentation, and the records, gates and tooling, their
+  reports saved with `extract_report.py` and their scripts under
+  `verification/scripts/wave3/doublecheck/`; the suite at `0d866e8` (457
+  tests), the fingerprints of the pass's key commits on Linux, which
+  repeat `fp_all.out`, and on Windows (PI), where W3-15 moves the hash.
+  Every row implements its ruling. Found: `contraints_check` rounds its
+  bins half to even, where `uCheck.m` rounds halves away from zero, and
+  a fix moves results (to the PI, with `acq_hedge=True`, which stops a
+  run, and `accelerate_mesh_steps=inf`, which W3-39 refuses and MATLAB
+  runs with); fixed: an `improvement_quantile` that is not a number
+  raises W3-31's `ValueError`, false statements of the changelog (1.1.0's
+  failures under W3-31 and W3-39, the ES scale, the hedge's reward,
+  batch 1's count), docstrings and descriptions, the sheet (five entries
+  for wave 3's deliberate differences, which slice O reads), the ledger
+  (a row for W3-40, W3-29's reach within 200 evaluations, numbers),
+  `TODO.md` (two items of B1 and B2 that the pass fixed; a line for B3's
+  and B4's minor items), and "Wave 4 pickup", which named only W3-6 of
+  what wave 3 changed in O's code (`verification/wave3.md`,
+  "Doublecheck"). PI, on what was left: the rounding goes to wave 4's fix
+  pass as its first row ("Wave 4 pickup", step 6); `acq_hedge=True` is
+  refused when `BADS` is created, and the refusal of
+  `accelerate_mesh_steps=inf` names `accelerate_mesh=False`, both under
+  the same fingerprint.
+- [x] 2026-09-27: wave 4's fix pass, cloud session, on
+  `dev-port-review-w4` from the merge of `dev-next` with #79 (`8c8d6f8`).
+  Five fresh Opus fix agents in worktrees of their own (A, B, C; D for
+  W4-29 and E for W4-6's completion, both after the others reported),
+  their reports saved with `extract_report.py` and their scripts under
+  `verification/scripts/wave4/fix_<agent>/`; every pick cherry-picked with
+  its changelog lines, the whole suite and the fingerprint after each.
+  Every row of the rulings is fixed or recorded (`verification/wave4.md`,
+  "Fix pass"), and the PI ruled two more during the pass: W4-29 (the
+  hedge's `hedge_beta` and `hedge_decay` refused outside their ranges) and
+  W4-30 (a noisy run stopped at `"init"` takes no final samples, and
+  `fsd`'s description says what it reports). W4-6's pick failed a test of
+  the GP's fit schedule at small budgets, whose budget still counted the
+  noise test; a completion leaves it out, moving no default run. The gates:
+  W4-21 against `population_linux_wave3_20260927` and the geometry suite
+  (no flag; 34 and 30 runs changed), W4-1 against W4-21 (no flag; every run
+  changed), W4-6 against W4-1 (no flag); the geometry suite at the end
+  flags `edgesphere_D2`'s evaluations, which W4-1 alone gives and which
+  measure the design that every seed shared before it (PI: W4-1 stays).
+  The head's population is the new Linux reference,
+  `population_linux_wave4_20260927`, whose net change against wave 3's
+  flags nothing. `e7bd01d` was pushed before its suite passed, and the
+  branch's smoke run failed on it; from then on a pick was pushed only
+  after its suite. The sheet, `matlab_side_defects.md`, the survey (its
+  rows of `init_sobol`, `FunctionLogger.__call__` and `contraints_check`,
+  and W4-2's correction of wave 2's note) and `dev/TODO.md` are updated.
+- [x] 2026-09-27: wave 4 doublechecked after its merge (PI), as waves 1
+  to 3, in a cloud session on a branch from `dev-next` at `81385ac`: four
+  fresh read-only Opus reviewers, of the fixes of B7, those of O and of the
+  other rows, the user-facing documentation, and the records, gates and
+  tooling, with the PI's questions on the pass, their reports saved with
+  `extract_report.py` and their scripts under
+  `verification/scripts/wave4/doublecheck/`; the suite at `81385ac` (613
+  tests) and the fingerprints of the pass's key commits on Linux, with one
+  BLAS thread and the default, which repeat `fp_all.out`. Every row
+  implements its ruling; W4-6's completion is right and complete; the flag
+  on `edgesphere_D2` is the design shared before W4-1; the fall of
+  `ellipsoid_D3_homo`'s fraction solved is within the spread of a flag
+  that any change redraws. Fixed, moving nothing: false statements of the
+  changelog (1.1.0's failures with the hedge's parameters, its design's
+  dependence on the start, the ES split, complex SDs, `init_sobol`'s
+  required `lb` and `ub`, W4-21's measure), docstrings and descriptions
+  (`fsd` when no final sample is taken, `FunctionLogger`, `rng`,
+  `periodic_vars`, `n_search_iter`, Fig. 1's caption), the ledger (W4-21's
+  counts, the fixed designs, the account of `e7bd01d`'s failure, the
+  concurrent runs), the sheet's citations, the new reference's README and
+  the review's README (`verification/wave4.md`, "Doublecheck"). Left to
+  the PI: the hedge's checks, which take one-element arrays and other
+  types that stop a run at its first search; large integers and an
+  `n_search_iter` above `n_search`; "What's new in PyBADS 1.1".
+- [x] 2026-09-28: a Windows reference at the head of the last fix pass,
+  `a4dcd65` (`dev/experiments/population_wave4_20260928/`, 100 seeds), and
+  the pre-review baseline at `ab4dded`
+  (`dev/experiments/population_prereview_20260927/`, 100 seeds), whose
+  comparison is the net change of the review on Windows: nine
+  configurations flagged, `ackley_D6` and `rosenbrock_D2` better, the
+  errors of `sphere_D2` and `sphere_D10` larger but far below their
+  tolerance, more evaluations on `ellipsoid_D10`, and fewer on four
+  configurations with noise.
+- [x] 2026-09-28: the minor items of the review that needed no choice of
+  the PI, the resolution of `Timer`, the target's copy of the GP and a
+  coding-agent skill, merged as #84 (`79697835`), moving no result: the
+  fingerprint is `4146a986863602cb` on Linux and, at `a4dcd65` and
+  `79697835` alike, `dca2b20df2743512` on Windows with the default number
+  of BLAS threads and `093cb1d05a16d889` with one, so both references
+  stand. The PI's open choices on the minor items stay in `TODO.md`.
+- [x] 2026-09-28: the Close, cloud session, from "Close pickup", on
+  `dev-port-review-close` from `dev-next` at `3d31f3d` (#86), records and
+  documentation only; MATLAB BADS cloned at `74919c0` for its citations.
+  Three fresh reviewer agents extracted the rows of waves 2 to 4 from their
+  ledgers and a fourth read every entry of the sheet against `dev-next`
+  and its MATLAB citations; the orchestrator read waves 0 and 1 and found
+  every cited fix commit in its pull request's head. The consolidated
+  ledger, `results/2026-09-28-port-correctness-review.md`: 173 rows, 121
+  of which changed the code, 27 kept a behavior, 23 closed without a
+  change and 2 stay open (W0-12, W0-13); the net change on the benchmark,
+  on Windows from `population_wave4_20260928`'s README and on Linux from
+  the records of the two references
+  (`verification/close/linux_net_comparison.md`, the four flags that the
+  Windows README names); the open ends, among them observations that no
+  ruling took up, which a `TODO.md` item holds; and the MATLAB side as
+  `matlab_side_defects.md` holds it. The catalogue of deliberate
+  differences, `pybads/bads/README.md`, 61 entries: the sheet's 58, with
+  what #84, #85 and wave 4's doublecheck changed and errors the sheet
+  already had corrected, and three new (KD-B1-12, KD-B1-13, KD-B3-9). The
+  survey's candidate table marked closed, its two rows by design pointed at
+  their entries. `TODO.md`: the bug hunt's item closed; the oracles, the
+  notebooks and W1-25's measurement no longer wait; W2-25's lower fraction
+  solved joins W1-25's measurement. Notes on the records that describe the
+  code before #84: KD-B4-2, `wave3.md` (two places), the survey's row on
+  `_get_target_from_gp_`, and, in the review's README, the three scripts
+  of wave 2 that read `cache_active`, which since `8aecb6a` stop earlier,
+  at the refusal of `f_vals` and `fun_values`. The two "Minor items"
+  entries of `TODO.md`, the PI's open choices, stay as #84 left them.
+- [x] 2026-09-28: the PI's rulings on the minor items that #84 left, on
+  the orchestrator's recommendations, all accepted, carried by #87 with the
+  Close (the consolidated ledger, "Open ends", has the table). Fixed, one
+  commit each, with a test and a changelog line where a user can notice it:
+  the reports of the setup shown from `"notify"` on, `bads:pbUnspecified`
+  when the hard bounds stand for omitted plausible bounds, a random start
+  tested against `non_box_cons` on the mesh and drawn again there, entries
+  of `search_method` and `search_acq_fcn` with more than two elements
+  refused, a `tol_fun` that is not a real number refused, the 65 options
+  that nothing read and MATLAB BADS does not have removed and the 12
+  MATLAB-named ones marked unused (77 unread, not 76: `diagnostics` was
+  counted as read), `test_options.ini` and `test_options2.ini` removed, the
+  large-N transform test at a million points, and a comment on the
+  matplotlib requirement. Closed without a change: the fixed-variable test,
+  the floor of the ES search's `mu`, and the 0-d arrays, which stay refused;
+  `FunctionLogger.add` and the final samples' bookkeeping go with the port
+  of `fun_values`, and `SKILL.md`'s release with the next release. The two
+  "Minor items" entries leave `TODO.md`, and the catalogue follows. At the
+  package code of the last fix (`365cdd0`), the fingerprint of
+  `dev/scripts/fingerprint.py` is `4146a986863602cb`, as before the fixes
+  (Linux, Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1, gpyreg 1.3.3, with one
+  BLAS thread and the default), and the suite passes (755 tests).
+- [x] 2026-09-28: #87's doublecheck, by four reviewers who had not done
+  the work, on the records, the catalogue and the fixes. It found
+  `gp_cov_fun` unread too, and without a MATLAB counterpart: 78 options
+  were unread, and 66 are removed. A random start is now tested as drawn
+  as well as on the mesh, since the draw is what the result reports as
+  `x0`. The rest were corrections of the records and the catalogue: counts
+  (31 survey rows closed, not 32; the outcome 121/28/22/2), stale
+  dispositions, the locations and wording of a dozen catalogue entries, two
+  entries that the catalogue lacked, which the PI accepted (KD-B1-14,
+  MATLAB's extra arguments to the target and its other calling forms;
+  KD-B6-9, W1-30's warning), 63 entries in all, and a sub-item of `TODO.md` that W1-23 had fixed. The
+  fingerprint is `4146a986863602cb` again, in the setting of the line
+  above, and the suite passes (756 tests).
+- [x] Close: the consolidated ledger, the catalogue in
+  `pybads/bads/README.md`, the survey's rows closed and `TODO.md`; the
+  steps are in "Close pickup" above.

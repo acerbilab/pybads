@@ -1,0 +1,96 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_log_beside_linear_gives_no_overflow_warning[infinite] __________
+
+lb = array([[ 1., -5.]]), ub = array([[1000.,   inf]])
+
+    @pytest.mark.parametrize(
+        "lb, ub",
+        [((1.0, -5.0), (1000.0, np.inf)), ((1.0, -1e3), (1000.0, 1e3))],
+        ids=["infinite", "finite"],
+    )
+    def test_log_beside_linear_gives_no_overflow_warning(lb, ub):
+        """The inverse of a mix of log-scaled and linear variables takes the
+        exponential of every variable and masks out the linear ones. That of a
+        linear variable overflows above about 709, at a bound of 1e3 or at the
+        1/sqrt(eps) where the self-test puts an infinite one, harmlessly: it
+        gives no warning, and the values are those of the transform."""
+        lb, ub = np.array([lb]), np.array([ub])
+        plb, pub = np.array([[2.0, -1.0]]), np.array([[500.0, 1.0]])
+        x = np.array([[10.0, 800.0]])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+>           parameter_transformer = VariableTransformer(2, lb, ub, plb, pub)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+pybads/testing/variable_transformer/test_variable_transformer.py:252:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pybads/variable_transformer/variables_transformer.py:118: in __init__
+    ) = self.__create_hypercube_trans__()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pybads/variable_transformer/variables_transformer.py:225: in __create_hypercube_trans__
+    tests[i] = np.all(np.abs(ginv(g(b)) - b) < tol)
+                             ^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+y = array([[1.25107383e+00, 6.71088640e+07]])
+
+    ginv = lambda y: maskindex(
+        gamma * y + mu, ~self.apply_log_t
+    ) + maskindex(
+>       np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
+                                             ^^^^^^^^^^^^^^^^^^^^^^
+        self.apply_log_t,
+    )
+E   RuntimeWarning: overflow encountered in exp
+
+pybads/variable_transformer/variables_transformer.py:203: RuntimeWarning
+___________ test_log_beside_linear_gives_no_overflow_warning[finite] ___________
+
+lb = array([[    1., -1000.]]), ub = array([[1000., 1000.]])
+
+    @pytest.mark.parametrize(
+        "lb, ub",
+        [((1.0, -5.0), (1000.0, np.inf)), ((1.0, -1e3), (1000.0, 1e3))],
+        ids=["infinite", "finite"],
+    )
+    def test_log_beside_linear_gives_no_overflow_warning(lb, ub):
+        """The inverse of a mix of log-scaled and linear variables takes the
+        exponential of every variable and masks out the linear ones. That of a
+        linear variable overflows above about 709, at a bound of 1e3 or at the
+        1/sqrt(eps) where the self-test puts an infinite one, harmlessly: it
+        gives no warning, and the values are those of the transform."""
+        lb, ub = np.array([lb]), np.array([ub])
+        plb, pub = np.array([[2.0, -1.0]]), np.array([[500.0, 1.0]])
+        x = np.array([[10.0, 800.0]])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+>           parameter_transformer = VariableTransformer(2, lb, ub, plb, pub)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+pybads/testing/variable_transformer/test_variable_transformer.py:252:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pybads/variable_transformer/variables_transformer.py:118: in __init__
+    ) = self.__create_hypercube_trans__()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pybads/variable_transformer/variables_transformer.py:225: in __create_hypercube_trans__
+    tests[i] = np.all(np.abs(ginv(g(b)) - b) < tol)
+                             ^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+y = array([[   1.25107383, 1000.        ]])
+
+    ginv = lambda y: maskindex(
+        gamma * y + mu, ~self.apply_log_t
+    ) + maskindex(
+>       np.minimum(np.finfo(np.float64).max, np.exp(gamma * y + mu)),
+                                             ^^^^^^^^^^^^^^^^^^^^^^
+        self.apply_log_t,
+    )
+E   RuntimeWarning: overflow encountered in exp
+
+pybads/variable_transformer/variables_transformer.py:203: RuntimeWarning
+=========================== short test summary info ============================
+FAILED pybads/testing/variable_transformer/test_variable_transformer.py::test_log_beside_linear_gives_no_overflow_warning[infinite]
+FAILED pybads/testing/variable_transformer/test_variable_transformer.py::test_log_beside_linear_gives_no_overflow_warning[finite]
+2 failed, 19 deselected in 1.17s

@@ -6,7 +6,8 @@ noise, BADS options) and the named suites built from them, so that
 
 Synthetic targets (``make_problem(name, D)``); all but ``sphere_nonbox``
 are shifted so that their minimum lies at a point ``c`` drawn uniformly in
-the central half of the plausible box, with ``z = x - c``:
+the central half of the plausible box (in log10 units for ``logsphere``),
+with ``z = x - c``:
 
 ``sphere``         ``sum(z**2)``
 ``ellipsoid``      ``sum(a_i * z_i**2)``, axis-aligned, with ``a_i`` spaced
@@ -19,16 +20,43 @@ the central half of the plausible box, with ``z = x - c``:
                    BADS's ``private/runtest.m``: points with
                    ``x_1 + x_2 < sqrt(2)`` are infeasible, so the minimum is
                    1, at ``(sqrt(2)/2, sqrt(2)/2, 0, ...)``; with the
-                   bounds of ``get_test_opt_conf`` in the PyBADS
-                   tests (whose ``test_sphere_opt`` marks the other side of
-                   the line infeasible, which leaves the minimum 0 at the
-                   origin)
+                   bounds of ``get_test_opt_conf`` in the PyBADS tests, the
+                   problem of their ``test_sphere_opt``
+``edgesphere``     ``sum((x - c)**2)`` on the hard box ``[0, 10]``, with
+                   ``c_i = -1`` in the first ``ceil(D/2)`` variables: its
+                   minimum, ``ceil(D/2)``, lies on the lower hard bound
+                   there, outside the plausible box ``[1, 9]``, and at a
+                   shifted point inside it in the others
+``ridge``          ``10 * sum(|z_(i+1) - z_i|) + |sum(z)|``: nonsmooth, with
+                   its valley along the diagonal, so that no step along a
+                   coordinate axis descends from a point of the valley
+``sphere_band``    ``sum(z**2)``, with ``c_1 = c_2`` and the non-box
+                   constraint ``|x_1 - x_2| <= SPHERE_BAND``: a feasible band
+                   thinner than a coordinate step, around the diagonal
+``logsphere``      ``sum((log10(x) - log10(c))**2)``, a sphere in log10
+                   units on the hard bounds ``[1e-3, 1e3]`` and the
+                   plausible box ``[1e-2, 1e2]``, all positive with
+                   ``pub / plb >= 10``, so that BADS works on it in log
+                   coordinates
+``periodic``       ``sum(2 * (1 - cos(z_i)))`` over the first ``ceil(D/2)``
+                   variables, periodic (``periodic_vars``) on the hard
+                   bounds ``[0, 2 pi)``, which are also their plausible
+                   bounds, plus ``sum(z_j**2)`` over the others, on the
+                   shifted box; the minimum of each periodic variable lies
+                   within 0.3 of its bounds, on one side of them or the
+                   other, so that a run reaches it across the bounds
+``periodic_rosenbrock``  MATLAB BADS's ``bads_examples.m``, Example 5, at
+                   D = 4: Rosenbrock's function of ``x_1, x_2`` plus
+                   ``cos(pi x_3 / 2) + cos(pi x_4) + 2``, with ``x_3`` and
+                   ``x_4`` periodic (periods 4 and 2) on their hard and
+                   plausible bounds, not shifted; its minima lie on the
+                   bounds of the periodic variables, at ``(1, 1, +-2, +-1)``
 
-Every synthetic minimum is 0 except that of ``sphere_nonbox``. The shifted
-targets share the hard bounds ``[-20, 20]`` and the plausible box
+Every synthetic minimum is 0 except those of ``sphere_nonbox`` and
+``edgesphere``. The shifted targets other than ``logsphere`` and
+``edgesphere`` share the hard bounds ``[-20, 20]`` and the plausible box
 ``[-5, 5]`` in each variable; a configuration with ``unbounded=True``
-replaces the hard bounds by infinities and keeps the plausible box (BADS
-accepts either all bounds finite or all infinite).
+replaces the hard bounds by infinities and keeps the plausible box.
 
 Real-data targets, each defined at one dimension: negative
 log-likelihoods of two models of the 2020 noisy-VBMC paper, fitted by
@@ -66,14 +94,24 @@ per ``(name, D)``, the same in every run. Per run, ``SeedSequence(seed)``
 spawns two streams: the first draws the start point uniformly in the
 plausible box (again until it satisfies a non-box constraint), the second
 the target's noise; BADS gets ``random_seed=seed``. Two populations run with
-the same seeds therefore share each seed's start point and noise stream.
+the same seeds therefore share each seed's start point and noise stream. A
+configuration whose runs are given evaluations made before them
+(``Config.precomputed``, the ``warmstart`` suite) makes them with an earlier
+BADS run, at the run's seed or at another (``earlier_evaluations``); at the
+run's seed, the earlier run's noise comes from a third stream of the seed.
+The earlier run is made by the PyBADS under test, so that two populations
+share a seed's evaluations made before the run only when their PyBADS make
+the same earlier run.
 
 A configuration's ``budget`` is its ``max_fun_evals`` as a multiple of
 ``D``. The ``default`` suite uses BADS's own default, 500 D: every run ends
 on BADS's termination criteria, long before the budget, so that the runs
 cover the whole algorithm, from the initial design to the fine mesh and the
-stopping rules. At 30 seeds the suite runs in about 80 minutes as one
-process with a fresh process per run (``population.py run``).
+stopping rules. With a fresh process per run and four runs at a time
+(``population.py run --workers 4``), 100 seeds of the suite took 86 minutes
+on a Windows laptop and 30 seeds about 20 minutes on a Linux container of
+four cores (2026-09-30, gpyreg 1.4.0); one run at a time takes up to about
+four times as long.
 
 Command line (from the repository root)::
 
@@ -83,7 +121,8 @@ Command line (from the repository root)::
 
 ``--check`` verifies each target: ``f_true(x_min)`` equals ``f_min`` (to
 rounding), ``x_min`` lies inside the hard bounds (an analytic one inside the
-plausible box too) and satisfies the non-box constraint, a real-data target
+plausible box too) and satisfies the non-box constraint, a target with
+periodic variables repeats with their periods, a real-data target
 reproduces its pinned values, the target is finite and no point does better
 than ``f_min`` on random samples of the plausible box, of the neighbourhood
 of ``x_min`` and of the hard box, the start points are reproducible, inside
@@ -100,7 +139,6 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
-import os
 import sys
 import time
 import zlib
@@ -114,6 +152,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # The package of this checkout, whichever checkout is installed.
 sys.path.insert(0, str(REPO_ROOT))
 
+from harness import build_run, single_thread_env  # noqa: E402
+
 # Fixes the shift and the rotation of every target per (name, D),
 # independently of the run seed: every run of every version sees the same
 # targets.
@@ -121,6 +161,9 @@ STRUCTURE_SEED = 20260924
 
 HOMO_SD = 1.0
 ELLIPSOID_CONDITION = 1e6
+# Half the width of sphere_band's feasible band, |x_1 - x_2| <= SPHERE_BAND
+# (the thin band of the port review's W2-37)
+SPHERE_BAND = 0.005
 
 # Error f_true(x) - f_min below which a run counts as solved: BADS's default
 # tol_fun for the unimodal deterministic targets; for the multimodal ones,
@@ -193,6 +236,14 @@ class Problem:
     reference: Optional[dict] = None
     pins: tuple = ()
     check_n: int = 20_000
+    omit_plausible: bool = False
+    # True when the minimum lies on the hard bounds by construction: outside
+    # the plausible box (edgesphere), or on the bounds of periodic variables,
+    # which are also their plausible bounds (periodic_rosenbrock)
+    min_on_bound: bool = False
+    # Evaluations made before the run, BADS's precomputed_evaluations:
+    # (X, y), or (X, y, y_sd) with the target's noise (Config.precomputed)
+    precomputed: Optional[tuple] = dataclasses.field(default=None, repr=False)
     _noise_rng: Optional[np.random.Generator] = dataclasses.field(
         default=None, repr=False
     )
@@ -222,17 +273,32 @@ class Problem:
         return y_obs, sd
 
     def bads_args(self):
-        """``(positional_args, options)`` for ``BADS(*args, options=...)``."""
+        """``(positional_args, options)`` for ``BADS(*args, options=...)``.
+        With ``omit_plausible``, BADS gets no plausible bounds and takes its
+        own default for them (the hard bounds); ``x0`` is drawn in the
+        problem's plausible box all the same."""
         args = (
             self.fun,
             self.x0.copy(),
             self.lb.copy(),
             self.ub.copy(),
-            self.plb.copy(),
-            self.pub.copy(),
+            None if self.omit_plausible else self.plb.copy(),
+            None if self.omit_plausible else self.pub.copy(),
             self.non_box_cons,
         )
         return args, dict(self.options)
+
+    def bads_kwargs(self):
+        """The keyword arguments of ``BADS`` beside ``options``: the
+        evaluations made before the run, copied, when the problem has
+        them."""
+        if self.precomputed is None:
+            return {}
+        return {
+            "precomputed_evaluations": tuple(
+                a.copy() for a in self.precomputed
+            )
+        }
 
     def feasible(self, X):
         """Boolean array: which rows of ``X`` satisfy the non-box
@@ -250,7 +316,10 @@ NOISE_KINDS = ("none", "homo", "hetero")
 class Config:
     """One entry of a suite: a target at a dimension, its noise, bounds,
     extra BADS options and evaluation budget (``max_fun_evals`` as a
-    multiple of ``D``)."""
+    multiple of ``D``), and the evaluations made before the run that its
+    runs are given, if any (``precomputed``, from an earlier run of
+    ``precomputed_budget`` times ``D`` evaluations; see
+    ``earlier_evaluations``)."""
 
     name: str
     D: int
@@ -259,6 +328,10 @@ class Config:
     unbounded: bool = False
     options: tuple = ()  # (key, value) pairs, so that the Config hashes
     tag: str = ""
+    plausible: str = "given"  # or "omitted": BADS gets no plausible bounds
+    start: str = "plausible"  # or "lower": x0's first coordinate at lb
+    precomputed: str = ""  # or "rerun", or "other" (earlier_evaluations)
+    precomputed_budget: int = 0
 
     @property
     def label(self):
@@ -267,6 +340,12 @@ class Config:
             s += f"_{self.noise}"
         if self.unbounded:
             s += "_unbounded"
+        if self.plausible != "given":
+            s += "_nopb"
+        if self.start != "plausible":
+            s += "_x0lb"
+        if self.precomputed:
+            s += f"_{self.precomputed}"
         if self.tag:
             s += f"_{self.tag}"
         return s
@@ -280,21 +359,87 @@ class Config:
     def make(self, seed=None, budget_scale=1.0):
         """The problem of one run: start point and noise stream from
         ``seed``; options with ``display="off"``, the budget and
-        ``random_seed=seed``, then the configuration's own options."""
-        prob = make_problem(
-            self.name,
-            self.D,
-            noise=self.noise,
-            seed=seed,
-            unbounded=self.unbounded,
-        )
+        ``random_seed=seed``, then the configuration's own options; with
+        ``precomputed``, the evaluations of an earlier run, made here
+        (``earlier_evaluations``)."""
+        prob = self._problem(seed)
         prob.options.update(
             display="off",
             max_fun_evals=self.max_fun_evals(budget_scale),
             random_seed=seed,
         )
         prob.options.update(self.options_dict())
+        if self.precomputed:
+            prob.precomputed = earlier_evaluations(self, seed)
         return prob
+
+    def _problem(self, seed):
+        return make_problem(
+            self.name,
+            self.D,
+            noise=self.noise,
+            seed=seed,
+            unbounded=self.unbounded,
+            plausible=self.plausible,
+            start=self.start,
+        )
+
+
+# The seed of the earlier run of a configuration with precomputed="other" is
+# the run's seed plus this offset.
+OTHER_SEED_OFFSET = 1000
+
+
+def earlier_evaluations(cfg, seed):
+    """The evaluations made before a run of ``cfg`` at ``seed``: the
+    function log of an earlier BADS run on the same target, with
+    ``cfg.precomputed_budget * D`` evaluations and the configuration's
+    options, as ``(X, y)``, or ``(X, y, y_sd)`` with the target's noise.
+
+    ``"rerun"``: the earlier run has the run's seed, and so its start and
+    its initial design, which the log then holds; its noise is a third
+    stream of the seed, apart from the run's. ``"other"``: the earlier run
+    is the run of the seed ``seed + OTHER_SEED_OFFSET``, with that seed's
+    start and noise. The log holds BADS's rows: without the noise test and
+    the final samples, which it does not record. The earlier run is made
+    by the PyBADS that runs the configuration, so that the log depends on
+    the seed and on that PyBADS (and, as every run, on the platform): two
+    versions of PyBADS whose runs without evaluations given before them
+    part give a seed different logs. ``population.py`` records the
+    log's digest, and its ``compare`` warns of the seeds whose digests
+    differ.
+    """
+    from pybads import BADS
+
+    if seed is None:
+        raise ValueError(f"{cfg.label} needs a seed for its earlier run")
+    if cfg.precomputed == "rerun":
+        earlier_seed = seed
+        earlier = cfg._problem(seed)
+        if earlier.noise != "none":
+            stream = np.random.SeedSequence(seed).spawn(3)[2]
+            earlier._noise_rng = np.random.default_rng(stream)
+    elif cfg.precomputed == "other":
+        earlier_seed = seed + OTHER_SEED_OFFSET
+        earlier = cfg._problem(earlier_seed)
+    else:
+        raise ValueError(f"unknown precomputed {cfg.precomputed!r}")
+    args, options = earlier.bads_args()
+    options.update(
+        display="off",
+        max_fun_evals=cfg.precomputed_budget * cfg.D,
+        random_seed=earlier_seed,
+    )
+    options.update(cfg.options_dict())
+    bads = BADS(*args, options=options)
+    bads.optimize()
+    logger = bads.function_logger
+    n = logger.Xn + 1
+    X = logger.X_orig[:n].copy()
+    y = logger.Y[:n, 0].copy()
+    if earlier.noise == "hetero":
+        return X, y, logger.S[:n, 0].copy()
+    return X, y
 
 
 # --------------------------------------------------------------------------
@@ -437,6 +582,33 @@ def _rastrigin(D, rng):
     )
 
 
+def _logsphere(D, rng):
+    # A sphere in log10 units, on hard bounds that span six decades and a
+    # plausible box of four, all positive with pub / plb >= 10, so that BADS
+    # works on it in log coordinates; the minimum is log-uniform in the
+    # central half of the plausible box (in log10 units).
+    lb, ub = np.full(D, 1e-3), np.full(D, 1e3)
+    plb, pub = np.full(D, 1e-2), np.full(D, 1e2)
+    log_c = _shift(rng, np.log10(plb), np.log10(pub))
+
+    def f_vec(X):
+        return np.sum((np.log10(np.atleast_2d(X)) - log_c) ** 2, axis=1)
+
+    return Problem(
+        name="logsphere",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=10.0**log_c,
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        notes="sphere in log10 units, on positive bounds (a log transform)",
+    )
+
+
 def _sphere_nonbox_cons(X):
     X = np.atleast_2d(X)
     return X[:, 0] + X[:, 1] < np.sqrt(2.0)
@@ -460,6 +632,159 @@ def _sphere_nonbox(D, rng):
         tolerance=TOL_UNIMODAL,
         non_box_cons=_sphere_nonbox_cons,
         notes="sum(x^2), infeasible where x_1 + x_2 < sqrt(2)",
+    )
+
+
+def _edgesphere(D, rng):
+    # The minimum on the lower hard bound in the first ceil(D/2) variables,
+    # outside the plausible box; at a shifted point inside it in the others
+    lb, ub, plb, pub = (
+        np.zeros(D),
+        np.full(D, 10.0),
+        np.ones(D),
+        np.full(D, 9.0),
+    )
+    h = (D + 1) // 2
+    c = _shift(rng, plb, pub)
+    c[:h] = -1.0
+    x_min = c.copy()
+    x_min[:h] = 0.0
+
+    def f_vec(X):
+        return np.sum((np.atleast_2d(X) - c) ** 2, axis=1)
+
+    return Problem(
+        name="edgesphere",
+        D=D,
+        f_vec=f_vec,
+        f_min=float(h),
+        x_min=x_min,
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        min_on_bound=True,
+        notes="sum((x - c)^2), c_i = -1 in ceil(D/2) variables, on [0, 10]",
+    )
+
+
+def _periodic(D, rng):
+    # The first ceil(D/2) variables are periodic on [0, 2 pi), their hard and
+    # plausible bounds, with their minima within 0.3 of the bounds; the
+    # others are shifted as in the other targets. 2 (1 - cos z) is z^2 to
+    # second order, as for a sphere.
+    lb, ub, plb, pub = _shifted_box(D)
+    h = (D + 1) // 2
+    lb[:h], plb[:h] = 0.0, 0.0
+    ub[:h], pub[:h] = 2 * np.pi, 2 * np.pi
+    c = _shift(rng, plb, pub)
+    c[:h] = np.mod(rng.uniform(-0.3, 0.3, size=h), 2 * np.pi)
+
+    def f_vec(X):
+        Z = np.atleast_2d(X) - c
+        return np.sum(2.0 * (1.0 - np.cos(Z[:, :h])), axis=1) + np.sum(
+            Z[:, h:] ** 2, axis=1
+        )
+
+    return Problem(
+        name="periodic",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=c.copy(),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": list(range(h))},
+        notes=(
+            "sum(2 (1 - cos z_i)) over ceil(D/2) periodic variables on "
+            "[0, 2 pi), minima within 0.3 of the bounds, + sum(z_j^2)"
+        ),
+    )
+
+
+def _periodic_rosenbrock(D, rng):
+    # MATLAB BADS's bads_examples.m, Example 5, as it is
+    if D != 4:
+        raise ValueError("periodic_rosenbrock is defined at D = 4")
+    lb = np.array([-10.0, -5.0, -2.0, -1.0])
+    ub = np.array([5.0, 10.0, 2.0, 1.0])
+    plb = np.array([-2.0, -2.0, -2.0, -1.0])
+    pub = np.array([2.0, 2.0, 2.0, 1.0])
+
+    def f_vec(X):
+        X = np.atleast_2d(X)
+        rosen = 100.0 * (X[:, 1] - X[:, 0] ** 2) ** 2 + (1.0 - X[:, 0]) ** 2
+        return (
+            rosen + np.cos(X[:, 2] * np.pi / 2) + np.cos(X[:, 3] * np.pi) + 2.0
+        )
+
+    return Problem(
+        name="periodic_rosenbrock",
+        D=D,
+        f_vec=f_vec,
+        f_min=0.0,
+        x_min=np.array([1.0, 1.0, -2.0, -1.0]),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        options={"periodic_vars": [2, 3]},
+        min_on_bound=True,
+        notes=(
+            "MATLAB BADS's Example 5: Rosenbrock(x_1, x_2) + cos(pi x_3 / 2)"
+            " + cos(pi x_4) + 2, x_3 and x_4 periodic"
+        ),
+    )
+
+
+def _ridge_of_z(Z):
+    return 10.0 * np.sum(np.abs(np.diff(Z, axis=1)), axis=1) + np.abs(
+        np.sum(Z, axis=1)
+    )
+
+
+def _ridge(D, rng):
+    if D < 2:
+        raise ValueError("ridge needs D >= 2")
+    return _shifted_problem(
+        "ridge",
+        D,
+        rng,
+        _ridge_of_z,
+        TOL_UNIMODAL,
+        "10 sum(|z_(i+1) - z_i|) + |sum(z)|, a nonsmooth diagonal valley",
+    )
+
+
+def _sphere_band(D, rng):
+    if D < 2:
+        raise ValueError("sphere_band needs D >= 2")
+    lb, ub, plb, pub = _shifted_box(D)
+    c = _shift(rng, plb, pub)
+    c[1] = c[0]
+
+    def non_box_cons(X):
+        X = np.atleast_2d(X)
+        return np.abs(X[:, 0] - X[:, 1]) > SPHERE_BAND
+
+    return Problem(
+        name="sphere_band",
+        D=D,
+        f_vec=lambda X: np.sum((np.atleast_2d(X) - c) ** 2, axis=1),
+        f_min=0.0,
+        x_min=c.copy(),
+        lb=lb,
+        ub=ub,
+        plb=plb,
+        pub=pub,
+        tolerance=TOL_UNIMODAL,
+        non_box_cons=non_box_cons,
+        notes=f"sum(z^2), c_1 = c_2, feasible where |x_1 - x_2| <= {SPHERE_BAND}",
     )
 
 
@@ -747,7 +1072,13 @@ _REGISTRY = {
     "rosenbrock": _rosenbrock,
     "ackley": _ackley,
     "rastrigin": _rastrigin,
+    "logsphere": _logsphere,
     "sphere_nonbox": _sphere_nonbox,
+    "edgesphere": _edgesphere,
+    "ridge": _ridge,
+    "sphere_band": _sphere_band,
+    "periodic": _periodic,
+    "periodic_rosenbrock": _periodic_rosenbrock,
     "timing": _timing,
     "multisensory_s1": _multisensory_s1,
 }
@@ -774,7 +1105,14 @@ def _draw_x0(prob, rng, max_tries=10_000):
 
 
 def make_problem(
-    name, D, noise="none", seed=None, unbounded=False, reference=True
+    name,
+    D,
+    noise="none",
+    seed=None,
+    unbounded=False,
+    reference=True,
+    plausible="given",
+    start="plausible",
 ):
     """Build the ``Problem`` of one run.
 
@@ -783,7 +1121,9 @@ def make_problem(
     structure depends only on ``(name, D)``. ``reference=False`` leaves a
     real-data target's stored reference minimum unread, with ``f_min`` and
     ``x_min`` NaN: ``make_reference_optima.py`` builds the target whose
-    reference it writes.
+    reference it writes. ``plausible="omitted"`` gives BADS no plausible
+    bounds, and ``start="lower"`` puts the first coordinate of ``x0`` on its
+    lower bound (the ``bounds`` suite).
     """
     if name not in _REGISTRY:
         raise ValueError(f"unknown target {name!r}; known: {TARGET_NAMES}")
@@ -803,6 +1143,13 @@ def make_problem(
         prob.ub = np.full(D, np.inf)
     x0_ss, noise_ss = np.random.SeedSequence(seed).spawn(2)
     prob.x0 = _draw_x0(prob, np.random.default_rng(x0_ss))
+    if plausible not in ("given", "omitted"):
+        raise ValueError(f"unknown plausible {plausible!r}")
+    prob.omit_plausible = plausible == "omitted"
+    if start == "lower":
+        prob.x0[0] = prob.lb[0]
+    elif start != "plausible":
+        raise ValueError(f"unknown start {start!r}")
     prob.noise = noise
     if noise != "none":
         if name not in REAL_TARGETS:
@@ -816,16 +1163,22 @@ def make_problem(
 # Suites
 # --------------------------------------------------------------------------
 
-# The default suite. Its 18 configurations cover every target, dimension (2,
-# 3, 6, and 10 for sphere and ellipsoid; 5 for timing), noise kind and
-# constraint type, not every combination; the ellipsoid at D = 3 appears
-# with finite bounds, infinite bounds and both noise kinds, on the same
-# shifted target, and multisensory_s1 with and without noise. Every budget
+# The default suite. Its 24 configurations cover every target but those
+# kept to the suites below (logsphere, edgesphere, ridge and sphere_band),
+# dimension (2, 3, 6, and 10 for sphere and ellipsoid; 2, 3, 4 and 6 for
+# periodic, 5 for timing), noise kind and constraint type, not every
+# combination; the ellipsoid at D = 3 appears with finite bounds, infinite
+# bounds and both noise kinds, on the same shifted target, multisensory_s1
+# with and without noise, and periodic at D = 3 with both noise kinds. The
+# six configurations with periodic variables (the `periodic` suite) make a
+# gate that runs this suite a gate of periodic variables too. Every budget
 # is BADS's default, 500 D. A calibration at that budget (4 seeds per
 # configuration, 2026-09-24) found every run ending on BADS's own
 # termination, after 55 to 863 evaluations: 60 at sphere D2, about 800 at
 # ellipsoid D10, 200 to 500 for the noisy synthetic targets, 200 to 330 for
-# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise.
+# timing, about 300 for multisensory_s1 and 600 to 830 for it with noise;
+# the runs of the periodic configurations (30 seeds, 2026-09-28) ended so
+# after 52 to 227 evaluations without noise and 182 to 721 with it.
 # At about 40 ms per evaluation, a timing run takes 10 to 17 s. Starting a
 # fresh process and importing PyBADS adds about 2 s per run.
 _DEFAULT = [
@@ -847,6 +1200,12 @@ _DEFAULT = [
     Config("timing", 5, budget=500),
     Config("multisensory_s1", 6, budget=500),
     Config("multisensory_s1", 6, noise="homo", budget=500),
+    Config("periodic", 2, budget=500),
+    Config("periodic", 4, budget=500),
+    Config("periodic", 6, budget=500),
+    Config("periodic", 3, noise="homo", budget=500),
+    Config("periodic", 3, noise="hetero", budget=500),
+    Config("periodic_rosenbrock", 4, budget=500),
 ]
 
 # One configuration per code path: deterministic, inferred noise, specified
@@ -859,9 +1218,142 @@ _SMOKE = (
     "ellipsoid_D3_unbounded",
 )
 
+# The configurations at D = 1, which the default suite has none of: the gate
+# of a change that reaches only D = 1. Every target defined there
+# (rosenbrock is not), deterministic, with both noise kinds, and with
+# infinite bounds; the ellipsoid at D = 1 is a shifted sphere.
+_ONED = [
+    Config("sphere", 1, budget=500),
+    Config("ackley", 1, budget=500),
+    Config("rastrigin", 1, budget=500),
+    Config("sphere", 1, noise="homo", budget=500),
+    Config("sphere", 1, noise="hetero", budget=500),
+    Config("ellipsoid", 1, budget=500, unbounded=True),
+]
+
+# The configurations that reach the checks of the bounds and the start point
+# in BADS's setup, which the default suite keeps clear of: plausible bounds
+# left to BADS (they default to the hard bounds), a log-scaled target with
+# and without plausible bounds and with noise, and a start on a hard bound.
+# The gate of a change to those checks (the port review's W2-4).
+_BOUNDS = [
+    Config("sphere", 3, budget=500, plausible="omitted"),
+    Config("sphere", 3, budget=500, start="lower"),
+    Config("logsphere", 3, budget=500),
+    Config("logsphere", 3, budget=500, plausible="omitted"),
+    Config("logsphere", 3, noise="homo", budget=500),
+]
+
+# The configurations that reach what the default suite rarely does: a
+# minimum on a hard bound, where the search's candidates projected onto the
+# bound repeat points already evaluated (the port review's W3-1), with and
+# without noise; a nonsmooth valley along the diagonal, which no coordinate
+# step descends (W3-24); and a feasible band thinner than a coordinate step
+# around the diagonal, which empties the ES search's later generations (W3-9)
+# and ends a coordinate poll early at D = 2 (W2-37).
+_GEOMETRY = [
+    Config("edgesphere", 2, budget=500),
+    Config("edgesphere", 4, budget=500),
+    Config("edgesphere", 3, noise="homo", budget=500),
+    Config("ridge", 2, budget=500),
+    Config("ridge", 4, budget=500),
+    Config("sphere_band", 2, budget=500),
+    Config("sphere_band", 3, budget=500),
+]
+
+# The thin band with noise, whose initial design leaves the GP one point,
+# `x0`, as it does without noise in the geometry suite: at uncertainty level
+# 1 and at level 2 (the target's noise), the gate of a change to the GP on
+# one point.
+_THINBAND = [
+    Config("sphere_band", 2, noise="homo", budget=500),
+    Config("sphere_band", 3, noise="homo", budget=500),
+    Config("sphere_band", 2, noise="hetero", budget=500),
+    Config("sphere_band", 3, noise="hetero", budget=500),
+]
+
+# The configurations whose runs are given evaluations made before them
+# (BADS's precomputed_evaluations), the log of an earlier run on the same
+# target (earlier_evaluations): of 15 D evaluations from the run's own seed
+# and start ("rerun"), whose initial design the log holds, so that the run's
+# start and initial design are one point; or of 20 D evaluations from
+# another seed, start and noise ("other"). Deterministic targets at D = 3
+# and 6, and the sphere with both kinds of noise, whose initial design of
+# 32 points the rerun's 45 evaluations cover; with the target's noise, the
+# rerun's start merges with the start given in the log. The gate of a
+# change to how a run uses evaluations made before it.
+_WARMSTART = [
+    Config(
+        name,
+        D,
+        noise=noise,
+        budget=500,
+        precomputed=kind,
+        precomputed_budget=n,
+    )
+    for name, D, noise in (
+        ("sphere", 3, "none"),
+        ("ellipsoid", 3, "none"),
+        ("rosenbrock", 6, "none"),
+        ("sphere", 3, "homo"),
+        ("sphere", 3, "hetero"),
+    )
+    for kind, n in (("rerun", 15), ("other", 20))
+]
+
+# The configurations of the default suite with periodic variables
+# (periodic_vars): minima across the bounds of the periodic variables, one
+# to three of them, with both noise kinds, and MATLAB BADS's Example 5. Run
+# with --options '{"periodic_vars": null}', the same problems as bounded
+# ones, the comparison that shows what the option does.
+_PERIODIC = (
+    "periodic_D2",
+    "periodic_D4",
+    "periodic_D6",
+    "periodic_D3_homo",
+    "periodic_D3_hetero",
+    "periodic_rosenbrock_D4",
+)
+
+# The configurations whose time `profile_suite.py` measures: those of
+# `results/2026-09-28-where-pybads-spends-its-time.md` (three deterministic,
+# two with noise inferred, one with the target's noise), and
+# `ellipsoid_D3`, whose failed refits take 42 % of its time
+# (`results/2026-09-28-gp-health.md`).
+_PROFILE = (
+    "ellipsoid_D3",
+    "ellipsoid_D10",
+    "rosenbrock_D6",
+    "ackley_D6",
+    "multisensory_s1_D6_homo",
+    "ellipsoid_D3_homo",
+    "sphere_D3_hetero",
+)
+
+
+def _subset(configs, labels, suite):
+    """The configurations of ``configs`` whose labels are in ``labels``, in
+    the order of ``configs``; a label that none has raises, so that a suite
+    never loses a configuration without notice."""
+    missing = sorted(set(labels) - {c.label for c in configs})
+    if missing:
+        raise ValueError(
+            f"suite {suite!r} names configurations that the default suite"
+            f" does not have: {', '.join(missing)}"
+        )
+    return [c for c in configs if c.label in labels]
+
+
 SUITES = {
-    "smoke": [c for c in _DEFAULT if c.label in _SMOKE],
+    "smoke": _subset(_DEFAULT, _SMOKE, "smoke"),
     "default": _DEFAULT,
+    "oned": _ONED,
+    "bounds": _BOUNDS,
+    "geometry": _GEOMETRY,
+    "thinband": _THINBAND,
+    "warmstart": _WARMSTART,
+    "profile": _subset(_DEFAULT, _PROFILE, "profile"),
+    "periodic": _subset(_DEFAULT, _PERIODIC, "periodic"),
 }
 
 
@@ -884,6 +1376,35 @@ def find_config(label):
         if c.label == label:
             return c
     raise ValueError(f"unknown config label {label!r}")
+
+
+def gpyreg_takes_periods():
+    """Whether the imported gpyreg's kernels take ``periods`` (gpyreg 1.4.0
+    and later), which a configuration with periodic variables needs."""
+    import gpyreg
+
+    try:
+        gpyreg.covariance_functions.RationalQuadraticARD(periods=[1.0])
+    except TypeError:
+        return False
+    return True
+
+
+def runnable_configs(suite):
+    """The configurations of ``suite`` that the imported gpyreg runs, and the
+    labels of those it cannot: the configurations that set
+    ``periodic_vars``, under a gpyreg whose kernels take no ``periods``."""
+    configs = suite_configs(suite)
+    if gpyreg_takes_periods():
+        return configs, []
+    kept = [
+        c
+        for c in configs
+        if not make_problem(c.name, c.D, reference=False).options.get(
+            "periodic_vars"
+        )
+    ]
+    return kept, [c.label for c in configs if c not in kept]
 
 
 # --------------------------------------------------------------------------
@@ -917,7 +1438,15 @@ def check_problem(cfg, n=None):
     msgs = []
 
     def make(seed):
-        return make_problem(cfg.name, cfg.D, cfg.noise, seed, cfg.unbounded)
+        return make_problem(
+            cfg.name,
+            cfg.D,
+            cfg.noise,
+            seed,
+            cfg.unbounded,
+            plausible=cfg.plausible,
+            start=cfg.start,
+        )
 
     prob = make(0)
     D, x_min = prob.D, prob.x_min
@@ -928,22 +1457,28 @@ def check_problem(cfg, n=None):
         msgs.append(f"f_true(x_min) = {f_at_min!r} != f_min = {prob.f_min!r}")
     if not (np.all(prob.lb <= x_min) and np.all(x_min <= prob.ub)):
         msgs.append("x_min outside the hard bounds")
-    # an analytic minimum lies inside the plausible box by construction; a
-    # reference minimum need not (that of timing does not)
-    if prob.reference is None and not (
-        np.all(prob.plb < x_min) and np.all(x_min < prob.pub)
+    # an analytic minimum lies inside the plausible box by construction,
+    # unless it is on the hard bounds by design (edgesphere); a reference
+    # minimum need not (that of timing does not)
+    if (
+        prob.reference is None
+        and not prob.min_on_bound
+        and not (np.all(prob.plb < x_min) and np.all(x_min < prob.pub))
     ):
         msgs.append("x_min outside the plausible box")
     if not prob.feasible(x_min)[0]:
         msgs.append("x_min violates the non-box constraint")
+    # a target with periodic variables repeats with their periods
+    for d in prob.options.get("periodic_vars") or []:
+        shifted = x_min.copy()
+        shifted[d] += prob.ub[d] - prob.lb[d]
+        if not _close(prob.f_true(shifted), f_at_min):
+            msgs.append(f"f_true is not periodic along variable {d}")
     # BADS's requirements on the bounds
     if not np.all(
         (prob.lb <= prob.plb) & (prob.plb < prob.pub) & (prob.pub <= prob.ub)
     ):
         msgs.append("bounds not ordered lb <= plb < pub <= ub")
-    finite = np.isfinite(np.concatenate([prob.lb, prob.ub]))
-    if not (np.all(finite) or not np.any(finite)):
-        msgs.append("hard bounds mix finite and infinite values")
     # values of an independent implementation of the likelihood
     pin_diffs = []
     for x, expected, kind, tol in prob.pins:
@@ -961,7 +1496,7 @@ def check_problem(cfg, n=None):
     X_near = x_min + 1e-3 * (prob.pub - prob.plb) * rng.standard_normal((n, D))
     X_near = np.clip(X_near, prob.lb, prob.ub)
     X_hard = np.empty((0, D))
-    if np.all(finite):
+    if np.all(np.isfinite(np.concatenate([prob.lb, prob.ub]))):
         X_hard = prob.lb + rng.random((n, D)) * (prob.ub - prob.lb)
     X = np.vstack([X_box, X_near, X_hard])
     X = X[prob.feasible(X)]
@@ -983,7 +1518,10 @@ def check_problem(cfg, n=None):
     if len({tuple(x) for x in x0s}) < len(x0s):
         msgs.append("different seeds gave the same x0")
     for x0 in x0s:
-        if not (np.all(prob.plb <= x0) and np.all(x0 <= prob.pub)):
+        x0_box = x0.copy()
+        if cfg.start == "lower":
+            x0_box[0] = prob.plb[0]  # on the lower bound by design
+        if not (np.all(prob.plb <= x0_box) and np.all(x0_box <= prob.pub)):
             msgs.append("x0 outside the plausible box")
         if not prob.feasible(x0)[0]:
             msgs.append("x0 violates the non-box constraint")
@@ -1041,29 +1579,19 @@ def run_check(configs, only=None):
 # --------------------------------------------------------------------------
 
 
-def single_thread_env():
-    """One BLAS thread per process and a headless matplotlib, for the
-    spawned processes of ``--smoke`` and ``population.py run``."""
-    for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
-        os.environ[k] = "1"
-    os.environ["MPLBACKEND"] = "Agg"
-
-
 def _smoke_task(label, seed, budget_scale):
     """One BADS run of a configuration (executed in a spawned process)."""
     from pybads import BADS
 
-    cfg = find_config(label)
-    prob = cfg.make(seed=seed, budget_scale=budget_scale)
-    args, options = prob.bads_args()
+    run = build_run(find_config(label), seed, budget_scale)
     t0 = time.perf_counter()
-    res = BADS(*args, options=options).optimize()
+    res = BADS(*run.args, options=run.options, **run.kwargs).optimize()
     wall = time.perf_counter() - t0
     return {
         "bads_s": wall,
         "func_count": int(res["func_count"]),
-        "max_fun_evals": options["max_fun_evals"],
-        "true_error": prob.f_true(np.ravel(res["x"])) - prob.f_min,
+        "max_fun_evals": run.options["max_fun_evals"],
+        "true_error": run.prob.f_true(np.ravel(res["x"])) - run.prob.f_min,
         "message": str(res["message"]),
     }
 
@@ -1159,6 +1687,12 @@ def main(argv=None):
                     f"    {c.label:24s} {c.budget:2d}*D = {evals:3d}"
                     f" evaluations  {notes}"
                     + (f"  options={c.options_dict()}" if c.options else "")
+                    + (
+                        f"  precomputed={c.precomputed}"
+                        f" ({c.precomputed_budget}*D)"
+                        if c.precomputed
+                        else ""
+                    )
                 )
         return 0
     ok = True

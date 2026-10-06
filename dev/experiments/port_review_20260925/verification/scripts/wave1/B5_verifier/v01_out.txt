@@ -1,0 +1,47 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+Detected fully unconstrained optimization.
+unbounded (as is)            seed 11 optim_state plb=[[1. 1. 1.]] pub=[[-1. -1. -1.]]
+   refit 7: lengthscale=[92.059 43.359  6.201] poll_scale=[-2. -2. -2.]
+   refit 8: lengthscale=[100.     36.809   4.593] poll_scale=[-2. -2. -2.]
+   refit 9: lengthscale=[77.84  17.3    2.491] poll_scale=[-2. -2. -2.]
+   fval=1.423e-05 func_count=105 refits=10
+Detected fully unconstrained optimization.
+unbounded (as is)            seed 12 optim_state plb=[[1. 1. 1.]] pub=[[-1. -1. -1.]]
+   refit 7: lengthscale=[91.936 35.31   4.439] poll_scale=[-2. -2. -2.]
+   refit 8: lengthscale=[100.     37.278   4.402] poll_scale=[-2. -2. -2.]
+   refit 9: lengthscale=[100.     22.666   3.787] poll_scale=[-2. -2. -2.]
+   fval=7.759e-08 func_count=111 refits=10
+Detected fully unconstrained optimization.
+unbounded (names fixed)      seed 11 optim_state plb=[[-1. -1. -1.]] pub=[[1. 1. 1.]]
+   refit 6: lengthscale=[100.     29.721   3.628] poll_scale=[2.    1.345 0.164]
+   refit 7: lengthscale=[100.     32.062   5.386] poll_scale=[2.    1.24  0.208]
+   refit 8: lengthscale=[22.147  3.853  0.808] poll_scale=[2.    0.939 0.197]
+   fval=1.432e-07 func_count=101 refits=9
+Detected fully unconstrained optimization.
+unbounded (names fixed)      seed 12 optim_state plb=[[-1. -1. -1.]] pub=[[1. 1. 1.]]
+   refit 4: lengthscale=[100.     44.712   5.568] poll_scale=[2.    1.531 0.191]
+   refit 5: lengthscale=[100.     53.429  10.36 ] poll_scale=[2.    1.402 0.272]
+   refit 6: lengthscale=[100.     58.088   9.735] poll_scale=[2.    1.513 0.254]
+   fval=1.557e-05 func_count=81 refits=7
+bounded +-20 (as is)         seed 11 optim_state plb=[[1. 1. 1.]] pub=[[-1. -1. -1.]]
+   refit 5: lengthscale=[100.     23.588   3.9  ] poll_scale=[4.773 1.126 0.186]
+   refit 6: lengthscale=[100.     33.894   5.394] poll_scale=[3.796 1.287 0.205]
+   refit 7: lengthscale=[100.     29.466   5.164] poll_scale=[4.035 1.189 0.208]
+   fval=1.881e-05 func_count=81 refits=8
+bounded +-20 (as is)         seed 12 optim_state plb=[[1. 1. 1.]] pub=[[-1. -1. -1.]]
+   refit 6: lengthscale=[100.     63.863   8.764] poll_scale=[2.614 1.67  0.229]
+   refit 7: lengthscale=[100.     70.497   9.753] poll_scale=[2.441 1.721 0.238]
+   refit 8: lengthscale=[100.     38.879   4.997] poll_scale=[3.72  1.446 0.186]
+   fval=1.334e-05 func_count=101 refits=9
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1/B5_verifier/v01_pollscale_unbounded.py", line 45, in <module>
+    b = BADS(f, x0, lb, ub, plb, pub,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads-review/pybads/bads/bads.py", line 242, in __init__
+    ) = self._bounds_check_(
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/pybads-review/pybads/bads/bads.py", line 530, in _bounds_check_
+    raise ValueError(
+ValueError: bads:HalfBounds: Each variable needs to be unbounded or
+            bounded. Variables bounded only below/above are not supported.

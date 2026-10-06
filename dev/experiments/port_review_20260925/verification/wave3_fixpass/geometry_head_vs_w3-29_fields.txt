@@ -1,0 +1,1 @@
+final.wall_s: 210 runs; e.g. edgesphere_D2_seed22.json: '0.3994551430005231' -> '0.45942114799981937'

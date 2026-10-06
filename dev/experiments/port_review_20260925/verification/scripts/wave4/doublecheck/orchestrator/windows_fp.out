@@ -1,0 +1,16 @@
+HEAD is now at 81385ac7 fix: wave 4 of the port review (the function logger, the initial design and the utilities; the third reader) and its fix pass (#80)
+8c8d6f8 | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 7779b81cecfb120a
+86512c9 | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 7779b81cecfb120a
+4b84a2d | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 7779b81cecfb120a
+efe5e95 | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 8a7fe547f6fefaf1
+e7bd01d | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py db9dd70de1e2318c
+46af65a | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py dca2b20df2743512
+81385ac | threads=default | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py dca2b20df2743512
+8c8d6f8 | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py ac49960f71e37c97
+86512c9 | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py ac49960f71e37c97
+4b84a2d | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py ac49960f71e37c97
+efe5e95 | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 83df53be9fc78011
+e7bd01d | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py ef154fcaab9f8e9d
+46af65a | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 093cb1d05a16d889
+81385ac | threads=1 | C:\Users\luigi\Documents\GitHub\pybads-fp\pybads\__init__.py 093cb1d05a16d889
+3.12.6 2.5.3 1.18.1

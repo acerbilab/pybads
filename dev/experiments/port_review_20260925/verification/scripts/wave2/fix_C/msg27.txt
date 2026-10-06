@@ -1,0 +1,29 @@
+fix: the initial design keeps within the evaluations left, and the final samples' reserve is never negative (W2-27)
+
+The initial design was capped at `max_fun_evals - 1` before `init_sobol`
+rounded it up to a power of two (doubled when that equals D), and the
+noise test at `x0` was left out of the cap, so a budget below the design
+was exceeded: 6 evaluations at D = 2 for `max_fun_evals` 3 to 6, 10 at
+D = 5 for 7, 34 in a noisy run at D = 2 for 25. In a noisy run the reserve
+for the final samples, `min(noise_final_samples, max_fun_evals -
+func_count)`, then went negative, and subtracting it raised
+`max_fun_evals` (to 34 in that run).
+
+The Sobol set is drawn as before and keeps its first points within the
+evaluations left, `max_fun_evals` minus those made (the starting point and
+the noise test), and the reserve is floored at 0, so that `max_fun_evals`
+never grows. MATLAB BADS draws `Ninit = min(options.Ninit, MaxFunEvals -
+1)` points, without the rounding (private/evalinitmesh.m:98-104), and does
+not count its noise test either (evalinitmesh.m:37-42): PyBADS now counts
+it. At the default budgets the cap does not bind, so a default run does
+not change. The doubling of the design stays (W0-18).
+
+Tests: test_run_control.py::test_initial_design_within_budget (D = 2 with
+`max_fun_evals` 3 to 6, D = 5 with 7) and
+::test_initial_design_within_budget_of_noisy_run (D = 2, 25). At the
+parent: `assert 6 <= 3`, `6 <= 4`, `6 <= 5`, `10 <= 7`, `34 <= 25`; all
+pass at this commit.
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

@@ -1,0 +1,10 @@
+size=0 count=-1: expression -> False;  'and' form -> False
+size=0 count=0: expression -> False;  'and' form -> False
+size=0 count=2: expression -> False;  'and' form -> False
+size=0 count=3: expression -> False;  'and' form -> False
+size=0 count=50: expression -> False;  'and' form -> False
+size=3 count=-1: expression -> True;  'and' form -> True
+size=3 count=0: expression -> True;  'and' form -> True
+size=3 count=2: expression -> True;  'and' form -> True
+size=3 count=3: expression -> True;  'and' form -> False
+size=3 count=50: expression -> True;  'and' form -> False

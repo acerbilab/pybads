@@ -1,0 +1,41 @@
+fix: the function logger refuses a malformed SD with its documented ValueError, and checks both outputs before recording anything (W4-8)
+
+FunctionLogger.__call__ documents a ValueError for a value that is not a
+finite real-valued scalar and for an SD that is not a finite, positive
+real-valued scalar, as MATLAB's funlogger.m:103-110 checks them
+(isscalar, isfinite, isreal, and fsd > 0 for the SD). The SD's check
+lacked isscalar, and neither check held its values to a real type:
+
+- at level 2, an SD of [0.5] raised TypeError, while an array of one
+  element was taken as its number; an SD of None or a string raised
+  TypeError, and one of two elements NumPy's ambiguous-truth ValueError;
+- an array of more than one element, as the value or the SD, raised
+  NumPy's ValueError from the logger's own conversion (.item()), which
+  sat inside the try around the target and so carried the note "Error in
+  executing the logged function", which blames the target;
+- a string value raised TypeError; a Python complex value with a zero
+  imaginary part passed the check and then raised TypeError while it was
+  recorded, after the row's index had advanced and X had been written; a
+  NumPy complex one was accepted, and returned as a complex fval.
+
+The value and the SD are now converted alike, an array or a list of one
+element taken as that element, out of the try, and checked alike before
+anything is recorded: a scalar of a boolean, integer or floating type,
+finite, and for the SD positive. A complex type is not real, whatever its
+imaginary part, as for MATLAB's isreal. Every refusal is the documented
+ValueError, with no note, and leaves the log as it was.
+
+Tests (test_function_logger.py):
+test_call_malformed_output_raises_value_error_and_records_nothing, the
+malformed outputs of the B7 verifier's v7_misc.py (and a complex SD):
+each raises the documented ValueError, without the note, and Xn,
+X_max_idx, func_count, X and Y stay as after the one valid call before
+it. At the parent 9 of 17 fail (TypeError, NumPy's messages, the note,
+the NumPy complex accepted). test_call_one_element_sd_taken_as_a_number:
+an SD of np.array([0.5]), [0.5] or np.array([[0.5]]) is taken as 0.5; at
+the parent [0.5] raises TypeError.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

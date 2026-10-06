@@ -1,0 +1,43 @@
+tolerance 0.1 meta3 {'sha': 'a14524d', 'dirty': False} | meta4 {'sha': '46af65a', 'dirty': False}
+final keys ['crashed', 'exception', 'fsd', 'func_count', 'fval', 'iterations', 'message', 'min_noise_var', 'true_error', 'wall_s', 'x']
+fraction solved {'wave3': np.float64(0.7333333333333333), 'wave4': np.float64(0.43333333333333335)}
+seed  err3      err4      fc3  fc4  it3 it4  fsd3    fsd4    msg3/msg4
+   0  3.135e-02 7.950e-02  287  314  19  20  0.372  0.197  ange in the functi/sh size less than   SS
+   1  6.557e-02 2.672e-01  321  306  22  20  0.260  0.248  sh size less than /sh size less than   S-
+   2  1.608e-01 6.480e-02  246  321  14  20  0.326  0.304  ange in the functi/sh size less than   -S
+   3  2.183e-01 4.279e-02  328  308  22  22  0.243  0.191  sh size less than /ange in the functi  -S
+   4  9.796e-02 2.294e-01  337  306  20  21  0.323  0.369  sh size less than /sh size less than   S-
+   5  9.544e-03 1.080e-01  333  273  22  18  0.232  0.281  sh size less than /ange in the functi  S-
+   6  7.308e-03 8.191e-02  319  246  19  13  0.254  0.270  sh size less than /ange in the functi  SS
+   7  7.132e-02 5.878e-02  320  321  21  20  0.416  0.432  sh size less than /ange in the functi  SS
+   8  1.338e-03 5.713e-02  362  273  20  18  0.256  0.366  sh size less than /ange in the functi  SS
+   9  3.521e-02 5.161e-02  266  235  14  14  0.281  0.365  ange in the functi/ange in the functi  SS
+  10  2.521e-03 1.674e-01  265  275  16  17  0.364  0.472  ange in the functi/ange in the functi  S-
+  11  8.481e-02 6.279e-03  308  352  19  23  0.448  0.338  ange in the functi/sh size less than   SS
+  12  1.636e-02 1.342e-01  336  353  23  20  0.433  0.292  ange in the functi/sh size less than   S-
+  13  1.663e-01 1.289e-01  328  274  21  16  0.183  0.246  sh size less than /ange in the functi  --
+  14  7.280e-02 2.532e-02  347  290  21  18  0.282  0.430  sh size less than /ange in the functi  SS
+  15  1.990e-01 1.984e-01  320  371  22  24  0.318  0.293  sh size less than /sh size less than   --
+  16  3.266e-02 3.361e-01  288  319  17  22  0.381  0.343  ange in the functi/sh size less than   S-
+  17  1.944e-01 8.516e-02  281  319  18  19  0.290  0.312  ange in the functi/sh size less than   -S
+  18  3.422e-02 1.032e+00  324  178  19  12  0.354  0.152  ange in the functi/ange in the functi  S-
+  19  3.919e-01 4.180e-01  282  263  20  17  0.446  0.365  ange in the functi/ange in the functi  --
+  20  3.115e-02 1.092e-01  330  323  20  21  0.303  0.310  ange in the functi/sh size less than   S-
+  21  7.021e+00 3.382e-01  352  314  21  20  0.290  0.205  sh size less than /sh size less than   --
+  22  8.616e-02 6.448e-02  317  308  20  21  0.258  0.156  sh size less than /sh size less than   SS
+  23  7.998e-02 1.207e-03  317  310  19  21  0.256  0.478  sh size less than /sh size less than   SS
+  24  4.316e-02 4.512e-01  288  340  19  21  0.387  0.333  ange in the functi/sh size less than   S-
+  25  7.498e-03 2.671e-01  336  395  23  23  0.226  0.200  sh size less than /sh size less than   S-
+  26  5.141e-02 3.284e-01  325  345  22  22  0.354  0.274  sh size less than /sh size less than   S-
+  27  2.406e-01 4.050e-02  315  327  19  23  0.337  0.368  ange in the functi/sh size less than   -S
+  28  3.727e-02 3.259e-01  310  216  20  13  0.264  0.323  sh size less than /ange in the functi  S-
+  29  7.270e-02 2.513e-01  293  328  21  21  0.279  0.350  sh size less than /sh size less than   S-
+flips solved->not 13 not->solved 4
+median err 0.06844271113546258 0.11906953255937586 quantiles3 [0.03167838 0.06844271 0.14508554] quantiles4 [0.0602026  0.11906953 0.26719882]
+errors within a factor 2 of tol: wave3 13 wave4 14
+func_count mean 312.7 303.43333333333334
+wall_s mean 13.405732052366876 15.689817505099898 max 16.212393155001337 19.57851946200026
+fsd median 0.2966861865952308 0.31118424571091763
+messages3 Counter({"sh size less than options['tol_me": 17, 'ange in the function value less t': 13})
+messages4 Counter({"sh size less than options['tol_me": 18, 'ange in the function value less t': 12})
+x0 equal across refs: True

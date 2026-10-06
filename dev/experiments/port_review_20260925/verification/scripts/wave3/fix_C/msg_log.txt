@@ -1,0 +1,24 @@
+fix: an ES search no longer configures the root logger (W3, found while verifying)
+
+ESSearch.__init__ called logging.basicConfig(stream=sys.stdout, ...) at
+every construction of a search, that is at every search of a run, so
+that constructing an ESSearch outside BADS added a handler to the root
+logger of the application. BADS.__init__ configures the root logger
+itself, deliberately (its comment: "only changes stuff if not
+initialized yet"), before any search runs, so the call in the search
+added nothing within a run.
+
+The call is removed, with the import of sys it leaves unused. The
+search logs through the "BADS" logger as before; BADS.__init__ is
+unchanged.
+
+Test: test_search.py::
+test_es_search_adds_no_handler_to_the_root_logger: with the root
+logger's handlers removed, constructing an ESSearchWM leaves it with
+none. It fails at the parent (a StreamHandler is added) and passes
+here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3):
+dc11118754b18b47, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

@@ -1,0 +1,7 @@
+fix: scalar bounds are replicated in each dimension, as the docstring says and MATLAB BADS does (W2-3)
+
+A scalar lower_bounds, upper_bounds, plausible_lower_bounds or plausible_upper_bounds became a (1, 1) array, and the shape test of _bounds_check_, which demands (1, D), refused it when D > 1 ("need to be of the same dimension D=..."), although the docstring says that a scalar bound is replicated in each dimension. MATLAB BADS expands a scalar bound to 1 x nvars before its checks (private/boundscheck.m:7-10). _bounds_check_ now does the same, before the shape test: a bound of one element becomes a (1, D) array of its value and dtype. The expansion replaces a repeated copy of the four atleast_2d lines, which did nothing the first copy had not done. The docstring of BADS says that the plausible bounds are replicated too.
+
+test_scalar_bounds_are_replicated (test_bads_inputs.py): at D = 3, scalar bounds, with and without the plausible bounds, give the same x0 and the same bounds in optim_state, transformed and original, as vectors of the same values (at the parent, ValueError at construction). Only inputs refused so far reach the change: fingerprint 91f947f78e1087c2, that of the parent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

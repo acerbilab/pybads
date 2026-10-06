@@ -1,0 +1,8 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 seed 41: as is fval 5.499e-06 (111 evals) | MATLAB bound fval 2.665e-06 (111 evals) | log10 ratio +0.31
+rosen3 seed 42: as is fval 5.780e-05 (97 evals) | MATLAB bound fval 4.976e-05 (97 evals) | log10 ratio +0.07
+rosen3 seed 43: as is fval 2.303e-05 (105 evals) | MATLAB bound fval 1.356e-05 (105 evals) | log10 ratio +0.23
+ell4 seed 40: as is fval 1.828e-06 (146 evals) | MATLAB bound fval 6.058e-07 (159 evals) | log10 ratio +0.48
+ell4 seed 41: as is fval 2.467e-06 (151 evals) | MATLAB bound fval 4.366e-06 (138 evals) | log10 ratio -0.25
+ell4 seed 42: as is fval 7.568e-06 (138 evals) | MATLAB bound fval 1.791e-06 (151 evals) | log10 ratio +0.63

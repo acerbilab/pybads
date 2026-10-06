@@ -1,0 +1,1 @@
+A target that returns a value of a complex type, even one whose imaginary part is zero, raises `ValueError`, where 1.1.0 accepted a NumPy complex value.

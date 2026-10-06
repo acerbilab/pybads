@@ -1,0 +1,28 @@
+fix: init_sobol returns the number of points of its design, as its docstring says (W4-4)
+
+init_sobol's second return value, documented as "Number of samples", was
+the exponent m of the design's 2**m points (2 for 4 points). Its one
+caller, _init_mesh_, discards it. The docstring also described the
+parameters loosely: fun_eval_start as the number of initial function
+evaluations, which ignores the rounding up to a power of two and the
+doubling when that power equals D; plb and pub as bounds for the
+parameters; lb and ub, which the function does not read, as bounds. The
+signature gave the parameters types as defaults (u0=np.ndarray, ...),
+which no call could use.
+
+The second value is now the number of rows of the design. The docstring
+states the size of the design, 2**ceil(log2(fun_eval_start)) points,
+twice as many when that equals D (kept by the PI's ruling on W4-3), and
+describes each parameter as what it is: plb and pub the plausible
+bounds the design spans, lb and ub unused. The parameters have no
+defaults but rng, as before the defaults were added.
+
+Test: test_init_sobol.py::test_init_sobol_returns_number_of_points, at
+five pairs of D and fun_eval_start, two of them doubled: the second
+value equals the number of rows. It fails at the parent (2 == 4,
+3 == 8, 5 == 32, ...) and passes here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

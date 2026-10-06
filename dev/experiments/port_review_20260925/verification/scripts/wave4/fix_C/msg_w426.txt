@@ -1,0 +1,32 @@
+fix: the output function's "done" call receives the final estimate of a noisy run in optim_state (W4-26)
+
+The final estimate of a noisy run sets self.u, self.yval, self.fval and
+self.fsd from the iterate it chooses, and fval and fsd then from the
+final samples, but left optim_state's "u", "yval", "fval" and "fsd" at
+the last iteration's values, so the output function's "done" call
+received them beside the returned x. MATLAB BADS's optimState is stale
+there too (FinalEstimate writes iterList.fval and iterList.fsd at the
+chosen index, bads.m:1150-1165, not optimState.fval), and no result
+reads these entries after the loop.
+
+After the final estimate, optim_state takes the returned point and its
+values, as the re-estimation at the end of an iteration keeps them in
+step (W3-33), in both of the final estimate's cases: after a later
+iteration, and within the first (W4-14). A run without uncertainty
+handling keeps optim_state in step through _update_incumbent_, as
+before. iteration_history already holds the final estimate at the
+chosen iterate, as MATLAB's iterList does: in ten seeded noisy runs at
+D = 3, with and without specify_target_noise, and two that end in their
+first iteration, fval and fsd at the returned iterate are the result's.
+
+Test: test_noisy_runs.py::test_final_estimate_keeps_optim_state_in_step,
+with and without specify_target_noise: an output function captures
+optim_state at "done", whose u is the returned point and whose yval,
+fval and fsd are the incumbent's and the result's. At the parent both
+fail: without target noise optim_state's fval is 0.169, the result's
+-0.163, and with it optim_state's u is not the returned point.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, the parent's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

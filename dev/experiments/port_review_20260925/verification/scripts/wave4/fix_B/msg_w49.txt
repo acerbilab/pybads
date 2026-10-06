@@ -1,0 +1,26 @@
+fix: FunctionLogger.finalize trims n_evals too, and reset_fun_eval_time keeps the arrays' length (W4-9)
+
+finalize, which removes the unfilled rows of the log, trimmed every
+array but n_evals: n_evals[X_flag] then raised IndexError, and a call
+after it grew the arrays to unequal lengths (X of 6 rows, n_evals of 7).
+reset_fun_eval_time rebuilt fun_eval_time at cache_size rows, the
+initial size, which is shorter than the other arrays once the log has
+grown. No code of a run calls either method; both are on the class's
+documentation page.
+
+finalize now trims n_evals with the other arrays, and
+reset_fun_eval_time gives fun_eval_time the current length of the log's
+arrays (a docstring says what it does).
+
+Tests (test_function_logger.py): test_finalize checks n_evals's length
+and its values over the filled rows (at the parent 500 rows against 10);
+test_finalize_then_call_keeps_arrays_equal_in_length, a call after
+finalize (at the parent n_evals of 7 rows against X of 6);
+test_reset_fun_eval_time_after_growth, after the log grew from 3 rows to
+8 (at the parent 3 rows against 8). All three fail at the parent and pass
+here.
+
+Fingerprint (dev/scripts/fingerprint.py, Linux, gpyreg v1.3.3, one BLAS
+thread): 360971bf1f0ba6cb, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

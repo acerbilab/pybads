@@ -4,6 +4,8 @@ PyBADS
 
 PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, previously implemented :labrepos:`in MATLAB <bads>`.
 
+PyBADS is one of the `open-source tools for fitting models to data <https://acerbilab.org/model-fitting/>`__ from `Luigi Acerbi's group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`__ at the University of Helsinki. Check out our other tools, such as :labrepos:`PyVBMC <pyvbmc>` for the posterior and the model evidence and :labrepos:`PyIBS <pyibs>` for models that can only be simulated.
+
 What is it?
 ###########
 
@@ -15,28 +17,55 @@ In our benchmark with real model-fitting problems from computational and cogniti
 
 BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in ``scipy.optimize.minimize``.
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's `tools for fitting models to data <https://acerbilab.org/model-fitting/>`__.
 
-What's new in PyBADS 1.1
+What's new in PyBADS 1.5
 ------------------------
 
-- **Reproducible runs.** Every random draw of a run comes from one NumPy
-  random generator, created from the ``random_seed`` option, so a seeded run
-  gives the same result every time on the same machine and leaves NumPy's
-  global random state untouched.
-- **More precise results with gpyreg 1.3.3.** PyBADS requires gpyreg 1.3.3,
-  whose Gaussian process predictions are more accurate when the noise is very
-  small; on several benchmark problems with deterministic targets, runs end
-  closer to the minimum.
-- **A fix for user-specified noise.** A run with
-  ``specify_target_noise=True`` no longer stops with a ``ValueError`` when a
-  point is evaluated a second time.
-- **Requirements.** PyBADS needs Python 3.10 or newer; the test dependencies
-  are an optional extra, ``pybads[test]``.
+- **Faster, with equal or better results.** On our benchmark problems,
+  PyBADS's own computations run almost **twice as fast** as in PyBADS 1.1.0,
+  because each step is faster and runs need fewer evaluations, and it finds
+  equal or better minima.
+- **Periodic variables.** The option ``periodic_vars`` names the variables
+  that are periodic, such as angles: BADS wraps each of them around its hard
+  bounds, and the Gaussian process that models the objective is periodic
+  along it (see
+  :doc:`Example 6 <_examples/pybads_example_6_periodic_variables>` and the
+  :ref:`FAQ <faq-does-pybads-support-periodic-variables-such-as-angles>`).
+- **Fixed variables.** A variable whose four bounds, hard and plausible, are
+  equal is fixed at that value, and BADS optimizes the others (see the
+  :ref:`FAQ <faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value>`).
+- **Evaluations made before the run.**
+  ``BADS(..., precomputed_evaluations=(X, y))`` gives a run evaluations of the
+  target made before it, for instance by an earlier run. The run still starts
+  from ``x0`` and its initial design, but skips the points of the design that
+  they hold; those nearest the incumbent join its Gaussian process from the
+  first poll on, and none counts against ``max_fun_evals`` (see the
+  :doc:`BADS reference <api/classes/bads>`).
+- **Seeded initial design.** ``random_seed`` decides the initial design of a
+  run, as it decides every other random draw; in 1.1.0 the design did not
+  depend on the seed. The FAQ says
+  :ref:`how to make a run reproducible <faq-how-do-i-make-a-run-reproducible>`.
+- **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB
+  BADS 1.1.3, the reference implementation, and follows it more closely in
+  many details, above all with noisy targets. The FAQ lists
+  :ref:`what differs from MATLAB BADS <faq-i-used-bads-in-matlab-what-is-different-in-pybads>`.
+- **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
+  SciPy 1.13 or later and matplotlib 3.9 or later.
+- **FAQ, tips and a coding-agent skill.** The documentation has a
+  :doc:`page of frequently asked questions <faq>`, adapted from the MATLAB
+  BADS FAQ with further questions on PyBADS; a run occasionally prints a
+  short tip with a link to the documentation
+  (``options={"show_tips": False}`` turns them off); and the
+  :mainbranch:`PyBADS skill <skills/pybads/SKILL.md>` points a coding agent
+  to the documentation relevant to its task: give the agent that file, or
+  copy the ``skills/pybads`` folder into its skill directory.
 
 The :mainbranch:`changelog <CHANGELOG.md>` lists what changed since PyBADS
-1.0.6, including why results differ from earlier versions and what to check in
-an existing script.
+1.1.0. Results differ from 1.1.0, also with a fixed seed. ``BADS`` checks the
+values of many options when it is created and refuses some that 1.1.0
+accepted, and some calls and returned fields change: the changelog's list
+"Upgrading from 1.1.0" says what to check in an existing script.
 
 How does it work?
 -----------------
@@ -50,7 +79,7 @@ PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/ab
     :align: center
     :alt: Fig 1: BADS procedure
 
-Fig 1: BADS procedure
+Fig 1: BADS procedure. The poll's steps are equal in the normalized coordinates in which BADS works, where the plausible box spans [-1, 1] in every variable, and scale with the plausible box in the original coordinates, drawn here; in a variable that BADS maps through a log (positive bounds, and a plausible box that spans a factor of 10 or more), they grow with its value.
 
 See `here <https://github.com/lacerbi/optimviz>`__ for a visualization of several optimizers at work, including BADS.
 
@@ -63,12 +92,15 @@ See our paper for more details (`Acerbi and Ma, 2017 <#references>`_).
 Should I use PyBADS?
 --------------------
 
-BADS is particularly recommended when:
+BADS is particularly recommended for problems in which:
 
-- the objective function landscape is rough (nonsmooth), typically due to numerical approximations or noise;
-- the objective function is at least moderately expensive to compute (e.g., more than 0.1 second per function evaluation);
-- the gradient is unavailable (black-box function);
-- the number of input parameters is up to about `D = 20` or so.
+.. include:: faq.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- suited-for: start -->
+   :end-before: <!-- suited-for: end -->
+
+The :ref:`FAQ <faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem>`
+says what to use for other problems.
 
 How-to
 #############
@@ -78,6 +110,7 @@ How-to
 
    installation
    quickstart
+   faq
    examples
    documentation
 
@@ -131,13 +164,13 @@ License and source
 
 PyBADS is released under the terms of the :mainbranch:`BSD 3-Clause License <LICENSE>`.
 The Python source code is on :labrepos:`GitHub <pybads>`.
-You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
+You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`, and the lab's other `tools for fitting models to data <https://acerbilab.org/model-fitting/>`__.
 
 
 Acknowledgments:
 ################
 
-PyBADS is developed by `members <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people>`_ (past and current) of the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/>`_ at the University of Helsinki and `ELLIS Institute Finland <https://www.ellisinstitute.fi/>`_. Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+PyBADS is developed by members (past and current) of the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`_ at the University of Helsinki and `ELLIS Institute Finland <https://www.ellisinstitute.fi/>`_. Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's `Claude Opus 5.5 <https://www.anthropic.com/claude-opus-5-5>`_.
 

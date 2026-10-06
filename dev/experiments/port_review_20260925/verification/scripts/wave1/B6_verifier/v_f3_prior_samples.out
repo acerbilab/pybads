@@ -1,0 +1,13 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+hyperparameter | prior (mu, sd) | PyBADS draws (mean, sd) | N(exp mu, exp sd)
+     log ell_1 | (-1.20, 2.50)  | (  0.292, 12.172)       | (0.301, 12.182)
+     log ell_2 | (-1.20, 2.50)  | (  0.270, 12.169)       | (0.301, 12.182)
+        log sf | ( 3.91, 2.00)  | ( 49.939,  7.490)       | (49.899, 7.389)
+     log alpha | ( 1.00, 1.00)  | (  2.720,  2.728)       | (2.718, 2.718)
+        log sn | (-3.45, 1.00)  | (  0.036,  2.702)       | (0.032, 2.718)
+          mean | ( 5.00, 0.50)  | (  4.995,  0.499)       | (5.000, 0.500)
+share of log sf draws above its upper bound 20.72: 0.99995
+
+priors of the negquad GP's mean blocks: {'mean_const': None, 'mean_location': None, 'mean_log_scale': None}
+negquad: _get_random_samples_from_priors_ raises TypeError - 'NoneType' object is not subscriptable

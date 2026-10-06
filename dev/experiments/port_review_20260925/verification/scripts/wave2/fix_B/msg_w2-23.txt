@@ -1,0 +1,32 @@
+fix: every option has a description, without MATLAB's closing quote, and search_n_try is an int (W2-23, W2-24, W2-42)
+
+The documentation includes the two option files verbatim, so their
+comment lines are the options' user documentation.
+
+W2-23. Nine options had no description line (n_basis, search_factor_min,
+gp_cov_fun, use_effective_radius, gp_fixed_mean, hessian_method,
+hessian_alternate, hedge_beta, hedge_decay), several of them because
+MATLAB BADS's defopts has none; each now has one that says what the
+option does, or that it is unused (KD-B1-5 and the code). The inline
+comments of the three Hessian options become description lines.
+search_factor_min is described by what MATLAB does with it
+(bads.m:1366), the floor that W2-16 adds. And 35 descriptions ended in
+MATLAB's closing quote, ' or ';, which goes; gp_mean_fun's, which ended in
+the quote of 'zero', is reworded so that no description ends in a quote.
+
+W2-24. search_n_try, np.maximum(D, np.floor(3 + D/2)), was a NumPy float,
+and search_count started as it; every read compares it with an integer
+count, exactly. It is now cast to int.
+
+W2-42. Termination is checked after every search and poll, as in MATLAB
+(bads.m:1062-1085), so that an iteration counts for max_iter and
+tol_stall_iters once it has begun; their descriptions say so.
+
+Tests (test_options.py): test_every_option_has_a_description (at the
+parent it stops at accelerate_mesh_steps' "...stalled iterations'") and
+test_search_n_try_is_an_int at D = 1, 2, 6 and 20 (np.float64 at the
+parent).
+
+Fingerprint: 91f947f78e1087c2, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

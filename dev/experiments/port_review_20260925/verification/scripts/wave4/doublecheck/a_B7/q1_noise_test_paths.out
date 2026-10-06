@@ -1,0 +1,58 @@
+/home/user/pybads-review/pybads/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- det, uh None: level=0 n_noise_test=1 fc=59 calls_of_fun=59 it=8
+   7 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 6, 'points': 5, 'n_eff': 5.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 56, 'points': 55, 'n_eff': 55.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+--- det, uh False: level=0 n_noise_test=0 fc=58 calls_of_fun=58 it=8
+   7 schedule calls; mismatches: 0
+   first: {'n_noise_test': 0, 'func_count': 5, 'points': 5, 'n_eff': 5.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+   last:  {'n_noise_test': 0, 'func_count': 55, 'points': 55, 'n_eff': 55.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+--- noisy, uh True: level=1 n_noise_test=0 fc=60 calls_of_fun=60 it=3
+   3 schedule calls; mismatches: 0
+   first: {'n_noise_test': 0, 'func_count': 33, 'points': 33, 'n_eff': 33.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+   last:  {'n_noise_test': 0, 'func_count': 43, 'points': 43, 'n_eff': 43.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+--- noisy found by test: level=1 n_noise_test=1 fc=60 calls_of_fun=60 it=3
+   3 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 34, 'points': 33, 'n_eff': 33.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+   last:  {'n_noise_test': 1, 'func_count': 44, 'points': 43, 'n_eff': 43.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+--- specify_target_noise: level=2 n_noise_test=0 fc=60 calls_of_fun=60 it=3
+   3 schedule calls; mismatches: 0
+   first: {'n_noise_test': 0, 'func_count': 33, 'points': 33, 'n_eff': 33.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+   last:  {'n_noise_test': 0, 'func_count': 43, 'points': 43, 'n_eff': 43.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+--- det, mfe=1: level=0 n_noise_test=1 fc=2 calls_of_fun=2 it=0
+   0 schedule calls; mismatches: 0
+--- noisy found, mfe=1: level=1 n_noise_test=1 fc=2 calls_of_fun=2 it=0
+   0 schedule calls; mismatches: 0
+--- det, mfe=2: level=0 n_noise_test=1 fc=2 calls_of_fun=2 it=1
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 2, 'points': 1, 'n_eff': 1.0, 'esp': 1, 'mfe': 2, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 2, 'points': 1, 'n_eff': 1.0, 'esp': 1, 'mfe': 2, 'ntm': 70}
+--- noisy found, mfe=2: level=1 n_noise_test=1 fc=2 calls_of_fun=2 it=1
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 2, 'points': 1, 'n_eff': 1.0, 'esp': 1, 'mfe': 2, 'ntm': 200}
+   last:  {'n_noise_test': 1, 'func_count': 2, 'points': 1, 'n_eff': 1.0, 'esp': 1, 'mfe': 2, 'ntm': 200}
+--- det, mfe=3: level=0 n_noise_test=1 fc=3 calls_of_fun=3 it=1
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 3, 'points': 2, 'n_eff': 2.0, 'esp': 2, 'mfe': 3, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 3, 'points': 2, 'n_eff': 2.0, 'esp': 2, 'mfe': 3, 'ntm': 70}
+--- noisy found, mfe=3: level=1 n_noise_test=1 fc=3 calls_of_fun=3 it=1
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 3, 'points': 2, 'n_eff': 2.0, 'esp': 2, 'mfe': 3, 'ntm': 200}
+   last:  {'n_noise_test': 1, 'func_count': 3, 'points': 2, 'n_eff': 2.0, 'esp': 2, 'mfe': 3, 'ntm': 200}
+--- det, mfe=5: level=0 n_noise_test=1 fc=5 calls_of_fun=5 it=1
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 5, 'points': 4, 'n_eff': 4.0, 'esp': 4, 'mfe': 5, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 5, 'points': 4, 'n_eff': 4.0, 'esp': 4, 'mfe': 5, 'ntm': 70}
+--- det, output_fcn stops at init: level=0 n_noise_test=1 fc=6 calls_of_fun=6 it=0
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 6, 'points': 5, 'n_eff': 5.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 6, 'points': 5, 'n_eff': 5.0, 'esp': 5, 'mfe': 60, 'ntm': 70}
+--- noisy found, output_fcn stops at init: level=1 n_noise_test=1 fc=34 calls_of_fun=34 it=0
+   1 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 34, 'points': 33, 'n_eff': 33.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+   last:  {'n_noise_test': 1, 'func_count': 34, 'points': 33, 'n_eff': 33.0, 'esp': 33, 'mfe': 50, 'ntm': 200}
+--- det, fun_eval_start=0: level=0 n_noise_test=1 fc=51 calls_of_fun=51 it=7
+   6 schedule calls; mismatches: 0
+   first: {'n_noise_test': 1, 'func_count': 2, 'points': 1, 'n_eff': 1.0, 'esp': 1, 'mfe': 60, 'ntm': 70}
+   last:  {'n_noise_test': 1, 'func_count': 43, 'points': 42, 'n_eff': 42.0, 'esp': 1, 'mfe': 60, 'ntm': 70}

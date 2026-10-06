@@ -1,0 +1,71 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+tol_fun = 0.001  tol_noise = 2.220446049250313e-19  MATLAB sqrt(eps)*TolFun = 1.4901161193847657e-11
+
+-- K6: Options.descriptions against the raw comment line
+  noise_size:
+    ini : Base observation noise magnitude (SD), e.g. noise_size = 1.0, or a pair [SD, SD of the prior over log SD]; ignored with specify_target_noise
+    desc: Base observation noise magnitude (SD), e.g. noise_size
+  periodic_vars:
+    ini : Array with indices of periodic variables, like periodic_vars = [1, 2]
+    desc: Array with indices of periodic variables, like periodic_vars
+  stobads_frame_size_scaling_power:
+    ini : Power value of the Sto-BADS incumbent decision rule:  \gamma *  \epsilon * frame_size**(power_value)
+    desc: Power value of the Sto-BADS incumbent decision rule
+  gp_samples:
+    ini : Hyperparameters samples (0 = optimize)
+    desc: Hyperparameters samples (0
+  gp_sample_widths:
+    ini : Multiplier to widths from previous posterior for GP sampling (Inf = do not use previous widths)
+    desc: Multiplier to widths from previous posterior for GP sampling (Inf
+  stable_gp_samples:
+    ini : Number of GP samples when GP is stable (0 = optimize)
+    desc: Number of GP samples when GP is stable (0
+  upper_gp_length_factor:
+    ini : Upper bound True GP input lengths based True plausible box (0 = ignore)
+    desc: Upper bound True GP input lengths based True plausible box (0
+  temperature:
+    ini : Temperature for posterior tempering (allowed values T = 1234)
+    desc: Temperature for posterior tempering (allowed values T
+  str(options) line for noise_size: ['noise_size: None (Base observation noise magnitude (SD), e.g. noise_size) ']
+
+-- K7
+  options with no description line: ['n_basis', 'search_factor_min', 'gp_cov_fun', 'use_effective_radius', 'gp_fixed_mean', 'hessian_method', 'hessian_alternate', 'hedge_beta', 'hedge_decay']
+  descriptions ending in a stray quote: 36: ['alternative_incumbent', 'adaptive_incumbent_shift', 'gp_rescale_poll', 'tol_poi', 'skip_poll', 'consecutive_skipping', 'skip_poll_after_search', 'min_failed_poll_steps', 'accelerate_mesh_steps', 'mesh_overflow_warning', 'tol_improvement', 'forcing_exponent', 'incumbent_sigma_multiplier', 'improvement_quantile', 'final_quantile', 'n_search', 'n_search_iter', 'es_beta', 'es_start', 'search_improve_frac', 'search_scale_success', 'search_scale_incremental', 'search_scale_failure', 'search_method', 'search_grid_number', 'search_grid_multiplier', 'search_size_locked', 'search_n_try', 'search_mesh_expand', 'search_mesh_increment', 'search_optimize', 'uncertain_incumbent', 'mesh_noise_multiplier', 'gp_mean_fun', 'gp_def_fcn', 'gp_method']
+
+-- K8: search_n_try at D = 1, 2, 6, 20
+  D=1: np.float64(3.0) type float64; optim_state['search_count'] = np.float64(3.0)
+  D=2: np.float64(4.0) type float64; optim_state['search_count'] = np.float64(4.0)
+  D=6: np.float64(6.0) type float64; optim_state['search_count'] = np.float64(6.0)
+  D=20: np.float64(20.0) type float64; optim_state['search_count'] = np.float64(20.0)
+
+-- display levels -> BADS logger level (INFO=20, WARN=30, DEBUG=10)
+  display='off': level 30
+  display='iter': level 20
+  display='full': level 10
+  display='final': level 20
+  display='notify': level 20
+  display='none': level 20
+  display='OFF': level 20
+  display='Iter': level 20
+
+-- user None / strings
+  nonlinear_scaling=None: constructed; log flag [False]
+  nonlinear_scaling='off': constructed; log flag [False]
+  uncertainty_handling='off': constructed; uncertainty level after init: 1
+  uncertainty_handling='no': constructed; uncertainty level after init: 1
+  tol_mesh=None: TypeError: loop of ufunc does not support argument 0 of type NoneType which has n
+  max_fun_evals=None: constructed; optimize raised TypeError: unsupported operand type(s) for -: 'NoneType' and 'int'
+  complete_poll='off': constructed; optimize ran, func_count 35
+  nonlinear_scaling='default': log flag [ True]
+  nonlinear_scaling=None: log flag [False]
+  nonlinear_scaling='off': log flag [ True]
+  nonlinear_scaling=False: log flag [False]
+
+-- C-F10: max_fun_evals and improvement_quantile checks
+/home/user/pybads-review/pybads/init_functions/init_sobol.py:73: RuntimeWarning: invalid value encountered in log2
+  n_samples = int(np.ceil(np.log2(fun_eval_start)))
+  max_fun_evals=0: ValueError: cannot convert float NaN to integer
+  max_fun_evals=-5: ValueError: cannot convert float NaN to integer
+  max_fun_evals=30.5: ran, func_count 31, message 'Optimization terminated: reached maximum number of function '
+  improvement_quantile=0.9: ran, func_count 51, message 'Optimization terminated: change in the function value less t'

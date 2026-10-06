@@ -1,0 +1,31 @@
+4388e6d fix: an empty search set decays the search hedge's gains, as a failed search (W3-1 | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+4d357e4 fix: with hedge_gamma = 0 the hedge scores each search at the search point, as a r | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+599115b fix: the LCB takes a plain number as sqrt_beta, and refuses what is not a positive | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+5f31837 fix: uncertain_incumbent=False at level 0 no longer stops the run at its first pol | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+dac062e fix: the target's fallback to the incumbent computes the target from the incumbent | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+ec1b2d0 fix: BADS refuses an improvement_quantile that is not greater than 0 and less than | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+43ee8ed fix: the re-estimation of a noisy run keeps optim_state's yval, fval and fsd in st | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+01ee524 fix: the poll no longer carries an unreachable refill of its basis (W3-34) | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+e4b3bca fix: the accelerated mesh reduction no longer computes an unused u_base (W3-36) | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+fd8641d docs: poll_scale shapes the ES-ell search and not the poll, and the descriptions o | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+388d879 docs(dev): fix agent D's report of wave 3's fix pass, with its rework of W3-24, an | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+a77d95d fix: an ES generation emptied by the constraint check adds no candidate, and the s | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+c788617 fix: the ES scale follows the fraction of new candidates among the best, counted a | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+4865fad fix: remove ESSearchCMA, which no search method reaches and which could not run (W | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+d0c7178 fix: an ES search no longer configures the root logger (W3, found while verifying) | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+7e09887 docs: the comments on the order of contraints_check and on the unweighted scatter  | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+f595f1b fix: the poll no longer turns off NumPy's divide warnings for the whole process (W | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+a1bf658 fix: the search and the poll skip a NaN acquisition value, and choose at random wh | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+81c6a15 fix: ES-wcm takes one best training point per weight, floor(mu), as MATLAB BADS (W | /home/user/pybads-fp/pybads/__init__.py fd21e5d0c558f2f0
+115a922 fix: each parent of the ES gets the offspring MATLAB BADS gives it, not those of t | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+c276d79 fix: the ES search ranks tied candidates and training points in their order, with  | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+149d528 fix: contraints_check removes the candidates already evaluated, as MATLAB BADS (W3 | /home/user/pybads-fp/pybads/__init__.py 3a6c31fe4f430b0b
+d79ab75 fix: the search hedge's expected reward uses the standard normal density, as MATLA | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+8e28124 fix: the poll's probability of no improvement takes the D largest probabilities of | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+0b7add3 fix: after a poll that moves the incumbent, every search rebuilds the local GP unt | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+869a033 fix: the poll steps along LTMADS directions on the search mesh, a departure from M | /home/user/pybads-fp/pybads/__init__.py f5af904cfcb6b73c
+1f7c8ee fix: force_to_grid rounds halves away from zero, as MATLAB BADS's force2grid (W3-1 | /home/user/pybads-fp/pybads/__init__.py dc11118754b18b47
+4f50376 chore: merge dev-next (the doublecheck of wave 2, 68d4516) into dev-port-review-w3 | /home/user/pybads-fp/pybads/__init__.py f5af904cfcb6b73c
+b03a320 revert: the poll's LTMADS directions (W3-24), by the PI's ruling after its gate | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+5d711bf fix: BADS refuses an accelerate_mesh_steps that is not a positive integer (W3-39) | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb
+a14524d fix: a rebuild of the local GP on two points keeps the prior of the length scales  | /home/user/pybads-fp/pybads/__init__.py 360971bf1f0ba6cb

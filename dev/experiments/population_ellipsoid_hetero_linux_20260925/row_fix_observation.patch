@@ -1,0 +1,23 @@
+diff --git a/pybads/function_logger/function_logger.py b/pybads/function_logger/function_logger.py
+index 77881de..fedae3d 100644
+--- a/pybads/function_logger/function_logger.py
++++ b/pybads/function_logger/function_logger.py
+@@ -418,14 +418,14 @@ class FunctionLogger:
+                     # else:
+                     #    self.y_orig[idx] = (N * self.y_orig[idx] + fval_orig) / (N + 1) # We already checked
+ 
+-                    # A scalar, as on every other path (self.Y[idx] is a
+-                    # row of the (N, 1) array)
+-                    f_val = self.Y[idx].item()
+                     self.fun_eval_time[idx] = (
+                         N * self.fun_eval_time[idx] + fun_eval_time
+                     ) / (N + 1)
+                     self.n_evals[idx] += 1
+-                    return f_val, idx
++                    # The observation itself, as MATLAB's funlogger returns
++                    # it: the caller adds it to the GP, with its own SD,
++                    # beside the row the point already has there.
++                    return fval_orig, idx
+ 
+             # Add the new point
+             self.Xn += 1

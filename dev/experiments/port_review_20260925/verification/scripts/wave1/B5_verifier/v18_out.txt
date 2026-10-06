@@ -1,0 +1,12 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+gp_mean_fun=const: NaN bounds held by the GP at a refit: lower 0, upper 0
+gp_mean_fun=negquad: NaN bounds held by the GP at a refit: lower 0, upper 0
+fit 1: given X rows 69, tmp_gp holds 69
+   slice sampler reads the data of tmp_gp: 69 rows; start - LB min 0 at 5, UB - start min 0 at 0
+fit 2: given X rows 69, tmp_gp holds 69
+   slice sampler reads the data of tmp_gp: 69 rows; start - LB min 0.00689 at 5, UB - start min 0.00697 at 0
+fit 3: given X rows 64, tmp_gp holds 69
+   slice sampler reads the data of tmp_gp: 69 rows; start - LB min -0.493 at 5, UB - start min 0.0467 at 0
+   slice sampler raised ValueError: The initial starting point X0 is outside the bounds.
+_robust_gp_fit_ raised ValueError: The initial starting point X0 is outside the bounds.

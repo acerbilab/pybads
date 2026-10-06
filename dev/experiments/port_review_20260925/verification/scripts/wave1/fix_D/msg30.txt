@@ -1,0 +1,5 @@
+fix: a noise_size above the GP's noise bound, e^5, warns when BADS is created (W1-30)
+
+The GP's noise is bounded above at a log SD of 5, an SD of about 148 (_gp_hyp), as in MATLAB BADS (gpdefBads.m:161). A noise_size above it centres the noise prior outside the bounds, and the fitted noise sits at the bound all run, silently. As ruled, the bound stays MATLAB's, and _init_optim_state_ now warns, through the BADS logger, when noise_size (its first element, the base noise SD) exceeds e^5, saying that the GP cannot represent noise that large and that the target should be rescaled. It does not warn with specify_target_noise, where noise_size is ignored. Test: test_noise_size_above_gp_noise_bound_warns in test_noisy_runs.py (noise_size=500 warns, which it did not at the parent; the default and a noise_size ignored under specify_target_noise do not). Fingerprint bfbc6d6737e99d88, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

@@ -1,0 +1,23 @@
+gpyreg.__file__ = /tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1fix/I/main_src/gpyreg/__init__.py
+constructor keywords: {}
+update high: sn2_mult [10], L_chol [np.True_]
+update low: sn2_mult [100000], L_chol [np.False_]
+update high2: sn2_mult [10, 100], L_chol [np.True_, np.True_]
+/tmp/claude-0/-home-user-pybads/4f4200d5-5a60-5de0-9b26-94c4f1e930f9/scratchpad/wave1fix/I/evidence_w125.py:106: UserWarning: Rank-one update of Cholesky factor unstable for posterior 1. Reverting to full update.
+  gp.update(X_new=np.array([[0.123]]), y_new=np.array([[np.sin(0.369)]]))
+fit init_N=16 opts_N=2 n_samples=0: inflated factorizations 3 of 56; design inflated values: 5
+fit init_N=0 opts_N=2 n_samples=0: inflated factorizations 3 of 48; design inflated values: None
+fit init_N=64 opts_N=2 n_samples=4: inflated factorizations 3 of 401; design inflated values: 17
+fit rosenbrock: inflated factorizations 37 of 433, failed 0; sn2_mult [1]
+  update_high              8990e9544cd1dba7
+  rank_one_high            c1f5ff263cea6915
+  update_low               200a266db5893460
+  rank_one_low             84ad5975af3a6d28
+  update_high2             98b628b565105bba
+  rank_one_high2           0041eac7772ef87b
+  fit_16_2_0               d89c43c5edc0f437
+  fit_0_2_0                26b7114c8a71db27
+  fit_64_2_4               6c44121768e759d7
+  fit_rosenbrock           dc10dffdf57e3bbc
+TOTAL 4c8f132314d84eb1dca8b7816fc81dfe69e0546d11a264689f531d1b1c0561ee
+counts {'calls': 949, 'inflated': 57, 'failed': 0}

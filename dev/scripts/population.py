@@ -22,16 +22,24 @@ dict into every run's options, ``--budget-scale`` multiplies every
 configuration's budget.
 
 Each run writes ``<label>_seed<seed>.json``: the configuration, the seed,
-the requested and the effective options, ``final`` (the returned point,
-``fval``, ``fsd``, ``true_error = f_true(x) - f_min``, ``func_count``,
-``iterations``, ``message``, ``wall_s``, ``crashed``, ``exception`` and
-``min_noise_var``) and ``meta`` (the provenance: git state, versions, the
-source and commit of the imported gpyreg, thread variables, start and end
-times). ``min_noise_var`` is the smallest training noise variance ``sn2``
-over the GPs of ``iteration_history["gp"]`` and their hyperparameter
-samples: the quantity gpyreg compares with ``1e-6`` to choose its low-noise
-representation of the posterior (``gaussian_process.py``, where
-``__core_computation`` sets ``L_chol``).
+the requested and the effective options, ``precomputed`` (for a
+configuration whose runs are given evaluations made before them, their
+kind, number of rows and digest; None otherwise), ``final`` (the returned
+point, ``fval``, ``fsd``, ``true_error = f_true(x) - f_min``,
+``func_count``, ``iterations``, ``message``, ``wall_s``, ``crashed``,
+``exception``, ``min_noise_var`` and ``stage_times``) and ``meta`` (the
+provenance: git state, versions, the source and commit of the imported
+gpyreg, thread variables, start and end times). ``min_noise_var`` is the
+smallest training noise variance ``sn2`` over the GPs of
+``iteration_history["gp"]`` and their hyperparameter samples: the quantity
+gpyreg compares with ``1e-6`` to choose its low-noise representation of
+the posterior (``gaussian_process.py``, where ``__core_computation`` sets
+``L_chol``). ``stage_times`` holds the run's ``optim_state["stage_times"]``
+(the function ``stage_times``): the seconds of each stage by path and by
+top-level stage, and the entries of each stage; None for a run that
+raised. A run whose stage times cannot be read keeps its record, with
+``stage_times`` None and the exception in ``stage_times_error``, a key
+that only such a record has.
 
 ``summary`` tabulates each configuration (median and interquartile range of
 ``true_error`` and ``func_count``, the fraction solved, the crash count) and
@@ -41,24 +49,26 @@ where both sides have at least 3 runs, and ``true_error`` also with a
 Wilcoxon signed-rank test on ``log10(true_error + 1e-12)`` paired by seed
 (both populations share each seed's start point and noise stream); the
 p-values of all tests form one Holm family at ``--alpha``. A configuration
-whose crash count rises from zero is flagged too. It prints the effect
-sizes (the median paired log10 error ratio with a bootstrap 95% interval,
-the difference in fraction solved) and exits 1 on any flag. ``--split``
-compares the even and the odd seeds of one population with the KS tests
-alone: the null check.
+whose crash count rises from zero is flagged too. The pairing also
+assumes that both populations give a seed's run the same evaluations made
+before it, which each population's PyBADS makes by an earlier run
+(``benchmark_targets.earlier_evaluations``): a change that moves runs
+without such evaluations gives the two populations different ones.
+``compare`` warns of the seeds whose recorded start points, or digests of
+the evaluations made before the run, differ between the two populations,
+and tests them all the same. It prints the effect sizes (the median paired
+log10 error ratio with a bootstrap 95% interval, the difference in
+fraction solved) and exits 1 on any flag. ``--split`` compares the even
+and the odd seeds of one population with the KS tests alone: the null
+check.
 """
 
 import argparse
-import importlib
 import json
-import os
-import platform
-import subprocess
 import sys
 import time
 import traceback
 import warnings
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import numpy as np
@@ -72,6 +82,16 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 import benchmark_targets as bt  # noqa: E402
+from harness import (  # noqa: E402
+    build_run,
+    code_meta,
+    jsonable,
+    parse_seeds,
+    single_thread_env,
+    thread_env,
+    timestamp,
+    write_json,
+)
 
 METRICS = ("true_error", "func_count")
 LOG_FLOOR = 1e-12  # added to true_error before log10
@@ -95,89 +115,6 @@ EFFECTIVE_OPTION_KEYS = (
     "random_seed",
     "display",
 )
-
-
-# --------------------------------------------------------------------------
-# Provenance
-# --------------------------------------------------------------------------
-
-
-def pkg_version(name):
-    try:
-        return version(name)
-    except PackageNotFoundError:
-        return None
-
-
-def git_info(cwd=REPO_ROOT):
-    """Short commit and dirty flag (tracked files only) of a repository."""
-    try:
-        sha = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=cwd,
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        dirty = bool(
-            subprocess.check_output(
-                ["git", "status", "--porcelain", "--untracked-files=no"],
-                cwd=cwd,
-                text=True,
-                stderr=subprocess.DEVNULL,
-            ).strip()
-        )
-        return {"sha": sha, "dirty": dirty}
-    except Exception:  # noqa: BLE001
-        return {"sha": None, "dirty": None}
-
-
-def module_source(name):
-    """Where the imported package ``name`` loads from, and its commit.
-
-    ``git`` is the commit and dirty state of the repository that tracks the
-    package directory, so a checkout or a worktree placed on ``PYTHONPATH``
-    is identified; an installed copy under site-packages reports ``git`` as
-    None.
-    """
-    try:
-        path = Path(importlib.import_module(name).__file__).resolve().parent
-    except Exception:  # noqa: BLE001
-        return None
-    git = None
-    try:
-        subprocess.check_output(
-            ["git", "ls-files", "--error-unmatch", "__init__.py"],
-            cwd=path,
-            text=True,
-            stderr=subprocess.DEVNULL,
-        )
-        git = git_info(cwd=path)
-    except Exception:  # noqa: BLE001
-        pass
-    return {"path": str(path), "git": git}
-
-
-def thread_env():
-    keys = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")
-    return {k: os.environ.get(k) for k in keys}
-
-
-def jsonable(v):
-    if isinstance(v, (np.floating, np.integer, np.bool_)):
-        return v.item()
-    if isinstance(v, np.ndarray):
-        return [jsonable(x) for x in v.tolist()]
-    if isinstance(v, (list, tuple)):
-        return [jsonable(x) for x in v]
-    if isinstance(v, dict):
-        return {str(k): jsonable(x) for k, x in v.items()}
-    if isinstance(v, (str, int, float, bool)) or v is None:
-        return v
-    return repr(v)
-
-
-def _now():
-    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
 # --------------------------------------------------------------------------
@@ -225,6 +162,43 @@ def min_noise_var(bads):
     return None if best == np.inf else best
 
 
+def top_level_seconds(paths):
+    """The seconds of each top-level stage, the stages nested in it
+    included, from the seconds by path of ``optim_state["stage_times"]``
+    (``"target"`` is a top-level key)."""
+    top = {}
+    for path, seconds in paths.items():
+        name = path.split("/", 1)[0]
+        top[name] = top.get(name, 0.0) + seconds
+    return top
+
+
+def stage_times(bads):
+    """The stage times that a run stores at its end,
+    ``optim_state["stage_times"]``, as a record keeps them.
+
+    ``paths`` holds the seconds of each stage by its path (as
+    ``search/gp_rebuild/gp_fit``), exclusive of the stages nested in it,
+    and ``"target"``, the target's evaluations: they add up to the run's
+    ``total_time``. ``calls`` holds the number of entries of each stage,
+    and ``top_level`` the seconds of each top-level stage with the stages
+    nested in it. None when the run stored none: it raised, or its PyBADS
+    has no stage timers.
+    """
+    try:
+        stored = bads.optim_state.get("stage_times")
+    except Exception:  # noqa: BLE001
+        return None
+    if not stored:
+        return None
+    paths = {str(k): float(v) for k, v in stored["seconds"].items()}
+    return {
+        "top_level": top_level_seconds(paths),
+        "paths": paths,
+        "calls": {str(k): int(v) for k, v in stored["calls"].items()},
+    }
+
+
 def _final(prob, bads, res, exc, wall):
     crashed = exc is not None
     out = {
@@ -239,6 +213,7 @@ def _final(prob, bads, res, exc, wall):
         "crashed": crashed,
         "exception": exc,
         "min_noise_var": None,
+        "stage_times": None,
     }
     if res is not None:
         x = np.asarray(res["x"], dtype=float).ravel()
@@ -254,7 +229,7 @@ def _final(prob, bads, res, exc, wall):
     elif bads is not None:  # crashed during optimize(): what the run reached
         try:
             out["func_count"] = int(bads.function_logger.func_count)
-            out["iterations"] = int(bads.optim_state["iter"])
+            out["iterations"] = int(bads.optim_state["iter"]) + 1
         except Exception:  # noqa: BLE001
             pass
     if bads is not None:
@@ -262,27 +237,19 @@ def _final(prob, bads, res, exc, wall):
             out["min_noise_var"] = min_noise_var(bads)
         except Exception:  # noqa: BLE001  (keep the run; the field stays None)
             pass
+        try:
+            out["stage_times"] = stage_times(bads)
+        except Exception as e:  # noqa: BLE001  (keep the run, with a note)
+            out["stage_times_error"] = f"{type(e).__name__}: {e}"
     return out
-
-
-def _write_json(path, obj):
-    """Write through a temporary file, so that an interrupted write never
-    leaves a record that ``run`` would take as done."""
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(obj, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
 
 
 def run_task(label, seed, extra_options, budget_scale, out_dir):
     """Run one (configuration, seed); write its record; return a row."""
     out_dir = Path(out_dir)
-    started = _now()
+    started = timestamp()
     try:
-        cfg = bt.find_config(label)
-        prob = cfg.make(seed=seed, budget_scale=budget_scale)
-        args, options = prob.bads_args()
-        options.update(extra_options or {})
-        requested = jsonable(options)
+        run = build_run(label, seed, budget_scale, extra_options)
         from pybads import BADS
     except Exception:  # noqa: BLE001
         error_path(out_dir, label, seed).write_text(
@@ -290,10 +257,11 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         )
         return {"label": label, "seed": seed, "status": "error"}
 
+    prob = run.prob
     bads = res = exc = None
     t0 = time.perf_counter()
     try:
-        bads = BADS(*args, options=options)
+        bads = BADS(*run.args, options=run.options, **run.kwargs)
         res = bads.optimize()
     except Exception as e:  # noqa: BLE001
         exc = {
@@ -306,7 +274,7 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
     effective = None
     if bads is not None:
         keys = list(EFFECTIVE_OPTION_KEYS) + [
-            k for k in requested if k not in EFFECTIVE_OPTION_KEYS
+            k for k in run.requested if k not in EFFECTIVE_OPTION_KEYS
         ]
         effective = {k: jsonable(bads.options.get(k)) for k in keys}
     record = {
@@ -315,31 +283,24 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
         "problem": prob.name,
         "D": prob.D,
         "noise": prob.noise,
-        "unbounded": cfg.unbounded,
+        "unbounded": run.cfg.unbounded,
         "x0": prob.x0.tolist(),
+        "precomputed": run.precomputed,
         "f_min": prob.f_min,
         "tolerance": prob.tolerance,
-        "budget": cfg.budget,
+        "budget": run.cfg.budget,
         "budget_scale": budget_scale,
-        "requested_options": requested,
+        "requested_options": run.requested,
         "effective_options": effective,
         "final": jsonable(final),
-        "meta": {
-            "git": git_info(),
-            "python": sys.version.split()[0],
-            "platform": platform.platform(),
-            "numpy": np.__version__,
-            "scipy": pkg_version("scipy"),
-            "pybads": pkg_version("pybads"),
-            "pybads_source": module_source("pybads"),
-            "gpyreg": pkg_version("gpyreg"),
-            "gpyreg_source": module_source("gpyreg"),
-            "threads": thread_env(),
-            "started": started,
-            "finished": _now(),
-        },
+        "meta": dict(
+            code_meta(),
+            threads=thread_env(),
+            started=started,
+            finished=timestamp(),
+        ),
     }
-    _write_json(record_path(out_dir, label, seed), record)
+    write_json(record_path(out_dir, label, seed), record)
     error_path(out_dir, label, seed).unlink(missing_ok=True)  # a retried run
     return {
         "label": label,
@@ -357,19 +318,6 @@ def run_task(label, seed, extra_options, budget_scale, out_dir):
 # --------------------------------------------------------------------------
 # run
 # --------------------------------------------------------------------------
-
-
-def parse_seeds(spec):
-    """``"0-29"``, ``"0,3,5-7"`` -> sorted list of ints."""
-    seeds = []
-    for part in str(spec).split(","):
-        part = part.strip()
-        if "-" in part:
-            a, b = part.split("-")
-            seeds.extend(range(int(a), int(b) + 1))
-        elif part:
-            seeds.append(int(part))
-    return sorted(set(seeds))
 
 
 def _progress(k, n, r, t0):
@@ -394,7 +342,7 @@ def cmd_run(args):
     import multiprocessing as mp
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    bt.single_thread_env()  # inherited by the spawned processes
+    single_thread_env()  # inherited by the spawned processes
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     cfgs = bt.suite_configs(args.suite)
@@ -605,14 +553,29 @@ def paired_log_ratios(a, b):
     return _log_err(xb[ok]) - _log_err(xa[ok])
 
 
-def x0_mismatches(a, b):
-    """Number of seeds present in both whose recorded start points differ:
-    a pairing by seed assumes the same targets and streams on both sides."""
-    xa = {r["seed"]: r.get("x0") for r in a["records"]}
+def _mismatches(a, b, field):
+    """Number of seeds present in both whose records differ in
+    ``field(record)``."""
+    va = {r["seed"]: field(r) for r in a["records"]}
     return sum(
         1
         for r in b["records"]
-        if r["seed"] in xa and xa[r["seed"]] != r.get("x0")
+        if r["seed"] in va and va[r["seed"]] != field(r)
+    )
+
+
+def x0_mismatches(a, b):
+    """Number of seeds present in both whose recorded start points differ:
+    a pairing by seed assumes the same targets and streams on both sides."""
+    return _mismatches(a, b, lambda r: r.get("x0"))
+
+
+def precomputed_mismatches(a, b):
+    """Number of seeds present in both whose evaluations made before the
+    run differ, by their digest: a pairing by seed assumes that both sides
+    were given the same, and each side's PyBADS makes them."""
+    return _mismatches(
+        a, b, lambda r: (r.get("precomputed") or {}).get("digest")
     )
 
 
@@ -753,17 +716,24 @@ def compare_populations(ref, new, alpha=0.05, paired=True, crash_flag=True):
     if only_ref or only_new:
         lines += ["", f"Only in REF: {only_ref}; only in NEW: {only_new}."]
     if paired:
-        unpaired = {
-            label: n
-            for label in labels
-            if (n := x0_mismatches(ref[label], new[label]))
-        }
-        if unpaired:
-            lines += [
-                "",
-                "WARNING: seeds whose start points differ between REF and"
-                f" NEW (the pairing does not hold): {unpaired}.",
-            ]
+        for what, mismatches in (
+            ("start points", x0_mismatches),
+            (
+                "evaluations made before the run (by digest)",
+                precomputed_mismatches,
+            ),
+        ):
+            unpaired = {
+                label: n
+                for label in labels
+                if (n := mismatches(ref[label], new[label]))
+            }
+            if unpaired:
+                lines += [
+                    "",
+                    f"WARNING: seeds whose {what} differ between REF and"
+                    f" NEW (the pairing does not hold): {unpaired}.",
+                ]
     ks_sizes = [(t["n_ref"], t["n_new"]) for t in tests if t["test"] == "KS"]
     if ks_sizes:
         n1, n2 = max(set(ks_sizes), key=ks_sizes.count)

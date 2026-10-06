@@ -1,0 +1,18 @@
+base: $R/replay_parent
+  commit 20fc40f6, gpyreg 1.3.4.dev21+gb44634f2a at /home/user/gpyreg/gpyreg (b44634f)
+  Linux x86_64, Intel(R) Xeon(R) Processor @ 2.10GHz, numpy 2.5.3, scipy 1.18.1, OpenBLAS kernels [('Haswell', 1)]
+new:  $R/replay_head
+  commit 0a7f7af4, gpyreg 1.3.4.dev21+gb44634f2a at /home/user/gpyreg/gpyreg (b44634f)
+  Linux x86_64, Intel(R) Xeon(R) Processor @ 2.10GHz, numpy 2.5.3, scipy 1.18.1, OpenBLAS kernels [('Haswell', 1)]
+platform: identical
+
+ellipsoid_D3_seed0                 identical  (137 evaluations, 76 steps, 114 GP computations)
+ellipsoid_D3_unbounded_seed0       identical  (150 evaluations, 84 steps, 121 GP computations)
+logsphere_D3_seed0                 identical  (77 evaluations, 36 steps, 52 GP computations)
+rosenbrock_D6_seed0                identical  (300 evaluations, 177 steps, 244 GP computations)
+sphere_D2_seed0                    identical  (55 evaluations, 31 steps, 44 GP computations)
+sphere_D3_hetero_seed0             identical  (150 evaluations, 66 steps, 244 GP computations)
+sphere_D3_homo_seed0               identical  (150 evaluations, 62 steps, 237 GP computations)
+sphere_nonbox_D3_seed0             identical  (97 evaluations, 60 steps, 81 GP computations)
+
+8 runs compared: 8 identical, 0 differ

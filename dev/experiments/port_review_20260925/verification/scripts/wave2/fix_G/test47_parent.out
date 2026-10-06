@@ -1,0 +1,86 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_integer_bounds_are_taken_as_floats[plausible] ______________
+
+plausible = True
+
+    @pytest.mark.parametrize(
+        "plausible", [True, False], ids=["plausible", "plausible_omitted"]
+    )
+    def test_integer_bounds_are_taken_as_floats(plausible):
+        """The log of a log-scaled variable's bounds is written into the
+        transformer's copies of the bounds, which are floats, so that integer
+        bounds give the transform of the same values as floats."""
+        bounds = [[[1, -10]], [[1000, 10]]]
+        if plausible:
+            bounds += [[[2, -5]], [[500, 5]]]
+        transformers = [
+            VariableTransformer(2, *(np.array(b, dtype=dtype) for b in bounds))
+            for dtype in (int, float)
+        ]
+        x = np.array([[10.0, 3.0], [200.0, -7.0]])
+        int_transformer, float_transformer = transformers
+        assert np.all(float_transformer.apply_log_t == [[True, False]])
+        assert np.all(int_transformer.apply_log_t == float_transformer.apply_log_t)
+        names = ["lb", "ub", "plb", "pub"]
+        names += ["orig_" + name for name in names]
+        for name in names:
+>           np.testing.assert_array_equal(
+                getattr(int_transformer, name), getattr(float_transformer, name)
+            )
+E           AssertionError:
+E           Arrays are not equal
+E
+E           Mismatched elements: 1 / 2 (50%)
+E           Mismatch at index:
+E            [0, 0]: -1.0 (ACTUAL), -1.2510738338534912 (DESIRED)
+E           Max absolute difference among violations: 0.25107383
+E           Max relative difference among violations: 0.20068666
+E            ACTUAL: array([[-1., -2.]])
+E            DESIRED: array([[-1.251074, -2.      ]])
+
+pybads/testing/variable_transformer/test_variable_transformer.py:287: AssertionError
+__________ test_integer_bounds_are_taken_as_floats[plausible_omitted] __________
+
+plausible = False
+
+    @pytest.mark.parametrize(
+        "plausible", [True, False], ids=["plausible", "plausible_omitted"]
+    )
+    def test_integer_bounds_are_taken_as_floats(plausible):
+        """The log of a log-scaled variable's bounds is written into the
+        transformer's copies of the bounds, which are floats, so that integer
+        bounds give the transform of the same values as floats."""
+        bounds = [[[1, -10]], [[1000, 10]]]
+        if plausible:
+            bounds += [[[2, -5]], [[500, 5]]]
+        transformers = [
+            VariableTransformer(2, *(np.array(b, dtype=dtype) for b in bounds))
+            for dtype in (int, float)
+        ]
+        x = np.array([[10.0, 3.0], [200.0, -7.0]])
+        int_transformer, float_transformer = transformers
+        assert np.all(float_transformer.apply_log_t == [[True, False]])
+        assert np.all(int_transformer.apply_log_t == float_transformer.apply_log_t)
+        names = ["lb", "ub", "plb", "pub"]
+        names += ["orig_" + name for name in names]
+        for name in names:
+>           np.testing.assert_array_equal(
+                getattr(int_transformer, name), getattr(float_transformer, name)
+            )
+E           AssertionError:
+E           Arrays are not equal
+E
+E           Mismatched elements: 1 / 2 (50%)
+E           Mismatch at index:
+E            [0, 0]: 1.3025850929940457 (ACTUAL), 1.0 (DESIRED)
+E           Max absolute difference among violations: 0.30258509
+E           Max relative difference among violations: 0.30258509
+E            ACTUAL: array([[1.302585, 1.      ]])
+E            DESIRED: array([[1., 1.]])
+
+pybads/testing/variable_transformer/test_variable_transformer.py:287: AssertionError
+=========================== short test summary info ============================
+FAILED pybads/testing/variable_transformer/test_variable_transformer.py::test_integer_bounds_are_taken_as_floats[plausible]
+FAILED pybads/testing/variable_transformer/test_variable_transformer.py::test_integer_bounds_are_taken_as_floats[plausible_omitted]
+2 failed, 21 deselected in 1.20s

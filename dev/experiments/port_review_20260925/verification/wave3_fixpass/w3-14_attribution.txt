@@ -1,0 +1,36 @@
+Runs of the default suite that differ between population_linux_wave2_20260926 (8510ca8) and batch 1 (a1bf658), each run again at W3-14's parent (fd8641d) and at W3-14 (1f7c8ee), from worktrees at those commits, one BLAS thread, gpyreg from the v1.3.3 clone (attrib.sh, one_run.sh). A run is equal when every field of its record's final state but the wall time is equal.
+
+ackley_D6 18
+ellipsoid_D10 1
+ellipsoid_D10 13
+ellipsoid_D10 16
+ellipsoid_D10 20
+ellipsoid_D10 25
+ellipsoid_D10 29
+ellipsoid_D10 8
+ellipsoid_D3_homo 4
+ellipsoid_D6 13
+ellipsoid_D6 15
+ellipsoid_D6 20
+ellipsoid_D6 28
+ellipsoid_D6 3
+ellipsoid_D6 4
+multisensory_s1_D6_homo 0
+multisensory_s1_D6_homo 23
+multisensory_s1_D6_homo 25
+rosenbrock_D6 15
+rosenbrock_D6 21
+rosenbrock_D6 22
+rosenbrock_D6 23
+rosenbrock_D6 28
+rosenbrock_D6 4
+sphere_D10 0
+sphere_D10 12
+sphere_D10 16
+sphere_D10 19
+sphere_D10 20
+sphere_D10 25
+sphere_D10 26
+
+parent of W3-14 equal to the reference: 31/31; W3-14 equal to batch 1: 31/31
+not explained: []

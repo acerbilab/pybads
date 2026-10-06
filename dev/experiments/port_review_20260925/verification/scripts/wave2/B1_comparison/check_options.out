@@ -1,0 +1,53 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+[max_fun_evals=None] optimize(): TypeError: unsupported operand type(s) for -: 'NoneType' and 'int'
+[tol_mesh=None] BADS(): TypeError: loop of ufunc does not support argument 0 of type NoneType which has no callable log method
+[tol_fun=None] BADS(): TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'
+[max_iter=None] optimize(): TypeError: unsupported operand type(s) for -: 'NoneType' and 'int'
+[noise_final_samples=None] ran: func_count=40 iterations=5 fval=8.29e-08 msg=Optimization terminated: reached maximum number of function
+[nonlinear_scaling=None] ran: func_count=40 iterations=5 fval=8.29e-08 msg=Optimization terminated: reached maximum number of function
+Beginning optimization of a DETERMINISTIC objective function
+
+ Iteration    f-count         f(x)           MeshScale          Method             Actions
+     0           2               2               1                                 Uncertainty test
+     0           6         1.21193               1         Initial mesh            Initial points
+     1          10         1.21193             0.5         Refine grid             Train
+     2          11       0.0463974             0.5     Successful search (ES-wcm)
+     2          12       0.0262616             0.5     Incremental search (ES-wcm)
+     2          13       0.0110402             0.5     Incremental search (ES-ell)
+     2          14      0.00755501             0.5     Incremental search (ES-wcm)
+     2          15      0.00561571             0.5     Incremental search (ES-ell)
+     2          17     0.000355005             0.5     Incremental search (ES-ell)
+     2          18     8.70228e-05             0.5     Incremental search (ES-wcm)
+     2          22     8.70228e-05            0.25         Refine grid
+     3          23     2.33948e-06            0.25     Incremental search (ES-wcm)
+     3          30     2.33948e-06           0.125         Refine grid             Train
+     4          31     8.28877e-08           0.125     Incremental search (ES-wcm)
+     4          38     8.28877e-08          0.0625         Refine grid             Train
+Optimization terminated: reached maximum number of function evaluations options['max_fun_evals'].
+Function value at minimum: 8.288770914077759e-08
+
+[display=None] ran: func_count=40 iterations=5 fval=8.29e-08 msg=Optimization terminated: reached maximum number of function
+[fun_eval_start=None] optimize(): TypeError: '>' not supported between instances of 'NoneType' and 'int'
+[search_n_try=None] optimize(): TypeError: '<' not supported between instances of 'NoneType' and 'NoneType'
+[max_fun_evals='50*D'] optimize(): TypeError: unsupported operand type(s) for -: 'str' and 'int'
+[nonlinear_scaling='off'] created; options={'nonlinear_scaling': 'off'} level=0 logflag=[False False] logger level=30
+[uncertainty_handling='off'] created; options={'uncertainty_handling': 'off'} level=1 logflag=[False False] logger level=30
+[uncertainty_handling=0] created; options={'uncertainty_handling': 0} level=0 logflag=[False False] logger level=30
+[specify_target_noise=None] created; options={'specify_target_noise': False} level=0 logflag=[False False] logger level=30
+[max_fun_evals=0] optimize(): ValueError: cannot convert float NaN to integer
+[max_fun_evals=-5] optimize(): ValueError: cannot convert float NaN to integer
+[max_fun_evals=30.5] ran: func_count=31 iterations=4 fval=4.48e-06 msg=Optimization terminated: reached maximum number of function
+[improvement_quantile=0.9 (MATLAB warns)] ran: func_count=40 iterations=5 fval=8.29e-08 msg=Optimization terminated: reached maximum number of function
+[display='final'] created; options={'display': 'final'} level=0 logflag=[False False] logger level=20
+[display='notify'] created; options={'display': 'notify'} level=0 logflag=[False False] logger level=20
+[display='off'] created; options={'display': 'off'} level=0 logflag=[False False] logger level=30
+[display='iter'] created; options={'display': 'iter'} level=0 logflag=[False False] logger level=20
+[display='none'] created; options={'display': 'none'} level=0 logflag=[False False] logger level=20
+[display='OFF'] created; options={'display': 'OFF'} level=0 logflag=[False False] logger level=20
+[misspelt] BADS(): ValueError: The option max_fun_eval does not exist.
+description[noise_size] = np.str_('Base observation noise magnitude (SD), e.g. noise_size')
+description[random_seed] = np.str_("Seed of the run's random generator bads.rng (integer, SeedSequence or Generator), read when BADS is created. If None, it derives from NumPy's global random state, fixed by np.random.seed before creating BADS.")
+description[periodic_vars] = np.str_('Array with indices of periodic variables, like periodic_vars')
+description[stobads_frame_size_scaling_power] = np.str_('Power value of the Sto-BADS incumbent decision rule')
+description[output_fcn] = np.str_("Output function, called as output_fcn(x, optim_state, state) with state 'init', 'iter' (after each poll) or 'done', and a copy of optim_state; a true return value stops the run")

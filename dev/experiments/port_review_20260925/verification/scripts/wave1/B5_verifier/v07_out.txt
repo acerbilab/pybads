@@ -1,0 +1,10 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+rosen3 seed 50: checks 105; refits python 11, MATLAB-rule+latent 15, MATLAB-rule+predictive 15; verdicts (refit,unrel) python!=MATLAB 25; latent!=predictive under MATLAB rule 7; periodic refit late by one 7; python refits with a latent SD<1e-8 that MATLAB does not make 3
+    python refits before the period (test fired): 4, of which with a latent SD < 1e-8 among the stats: 3; n at those: [0, 9, 9, 9]
+rosen3 seed 51: checks 109; refits python 11, MATLAB-rule+latent 16, MATLAB-rule+predictive 16; verdicts (refit,unrel) python!=MATLAB 26; latent!=predictive under MATLAB rule 12; periodic refit late by one 7; python refits with a latent SD<1e-8 that MATLAB does not make 2
+    python refits before the period (test fired): 3, of which with a latent SD < 1e-8 among the stats: 2; n at those: [0, 9, 9]
+ell3 seed 50: checks 99; refits python 10, MATLAB-rule+latent 17, MATLAB-rule+predictive 17; verdicts (refit,unrel) python!=MATLAB 20; latent!=predictive under MATLAB rule 2; periodic refit late by one 8; python refits with a latent SD<1e-8 that MATLAB does not make 1
+    python refits before the period (test fired): 2, of which with a latent SD < 1e-8 among the stats: 1; n at those: [0, 9]
+noisy sphere3 seed 50: checks 156; refits python 14, MATLAB-rule+latent 28, MATLAB-rule+predictive 28; verdicts (refit,unrel) python!=MATLAB 42; latent!=predictive under MATLAB rule 20; periodic refit late by one 14; python refits with a latent SD<1e-8 that MATLAB does not make 0
+    python refits before the period (test fired): 1, of which with a latent SD < 1e-8 among the stats: 0; n at those: [0]

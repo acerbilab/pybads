@@ -1,0 +1,26 @@
+pybads.__file__ = /home/user/pybads-review/pybads/__init__.py
+gpyreg.__file__ = /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+--- level 0, sphere D=2: 29 rebuilds, fval=1.55e-06, func_count=55
+   distinct prior centres held by the GP: [-3.453878]
+   distinct prior SDs: [1.]
+   MATLAB centre range: [-6.226, -3.454]; mesh range [0.00391, 1]
+   largest |PyBADS - MATLAB centre|: 2.773
+   fitted log sn at refits: min -7.908, median -7.487, max -3.458
+--- level 0, rosenbrock D=3: 85 rebuilds, fval=1.908e-07, func_count=126
+   distinct prior centres held by the GP: [-3.453878]
+   distinct prior SDs: [1.]
+   MATLAB centre range: [-7.266, -3.454]; mesh range [0.000488, 1]
+   largest |PyBADS - MATLAB centre|: 3.812
+   fitted log sn at refits: min -7.908, median -4.908, max -3.446
+--- level 1, noisy sphere D=2 (sd 1): 362 rebuilds, fval=-0.029, func_count=200
+   distinct prior centres held by the GP: [0.]
+   distinct prior SDs: [1.]
+   MATLAB centre range: [0.000, 0.000]; mesh range [0.000244, 1]
+   largest |PyBADS - MATLAB centre|: 0.000
+   fitted log sn at refits: min -0.009, median 0.040, max 0.067
+--- level 2, sphere D=2 (sd 0.5 given): 283 rebuilds, fval=-0.0785, func_count=168
+   distinct prior centres held by the GP: [-6.907755]
+   distinct prior SDs: [1.]
+   MATLAB centre range: [-6.908, -6.908]; mesh range [3.05e-05, 1]
+   largest |PyBADS - MATLAB centre|: 0.000
+   fitted log sn at refits: min -6.909, median -6.908, max -6.908

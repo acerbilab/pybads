@@ -1,0 +1,4 @@
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+613 passed, 21 warnings in 117.81s (0:01:57)
+/home/user/pybads/pybads/__init__.py 4146a986863602cb

@@ -1,0 +1,149 @@
+{
+ "label": "sphere_D3_other",
+ "seed": 15,
+ "problem": "sphere",
+ "D": 3,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -0.9915708311489757,
+  1.8694357186774404,
+  -0.2876031392720977
+ ],
+ "precomputed": {
+  "kind": "other",
+  "rows": 59,
+  "digest": "c3587ba6d9fa1de6"
+ },
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 15
+ },
+ "effective_options": {
+  "max_fun_evals": 1500,
+  "max_iter": 600,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 5,
+  "n_train_min": 50,
+  "n_train_max": 80,
+  "random_seed": 15,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -0.6155278161168098,
+   -0.334238912910223,
+   -0.6008456833660603
+  ],
+  "fval": 1.4215726542921103e-07,
+  "fsd": 0.0,
+  "true_error": 1.4215726542921103e-07,
+  "func_count": 77,
+  "iterations": 8,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 1.3305589540000256,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.0030524559997502365,
+    "target": 0.001435872003534049,
+    "init": 0.0009428360003238241,
+    "gp_init": 0.14022752200025934,
+    "poll": 0.10816737499727574,
+    "history": 0.0017415480001545802,
+    "search": 1.066891342998736
+   },
+   "paths": {
+    "loop": 0.0030524559997502365,
+    "target": 0.001435872003534049,
+    "init": 0.0009428360003238241,
+    "gp_init": 0.002187678000154847,
+    "gp_init/gp_fit": 0.029442450000260578,
+    "gp_init/gp_rebuild": 0.0025464959999226267,
+    "gp_init/gp_rebuild/gp_fit": 0.06478423199996541,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 0.04009645199994338,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 0.0011702140000124928,
+    "poll": 0.034672412998144546,
+    "poll/gp_rebuild": 0.019634228999620973,
+    "poll/gp_rebuild/gp_fit": 0.0397137400000247,
+    "poll/target_from_gp": 0.01414699299948552,
+    "history": 0.0017415480001545802,
+    "search": 0.03553304699986511,
+    "search/gp_rebuild": 0.045961477998389455,
+    "search/search_es": 0.29943703200024174,
+    "search/gp_update": 0.012546413000109169,
+    "search/gp_rebuild/gp_fit": 0.30351601800020944,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.35726664699996036,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.012630707999960578
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "gp_init/gp_rebuild": 1,
+    "gp_init/gp_rebuild/gp_fit": 1,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_failed": 1,
+    "gp_init/gp_rebuild/gp_fit/gp_fit_retry": 1,
+    "poll": 7,
+    "poll/gp_rebuild": 7,
+    "poll/gp_rebuild/gp_fit": 1,
+    "poll/target_from_gp": 42,
+    "history": 8,
+    "search": 29,
+    "search/gp_rebuild": 18,
+    "search/search_es": 29,
+    "search/gp_update": 22,
+    "search/gp_rebuild/gp_fit": 7,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 8,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 8
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "58d922a1",
+   "dirty": false
+  },
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pybads": "1.1.1.dev52+gbec8a57a8",
+  "pybads_source": {
+   "path": "/home/user/pybads/.claude/worktrees/fix-warm/dev/scripts/runs/worktrees/w_change/pybads",
+   "git": {
+    "sha": "58d922a1",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.3.3",
+  "gpyreg_source": {
+   "path": "/home/user/gpyreg/gpyreg",
+   "git": {
+    "sha": "98ab5a4",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-09-29T07:07:42+0000",
+  "finished": "2026-09-29T07:07:44+0000"
+ }
+}

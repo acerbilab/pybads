@@ -1,0 +1,26 @@
+pybads: /home/user/pybads-review/pybads/__init__.py
+gpyreg: /home/user/gpyreg-v1.3.3/gpyreg/__init__.py
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:476: RuntimeWarning: divide by zero encountered in log
+  lower_bounds[0:D] = np.log(width) + np.log(tol)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:477: RuntimeWarning: divide by zero encountered in log
+  upper_bounds[0:D] = np.log(width * 10)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:478: RuntimeWarning: divide by zero encountered in log
+  plausible_lower_bounds[0:D] = np.log(width) + 0.5 * np.log(tol)
+/home/user/gpyreg-v1.3.3/gpyreg/covariance_functions.py:479: RuntimeWarning: divide by zero encountered in log
+  plausible_upper_bounds[0:D] = np.log(width)
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/user/pybads/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:208: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D=2 seed=0 noisy=False: design points kept 0; steps [('p', 0, 0), ('p', 1, 0), ('p', 2, 0), ('p', 3, 0), ('p', 4, 0), ('p', 5, 0)]; GP sizes [1, 1, 1, 1, 1, 1]
+     func_count 2, iterations 6, x [0.5 0.5], fval 0.08, msg: Optimization terminated: change in the function value less than options['tol_fun'].
+     warnings/failures: []
+D=2 seed=1 noisy=False: design points kept 0; steps [('p', 0, 0), ('p', 1, 0), ('p', 2, 0), ('p', 3, 0), ('p', 4, 0), ('p', 5, 0)]; GP sizes [1, 1, 1, 1, 1, 1]
+     func_count 2, iterations 6, x [0.5 0.5], fval 0.08, msg: Optimization terminated: change in the function value less than options['tol_fun'].
+     warnings/failures: []
+D=3 seed=0 noisy=False: design points kept 0; steps [('p', 0, 2), ('p', 1, 2), ('s', 2, 1), ('s', 2, 1), ('s', 2, 1), ('s', 2, 1), ('p', 2, 2), ('s', 3, 1), ('s', 3, 1), ('s', 3, 1), ('s', 3, 1), ('p', 3, 2)]; GP sizes [1, 3, 6, 7, 8, 8, 9, 12, 13, 14, 14, 15]
+     func_count 45, iterations 9, x [0.2974 0.3023 0.3004], fval 1.225e-05, msg: Optimization terminated: change in the function value less than options['tol_fun'].
+     warnings/failures: []
+D=2 seed=0 noisy=True: design points kept 0; steps [('p', 0, 0), ('p', 1, 0), ('p', 2, 0), ('p', 3, 0), ('p', 4, 0), ('p', 5, 0), ('p', 6, 0), ('p', 7, 4), ('s', 8, 1), ('s', 8, 1), ('s', 8, 1), ('s', 8, 1)]; GP sizes [1, 1, 1, 1, 1, 1, 1, 5, 6, 7, 8, 8]
+     func_count 108, iterations 20, x [0.5001 0.5049], fval 0.05217, msg: Optimization terminated: change in the function value less than options['tol_fun'].
+     warnings/failures: []
