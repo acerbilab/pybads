@@ -164,7 +164,7 @@ label changed, is updated there as well:
 - `faq-what-do-i-do-if-pybads-is-not-suited-for-my-problem`: `README.md`
   and `index.rst`;
 - `faq-how-do-i-know-whether-a-newer-version-of-pybads-exists`:
-  `installation.rst` and the API page of `check_for_updates`;
+  `installation.rst`;
 - `faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`:
   `quickstart.rst`;
 - `faq-how-do-i-run-pybads-from-several-starting-points`,
