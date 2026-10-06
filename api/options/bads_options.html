@@ -484,9 +484,9 @@ ones, whose four bounds are equal.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">BasicOptions</span><span class="p">]</span>
 <span class="c1"># Level of display ("iter", "notify", "final", "off", or "full", which also shows debug messages)</span>
 <span class="n">display</span> <span class="o">=</span> <span class="s2">"iter"</span>
-<span class="c1"># Show an occasional tip, with a link to the documentation, before the first iteration line (with the iteration display, at most once per tip in a Python session); False also turns off the reminder, shown in the tip's place, that the installed release is more than a year old</span>
+<span class="c1"># Show an occasional tip, with a link to the documentation, at the start of a run; False also turns off the reminder to check for updates when the installed release is more than a year old</span>
 <span class="n">show_tips</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="c1"># Max number of iterations (an iteration counts once begun, as the termination criteria are checked after every search and poll)</span>
+<span class="c1"># Max number of iterations</span>
 <span class="n">max_iter</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="n">D</span>
 <span class="c1"># Max number of target fcn evals</span>
 <span class="n">max_fun_evals</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">D</span>
@@ -502,9 +502,9 @@ ones, whose four bounds are equal.</p>
 <span class="n">noise_size</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="c1"># Target function returns noise estimate (SD) as second output</span>
 <span class="n">specify_target_noise</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="c1"># Samples to estimate FVAL at the end (for noisy objectives)</span>
+<span class="c1"># Samples to estimate FVAL at the end (for noisy objectives; taken from max_fun_evals)</span>
 <span class="n">noise_final_samples</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="c1"># Seed of the run's random generator bads.rng (integer, SeedSequence or Generator), read when BADS is created. If None, it derives from NumPy's global random state, fixed by np.random.seed before creating BADS.</span>
+<span class="c1"># Seed of the run's random draws (integer, SeedSequence or Generator); if None, np.random.seed before creating BADS fixes the run</span>
 <span class="n">random_seed</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 </div>
@@ -514,29 +514,29 @@ ones, whose four bounds are equal.</p>
 <p>These options are reserved to advanced users / developers of BADS.
 We strongly advise against changing these options, unless you know what you are doing, since unexpected/untested behavior might follow.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">AdvancedOptions</span><span class="p">]</span>
-<span class="c1"># Show optimization plots (not ported: no effect)</span>
+<span class="c1"># Show optimization plots (no effect: not available in PyBADS)</span>
 <span class="n">plot</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Tolerance and termination conditions</span>
 <span class="c1"># Tolerance on mesh size</span>
 <span class="n">tol_mesh</span> <span class="o">=</span> <span class="mf">1e-6</span>
-<span class="c1"># Min significant change of objective fcn (a positive number at most e^6, about 403, checked when BADS is created)</span>
+<span class="c1"># Min significant change of objective fcn (a positive number, at most e^6, about 403)</span>
 <span class="n">tol_fun</span> <span class="o">=</span> <span class="mf">1e-3</span>
-<span class="c1"># Max iterations with no significant change (doubled under uncertainty; an iteration counts once begun)</span>
+<span class="c1"># Max iterations with no significant change (doubled under uncertainty)</span>
 <span class="n">tol_stall_iters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">D</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
 <span class="c1"># Min variability for a fcn to be considered noisy</span>
 <span class="n">tol_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">spacing</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tol_fun"</span><span class="p">)</span>
 
 <span class="c1">#Initialization</span>
-<span class="c1"># Initialization function</span>
+<span class="c1"># Initial design ('init_sobol', the only one available)</span>
 <span class="n">init_fun</span> <span class="o">=</span> <span class="s2">"init_sobol"</span>
-<span class="c1"># Number of restarts after termination (not ported: no effect)</span>
+<span class="c1"># Number of restarts after termination (no effect: not available in PyBADS)</span>
 <span class="n">restarts</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="c1"># Initial size of the cache for storing fcn evaluations, which grows by half when it is full</span>
+<span class="c1"># Initial size of the cache for storing fcn evaluations (it grows as needed)</span>
 <span class="n">cache_size</span> <span class="o">=</span> <span class="mi">500</span>
 <span class="c1"># Size of the initial Sobol design, rounded up to a power of two and doubled when that equals D (at least 20 for a noisy target), then cut to the evaluations that max_fun_evals leaves</span>
 <span class="n">fun_eval_start</span> <span class="o">=</span> <span class="n">D</span>
-<span class="c1"># Earlier fcn evaluations with X and Y fields (not supported: a non-empty value is refused; BADS takes them as its argument precomputed_evaluations)</span>
+<span class="c1"># Earlier fcn evaluations (not supported: pass them to BADS as precomputed_evaluations)</span>
 <span class="n">fun_values</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="c1"># Indices (from 0, counting the fixed variables) of the periodic variables, such as angles, e.g. periodic_vars = [2, 3]; each wraps around its hard bounds, which need to be finite and are its period</span>
 <span class="n">periodic_vars</span> <span class="o">=</span> <span class="kc">None</span>
@@ -544,7 +544,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="c1"># Poll Options</span>
 <span class="c1"># Poll function (unused: the poll always uses poll_mads_2n)</span>
 <span class="n">poll_method</span>                              <span class="o">=</span> <span class="s1">'poll_mads_2n'</span>
-<span class="c1"># Number of random candidate directions of an alternative poll method, which is not ported (unused, in MATLAB BADS too)</span>
+<span class="c1"># Number of random candidate directions of an alternative poll method (unused)</span>
 <span class="n">n_basis</span>                                  <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">D</span>
 <span class="c1"># Mesh multiplicative factor between iterations</span>
 <span class="n">poll_mesh_multiplier</span>                      <span class="o">=</span> <span class="mf">2.0</span>
@@ -556,11 +556,11 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">alternative_incumbent</span>                    <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Adaptive multiplier to incumbent uncertainty</span>
 <span class="n">adaptive_incumbent_shift</span>                  <span class="o">=</span> <span class="kc">False</span>
-<span class="c1"># GP-based geometric scaling factor of poll_scale, the power of the GP's length scales in it; poll_scale shapes only the ES-ell search, since the poll divides its vectors by it and multiplies them back</span>
+<span class="c1"># Power of the GP's length scales in the scaling of the ES-ell search (it does not change the poll, despite its name)</span>
 <span class="n">gp_rescale_poll</span>                           <span class="o">=</span> <span class="mf">1.0</span>
-<span class="c1"># Threshold probability of improvement (PoI); at 0 the PoI never stops polling, but a good poll still stops when the GP is unreliable (complete_poll completes every poll)</span>
+<span class="c1"># Threshold probability of improvement (PoI) for stopping a poll early (complete_poll makes every poll complete)</span>
 <span class="n">tol_poi</span>                                  <span class="o">=</span> <span class="mf">1e-6</span><span class="o">/</span><span class="n">D</span>
-<span class="c1"># Skip polling if PoI below threshold, even with no success (unused, in MATLAB BADS too)</span>
+<span class="c1"># Skip polling if PoI below threshold, even with no success (unused)</span>
 <span class="n">skip_poll</span>                                <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Allow consecutive incomplete polls</span>
 <span class="n">consecutive_skipping</span>                     <span class="o">=</span> <span class="kc">True</span>
@@ -572,7 +572,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">accelerate_mesh_steps</span>                     <span class="o">=</span> <span class="mi">3</span>
 <span class="c1"># Move incumbent even after insufficient improvement, and floor the sufficient improvement at tol_fun</span>
 <span class="n">sloppy_improvement</span>                       <span class="o">=</span> <span class="kc">True</span>
-<span class="c1"># Deprecated along with stobads: under Sto-BADS, move the incumbent on an uncertain outcome of the poll or the search when the new point's estimate improves on it</span>
+<span class="c1"># Deprecated along with stobads: under Sto-BADS, move the incumbent on an uncertain improvement</span>
 <span class="n">opp_stobads</span>                             <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Deprecated along with stobads: power of the mesh size in the Sto-BADS interval gamma * SD * mesh_size**power: at 2, a difference of a fraction of its SD counts as certain at a small mesh; 0 makes the rule a z-test</span>
 <span class="n">stobads_frame_size_scaling_power</span>        <span class="o">=</span> <span class="mi">2</span>
@@ -605,7 +605,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">es_beta</span>                  <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Starting scale value in ES</span>
 <span class="n">es_start</span>                 <span class="o">=</span> <span class="mf">0.25</span>
-<span class="c1"># Fraction of candidate search points with (slower) improved estimate (unused, in MATLAB BADS too)</span>
+<span class="c1"># Fraction of candidate search points with (slower) improved estimate (unused)</span>
 <span class="n">search_improve_frac</span>       <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Search radius expansion factor for successful search</span>
 <span class="n">search_scale_success</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -615,7 +615,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">search_scale_failure</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="c1"># Lower bound on the search radius factor, which failed searches contract</span>
 <span class="n">search_factor_min</span>         <span class="o">=</span> <span class="mf">0.5</span>
-<span class="c1"># Search function(s): a non-empty list of pairs (name, sum-rule flag), each name 'ES-wcm' or 'ES-ell', checked when BADS is created; only ES-wcm reads the flag</span>
+<span class="c1"># Search function(s): a non-empty list of pairs (name, sum-rule flag), each name 'ES-wcm' or 'ES-ell'; only ES-wcm reads the flag</span>
 <span class="n">search_method</span>            <span class="o">=</span> <span class="p">[(</span><span class="s1">'ES-wcm'</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ES-ell'</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
 <span class="c1"># Iteration scale factor between poll and search</span>
 <span class="n">search_grid_number</span>        <span class="o">=</span> <span class="mi">10</span>
@@ -629,7 +629,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">search_mesh_expand</span>        <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Mesh size increment after search-triggered mesh expansion</span>
 <span class="n">search_mesh_increment</span>     <span class="o">=</span> <span class="mi">1</span>
-<span class="c1"># Further optimize acquisition function (not ported: no effect)</span>
+<span class="c1"># Further optimize acquisition function (no effect: not available in PyBADS)</span>
 <span class="n">search_optimize</span>          <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Noise parameters</span>
@@ -647,11 +647,11 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">buffer_ntrain</span>             <span class="o">=</span> <span class="mi">100</span>
 <span class="c1"># Hyperparameter samples (unused: PyBADS optimizes one set of GP hyperparameters, where MATLAB BADS samples them above 1)</span>
 <span class="n">gp_samples</span>                 <span class="o">=</span> <span class="mi">0</span>
-<span class="c1"># MCMC sampler for GP hyperparameters</span>
+<span class="c1"># Sampler that use_slice_sampler selects (only 'slicesample')</span>
 <span class="n">gp_hyp_sampler</span> <span class="o">=</span> <span class="s2">"slicesample"</span>
-<span class="c1"># High Posterior Density region (fraction of training inputs)</span>
+<span class="c1"># Fraction of the training points, those of lowest value, used to initialize the first GP</span>
 <span class="n">hpd_frac</span> <span class="o">=</span> <span class="mf">0.8</span>
-<span class="c1"># Weight of previous trials (per trial) for running avg of GP hyperparameter covariance</span>
+<span class="c1"># Weight of previous trials for a running average of the GP hyperparameter covariance (no effect)</span>
 <span class="n">hyp_run_weight</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Minimum fcn evals before refitting the GP</span>
 <span class="n">min_refit_time</span>            <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">D</span>
@@ -665,13 +665,13 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">gp_mean_percentile</span>        <span class="o">=</span> <span class="mi">90</span>
 <span class="c1"># Empirical range of hyperprior over the mean</span>
 <span class="n">gp_mean_range_fun</span>          <span class="o">=</span> <span class="k">lambda</span> <span class="n">ym</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">ym</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">/</span><span class="mi">5</span><span class="o">*</span><span class="mi">2</span>
-<span class="c1"># GP definition fcn (unused: the GP is gpyreg's, with a rational-quadratic ARD kernel)</span>
+<span class="c1"># GP definition fcn (unused: the GP has a rational-quadratic ARD kernel)</span>
 <span class="n">gp_def_fcn</span>                <span class="o">=</span> <span class="p">(</span><span class="s1">'gp_def_bads'</span><span class="p">,</span><span class="s1">'rq'</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
 <span class="c1"># GP training set selection method (unused: always the nearest neighbours)</span>
 <span class="n">gp_method</span>                <span class="o">=</span> <span class="s1">'nearest'</span>
-<span class="c1"># Cluster additional points during training (unused, in MATLAB BADS too)</span>
+<span class="c1"># Cluster additional points during training (unused)</span>
 <span class="n">gp_cluster</span>               <span class="o">=</span> <span class="kc">False</span>
-<span class="c1"># Rotate GP basis (unused; unsupported in MATLAB BADS too)</span>
+<span class="c1"># Rotate GP basis (unused)</span>
 <span class="n">rotate_gp</span>                <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Radius of training set</span>
 <span class="n">gp_radius</span>                <span class="o">=</span> <span class="mi">3</span>
@@ -679,17 +679,17 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">use_effective_radius</span>      <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Empirical GP hyper-prior over the length scales, 'iso' ('ard' is unsupported)</span>
 <span class="n">gp_cov_prior</span>              <span class="o">=</span> <span class="s1">'iso'</span>
-<span class="c1"># Fixed GP mean, at a high percentile of the training targets (partly ported: True only keeps the width of the prior over the mean)</span>
+<span class="c1"># Fix the GP mean at a high percentile of the training targets (incomplete: True keeps the width of the prior over the mean, but does not fix the mean)</span>
 <span class="n">gp_fixed_mean</span>             <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Fit the likelihood term, the GP noise (False, a fixed noise, is unsupported)</span>
 <span class="n">fit_lik</span>                  <span class="o">=</span> <span class="kc">True</span>
 <span class="c1"># Acquisition fcn for poll stage (unused: the poll always ranks by the LCB with the default schedule)</span>
 <span class="n">poll_acq_fcn</span>              <span class="o">=</span> <span class="p">(</span><span class="s1">'acq_LCB'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<span class="c1"># Acquisition fcn for search stage, ('acq_LCB', sqrt_beta): sqrt_beta None (the default schedule), a callable sqrt_beta(t, D) or a positive finite number, checked when BADS is created; a callable returns a positive finite number, checked at each call</span>
+<span class="c1"># Acquisition fcn for search stage, ('acq_LCB', sqrt_beta): sqrt_beta None (the default schedule), a positive finite number, or a callable sqrt_beta(t, D) that returns one, with t the number of fcn evals so far plus 1</span>
 <span class="n">search_acq_fcn</span>            <span class="o">=</span> <span class="p">(</span><span class="s1">'acq_LCB'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="c1"># Hedge acquisition function (not supported: BADS refuses True)</span>
 <span class="n">acq_hedge</span>                <span class="o">=</span> <span class="kc">False</span>
-<span class="c1"># Attempts at performing the Cholesky decomposition (unused: gpyreg's factorization retries by its own rule)</span>
+<span class="c1"># Attempts at performing the Cholesky decomposition (unused)</span>
 <span class="n">chol_attempts</span>            <span class="o">=</span> <span class="mi">0</span>
 <span class="c1"># Increase nudge to noise in case of Cholesky failure</span>
 <span class="n">noise_nudge</span>             <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
@@ -701,7 +701,7 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">gp_warnings</span>             <span class="o">=</span> <span class="kc">False</span>
 <span class="c1"># Alpha level for normality test of gp predictions</span>
 <span class="n">normalpha_level</span>          <span class="o">=</span> <span class="mf">1e-6</span>
-<span class="c1"># Number of target fcn evals per iteration</span>
+<span class="c1"># Number of target fcn evals per iteration (no effect: BADS evaluates one point at a time)</span>
 <span class="n">fun_evals_per_iter</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Initial design points for GP hyperparameter training</span>
 <span class="n">gp_train_n_init</span> <span class="o">=</span> <span class="mi">128</span>
@@ -711,11 +711,11 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="n">gp_train_init_method</span> <span class="o">=</span> <span class="s2">"rand"</span>
 <span class="c1"># Tolerance for optimization of GP hyperparameters</span>
 <span class="n">gp_tol_opt</span> <span class="o">=</span> <span class="mf">1e-5</span>
-<span class="c1"># Tolerance on ELBO uncertainty for stopping (if variational posterior is stable)</span>
+<span class="c1"># Floor of the stricter bound on a negative quadratic GP mean (no effect: that mean is not available)</span>
 <span class="n">tol_sd</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="c1"># GP warping function type</span>
+<span class="c1"># GP output warping (only 0 is supported; another value fails during the run)</span>
 <span class="n">warp_func</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="c1"># Slice sampler option for prior hyper-parameter sampling method</span>
+<span class="c1"># Draw the starting point of a second GP fit, or of a retry after a failed refit, by slice sampling rather than from the priors</span>
 <span class="n">use_slice_sampler</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># Adaptive basis (unsupported)</span>
@@ -735,13 +735,13 @@ We strongly advise against changing these options, unless you know what you are 
 <span class="c1"># Output function, called as output_fcn(x, optim_state, state) with state 'init', 'iter' (after each poll) or 'done', and a copy of optim_state; a true return value stops the run</span>
 <span class="n">output_fcn</span> <span class="o">=</span> <span class="kc">None</span>
 
-<span class="c1"># Function values at X0 (not supported: a value with a finite element is refused; one without, such as an empty list, stands for None)</span>
+<span class="c1"># Function values at X0 (not supported: leave it None; pass earlier evaluations to BADS as precomputed_evaluations)</span>
 <span class="n">f_vals</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1"># Stricter upper bound on GP negative quadratic mean function</span>
+<span class="c1"># Stricter upper bound on a negative quadratic GP mean (no effect: that mean is not available)</span>
 <span class="n">gp_quadratic_mean_bound</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="c1"># Heuristic output warping (fitness shaping)</span>
+<span class="c1"># Heuristic output warping, fitness shaping (no effect: not available in PyBADS)</span>
 <span class="n">fitness_shaping</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="c1"># Discount observations from extremely low-density regions</span>
+<span class="c1"># Noise shaping (no effect in PyBADS)</span>
 <span class="n">noise_shaping</span> <span class="o">=</span> <span class="kc">False</span>
 </pre></div>
 </div>

@@ -537,7 +537,7 @@ The code used in this example is available as a script <a class="reference downl
 </div>
 <section id="constrained-optimization">
 <h2>0. Constrained optimization<a class="headerlink" href="#constrained-optimization" title="Link to this heading">#</a></h2>
-<p>PyBADS naturally supports box constraints <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>, as we saw in the <a class="reference internal" href="pybads_example_1_basic_usage.html"><span class="std std-doc">previous example</span></a>. However, some optimization problems might have more complex constraints over the variables. Formally, we may wish to solve the problem</p>
+<p>PyBADS naturally supports box constraints <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>, as we saw in the <a class="reference internal" href="pybads_example_1_basic_usage.html"><span class="std std-doc">previous example</span></a>. However, some optimization problems might have more complex constraints over the variables. Formally, we may wish to solve the problem</p>
 <div class="math notranslate nohighlight">
 \[
 \mathbf{x}^\star = \arg\min_{\mathbf{x} \in \mathcal{X}} f(\mathbf{x})
@@ -548,11 +548,11 @@ The code used in this example is available as a script <a class="reference downl
 <section id="problem-setup">
 <h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading">#</a></h2>
 <p>We optimize <a class="reference external" href="https://en.wikipedia.org/wiki/Rosenbrock_function">Rosenbrock’s banana function</a> in 2D as in the <a class="reference internal" href="pybads_example_1_basic_usage.html"><span class="std std-doc">previous example</span></a>, but here we force the input to stay within a circle with unit radius.</p>
-<p>Since we know the optimization region, we set tight box bounds <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code> around the circle. This step is not necessary, but it is recommended as it further helps the search.</p>
+<p>Since we know the optimization region, we set tight box bounds <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> around the circle. This step is not necessary, but it is recommended as it further helps the search.</p>
 <p>The function passed to <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>:</p>
 <ul class="simple">
 <li><p>takes as input an array <span class="math notranslate nohighlight">\(\mathbf{x}_1, \ldots, \mathbf{x}_M\)</span> with shape <code class="docutils literal notranslate"><span class="pre">(M,</span> <span class="pre">D)</span></code>, where each <span class="math notranslate nohighlight">\(\mathbf{x}_m \in \mathbb{R}^D\)</span>;</p></li>
-<li><p>outputs a <code class="docutils literal notranslate"><span class="pre">bool</span></code> array with shape <code class="docutils literal notranslate"><span class="pre">(M,</span> <span class="pre">1)</span></code>, where the <span class="math notranslate nohighlight">\(m\)</span>-th value is <code class="docutils literal notranslate"><span class="pre">True</span></code> if <span class="math notranslate nohighlight">\(\mathbf{x}_m\)</span> <em>violates</em> the constraint, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise;</p></li>
+<li><p>outputs a <code class="docutils literal notranslate"><span class="pre">bool</span></code> array with shape <code class="docutils literal notranslate"><span class="pre">(M,)</span></code>, where the <span class="math notranslate nohighlight">\(m\)</span>-th value is <code class="docutils literal notranslate"><span class="pre">True</span></code> if <span class="math notranslate nohighlight">\(\mathbf{x}_m\)</span> <em>violates</em> the constraint, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise;</p></li>
 </ul>
 <p>where <span class="math notranslate nohighlight">\(M\)</span> is an arbitrary number of inputs.</p>
 <div class="cell docutils container">
@@ -575,7 +575,7 @@ The code used in this example is available as a script <a class="reference downl
 <span class="k">def</span><span class="w"> </span><span class="nf">circle_constr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Return constraints violation outside the unit circle."""</span>
     <span class="n">x_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="c1"># Note that nonboxcons assumes the function takes a 2D input</span>
+    <span class="c1"># non_box_cons receives an (M, D) array, one point per row</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_2d</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span>
 </pre></div>
 </div>

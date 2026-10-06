@@ -29,7 +29,7 @@ Running the optimizer in step 3 only involves a couple of lines of code:
 with input arguments:
 
 - ``target``: the target function, it takes as input a vector and returns its function evaluation;
-- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);
+- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn at random within the plausible bounds;
 - ``lb`` and ``ub``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
 - ``plb`` and ``pub``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable non-bound constraints function.
@@ -42,6 +42,8 @@ The outputs are:
   - ``"fval"``: the value of the function at the given solution.
 
 The ``optimize_result`` object contains more information about the optimization solution, see the :ref:`\`\`OptimizeResult\`\`` class documentation.
+
+For a reproducible run, pass an integer seed when creating the ``BADS`` object, e.g. ``BADS(..., options={"random_seed": 42})``; the :ref:`FAQ <faq-how-do-i-make-a-run-reproducible>` says more.
 
 **Additional data/parameters in the target function?**
 

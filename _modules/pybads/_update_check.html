@@ -479,20 +479,16 @@
 <span class="sd">    pip's, conda's (the conda-forge package can follow PyPI by a few days),</span>
 <span class="sd">    or both when the installer is another or unknown.</span>
 
-<span class="sd">    The latest release is the highest version of the form ``X.Y.Z`` on PyPI</span>
-<span class="sd">    with at least one file that is not yanked, so that pre-releases,</span>
-<span class="sd">    development releases and yanked releases are ignored. PyPI documents the</span>
-<span class="sd">    list of releases in this reply as deprecated; a reply without a mapping</span>
-<span class="sd">    of releases gives the version PyPI reports as its latest. An installed</span>
-<span class="sd">    version of any other form, such as a development install, is reported</span>
-<span class="sd">    beside the latest release without being compared with it.</span>
+<span class="sd">    The latest release is the highest final release (``X.Y.Z``) on PyPI;</span>
+<span class="sd">    pre-releases, development releases and yanked releases are ignored. An</span>
+<span class="sd">    installed version of another form, such as a development install, is</span>
+<span class="sd">    reported beside the latest release without being compared with it.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    timeout : float, optional</span>
-<span class="sd">        Timeout in seconds for each network operation: the connection, and</span>
-<span class="sd">        each read of the reply. The lookup of PyPI's address is not bounded</span>
-<span class="sd">        by it. At most 3600; the default is ``5.0``.</span>
+<span class="sd">        Timeout in seconds for connecting to PyPI and for each read of its</span>
+<span class="sd">        reply, at most 3600. By default ``5.0``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -507,9 +503,9 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If `timeout` is not a positive number of seconds of at most 3600, or</span>
-<span class="sd">        is a bool. A network, HTTP or parse failure raises nothing: the</span>
-<span class="sd">        printed message gives its reason, and the returned tuple holds</span>
+<span class="sd">        If `timeout` is not a positive number of seconds of at most 3600.</span>
+<span class="sd">        A network, HTTP or parse failure raises nothing: the printed</span>
+<span class="sd">        message gives its reason, and the returned tuple holds</span>
 <span class="sd">        ``latest=None``.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_valid_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>

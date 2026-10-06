@@ -490,7 +490,7 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 <p>with input arguments:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">target</span></code>: the target function, it takes as input a vector and returns its function evaluation;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: the starting point of the optimization problem. If it is not given, the starting point is drawn at random within the plausible bounds;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>: hard lower and upper bounds for the optimization region (can be <code class="docutils literal notranslate"><span class="pre">-inf</span></code> and <code class="docutils literal notranslate"><span class="pre">inf</span></code>, or bounded);</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plb</span></code> and <code class="docutils literal notranslate"><span class="pre">pub</span></code>: <em>plausible</em> lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> (optional): a callable non-bound constraints function.</p></li>
@@ -505,6 +505,7 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 </li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code> object contains more information about the optimization solution, see the <a class="reference internal" href="api/classes/optimize_result.html#optimizeresult"><span class="std std-ref">OptimizeResult</span></a> class documentation.</p>
+<p>For a reproducible run, pass an integer seed when creating the <code class="docutils literal notranslate"><span class="pre">BADS</span></code> object, e.g. <code class="docutils literal notranslate"><span class="pre">BADS(...,</span> <span class="pre">options={&quot;random_seed&quot;:</span> <span class="pre">42})</span></code>; the <a class="reference internal" href="faq.html#faq-how-do-i-make-a-run-reproducible"><span class="std std-ref">FAQ</span></a> says more.</p>
 <p><strong>Additional data/parameters in the target function?</strong></p>
 <p>If the <code class="docutils literal notranslate"><span class="pre">target</span></code> function requires additional data or parameters, the
 <a class="reference internal" href="faq.html#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads"><span class="std std-ref">FAQ</span></a>

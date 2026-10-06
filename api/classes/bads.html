@@ -484,13 +484,16 @@
 <dt>BADS attempts to solve problems of the form:</dt><dd><p><span class="math notranslate nohighlight">\(\mathtt{argmin}_x  f(x)\)</span>  subject to:  lower_bounds <span class="math notranslate nohighlight">\(&lt;= x &lt;=\)</span> upper_bounds, and optionally <span class="math notranslate nohighlight">\(C(x) &lt;= 0\)</span></p>
 </dd>
 </dl>
-<p>Initialize a <code class="docutils literal notranslate"><span class="pre">PyBADS</span></code> object to set up the optimization problem, then run
+<p>Initialize a <code class="docutils literal notranslate"><span class="pre">BADS</span></code> object to set up the optimization problem, then run
 <code class="docutils literal notranslate"><span class="pre">optimize()</span></code>. See the examples for more details under the <cite>examples</cite> directory.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>fun</strong><span class="classifier">callable</span></dt><dd><p>A given target <code class="docutils literal notranslate"><span class="pre">fun</span></code>. <code class="docutils literal notranslate"><span class="pre">fun</span></code> accepts input <code class="docutils literal notranslate"><span class="pre">x</span></code> and returns a scalar
-function value of the target evaluated at <code class="docutils literal notranslate"><span class="pre">x</span></code> and the noise if provided.
+<dt><strong>fun</strong><span class="classifier">callable</span></dt><dd><p>The target function to minimize. <code class="docutils literal notranslate"><span class="pre">fun</span></code> takes a point <code class="docutils literal notranslate"><span class="pre">x</span></code>, a
+one-dimensional array of all the variables (the fixed ones included),
+and returns its value as a finite real number; with
+<code class="docutils literal notranslate"><span class="pre">options['specify_target_noise']</span></code>, it returns a tuple <code class="docutils literal notranslate"><span class="pre">(f,</span> <span class="pre">sd)</span></code>,
+the value and the SD of its noise at <code class="docutils literal notranslate"><span class="pre">x</span></code>.
 In case the target function <code class="docutils literal notranslate"><span class="pre">fun</span></code> requires additional data/parameters,
 they can be handled using an anonymous function.
 For example: <code class="docutils literal notranslate"><span class="pre">fun_for_pybads</span> <span class="pre">=</span> <span class="pre">lambda</span> <span class="pre">x:</span> <span class="pre">fun(x,</span> <span class="pre">data,</span> <span class="pre">extra_params)</span></code>,
@@ -504,11 +507,8 @@ variable that is not fixed (see below), the starting point <code class="docutils
 drawn at random, over the variables that are not fixed, inside the
 plausible box
 between <code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> (see
-below): uniformly, and log-uniformly in a variable on a log scale
-(with <code class="docutils literal notranslate"><span class="pre">options['nonlinear_scaling']</span></code>, the default, a variable whose
-bounds are all positive, with <code class="docutils literal notranslate"><span class="pre">pub/plb</span> <span class="pre">&gt;=</span> <span class="pre">10</span></code>). With
-<code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>, a point that violates the constraints is drawn
-again, up to 1000 draws in all.</p>
+below). With <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>, a point that violates the constraints
+is drawn again, up to 1000 draws in all.</p>
 </dd>
 <dt><strong>lower_bounds, upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> (<code class="docutils literal notranslate"><span class="pre">lb</span></code>) and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> (<code class="docutils literal notranslate"><span class="pre">ub</span></code>) define a set
 of strict lower and upper bounds for the coordinate vector, <code class="docutils literal notranslate"><span class="pre">x</span></code>, so
@@ -533,18 +533,16 @@ global minimum is expected to be found. As a rule of thumb, set <code class="doc
 and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> such that there is &gt; 90% probability that
 the minimum is found within the box (where in doubt, just set
 <code class="docutils literal notranslate"><span class="pre">plb</span> <span class="pre">=</span> <span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">pub</span> <span class="pre">=</span> <span class="pre">ub</span></code>).</p>
-<p>A variable whose four bounds are equal is fixed at their value,
-which <code class="docutils literal notranslate"><span class="pre">x0</span></code> holds there, or a non-finite value in its place. BADS
-optimizes the other variables, as a run of the problem without the
-fixed ones would: the defaults of the options that depend on the
-number of variables count only those, and the run’s internal state (<code class="docutils literal notranslate"><span class="pre">optim_state</span></code>, the transformed coordinates and the
-Gaussian process) covers them alone. <code class="docutils literal notranslate"><span class="pre">fun</span></code>, <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> and
-<code class="docutils literal notranslate"><span class="pre">options['output_fcn']</span></code> receive points of all the variables, with
-the fixed ones at their values, and the result’s <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">x0</span></code>,
-the function log and the points <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> of <code class="docutils literal notranslate"><span class="pre">iteration_history</span></code>
-hold them all; the indices of <code class="docutils literal notranslate"><span class="pre">options['periodic_vars']</span></code> count
-them all, and the points of <code class="docutils literal notranslate"><span class="pre">precomputed_evaluations</span></code> hold them
-all.</p>
+<p>A variable whose four bounds are equal is fixed at their value;
+<code class="docutils literal notranslate"><span class="pre">x0</span></code> holds that value there, or a non-finite value. BADS optimizes
+the other variables, and the defaults of the options that depend on
+the number of variables count only those. The points you pass to
+BADS or receive from it hold all the variables, the fixed ones at
+their values: those that <code class="docutils literal notranslate"><span class="pre">fun</span></code>, <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> and
+<code class="docutils literal notranslate"><span class="pre">options['output_fcn']</span></code> receive, the result’s <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">x0</span></code>,
+the points <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> of <code class="docutils literal notranslate"><span class="pre">iteration_history</span></code> and the points of
+<code class="docutils literal notranslate"><span class="pre">precomputed_evaluations</span></code>; the indices of
+<code class="docutils literal notranslate"><span class="pre">options['periodic_vars']</span></code> count all the variables.</p>
 </dd>
 <dt><strong>non_box_cons</strong><span class="classifier">callable, optional</span></dt><dd><p>A given non-box constraints function that specifies constraint
 <cite>violations</cite>. It takes an array of shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">D)</span></code>, one point per
@@ -580,7 +578,8 @@ determine at runtime if the objective function is noisy, or turn
 uncertainty handling on with <code class="docutils literal notranslate"><span class="pre">options['specify_target_noise']</span></code>
 = <code class="docutils literal notranslate"><span class="pre">True</span></code>.
 A variable that is periodic, such as an angle, is named in
-<code class="docutils literal notranslate"><span class="pre">options['periodic_vars']</span></code>, a list of indices from 0 to <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">-</span> <span class="pre">1</span></code>:
+<code class="docutils literal notranslate"><span class="pre">options['periodic_vars']</span></code>, a list of the indices of the
+variables, from 0, the fixed ones included:
 its hard bounds, which need to be finite, are its period, and BADS
 wraps it around them, so that <code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code> are the same point
 and the variable is optimized across them.
@@ -600,48 +599,32 @@ with <code class="docutils literal notranslate"><span class="pre">options['speci
 <span class="pre">D)</span></code>, each within the hard bounds and satisfying <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>;
 <code class="docutils literal notranslate"><span class="pre">y</span></code> holds the values of <code class="docutils literal notranslate"><span class="pre">fun</span></code> at them and <code class="docutils literal notranslate"><span class="pre">y_sd</span></code> the SDs of
 their noise, both of shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code>. The values are finite and the
-SDs positive. The evaluations enter the run’s log of evaluations,
-and with it the training sets of its Gaussian process, which is
-rebuilt around the incumbent from the first poll on, but not its
-count of evaluations (<code class="docutils literal notranslate"><span class="pre">func_count</span></code>, which <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>
-bounds). The run starts from <code class="docutils literal notranslate"><span class="pre">x0</span></code> and its initial design alone,
-less the points of the design that the evaluations hold, which it
-does not evaluate again: its first incumbent is the best of the
-points it evaluates, so that, given the log of an earlier run with
-the same seed and <code class="docutils literal notranslate"><span class="pre">x0</span></code>, which holds the whole design, it
-evaluates <code class="docutils literal notranslate"><span class="pre">x0</span></code> alone, its first incumbent. Unless
+SDs positive. BADS uses them as training data of its Gaussian
+process, and does not evaluate again the points of its initial
+design that they hold; they do not count toward <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>
+(<code class="docutils literal notranslate"><span class="pre">func_count</span></code>). The run still starts from <code class="docutils literal notranslate"><span class="pre">x0</span></code>: its first
+incumbent is the best of the points it evaluates itself (pass the
+best of the evaluations as <code class="docutils literal notranslate"><span class="pre">x0</span></code> to start there). Unless
 <code class="docutils literal notranslate"><span class="pre">options['uncertainty_handling']</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> (or
 <code class="docutils literal notranslate"><span class="pre">options['specify_target_noise']</span></code> is), a point given twice must
 have the same value, and is kept once; otherwise each repeat is an
-observation of its own. A point on the upper bound of a periodic
-variable (<code class="docutils literal notranslate"><span class="pre">options['periodic_vars']</span></code>) and one on its lower bound
-are logged as they are given, each with its value. The arrays are
-copied. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>, no evaluations.</p>
+observation of its own. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>, no evaluations.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>rng</strong><span class="classifier">numpy.random.Generator</span></dt><dd><p>The generator of every random draw of the run, including the random
-<code class="docutils literal notranslate"><span class="pre">x0</span></code>; the scrambling of the initial design draws from a generator
-that scipy seeds with one draw of it. It is created with the
-<code class="docutils literal notranslate"><span class="pre">BADS</span></code> object from <code class="docutils literal notranslate"><span class="pre">options['random_seed']</span></code>, which takes what
-<code class="docutils literal notranslate"><span class="pre">numpy.random.default_rng</span></code> takes, such as a non-negative integer
-(<code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code> count as 1 and 0) or a <code class="docutils literal notranslate"><span class="pre">SeedSequence</span></code>, or a
-<code class="docutils literal notranslate"><span class="pre">Generator</span></code>, which is used as given; a float that is a whole number
-is converted to an integer. A change of the
-option after the object is created has no effect. If the option is
-<code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the generator is derived from NumPy’s global
+<code class="docutils literal notranslate"><span class="pre">x0</span></code>. It is created with the <code class="docutils literal notranslate"><span class="pre">BADS</span></code> object from
+<code class="docutils literal notranslate"><span class="pre">options['random_seed']</span></code>, which takes what
+<code class="docutils literal notranslate"><span class="pre">numpy.random.default_rng</span></code> takes, such as a non-negative integer or
+a <code class="docutils literal notranslate"><span class="pre">SeedSequence</span></code>, or a <code class="docutils literal notranslate"><span class="pre">Generator</span></code>, used as given. If the option
+is <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the generator is derived from NumPy’s global
 random state, so that <code class="docutils literal notranslate"><span class="pre">np.random.seed</span></code> before creating the <code class="docutils literal notranslate"><span class="pre">BADS</span></code>
-object fixes the run; deriving it advances that state by four draws.
-Apart from those draws, the run neither draws from nor seeds NumPy’s
-global random state; a target that draws from it is not fixed by
-<code class="docutils literal notranslate"><span class="pre">random_seed</span></code>. Draws from <code class="docutils literal notranslate"><span class="pre">rng</span></code> before <code class="docutils literal notranslate"><span class="pre">optimize()</span></code> change the
-run. On Apple Silicon Macs, two runs with the same seed make the same
-draws but can end at slightly different points: with Apple’s
-Accelerate as the linear algebra library of NumPy and SciPy (as in
-their wheels on PyPI), the last bits of a result depend on where its
-arrays lie in memory.</p>
+object fixes the run. The run does not otherwise draw from NumPy’s
+global random state: a target that draws from it is not fixed by
+<code class="docutils literal notranslate"><span class="pre">random_seed</span></code>. On Apple Silicon Macs, two runs with the same seed
+can end at slightly different points.</p>
 </dd>
 </dl>
 </dd>
@@ -670,10 +653,10 @@ a <code class="docutils literal notranslate"><span class="pre">tol_mesh</span></
 <code class="docutils literal notranslate"><span class="pre">noise_size</span></code> that is not one or two numbers, a value other than
 <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> for <code class="docutils literal notranslate"><span class="pre">uncertainty_handling</span></code> or for an option
 whose default is one of them (<code class="docutils literal notranslate"><span class="pre">plot</span></code> excepted), a
-<code class="docutils literal notranslate"><span class="pre">periodic_vars</span></code> that is not a list of distinct indices from 0 to
-<code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">-</span> <span class="pre">1</span></code> of variables with finite bounds, or an <code class="docutils literal notranslate"><span class="pre">f_vals</span></code> that
-holds a finite value, a non-empty <code class="docutils literal notranslate"><span class="pre">fun_values</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">acq_hedge=True</span></code>, options that are not supported.</p>
+<code class="docutils literal notranslate"><span class="pre">periodic_vars</span></code> that is not a list of distinct indices of
+variables with finite bounds, or an <code class="docutils literal notranslate"><span class="pre">f_vals</span></code> that holds a finite
+value, a non-empty <code class="docutils literal notranslate"><span class="pre">fun_values</span></code>, or <code class="docutils literal notranslate"><span class="pre">acq_hedge=True</span></code>, options
+that are not supported.</p>
 </dd>
 <dt>ValueError</dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">precomputed_evaluations</span></code> is not a tuple (or a list) of two
 or three arrays of the shapes above, of finite values and positive
@@ -736,6 +719,11 @@ attributes <code class="docutils literal notranslate"><span class="pre">optimize
 <dd class="field-even"><dl class="simple">
 <dt>RuntimeError</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">optimize</span></code> has already been called on this object, whether
 or not that run completed.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">fun</span></code> returns a value that is not a finite real number, or,
+with <code class="docutils literal notranslate"><span class="pre">options['specify_target_noise']</span></code>, does not return a
+tuple <code class="docutils literal notranslate"><span class="pre">(f,</span> <span class="pre">sd)</span></code> with a finite positive <code class="docutils literal notranslate"><span class="pre">sd</span></code>. An error that
+<code class="docutils literal notranslate"><span class="pre">fun</span></code> raises reaches the caller.</p>
 </dd>
 </dl>
 </dd>

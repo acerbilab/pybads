@@ -411,29 +411,21 @@
 <span class="sd">              ``BADS``.</span>
 <span class="sd">        - x0: np.ndarray</span>
 <span class="sd">            - Initial starting point, as given or drawn at random, with the</span>
-<span class="sd">              fixed variables at their values, before it is put on the</span>
-<span class="sd">              mesh: the first point evaluated is the point of the mesh</span>
-<span class="sd">              nearest to it.</span>
+<span class="sd">              fixed variables at their values.</span>
 <span class="sd">        - x: np.ndarray</span>
 <span class="sd">            - The solution of the optimization.</span>
 <span class="sd">        - fval: float</span>
-<span class="sd">            - Value of objective function at solution.</span>
+<span class="sd">            - Value of objective function at solution. In a noisy run, an</span>
+<span class="sd">              estimate of the target's mean at ``x``: normally the average</span>
+<span class="sd">              of ``yval_vec``, weighted by their precisions with</span>
+<span class="sd">              ``specify_target_noise``.</span>
 <span class="sd">        - fsd: float</span>
-<span class="sd">            - Standard deviation of objective function at solution (0 if noiseless).</span>
-<span class="sd">              For a noisy run that ends in its initialization or its first</span>
-<span class="sd">              iteration without final samples (``output_fcn`` stops it in</span>
-<span class="sd">              its initialization, ``noise_final_samples = 0``, or its</span>
-<span class="sd">              ``max_fun_evals`` leaves no evaluation for them after the</span>
-<span class="sd">              initial design), it is not an estimate: ``noise_size``</span>
-<span class="sd">              without ``specify_target_noise``, and otherwise the standard</span>
-<span class="sd">              deviation that the target returned at the incumbent.</span>
+<span class="sd">            - Uncertainty (SD) of ``fval`` as an estimate of the target's</span>
+<span class="sd">              value at ``x``, such as the standard error of the final</span>
+<span class="sd">              samples in a noisy run; 0 for a deterministic target.</span>
 <span class="sd">        - yval_vec: np.ndarray or None</span>
-<span class="sd">            - Final sampled observations at the solution; the incumbent's</span>
-<span class="sd">              observation alone if ``output_fcn`` stops the run in its</span>
-<span class="sd">              initialization.</span>
-<span class="sd">              None for a run without uncertainty handling, with</span>
-<span class="sd">              ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves</span>
-<span class="sd">              no evaluation for a final sample after the initial design.</span>
+<span class="sd">            - In a noisy run, the observations of the target at ``x`` that</span>
+<span class="sd">              ``fval`` averages; None otherwise.</span>
 <span class="sd">        - ysd_vec: np.ndarray or None</span>
 <span class="sd">            - Standard deviations of the final sampled observations</span>
 <span class="sd">              (``"yval_vec"``) that the target returns with</span>
@@ -455,20 +447,15 @@
 <span class="sd">        - iterations: int</span>
 <span class="sd">            - Number of iterations performed by the optimizer.</span>
 <span class="sd">        - success: bool</span>
-<span class="sd">            - True when the run ended on one of its convergence criteria,</span>
-<span class="sd">              ``tol_mesh`` or the stall criterion (``status`` 1 or 2), which</span>
-<span class="sd">              prevail when ``max_fun_evals``, ``max_iter`` or the</span>
-<span class="sd">              ``output_fcn`` ends the same iteration; False when one of</span>
-<span class="sd">              those ended it alone, or it ended in its initialization</span>
-<span class="sd">              (``status`` 0): the convention of MATLAB's exit flags and of</span>
-<span class="sd">              ``scipy.optimize``.</span>
+<span class="sd">            - True when the run converged, on ``tol_mesh`` or the stall</span>
+<span class="sd">              criterion (``status`` 1 or 2); False when it stopped on</span>
+<span class="sd">              ``max_fun_evals``, ``max_iter`` or ``output_fcn``</span>
+<span class="sd">              (``status`` 0).</span>
 <span class="sd">        - status: int</span>
-<span class="sd">            - The exit flag of MATLAB BADS, the criterion that ended the</span>
-<span class="sd">              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the</span>
-<span class="sd">              ``output_fcn`` stopped it or it ended in its initialization; 1</span>
-<span class="sd">              when the mesh size fell below ``tol_mesh``; 2 when the</span>
-<span class="sd">              improvement over the last ``tol_stall_iters`` iterations fell</span>
-<span class="sd">              below ``tol_fun``.</span>
+<span class="sd">            - The criterion that ended the run: 0 for ``max_fun_evals``,</span>
+<span class="sd">              ``max_iter`` or ``output_fcn``; 1 when the mesh size fell</span>
+<span class="sd">              below ``tol_mesh``; 2 when the improvement over the last</span>
+<span class="sd">              ``tol_stall_iters`` iterations fell below ``tol_fun``.</span>
 <span class="sd">        - message: str</span>
 <span class="sd">            - Termination message.</span>
 <span class="sd">        - problem_type: str</span>
@@ -481,13 +468,12 @@
 <span class="sd">            - Time taken by ``optimize()``, in seconds; the setup made when</span>
 <span class="sd">              ``BADS`` is created is not counted.</span>
 <span class="sd">        - overhead: float</span>
-<span class="sd">            - Fractional overhead taken by the optimizer, compared to function time.</span>
-<span class="sd">              The second evaluation of the starting point that tests the</span>
-<span class="sd">              target for noise (with ``uncertainty_handling`` left empty)</span>
-<span class="sd">              counts as the optimizer's time, since the function time leaves</span>
-<span class="sd">              it out, as in MATLAB BADS.</span>
+<span class="sd">            - The optimizer's own time relative to the time spent</span>
+<span class="sd">              evaluating the target: ``total_time`` divided by the</span>
+<span class="sd">              evaluations' time, minus 1.</span>
 <span class="sd">        - random_seed: int or None</span>
-<span class="sd">            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.</span>
+<span class="sd">            - The ``random_seed`` option if it is an integer, and ``None``</span>
+<span class="sd">              otherwise.</span>
 <span class="sd">        - algorithm: str</span>
 <span class="sd">            - ``"Bayesian adaptive direct search"``.</span>
 <span class="sd">        - version: str</span>
@@ -529,8 +515,6 @@
         <span class="k">if</span> <span class="n">bads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_attributes</span><span class="p">(</span><span class="n">bads</span><span class="p">)</span>
 
-<div class="viewcode-block" id="OptimizeResult.set_attributes">
-<a class="viewcode-back" href="../../../api/classes/optimize_result.html#pybads.bads.OptimizeResult.set_attributes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bads</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Set the attributes of the dictionary.</span>
 
@@ -611,8 +595,7 @@
         <span class="c1"># A positive exit flag, the convention of MATLAB and scipy: False</span>
         <span class="c1"># when a limit (max_fun_evals, max_iter) or output_fcn ends the run</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"success"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"message"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"termination_msg"</span><span class="p">]</span></div>
-
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"message"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"termination_msg"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>

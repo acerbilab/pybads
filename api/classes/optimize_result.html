@@ -453,10 +453,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult.set_attributes"><code class="docutils literal notranslate"><span class="pre">OptimizeResult.set_attributes()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -503,9 +500,7 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 <li><dl class="simple">
 <dt>x0: np.ndarray</dt><dd><ul>
 <li><p>Initial starting point, as given or drawn at random, with the
-fixed variables at their values, before it is put on the
-mesh: the first point evaluated is the point of the mesh
-nearest to it.</p></li>
+fixed variables at their values.</p></li>
 </ul>
 </dd>
 </dl>
@@ -519,33 +514,27 @@ nearest to it.</p></li>
 </li>
 <li><dl class="simple">
 <dt>fval: float</dt><dd><ul>
-<li><p>Value of objective function at solution.</p></li>
+<li><p>Value of objective function at solution. In a noisy run, an
+estimate of the target’s mean at <code class="docutils literal notranslate"><span class="pre">x</span></code>: normally the average
+of <code class="docutils literal notranslate"><span class="pre">yval_vec</span></code>, weighted by their precisions with
+<code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>fsd: float</dt><dd><ul>
-<li><p>Standard deviation of objective function at solution (0 if noiseless).
-For a noisy run that ends in its initialization or its first
-iteration without final samples (<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stops it in
-its initialization, <code class="docutils literal notranslate"><span class="pre">noise_final_samples</span> <span class="pre">=</span> <span class="pre">0</span></code>, or its
-<code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> leaves no evaluation for them after the
-initial design), it is not an estimate: <code class="docutils literal notranslate"><span class="pre">noise_size</span></code>
-without <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>, and otherwise the standard
-deviation that the target returned at the incumbent.</p></li>
+<li><p>Uncertainty (SD) of <code class="docutils literal notranslate"><span class="pre">fval</span></code> as an estimate of the target’s
+value at <code class="docutils literal notranslate"><span class="pre">x</span></code>, such as the standard error of the final
+samples in a noisy run; 0 for a deterministic target.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>yval_vec: np.ndarray or None</dt><dd><ul>
-<li><p>Final sampled observations at the solution; the incumbent’s
-observation alone if <code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stops the run in its
-initialization.
-None for a run without uncertainty handling, with
-<code class="docutils literal notranslate"><span class="pre">noise_final_samples</span> <span class="pre">=</span> <span class="pre">0</span></code>, or whose <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> leaves
-no evaluation for a final sample after the initial design.</p></li>
+<li><p>In a noisy run, the observations of the target at <code class="docutils literal notranslate"><span class="pre">x</span></code> that
+<code class="docutils literal notranslate"><span class="pre">fval</span></code> averages; None otherwise.</p></li>
 </ul>
 </dd>
 </dl>
@@ -602,25 +591,20 @@ given at least one.</p></li>
 </li>
 <li><dl class="simple">
 <dt>success: bool</dt><dd><ul>
-<li><p>True when the run ended on one of its convergence criteria,
-<code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code> or the stall criterion (<code class="docutils literal notranslate"><span class="pre">status</span></code> 1 or 2), which
-prevail when <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>, <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> or the
-<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> ends the same iteration; False when one of
-those ended it alone, or it ended in its initialization
-(<code class="docutils literal notranslate"><span class="pre">status</span></code> 0): the convention of MATLAB’s exit flags and of
-<code class="docutils literal notranslate"><span class="pre">scipy.optimize</span></code>.</p></li>
+<li><p>True when the run converged, on <code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code> or the stall
+criterion (<code class="docutils literal notranslate"><span class="pre">status</span></code> 1 or 2); False when it stopped on
+<code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>, <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> or <code class="docutils literal notranslate"><span class="pre">output_fcn</span></code>
+(<code class="docutils literal notranslate"><span class="pre">status</span></code> 0).</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>status: int</dt><dd><ul>
-<li><p>The exit flag of MATLAB BADS, the criterion that ended the
-run: 0 when it reached <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> or <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>, the
-<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stopped it or it ended in its initialization; 1
-when the mesh size fell below <code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code>; 2 when the
-improvement over the last <code class="docutils literal notranslate"><span class="pre">tol_stall_iters</span></code> iterations fell
-below <code class="docutils literal notranslate"><span class="pre">tol_fun</span></code>.</p></li>
+<li><p>The criterion that ended the run: 0 for <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>,
+<code class="docutils literal notranslate"><span class="pre">max_iter</span></code> or <code class="docutils literal notranslate"><span class="pre">output_fcn</span></code>; 1 when the mesh size fell
+below <code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code>; 2 when the improvement over the last
+<code class="docutils literal notranslate"><span class="pre">tol_stall_iters</span></code> iterations fell below <code class="docutils literal notranslate"><span class="pre">tol_fun</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -658,18 +642,17 @@ whose noise BADS infers, or <code class="docutils literal notranslate"><span cla
 </li>
 <li><dl class="simple">
 <dt>overhead: float</dt><dd><ul>
-<li><p>Fractional overhead taken by the optimizer, compared to function time.
-The second evaluation of the starting point that tests the
-target for noise (with <code class="docutils literal notranslate"><span class="pre">uncertainty_handling</span></code> left empty)
-counts as the optimizer’s time, since the function time leaves
-it out, as in MATLAB BADS.</p></li>
+<li><p>The optimizer’s own time relative to the time spent
+evaluating the target: <code class="docutils literal notranslate"><span class="pre">total_time</span></code> divided by the
+evaluations’ time, minus 1.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>random_seed: int or None</dt><dd><ul>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> option if it is an integer (a float that is a whole number is converted to one), and <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> option if it is an integer, and <code class="docutils literal notranslate"><span class="pre">None</span></code>
+otherwise.</p></li>
 </ul>
 </dd>
 </dl>
@@ -699,22 +682,6 @@ it out, as in MATLAB BADS.</p></li>
 </dl>
 </dd>
 </dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="pybads.bads.OptimizeResult.set_attributes">
-<span class="sig-name descname"><span class="pre">set_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bads</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pybads/bads/optimize_result.html#OptimizeResult.set_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.bads.OptimizeResult.set_attributes" title="Link to this definition">#</a></dt>
-<dd><p>Set the attributes of the dictionary.</p>
-<dl class="simple">
-<dt>Parameters:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>bads: pybads.BADS</dt><dd><p>An Instance of the BADS class. It is used to set the attributes of the optimization result.</p>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -766,10 +733,7 @@ it out, as in MATLAB BADS.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult.set_attributes"><code class="docutils literal notranslate"><span class="pre">OptimizeResult.set_attributes()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.bads.OptimizeResult"><code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code></a></li>
 </ul>
   </nav></div>
 
