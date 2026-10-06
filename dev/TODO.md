@@ -181,16 +181,3 @@ all three.
 - [ ] **Benchmarking on neurobench**, open porting work listed in
   `pybads/bads/README.md`: PyBADS on cognitive and neural science models
   ([neurobench](https://github.com/lacerbi/neurobench)).
-
-## The film
-
-The narrated film about PyBADS 1.5, in `dev/film/` (its `NOTES.md` holds
-the decisions and the open points).
-
-- [ ] **The film's delivery**: its masters at 1920 x 1080, with captions
-  and without, and its subtitles (`.srt` and `.vtt`) are made; a poster
-  frame for the model-fitting page remains, and a web encode of the clean
-  master if the page needs one smaller than the master.
-- [ ] **The film's open picture points** (`dev/film/NOTES.md`, "Decisions",
-  items 5 and 6): the labels that describe events, and a footnote crediting
-  Bayesian optimization.

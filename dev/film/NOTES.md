@@ -89,14 +89,15 @@ Settled when the script was locked (2026-10-03):
    although the surrogate expected +52.5 at the step that landed at −24.75
    and ranked it third of four.
 
-Still open:
+Closed with the masters (2026-10-06):
 
 5. Some labels describe what happens ("far lower", "lower ground: move
    here", "each failed poll: shorter steps", and the captions of scene 4's
-   arrows) rather than name what the narration points at; whether they
-   stay is open.
-6. Conventions proposed on 2026-10-01 and not built: presenting BADS as
-   Bayesian optimization with a safety net, and a footnote crediting
+   arrows) rather than name what the narration points at. They stay, as
+   the masters show them; the reviews of the animatic did not object to
+   them.
+6. Two conventions proposed on 2026-10-01 were not built: presenting BADS
+   as Bayesian optimization with a safety net, and a footnote crediting
    Bayesian optimization (Jones, Schonlau & Welch 1998) beside the MADS
    one.
 
