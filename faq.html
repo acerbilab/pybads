@@ -465,6 +465,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#which-external-packages-does-pybads-require">Which external packages does PyBADS require?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#which-version-of-python-do-i-need">Which version of Python do I need?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-know-whether-a-newer-version-of-pybads-exists">How do I know whether a newer version of PyBADS exists?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda-installs-an-older-version-of-pybads-why">Conda installs an older version of PyBADS. Why?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-am-having-trouble-installing-pybads-can-you-help">I am having trouble installing PyBADS. Can you help?</a></li>
 </ul>
 </li>
@@ -610,6 +611,7 @@ without them, from the hard bounds), so give those as arrays.</p>
 <li><p><a class="reference internal" href="#faq-which-external-packages-does-pybads-require">Which external packages does PyBADS require?</a></p></li>
 <li><p><a class="reference internal" href="#faq-which-version-of-python-do-i-need">Which version of Python do I need?</a></p></li>
 <li><p><a class="reference internal" href="#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists">How do I know whether a newer version of PyBADS exists?</a></p></li>
+<li><p><a class="reference internal" href="#faq-conda-installs-an-older-version-of-pybads-why">Conda installs an older version of PyBADS. Why?</a></p></li>
 <li><p><a class="reference internal" href="#faq-i-am-having-trouble-installing-pybads-can-you-help">I am having trouble installing PyBADS. Can you help?</a></p></li>
 </ul>
 </li>
@@ -762,7 +764,8 @@ PyBADS. PyBADS does not require MATLAB.</p>
 </section>
 <section id="which-version-of-python-do-i-need">
 <span id="faq-which-version-of-python-do-i-need"></span><h3>Which version of Python do I need?<a class="headerlink" href="#which-version-of-python-do-i-need" title="Link to this heading">#</a></h3>
-<p>PyBADS requires Python 3.10 or newer.</p>
+<p>PyBADS requires Python 3.10 or newer, and its package on conda-forge
+Python 3.11 or newer.</p>
 </section>
 <section id="how-do-i-know-whether-a-newer-version-of-pybads-exists">
 <span id="faq-how-do-i-know-whether-a-newer-version-of-pybads-exists"></span><h3>How do I know whether a newer version of PyBADS exists?<a class="headerlink" href="#how-do-i-know-whether-a-newer-version-of-pybads-exists" title="Link to this heading">#</a></h3>
@@ -794,6 +797,27 @@ shows only with the iteration display, as the tips do. To turn it off, pass
 set the environment variable <code class="docutils literal notranslate"><span class="pre">PYBADS_NO_UPDATE_REMINDER</span></code>;
 <code class="docutils literal notranslate"><span class="pre">NO_UPDATE_NOTIFIER</span></code> and <code class="docutils literal notranslate"><span class="pre">CI</span></code> turn it off as well. A variable set to an
 empty value, <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code> counts as unset.</p>
+</section>
+<section id="conda-installs-an-older-version-of-pybads-why">
+<span id="faq-conda-installs-an-older-version-of-pybads-why"></span><h3>Conda installs an older version of PyBADS. Why?<a class="headerlink" href="#conda-installs-an-older-version-of-pybads-why" title="Link to this heading">#</a></h3>
+<p>PyBADS 1.5 requires NumPy 2.0 or newer, with SciPy 1.13, matplotlib 3.9 and
+gpyreg 1.4.0 or newer. When the environment holds NumPy 1.x, or a package
+that requires it, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> leaves NumPy
+as it is and installs the newest PyBADS that fits it, 1.1.0, without a
+warning; <code class="docutils literal notranslate"><span class="pre">pip</span></code> installs the latest release and upgrades NumPy. Ask conda for
+the latest release:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install --channel=conda-forge "pybads&gt;=1.5"</span>
+</pre></div>
+</div>
+<p>Conda then upgrades NumPy, or says which package holds it back. A new
+environment avoids the conflict:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda create --name pybads --channel=conda-forge python=3.12 pybads</span>
+</pre></div>
+</div>
+<p>If PyBADS is installed already, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span></code> keeps it as it is, and
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> updates it. The packages on
+conda-forge need Python 3.11 or newer: with Python 3.10, conda installs an
+older release still.</p>
 </section>
 <section id="i-am-having-trouble-installing-pybads-can-you-help">
 <span id="faq-i-am-having-trouble-installing-pybads-can-you-help"></span><h3>I am having trouble installing PyBADS. Can you help?<a class="headerlink" href="#i-am-having-trouble-installing-pybads-can-you-help" title="Link to this heading">#</a></h3>
@@ -1901,6 +1925,7 @@ or from R with <a class="reference external" href="https://rstudio.github.io/ret
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#which-external-packages-does-pybads-require">Which external packages does PyBADS require?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#which-version-of-python-do-i-need">Which version of Python do I need?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-know-whether-a-newer-version-of-pybads-exists">How do I know whether a newer version of PyBADS exists?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda-installs-an-older-version-of-pybads-why">Conda installs an older version of PyBADS. Why?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-am-having-trouble-installing-pybads-can-you-help">I am having trouble installing PyBADS. Can you help?</a></li>
 </ul>
 </li>
