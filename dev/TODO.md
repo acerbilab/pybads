@@ -91,6 +91,154 @@ among them, so a title stays as it is while its item is open.
   `dev/plans/version-check.md`, the FAQ's "How do I know whether a newer
   version of PyBADS exists?", the API page of `check_for_updates` and the
   changelog's "Update reminders".
+- [ ] **Periodic variables evaluated at their upper bound.** KD-B1-6 of
+  `pybads/bads/README.md` says that the candidates of a periodic variable
+  are wrapped into `[lb, ub)`, but the target can receive one exactly at
+  `ub`. When `pub == ub` and rounding maps `ub` slightly above 1 in `u`
+  space, the grid point `u = 1` lies below it and is not wrapped, and
+  `inverse_transf` returns `ub` for it. With `lb = [-1,
+  0.38201463519268053]`, `ub = [1, 0.42393798440894204]`, `plb = [-1,
+  0.39039930503593284]`, `pub = ub`, `periodic_vars=[1]`, `x0=None` and
+  `random_seed=0`, `ub` maps to `u = 1.0000000000000016`, and 3 of the
+  run's 50 evaluations have `x[1] == ub`; a fuzz of about 550 runs with
+  periodic variables met it in 4 (2026-10-06). The point lies within the
+  hard bounds, and a periodic target takes the same value at `lb` and
+  `ub`, but a target that indexes a table by the variable can fail there,
+  and one point can be evaluated at both bounds. The usual bounds of an
+  angle (0 to 2π, ±π, 0 to 360, ±180) map exactly, and so do those of the
+  periodic configurations of `dev/scripts/benchmark_targets.py`: a fix
+  moves results only where the bounds do not, so its gate needs a
+  configuration whose bounds do not map exactly
+  (`test_every_source_of_candidates_wraps_them` checks the `u` points
+  alone).
+- [ ] **The transform's self-test refuses a small bound beside a very
+  large one.** `VariableTransformer` checks that the inverse of its
+  transform returns each bound within `1e-6 * max(1, |b|)`
+  (`pybads/variable_transformer/variables_transformer.py`). With `lb =
+  -1.3` and `ub = 1e11`, and the plausible bounds equal to them or
+  omitted, the linear transform's offset and scale are about 5e10, whose
+  rounding, about 1e-5 at the bound -1.3, exceeds that bound's tolerance,
+  and `BADS` raises "Cannot invert the transform to obtain the identity at
+  the provided boundaries."; a narrower plausible box is accepted. 1.1.0
+  refused these bounds too. The changelog's "bounds from about 1e10 in
+  magnitude are no longer refused" (KD-B1-10) holds except in this case.
+  A tolerance scaled by the size of the transform, its offset and scale,
+  accepts them and moves no run; KD-B1-10 then says so.
+- [ ] **A target flat over the initial design.** A target can take one
+  value at `x0` and at nearly every point of the initial design: a
+  constant target; a start inside a region where `fun` returns a large
+  penalty, with no point of the design outside it, which the FAQ's "How
+  do I prevent PyBADS from evaluating certain inputs or regions of input
+  space?" tells users to avoid; a floor, such as a loss that is exactly 0,
+  over the plausible box. Its only sign to the user is gpyreg's
+  `UserWarning` "The training targets are all equal, so they have no
+  scale for the recommended bounds to take: a range of one is assumed
+  instead.", in gpyreg's terms, which a user cannot act on. It comes from
+  gpyreg's `get_bounds_info`, which `_gp_hyp`
+  (`pybads/bads/gaussian_process_train.py`) calls at the first GP, on the
+  lowest `hpd_frac` of the initial targets, and gpyreg's `GP.fit` at every
+  fit; Python's default filter prints it once per session, whatever
+  `display` is. The run carries on and, if no evaluation leaves the
+  plateau, ends on `tol_fun` at the plateau's value, with `success=True`:
+  at D = 3, with `fun` returning 1e10 outside the ball of radius 2 around
+  1.5 in each variable, the plausible box `[-2, 2]` and `x0` at -1.5,
+  seeds 0, 1 and 5 of 0-5 ended so after 53 evaluations (2026-10-06).
+  1.1.0 raised gpyreg's `ValueError` on such a design. To do: a message of
+  PyBADS's own, in the user's terms (the target took the same value at
+  every point of the initial design: check `x0`, and whether `fun`
+  returns a constant penalty), linking that answer of the FAQ, with
+  gpyreg's warning silenced where PyBADS gives its own; and whether such a
+  run reports `success`. `test_plateau_initial_design_runs` and
+  `test_rebuild_with_equal_targets_keeps_output_scale_prior`
+  (`pybads/testing/bads/test_gaussian_process_train.py`) emit the warning.
+- [ ] **Update reminders and tips: loose ends.** Small, and in the files
+  that the outcome of "Tips: PyVBMC's review." (above) reaches:
+  - Under uv, `check_for_updates()` suggests `python -m pip install
+    --upgrade pybads, or with conda: ...`, which fails in a uv venv, which
+    has no pip: the distribution's `INSTALLER` reads `uv`, which
+    `_update_command` (`pybads/_update_check.py`) does not know. A `uv pip
+    install --upgrade pybads` for it goes on the API page of
+    `check_for_updates` too.
+  - Two sessions that start a run within about 2 ms of each other can both
+    show the reminder, and record one showing:
+    `consider_release_reminder` (`pybads/bads/_release_reminder.py`)
+    reads the state file and writes it with no lock between processes.
+    Process pools of 8 showed it twice in one of 12 configurations.
+  - Where the cache directory cannot be written, the reminder shows once
+    in every interactive session from the first year on, without end, as
+    `dev/plans/version-check.md` intends ("the session flag is the only
+    cap"); the FAQ's "How do I know whether a newer version of PyBADS
+    exists?" says three times for each installed version, without this
+    exception.
+  - A showing dated in the future in the state file, written under a
+    wrong clock, silences the reminder of that version for good.
+  - `check_for_updates()` ignores a release's `requires_python`: once a
+    release drops a version of Python, users of that version are told
+    that a release they cannot install is available.
+  - `FAILURE_MESSAGE` (`pybads/_update_check.py`) says "Could not reach
+    PyPI" for the reasons "no release found" and "unreadable reply" too,
+    where PyPI did reply.
+  - The tip `multiple_starts` (`pybads/bads/_tip_catalog.py`) advises "at
+    least 10 different starting points, ideally dozens", as the FAQ's
+    answer on `x0` does, while the answer that the tip links, "How do I
+    run PyBADS from several starting points?", gives only `n_runs = 10` in
+    its example; `AGENTS.md` wants a tip to restate the advice of the
+    answer that it links, with its quantities.
+- [ ] **Rough edges of the interface.** Each is harmless or as in 1.1.0:
+  - The levels of the opening and the final messages, 25 and 22
+    (`_LOG_NOTIFY` and `_LOG_FINAL` in `pybads/bads/bads.py`), print as
+    `Level 25` and `Level 22` under a user's logging format that shows
+    `%(levelname)s`. `logging.addLevelName` names them, at the cost of a
+    change to the logging module's names, which are global.
+  - `poll_mesh_multiplier=2`, an integer, fails with NumPy's "Integers to
+    negative integer powers are not allowed" at the mesh's update in
+    `_optimize_`, and `cache_size=1000.0` with a `TypeError` from
+    `np.full` in `FunctionLogger`: the checks of the options do not cover
+    them.
+  - Without `x0`, a scalar plausible bound makes D equal to 1 even when
+    the hard bounds are arrays, and `BADS` then raises a `ValueError` on
+    the dimension of the starting point `x_0=[[nan]]`; so does a scalar
+    `lb` beside an array `ub` without plausible bounds. The changelog's "A
+    scalar bound stands for the same bound in every variable" holds when
+    `x0` or a plausible bound gives D.
+  - Target values of magnitude 1e154 or more stop the run, as the variance
+    of the targets overflows (gpyreg's `ValueError` "The prior of
+    mean_const has an infinite sigma", or an `OverflowError`), and values
+    of magnitude 1e-200 or less give `RuntimeWarning`s from gpyreg.
+  - A target that returns `np.float32` gives a result whose `fval` is an
+    `np.float32`.
+
+## Needing no release
+
+- [ ] **The published documentation: the theme's buttons and the options
+  page.** `docs.yml` publishes the documentation of `main`, so these need
+  a merge and no release:
+  - The theme's "Edit this page" buttons lead to
+    `github.com/acerbilab/pybads/edit/main/<page>`, without
+    `docsrc/source/`, a 404; `"path_to_docs": "docsrc/source"` in
+    `html_theme_options` (`docsrc/source/conf.py`) fixes them. The Colab
+    and Binder buttons of the examples' pages lead to `_examples/*.ipynb`,
+    which the repository does not hold.
+  - The options page (`docsrc/source/api/options/bads_options.rst`)
+    strongly advises against changing the advanced options, among which
+    are `periodic_vars` and `output_fcn`, which the FAQ, Example 6 and the
+    tips tell users to set.
+  - The FAQ's exception for an unwritable cache directory, under "Update
+    reminders and tips: loose ends" above.
+- [ ] **The oracles' rebaseline test and the Linux reference under newer
+  versions.** `test_rebaseline_replaces_one_oracle`
+  (`dev/scripts/test_make_oracle_fixtures.py`) recomputes the
+  `gp_training_set` references of `sphere_D2_init` and requires them bit
+  for bit: the fixtures were made on Linux under SciPy 1.17 and gpyreg
+  1.3.3, and under Python 3.12, NumPy 2.5.3, SciPy 1.18.1 and gpyreg 1.4.0
+  six of its arrays differ, by up to 7e-15, and the test fails. It is to
+  compare within the oracle's tolerance, or to skip under another platform
+  key. The Linux reference, `population_linux_gpyreg140_20260930`, ran
+  under Python 3.11, NumPy 2.4.6 and SciPy 1.17.1, and runs under those
+  newer versions do not pair with it seed by seed: the same code at 10
+  seeds drew a flag on `ellipsoid_D6` (KS test, p = 0.032 after Holm),
+  which 30 seeds did not. A Linux gate under those versions takes a new
+  reference, or selects the reference's versions.
 
 ## Waiting on MATLAB BADS
 
