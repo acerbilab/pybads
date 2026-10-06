@@ -316,7 +316,9 @@ where v13 held an empty floor for 7 s: two small landscapes, one under
 bumps and one under noise, each with its bottom and an arrow for its local
 slope, and the evaluation dropping slowly as each evaluation "can take
 seconds". v15 credits the voice on the end card as "Voice: Kokoro", the
-animatic's voice having become the film's.
+animatic's voice having become the film's. The masters are v15 at
+1920 × 1080, the 1280 × 720 layout drawn at 1.5 device pixels per pixel,
+one with the captions and one without, at CRF 18.
 
 Whisper (`verify_voice.py`) hears most lines of the voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for

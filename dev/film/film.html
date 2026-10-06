@@ -108,6 +108,7 @@ const fail = (m) => { $("err").textContent += m + "\n"; document.title = "ERROR 
 window.addEventListener("error", (e) => fail(e.message + " @" + e.lineno));
 window.addEventListener("unhandledrejection", (e) => fail(String((e.reason && e.reason.message) || e.reason)));   // a throw in this function
 const q = new URLSearchParams(location.search);
+const CAPTIONS = q.get("captions") !== "0";   // ?captions=0 leaves the lower bar empty, for the clean master
 const RUN = window.BADS_TRACE, ILL = window.BADS_ILLUS;
 const stage = $("stage");
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -1070,7 +1071,7 @@ function finish(S, t, o, caption, overK, hudK) {
   outMat.uniforms.uFade.value = ec ? lerp(1, 0.55, ec.bg) : 1;
   pass(outMat, null);
   // overlays
-  $("cap").textContent = caption;
+  $("cap").textContent = CAPTIONS ? caption : "";
   $("foot").innerHTML = FOOT[o.foot] || "";
   $("foot").style.opacity = o.footA.toFixed(3);
   const hud = o.hud;

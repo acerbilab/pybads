@@ -144,6 +144,8 @@ node scripts/record.mjs V/events.json --film                  # the times the sc
 python -u scripts/score.py V                                  # V/score.wav, V/mix.wav (2 to 3 min)
 node scripts/record.mjs V/film_silent.mp4 --film --crf 23     # the film at 1280 x 720 (about 15 min)
 python scripts/mux.py V/film_silent.mp4 V/mix.wav V/film.mp4  # the sound under it, at -16 LUFS
+node scripts/record.mjs V/masters/M_silent.mp4 --film --scale 1.5 --crf 18           # a master at 1920 x 1080
+node scripts/record.mjs V/masters/M_silent.mp4 --film --scale 1.5 --crf 18 --clean   # the clean master, without captions
 node scripts/record.mjs DIR --shot 13 --times 2,5             # stills of shot 13, 2 s and 5 s into its motion
 node scripts/check.mjs                                        # syntax check of film.html's script
 node scripts/transitions.mjs                                  # labels and overlays at every line change
@@ -172,9 +174,14 @@ the voice's takes: `score.py` warns when a switch to the POLL, a
 return to the SEARCH, the lesson or a fooled surrogate falls in a bar of
 another kind, and `SONG` is then fitted again with `V/score_plan.txt`,
 which lists every bar with the events in it. The header of `record.mjs`
-lists its options: the size (default 1280 × 720), the frame rate (25), the
-span of a shot (in the shot's own seconds, which the film stretches over
-its line), and a shot's last frame held for 0.6 s.
+lists its options: the size (default 1280 × 720), the pixel scale (a
+master at 1920 × 1080 is the 1280 × 720 layout at `--scale 1.5`, so that
+text, points and glow keep their look; the lines stay one device pixel
+wide), the captions left out (`--clean`, `film.html?captions=0`), the frame
+rate (25), the span of a shot (in the shot's own seconds, which the film
+stretches over its line), and a shot's last frame held for 0.6 s. The
+subtitles are `V/narration.srt`, and ffmpeg converts them to WebVTT
+(`ffmpeg -i narration.srt narration.vtt`).
 
 What each script needs:
 

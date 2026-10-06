@@ -7,6 +7,10 @@
 //   node scripts/record.mjs OUT.mp4 --film [--audio WAV] [--from S] [--to S] ...                    the whole film on its timeline
 //   node scripts/record.mjs OUT.json --film                                                         the film's events, for the score
 //
+// --scale S draws the page at S device pixels per CSS pixel: --scale 1.5 records the 1280 x 720 layout at
+// 1920 x 1080, with text, points and glow as they are at 1280 x 720 and the lines one device pixel wide. --clean
+// leaves the captions out (film.html?captions=0).
+//
 // K counts shots from 1, as film.html?shot=K does. The clip runs from --from (default 0) to --to (default the shot's
 // dur, the draft length of its line) at --fps (default 25), and holds its last frame for --hold seconds (default 0.6);
 // a shot's times are its own seconds, which the film stretches over its line. With --film the recording steps the
@@ -25,10 +29,10 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pos = [], opt = {};
-for (const argv = process.argv.slice(2); argv.length;) { const a = argv.shift(); if (a === "--film") opt.film = true; else if (a.startsWith("--")) opt[a.slice(2)] = argv.shift(); else pos.push(a); }
-if (pos.length !== 1 || !(opt.shot || opt.film)) { console.error("usage: node scripts/record.mjs OUT.mp4|DIR|OUT.json (--shot K | --film) [--fps N] [--size WxH] [--from S] [--to S] [--times T1,T2] [--hold S] [--crf N] [--audio WAV]"); process.exit(2); }
+for (const argv = process.argv.slice(2); argv.length;) { const a = argv.shift(); if (a === "--film" || a === "--clean") opt[a.slice(2)] = true; else if (a.startsWith("--")) opt[a.slice(2)] = argv.shift(); else pos.push(a); }
+if (pos.length !== 1 || !(opt.shot || opt.film)) { console.error("usage: node scripts/record.mjs OUT.mp4|DIR|OUT.json (--shot K | --film) [--fps N] [--size WxH] [--scale S] [--clean] [--from S] [--to S] [--times T1,T2] [--hold S] [--crf N] [--audio WAV]"); process.exit(2); }
 if (!opt.times && !(opt.film && pos[0].endsWith(".json")) && !pos[0].endsWith(".mp4")) { console.error(`a recording is written as an MP4: ${pos[0]} does not end in .mp4`); process.exit(2); }
-const out = resolve(pos[0]), K = Number(opt.shot), FPS = Number(opt.fps || 25), [W, H] = (opt.size || "1280x720").split("x").map(Number);
+const out = resolve(pos[0]), K = Number(opt.shot), FPS = Number(opt.fps || 25), [W, H] = (opt.size || "1280x720").split("x").map(Number), SCALE = Number(opt.scale || 1);
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -40,7 +44,7 @@ const server = createServer((req, res) => {
   catch { res.writeHead(404).end(); }
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const url = `http://127.0.0.1:${server.address().port}/film.html?` + (opt.film ? "film=1" : `shot=${K}`);
+const url = `http://127.0.0.1:${server.address().port}/film.html?` + (opt.film ? "film=1" : `shot=${K}`) + (opt.clean ? "&captions=0" : "");
 
 const profile = mkdtempSync(join(tmpdir(), "bads-film-record-"));
 const port = 9300 + Math.floor(Math.random() * 600);
@@ -65,7 +69,7 @@ try {
     if (m.result?.exceptionDetails) throw new Error(`page: ${m.result.exceptionDetails.exception?.description || expression}`);
     return m.result?.result?.value;
   };
-  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: 1, mobile: false });
+  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: SCALE, mobile: false });
   await send("Page.navigate", { url });
   let ready = false;
   for (let k = 0; k < 600 && !ready; k++) { ready = await evaluate("document.title.startsWith('ready') || document.title.startsWith('ERROR')").catch(() => false); if (!ready) await sleep(100); }
