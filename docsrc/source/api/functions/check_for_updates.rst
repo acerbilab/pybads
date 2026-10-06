@@ -38,11 +38,29 @@ nothing else about your installation, and the call writes nothing to disk.
 The old-release reminder
 ------------------------
 
-When a run starts in an interactive session and the installed release is
-more than a year old, ``BADS`` suggests calling this function, at most three
-times for each installed version. The reminder makes no network request: it
-compares the release date shipped with PyBADS with the date of the run. The
-:ref:`FAQ <faq-how-do-i-know-whether-a-newer-version-of-pybads-exists>` says
-when it appears and how to turn it off.
+When a run starts in an interactive session (standard output to a terminal
+or a Jupyter notebook, not to a file) and the installed release is more than
+a year old, ``BADS`` suggests calling this function. The reminder takes the
+place of the :ref:`tip <faq-how-do-i-silence-pybads-or-send-its-output-elsewhere>`
+before the first iteration line, and the tip comes at the next run:
+
+.. code-block:: text
+
+   Note: PyBADS 1.5.0 was released more than a year ago. Run pybads.check_for_updates() to see whether a newer version is available.
+   https://pypi.org/project/pybads/
+
+The reminder makes no network request: it compares the release date shipped
+with PyBADS with the date of the run. It appears at most once per Python
+session and three times for each installed version, at least 90 days apart;
+the third adds that it is the last. It records the dates of its showings in
+``update_reminder.json`` in PyBADS's cache directory: ``%LOCALAPPDATA%\pybads``
+on Windows, ``~/Library/Caches/pybads`` on macOS, ``~/.cache/pybads`` on Linux
+(or under ``$XDG_CACHE_HOME``), or the directory that ``PYBADS_CACHE_DIR``
+names. It shows only with the iteration display, as the tips do.
+
+To turn it off, pass ``options={"show_tips": False}`` to ``BADS``, which also
+turns off the tips, or set the environment variable
+``PYBADS_NO_UPDATE_REMINDER``; ``NO_UPDATE_NOTIFIER`` and ``CI`` turn it off
+as well. A variable set to an empty value, ``0`` or ``false`` counts as unset.
 
 .. autofunction:: pybads.check_for_updates
