@@ -48,6 +48,7 @@ without them, from the hard bounds), so give those as arrays.
   - [Which external packages does PyBADS require?](#faq-which-external-packages-does-pybads-require)
   - [Which version of Python do I need?](#faq-which-version-of-python-do-i-need)
   - [How do I know whether a newer version of PyBADS exists?](#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)
+  - [Conda installs an older version of PyBADS. Why?](#faq-conda-installs-an-older-version-of-pybads-why)
   - [I am having trouble installing PyBADS. Can you help?](#faq-i-am-having-trouble-installing-pybads-can-you-help)
 - [Input arguments (objective function: `fun`)](#faq-input-arguments-objective-function-fun)
   - [What is the objective function?](#faq-what-is-the-objective-function)
@@ -190,7 +191,8 @@ To run the [example notebooks](examples.rst) you also need Jupyter (see the
 (faq-which-version-of-python-do-i-need)=
 ### Which version of Python do I need?
 
-PyBADS requires Python 3.10 or newer.
+PyBADS requires Python 3.10 or newer, and its package on conda-forge
+Python 3.11 or newer.
 
 (faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)=
 ### How do I know whether a newer version of PyBADS exists?
@@ -226,6 +228,32 @@ shows only with the iteration display, as the tips do. To turn it off, pass
 set the environment variable `PYBADS_NO_UPDATE_REMINDER`;
 `NO_UPDATE_NOTIFIER` and `CI` turn it off as well. A variable set to an
 empty value, `0` or `false` counts as unset.
+
+(faq-conda-installs-an-older-version-of-pybads-why)=
+### Conda installs an older version of PyBADS. Why?
+
+PyBADS 1.5 requires NumPy 2.0 or newer, with SciPy 1.13, matplotlib 3.9 and
+gpyreg 1.4.0 or newer. When the environment holds NumPy 1.x, or a package
+that requires it, `conda install --channel=conda-forge pybads` leaves NumPy
+as it is and installs the newest PyBADS that fits it, 1.1.0, without a
+warning; `pip` installs the latest release and upgrades NumPy. Ask conda for
+the latest release:
+
+```console
+conda install --channel=conda-forge "pybads>=1.5"
+```
+
+Conda then upgrades NumPy, or says which package holds it back. A new
+environment avoids the conflict:
+
+```console
+conda create --name pybads --channel=conda-forge python=3.12 pybads
+```
+
+If PyBADS is installed already, `conda install` keeps it as it is, and
+`conda update --channel=conda-forge pybads` updates it. The packages on
+conda-forge need Python 3.11 or newer: with Python 3.10, conda installs an
+older release still.
 
 (faq-i-am-having-trouble-installing-pybads-can-you-help)=
 ### I am having trouble installing PyBADS. Can you help?

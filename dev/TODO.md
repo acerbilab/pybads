@@ -1,63 +1,12 @@
 # PyBADS: open work
 
-Updated 2026-10-06. The next release is 1.5.0 (tag `v1.5.0`), the version
-the PI has decided on; "the next release" below means it. `AGENTS.md`
-("Setup and commands") gives the release's steps. Its date is 2026-10-06
-(PI), the changelog's heading and `RELEASE_DATE` say so, and the example
-notebooks were rerun for it on that day; a change before the release that
-alters what a run prints or returns reruns them again. The release's
-section below holds the conda-forge recipe, which follows its upload to
-PyPI.
-`README.md`, the documentation and the skill on `dev-next` describe
-PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
-of `main`, so `dev-next` reaches `main` with the release. Other records
+Updated 2026-10-06. PyBADS 1.5.0 was released on 2026-10-06: the tag
+`v1.5.0` on `6e83f0a3`, a GitHub release, the upload to PyPI, and the
+conda-forge recipe (`conda-forge/pybads-feedstock` #12); `AGENTS.md`
+("Setup and commands") gives a release's steps. Other records
 name the items by their titles, the port review's ledger
 ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md))
 among them, so a title stays as it is while its item is open.
-
-## The release of 1.5.0
-
-- [ ] **conda-forge recipe.** The recipe of `conda-forge/pybads-feedstock`
-  (`recipe/meta.yaml`) is that of 1.1.0. Besides the version and the
-  hash, 1.5.0 needs in it:
-  - the run requirements of `pyproject.toml`: `gpyreg >=1.4.0`,
-    `matplotlib-base >=3.9.0`, `numpy >=2.0.0` and `scipy >=1.13.0`, where
-    the recipe has `>=1.3.3`, `>=3.5.1`, `>=1.22.1` and `>=1.7.3`;
-  - the host requirement `setuptools >=77`, where the recipe has `>=45`,
-    which the license field of `pyproject.toml` needs;
-  - the test command without `--reruns=5`, and the test requirements
-    without pytest-rerunfailures: the tests of 1.1.0 were not all seeded,
-    those of 1.5.0 are.
-
-  The feedstock's bot is not to be relied on for these. Under the same
-  settings (`automerge: true` and `inspection: update-grayskull` in the
-  `conda-forge.yml`), its update PR for gpyreg 1.4.0
-  (`conda-forge/gpyreg-feedstock` #13) changed the version and the hash
-  alone, though its analysis listed the run requirements that 1.4.0 had
-  dropped, and merged itself once its CI passed; a second PR, under build
-  number 1, removed them (#14, 2026-10-01), and that build is on
-  conda-forge. The old recipe of PyBADS would pass its CI in the same way. The branch `pybads-1.5.0` of a local clone
-  of the fork `lacerbi/pybads-feedstock` (`../pybads-feedstock`, not
-  pushed) makes these changes in one commit on the feedstock's `main` at
-  1.1.0 (`3e87423`), with the `sha256` a placeholder,
-  `FILL_IN_FROM_PYPI_SDIST_OF_1_5_0`: the hash is that of the sdist that
-  `release.yml` uploads, which a local build does not reproduce. On the
-  day of the release, once PyPI has 1.5.0:
-  1. put the `sha256` of the sdist on PyPI (the `.tar.gz` under `urls`
-     in https://pypi.org/pypi/pybads/1.5.0/json) in `recipe/meta.yaml`,
-     and amend the commit;
-  2. push the branch to the fork and open its PR on
-     `conda-forge/pybads-feedstock` before the bot opens its own, as for
-     1.1.0 (#11);
-  3. close the bot's PR if it opens one, or at least remove
-     `[bot-automerge]` from its title, which keeps it from merging itself.
-
-  An sdist built from `149a24d1` as 1.5.0 and installed under Python 3.11,
-  conda-forge's minimum, with the newest versions of its dependencies,
-  passes `pip check` and `python -m pytest --pyargs pybads -x -vv` with no
-  rerun (2026-10-06, Windows): 1378 passed, 3 skipped, the two tests of
-  the fork hooks, which need `os.fork`, and the check of the release date
-  against the changelog, which the wheel does not hold.
 
 ## Later releases
 
