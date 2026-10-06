@@ -68,6 +68,8 @@ PyBADS is available via `pip` and `conda-forge`.
     ```
     PyBADS requires Python version 3.10 or newer.
 
+    PyBADS 1.5 requires NumPy 2.0 or newer. In an environment that holds NumPy 1.x, `conda` installs PyBADS 1.1.0 instead, without a warning: ask it for `"pybads>=1.5"`, or see the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-conda-installs-an-older-version-of-pybads-why).
+
 2. (Optional): Install [Jupyter Notebook](https://jupyter.org/install) to run the examples. You can skip this step if your environment already has Jupyter Notebook, but be aware that if the wrong `jupyter` executable is found on your path then import errors may arise.
    ```console
    python -m pip install notebook
