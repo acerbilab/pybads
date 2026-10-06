@@ -1,3 +1,5 @@
+import logging
+
 """The inputs of `BADS` as MATLAB BADS checks them (`boundscheck.m`,
 `setupvars.m`): the bounds, the starting point and `non_box_cons`."""
 
@@ -221,7 +223,7 @@ def test_starting_set_is_refused(bounds):
     """`x0` is a single point, as in MATLAB BADS: a set of starting points
     is refused, and the plausible bounds are not estimated from it."""
     x0 = np.array([[0.1, 0.2], [0.3, -0.4]])
-    with pytest.raises(ValueError, match="bads:StartingSet"):
+    with pytest.raises(ValueError, match="x0 has"):
         BADS(_sphere, x0, *bounds, options=OPTIONS)
 
 
@@ -355,7 +357,7 @@ def test_random_x0_is_drawn_again_until_feasible_on_the_mesh():
 
 def test_random_x0_that_stays_infeasible_is_refused():
     """After 1000 draws that all violate `non_box_cons`, `BADS` raises."""
-    with pytest.raises(ValueError, match="does not satisfy non-bound"):
+    with pytest.raises(ValueError, match="None of 1000 starting points"):
         BADS(
             _shifted_sphere,
             None,
@@ -1207,3 +1209,61 @@ def test_options_of_matlab_without_effect_are_accepted(name, value):
     bads = _bads_with_options({name: value})
     assert bads.options[name] == value
     assert "unused" in bads.options.descriptions[name]
+
+
+@pytest.mark.parametrize(
+    "plausible, name",
+    [(True, "plausible_lower_bounds"), (False, "lower_bounds")],
+)
+def test_column_bounds_without_x0_name_the_bounds(plausible, name):
+    """Without x0, whose shape is then that of the bounds, a column of
+    bounds is named in the error, not an x0 that the user did not give."""
+    lb, ub = -5 * np.ones(3), 5 * np.ones(3)
+    plb, pub = -np.ones(3), np.ones(3)
+    if plausible:
+        plb, pub = plb.reshape(-1, 1), pub.reshape(-1, 1)
+    else:
+        lb, ub, plb, pub = lb.reshape(-1, 1), ub.reshape(-1, 1), None, None
+    with pytest.raises(ValueError, match=rf"^{name} needs to be a scalar"):
+        BADS(_sphere, None, lb, ub, plb, pub, options={"display": "off"})
+
+
+@pytest.mark.parametrize(
+    "x0, source", [(None, "plausible_lower_bounds"), (np.zeros(2), "x0")]
+)
+def test_bounds_of_another_size_name_what_set_d(x0, source):
+    """A bound of another size names what set D: x0, or, without it, the
+    plausible bounds."""
+    with pytest.raises(
+        ValueError,
+        match=rf"^lower_bounds needs to be .* D = 2 .* size of {source}; "
+        r"its shape is \(3,\)",
+    ):
+        BADS(
+            _sphere,
+            x0,
+            -2 * np.ones(3),
+            2 * np.ones(3),
+            -np.ones(2),
+            np.ones(2),
+            options={"display": "off"},
+        )
+
+
+def test_x0_violating_non_box_cons_is_refused_once(caplog):
+    """An x0 that violates non_box_cons raises a ValueError that says so,
+    and the error is not logged as well."""
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        with pytest.raises(ValueError, match="^x0 violates non_box_cons"):
+            BADS(
+                _sphere,
+                np.array([0.9, 0.9]),
+                -np.ones(2),
+                np.ones(2),
+                -0.5 * np.ones(2),
+                0.5 * np.ones(2),
+                non_box_cons=lambda x: np.sum(np.atleast_2d(x) ** 2, axis=1)
+                > 1.0,
+                options={"display": "off"},
+            )
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]

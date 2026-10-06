@@ -362,7 +362,9 @@ def test_x0_off_a_fixed_value_is_refused():
     refused, with the indices of the variables where it does."""
     x0 = X0.copy()
     x0[3] = 0.0
-    with pytest.raises(ValueError, match=r"bads:FixedVariables.*\[3\]"):
+    with pytest.raises(
+        ValueError, match=r"variables \(index\) \[3\] are all equal"
+    ):
         BADS(_target()[0], x0, LB, UB, PLB, PUB)
 
 
@@ -376,8 +378,28 @@ def test_equal_plausible_bounds_without_equal_hard_bounds_are_refused():
     plausible bounds between distinct hard bounds are refused."""
     plb, pub = PLB.copy(), PUB.copy()
     plb[1] = pub[1] = 1.0
-    with pytest.raises(ValueError, match="bads:MatchingPB"):
+    with pytest.raises(
+        ValueError, match=r"are equal at the variables \(index\) \[1\]"
+    ):
         BADS(_target()[0], X0, LB, UB, plb, pub)
+
+
+@pytest.mark.parametrize("change", ["x0", "plb_inf", "equal", "order"])
+def test_bound_errors_name_the_users_variables(change):
+    """With the first and the fourth variable fixed, the errors about the
+    bounds and x0 name the last variable by its index in the user's x, 4,
+    not by its index among the variables that the run optimizes, 2."""
+    x0, plb, pub = X0.copy(), PLB.copy(), PUB.copy()
+    if change == "x0":
+        x0[4] = 200.0
+    elif change == "plb_inf":
+        plb[4] = -np.inf
+    elif change == "equal":
+        plb[4] = pub[4] = 1.0
+    else:
+        plb[4] = 0.001
+    with pytest.raises(ValueError, match=r"variables \(index\) \[4\]"):
+        BADS(_target()[0], x0, LB, UB, plb, pub)
 
 
 @pytest.mark.parametrize(
@@ -448,7 +470,7 @@ def test_unbounded_free_variables_are_reported_as_unconstrained(caplog):
 
 
 def test_x0_of_several_rows_beside_fixed_variables_is_refused():
-    with pytest.raises(ValueError, match="bads:StartingSet"):
+    with pytest.raises(ValueError, match="x0 has"):
         BADS(_target()[0], np.vstack([X0, X0]), LB, UB, PLB, PUB)
 
 

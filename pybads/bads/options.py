@@ -22,15 +22,17 @@ class Options(MutableMapping, dict):
 
     Attributes
     ----------
-    user_options : set
-        This set contains all options that have set by the user,
-        if there are none it is empty. These ``useroptions`` are immutable to
-        changes using :py:meth:`load_options_file`.
     unset_user_options : set
         The names of the user options whose value is ``None``, which stands
         for the default: they are not set, and not in ``useroptions``, but
         their names are checked by
         :py:meth:`validate_option_names`.
+
+    Notes
+    -----
+    The mapping entry ``options["useroptions"]`` holds the set of option
+    names supplied by the user with non-None values.
+    :py:meth:`load_options_file` leaves their values unchanged.
     """
 
     def __init__(
@@ -187,7 +189,8 @@ class Options(MutableMapping, dict):
         options_paths : list of str
             A list of paths to the ini files that hold the default options.
         extra_names : tuple of str, optional
-            The names of other options that take ``True`` or ``False``.
+            The names of other options that take ``True`` or ``False``,
+            and whose default is ``None``.
         excluded_names : tuple of str, optional
             The names of options whose default is ``True`` or ``False`` and
             that take other values too.
@@ -207,8 +210,15 @@ class Options(MutableMapping, dict):
         boolean_names -= set(excluded_names)
         for key in sorted(boolean_names & self["useroptions"]):
             if not isinstance(self[key], (bool, np.bool_)):
+                # the options of extra_names default to None, which a user
+                # can give too
+                accepted = (
+                    "True, False or None"
+                    if key in extra_names
+                    else "True or False"
+                )
                 raise ValueError(
-                    f"options['{key}'] needs to be True or False, not "
+                    f"options['{key}'] needs to be {accepted}, not "
                     f"{self[key]!r}."
                 )
 

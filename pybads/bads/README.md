@@ -321,7 +321,7 @@ When `x0` is missing or not finite, MATLAB BADS draws one start in the
 plausible box, puts it on the mesh, and stops with an error when that point
 violates `non_box_cons`. PyBADS draws again while the point as drawn or
 the point on the mesh violates it, up to 1000 draws in all, and then raises
-the same error; a run whose first draw is feasible, as drawn and on the
+a `ValueError`; a run whose first draw is feasible, as drawn and on the
 mesh, starts where MATLAB's would from the same numbers. A defect that
 PyBADS shared and fixes.
 - PyBADS: `BADS._init_optim_state_`.
@@ -463,7 +463,8 @@ message, `"iter"` and `"all"` also the iteration lines, and `"full"`,
 which only PyBADS has, the debug messages too. The reports of the setup
 (the caution for infinite bounds, the variables on a log scale) are shown
 from `"notify"` on, as MATLAB BADS prints them, and its warnings, such as
-`bads:pbUnspecified`, at every level, as MATLAB's `warning` shows whatever
+the one for unspecified plausible bounds (MATLAB's `bads:pbUnspecified`),
+at every level, as MATLAB's `warning` shows whatever
 `Display` says. The content and format of the other lines may differ.
 PyBADS alone prints an occasional tip with a link to its documentation
 before the first iteration line (`show_tips`), from `"iter"` on: the
@@ -771,7 +772,7 @@ With some values NaN, both sides take the smallest of the others. With
 every value NaN, MATLAB's `min` returns the first candidate, so that its
 fallback "randomly choose index" fires only when the search's acquisition
 raises; PyBADS takes a random candidate, drawn from `bads.rng`, with a
-warning. No such case has been observed.
+debug message. No such case has been observed.
 - PyBADS: `BADS._search_step_`, `BADS._poll_step_`.
 - MATLAB: `bads.m:581-589`, `853-857`.
 - Settled by: W3-27. Kind: deliberate change.

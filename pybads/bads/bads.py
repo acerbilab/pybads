@@ -166,12 +166,14 @@ def _precomputed_values_agree(first, second):
         return abs(first - second) <= _PRECOMPUTED_DUPLICATE_ULPS * spacing
 
 
-def _bounds_as_rows(x0, lb, ub, plb, pub):
+def _bounds_as_rows(x0, lb, ub, plb, pub, x0_source=None):
     """
     ``x0`` and the bounds as float arrays of shape ``(1, D)``, ``D`` the
     number of elements of ``x0``: a scalar bound, or an array of one element,
     is replicated in each dimension, as MATLAB BADS does
-    (``boundscheck.m``); floats, as MATLAB's doubles.
+    (``boundscheck.m``); floats, as MATLAB's doubles. ``x0_source`` names
+    the bounds that sized ``x0`` when the user gave none, for the message
+    of a bound of another size.
 
     Raises
     ------
@@ -186,31 +188,47 @@ def _bounds_as_rows(x0, lb, ub, plb, pub):
             "The starting point x0 (or, without it, the bounds that give "
             "its size) needs at least one element."
         )
+    names = (
+        "lower_bounds",
+        "upper_bounds",
+        "plausible_lower_bounds",
+        "plausible_upper_bounds",
+    )
+    shapes = tuple(np.shape(bound) for bound in (lb, ub, plb, pub))
+    # A single starting point, as in MATLAB BADS (boundscheck.m); without
+    # x0, its shape is that of the bounds named by x0_source
+    if N0 > 1:
+        if x0_source is not None:
+            raise ValueError(
+                f"{x0_source} needs to be a scalar or a one-dimensional "
+                "array, one element per variable; its shape is "
+                f"{dict(zip(names, shapes))[x0_source]}."
+            )
+        raise ValueError(
+            "The starting point x0 needs to be a single point, a "
+            f"one-dimensional array with one element per variable; x0 has "
+            f"{N0} rows."
+        )
     lb, ub, plb, pub = (
         np.full((1, D), bound) if bound.size == 1 else bound
         for bound in map(np.atleast_2d, (lb, ub, plb, pub))
     )
-    # check that all bounds are row vectors with D elements
-    if any(bound.shape != (1, D) for bound in (lb, ub, plb, pub)):
-        raise ValueError(
-            f"""All input vectors (lower_bounds, upper_bounds,
-             plausible_lower_bounds, plausible_upper_bounds), if specified,
-             need to be of the same dimension D={D} as the starting point x_0={x0}."""
-        )
-
-    # A single starting point, as in MATLAB BADS (boundscheck.m)
-    if N0 > 1:
-        raise ValueError(
-            f"""bads:StartingSet: The starting point x0 needs to be a
-        single point, a vector of D={D} elements; x0 has {N0} rows."""
-        )
+    # check that all bounds are row vectors with D elements; D is the size
+    # of x0, or, without it, of the bounds named by x0_source
+    for name, bound, shape in zip(names, (lb, ub, plb, pub), shapes):
+        if bound.shape != (1, D):
+            source = "x0" if x0_source is None else x0_source
+            raise ValueError(
+                f"{name} needs to be a scalar or a one-dimensional array of "
+                f"D = {D} elements, one per variable, where D is the size of "
+                f"{source}; its shape is {shape}."
+            )
 
     # Test that all vectors are real-valued
     if not all(np.all(np.isreal(a)) for a in (x0, lb, ub, plb, pub)):
         raise ValueError(
-            """All input vectors (x0, lower_bounds, upper_bounds,
-             plausible_lower_bounds, plausible_upper_bounds), if specified,
-             need to be real valued."""
+            "x0, lower_bounds, upper_bounds, plausible_lower_bounds and "
+            "plausible_upper_bounds need to be real-valued."
         )
     return tuple(np.asarray(a, dtype=float) for a in (x0, lb, ub, plb, pub))
 
@@ -235,14 +253,14 @@ def _find_fixed_values(x0, lb, ub, plb, pub):
     moved = fixed & np.isfinite(x0) & (x0 != lb)
     if np.any(moved):
         raise ValueError(
-            "bads:FixedVariables: the bounds of the variables (index) "
+            "The bounds of the variables (index) "
             f"{np.flatnonzero(moved).tolist()} are all equal, which fixes "
             "each of them at its bound, but x0 differs from it there; set "
             "x0 to the bound (or to NaN) at a fixed variable."
         )
     if np.all(fixed):
         raise ValueError(
-            "bads:FixedVariables: the four bounds of every variable are "
+            "The four bounds of every variable are "
             "equal, which fixes them all: there is nothing to optimize."
         )
     return np.where(fixed, lb, np.nan)
@@ -272,7 +290,7 @@ _LOG_NOTIFY = 25
 _LOG_FINAL = 22
 
 _PB_UNSPECIFIED = (
-    "bads:pbUnspecified: Plausible lower/upper bounds not specified. Using "
+    "Plausible lower/upper bounds not specified. Using "
     "hard upper/lower bounds instead."
 )
 
@@ -544,14 +562,22 @@ class BADS:
             )
             if lb_size is None or ub_size is None:
                 raise ValueError(
-                    """bads:UnknownDims If no starting point is
-                 provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""
+                    "Without x0, give plausible_lower_bounds and "
+                    "plausible_upper_bounds, or lower_bounds and "
+                    "upper_bounds, which set the number of variables."
                 )
             x0 = np.full(np.shape(np.atleast_2d(lb_size)), np.nan)
+            x0_source = (
+                "lower_bounds"
+                if plausible_lower_bounds is None
+                else "plausible_lower_bounds"
+            )
+        else:
+            x0_source = None
         x0 = np.atleast_2d(x0)
 
         # Empty lb and ub are Infs. Missing plausible bounds are the hard
-        # bounds, with the warning bads:pbUnspecified once the logger is set
+        # bounds, with the warning _PB_UNSPECIFIED once the logger is set
         # up, as MATLAB BADS warns whenever it fills them
         # (boundscheck.m:12-16); a plausible bound that is then infinite is
         # refused by _bounds_check_
@@ -572,6 +598,7 @@ class BADS:
             upper_bounds,
             plausible_lower_bounds,
             plausible_upper_bounds,
+            x0_source=x0_source,
         )
 
         # Fixed variables, whose four bounds are equal, are left out of the
@@ -673,11 +700,10 @@ class BADS:
         # the mesh)
         if non_box_cons is not None and np.all(np.isfinite(self.x0)):
             if non_box_cons(self.x0) > 0:
-                self.logger.error(
-                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
-                )
                 raise ValueError(
-                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                    "x0 violates non_box_cons: pass a starting point that "
+                    "satisfies the constraints, or x0=None to draw one at "
+                    "random."
                 )
 
         self.optim_state = self._init_optim_state_()
@@ -735,11 +761,16 @@ class BADS:
         (``_bounds_as_rows``), for all the variables, fixed ones included.
         """
         # check that plausible bounds are finite
-        if np.any(np.invert(np.isfinite(plausible_lower_bounds))) or np.any(
-            np.invert(np.isfinite(plausible_upper_bounds))
-        ):
+        not_finite = ~(
+            np.isfinite(plausible_lower_bounds)
+            & np.isfinite(plausible_upper_bounds)
+        )
+        if np.any(not_finite):
             raise ValueError(
-                "Plausible interval bounds plausible_lower_bounds and plausible_upper_bounds need to be finite."
+                "plausible_lower_bounds and plausible_upper_bounds need to "
+                "be finite, and are not at the variables (index) "
+                f"{np.flatnonzero(not_finite).tolist()}; where they are not "
+                "given, they are lower_bounds and upper_bounds."
             )
 
         # The fixed variables (_find_fixed_values), whose four bounds are equal,
@@ -748,11 +779,13 @@ class BADS:
         fixed = ~np.isnan(self._fixed_values)
 
         # Test that plausible bounds are different
-        if np.any((plausible_lower_bounds == plausible_upper_bounds) & ~fixed):
+        matching = (plausible_lower_bounds == plausible_upper_bounds) & ~fixed
+        if np.any(matching):
             raise ValueError(
-                "bads:MatchingPB: For all variables, plausible lower and "
-                "upper bounds need to be distinct, except at a fixed "
-                "variable, whose four bounds are all equal."
+                "plausible_lower_bounds and plausible_upper_bounds are equal "
+                "at the variables (index) "
+                f"{np.flatnonzero(matching).tolist()}: they need to differ, "
+                "except at a fixed variable, whose four bounds are all equal."
             )
 
         # Check that all X0 are inside the bounds. As in MATLAB BADS
@@ -761,12 +794,11 @@ class BADS:
         # stays where it is. A start that is not finite passes:
         # _init_optim_state_ draws a random point in its place, as MATLAB
         # BADS does (setupvars.m)
-        if np.all(np.isfinite(x0)) and (
-            np.any(x0 < lower_bounds) or np.any(x0 > upper_bounds)
-        ):
+        outside = (x0 < lower_bounds) | (x0 > upper_bounds)
+        if np.all(np.isfinite(x0)) and np.any(outside):
             raise ValueError(
-                """bads:InitialPointsNotInsideBounds: The starting
-                points X0 are not inside the provided hard bounds lower_bounds and upper_bounds."""
+                "x0 lies outside lower_bounds and upper_bounds at the "
+                f"variables (index) {np.flatnonzero(outside).tolist()}."
             )
 
         # Test order of bounds, as in MATLAB BADS (setupvars.m)
@@ -777,15 +809,18 @@ class BADS:
         )
         if np.any(np.invert(ordidx | fixed)):
             raise ValueError(
-                """bads:StrictBounds: For each variable, hard and
-            plausible bounds should respect the ordering lower_bounds <= plausible_lower_bounds < plausible_upper_bounds <= upper_bounds."""
+                "The bounds of the variables (index) "
+                f"{np.flatnonzero(~(ordidx | fixed)).tolist()} are not in "
+                "order: each variable needs lower_bounds <= "
+                "plausible_lower_bounds < plausible_upper_bounds <= "
+                "upper_bounds."
             )
 
         # Check non bound constraints: one violation per row of its input,
         # as in MATLAB BADS (setupvars.m)
         if non_box_cons is not None:
             message = (
-                "bads:NONBCON non_box_cons should be a function that takes "
+                "non_box_cons should be a function that takes "
                 + "an N x D array X, one point per row, and returns an array "
                 + "of N constraint violations, of shape (N,) or (N, 1), true "
                 + "or positive where a point violates the constraints."
@@ -960,26 +995,26 @@ class BADS:
                     break
             self.logger.log(
                 _LOG_NOTIFY,
-                "Initial starting point is invalid or not provided."
-                + " Initial point randomly sampled uniformly from plausible box\n",
+                "x0 is missing or has a non-finite element: the starting "
+                "point is drawn at random in the plausible box.\n",
             )
             if violates_non_box_cons(u_draw) or violates_non_box_cons(u0):
-                self.logger.error(
-                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
-                )
                 raise ValueError(
-                    "Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."
+                    "None of 1000 starting points drawn at random in the "
+                    "plausible box satisfies non_box_cons: pass an x0 that "
+                    "satisfies it, or set plausible_lower_bounds and "
+                    "plausible_upper_bounds around the feasible region."
                 )
         else:
             u0 = start_on_mesh()
 
         # Check that the gridized points satisfies the non-bound constraints
         if violates_non_box_cons(u0):
-            self.logger.error(
-                """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
-            )
             raise ValueError(
-                """Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""
+                "x0 is too close to the boundary of the region that "
+                "non_box_cons allows: PyBADS starts from the point of its "
+                "initial grid nearest to x0, which violates the constraints. "
+                "Move x0 further inside the region."
             )
 
         optim_state["u"] = u0
@@ -987,11 +1022,9 @@ class BADS:
 
         # Test starting point u0 is within bounds
         if np.any(u0 > self.upper_bounds) or np.any(u0 < self.lower_bounds):
-            self.logger.error(
-                "Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"
-            )
             raise ValueError(
-                """bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"""
+                "The start on the initial grid lies outside lower_bounds "
+                "and upper_bounds."
             )
 
         # Report variable transformation, from "notify" on, as MATLAB BADS
@@ -1282,9 +1315,8 @@ class BADS:
         ):
             raise ValueError(
                 "If options['specify_target_noise'] is True, "
-                "options['uncertainty_handling'] should be True as well. "
-                "Leave options['uncertainty_handling'] empty or set it to "
-                "True to avoid this error."
+                "options['uncertainty_handling'] needs to be True too, or "
+                "unset (None)."
             )
 
         # noise_size is a base noise SD, or MATLAB's pair of that base and
@@ -1345,9 +1377,8 @@ class BADS:
         ):
             self.logger.warning(
                 "If options['specify_target_noise'] is True, "
-                "options['noise_size'] is ignored. Leave "
-                "options['noise_size'] empty or set it to 0 to silence this "
-                "warning."
+                "options['noise_size'] is ignored: leave it unset (None) "
+                "or set it to 0 to silence this warning."
             )
         # Sto-BADS, PyBADS's own (KD-S-1), is deprecated: users are to know
         # that it is not the setting for a noisy target
@@ -1694,7 +1725,16 @@ class BADS:
         seed = self.options["random_seed"]
         if isinstance(seed, (float, np.floating)) and float(seed).is_integer():
             seed = int(seed)
-        self.rng = get_rng(seed)
+        try:
+            self.rng = get_rng(seed)
+        except (TypeError, ValueError) as err:
+            raise type(err)(
+                "options['random_seed'] needs to be None or a value that "
+                "numpy.random.default_rng takes, such as a non-negative "
+                "integer, a numpy.random.SeedSequence or a "
+                "numpy.random.Generator, not "
+                f"{self.options['random_seed']!r}."
+            ) from err
         if isinstance(seed, (int, np.integer)):
             self._random_seed = int(seed)
         else:
@@ -1862,11 +1902,12 @@ class BADS:
                 self._display_function_log_(0, "Initial mesh")
             else:
                 raise ValueError(
-                    "bads:init_fun:Initialization function not implemented yet"
+                    "options['init_fun'] needs to be 'init_sobol', the only "
+                    "initial design available."
                 )
 
         if not np.isfinite(self.yval):
-            raise ValueError("init mesh: Cannot find valid starting point.")
+            raise ValueError("Cannot find a valid starting point.")
 
         self.optim_state["fval"] = self.fval
         self.optim_state["yval"] = self.yval
@@ -2399,12 +2440,6 @@ class BADS:
         # End while
         self.optim_state["exit_flag"] = exit_flag
 
-        # Re-evaluate all best points for noisy evaluations
-        yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
-        # A run that ends in its initialization takes no final samples: the
-        # result reports the incumbent's observation
-        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
-        self.optim_state["ysd_vec"] = None
         # The iterate whose point takes the final samples
         final_idx = None
         if (
@@ -2443,6 +2478,12 @@ class BADS:
             # the incumbent, which takes the final samples that the run
             # reserved; MATLAB BADS takes none then (bads.m:1138)
             final_idx = 0
+
+        # Without final samples, report the observation at the selected
+        # point, which may belong to an earlier iteration.
+        yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
+        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
+        self.optim_state["ysd_vec"] = None
 
         # Re-evaluate estimated function value and SD at final point
         final_samples = (
@@ -2535,7 +2576,7 @@ class BADS:
             elif np.isscalar(yval_vec) or yval_vec.size == 1:
                 self.logger.log(
                     _LOG_FINAL,
-                    f"Observed function value at minimum: {np.ravel(yval_vec)[0]} (1 sample). Estimated: {self.fval} ± {self.fsd} (GP mean ± SEM).",
+                    f"Observed function value at minimum: {np.ravel(yval_vec)[0]} (1 sample). Estimated: {self.fval} ± {self.fsd} (no final samples were taken).",
                 )
             else:
                 # with the target's noise SDs, the samples are weighted by
@@ -2695,8 +2736,9 @@ class BADS:
 
             # Randomly choose index if something went wrong (every value NaN)
             if index_acq is None:
-                self.logger.warning(
-                    "bads:optimize: Acquisition function failed"
+                self.logger.debug(
+                    "Acquisition function failed: a candidate is chosen at "
+                    "random"
                 )
                 index_acq = self.rng.integers(0, len(u_search_set))
 
@@ -2733,11 +2775,6 @@ class BADS:
                         y_search,
                         f_sd_search,
                         self.options,
-                    )
-
-                if np.any(~np.isfinite(gp.y)):
-                    self.logger.warning(
-                        "bads:opt: GP prediction is non-finite"
                     )
 
             # If the function is non-deterministic we update the posterior of the GP with the new point
@@ -3157,8 +3194,9 @@ class BADS:
 
             # Randomly choose index if something went wrong (every value NaN)
             if index_acq is None:
-                self.logger.warning(
-                    "bads:optimize: Acquisition function failed"
+                self.logger.debug(
+                    "Acquisition function failed: a candidate is chosen at "
+                    "random"
                 )
                 index_acq = self.rng.integers(0, len(u_poll))
             # A zero predictive SD makes gamma_z infinite or NaN, which marks
@@ -3349,7 +3387,7 @@ class BADS:
                 if self.f_q_historic_improvement < self.options["tol_fun"]:
                     self.mesh_size_integer -= 1
                     self.logger.debug(
-                        "bads: The optimization is stalling, further decrease of the mesh size"
+                        "The optimization is stalling, further decrease of the mesh size"
                     )
 
             self.optim_state["search_size_integer"] = np.minimum(
@@ -3600,7 +3638,7 @@ class BADS:
                     # matches its data (MATLAB's UpdateTarget reuses the
                     # current posterior).
                     self.logger.debug(
-                        "bads:optimize: GP posterior under the best "
+                        "GP posterior under the best "
                         "hyperparameters failed; target predicted from the "
                         "current GP"
                     )
@@ -3789,7 +3827,7 @@ class BADS:
                 self.options["mesh_overflow_warning"]
             ):
                 self.logger.warning(
-                    "bads:meshOverflow \t The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."
+                    "The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."
                 )
 
     def _log_column_headers(self):

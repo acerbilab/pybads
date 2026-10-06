@@ -165,8 +165,8 @@ def init_and_train_gp(
             )
             fitted = True
         except np.linalg.LinAlgError:
-            logger.warning(
-                "bads:gp: The posterior of the GP on its one training point "
+            logger.debug(
+                "The posterior of the GP on its one training point "
                 "failed; the GP is fitted instead."
             )
 
@@ -265,15 +265,14 @@ def init_and_train_gp(
 
                 except np.linalg.LinAlgError as err:
                     training_failures += 1
-                    logger.warning(
-                        f"bads:gp: Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
+                    logger.debug(
+                        "Cholesky decomposition has failed. The initial fit on the GP has failed due to the hyp. init."
                     )
                     if training_failures == n_try:
                         raise RuntimeError(
-                            "bads:gp: The initial fit of the GP failed "
-                            f"{n_try} times, from the starting "
-                            "hyperparameters, from draws of their priors "
-                            "and from zeros."
+                            "PyBADS could not fit its Gaussian process "
+                            "model to the evaluations of its initial "
+                            f"design: {n_try} attempts failed."
                         ) from err
     # end gp hyp. init
 
@@ -558,7 +557,7 @@ def local_gp_fitting(
     except np.linalg.LinAlgError:
         # Posterior GP update failed (due to Cholesky decomposition)
         logger.debug(
-            "bads:local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
+            "local_gp_fitting: posterior GP update failed. Singular matrix for L Cholesky decomposition"
         )
         gp.set_priors(old_priors)
         exit_flag = -2
@@ -577,7 +576,7 @@ def local_gp_fitting(
             # with a refit (MATLAB's gpupdate clears the posterior, which
             # has the next step rebuild it).
             logger.debug(
-                "bads:local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
+                "local_gp_fitting: posterior GP update with the previous hyperparameters failed; GP restored"
             )
             vars(gp).clear()
             vars(gp).update(entry_state)
@@ -733,12 +732,14 @@ def _robust_gp_fit_(
         s2 = None
     new_hyp = hyp_gp.copy()
     n_try = 10
+    n_attempts = 0
     fitted = False
     for i_try in range(0, n_try):
         # Require a minimum number of points to do the fit (MATLAB:
         # gpHyperOptimize.m:71)
         if Y.shape[0] < X.shape[1]:
             break
+        n_attempts += 1
         try:
             with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
                 new_hyp, _, res = tmp_gp.fit(
@@ -749,7 +750,7 @@ def _robust_gp_fit_(
         except np.linalg.LinAlgError:
             # handle
             logger.debug(
-                "bads:_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
+                "_robust_gp_fit_: posterior GP update failed. Singular matrix for L Cholesky decomposition"
             )
             with timer.stage("gp_fit_retry"):
                 if i_try > options["remove_points_after_tries"] - 1:
@@ -860,12 +861,18 @@ def _robust_gp_fit_(
             new_hyp = starts[[np.argmin(nlp)]]
             res = None
     gp.set_hyperparameters(new_hyp, False)
-    if not fitted or i_try > 0:
-        # at least one failed, or none was made
-        if options["gp_warnings"]:
-            logger.warning(
-                f"bads:gpHyperOptFail: Failed optimization of hyper-parameters (after {n_try} attempts). GP approximation might be unreliable."
-            )
+    if not fitted and options["gp_warnings"]:
+        attempts = "attempt" if n_attempts == 1 else "attempts"
+        logger.warning(
+            "Failed optimization of the GP hyperparameters "
+            f"(after {n_attempts} {attempts}). "
+            "GP approximation might be unreliable."
+        )
+    elif fitted and n_attempts > 1:
+        logger.debug(
+            "GP hyperparameter optimization recovered after %d attempts.",
+            n_attempts,
+        )
 
     # MATLAB's exit flag 0, for a fit of some of its starts, has no
     # counterpart: gpyreg fits all of them at once (gpHyperOptimize.m:202-209)
@@ -932,12 +939,10 @@ def _get_samples_from_slice_sampler_(
             sampler_failed = False
             break
         except np.linalg.LinAlgError:
-            logger.warning(
-                f"bads:gp priors sampling: The slice sampler failed, Cholesky decomposition."
+            logger.debug(
+                "GP priors sampling: The slice sampler failed, Cholesky decomposition."
             )
-            logger.warning(
-                f"bads:gp priors sampling: {traceback.format_exc()}"
-            )
+            logger.debug(f"GP priors sampling: {traceback.format_exc()}")
 
     if sampler_failed:
         new_hyp = None
@@ -1534,7 +1539,7 @@ def add_and_update_gp(
         )
     except np.linalg.LinAlgError:
         logger.debug(
-            "bads:add_and_update_gp: posterior GP update failed; the point is left out until the next rebuild"
+            "add_and_update_gp: posterior GP update failed; the point is left out until the next rebuild"
         )
         gp.temporary_data["needs_rebuild"] = True
 

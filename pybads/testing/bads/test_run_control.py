@@ -624,7 +624,7 @@ def test_run_with_certain_incumbent():
     assert np.all(optim_state["f_target_s"] == 0)
 
 
-def _acquisition_run(monkeypatch, nan_mask):
+def _acquisition_run(monkeypatch, nan_mask, **options):
     """A run whose acquisition values at the search and the poll are NaN
     where `nan_mask(n)` is true, `n` the number of candidates. It returns
     the events in their order: each acquisition's site and candidates, and
@@ -633,7 +633,7 @@ def _acquisition_run(monkeypatch, nan_mask):
     from pybads.function_logger import FunctionLogger
 
     events = []
-    bads = _make_bads(max_fun_evals=60)
+    bads = _make_bads(max_fun_evals=60, **options)
     original_acq = bads_module.acq_fcn_lcb
     original_call = FunctionLogger.__call__
 
@@ -672,10 +672,10 @@ def test_acquisition_skips_nan(monkeypatch):
 
 def test_acquisition_all_nan_chooses_at_random(monkeypatch, caplog):
     """When every acquisition value is NaN, the search and the poll choose
-    a candidate at random, with a warning, and the run goes on."""
-    with caplog.at_level(logging.WARNING, logger="BADS"):
+    a candidate at random, with a debug message, and the run goes on."""
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
         chosen = _acquisition_run(
-            monkeypatch, lambda n: np.ones(n, dtype=bool)
+            monkeypatch, lambda n: np.ones(n, dtype=bool), display="full"
         )
     warnings = [
         record
@@ -683,6 +683,8 @@ def test_acquisition_all_nan_chooses_at_random(monkeypatch, caplog):
         if "Acquisition function failed" in record.getMessage()
     ]
     assert len(warnings) >= len(chosen) > 0
+    # The run recovers, so the failure is a debug message, not a warning
+    assert all(record.levelno == logging.DEBUG for record in warnings)
     assert {site for site, _, _ in chosen} == {"search", "poll"}
     indices = []
     for _, u, x in chosen:

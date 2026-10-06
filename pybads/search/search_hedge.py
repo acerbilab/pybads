@@ -120,9 +120,7 @@ class ESSearchHedge:
             )
             return us, z
         else:
-            raise ValueError(
-                "search_hedge:Requested search method not implemented yet"
-            )
+            raise ValueError("The requested search method is not available.")
 
     def update_hedge(self, u_search, fval_old, f, fs, gp: GP, mesh_size):
         """

@@ -715,8 +715,9 @@ def test_lcb_refuses_a_callable_sqrt_beta_of_another_value(value):
     with."""
     with pytest.raises(
         ValueError,
-        match=r"sqrt_beta\(t, n_vars\) needs to return a positive finite "
-        r"real number, not .* \(t = 10, n_vars = 3\)",
+        match=r"sqrt_beta\(t, n_vars\) in options\['search_acq_fcn'\] needs "
+        r"to return a positive finite real number, not .* "
+        r"\(t = 10, n_vars = 3\)",
     ):
         acq_fcn_lcb(np.zeros((2, 3)), 9, _FixedGP(), lambda t, n_vars: value)
 

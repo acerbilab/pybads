@@ -145,8 +145,8 @@ among them, so a title stays as it is while its item is open.
     `np.full` in `FunctionLogger`: the checks of the options do not cover
     them.
   - Without `x0`, a scalar plausible bound makes D equal to 1 even when
-    the hard bounds are arrays, and `BADS` then raises a `ValueError` on
-    the dimension of the starting point `x_0=[[nan]]`; so does a scalar
+    the hard bounds are arrays, and `BADS` then raises a `ValueError` that
+    the hard bounds do not have D = 1 elements; so does a scalar
     `lb` beside an array `ub` without plausible bounds. The changelog's "A
     scalar bound stands for the same bound in every variable" holds when
     `x0` or a plausible bound gives D.

@@ -272,8 +272,13 @@ def test_none_for_an_unknown_option_is_refused():
 @pytest.mark.parametrize("name", ["uncertainty_handling", "nonlinear_scaling"])
 def test_boolean_options_refuse_other_values(name, value):
     """A MATLAB-style string is not converted: `"off"` would be true."""
+    accepted = (
+        "True, False or None"
+        if name == "uncertainty_handling"
+        else "True or False"
+    )
     with pytest.raises(
-        ValueError, match=rf"options\['{name}'\] needs to be True or False"
+        ValueError, match=rf"options\['{name}'\] needs to be {accepted}"
     ):
         _make_bads(**{name: value})
 

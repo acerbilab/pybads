@@ -335,8 +335,10 @@ def test_target_that_raises_leaves_no_stage_open():
 
     fun.calls = 0
     bads = _make_bads(fun, max_fun_evals=80)
-    with pytest.raises(RuntimeError, match="the target failed"):
+    with pytest.raises(RuntimeError, match="the target failed") as info:
         bads.optimize()
+    # It reaches the caller with its arguments as raised
+    assert info.value.args == ("the target failed",)
     timer = bads._stage_timer
     assert not timer.running and timer.depth == 0
     snapshot = timer.snapshot()

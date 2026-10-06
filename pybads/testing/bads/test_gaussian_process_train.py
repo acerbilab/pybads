@@ -1,4 +1,5 @@
 import copy
+import logging
 
 import gpyreg as gpr
 import numpy as np
@@ -994,8 +995,8 @@ def test_one_point_gp_with_target_noise(monkeypatch):
 
 def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
     """A GP on one point whose posterior fails with the definition values
-    is left as it was by gpyreg and is fitted instead, with a warning on the
-    BADS logger and none of NumPy's."""
+    is left as it was by gpyreg and is fitted instead, with a debug message
+    on the BADS logger and none of NumPy's warnings."""
     import warnings
 
     D = 2
@@ -1011,11 +1012,18 @@ def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
         return original_update(self, *args, **kwargs)
 
     monkeypatch.setattr(gpr.GP, "update", update)
-    with warnings.catch_warnings():
+    with warnings.catch_warnings(), caplog.at_level("DEBUG", logger="BADS"):
         warnings.simplefilter("error", RuntimeWarning)
         gp, _, _, _ = bads._init_optimization_()
     assert failed
-    assert "one training point failed" in caplog.text
+    one_point = [
+        record
+        for record in caplog.records
+        if "one training point failed" in record.getMessage()
+    ]
+    # The fit recovers, so the failure is a debug message, not a warning
+    assert one_point
+    assert all(record.levelno == logging.DEBUG for record in one_point)
     assert seen["X"].shape == (1, D)
     assert seen["hyp"]["mean_const"].item() != seen["y"].item()
     assert np.all(np.isfinite(gp.predict(np.zeros((1, D)))[0]))
@@ -1239,6 +1247,37 @@ def _robust_fit(case, hyp=None, **options):
     )
 
 
+@pytest.mark.parametrize("gp_warnings", [False, True])
+@pytest.mark.parametrize("n_fail", [0, 2, np.inf])
+def test_robust_fit_reports_recovery_and_failure(
+    monkeypatch, refit_case, caplog, gp_warnings, n_fail
+):
+    """A recovered fit is a debug message; only an unsuccessful fit warns,
+    when requested, and its message counts the fits actually attempted."""
+    calls = _inject_fit_failures(monkeypatch, n_fail)
+    with caplog.at_level(logging.DEBUG, logger="BADS"):
+        _, _, _, flag = _robust_fit(refit_case, gp_warnings=gp_warnings)
+    warnings = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    recovered = [
+        r for r in caplog.records if "recovered after" in r.getMessage()
+    ]
+    if np.isfinite(n_fail):
+        assert flag == 1 and len(calls) == n_fail + 1
+        assert not warnings
+        if n_fail:
+            assert len(recovered) == 1
+            assert recovered[0].levelno == logging.DEBUG
+            assert "after 3 attempts" in recovered[0].getMessage()
+        else:
+            assert not recovered
+    else:
+        assert flag == -1 and len(calls) == 10
+        assert not recovered
+        assert len(warnings) == int(gp_warnings)
+        if gp_warnings:
+            assert "after 10 attempts" in warnings[0].getMessage()
+
+
 def test_robust_fit_slice_sampler_samples_on_retry_data(
     monkeypatch, refit_case
 ):
@@ -1391,7 +1430,7 @@ def test_robust_fit_removes_points_above_matlab_percentile(
     assert flag == 1
 
 
-def test_robust_fit_stops_below_D_points(monkeypatch):
+def test_robust_fit_stops_below_D_points(monkeypatch, caplog):
     """The retries stop once fewer training points than dimensions remain,
     and the fit then returns its start, taken into the bounds, with exit
     flag -1, as when every try fails, as in MATLAB's gpHyperOptimize.m."""
@@ -1407,6 +1446,7 @@ def test_robust_fit_stops_below_D_points(monkeypatch):
         bads.function_logger,
     )
     calls = _inject_fit_failures(monkeypatch)
+    bads.options["gp_warnings"] = True
     _, hyp_out, _, flag = _robust_gp_fit_(
         gp,
         gp.X,
@@ -1422,6 +1462,9 @@ def test_robust_fit_stops_below_D_points(monkeypatch):
     # lies above the percentile of 5 or 4), and 2 are fewer than D
     assert [call["X"].shape[0] for call in calls] == [5, 5, 4, 3]
     assert flag == -1
+    warnings = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert len(warnings) == 1
+    assert "after 4 attempts" in warnings[0].getMessage()
     in_bounds = np.minimum(np.maximum(hyp, gp.lower_bounds), gp.upper_bounds)
     assert np.array_equal(hyp_out, in_bounds)
 

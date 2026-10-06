@@ -51,13 +51,13 @@ def acq_fcn_lcb(xi, func_count: int, gp: gpr.GP, sqrt_beta=None):
         value = sqrt_beta(t, n_vars)
         if not _is_positive_finite_real(value):
             raise ValueError(
-                "acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive "
-                f"finite real number, not {value!r} (t = {t}, "
+                "sqrt_beta(t, n_vars) in options['search_acq_fcn'] needs to "
+                f"return a positive finite real number, not {value!r} (t = {t}, "
                 f"n_vars = {n_vars})."
             )
         sqrt_beta = np.asarray(value).item()
     else:
-        check_sqrt_beta(sqrt_beta, "acq_fcn_lcb: sqrt_beta")
+        check_sqrt_beta(sqrt_beta)
         sqrt_beta = np.asarray(sqrt_beta).item()
 
     f_mu, f_s2 = gp.predict(xi)

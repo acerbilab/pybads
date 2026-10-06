@@ -5,6 +5,34 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-06
+
+Changes since PyBADS 1.5.0.
+
+### Upgrading from 1.5.0
+
+- An exception that the objective function raises reaches the caller with
+  its `args` as raised, where 1.5.0 appended an element to them; from
+  Python 3.11 on, it carries a note with the point at which it was raised.
+- Messages no longer begin with identifiers such as `bads:pbUnspecified`
+  or `FunctionLogger:InvalidFuncValue`: a script that matched them matches
+  the exception's type or the message's text instead ("Messages" under
+  Fixed).
+
+### Fixed
+
+- **Messages.** The errors and warnings about a value or a noise SD that
+  the objective returns, about the bounds and about the starting point
+  say what is wrong, at which point or variables, and what is expected,
+  and each error is printed once; failures that a run recovers from, such
+  as a failed Cholesky decomposition while fitting the Gaussian process,
+  are no longer logged as warnings. Without final samples, a noisy run
+  reports the observation at its returned point.
+- **Documentation.** Notebook launch and edit links point to their
+  repository sources. The FAQ and API reference clarify noisy results
+  with few or no final samples, timing and function logger return values.
+  Building the documentation requires sphinx-book-theme 1.0 or newer.
+
 ## [1.5.0] - 2026-10-06
 
 Changes since PyBADS 1.1.0. Most of the fixes make PyBADS follow MATLAB

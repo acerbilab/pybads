@@ -225,9 +225,13 @@ def test_seed_types(seed, reported):
     assert type(bads.optim_state["random_seed"]) is type(reported)
 
 
-@pytest.mark.parametrize("seed", [42.5, "42"], ids=["float", "string"])
-def test_seed_rejects_other_values(seed):
-    with pytest.raises(TypeError):
+@pytest.mark.parametrize(
+    "seed, error",
+    [(42.5, TypeError), ("42", TypeError), (-1, ValueError)],
+    ids=["float", "string", "negative"],
+)
+def test_seed_rejects_other_values(seed, error):
+    with pytest.raises(error, match=r"options\['random_seed'\] needs to be"):
         _make_bads(_sphere, seed)
 
 
