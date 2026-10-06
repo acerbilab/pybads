@@ -705,13 +705,23 @@ lowest value that PyBADS observed. For a
 among those at which the iterations ended, whose value as estimated by
 PyBADS's Gaussian process model at the end of the run is lowest after
 accounting for its uncertainty; it need not be the incumbent at the end of
-the run. PyBADS then evaluates `fun(x)` `options["noise_final_samples"]` more
-times (default 10): `fval` is the average of those evaluations and `fsd` its
+the run. PyBADS normally evaluates `fun(x)` `options["noise_final_samples"]`
+more times (default 10): `fval` is the average of those evaluations and `fsd` its
 standard error. With `options["specify_target_noise"]`, the average and its
 standard error weight each evaluation by the precision that the objective
 reports. The evaluations are in `optimize_result["yval_vec"]` (and the
 standard deviations that the objective reported in
 `optimize_result["ysd_vec"]`). They count towards `options["max_fun_evals"]`.
+
+PyBADS reserves these evaluations from the budget left after initialization,
+so a small budget can reduce their number. With `noise_final_samples=0`, or
+when no budget remains for final samples, `yval_vec` and `ysd_vec` are `None`:
+`fval` and `fsd` keep the estimates available when the run stops, normally
+from the GP. With only one final sample and no `specify_target_noise`,
+PyBADS averages that sample with the observation already recorded at `x`,
+and `yval_vec` contains both. An [output function](#faq-can-i-monitor-or-stop-a-run-while-it-is-running)
+that stops the run at `"init"` takes no final samples; if samples had been
+reserved, `yval_vec` holds the incumbent's observation alone.
 
 (faq-why-do-you-estimate-fval-by-averaging-additional-function-evaluations-cant-you-return-the-gaussian-process-prediction-at-x)=
 ### Why do you estimate `fval` by averaging additional function evaluations? Can't you return the Gaussian process prediction at `x`?
@@ -729,7 +739,8 @@ For this reason, we chose a more conservative approach for estimating `fval`.
 `optimize_result["overhead"]` is the *fractional overhead*, defined as
 (*total running time* / *total function time* - 1). The total running time,
 `optimize_result["total_time"]`, is the time of `bads.optimize()`, in seconds;
-the function time is the time spent evaluating the objective. PyBADS's own
+the function time is the time spent evaluating the objective, excluding
+the automatic noise test at `x0`, which counts as optimizer time. PyBADS's own
 work takes of the order of tens of milliseconds per function evaluation,
 depending on the problem and the computer.
 

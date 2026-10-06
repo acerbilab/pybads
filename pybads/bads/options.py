@@ -22,15 +22,17 @@ class Options(MutableMapping, dict):
 
     Attributes
     ----------
-    user_options : set
-        This set contains all options that have set by the user,
-        if there are none it is empty. These ``useroptions`` are immutable to
-        changes using :py:meth:`load_options_file`.
     unset_user_options : set
         The names of the user options whose value is ``None``, which stands
         for the default: they are not set, and not in ``useroptions``, but
         their names are checked by
         :py:meth:`validate_option_names`.
+
+    Notes
+    -----
+    The mapping entry ``options["useroptions"]`` holds the set of option
+    names supplied by the user with non-None values.
+    :py:meth:`load_options_file` leaves their values unchanged.
     """
 
     def __init__(

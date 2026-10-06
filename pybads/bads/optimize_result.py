@@ -28,14 +28,20 @@ class OptimizeResult(dict):
             - Value of objective function at solution. In a noisy run, an
               estimate of the target's mean at ``x``: normally the average
               of ``yval_vec``, weighted by their precisions with
-              ``specify_target_noise``.
+              ``specify_target_noise``. Without final samples, the estimate
+              available when the run stops, normally from the GP.
         - fsd: float
             - Uncertainty (SD) of ``fval`` as an estimate of the target's
               value at ``x``, such as the standard error of the final
               samples in a noisy run; 0 for a deterministic target.
         - yval_vec: np.ndarray or None
             - In a noisy run, the observations of the target at ``x`` that
-              ``fval`` averages; None otherwise.
+              ``fval`` averages; None for a deterministic target, with
+              ``noise_final_samples=0``, or when the budget leaves no final
+              samples. With one final sample and no ``specify_target_noise``,
+              includes the observation already recorded at ``x``. If an
+              output function stops the run at ``"init"`` after samples
+              have been reserved, holds the incumbent's observation alone.
         - ysd_vec: np.ndarray or None
             - Standard deviations of the final sampled observations
               (``"yval_vec"``) that the target returns with
@@ -80,7 +86,8 @@ class OptimizeResult(dict):
         - overhead: float
             - The optimizer's own time relative to the time spent
               evaluating the target: ``total_time`` divided by the
-              evaluations' time, minus 1.
+              evaluations' time, minus 1. The automatic noise test at
+              ``x0`` counts as optimizer time.
         - random_seed: int or None
             - The ``random_seed`` option if it is an integer, and ``None``
               otherwise.

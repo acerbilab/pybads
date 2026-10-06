@@ -28,6 +28,9 @@ Changes since PyBADS 1.5.0.
   as a failed Cholesky decomposition while fitting the Gaussian process,
   are no longer logged as warnings. Without final samples, a noisy run
   reports the observation at its returned point.
+- **Documentation.** Notebook launch and edit links point to their
+  repository sources. The FAQ and API reference clarify noisy results
+  with few or no final samples, timing and function logger return values.
 
 ## [1.5.0] - 2026-10-06
 

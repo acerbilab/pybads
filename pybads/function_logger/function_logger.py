@@ -105,10 +105,14 @@ class FunctionLogger:
         Returns
         -------
         fval : float
-            The result of the evaluation.
+            The result of the evaluation, merged by precision weighting
+            with earlier observations at the point when recording it in a
+            logger that holds SDs. An evaluation that is not recorded
+            returns its own value.
         SD : float or None
             The (estimated) SD that the function returned, None when the
             logger takes none (``uncertainty_handling_level`` below 2).
+            Describes this evaluation before any merge.
         idx : int or None
             The index of the last updated entry, None when an evaluation
             that is not recorded (``record_duplicate_data=False``) is of a
