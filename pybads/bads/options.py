@@ -28,8 +28,8 @@ class Options(MutableMapping, dict):
         changes using :py:meth:`load_options_file`.
     unset_user_options : set
         The names of the user options whose value is ``None``, which stands
-        for the default, as an empty value does in MATLAB BADS: they are not
-        set, and not in ``useroptions``, but their names are checked by
+        for the default: they are not set, and not in ``useroptions``, but
+        their names are checked by
         :py:meth:`validate_option_names`.
     """
 

@@ -10,3 +10,4 @@
 
 .. autoclass:: pybads.bads.OptimizeResult
    :members:
+   :exclude-members: set_attributes

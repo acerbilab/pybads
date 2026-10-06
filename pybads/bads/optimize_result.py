@@ -21,29 +21,21 @@ class OptimizeResult(dict):
               ``BADS``.
         - x0: np.ndarray
             - Initial starting point, as given or drawn at random, with the
-              fixed variables at their values, before it is put on the
-              mesh: the first point evaluated is the point of the mesh
-              nearest to it.
+              fixed variables at their values.
         - x: np.ndarray
             - The solution of the optimization.
         - fval: float
-            - Value of objective function at solution.
+            - Value of objective function at solution. In a noisy run, an
+              estimate of the target's mean at ``x``: normally the average
+              of ``yval_vec``, weighted by their precisions with
+              ``specify_target_noise``.
         - fsd: float
-            - Standard deviation of objective function at solution (0 if noiseless).
-              For a noisy run that ends in its initialization or its first
-              iteration without final samples (``output_fcn`` stops it in
-              its initialization, ``noise_final_samples = 0``, or its
-              ``max_fun_evals`` leaves no evaluation for them after the
-              initial design), it is not an estimate: ``noise_size``
-              without ``specify_target_noise``, and otherwise the standard
-              deviation that the target returned at the incumbent.
+            - Uncertainty (SD) of ``fval`` as an estimate of the target's
+              value at ``x``, such as the standard error of the final
+              samples in a noisy run; 0 for a deterministic target.
         - yval_vec: np.ndarray or None
-            - Final sampled observations at the solution; the incumbent's
-              observation alone if ``output_fcn`` stops the run in its
-              initialization.
-              None for a run without uncertainty handling, with
-              ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves
-              no evaluation for a final sample after the initial design.
+            - In a noisy run, the observations of the target at ``x`` that
+              ``fval`` averages; None otherwise.
         - ysd_vec: np.ndarray or None
             - Standard deviations of the final sampled observations
               (``"yval_vec"``) that the target returns with
@@ -65,20 +57,15 @@ class OptimizeResult(dict):
         - iterations: int
             - Number of iterations performed by the optimizer.
         - success: bool
-            - True when the run ended on one of its convergence criteria,
-              ``tol_mesh`` or the stall criterion (``status`` 1 or 2), which
-              prevail when ``max_fun_evals``, ``max_iter`` or the
-              ``output_fcn`` ends the same iteration; False when one of
-              those ended it alone, or it ended in its initialization
-              (``status`` 0): the convention of MATLAB's exit flags and of
-              ``scipy.optimize``.
+            - True when the run converged, on ``tol_mesh`` or the stall
+              criterion (``status`` 1 or 2); False when it stopped on
+              ``max_fun_evals``, ``max_iter`` or ``output_fcn``
+              (``status`` 0).
         - status: int
-            - The exit flag of MATLAB BADS, the criterion that ended the
-              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the
-              ``output_fcn`` stopped it or it ended in its initialization; 1
-              when the mesh size fell below ``tol_mesh``; 2 when the
-              improvement over the last ``tol_stall_iters`` iterations fell
-              below ``tol_fun``.
+            - The criterion that ended the run: 0 for ``max_fun_evals``,
+              ``max_iter`` or ``output_fcn``; 1 when the mesh size fell
+              below ``tol_mesh``; 2 when the improvement over the last
+              ``tol_stall_iters`` iterations fell below ``tol_fun``.
         - message: str
             - Termination message.
         - problem_type: str
@@ -91,13 +78,12 @@ class OptimizeResult(dict):
             - Time taken by ``optimize()``, in seconds; the setup made when
               ``BADS`` is created is not counted.
         - overhead: float
-            - Fractional overhead taken by the optimizer, compared to function time.
-              The second evaluation of the starting point that tests the
-              target for noise (with ``uncertainty_handling`` left empty)
-              counts as the optimizer's time, since the function time leaves
-              it out, as in MATLAB BADS.
+            - The optimizer's own time relative to the time spent
+              evaluating the target: ``total_time`` divided by the
+              evaluations' time, minus 1.
         - random_seed: int or None
-            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.
+            - The ``random_seed`` option if it is an integer, and ``None``
+              otherwise.
         - algorithm: str
             - ``"Bayesian adaptive direct search"``.
         - version: str

@@ -294,14 +294,17 @@ class BADS:
        :math:`\mathtt{argmin}_x  f(x)`  subject to:  lower_bounds :math:`<= x <=` upper_bounds, and optionally :math:`C(x) <= 0`
 
 
-    Initialize a ``PyBADS`` object to set up the optimization problem, then run
+    Initialize a ``BADS`` object to set up the optimization problem, then run
     ``optimize()``. See the examples for more details under the `examples` directory.
 
     Parameters
     ----------
     fun : callable
-        A given target ``fun``. ``fun`` accepts input ``x`` and returns a scalar
-        function value of the target evaluated at ``x`` and the noise if provided.
+        The target function to minimize. ``fun`` takes a point ``x``, a
+        one-dimensional array of all the variables (the fixed ones included),
+        and returns its value as a finite real number; with
+        ``options['specify_target_noise']``, it returns a tuple ``(f, sd)``,
+        the value and the SD of its noise at ``x``.
         In case the target function ``fun`` requires additional data/parameters,
         they can be handled using an anonymous function.
         For example: ``fun_for_pybads = lambda x: fun(x, data, extra_params)``,
@@ -315,11 +318,8 @@ class BADS:
         drawn at random, over the variables that are not fixed, inside the
         plausible box
         between ``plausible_lower_bounds`` and ``plausible_upper_bounds`` (see
-        below): uniformly, and log-uniformly in a variable on a log scale
-        (with ``options['nonlinear_scaling']``, the default, a variable whose
-        bounds are all positive, with ``pub/plb >= 10``). With
-        ``non_box_cons``, a point that violates the constraints is drawn
-        again, up to 1000 draws in all.
+        below). With ``non_box_cons``, a point that violates the constraints
+        is drawn again, up to 1000 draws in all.
     lower_bounds, upper_bounds : np.ndarray, optional
         ``lower_bounds`` (``lb``) and ``upper_bounds`` (``ub``) define a set
         of strict lower and upper bounds for the coordinate vector, ``x``, so
@@ -345,18 +345,16 @@ class BADS:
         the minimum is found within the box (where in doubt, just set
         ``plb = lb`` and ``pub = ub``).
 
-        A variable whose four bounds are equal is fixed at their value,
-        which ``x0`` holds there, or a non-finite value in its place. BADS
-        optimizes the other variables, as a run of the problem without the
-        fixed ones would: the defaults of the options that depend on the
-        number of variables count only those, and the run's internal state (``optim_state``, the transformed coordinates and the
-        Gaussian process) covers them alone. ``fun``, ``non_box_cons`` and
-        ``options['output_fcn']`` receive points of all the variables, with
-        the fixed ones at their values, and the result's ``x`` and ``x0``,
-        the function log and the points ``"x"`` of ``iteration_history``
-        hold them all; the indices of ``options['periodic_vars']`` count
-        them all, and the points of ``precomputed_evaluations`` hold them
-        all.
+        A variable whose four bounds are equal is fixed at their value;
+        ``x0`` holds that value there, or a non-finite value. BADS optimizes
+        the other variables, and the defaults of the options that depend on
+        the number of variables count only those. The points you pass to
+        BADS or receive from it hold all the variables, the fixed ones at
+        their values: those that ``fun``, ``non_box_cons`` and
+        ``options['output_fcn']`` receive, the result's ``x`` and ``x0``,
+        the points ``"x"`` of ``iteration_history`` and the points of
+        ``precomputed_evaluations``; the indices of
+        ``options['periodic_vars']`` count all the variables.
 
     non_box_cons : callable, optional
         A given non-box constraints function that specifies constraint
@@ -394,7 +392,8 @@ class BADS:
         uncertainty handling on with ``options['specify_target_noise']``
         = ``True``.
         A variable that is periodic, such as an angle, is named in
-        ``options['periodic_vars']``, a list of indices from 0 to ``D - 1``:
+        ``options['periodic_vars']``, a list of the indices of the
+        variables, from 0, the fixed ones included:
         its hard bounds, which need to be finite, are its period, and BADS
         wraps it around them, so that ``lb`` and ``ub`` are the same point
         and the variable is optimized across them.
@@ -416,47 +415,31 @@ class BADS:
         D)``, each within the hard bounds and satisfying ``non_box_cons``;
         ``y`` holds the values of ``fun`` at them and ``y_sd`` the SDs of
         their noise, both of shape ``(N,)``. The values are finite and the
-        SDs positive. The evaluations enter the run's log of evaluations,
-        and with it the training sets of its Gaussian process, which is
-        rebuilt around the incumbent from the first poll on, but not its
-        count of evaluations (``func_count``, which ``max_fun_evals``
-        bounds). The run starts from ``x0`` and its initial design alone,
-        less the points of the design that the evaluations hold, which it
-        does not evaluate again: its first incumbent is the best of the
-        points it evaluates, so that, given the log of an earlier run with
-        the same seed and ``x0``, which holds the whole design, it
-        evaluates ``x0`` alone, its first incumbent. Unless
+        SDs positive. BADS uses them as training data of its Gaussian
+        process, and does not evaluate again the points of its initial
+        design that they hold; they do not count toward ``max_fun_evals``
+        (``func_count``). The run still starts from ``x0``: its first
+        incumbent is the best of the points it evaluates itself (pass the
+        best of the evaluations as ``x0`` to start there). Unless
         ``options['uncertainty_handling']`` is ``True`` (or
         ``options['specify_target_noise']`` is), a point given twice must
         have the same value, and is kept once; otherwise each repeat is an
-        observation of its own. A point on the upper bound of a periodic
-        variable (``options['periodic_vars']``) and one on its lower bound
-        are logged as they are given, each with its value. The arrays are
-        copied. By default ``None``, no evaluations.
+        observation of its own. By default ``None``, no evaluations.
 
     Attributes
     ----------
     rng : numpy.random.Generator
         The generator of every random draw of the run, including the random
-        ``x0``; the scrambling of the initial design draws from a generator
-        that scipy seeds with one draw of it. It is created with the
-        ``BADS`` object from ``options['random_seed']``, which takes what
-        ``numpy.random.default_rng`` takes, such as a non-negative integer
-        (``True`` and ``False`` count as 1 and 0) or a ``SeedSequence``, or a
-        ``Generator``, which is used as given; a float that is a whole number
-        is converted to an integer. A change of the
-        option after the object is created has no effect. If the option is
-        ``None`` (default), the generator is derived from NumPy's global
+        ``x0``. It is created with the ``BADS`` object from
+        ``options['random_seed']``, which takes what
+        ``numpy.random.default_rng`` takes, such as a non-negative integer or
+        a ``SeedSequence``, or a ``Generator``, used as given. If the option
+        is ``None`` (default), the generator is derived from NumPy's global
         random state, so that ``np.random.seed`` before creating the ``BADS``
-        object fixes the run; deriving it advances that state by four draws.
-        Apart from those draws, the run neither draws from nor seeds NumPy's
-        global random state; a target that draws from it is not fixed by
-        ``random_seed``. Draws from ``rng`` before ``optimize()`` change the
-        run. On Apple Silicon Macs, two runs with the same seed make the same
-        draws but can end at slightly different points: with Apple's
-        Accelerate as the linear algebra library of NumPy and SciPy (as in
-        their wheels on PyPI), the last bits of a result depend on where its
-        arrays lie in memory.
+        object fixes the run. The run does not otherwise draw from NumPy's
+        global random state: a target that draws from it is not fixed by
+        ``random_seed``. On Apple Silicon Macs, two runs with the same seed
+        can end at slightly different points.
 
     Raises
     ------
@@ -484,10 +467,10 @@ class BADS:
         ``noise_size`` that is not one or two numbers, a value other than
         ``True`` or ``False`` for ``uncertainty_handling`` or for an option
         whose default is one of them (``plot`` excepted), a
-        ``periodic_vars`` that is not a list of distinct indices from 0 to
-        ``D - 1`` of variables with finite bounds, or an ``f_vals`` that
-        holds a finite value, a non-empty ``fun_values``, or
-        ``acq_hedge=True``, options that are not supported.
+        ``periodic_vars`` that is not a list of distinct indices of
+        variables with finite bounds, or an ``f_vals`` that holds a finite
+        value, a non-empty ``fun_values``, or ``acq_hedge=True``, options
+        that are not supported.
     ValueError
         When ``precomputed_evaluations`` is not a tuple (or a list) of two
         or three arrays of the shapes above, of finite values and positive
@@ -2040,6 +2023,11 @@ class BADS:
         RuntimeError
             If ``optimize`` has already been called on this object, whether
             or not that run completed.
+        ValueError
+            If ``fun`` returns a value that is not a finite real number, or,
+            with ``options['specify_target_noise']``, does not return a
+            tuple ``(f, sd)`` with a finite positive ``sd``. An error that
+            ``fun`` raises reaches the caller.
         """
         if self._optimize_called:
             raise RuntimeError(

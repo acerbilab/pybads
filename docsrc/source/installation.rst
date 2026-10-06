@@ -14,9 +14,10 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
    PyBADS requires Python version 3.10 or newer.
 
-   PyBADS 1.5 requires NumPy 2.0 or newer. In an environment that holds NumPy 1.x,
-   ``conda`` installs PyBADS 1.1.0 instead, without a warning: ask it for
-   ``"pybads>=1.5"``, or see the
+   PyBADS 1.5 requires NumPy 2.0 or newer, and its conda-forge package
+   requires Python 3.11 or newer. In an environment that holds NumPy 1.x or Python
+   3.10, ``conda`` installs an older PyBADS instead, without a warning: ask
+   it for ``"pybads>=1.5"``, or see the
    :ref:`FAQ <faq-conda-installs-an-older-version-of-pybads-why>`.
 
    To learn whether a newer release exists and how to update, see the
