@@ -121,7 +121,7 @@ For a reproducible run, pass an integer seed when creating the `BADS` object, e.
 
 ## Next steps
 
-Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/index.html#examples) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_3_noisy_objective.ipynb).
+Once installed, example Jupyter notebooks can be found in the `pybads/examples` directory. They can also be [viewed statically](https://acerbilab.github.io/pybads/examples.html) on the [main documentation pages](https://acerbilab.github.io/pybads/index.html). These examples represent a full tutorial that will walk you through the basic usage of PyBADS as well as some of its more advanced features, such as [noisy targets](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_3_noisy_objective.ipynb).
 
 For practical recommendations, such as how to set `lower_bounds`, `upper_bounds` and the plausible bounds, how to handle a noisy objective, and what to do when a run goes wrong, check out the [PyBADS FAQ](https://acerbilab.github.io/pybads/faq.html).
 
