@@ -7,7 +7,7 @@ def noisy_sphere(x, sigma=1.0):
     """Simple quadratic function with added noise."""
     x_2d = np.atleast_2d(x)
     f = np.sum(x_2d**2, axis=1)
-    noise = sigma * np.random.normal(size=x_2d.shape[0])
+    noise = sigma * noise_rng.normal(size=x_2d.shape[0])
     return f + noise
 
 
@@ -21,9 +21,11 @@ options = {
     "uncertainty_handling": True,
     "max_fun_evals": 300,
     "noise_final_samples": 100,
+    "random_seed": 0,  # Makes the run reproducible
 }
 
 
+noise_rng = np.random.default_rng(8)  # Makes the target's noise reproducible
 bads = BADS(
     noisy_sphere,
     x0,

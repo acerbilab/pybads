@@ -52,7 +52,7 @@
     <link rel="canonical" href="https://acerbilab.github.io/pybads/_examples/pybads_example_5_extended_usage.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Documentation" href="../documentation.html" />
+    <link rel="next" title="PyBADS Example 6: Periodic variables" href="pybads_example_6_periodic_variables.html" />
     <link rel="prev" title="PyBADS Example 4: Noisy objective with user-provided noise estimates" href="pybads_example_4_user_provided_noise.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -196,12 +196,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -221,6 +223,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -632,19 +635,19 @@ which should be represented in the set of results.</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found solutions:
-[[ 0.08939411 -0.712172  ]
- [-0.09008138  0.71347182]
- [ 0.09082897 -0.71192109]
- [-0.09414637  0.71077771]
- [-0.09105368  0.71271563]
- [ 0.08997784 -0.71272106]
- [-0.08990161  0.71246268]
- [ 0.09031594 -0.71231801]
- [ 0.0895162  -0.71246247]
- [-0.09016521  0.71251721]]
+[[ 0.08982166 -0.71267992]
+ [ 0.08967179 -0.71268327]
+ [ 0.08960632 -0.71241038]
+ [-0.08995485  0.71257882]
+ [ 0.08983119 -0.71262319]
+ [-0.08982158  0.71263966]
+ [ 0.08979807 -0.71266127]
+ [-0.08970058  0.71265266]
+ [ 0.0906438  -0.7125489 ]
+ [ 0.08985269 -0.71257011]]
 Function values at solutions:
-[-1.03162597 -1.03162297 -1.03161951 -1.03151937 -1.03162277 -1.03162836
- -1.03162812 -1.03162648 -1.03162779 -1.03162784]
+[-1.03162845 -1.03162833 -1.0316278  -1.03162835 -1.03162844 -1.03162845
+ -1.03162845 -1.03162838 -1.03162577 -1.03162839]
 </pre></div>
 </div>
 </div>
@@ -664,8 +667,8 @@ Function values at solutions:
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at x_min = [ 0.08997784 -0.71272106]
-Function value at minimum fval = -1.0316283561123913
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at x_min = [-0.08982158  0.71263966]
+Function value at minimum fval = -1.031628449909302
 </pre></div>
 </div>
 </div>
@@ -683,20 +686,21 @@ Function value at minimum fval = -1.0316283561123913
  'non_box_cons': None,
  'target_type': 'deterministic',
  'problem_type': 'bound constraints',
- 'iterations': 8,
- 'func_count': 77,
+ 'iterations': 9,
+ 'func_count': 69,
  'mesh_size': 0.0009765625,
- 'overhead': 1307.5565116015111,
+ 'overhead': 460.06142870137745,
  'algorithm': 'Bayesian adaptive direct search',
  'yval_vec': None,
  'ysd_vec': None,
- 'x0': array([[-1.61243961,  1.40878276]]),
- 'x': array([ 0.08997784, -0.71272106]),
- 'fval': -1.0316283561123913,
- 'fsd': 0,
- 'total_time': 1.3023214350209962,
+ 'x0': array([[1.76901696, 1.170175  ]]),
+ 'x': array([-0.08982158,  0.71263966]),
+ 'fval': -1.031628449909302,
+ 'fsd': 0.0,
+ 'total_time': 0.5357853009586612,
  'random_seed': 5,
- 'version': '0.8.3.dev21+g2aaa7af',
+ 'status': 2,
+ 'version': '1.5.0',
  'success': True,
  'message': "Optimization terminated: change in the function value less than options['tol_fun']."}
 </pre></div>
@@ -708,7 +712,7 @@ Function value at minimum fval = -1.0316283561123913
 <li><p><code class="docutils literal notranslate"><span class="pre">total_time</span></code> is the total runtime (in seconds), including both the time spent evaluating the target and the algorithmic cost of BADS.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">overhead</span></code> represents the <em>fractional overhead</em> of BADS compared to the time spent evaluating the target. In this example, <code class="docutils literal notranslate"><span class="pre">overhead</span></code> is astronomical because the target function we are using is analytical and extremely fast, which is not what BADS is designed for. In a realistic scenario, the objective function will be moderately costly (e.g., more than 0.1 s per function evaluation), and the fractional overhead should be less than 1.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">random_seed</span></code> is the random seed used for this run (<code class="docutils literal notranslate"><span class="pre">None</span></code> if not specified).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the version of PyBADS used (e.g., <code class="docutils literal notranslate"><span class="pre">0.8.1</span></code>); developer versions have an additional <code class="docutils literal notranslate"><span class="pre">dev</span></code> suffix with more versioning information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the version of PyBADS used (e.g., <code class="docutils literal notranslate"><span class="pre">1.5.0</span></code>); developer versions have an additional <code class="docutils literal notranslate"><span class="pre">dev</span></code> suffix with more versioning information.</p></li>
 </ul>
 </section>
 </section>
@@ -734,11 +738,11 @@ Function value at minimum fval = -1.0316283561123913
       </div>
     </a>
     <a class="right-next"
-       href="../documentation.html"
+       href="pybads_example_6_periodic_variables.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Documentation</p>
+        <p class="prev-next-title">PyBADS Example 6: Periodic variables</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -800,6 +804,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

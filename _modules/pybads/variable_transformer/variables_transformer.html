@@ -189,12 +189,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -214,6 +216,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -399,24 +402,68 @@
 <span class="sd">    D : int</span>
 <span class="sd">        The dimension of the space.</span>
 <span class="sd">    lower_bounds : np.ndarray, optional</span>
-<span class="sd">        The lower bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set</span>
-<span class="sd">        of strict lower and upper bounds for each variable, given in the</span>
-<span class="sd">        original space. By default `None`.</span>
+<span class="sd">        The lower bounds of the space. ``lower_bounds`` and ``upper_bounds``</span>
+<span class="sd">        define a set of strict lower and upper bounds for each variable,</span>
+<span class="sd">        given in the original space. By default `None`, which is ``-inf``.</span>
 <span class="sd">    upper_bounds : np.ndarray, optional</span>
-<span class="sd">        The upper bounds of the space. ``lower_bounds`` and ``upper_bounds`` define a set</span>
-<span class="sd">        of strict lower and upper bounds for each variable, given in the</span>
-<span class="sd">        original space. By default `None`.</span>
+<span class="sd">        The upper bounds of the space. ``lower_bounds`` and ``upper_bounds``</span>
+<span class="sd">        define a set of strict lower and upper bounds for each variable,</span>
+<span class="sd">        given in the original space. By default `None`, which is ``inf``.</span>
 <span class="sd">    plausible_lower_bounds : np.ndarray, optional</span>
-<span class="sd">        The plausible lower bounds such that ``lower_bounds &lt; plausible_lower_bounds &lt; plausible_upper_bounds &lt;</span>
-<span class="sd">        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range</span>
-<span class="sd">        for each variable, given in the original space. By default `None`.</span>
+<span class="sd">        The plausible lower bounds such that ``lower_bounds &lt;=</span>
+<span class="sd">        plausible_lower_bounds &lt; plausible_upper_bounds &lt;= upper_bounds``.</span>
+<span class="sd">        ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a</span>
+<span class="sd">        "plausible" range for each variable, given in the original space,</span>
+<span class="sd">        and need to be finite. By default `None`, which is</span>
+<span class="sd">        ``lower_bounds``.</span>
 <span class="sd">    plausible_upper_bounds : np.ndarray, optional</span>
-<span class="sd">        The plausible upper bounds such that ``lower_bounds &lt; plausible_lower_bounds &lt; plausible_upper_bounds &lt;</span>
-<span class="sd">        upper_bounds``. ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a "plausible" range</span>
-<span class="sd">        for each variable, given in the original space. By default `None`.</span>
+<span class="sd">        The plausible upper bounds such that ``lower_bounds &lt;=</span>
+<span class="sd">        plausible_lower_bounds &lt; plausible_upper_bounds &lt;= upper_bounds``.</span>
+<span class="sd">        ``plausible_lower_bounds`` and ``plausible_upper_bounds`` represent a</span>
+<span class="sd">        "plausible" range for each variable, given in the original space,</span>
+<span class="sd">        and need to be finite. By default `None`, which is</span>
+<span class="sd">        ``upper_bounds``.</span>
 <span class="sd">    apply_log_t : np.ndarray, optional</span>
-<span class="sd">        A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation.</span>
-<span class="sd">        By default `None`, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.</span>
+<span class="sd">        A boolean array of shape ``(1, D)`` that indicates the variables to</span>
+<span class="sd">        which the non-linear log transformation applies; a scalar applies to</span>
+<span class="sd">        every variable. By default `None`, in which case the log</span>
+<span class="sd">        transformation is applied if the bounds are all positive and the</span>
+<span class="sd">        plausible box spans at least one order of magnitude</span>
+<span class="sd">        (``pub/plb &gt;= 10``), as it is to a variable whose entry is NaN.</span>
+<span class="sd">    fixed_values : np.ndarray, optional</span>
+<span class="sd">        The values of the fixed variables of a problem, when the transform</span>
+<span class="sd">        is of its other variables: one value per variable of the original</span>
+<span class="sd">        space, of shape ``(1, D_orig)`` or ``(D_orig,)``, NaN at each of the</span>
+<span class="sd">        ``D`` variables that the bounds describe, in their order, and the</span>
+<span class="sd">        value elsewhere. ``inverse_transf`` then returns points of the</span>
+<span class="sd">        ``D_orig`` variables, with the fixed ones at their values, and</span>
+<span class="sd">        ``__call__`` takes such points and transforms their other</span>
+<span class="sd">        coordinates. By default `None`, which, as a row of NaN, fixes no</span>
+<span class="sd">        variable: the original space has the ``D`` variables of the bounds.</span>
+
+<span class="sd">    Each bound is an array of ``D`` elements, of shape ``(1, D)`` or</span>
+<span class="sd">    ``(D,)``, or a scalar or an array of one element, which stands for the</span>
+<span class="sd">    same bound in each dimension; bounds of integers are taken as floats.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D_orig : int</span>
+<span class="sd">        The number of variables of the original space: ``D`` and the fixed</span>
+<span class="sd">        variables.</span>
+<span class="sd">    fixed_values : np.ndarray or None</span>
+<span class="sd">        ``fixed_values`` as a row of shape ``(1, D_orig)``, or None when it</span>
+<span class="sd">        fixes no variable.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        When a bound is not a number or an array of numbers, or is neither a</span>
+<span class="sd">        scalar nor an array of one or ``D`` elements, when the plausible</span>
+<span class="sd">        bounds are not finite or the bounds are out of the order above, or</span>
+<span class="sd">        when the transform cannot be inverted at the bounds.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        When ``fixed_values`` is not a row of numbers, NaN at exactly ``D``</span>
+<span class="sd">        of them and finite at the others.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -427,49 +474,32 @@
         <span class="n">plausible_lower_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">plausible_upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">apply_log_t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fixed_values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1"># Empty lb and ub are Infs</span>
         <span class="k">if</span> <span class="n">lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span> <span class="o">*</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">lower_bounds</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="k">if</span> <span class="n">upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
         <span class="c1"># Empty plausible bounds equal hard bounds</span>
         <span class="k">if</span> <span class="n">plausible_lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">plausible_lower_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">lower_bounds</span><span class="p">)</span>
+            <span class="n">plausible_lower_bounds</span> <span class="o">=</span> <span class="n">lower_bounds</span>
         <span class="k">if</span> <span class="n">plausible_upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">plausible_upper_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">upper_bounds</span><span class="p">)</span>
+            <span class="n">plausible_upper_bounds</span> <span class="o">=</span> <span class="n">upper_bounds</span>
 
-        <span class="n">lb</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">lower_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">lower_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span> <span class="o">*</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="c1"># Float copies of shape (1, D), into which the log of a log-scaled</span>
+        <span class="c1"># variable's bounds is written in place, so that integer bounds are</span>
+        <span class="c1"># not truncated</span>
+        <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_bound_as_row</span><span class="p">(</span><span class="n">bound</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">bound</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">lower_bounds</span><span class="p">,</span> <span class="s2">"lower_bounds"</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">upper_bounds</span><span class="p">,</span> <span class="s2">"upper_bounds"</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">plausible_lower_bounds</span><span class="p">,</span> <span class="s2">"plausible_lower_bounds"</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">plausible_upper_bounds</span><span class="p">,</span> <span class="s2">"plausible_upper_bounds"</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">ub</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">upper_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">upper_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-        <span class="p">)</span>
-
-        <span class="n">plb</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">lower_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">plausible_lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">plausible_lower_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="n">pub</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">upper_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">plausible_upper_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">plausible_upper_bounds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">lb</span><span class="p">):</span>
-            <span class="n">lb</span> <span class="o">=</span> <span class="n">lb</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">ub</span><span class="p">):</span>
-            <span class="n">ub</span> <span class="o">=</span> <span class="n">ub</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">plb</span><span class="p">):</span>
-            <span class="n">plb</span> <span class="o">=</span> <span class="n">plb</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">pub</span><span class="p">):</span>
-            <span class="n">pub</span> <span class="o">=</span> <span class="n">pub</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
 
         <span class="c1"># Save original vectors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orig_ub</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -483,15 +513,42 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pub</span> <span class="o">=</span> <span class="n">pub</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">=</span> <span class="n">D</span>
-        <span class="c1"># Nonlinear log transform</span>
+        <span class="c1"># The fixed variables, which the transform leaves out of its points</span>
+        <span class="c1"># and inverse_transf puts back at their values; self._free marks the</span>
+        <span class="c1"># variables of the bounds among the D_orig of the original space. A</span>
+        <span class="c1"># row of NaN, which fixes nothing, is None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D_orig</span> <span class="o">=</span> <span class="n">D</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_free</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">fixed_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fixed_values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">values</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span>
+                <span class="ow">or</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span>
+                <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">values</span><span class="p">))</span> <span class="o">!=</span> <span class="n">D</span>
+                <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"fixed_values needs to be a row of one number per "</span>
+                    <span class="sa">f</span><span class="s2">"variable of the original space, NaN at exactly D=</span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="s2">"of them and finite at the others, not "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fixed_values</span><span class="si">!r}</span><span class="s2">."</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fixed_values</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_free</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">D_orig</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Nonlinear log transform: NaN marks a variable whose transform is</span>
+        <span class="c1"># decided from its bounds, and a scalar applies to every variable</span>
         <span class="k">if</span> <span class="n">apply_log_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">apply_log_t</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">))</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">=</span> <span class="n">apply_log_t</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">apply_log_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">apply_log_t</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
 
         <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lb</span><span class="p">,</span>
@@ -584,12 +641,17 @@
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">g</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">z</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">zlog</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">ginv</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">maskindex</span><span class="p">(</span>
-                <span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">mu</span><span class="p">,</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span>
-            <span class="p">)</span> <span class="o">+</span> <span class="n">maskindex</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span><span class="p">,</span>
-            <span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">ginv</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+                <span class="c1"># The exponential of a linear variable, masked out, overflows</span>
+                <span class="c1"># at a value above about 709, harmlessly</span>
+                <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">over</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">):</span>
+                    <span class="n">x_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">return</span> <span class="n">maskindex</span><span class="p">(</span>
+                    <span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">mu</span><span class="p">,</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span>
+                <span class="p">)</span> <span class="o">+</span> <span class="n">maskindex</span><span class="p">(</span><span class="n">x_log</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span><span class="p">)</span>
 
         <span class="c1"># check that the transform works correctly in the range</span>
         <span class="n">lbtest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_lb</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -602,16 +664,14 @@
             <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">((</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_ub</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_log_t</span><span class="p">)</span>
         <span class="p">]</span> <span class="o">=</span> <span class="mf">1e6</span>
 
-        <span class="n">numeps</span> <span class="o">=</span> <span class="mf">1e-6</span>  <span class="c1"># accepted numerical error</span>
+        <span class="c1"># accepted numerical error, relative to a bound larger than 1 in</span>
+        <span class="c1"># magnitude (MATLAB BADS's transvars.m takes 1e-6 in absolute terms,</span>
+        <span class="c1"># which rounding alone exceeds at bounds of large magnitude)</span>
+        <span class="n">numeps</span> <span class="o">=</span> <span class="mf">1e-6</span>
         <span class="n">tests</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">tests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ginv</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">lbtest</span><span class="p">))</span> <span class="o">-</span> <span class="n">lbtest</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">numeps</span><span class="p">)</span>
-        <span class="n">tests</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ginv</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">ubtest</span><span class="p">))</span> <span class="o">-</span> <span class="n">ubtest</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">numeps</span><span class="p">)</span>
-        <span class="n">tests</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ginv</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_plb</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_plb</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">numeps</span>
-        <span class="p">)</span>
-        <span class="n">tests</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ginv</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_pub</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_pub</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">numeps</span>
-        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">lbtest</span><span class="p">,</span> <span class="n">ubtest</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_plb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_pub</span><span class="p">]):</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">numeps</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+            <span class="n">tests</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ginv</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">tests</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"Cannot invert the transform to obtain the identity at the provided boundaries."</span>
@@ -639,13 +699,16 @@
 <span class="sd">        ----------</span>
 <span class="sd">        input : np.ndarray</span>
 <span class="sd">            A N x D array, where N is the number of input data</span>
-<span class="sd">            and D is the number of dimensions</span>
+<span class="sd">            and D is the number of dimensions; N x D_orig with</span>
+<span class="sd">            ``fixed_values``, whose fixed coordinates are left out.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        u : np.ndarray</span>
 <span class="sd">            The variables transformed.</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lb</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ub</span>
@@ -668,17 +731,50 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        x : np.ndarray</span>
-<span class="sd">            The original variables retrieved by the inverse transform.</span>
+<span class="sd">            The original variables retrieved by the inverse transform; with</span>
+<span class="sd">            ``fixed_values``, all ``D_orig`` of them, the fixed ones at</span>
+<span class="sd">            their values.</span>
 <span class="sd">        """</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ginv</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_lb</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_ub</span>
         <span class="p">)</span>  <span class="c1"># Force to stay within bounds</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free</span><span class="o">.</span><span class="n">size</span><span class="p">,))</span>
+            <span class="n">full</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">full</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">full</span>
 
         <span class="k">return</span> <span class="n">x</span></div>
 </div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bound_as_row</span><span class="p">(</span><span class="n">bound</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A float copy of ``bound`` of shape ``(1, D)``: an array of ``D``</span>
+<span class="sd">    elements, of shape ``(1, D)`` or ``(D,)``, or a scalar or an array of one</span>
+<span class="sd">    element, replicated in each dimension. A bound that is not a number, or</span>
+<span class="sd">    an array of numbers, is refused, a string included."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="s2">"USV"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"a string or bytes"</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> needs to be a number or an array of numbers, not "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bound</span><span class="si">!r}</span><span class="s2">."</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">),</span> <span class="n">row</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> needs to be a scalar or an array of D=</span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2"> elements, of "</span>
+            <span class="sa">f</span><span class="s2">"shape (1, D) or (D,), not an array of shape "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">maskindex</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">bool_index</span><span class="p">):</span>
@@ -739,6 +835,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

@@ -189,12 +189,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -214,6 +216,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -391,32 +394,42 @@
 <a class="viewcode-back" href="../../../api/functions/acquisition_functions.html#pybads.acquisition_functions.acq_fcn_lcb.acq_fcn_lcb">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">acq_fcn_lcb</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">func_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">gpr</span><span class="o">.</span><span class="n">GP</span><span class="p">,</span> <span class="n">sqrt_beta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Lower Confidence Bound (LCB) acquisition function.</span>
-<span class="sd">    It retrieves the point at the lower confidence bound of the GP surrogate model.</span>
+<span class="sd">    Lower confidence bound (LCB) of the GP at the points ``xi``.</span>
+
+<span class="sd">    The acquisition function of the search and of the poll: the GP's mean at</span>
+<span class="sd">    each point less ``sqrt_beta`` times its standard deviation.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    ==========</span>
-<span class="sd">    xi: np.ndarray</span>
-<span class="sd">        Input points</span>
-<span class="sd">    func_count: int</span>
-<span class="sd">        Number of function evaluations</span>
-<span class="sd">    gp: GP</span>
-<span class="sd">        Gaussian process</span>
-<span class="sd">    sqrt_beta: float</span>
-<span class="sd">        LCB parameter</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xi : np.ndarray</span>
+<span class="sd">        The points, of shape ``(N, D)``.</span>
+<span class="sd">    func_count : int</span>
+<span class="sd">        The number of function evaluations so far.</span>
+<span class="sd">    gp : gpyreg.GP</span>
+<span class="sd">        The Gaussian process.</span>
+<span class="sd">    sqrt_beta : None, callable or float, optional</span>
+<span class="sd">        The LCB parameter, the multiplier of the GP's standard deviation. If</span>
+<span class="sd">        ``None``, the schedule of Srinivas et al. (2010), with an empirical</span>
+<span class="sd">        correction; a callable is called as ``sqrt_beta(t, D)``, with</span>
+<span class="sd">        ``t = func_count + 1``, and returns a positive finite real number;</span>
+<span class="sd">        otherwise a positive finite real number (a Python or NumPy scalar, or</span>
+<span class="sd">        an array of one element).</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">    ==========</span>
-<span class="sd">    z: lower confidence bound</span>
-<span class="sd">        Point at the lower confidence bound</span>
-<span class="sd">    f_mu: GP prediction at xi</span>
-<span class="sd">        GP prediction at z.</span>
-<span class="sd">    f_s: GP variance</span>
-<span class="sd">        GP variance at z.</span>
-<span class="sd">    """</span>
-    <span class="c1"># Returns z, dz,ymu,ys,fmu,fs,*fpi*</span>
+<span class="sd">    -------</span>
+<span class="sd">    z : np.ndarray</span>
+<span class="sd">        The lower confidence bound at ``xi``.</span>
+<span class="sd">    f_mu : np.ndarray</span>
+<span class="sd">        The GP's mean at ``xi``.</span>
+<span class="sd">    f_s : np.ndarray</span>
+<span class="sd">        The GP's standard deviation at ``xi``.</span>
 
-    <span class="n">n</span> <span class="o">=</span> <span class="n">xi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``sqrt_beta`` is none of the values above, or a callable returns</span>
+<span class="sd">        another value.</span>
+<span class="sd">    """</span>
     <span class="n">n_vars</span> <span class="o">=</span> <span class="n">xi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">func_count</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">sqrt_beta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -425,12 +438,17 @@
             <span class="n">nu</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n_vars</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">6</span> <span class="o">*</span> <span class="n">delta</span><span class="p">))</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="nb">callable</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">):</span>
-        <span class="n">sqrt_beta</span> <span class="o">=</span> <span class="n">sqrt_beta</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sqrt_beta</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"acq_lcb: The SQRTBETAT parameter of the acquisition </span><span class="se">\</span>
-<span class="s2">            function needs to be a scalar or a function handle/name to an annealing schedule."</span>
-        <span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">sqrt_beta</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_positive_finite_real</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive "</span>
+                <span class="sa">f</span><span class="s2">"finite real number, not </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> (t = </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">, "</span>
+                <span class="sa">f</span><span class="s2">"n_vars = </span><span class="si">{</span><span class="n">n_vars</span><span class="si">}</span><span class="s2">)."</span>
+            <span class="p">)</span>
+        <span class="n">sqrt_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">check_sqrt_beta</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">,</span> <span class="s2">"acq_fcn_lcb: sqrt_beta"</span><span class="p">)</span>
+        <span class="n">sqrt_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="n">f_mu</span><span class="p">,</span> <span class="n">f_s2</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
     <span class="n">f_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">f_s2</span><span class="p">)</span>
@@ -440,6 +458,50 @@
 
     <span class="k">return</span> <span class="n">z</span><span class="p">,</span> <span class="n">f_mu</span><span class="p">,</span> <span class="n">f_s</span></div>
 
+
+
+<div class="viewcode-block" id="check_sqrt_beta">
+<a class="viewcode-back" href="../../../api/functions/acquisition_functions.html#pybads.acquisition_functions.acq_fcn_lcb.check_sqrt_beta">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_sqrt_beta</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"sqrt_beta"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Check the LCB parameter ``sqrt_beta`` of ``acq_fcn_lcb``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sqrt_beta : object</span>
+<span class="sd">        The value to check: ``None``, a callable, or a positive finite real</span>
+<span class="sd">        number (a Python or NumPy scalar, or an array of one element).</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        What the error message calls ``sqrt_beta``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``sqrt_beta`` is none of the values above.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="n">sqrt_beta</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="nb">callable</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">_is_positive_finite_real</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> needs to be None (the default schedule), a callable "</span>
+            <span class="s2">"sqrt_beta(t, n_vars) or a positive finite real number, not "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sqrt_beta</span><span class="si">!r}</span><span class="s2">."</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_positive_finite_real</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether ``x`` is a positive finite real number: a Python or NumPy</span>
+<span class="sd">    integer or float, or an array of one, and not a boolean."""</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="s2">"iuf"</span>
+        <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">)</span>
 </pre></div>
 
                 </article>
@@ -491,6 +553,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

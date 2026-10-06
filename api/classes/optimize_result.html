@@ -194,12 +194,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../documentation.html">Documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -219,6 +221,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -483,21 +486,26 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 <div><ul class="simple">
 <li><dl class="simple">
 <dt>fun: callable</dt><dd><ul>
-<li><p>The objective function to be minimized.</p></li>
+<li><p>The objective function to be minimized, the object passed to
+<code class="docutils literal notranslate"><span class="pre">BADS</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>non_box_cons: callable</dt><dd><ul>
-<li><p>Non-box constraints function (if any).</p></li>
+<li><p>Non-box constraints function (if any), the object passed to
+<code class="docutils literal notranslate"><span class="pre">BADS</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>x0: np.ndarray</dt><dd><ul>
-<li><p>Initial starting point.</p></li>
+<li><p>Initial starting point, as given or drawn at random, with the
+fixed variables at their values, before it is put on the
+mesh: the first point evaluated is the point of the mesh
+nearest to it.</p></li>
 </ul>
 </dd>
 </dl>
@@ -518,21 +526,36 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 </li>
 <li><dl class="simple">
 <dt>fsd: float</dt><dd><ul>
-<li><p>Standard deviation of objective function at solution (0 if noiseless).</p></li>
+<li><p>Standard deviation of objective function at solution (0 if noiseless).
+For a noisy run that ends in its initialization or its first
+iteration without final samples (<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stops it in
+its initialization, <code class="docutils literal notranslate"><span class="pre">noise_final_samples</span> <span class="pre">=</span> <span class="pre">0</span></code>, or its
+<code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> leaves no evaluation for them after the
+initial design), it is not an estimate: <code class="docutils literal notranslate"><span class="pre">noise_size</span></code>
+without <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>, and otherwise the standard
+deviation that the target returned at the incumbent.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>yval_vec: np.ndarray</dt><dd><ul>
-<li><p>Final sampled observations at the solution.</p></li>
+<dt>yval_vec: np.ndarray or None</dt><dd><ul>
+<li><p>Final sampled observations at the solution; the incumbent’s
+observation alone if <code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stops the run in its
+initialization.
+None for a run without uncertainty handling, with
+<code class="docutils literal notranslate"><span class="pre">noise_final_samples</span> <span class="pre">=</span> <span class="pre">0</span></code>, or whose <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> leaves
+no evaluation for a final sample after the initial design.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>ysd_vec: np.ndarray</dt><dd><ul>
-<li><p>Standard deviations of the final sampled observations (<code class="docutils literal notranslate"><span class="pre">&quot;yval_vec&quot;</span></code>).</p></li>
+<dt>ysd_vec: np.ndarray or None</dt><dd><ul>
+<li><p>Standard deviations of the final sampled observations
+(<code class="docutils literal notranslate"><span class="pre">&quot;yval_vec&quot;</span></code>) that the target returns with
+<code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>; None otherwise, and when no final
+sample was taken.</p></li>
 </ul>
 </dd>
 </dl>
@@ -546,7 +569,26 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 </li>
 <li><dl class="simple">
 <dt>func_count: int</dt><dd><ul>
-<li><p>Number of evaluations of the objective functions.</p></li>
+<li><p>Number of evaluations of the objective functions.
+The evaluations made before the run
+(<code class="docutils literal notranslate"><span class="pre">precomputed_evaluations</span></code>) are not counted.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>precomputed_observations: int</dt><dd><ul>
+<li><p>Number of evaluations made before the run that <code class="docutils literal notranslate"><span class="pre">BADS</span></code> was
+given (<code class="docutils literal notranslate"><span class="pre">precomputed_evaluations</span></code>); present only when it was
+given at least one.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>precomputed_locations: int</dt><dd><ul>
+<li><p>Number of distinct points among them; present with
+<code class="docutils literal notranslate"><span class="pre">precomputed_observations</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -554,6 +596,31 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 <li><dl class="simple">
 <dt>iterations: int</dt><dd><ul>
 <li><p>Number of iterations performed by the optimizer.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>success: bool</dt><dd><ul>
+<li><p>True when the run ended on one of its convergence criteria,
+<code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code> or the stall criterion (<code class="docutils literal notranslate"><span class="pre">status</span></code> 1 or 2), which
+prevail when <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code>, <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> or the
+<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> ends the same iteration; False when one of
+those ended it alone, or it ended in its initialization
+(<code class="docutils literal notranslate"><span class="pre">status</span></code> 0): the convention of MATLAB’s exit flags and of
+<code class="docutils literal notranslate"><span class="pre">scipy.optimize</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>status: int</dt><dd><ul>
+<li><p>The exit flag of MATLAB BADS, the criterion that ended the
+run: 0 when it reached <code class="docutils literal notranslate"><span class="pre">max_fun_evals</span></code> or <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> stopped it or it ended in its initialization; 1
+when the mesh size fell below <code class="docutils literal notranslate"><span class="pre">tol_mesh</span></code>; 2 when the
+improvement over the last <code class="docutils literal notranslate"><span class="pre">tol_stall_iters</span></code> iterations fell
+below <code class="docutils literal notranslate"><span class="pre">tol_fun</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -573,15 +640,29 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 </dl>
 </li>
 <li><dl class="simple">
+<dt>target_type: str</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;deterministic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;stochastic&quot;</span></code> for a noisy target
+whose noise BADS infers, or <code class="docutils literal notranslate"><span class="pre">&quot;stochastic</span> <span class="pre">(specified</span>
+<span class="pre">noise)&quot;</span></code> with <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
 <dt>total_time: float</dt><dd><ul>
-<li><p>Total time taken by the optimizer.</p></li>
+<li><p>Time taken by <code class="docutils literal notranslate"><span class="pre">optimize()</span></code>, in seconds; the setup made when
+<code class="docutils literal notranslate"><span class="pre">BADS</span></code> is created is not counted.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>overhead: float</dt><dd><ul>
-<li><p>Fractional overhead taken by the optimizer, compared to function time.</p></li>
+<li><p>Fractional overhead taken by the optimizer, compared to function time.
+The second evaluation of the starting point that tests the
+target for noise (with <code class="docutils literal notranslate"><span class="pre">uncertainty_handling</span></code> left empty)
+counts as the optimizer’s time, since the function time leaves
+it out, as in MATLAB BADS.</p></li>
 </ul>
 </dd>
 </dl>
@@ -589,6 +670,13 @@ See also: <a class="reference external" href="https://docs.scipy.org/doc/scipy/r
 <li><dl class="simple">
 <dt>random_seed: int or None</dt><dd><ul>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> option if it is an integer (a float that is a whole number is converted to one), and <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>algorithm: str</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;Bayesian</span> <span class="pre">adaptive</span> <span class="pre">direct</span> <span class="pre">search&quot;</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -719,6 +807,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

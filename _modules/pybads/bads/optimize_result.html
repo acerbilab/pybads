@@ -189,12 +189,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -214,6 +216,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -401,37 +404,92 @@
 <span class="sd">    Attributes:</span>
 
 <span class="sd">        - fun: callable</span>
-<span class="sd">            - The objective function to be minimized.</span>
+<span class="sd">            - The objective function to be minimized, the object passed to</span>
+<span class="sd">              ``BADS``.</span>
 <span class="sd">        - non_box_cons: callable</span>
-<span class="sd">            - Non-box constraints function (if any).</span>
+<span class="sd">            - Non-box constraints function (if any), the object passed to</span>
+<span class="sd">              ``BADS``.</span>
 <span class="sd">        - x0: np.ndarray</span>
-<span class="sd">            - Initial starting point.</span>
+<span class="sd">            - Initial starting point, as given or drawn at random, with the</span>
+<span class="sd">              fixed variables at their values, before it is put on the</span>
+<span class="sd">              mesh: the first point evaluated is the point of the mesh</span>
+<span class="sd">              nearest to it.</span>
 <span class="sd">        - x: np.ndarray</span>
 <span class="sd">            - The solution of the optimization.</span>
 <span class="sd">        - fval: float</span>
 <span class="sd">            - Value of objective function at solution.</span>
 <span class="sd">        - fsd: float</span>
 <span class="sd">            - Standard deviation of objective function at solution (0 if noiseless).</span>
-<span class="sd">        - yval_vec: np.ndarray</span>
-<span class="sd">            - Final sampled observations at the solution.</span>
-<span class="sd">        - ysd_vec: np.ndarray</span>
-<span class="sd">            - Standard deviations of the final sampled observations (``"yval_vec"``).</span>
+<span class="sd">              For a noisy run that ends in its initialization or its first</span>
+<span class="sd">              iteration without final samples (``output_fcn`` stops it in</span>
+<span class="sd">              its initialization, ``noise_final_samples = 0``, or its</span>
+<span class="sd">              ``max_fun_evals`` leaves no evaluation for them after the</span>
+<span class="sd">              initial design), it is not an estimate: ``noise_size``</span>
+<span class="sd">              without ``specify_target_noise``, and otherwise the standard</span>
+<span class="sd">              deviation that the target returned at the incumbent.</span>
+<span class="sd">        - yval_vec: np.ndarray or None</span>
+<span class="sd">            - Final sampled observations at the solution; the incumbent's</span>
+<span class="sd">              observation alone if ``output_fcn`` stops the run in its</span>
+<span class="sd">              initialization.</span>
+<span class="sd">              None for a run without uncertainty handling, with</span>
+<span class="sd">              ``noise_final_samples = 0``, or whose ``max_fun_evals`` leaves</span>
+<span class="sd">              no evaluation for a final sample after the initial design.</span>
+<span class="sd">        - ysd_vec: np.ndarray or None</span>
+<span class="sd">            - Standard deviations of the final sampled observations</span>
+<span class="sd">              (``"yval_vec"``) that the target returns with</span>
+<span class="sd">              ``specify_target_noise``; None otherwise, and when no final</span>
+<span class="sd">              sample was taken.</span>
 <span class="sd">        - mesh_size: float</span>
 <span class="sd">            - Final mesh size.</span>
 <span class="sd">        - func_count: int</span>
 <span class="sd">            - Number of evaluations of the objective functions.</span>
+<span class="sd">              The evaluations made before the run</span>
+<span class="sd">              (``precomputed_evaluations``) are not counted.</span>
+<span class="sd">        - precomputed_observations: int</span>
+<span class="sd">            - Number of evaluations made before the run that ``BADS`` was</span>
+<span class="sd">              given (``precomputed_evaluations``); present only when it was</span>
+<span class="sd">              given at least one.</span>
+<span class="sd">        - precomputed_locations: int</span>
+<span class="sd">            - Number of distinct points among them; present with</span>
+<span class="sd">              ``precomputed_observations``.</span>
 <span class="sd">        - iterations: int</span>
 <span class="sd">            - Number of iterations performed by the optimizer.</span>
+<span class="sd">        - success: bool</span>
+<span class="sd">            - True when the run ended on one of its convergence criteria,</span>
+<span class="sd">              ``tol_mesh`` or the stall criterion (``status`` 1 or 2), which</span>
+<span class="sd">              prevail when ``max_fun_evals``, ``max_iter`` or the</span>
+<span class="sd">              ``output_fcn`` ends the same iteration; False when one of</span>
+<span class="sd">              those ended it alone, or it ended in its initialization</span>
+<span class="sd">              (``status`` 0): the convention of MATLAB's exit flags and of</span>
+<span class="sd">              ``scipy.optimize``.</span>
+<span class="sd">        - status: int</span>
+<span class="sd">            - The exit flag of MATLAB BADS, the criterion that ended the</span>
+<span class="sd">              run: 0 when it reached ``max_fun_evals`` or ``max_iter``, the</span>
+<span class="sd">              ``output_fcn`` stopped it or it ended in its initialization; 1</span>
+<span class="sd">              when the mesh size fell below ``tol_mesh``; 2 when the</span>
+<span class="sd">              improvement over the last ``tol_stall_iters`` iterations fell</span>
+<span class="sd">              below ``tol_fun``.</span>
 <span class="sd">        - message: str</span>
 <span class="sd">            - Termination message.</span>
 <span class="sd">        - problem_type: str</span>
 <span class="sd">            - Type of problem (unconstrained, bound constraints, non-box constraints).</span>
+<span class="sd">        - target_type: str</span>
+<span class="sd">            - ``"deterministic"``, ``"stochastic"`` for a noisy target</span>
+<span class="sd">              whose noise BADS infers, or ``"stochastic (specified</span>
+<span class="sd">              noise)"`` with ``specify_target_noise``.</span>
 <span class="sd">        - total_time: float</span>
-<span class="sd">            - Total time taken by the optimizer.</span>
+<span class="sd">            - Time taken by ``optimize()``, in seconds; the setup made when</span>
+<span class="sd">              ``BADS`` is created is not counted.</span>
 <span class="sd">        - overhead: float</span>
 <span class="sd">            - Fractional overhead taken by the optimizer, compared to function time.</span>
+<span class="sd">              The second evaluation of the starting point that tests the</span>
+<span class="sd">              target for noise (with ``uncertainty_handling`` left empty)</span>
+<span class="sd">              counts as the optimizer's time, since the function time leaves</span>
+<span class="sd">              it out, as in MATLAB BADS.</span>
 <span class="sd">        - random_seed: int or None</span>
 <span class="sd">            - The ``random_seed`` option if it is an integer (a float that is a whole number is converted to one), and ``None`` otherwise.</span>
+<span class="sd">        - algorithm: str</span>
+<span class="sd">            - ``"Bayesian adaptive direct search"``.</span>
 <span class="sd">        - version: str</span>
 <span class="sd">            - Version of the optimizer.</span>
 
@@ -448,6 +506,8 @@
         <span class="s2">"message"</span><span class="p">,</span>
         <span class="s2">"fun"</span><span class="p">,</span>
         <span class="s2">"func_count"</span><span class="p">,</span>  <span class="c1"># Number of evaluations of the objective functions</span>
+        <span class="s2">"precomputed_observations"</span><span class="p">,</span>  <span class="c1"># Evaluations made before the run</span>
+        <span class="s2">"precomputed_locations"</span><span class="p">,</span>  <span class="c1"># Their distinct points</span>
         <span class="s2">"iterations"</span><span class="p">,</span>  <span class="c1"># Number of iterations performed by the optimizer.</span>
         <span class="s2">"target_type"</span><span class="p">,</span>
         <span class="s2">"problem_type"</span><span class="p">,</span>
@@ -499,8 +559,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="s2">"problem_type"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"non-box constraints"</span>
 
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"iterations"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"iter"</span><span class="p">]</span>
+        <span class="c1"># optim_state["iter"] counts from 0, and is -1 during initialization</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"iterations"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"iter"</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"func_count"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">function_logger</span><span class="o">.</span><span class="n">func_count</span>
+        <span class="c1"># As PyVBMC reports them, only for a run given evaluations</span>
+        <span class="k">if</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"precomputed_observations"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s2">"precomputed_observations"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span>
+                <span class="s2">"precomputed_observations"</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s2">"precomputed_locations"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span>
+                <span class="s2">"precomputed_locations"</span>
+            <span class="p">]</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"mesh_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">mesh_size</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"overhead"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"overhead"</span><span class="p">]</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"algorithm"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Bayesian adaptive direct search"</span>
@@ -527,6 +596,7 @@
         <span class="bp">self</span><span class="p">[</span><span class="s2">"total_time"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"total_time"</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="p">[</span><span class="s2">"random_seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"random_seed"</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"exit_flag"</span><span class="p">]</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">__version__</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s2">"pybads"</span><span class="p">)</span>
@@ -538,9 +608,9 @@
 
         <span class="bp">self</span><span class="p">[</span><span class="s2">"version"</span><span class="p">]</span> <span class="o">=</span> <span class="n">__version__</span>
 
-        <span class="bp">self</span><span class="p">[</span>
-            <span class="s2">"success"</span>
-        <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># TODO: In our case when an error occurs, the application just stops.</span>
+        <span class="c1"># A positive exit flag, the convention of MATLAB and scipy: False</span>
+        <span class="c1"># when a limit (max_fun_evals, max_iter) or output_fcn ends the run</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"success"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"message"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"termination_msg"</span><span class="p">]</span></div>
 
 
@@ -565,6 +635,11 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OptimizeResult</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"""The key is not part of OptimizeResult._keys"""</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"fun"</span><span class="p">,</span> <span class="s2">"non_box_cons"</span><span class="p">):</span>
+            <span class="c1"># The callables are kept by reference: a copy of a bound method</span>
+            <span class="c1"># or a callable object copies its instance, which may hold what</span>
+            <span class="c1"># cannot be copied (a lock, an open file)</span>
+            <span class="nb">dict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">dict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">val</span><span class="p">))</span></div>
 
@@ -619,6 +694,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

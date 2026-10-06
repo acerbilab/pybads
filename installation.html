@@ -190,12 +190,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -215,6 +217,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -461,16 +464,18 @@
 </pre></div>
 </div>
 <p>PyBADS requires Python version 3.10 or newer.</p>
+<p>To learn whether a newer release exists and how to update, see the
+<a class="reference internal" href="faq.html#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists"><span class="std std-ref">FAQ</span></a>.</p>
 </li>
-<li><p>(Optional): Install Jupyter to view the examples. You can skip this step if you’re working from a Conda environment which already has Jupyter, but be aware that if the wrong <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> executable is found on your path then import errors may arise.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">jupyter</span>
+<li><p>(Optional): Install <a class="reference external" href="https://jupyter.org/install">Jupyter Notebook</a> to run the examples. You can skip this step if your environment already has Jupyter Notebook, but be aware that if the wrong <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> executable is found on your path then import errors may arise.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">notebook</span>
 </pre></div>
 </div>
-<p>If you are running Python 3.11 and get an <code class="docutils literal notranslate"><span class="pre">UnsatisfiableError</span></code> you may need to install Jupyter from <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>:</p>
+<p>or, with Conda:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">--</span><span class="n">channel</span><span class="o">=</span><span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">jupyter</span>
 </pre></div>
 </div>
-<p>The example notebooks can be accessed by running</p>
+<p>The example notebooks can then be accessed by running</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pybads</span>
 </pre></div>
 </div>
@@ -478,10 +483,9 @@
 </ol>
 <p>You can run PyBADS’s internal tests with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="s2">"pybads[test]"</span>
-<span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">pybads</span> <span class="o">--</span><span class="n">reruns</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">pybads</span>
 </pre></div>
 </div>
-<p>The <cite>–reruns=3</cite> argument allows re-trying a failed test up to 3 times, as many of PyBADS’s tests are stochastic in nature.</p>
 <p>If you wish to install directly from latest source code, please see the <a class="reference internal" href="development.html#installation-instructions-for-developers"><span class="std std-ref">Installation instructions for developers</span></a>.</p>
 </section>
 
@@ -553,6 +557,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

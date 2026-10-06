@@ -194,12 +194,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -219,6 +221,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -630,10 +633,10 @@ Please keep the documentation up to date. (Sphinx logs possible issues when comp
 Tests can be run with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_filename</span><span class="o">.</span><span class="n">py</span>
 <span class="n">pytest</span>
-<span class="n">pytest</span> <span class="o">--</span><span class="n">reruns</span> <span class="mi">5</span> <span class="o">--</span><span class="n">cov</span><span class="o">=.</span> <span class="o">--</span><span class="n">cov</span><span class="o">-</span><span class="n">report</span> <span class="n">html</span><span class="p">:</span><span class="n">cov_html</span>
+<span class="n">pytest</span> <span class="o">--</span><span class="n">cov</span><span class="o">=.</span> <span class="o">--</span><span class="n">cov</span><span class="o">-</span><span class="n">report</span> <span class="n">html</span><span class="p">:</span><span class="n">cov_html</span>
 </pre></div>
 </div>
-<p>The final command creates an html folder with a full report on coverage – double-check it from time to time. Some tests are stochastic and occasionally fail: Tests can be automatically rerun by specifying e.g. <code class="docutils literal notranslate"><span class="pre">--reruns</span> <span class="pre">3</span></code>.</p>
+<p>The final command creates an html folder with a full report on coverage – double-check it from time to time. A test that draws random numbers sets its seed (the <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> option for a BADS run, a generator of its own for the noise of a target), so that a failure repeats when the test is rerun.</p>
 <p>A few comments about testing:</p>
 <ul class="simple">
 <li><p>Testing is mandatory! The full suite of tests is automatically run before any pull request can be merged into <code class="docutils literal notranslate"><span class="pre">main</span></code>. The tests run on Windows, Linux, and macOS. Automatic tests are skipped for PRs which do not change the source code or tests (e.g., changes to the documentation only).</p></li>
@@ -647,7 +650,7 @@ Tests can be run with:</p>
 </section>
 <section id="releases">
 <h3>Releases<a class="headerlink" href="#releases" title="Link to this heading">#</a></h3>
-<p>Each change that a user can notice is listed in <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> under <code class="docutils literal notranslate"><span class="pre">Unreleased</span></code> when it is made. A release is a tag <code class="docutils literal notranslate"><span class="pre">vX.Y.Z</span></code> on <code class="docutils literal notranslate"><span class="pre">main</span></code> and a GitHub release published from that tag: the <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> workflow then builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package is updated separately, in its feedstock.</p>
+<p>Each change to results, to the interface, or to what a script sees is listed in <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> under <code class="docutils literal notranslate"><span class="pre">Unreleased</span></code> when it is made, in one or two sentences written for users. A release is a tag <code class="docutils literal notranslate"><span class="pre">vX.Y.Z</span></code> on <code class="docutils literal notranslate"><span class="pre">main</span></code> and a GitHub release published from that tag. Before the pull request that carries the release to <code class="docutils literal notranslate"><span class="pre">main</span></code>, the changelog’s <code class="docutils literal notranslate"><span class="pre">Unreleased</span></code> section becomes <code class="docutils literal notranslate"><span class="pre">[X.Y.Z]</span> <span class="pre">-</span> <span class="pre">&lt;date&gt;</span></code> under a new, empty <code class="docutils literal notranslate"><span class="pre">Unreleased</span></code>, and the GitHub release takes that section as its notes. The same pull request sets <code class="docutils literal notranslate"><span class="pre">RELEASE_DATE</span></code> in <code class="docutils literal notranslate"><span class="pre">pybads/_release.py</span></code> to that date, from which the reminder shown by a release more than a year old tells its age; <code class="docutils literal notranslate"><span class="pre">pybads/testing/bads/test_release_reminder.py</span></code> checks that the two agree. Before that pull request, too, the example notebooks, whose outputs ship with the release, are rerun with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">-C</span> <span class="pre">examples/scripts</span> <span class="pre">run</span></code> and their outputs committed. Example 5 shows the version of the PyBADS that ran it, and the release’s tag does not exist yet, so for the run PyBADS is installed under the release’s version, <code class="docutils literal notranslate"><span class="pre">SETUPTOOLS_SCM_PRETEND_VERSION=X.Y.Z</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span> <span class="pre">--no-deps</span></code> in a POSIX shell (Git Bash on Windows), and reinstalled afterwards with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span> <span class="pre">--no-deps</span></code>, which takes the version from the tags again. When the GitHub release is published, the <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> workflow builds the package and uploads it to PyPI by trusted publishing, with no stored token. The conda-forge package follows: the version bot of the <a class="reference external" href="https://github.com/conda-forge/pybads-feedstock">pybads feedstock</a> opens an update pull request after the upload and merges it once its build and tests pass. A feedstock maintainer steps in only when that pull request fails, for example when PyBADS requires a gpyreg release that conda-forge does not have yet.</p>
 </section>
 </section>
 </section>
@@ -751,6 +754,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

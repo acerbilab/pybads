@@ -196,12 +196,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -221,6 +223,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -582,47 +585,51 @@ The code used in this example is available as a script <a class="reference downl
 <section id="run-the-optimization">
 <h2>2. Run the optimization<a class="headerlink" href="#run-the-optimization" title="Link to this heading">#</a></h2>
 <p>We initialize <code class="docutils literal notranslate"><span class="pre">bads</span></code> with the non-box constraints defined by <code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code>. Note that we also still specify standard box constraints <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>, as this will help the search.</p>
-<p>Here BADS will complain because we did not specify the plausible bounds explicitly. In the absence of plausible bounds, BADS will create them based on the lower/upper bounds instead. As a general rule, it is strongly recommended to specify the plausible bounds.</p>
+<p>Here we do not specify the plausible bounds: in their absence, BADS takes the lower/upper bounds as plausible bounds. As a general rule, it is strongly recommended to specify the plausible bounds.</p>
+<p>As in the previous example, we fix the random seed of the run with <code class="docutils literal notranslate"><span class="pre">random_seed</span></code>, so that the example is reproducible.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span>
-    <span class="n">rosenbrocks_fcn</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="p">,</span> <span class="n">non_box_cons</span><span class="o">=</span><span class="n">circle_constr</span>
+    <span class="n">rosenbrocks_fcn</span><span class="p">,</span>
+    <span class="n">x0</span><span class="p">,</span>
+    <span class="n">lower_bounds</span><span class="p">,</span>
+    <span class="n">upper_bounds</span><span class="p">,</span>
+    <span class="n">non_box_cons</span><span class="o">=</span><span class="n">circle_constr</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"random_seed"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>  <span class="c1"># Makes the run reproducible</span>
 <span class="p">)</span>
 <span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bads:TooCloseBounds: For each variable, hard and plausible bounds should not be too close. Moving plausible bounds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bads:pbUnspecified: Plausible lower/upper bounds not specified. Using hard upper/lower bounds instead.
 Beginning optimization of a DETERMINISTIC objective function
+
+Tip: If you work with a coding agent, give it the PyBADS skill from GitHub, or copy the skills/pybads folder of PyBADS's repository into the agent's skill directory: it points the agent to the parts of PyBADS's documentation relevant to your task.
+https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2               1               1                                 Uncertainty test
      0           5               1               1         Initial mesh            Initial points
-     0           9               1             0.5         Refine grid             Train
-     1          13         0.71573             0.5     Incremental search (ES-wcm)        
-     1          17         0.71573            0.25         Refine grid             Train
-     2          18        0.213085            0.25     Successful search (ES-wcm)        
-     2          20       0.0866235            0.25     Successful search (ES-wcm)        
-     2          22       0.0750055            0.25     Incremental search (ES-wcm)        
-     2          23       0.0555838            0.25     Incremental search (ES-ell)        
-     2          24       0.0503648            0.25     Incremental search (ES-ell)        
-     2          27       0.0503648           0.125         Refine grid             
-     3          28       0.0473246           0.125     Incremental search (ES-wcm)        
-     3          29       0.0460316           0.125     Incremental search (ES-wcm)        
-     3          30       0.0460089           0.125     Incremental search (ES-ell)        
-     3          33       0.0460089          0.0625         Refine grid             
-     4          36       0.0459778          0.0625     Incremental search (ES-wcm)        
-     4          39       0.0459778         0.03125         Refine grid             Train
-     5          40       0.0457596         0.03125     Incremental search (ES-ell)        
-     5          43       0.0456915         0.03125     Incremental search (ES-ell)        
-     5          45       0.0456915        0.015625         Refine grid             
-     6          48       0.0456879        0.015625     Incremental search (ES-ell)        
-     6          51       0.0456879      0.00390625         Refine grid             Train
-     7          55       0.0456831      0.00390625     Incremental search (ES-ell)        
-     7          57       0.0456831     0.000976562         Refine grid             
+     1           9               1             0.5         Refine grid             Train
+     2          17               1            0.25         Refine grid             Train
+     3          25        0.953125           0.125         Refine grid             
+     4          26        0.358103           0.125     Successful search (ES-wcm)        
+     4          27        0.169571           0.125     Successful search (ES-wcm)        
+     4          28        0.078532           0.125     Successful search (ES-wcm)        
+     4          29       0.0479325           0.125     Incremental search (ES-wcm)        
+     4          30        0.046686           0.125     Incremental search (ES-ell)        
+     4          31       0.0457222           0.125     Incremental search (ES-wcm)        
+     4          35       0.0457222          0.0625         Refine grid             
+     5          41       0.0457222         0.03125         Refine grid             
+     6          47       0.0457222        0.015625         Refine grid             Train
+     7          48        0.045715        0.015625     Incremental search (ES-ell)        
+     7          50        0.045689        0.015625     Incremental search (ES-ell)        
+     7          51       0.0456798        0.015625     Incremental search (ES-wcm)        
+     7          53       0.0456798      0.00390625         Refine grid             
+     8          59       0.0456798     0.000976562         Refine grid             
 Optimization terminated: change in the function value less than options['tol_fun'].
-Function value at minimum: 0.04568314807326722
+Function value at minimum: 0.045679774134013466
 </pre></div>
 </div>
 </div>
@@ -644,8 +651,8 @@ Function value at minimum: 0.04568314807326722
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.78639246 0.6176717 ], fval = 0.04568
-total f-count: 58, time: 1.03 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.78642297 0.61765718], fval = 0.04568
+total f-count: 60, time: 0.96 s
 Problem type: non-box constraints
 </pre></div>
 </div>
@@ -753,6 +760,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

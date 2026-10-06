@@ -196,12 +196,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -221,6 +223,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -536,15 +539,9 @@ The code used in this example is available as a script <a class="reference downl
 <h2>0. What is (Py)BADS?<a class="headerlink" href="#what-is-py-bads" title="Link to this heading">#</a></h2>
 <p>BADS is a fast hybrid Bayesian optimization algorithm designed to solve difficult optimization problems, in particular related to parameter estimation – aka model fitting – of computational models (e.g., via maximum-likelihood or maximum-a-posteriori estimation). <strong>PyBADS is its Python implementation</strong>.</p>
 <p>BADS has been intensively tested for fitting a variety of computational models, and is currently used by many research groups around the world (see <a class="reference external" href="https://scholar.google.co.uk/scholar?cites=7209174494000095753&amp;as_sdt=2005&amp;sciodt=0,5&amp;hl=en">Google Scholar</a> for many example applications). In our benchmark with real model-fitting problems, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the <a class="reference external" href="https://arxiv.org/abs/1705.04405">original BADS paper</a>.</p>
-<p>BADS is particularly recommended when:</p>
-<ul class="simple">
-<li><p>the objective function landscape is rough (nonsmooth), typically due to numerical approximations or noise;</p></li>
-<li><p>the objective function is moderately expensive to compute (e.g., more than 0.1 second per function evaluation);</p></li>
-<li><p>the gradient is unavailable;</p></li>
-<li><p>the number of input parameters is up to about <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">20</span></code> or so.</p></li>
-</ul>
+<p>The PyBADS FAQ says <a class="reference external" href="https://acerbilab.github.io/pybads/faq.html#faq-which-kind-of-problems-is-pybads-suited-for">which kind of problems BADS is suited for</a>.</p>
 <p>BADS requires no specific tuning and runs off-the-shelf like other built-in Python optimizers (e.g., from <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>).</p>
-<p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out <a class="reference external" href="https://github.com/acerbilab/pyvbmc">Variational Bayesian Monte Carlo for Python (PyVBMC)</a>, a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.</p>
+<p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out <a class="reference external" href="https://github.com/acerbilab/pyvbmc">Variational Bayesian Monte Carlo for Python (PyVBMC)</a>, a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>.</p>
 <section id="optimization-problem">
 <h3>Optimization problem<a class="headerlink" href="#optimization-problem" title="Link to this heading">#</a></h3>
 <p>Formally, the goal of BADS is to <em>minimize</em> a target (or objective) function <span class="math notranslate nohighlight">\(f(\mathbf{x}): \mathbb{R}^D \rightarrow \mathbb{R}\)</span>, for <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^D\)</span>,</p>
@@ -590,8 +587,8 @@ The code used in this example is available as a script <a class="reference downl
 </section>
 <section id="initialize-and-run-the-optimization">
 <h2>2. Initialize and run the optimization<a class="headerlink" href="#initialize-and-run-the-optimization" title="Link to this heading">#</a></h2>
-<p>Then, we initialize a <code class="docutils literal notranslate"><span class="pre">bads</span></code> instance which takes care of the optimization. For now, we use default options.<br />
-To run the optimization, we simply call <code class="docutils literal notranslate"><span class="pre">bads.optimize()</span></code>, which returns an <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> object.</p>
+<p>Then, we initialize a <code class="docutils literal notranslate"><span class="pre">bads</span></code> instance which takes care of the optimization. For now, we use the default options, except for <code class="docutils literal notranslate"><span class="pre">random_seed</span></code>, which fixes the random seed of the run, so that the example is reproducible.<br />
+To run the optimization, we simply call <code class="docutils literal notranslate"><span class="pre">bads.optimize()</span></code>, which returns an <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> object. Besides its progress, the run may print a short tip with a link to the documentation: which tip, if any, depends on the runs before it in the Python session, not on the seed, and <code class="docutils literal notranslate"><span class="pre">options[&quot;show_tips&quot;]</span> <span class="pre">=</span> <span class="pre">False</span></code> turns the tips off. In an interactive session, a release of PyBADS more than a year old can print instead a reminder to check for a newer version, and <code class="docutils literal notranslate"><span class="pre">show_tips</span></code> turns it off too.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span>
@@ -601,6 +598,7 @@ To run the optimization, we simply call <code class="docutils literal notranslat
     <span class="n">upper_bounds</span><span class="p">,</span>
     <span class="n">plausible_lower_bounds</span><span class="p">,</span>
     <span class="n">plausible_upper_bounds</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"random_seed"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>  <span class="c1"># Makes the run reproducible</span>
 <span class="p">)</span>
 <span class="n">optimize_result</span> <span class="o">=</span> <span class="n">bads</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </pre></div>
@@ -609,28 +607,35 @@ To run the optimization, we simply call <code class="docutils literal notranslat
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Beginning optimization of a DETERMINISTIC objective function
 
+Tip: Run PyBADS from at least 10 different starting points, ideally dozens, depending on your problem; with x0=None, each run draws its start at random in the plausible box. Keep the run with the lowest fval: a single run can stop in a local minimum, and if several runs reach nearly the same fval, you can be more confident in the solution.
+https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-run-pybads-from-several-starting-points
+
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2               1               1                                 Uncertainty test
      0           6               1               1         Initial mesh            Initial points
-     0          10               1             0.5         Refine grid             Train
-     1          18               1            0.25         Refine grid             Train
-     2          20        0.608156            0.25     Successful search (ES-ell)        
-     2          21        0.408646            0.25     Successful search (ES-ell)        
-     2          23        0.303906            0.25     Incremental search (ES-wcm)        
-     2          25        0.212582            0.25     Incremental search (ES-ell)        
-     2          30        0.212582           0.125         Refine grid             Train
-     3          32        0.127714           0.125     Successful search (ES-wcm)        
-     3          33       0.0139198           0.125     Successful search (ES-wcm)        
-     3          34     0.000681342           0.125     Incremental search (ES-wcm)        
-     3          42     0.000681342          0.0625         Refine grid             Train
-     4          44     0.000120297          0.0625     Incremental search (ES-ell)        
-     4          50     0.000120297         0.03125         Refine grid             Train
-     5          58     0.000120297        0.015625         Refine grid             Train
-     6          66     0.000120297      0.00390625         Refine grid             Train
-     7          69     2.70979e-05      0.00390625     Incremental search (ES-wcm)        
-     7          74     2.70979e-05     0.000976562         Refine grid             Train
+     1          10               1             0.5         Refine grid             Train
+     2          14         0.93158             0.5     Incremental search (ES-wcm)        
+     2          18         0.93158            0.25         Refine grid             Train
+     3          26         0.93158           0.125         Refine grid             
+     4          27       0.0838039           0.125     Successful search (ES-wcm)        
+     4          28       0.0200177           0.125     Successful search (ES-wcm)        
+     4          29        0.018101           0.125     Incremental search (ES-wcm)        
+     4          31      0.00976075           0.125     Incremental search (ES-ell)        
+     4          38      0.00976075          0.0625         Refine grid             Train
+     5          39      0.00104772          0.0625     Incremental search (ES-ell)        
+     5          46      0.00104772         0.03125         Refine grid             Train
+     6          47     3.59812e-05         0.03125     Incremental search (ES-ell)        
+     6          54     3.59812e-05        0.015625         Refine grid             
+     7          56      3.1703e-05        0.015625     Incremental search (ES-wcm)        
+     7          58     3.43372e-06        0.015625     Incremental search (ES-ell)        
+     7          62     3.43372e-06       0.0078125         Refine grid             
+     8          70     3.43372e-06      0.00390625         Refine grid             Train
+     9          78     3.43372e-06     0.000976562         Refine grid             Train
+    10          79     9.42329e-07     0.000976562     Incremental search (ES-wcm)        
+    10          82     2.02425e-07     0.000976562     Incremental search (ES-ell)        
+    10          86     2.02425e-07     0.000244141         Refine grid             Train
 Optimization terminated: change in the function value less than options['tol_fun'].
-Function value at minimum: 2.7097907605695835e-05
+Function value at minimum: 2.0242459643132345e-07
 </pre></div>
 </div>
 </div>
@@ -652,8 +657,8 @@ Function value at minimum: 2.7097907605695835e-05
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.99709786 0.993772  ], fval = 2.71e-05
-total f-count: 75, time: 1.13 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.99966234 0.99935453], fval = 2.024e-07
+total f-count: 87, time: 2.39 s
 </pre></div>
 </div>
 </div>
@@ -755,6 +760,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

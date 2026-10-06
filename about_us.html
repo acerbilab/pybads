@@ -193,12 +193,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -218,6 +220,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -451,7 +454,6 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-team">Development team</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-developers">Core developers</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#development-team-alumni">Development team alumni</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#join-the-team">Join the team</a></li>
 </ul>
 </li>
@@ -469,21 +471,17 @@
   <section id="about-us">
 <h1>About us<a class="headerlink" href="#about-us" title="Link to this heading">#</a></h1>
 <p>PyBADS is an open-source Python software for sample-efficient optimization.</p>
-<p>The development of PyBADS has been supported by the Academy of Finland Flagship programme: <a class="reference external" href="https://fcai.fi/">Finnish Center for Artificial Intelligence FCAI</a>.</p>
+<p>Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: <a class="reference external" href="https://fcai.fi/">Finnish Center for Artificial Intelligence FCAI</a>.</p>
 <section id="development-team">
 <h2>Development team<a class="headerlink" href="#development-team" title="Link to this heading">#</a></h2>
-<p>PyBADS is actively developed mainly by members of <a class="reference external" href="https://www2.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi’s research group</a> at the University of Helsinki.</p>
+<p>PyBADS is developed by members (past and current) of the <a class="reference external" href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Machine and Human Intelligence Group</a> at the University of Helsinki and <a class="reference external" href="https://www.ellisinstitute.fi/">ELLIS Institute Finland</a>. Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic’s <a class="reference external" href="https://www.anthropic.com/claude-opus-5-5">Claude Opus 5.5</a>.</p>
 <section id="core-developers">
 <h3>Core developers<a class="headerlink" href="#core-developers" title="Link to this heading">#</a></h3>
-<p>Active developers, in order of joining:</p>
+<p>In order of joining:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://www2.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people#section-99451">Luigi Acerbi</a>, University of Helsinki</p></li>
+<li><p><a class="reference external" href="https://lacerbi.github.io/">Luigi Acerbi</a>, University of Helsinki</p></li>
 <li><p><a class="reference external" href="https://gurjeetsinghsangra.github.io/academic/">Gurjeet Singh</a>, University of Geneva</p></li>
 </ul>
-</section>
-<section id="development-team-alumni">
-<h3>Development team alumni<a class="headerlink" href="#development-team-alumni" title="Link to this heading">#</a></h3>
-<p>This section will list developers who have made important contributions in the past, but are no longer contributing actively.</p>
 </section>
 <section id="join-the-team">
 <h3>Join the team<a class="headerlink" href="#join-the-team" title="Link to this heading">#</a></h3>
@@ -532,7 +530,6 @@
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-team">Development team</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-developers">Core developers</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#development-team-alumni">Development team alumni</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#join-the-team">Join the team</a></li>
 </ul>
 </li>
@@ -573,6 +570,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

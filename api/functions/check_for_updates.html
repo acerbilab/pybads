@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Functions &#8212; PyBADS</title>
+    <title>check_for_updates &#8212; PyBADS</title>
   
   
   
@@ -44,14 +44,14 @@
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/functions/functions';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/functions/check_for_updates';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <link rel="canonical" href="https://acerbilab.github.io/pybads/api/functions/functions.html" />
+    <link rel="canonical" href="https://acerbilab.github.io/pybads/api/functions/check_for_updates.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Acquisition Functions" href="acquisition_functions.html" />
-    <link rel="prev" title="Timer" href="../classes/timer.html" />
+    <link rel="next" title="Decorators" href="decorators.html" />
+    <link rel="prev" title="Acquisition Functions" href="acquisition_functions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -139,6 +139,10 @@
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -215,9 +219,9 @@
 <li class="toctree-l4"><a class="reference internal" href="../classes/timer.html"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a></li>
 </ul>
 </details></li>
-<li class="toctree-l3 current active has-children"><a class="current reference internal" href="#">Functions</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="functions.html">Functions</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="acquisition_functions.html">Acquisition Functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -309,7 +313,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/api/functions/functions.rst" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/api/functions/check_for_updates.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -326,7 +330,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2Fapi/functions/functions.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/issues/new?title=Issue%20on%20page%20%2Fapi/functions/check_for_updates.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -356,7 +360,7 @@
       
       
       
-      <li><a href="../../_sources/api/functions/functions.rst" target="_blank"
+      <li><a href="../../_sources/api/functions/check_for_updates.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -426,7 +430,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -437,11 +443,24 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Functions</h1>
+    <h1>check_for_updates</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-for-a-newer-release">Check for a newer release</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#network-access">Network access</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-old-release-reminder">The old-release reminder</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.check_for_updates"><code class="docutils literal notranslate"><span class="pre">check_for_updates()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -451,17 +470,102 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="functions">
-<h1>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Functions:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="acquisition_functions.html">Acquisition Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="decorators.html">Decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
-</ul>
+  <section id="check-for-updates">
+<h1><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code><a class="headerlink" href="#check-for-updates" title="Link to this heading">#</a></h1>
+<section id="check-for-a-newer-release">
+<h2>Check for a newer release<a class="headerlink" href="#check-for-a-newer-release" title="Link to this heading">#</a></h2>
+<p>Ask PyPI whether a newer release of PyBADS is available:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybads</span>
+
+<span class="n">check</span> <span class="o">=</span> <span class="n">pybads</span><span class="o">.</span><span class="n">check_for_updates</span><span class="p">()</span>
+</pre></div>
 </div>
+<p>The function prints one line. When PyPI has a newer release, the line names
+it and gives the command that installs it, for example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>PyBADS 1.6.0 is available; you have 1.5.0. Update with: python -m pip install --upgrade pybads
+</pre></div>
+</div>
+<p>The command follows the installer recorded with your installation:
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pybads</span></code> for pip,
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> for conda (the conda-forge
+package can follow PyPI by a few days), and both when the installer is
+another or unknown. The other messages are listed below, with the returned
+named tuple, which gives a script the same answer. A network failure raises
+no error.</p>
+</section>
+<section id="network-access">
+<h2>Network access<a class="headerlink" href="#network-access" title="Link to this heading">#</a></h2>
+<p>PyBADS contacts PyPI only when you call this function, and makes no other
+network request. The request names the installed version of PyBADS and
+nothing else about your installation, and the call writes nothing to disk.</p>
+</section>
+<section id="the-old-release-reminder">
+<h2>The old-release reminder<a class="headerlink" href="#the-old-release-reminder" title="Link to this heading">#</a></h2>
+<p>When a run starts in an interactive session and the installed release is
+more than a year old, <code class="docutils literal notranslate"><span class="pre">BADS</span></code> suggests calling this function, at most three
+times for each installed version. The reminder makes no network request: it
+compares the release date shipped with PyBADS with the date of the run. The
+<a class="reference internal" href="../../faq.html#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists"><span class="std std-ref">FAQ</span></a> says
+when it appears and how to turn it off.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pybads.check_for_updates">
+<span class="sig-prename descclassname"><span class="pre">pybads.</span></span><span class="sig-name descname"><span class="pre">check_for_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">UpdateCheck</span></span></span><a class="reference internal" href="../../_modules/pybads/_update_check.html#check_for_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.check_for_updates" title="Link to this definition">#</a></dt>
+<dd><p>Ask PyPI for the latest release of PyBADS and say how to update.</p>
+<p>Sends one HTTPS GET request to <code class="docutils literal notranslate"><span class="pre">https://pypi.org/pypi/pybads/json</span></code>,
+with the <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> header <code class="docutils literal notranslate"><span class="pre">pybads/&lt;installed</span> <span class="pre">version&gt;</span>
+<span class="pre">(check_for_updates)</span></code>; the request carries nothing else about the
+installation or the user. This is the only network access in PyBADS,
+and it happens only when this function is called. The proxy environment
+variables (<code class="docutils literal notranslate"><span class="pre">HTTPS_PROXY</span></code> and its kin) are honored. Nothing is written
+to disk.</p>
+<p>Prints one message: that a newer release is available, with the command
+that installs it; that the installed version is the latest release; that
+it is newer than the latest release on PyPI; that it is a development
+version, with the latest release; that it is unknown, with the latest
+release; or that PyPI could not be reached, with the reason. The update
+command follows the installer recorded with the installed package:
+pip’s, conda’s (the conda-forge package can follow PyPI by a few days),
+or both when the installer is another or unknown.</p>
+<p>The latest release is the highest version of the form <code class="docutils literal notranslate"><span class="pre">X.Y.Z</span></code> on PyPI
+with at least one file that is not yanked, so that pre-releases,
+development releases and yanked releases are ignored. PyPI documents the
+list of releases in this reply as deprecated; a reply without a mapping
+of releases gives the version PyPI reports as its latest. An installed
+version of any other form, such as a development install, is reported
+beside the latest release without being compared with it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>timeout</strong><span class="classifier">float, optional</span></dt><dd><p>Timeout in seconds for each network operation: the connection, and
+each read of the reply. The lookup of PyPI’s address is not bounded
+by it. At most 3600; the default is <code class="docutils literal notranslate"><span class="pre">5.0</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>UpdateCheck</dt><dd><p>A named tuple of <code class="docutils literal notranslate"><span class="pre">installed</span></code>, the installed version (<code class="docutils literal notranslate"><span class="pre">None</span></code> when
+the package metadata cannot be found); <code class="docutils literal notranslate"><span class="pre">latest</span></code>, the latest
+release on PyPI (<code class="docutils literal notranslate"><span class="pre">None</span></code> when PyPI could not be reached or its
+reply could not be read); and <code class="docutils literal notranslate"><span class="pre">update_available</span></code>, whether
+<code class="docutils literal notranslate"><span class="pre">latest</span></code> is newer than <code class="docutils literal notranslate"><span class="pre">installed</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> when either is
+unknown or the installed version is a development version).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If <cite>timeout</cite> is not a positive number of seconds of at most 3600, or
+is a bool. A network, HTTP or parse failure raises nothing: the
+printed message gives its reason, and the returned tuple holds
+<code class="docutils literal notranslate"><span class="pre">latest=None</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -476,20 +580,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../classes/timer.html"
+       href="acquisition_functions.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></p>
+        <p class="prev-next-title">Acquisition Functions</p>
       </div>
     </a>
     <a class="right-next"
-       href="acquisition_functions.html"
+       href="decorators.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Acquisition Functions</p>
+        <p class="prev-next-title">Decorators</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -499,6 +603,28 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-for-a-newer-release">Check for a newer release</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#network-access">Network access</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-old-release-reminder">The old-release reminder</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pybads.check_for_updates"><code class="docutils literal notranslate"><span class="pre">check_for_updates()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

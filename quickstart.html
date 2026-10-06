@@ -50,7 +50,7 @@
     <link rel="canonical" href="https://acerbilab.github.io/pybads/quickstart.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="next" title="PyBADS: Frequently Asked Questions" href="faq.html" />
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -194,12 +194,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -219,6 +221,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -487,7 +490,7 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 <p>with input arguments:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">target</span></code>: the target function, it takes as input a vector and returns its function evaluation;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: the starting point of the optimization problem. If it is not given, the starting point is randomly drawn from the problems bounds;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code>: hard lower and upper bounds for the optimization region (can be <code class="docutils literal notranslate"><span class="pre">-inf</span></code> and <code class="docutils literal notranslate"><span class="pre">inf</span></code>, or bounded);</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plb</span></code> and <code class="docutils literal notranslate"><span class="pre">pub</span></code>: <em>plausible</em> lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">non_box_cons</span></code> (optional): a callable non-bound constraints function.</p></li>
@@ -503,22 +506,14 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">optimize_result</span></code> object contains more information about the optimization solution, see the <a class="reference internal" href="api/classes/optimize_result.html#optimizeresult"><span class="std std-ref">OptimizeResult</span></a> class documentation.</p>
 <p><strong>Additional data/parameters in the target function?</strong></p>
-<p>In case the <code class="docutils literal notranslate"><span class="pre">target</span></code> function requires additional data/parameters, they can be easily handled using an anonymous function. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># define your data</span>
-<span class="n">extra_params</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># define your function-specific parameters</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">fun_for_pybads</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-  <span class="k">return</span> <span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">extra_params</span><span class="p">)</span>
-
-<span class="c1"># Pass fun_for_pybads to PyBADS</span>
-</pre></div>
-</div>
-<p>where <code class="docutils literal notranslate"><span class="pre">fun</span></code> is the function to optimize, note that <code class="docutils literal notranslate"><span class="pre">fun_for_pybads</span></code> only depends on <code class="docutils literal notranslate"><span class="pre">x</span></code> now, <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">extra_params</span></code> are given in the outer scope.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">target</span></code> function requires additional data or parameters, the
+<a class="reference internal" href="faq.html#faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads"><span class="std std-ref">FAQ</span></a>
+shows how to pass them.</p>
 </section>
 <section id="examples-faq">
 <h2>Examples &amp; FAQ<a class="headerlink" href="#examples-faq" title="Link to this heading">#</a></h2>
 <p>See the <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a> for more detailed information. The <a class="reference internal" href="api/options/bads_options.html#basic-options"><span class="std std-ref">Basic options</span></a> may also be useful.</p>
-<p>In addition, checkout the <a class="reference external" href="https://github.com/acerbilab/bads/wiki#bads-frequently-asked-questions">BADS FAQ</a> page for practical recommendations, such as how to set <cite>lower_bounds</cite> and <cite>upper_bounds</cite>, and other practical insights. Even though the FAQ refers to the MATLAB version of BADS, most of the concepts still apply to PyBADS.</p>
+<p>In addition, check out the <a class="reference internal" href="faq.html"><span class="doc">FAQ</span></a> for practical recommendations, such as how to set <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>, and other practical insights.</p>
 </section>
 </section>
 
@@ -543,11 +538,11 @@ In particular, start with <a class="reference internal" href="_examples/pybads_e
       </div>
     </a>
     <a class="right-next"
-       href="examples.html"
+       href="faq.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">PyBADS: Frequently Asked Questions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -608,6 +603,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

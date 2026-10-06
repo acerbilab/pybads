@@ -194,12 +194,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../documentation.html">Documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -219,6 +221,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -470,31 +473,76 @@
 <h1><code class="docutils literal notranslate"><span class="pre">VariableTransformer</span></code><a class="headerlink" href="#variabletransformer" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pybads.variable_transformer.VariableTransformer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybads.variable_transformer.</span></span><span class="sig-name descname"><span class="pre">VariableTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_log_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pybads/variable_transformer/variables_transformer.html#VariableTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.variable_transformer.VariableTransformer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybads.variable_transformer.</span></span><span class="sig-name descname"><span class="pre">VariableTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plausible_upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_log_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pybads/variable_transformer/variables_transformer.html#VariableTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.variable_transformer.VariableTransformer" title="Link to this definition">#</a></dt>
 <dd><p>A class enabling linear or non-linear transformation of the bounds (plausible_lower_bounds and plausible_upper_bounds) and map them to an hypercube [-1, 1]^D</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>D</strong><span class="classifier">int</span></dt><dd><p>The dimension of the space.</p>
 </dd>
-<dt><strong>lower_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The lower bounds of the space. <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> define a set
-of strict lower and upper bounds for each variable, given in the
-original space. By default <cite>None</cite>.</p>
+<dt><strong>lower_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The lower bounds of the space. <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>
+define a set of strict lower and upper bounds for each variable,
+given in the original space. By default <cite>None</cite>, which is <code class="docutils literal notranslate"><span class="pre">-inf</span></code>.</p>
 </dd>
-<dt><strong>upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The upper bounds of the space. <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code> define a set
-of strict lower and upper bounds for each variable, given in the
-original space. By default <cite>None</cite>.</p>
+<dt><strong>upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The upper bounds of the space. <code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>
+define a set of strict lower and upper bounds for each variable,
+given in the original space. By default <cite>None</cite>, which is <code class="docutils literal notranslate"><span class="pre">inf</span></code>.</p>
 </dd>
-<dt><strong>plausible_lower_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The plausible lower bounds such that <code class="docutils literal notranslate"><span class="pre">lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_upper_bounds</span> <span class="pre">&lt;</span>
-<span class="pre">upper_bounds</span></code>. <code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> represent a “plausible” range
-for each variable, given in the original space. By default <cite>None</cite>.</p>
+<dt><strong>plausible_lower_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The plausible lower bounds such that <code class="docutils literal notranslate"><span class="pre">lower_bounds</span> <span class="pre">&lt;=</span>
+<span class="pre">plausible_lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_upper_bounds</span> <span class="pre">&lt;=</span> <span class="pre">upper_bounds</span></code>.
+<code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> represent a
+“plausible” range for each variable, given in the original space,
+and need to be finite. By default <cite>None</cite>, which is
+<code class="docutils literal notranslate"><span class="pre">lower_bounds</span></code>.</p>
 </dd>
-<dt><strong>plausible_upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The plausible upper bounds such that <code class="docutils literal notranslate"><span class="pre">lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_upper_bounds</span> <span class="pre">&lt;</span>
-<span class="pre">upper_bounds</span></code>. <code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> represent a “plausible” range
-for each variable, given in the original space. By default <cite>None</cite>.</p>
+<dt><strong>plausible_upper_bounds</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The plausible upper bounds such that <code class="docutils literal notranslate"><span class="pre">lower_bounds</span> <span class="pre">&lt;=</span>
+<span class="pre">plausible_lower_bounds</span> <span class="pre">&lt;</span> <span class="pre">plausible_upper_bounds</span> <span class="pre">&lt;=</span> <span class="pre">upper_bounds</span></code>.
+<code class="docutils literal notranslate"><span class="pre">plausible_lower_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">plausible_upper_bounds</span></code> represent a
+“plausible” range for each variable, given in the original space,
+and need to be finite. By default <cite>None</cite>, which is
+<code class="docutils literal notranslate"><span class="pre">upper_bounds</span></code>.</p>
 </dd>
-<dt><strong>apply_log_t</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>A boolean array of size (1, D) that indicates which variables to apply the non-linear log transformation.
-By default <cite>None</cite>, in which case the log transformation is applied if the bounds are all positive and the variables span more than one order of magnitude.</p>
+<dt><strong>apply_log_t</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>A boolean array of shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">D)</span></code> that indicates the variables to
+which the non-linear log transformation applies; a scalar applies to
+every variable. By default <cite>None</cite>, in which case the log
+transformation is applied if the bounds are all positive and the
+plausible box spans at least one order of magnitude
+(<code class="docutils literal notranslate"><span class="pre">pub/plb</span> <span class="pre">&gt;=</span> <span class="pre">10</span></code>), as it is to a variable whose entry is NaN.</p>
+</dd>
+<dt><strong>fixed_values</strong><span class="classifier">np.ndarray, optional</span></dt><dd><p>The values of the fixed variables of a problem, when the transform
+is of its other variables: one value per variable of the original
+space, of shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">D_orig)</span></code> or <code class="docutils literal notranslate"><span class="pre">(D_orig,)</span></code>, NaN at each of the
+<code class="docutils literal notranslate"><span class="pre">D</span></code> variables that the bounds describe, in their order, and the
+value elsewhere. <code class="docutils literal notranslate"><span class="pre">inverse_transf</span></code> then returns points of the
+<code class="docutils literal notranslate"><span class="pre">D_orig</span></code> variables, with the fixed ones at their values, and
+<code class="docutils literal notranslate"><span class="pre">__call__</span></code> takes such points and transforms their other
+coordinates. By default <cite>None</cite>, which, as a row of NaN, fixes no
+variable: the original space has the <code class="docutils literal notranslate"><span class="pre">D</span></code> variables of the bounds.</p>
+</dd>
+<dt><strong>Each bound is an array of ``D`` elements, of shape ``(1, D)`` or</strong></dt><dd></dd>
+<dt><strong>``(D,)``, or a scalar or an array of one element, which stands for the</strong></dt><dd></dd>
+<dt><strong>same bound in each dimension; bounds of integers are taken as floats.</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>D_orig</strong><span class="classifier">int</span></dt><dd><p>The number of variables of the original space: <code class="docutils literal notranslate"><span class="pre">D</span></code> and the fixed
+variables.</p>
+</dd>
+<dt><strong>fixed_values</strong><span class="classifier">np.ndarray or None</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">fixed_values</span></code> as a row of shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">D_orig)</span></code>, or None when it
+fixes no variable.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>When a bound is not a number or an array of numbers, or is neither a
+scalar nor an array of one or <code class="docutils literal notranslate"><span class="pre">D</span></code> elements, when the plausible
+bounds are not finite or the bounds are out of the order above, or
+when the transform cannot be inverted at the bounds.</p>
+</dd>
+<dt>ValueError</dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">fixed_values</span></code> is not a row of numbers, NaN at exactly <code class="docutils literal notranslate"><span class="pre">D</span></code>
+of them and finite at the others.</p>
 </dd>
 </dl>
 </dd>
@@ -508,7 +556,8 @@ the hypercube space.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>input</strong><span class="classifier">np.ndarray</span></dt><dd><p>A N x D array, where N is the number of input data
-and D is the number of dimensions</p>
+and D is the number of dimensions; N x D_orig with
+<code class="docutils literal notranslate"><span class="pre">fixed_values</span></code>, whose fixed coordinates are left out.</p>
 </dd>
 </dl>
 </dd>
@@ -535,7 +584,9 @@ the original space.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>x</strong><span class="classifier">np.ndarray</span></dt><dd><p>The original variables retrieved by the inverse transform.</p>
+<dt><strong>x</strong><span class="classifier">np.ndarray</span></dt><dd><p>The original variables retrieved by the inverse transform; with
+<code class="docutils literal notranslate"><span class="pre">fixed_values</span></code>, all <code class="docutils literal notranslate"><span class="pre">D_orig</span></code> of them, the fixed ones at
+their values.</p>
 </dd>
 </dl>
 </dd>
@@ -635,6 +686,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

@@ -189,12 +189,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -214,6 +216,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -399,13 +402,18 @@
 <span class="sd">    ----------</span>
 <span class="sd">    fun : callable</span>
 <span class="sd">        The function to be logged.</span>
-<span class="sd">        `fun` must take a vector input and return a scalar value and,</span>
-<span class="sd">        optionally, the (estimated) SD of the returned value (if the</span>
-<span class="sd">        function fun is stochastic).</span>
+<span class="sd">        `fun` must take a vector input and return a scalar value, or, when</span>
+<span class="sd">        ``uncertainty_handling_level`` is 2, a tuple of the value and its</span>
+<span class="sd">        (estimated) SD.</span>
 <span class="sd">    D : int</span>
-<span class="sd">        The number of dimensions that the function takes as input.</span>
+<span class="sd">        The number of dimensions of the points that the logger takes, in the</span>
+<span class="sd">        transformed space. The function takes as many, unless the</span>
+<span class="sd">        ``variable_transformer`` has fixed variables (``fixed_values``): it</span>
+<span class="sd">        then takes points of all the variables of the original space, as</span>
+<span class="sd">        ``X_orig`` holds them.</span>
 <span class="sd">    noise_flag : bool</span>
-<span class="sd">        Whether the function fun is stochastic or not.</span>
+<span class="sd">        Whether the logger holds the standard deviations of the noise that</span>
+<span class="sd">        the function returns (``S``).</span>
 <span class="sd">    uncertainty_handling_level : {0, 1, 2}</span>
 <span class="sd">        The uncertainty handling level which can be one of</span>
 <span class="sd">        (0: none; 1: unknown noise level; 2: user-provided noise).</span>
@@ -436,7 +444,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">func_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">cache_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="c1"># The points in the original space hold the fixed variables of the</span>
+        <span class="c1"># transform too, which it leaves out of the transformed ones</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D_orig</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">D</span> <span class="k">if</span> <span class="n">variable_transformer</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">variable_transformer</span><span class="o">.</span><span class="n">D_orig</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">cache_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_orig</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">cache_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">cache_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">cache_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
@@ -450,11 +463,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">X_max_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># Last filled entry in the cache memory.</span>
         <span class="c1"># Use 1D array since this is a boolean mask.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">cache_size</span><span class="p">,),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-Inf"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_fun_eval_time</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-        <span class="c1"># TODO:  Handle previous evaluations (e.g. from previous run), ref line 51 bads code.</span>
 
 <div class="viewcode-block" id="FunctionLogger.__call__">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger.__call__">[docs]</a>
@@ -465,25 +475,35 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x : np.ndarray</span>
-<span class="sd">            The point at which the function will be evaluated. The shape of x</span>
-<span class="sd">            should be (1, D) or (D,).</span>
+<span class="sd">            The point at which the function will be evaluated, in the</span>
+<span class="sd">            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The</span>
+<span class="sd">            logger maps it back to the original space with its</span>
+<span class="sd">            ``variable_transformer``, if it has one, and evaluates the</span>
+<span class="sd">            function there; without one, the two spaces are the same.</span>
 
 <span class="sd">        record_duplicate_data : bool, optional (default True)</span>
-<span class="sd">            Flag to indicate whether the data is added to training data.</span>
+<span class="sd">            Whether the evaluation is recorded in the log. One that is not</span>
+<span class="sd">            leaves the log as it is: it adds only its time to</span>
+<span class="sd">            ``total_fun_eval_time``, and counts in ``func_count``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        fval : float</span>
 <span class="sd">            The result of the evaluation.</span>
-<span class="sd">        SD : float</span>
-<span class="sd">            The (estimated) SD of the returned value.</span>
-<span class="sd">        idx : int</span>
-<span class="sd">            The index of the last updated entry.</span>
+<span class="sd">        SD : float or None</span>
+<span class="sd">            The (estimated) SD that the function returned, None when the</span>
+<span class="sd">            logger takes none (``uncertainty_handling_level`` below 2).</span>
+<span class="sd">        idx : int or None</span>
+<span class="sd">            The index of the last updated entry, None when an evaluation</span>
+<span class="sd">            that is not recorded (``record_duplicate_data=False``) is of a</span>
+<span class="sd">            point that the log does not hold.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            Raise if the function value is not a finite real-valued scalar.</span>
+<span class="sd">            Raise if the function value is not a finite real-valued scalar,</span>
+<span class="sd">            as a tuple ``(f, sd)`` is not when ``uncertainty_handling_level``</span>
+<span class="sd">            is below 2.</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if the (estimated) SD (second function output)</span>
 <span class="sd">            is not a finite, positive real-valued scalar.</span>
@@ -522,13 +542,6 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">fun_res</span>
                 <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
-
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                <span class="c1"># fval_orig can only be an array with size 1 since we support just single evaluation</span>
-                <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">fval_orig</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fsd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                <span class="c1"># fsd can only be an array with size 1 since we support just single evaluation</span>
-                <span class="n">fsd</span> <span class="o">=</span> <span class="n">fsd</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">wrong_format_target_function</span><span class="p">:</span>
                 <span class="n">err</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">error_message</span><span class="p">,)</span>
@@ -542,24 +555,38 @@
                 <span class="p">)</span>
             <span class="k">raise</span>
 
-        <span class="c1"># if fval is an array with only one element, extract that element</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># A pair (f, sd) where the logger takes no SD is refused as a value</span>
+        <span class="c1"># that is not a scalar, with the option that takes the SD named</span>
+        <span class="n">returned_pair</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span>
+            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="p">)</span>
+
+        <span class="c1"># An array or a list of one element, as the value or the SD, is taken</span>
+        <span class="c1"># as that element. The conversion and the checks are the logger's,</span>
+        <span class="c1"># out of the try above, whose note is for the target's own errors,</span>
+        <span class="c1"># and come before anything is recorded</span>
+        <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
+            <span class="n">fsd</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
 
         <span class="c1"># Check function value</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span>
-            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">):</span>
             <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
 <span class="s2">            The returned function value must be a finite real-valued scalar</span>
 <span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
+            <span class="k">if</span> <span class="n">returned_pair</span><span class="p">:</span>
+                <span class="n">error_message</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="s2">"</span><span class="se">\n</span><span class="s2">A target that returns its value and the SD of its "</span>
+                    <span class="s2">"noise, as a tuple (f, sd), needs "</span>
+                    <span class="s1">'options["specify_target_noise"] = True.'</span>
+                <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
 
         <span class="c1"># Check returned function SD</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fsd</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fsd</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
         <span class="p">):</span>
             <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
 <span class="s2">                The returned estimated SD (second function output)</span>
@@ -592,18 +619,33 @@
         <span class="n">fun_eval_time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Add a previously evaluated function to the function cache.</span>
+<span class="sd">        Add an evaluation of the function made elsewhere to the log, without</span>
+<span class="sd">        counting it in ``func_count``: ``BADS`` adds the evaluations made</span>
+<span class="sd">        before its run (``precomputed_evaluations``) this way.</span>
+
+<span class="sd">        The evaluation is recorded as one of the logger's own: at a point</span>
+<span class="sd">        that the log holds, a logger that holds SDs merges it into the</span>
+<span class="sd">        point's row by precision weighting, and one that does not adds a</span>
+<span class="sd">        row.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x : np.ndarray</span>
-<span class="sd">            The point at which the function has been evaluated. The shape of x</span>
-<span class="sd">            should be (1, D) or (D,).</span>
+<span class="sd">            The point at which the function has been evaluated, in the</span>
+<span class="sd">            transformed space (``u``), of shape ``(1, D)`` or ``(D,)``. The</span>
+<span class="sd">            logger maps it back to the original space with its</span>
+<span class="sd">            ``variable_transformer``, if it has one, and records both; without</span>
+<span class="sd">            one, the two spaces are the same.</span>
 <span class="sd">        fval_orig : float</span>
-<span class="sd">            The result of the evaluation of the function.</span>
+<span class="sd">            The result of the evaluation of the function, a finite real</span>
+<span class="sd">            scalar, or an array or a list of one element.</span>
 <span class="sd">        fsd : float, optional</span>
-<span class="sd">            The (estimated) SD of the returned value (if heteroskedastic noise</span>
-<span class="sd">            handling is on) of the evaluation of the function, by default None.</span>
+<span class="sd">            The (estimated) SD of the result, a finite positive real scalar,</span>
+<span class="sd">            or an array or a list of one element. A logger that holds SDs</span>
+<span class="sd">            (``noise_flag``) requires it at uncertainty handling level 2,</span>
+<span class="sd">            where the target returns them, and records a missing one as 1</span>
+<span class="sd">            below it; a logger that does not hold SDs ignores it. By default</span>
+<span class="sd">            None.</span>
 <span class="sd">        fun_eval_time : float</span>
 <span class="sd">            The duration of the time it took to evaluate the function,</span>
 <span class="sd">            by default np.nan.</span>
@@ -611,9 +653,12 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        fval : float</span>
-<span class="sd">            The result of the evaluation.</span>
-<span class="sd">        SD : float</span>
-<span class="sd">            The (estimated) SD of the returned value.</span>
+<span class="sd">            The value that the log holds at the point: ``fval_orig``, merged</span>
+<span class="sd">            with the earlier evaluations at the point for a logger that holds</span>
+<span class="sd">            SDs.</span>
+<span class="sd">        SD : float or None</span>
+<span class="sd">            The SD recorded for this evaluation: ``fsd``, or 1 for a missing</span>
+<span class="sd">            one, and None when the logger holds no SDs.</span>
 <span class="sd">        idx : int</span>
 <span class="sd">            The index of the last updated entry.</span>
 
@@ -622,8 +667,9 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if the function value is not a finite real-valued scalar.</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            Raise if the (estimated) SD (second function output)</span>
-<span class="sd">            is not a finite, positive real-valued scalar.</span>
+<span class="sd">            Raise if the logger holds SDs and ``fsd`` is missing at</span>
+<span class="sd">            uncertainty handling level 2, or is not a finite, positive</span>
+<span class="sd">            real-valued scalar.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
@@ -638,34 +684,33 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">x_orig</span> <span class="o">=</span> <span class="n">x</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">fsd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">fsd</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># Check function value</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="c1"># The checks of __call__, on the value and on the SD. At level 2 the</span>
+        <span class="c1"># SD of an evaluation is its caller's to give, as the target gives</span>
+        <span class="c1"># it, and PyVBMC's logger requires it too</span>
+        <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">):</span>
             <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
 <span class="s2">            The returned function value must be a finite real-valued scalar</span>
 <span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
 
-        <span class="c1"># Check returned function SD</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="n">fsd</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
-        <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fsd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">"FunctionLogger:MissingNoiseValue: at uncertainty "</span>
+                        <span class="s2">"handling level 2, an evaluation is added with the "</span>
+                        <span class="s2">"SD of its noise (fsd)."</span>
+                    <span class="p">)</span>
+                <span class="n">fsd</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">fsd</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fsd</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
 <span class="s2">                The returned estimated SD (second function output)</span>
 <span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">"""</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">fval</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record</span><span class="p">(</span><span class="n">x_orig</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">fval_orig</span><span class="p">,</span> <span class="n">fsd</span><span class="p">,</span> <span class="n">fun_eval_time</span><span class="p">)</span>
@@ -681,20 +726,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 
-        <span class="c1"># in the original matlab version X and Y get deleted</span>
+        <span class="c1"># MATLAB's funlogger 'done' trims X, Y, S and the evaluation times</span>
+        <span class="c1"># too, and removes U, the transformed points (PyBADS's X)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="FunctionLogger.reset_fun_eval_time">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger.reset_fun_eval_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset_fun_eval_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Set every entry of ``fun_eval_time`` to NaN, keeping its length that</span>
+<span class="sd">        of the other arrays.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_expand_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resize_amount</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -712,7 +763,7 @@
             <span class="n">resize_amount</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xn</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">resize_amount</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">resize_amount</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_orig</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Y_orig</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">resize_amount</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
@@ -777,19 +828,22 @@
 <span class="sd">            Raise if there is more than one match for a duplicate entry.</span>
 <span class="sd">        """</span>
 
-        <span class="c1"># Do not record new data when for example checking the noise of the function at the same point or when building the final estimator (BADS examples).</span>
+        <span class="c1"># Every evaluation counts in the target's time, whether its point is</span>
+        <span class="c1"># new, merged into its row or not recorded, as in MATLAB's funlogger</span>
+        <span class="c1"># (funlogger.m:130)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fun_eval_time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">total_fun_eval_time</span> <span class="o">+=</span> <span class="n">fun_eval_time</span>
+
+        <span class="c1"># An evaluation that is not recorded, the noise test's and the final</span>
+        <span class="c1"># samples', leaves the log as it is, its time aside: the row of its</span>
+        <span class="c1"># point keeps its count of evaluations and its time. MATLAB's</span>
+        <span class="c1"># funlogger evaluates the final samples so ('single',</span>
+        <span class="c1"># funlogger.m:117-130), and MATLAB BADS calls the target directly for</span>
+        <span class="c1"># the noise test</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">record_duplicate_data</span><span class="p">:</span>
             <span class="n">duplicate_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">==</span> <span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">):</span>
-                <span class="c1"># Since we do not record the new duplicate point in the training set</span>
-                <span class="c1"># and we might have more than one duplicate points (e.g for NON-heteroskedastic cases)</span>
-                <span class="c1"># we register the function evaluation time and increase the counter of function evaluations in the last duplicate</span>
                 <span class="n">last_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-                <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">N</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">fun_eval_time</span>
-                <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">return</span> <span class="n">fval_orig</span><span class="p">,</span> <span class="n">last_idx</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">fval_orig</span><span class="p">,</span> <span class="kc">None</span>
@@ -798,13 +852,13 @@
             <span class="c1"># check if the noise is heteroskedastic</span>
             <span class="k">if</span> <span class="n">fsd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Like in PyVBMC check if the point has already been evaluated and estimate the noise with new observations</span>
-                <span class="n">duplicate_flag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">==</span> <span class="n">x</span>
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
-                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">duplicate_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">==</span> <span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                             <span class="s2">"More than one match for duplicate entry."</span>
                         <span class="p">)</span>
-                    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">duplicate_flag</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
                     <span class="c1"># if fsd is not None: # We already in the case of the heteroskedastic noise</span>
@@ -824,6 +878,9 @@
                         <span class="n">N</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">fun_eval_time</span>
                     <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">n_evals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1"># The merged value can raise or lower the log's largest</span>
+                    <span class="c1"># value, Y_max</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span><span class="p">])</span>
                     <span class="k">return</span> <span class="n">f_val</span><span class="p">,</span> <span class="n">idx</span>
 
             <span class="c1"># Add the new point</span>
@@ -834,7 +891,6 @@
             <span class="c1"># record function time</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fun_eval_time</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fun_eval_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Xn</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun_eval_time</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">total_fun_eval_time</span> <span class="o">+=</span> <span class="n">fun_eval_time</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">X_max_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_max_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">X_orig</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Xn</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_orig</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -850,6 +906,29 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">Y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">X_flag</span><span class="p">])</span>
             <span class="k">return</span> <span class="n">fval</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xn</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the element of an array or a sequence of one element, and any</span>
+<span class="sd">    other value unchanged."""</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># A ragged sequence</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">array</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_finite_real_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether ``value`` is a finite scalar of a boolean, integer or floating</span>
+<span class="sd">    type: a value of a complex type is not real, whatever its imaginary part,</span>
+<span class="sd">    as for MATLAB's ``isreal``."""</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="s2">"biuf"</span>
+        <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="p">)</span>
 </pre></div>
 
                 </article>
@@ -901,6 +980,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

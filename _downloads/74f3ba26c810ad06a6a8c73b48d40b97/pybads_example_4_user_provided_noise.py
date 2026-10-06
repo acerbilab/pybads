@@ -8,7 +8,7 @@ def noisy_sphere_estimated_noise(x, scale=1.0):
     x_2d = np.atleast_2d(x)
     f = np.sum(x_2d**2, axis=1)
     sigma = scale * (1.0 + np.sqrt(f))
-    y = f + sigma * np.random.normal(size=x_2d.shape[0])
+    y = f + sigma * noise_rng.normal(size=x_2d.shape[0])
     return y, sigma
 
 
@@ -22,9 +22,11 @@ options = {
     "uncertainty_handling": True,
     "specify_target_noise": True,
     "noise_final_samples": 100,
+    "random_seed": 0,  # Makes the run reproducible
 }
 
 
+noise_rng = np.random.default_rng(1)  # Makes the target's noise reproducible
 bads = BADS(
     noisy_sphere_estimated_noise,
     x0,

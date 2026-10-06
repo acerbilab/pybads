@@ -196,12 +196,14 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -221,6 +223,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -534,13 +537,14 @@ The code used in this example is available as a script <a class="reference downl
 <section id="problem-setup">
 <h2>1. Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading">#</a></h2>
 <p>We assume you are already familiar with optimization of noisy targets with PyBADS, as described in the <a class="reference internal" href="pybads_example_3_noisy_objective.html"><span class="std std-doc">previous notebook</span></a>.</p>
-<p>Sometimes, you may be able to estimate the noise associated with <em>each</em> function evaluation, for example via bootstrap or more sophisticated estimation methods such as <a class="reference external" href="https://github.com/acerbilab/ibs">inverse binomial sampling</a>. If you can do that, it is highly recommended you do so and tell PyBADS by activating the <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code> option.</p>
+<p>Sometimes, you may be able to estimate the noise associated with <em>each</em> function evaluation, for example via bootstrap or more sophisticated estimation methods such as inverse binomial sampling (<a class="reference external" href="https://github.com/acerbilab/pyibs">PyIBS</a>, one of the lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>). If you can do that, it is highly recommended you do so and tell PyBADS by activating the <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code> option.</p>
 <p>In the user-specified noise case, the target function <code class="docutils literal notranslate"><span class="pre">fun</span></code> is expected to return <em>two</em> outputs:</p>
 <ul class="simple">
 <li><p>the (noisy) estimate of the function at <code class="docutils literal notranslate"><span class="pre">x</span></code> (as usual);</p></li>
 <li><p>the estimate of the <em>standard deviation</em> of the noisy evaluation at <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
 </ul>
 <p>In this toy example below, we know the standard deviation <code class="docutils literal notranslate"><span class="pre">sigma</span></code> by construction. Note that the function is <em>heteroskedastic</em>, that is, the noise depends on the input location <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+<p>As in the previous notebook, the example is reproducible: <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> fixes the random seed of the run, and the target draws its noise from its own random number generator, <code class="docutils literal notranslate"><span class="pre">noise_rng</span></code>, which we create with a fixed seed right before the run, since <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> does not seed the target (the PyBADS FAQ says <a class="reference external" href="https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-make-a-run-reproducible">how to make a run reproducible</a>).</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">noisy_sphere_estimated_noise</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
@@ -548,7 +552,7 @@ The code used in this example is available as a script <a class="reference downl
     <span class="n">x_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_2d</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">sigma</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">x_2d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">noise_rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">x_2d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">sigma</span>
 
 
@@ -562,6 +566,7 @@ The code used in this example is available as a script <a class="reference downl
     <span class="s2">"uncertainty_handling"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">"specify_target_noise"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">"noise_final_samples"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s2">"random_seed"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Makes the run reproducible</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -570,10 +575,11 @@ The code used in this example is available as a script <a class="reference downl
 </section>
 <section id="run-the-optimization">
 <h2>2. Run the optimization<a class="headerlink" href="#run-the-optimization" title="Link to this heading">#</a></h2>
-<p>As usual, we run <code class="docutils literal notranslate"><span class="pre">bads</span></code> with the user-defined <code class="docutils literal notranslate"><span class="pre">options</span></code>.</p>
+<p>As usual, we run <code class="docutils literal notranslate"><span class="pre">bads</span></code> with the user-defined <code class="docutils literal notranslate"><span class="pre">options</span></code>, after creating <code class="docutils literal notranslate"><span class="pre">noise_rng</span></code>; running this cell again repeats the run.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">noise_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Makes the target's noise reproducible</span>
+<span class="n">bads</span> <span class="o">=</span> <span class="n">BADS</span><span class="p">(</span>
     <span class="n">noisy_sphere_estimated_noise</span><span class="p">,</span>
     <span class="n">x0</span><span class="p">,</span>
     <span class="n">lower_bounds</span><span class="p">,</span>
@@ -589,100 +595,90 @@ The code used in this example is available as a script <a class="reference downl
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Beginning optimization of a STOCHASTIC objective function (specified noise)
 
+Tip: If your objective is a negative log-likelihood, you can also estimate the uncertainty over the parameters and the model evidence with PyVBMC, another of the lab's model-fitting tools (best with up to about 10 parameters). You can run it on the same model and data, with a prior over the parameters and PyBADS's solution as its starting point x0.
+https://acerbilab.org/model-fitting/
+https://acerbilab.github.io/pybads/faq.html#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc
+
  Iteration    f-count      E[f(x)]        SD[f(x)]           MeshScale          Method              Actions
-     0           1         27.5352         5.24264               1                                  
-     0          33        -2.91026         5.24264               1          Initial mesh            Initial points
-     0          37        -2.91026         2.90933             0.5          Refine grid             Train
-     1          45        -2.91026         2.90933            0.25          Refine grid             Train
-     2          46       -0.763687        0.868669            0.25      Successful search (ES-wcm)        
-     2          57       -0.763687        0.868669           0.125          Refine grid             Train
-     3          58        0.275083        0.508241           0.125      Successful search (ES-ell)        
-     3          69        0.275083        0.508241          0.0625          Refine grid             Train
-     4          70        0.836853        0.340929          0.0625      Successful search (ES-ell)        
-     4          81        0.836853        0.340929         0.03125          Refine grid             Train
-     5          82          1.4029        0.277549         0.03125      Successful search (ES-ell)        
-     5          83         1.35267        0.401613         0.03125      Successful search (ES-wcm)        
-     5          84         1.11699         0.55322         0.03125      Successful search (ES-wcm)        
-     5          85        0.282006        0.579217         0.03125      Successful search (ES-wcm)        
-     5          86       0.0522514        0.534398         0.03125      Successful search (ES-wcm)        
-     5          88      -0.0275186        0.471638         0.03125      Successful search (ES-wcm)        
-     5          97      -0.0275186        0.471638        0.015625          Refine grid             
-     6          98          0.1502        0.247952        0.015625      Successful search (ES-wcm)        
-     6          99     -0.00438043        0.233882        0.015625      Successful search (ES-wcm)        
-     6         100      -0.0754532        0.227039        0.015625      Successful search (ES-wcm)        
-     6         101       -0.134933        0.231195        0.015625      Successful search (ES-wcm)        
-     6         109       -0.147044        0.193437         0.03125        Successful poll           
-     7         117       -0.147044        0.193437        0.015625          Refine grid             
-     8         121      -0.0511507        0.165127        0.015625      Incremental search (ES-ell)        
-     8         122      -0.0929799         0.16533         0.03125        Successful poll           Train
-     9         130       -0.136204        0.147907          0.0625        Successful poll           Train
-    10         132       -0.136762        0.159908          0.0625      Incremental search (ES-wcm)        
-    10         133       -0.143109        0.160052          0.0625      Incremental search (ES-ell)        
-    10         134        -0.15408        0.159411          0.0625      Incremental search (ES-ell)        
-    10         138       -0.165267        0.143339         0.03125          Refine grid             
-    11         146       -0.142635        0.138263        0.015625          Refine grid             Train
-    12         154       -0.103103        0.129585      0.00390625          Refine grid             Train
-    13         156       -0.036772        0.122827      0.00390625      Incremental search (ES-wcm)        
-    13         157      -0.0412922        0.121273      0.00390625      Successful search (ES-wcm)        
-    13         158      -0.0521136        0.120051      0.00390625      Successful search (ES-wcm)        
-    13         162      -0.0544248         0.11692      0.00390625      Successful search (ES-ell)        
-    13         165       -0.066474        0.114724      0.00390625      Successful search (ES-ell)        
-    13         166      -0.0730774        0.114275      0.00390625      Successful search (ES-ell)        
-    13         168      -0.0737546        0.113082      0.00390625      Incremental search (ES-ell)        
-    13         169      -0.0910154        0.113536      0.00390625      Successful search (ES-ell)        
-    13         173      -0.0921021        0.111431      0.00390625      Successful search (ES-wcm)        
-    13         174      -0.0921595        0.111604      0.00390625      Incremental search (ES-wcm)        
-    13         182      -0.0921595        0.111604      0.00195312          Refine grid             
-    14         183      -0.0564883        0.103933      0.00195312      Successful search (ES-wcm)        
-    14         185      -0.0603416        0.103084      0.00195312      Successful search (ES-wcm)        
-    14         186       -0.063154        0.102919      0.00195312      Successful search (ES-wcm)        
-    14         194      -0.0686494       0.0990548      0.00390625        Successful poll           
-    15         197      -0.0724876       0.0980083      0.00390625      Successful search (ES-wcm)        
-    15         199      -0.0747856       0.0982266      0.00390625      Successful search (ES-ell)        
-    15         204       -0.082064        0.096049      0.00390625      Successful search (ES-ell)        
-    15         205      -0.0842201       0.0948564      0.00390625      Successful search (ES-ell)        
-    15         206      -0.0855717       0.0946394      0.00390625      Successful search (ES-ell)        
-    15         207      -0.0970346       0.0951909      0.00390625      Successful search (ES-ell)        
-    15         210       -0.157229        0.234229      0.00390625      Successful search (ES-ell)        
-    15         211       -0.174686         0.26718      0.00390625      Successful search (ES-ell)        
-    15         222       -0.174686         0.26718      0.00195312          Refine grid             Train
-    16         230      -0.0871417        0.189485     0.000488281          Refine grid             Train
-    17         238      -0.0621804        0.092649     0.000244141          Refine grid             Train
-    18         239      -0.0540518        0.109407     0.000244141      Successful search (ES-wcm)        
-    18         240       -0.069655        0.109258     0.000244141      Successful search (ES-wcm)        
-    18         241      -0.0697666        0.109354     0.000244141      Incremental search (ES-wcm)        
-    18         242      -0.0788053        0.110422     0.000244141      Successful search (ES-wcm)        
-    18         243       -0.100884        0.135117     0.000244141      Successful search (ES-wcm)        
-    18         244       -0.132902        0.135261     0.000244141      Successful search (ES-wcm)        
-    18         254       -0.132902        0.135261      0.00012207          Refine grid             Train
-    19         262      -0.0550156        0.130951     0.000244141        Successful poll           Train
-    20         266      -0.0294325        0.102518     0.000244141      Successful search (ES-wcm)        
-    20         274      -0.0294325        0.102518      0.00012207          Refine grid             
-    21         282     -0.00985551       0.0988365     6.10352e-05          Refine grid             
-    22         283      0.00560284        0.095124     6.10352e-05      Successful search (ES-wcm)        
-    22         286      0.00267631       0.0963349     6.10352e-05      Successful search (ES-wcm)        
-    22         294      0.00267631       0.0963349     3.05176e-05          Refine grid             
-    23         296       0.0131204       0.0933549     3.05176e-05      Successful search (ES-wcm)        
-    23         297      0.00549339       0.0931934     3.05176e-05      Successful search (ES-wcm)        
-    23         298      -0.0600505        0.226728     3.05176e-05      Successful search (ES-wcm)        
-    23         299      -0.0945269        0.221667     3.05176e-05      Successful search (ES-wcm)        
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    23         300      -0.0975214        0.217002     3.05176e-05      Successful search (ES-wcm)        
-    23         303       -0.104548        0.212268     3.05176e-05      Successful search (ES-wcm)        
-    23         304       -0.144592        0.208421     3.05176e-05      Successful search (ES-wcm)        
-    23         305        -0.20207        0.204639     3.05176e-05      Successful search (ES-wcm)        
-    23         314        -0.20207        0.204639     1.52588e-05          Refine grid             
-    24         315       -0.103618        0.140386     1.52588e-05      Successful search (ES-wcm)        
-    24         316       -0.134944        0.148889     1.52588e-05      Successful search (ES-wcm)        
-    24         320       -0.510266        0.306413     1.52588e-05      Successful search (ES-wcm)        
-    24         330       -0.510266        0.306413     7.62939e-06          Refine grid             
-    25         331       -0.232391        0.214288     7.62939e-06      Successful search (ES-ell)        
-    25         342       -0.232391        0.214288      3.8147e-06          Refine grid             Train
-    26         350       -0.135337        0.202093     1.90735e-06          Refine grid             Train
-    27         358      -0.0627757        0.195314     4.76837e-07          Refine grid             Train
-Optimization terminated: change in the function value less than options['tol_mesh']
-Estimated function value at minimum: -0.009079534944637901 ± 0.116836714211856 (mean ± SEM from 100 samples)
+     0           1         19.8118         5.24264               1                                  
+     0          33         -4.2962         5.24264               1          Initial mesh            Initial points
+     1          37         -4.2962         2.85814             0.5          Refine grid             Train
+     2          45         -4.2962         2.85814            0.25          Refine grid             Train
+     3          46       -0.369928        0.584932            0.25      Successful search (ES-ell)        
+     3          57       -0.369928        0.584932           0.125          Refine grid             Train
+     4          58        0.107542         0.39513           0.125      Successful search (ES-ell)        
+     4          59      -0.0270465        0.385564           0.125      Successful search (ES-ell)        
+     4          63      -0.0655998        0.360467           0.125      Incremental search (ES-ell)        
+     4          64       -0.155686        0.354577           0.125      Successful search (ES-ell)        
+     4          66       -0.180293        0.308933           0.125      Incremental search (ES-ell)        
+     4          73       -0.180293        0.308933          0.0625          Refine grid             
+     5          81       -0.178771        0.222092         0.03125          Refine grid             
+     6          83       -0.171116        0.226618         0.03125      Successful search (ES-wcm)        
+     6          93       -0.171116        0.226618        0.015625          Refine grid             
+     7          94       -0.105285        0.182654        0.015625      Successful search (ES-ell)        
+     7          96        -0.12971        0.184857        0.015625      Successful search (ES-ell)        
+     7          99       -0.143946        0.191024        0.015625      Successful search (ES-ell)        
+     7         109       -0.143946        0.191024       0.0078125          Refine grid             
+     8         111      -0.0990663         0.16602       0.0078125      Successful search (ES-ell)        
+     8         121      -0.0990663         0.16602      0.00390625          Refine grid             
+     9         122      -0.0764383        0.146798      0.00390625      Successful search (ES-ell)        
+     9         123       -0.116683        0.148587      0.00390625      Successful search (ES-ell)        
+     9         133       -0.116683        0.148587      0.00195312          Refine grid             
+    10         136       -0.104299        0.133233      0.00195312      Successful search (ES-wcm)        
+    10         137       -0.105469        0.133381      0.00195312      Successful search (ES-wcm)        
+    10         138       -0.115483        0.134088      0.00195312      Successful search (ES-wcm)        
+    10         140       -0.126765        0.133586      0.00195312      Successful search (ES-wcm)        
+    10         141        -0.13744        0.135497      0.00195312      Successful search (ES-wcm)        
+    10         149        -0.13744        0.135497     0.000976562          Refine grid             
+    11         150       -0.121907        0.121191     0.000976562      Successful search (ES-wcm)        
+    11         153       -0.127559        0.119214     0.000976562      Successful search (ES-wcm)        
+    11         154       -0.136879        0.118329     0.000976562      Successful search (ES-wcm)        
+    11         155       -0.140811        0.117566     0.000976562      Successful search (ES-wcm)        
+    11         159       -0.152085        0.115159     0.000976562      Successful search (ES-wcm)        
+    11         169       -0.152085        0.115159     0.000488281          Refine grid             
+    12         170       -0.104212        0.109687     0.000488281      Incremental search (ES-wcm)        
+    12         171       -0.104519        0.109168     0.000488281      Incremental search (ES-wcm)        
+    12         175        -0.11347        0.107256     0.000976562        Successful poll           Train
+    13         178       -0.118734        0.106033     0.000976562      Successful search (ES-ell)        
+    13         187       -0.118734        0.106033     0.000488281          Refine grid             Train
+    14         189      -0.0886045        0.101715     0.000488281      Successful search (ES-wcm)        
+    14         191      -0.0894262         0.10102     0.000488281      Incremental search (ES-wcm)        
+    14         194      -0.0911504       0.0999564     0.000488281      Successful search (ES-wcm)        
+    14         196       -0.102475       0.0993563     0.000488281      Successful search (ES-wcm)        
+    14         207       -0.102475       0.0993563     0.000244141          Refine grid             Train
+    15         209      -0.0868465         0.13522     0.000244141      Successful search (ES-wcm)        
+    15         210      -0.0901129        0.134696     0.000244141      Successful search (ES-ell)        
+    15         213      -0.0919201        0.131797     0.000244141      Successful search (ES-ell)        
+    15         214       -0.108964        0.135302     0.000244141      Successful search (ES-ell)        
+    15         215       -0.110016        0.135103     0.000244141      Successful search (ES-ell)        
+    15         216       -0.128623        0.134553     0.000244141      Successful search (ES-ell)        
+    15         217       -0.133759        0.134378     0.000244141      Successful search (ES-ell)        
+    15         218       -0.135862        0.134561     0.000244141      Successful search (ES-ell)        
+    15         219       -0.139821        0.135453     0.000244141      Successful search (ES-ell)        
+    15         227       -0.160174        0.133862     0.000488281        Successful poll           Train
+    16         229       -0.171962        0.132654     0.000488281      Successful search (ES-ell)        
+    16         230       -0.181168        0.132647     0.000488281      Successful search (ES-ell)        
+    16         234       -0.197749         0.12471     0.000488281      Successful search (ES-ell)        
+    16         237       -0.198251        0.123128     0.000488281      Incremental search (ES-ell)        
+    16         239       -0.202391        0.123165     0.000488281      Successful search (ES-ell)        
+    16         240       -0.216061        0.123465     0.000488281      Successful search (ES-ell)        
+    16         241       -0.216078        0.124104     0.000488281      Incremental search (ES-ell)        
+    16         242       -0.228517        0.126788     0.000488281      Successful search (ES-ell)        
+    16         247       -0.228947        0.121658     0.000488281      Incremental search (ES-ell)        
+    16         251       -0.228947        0.121658     0.000244141          Refine grid             
+    17         254       -0.220688         0.10938     0.000244141      Successful search (ES-ell)        
+    17         263       -0.223984        0.104399     0.000488281        Successful poll           
+    18         271       -0.246568        0.104737     0.000244141          Refine grid             
+    19         279       -0.255861         0.10072      0.00012207          Refine grid             
+    20         287       -0.265891       0.0982914     6.10352e-05          Refine grid             Train
+    21         295       -0.217379       0.0964613     3.05176e-05          Refine grid             Train
+    22         303       -0.222965       0.0937663     1.52588e-05          Refine grid             
+    23         311       -0.210283        0.103449     7.62939e-06          Refine grid             
+    24         319       -0.171727       0.0891701      3.8147e-06          Refine grid             
+    25         327       -0.188306        0.086611     1.90735e-06          Refine grid             Train
+    26         334        -0.21005       0.0851576     9.53674e-07          Refine grid             Train
+Optimization terminated: mesh size less than options['tol_mesh'].
+Estimated function value at minimum: 0.06217438017824448 ± 0.1034447582854115 (precision-weighted mean ± SEM from 100 samples)
 </pre></div>
 </div>
 </div>
@@ -710,8 +706,8 @@ Estimated function value at minimum: -0.009079534944637901 ± 0.116836714211856 
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [-0.11760458  0.02207676], fval (estimated) = -0.00908 +/- 0.12
-total f-count: 458, time: 17.98 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [-0.00393684  0.03422188], fval (estimated) = 0.06217 +/- 0.1
+total f-count: 434, time: 7.54 s
 final evaluations (shape): (100,)
 final evaluations SD (shape): (100,)
 </pre></div>
@@ -728,7 +724,7 @@ final evaluations SD (shape): (100,)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The true, noiseless value of f(x_min) is 0.0143.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The true, noiseless value of f(x_min) is 0.00119.
 </pre></div>
 </div>
 </div>
@@ -738,7 +734,7 @@ final evaluations SD (shape): (100,)
 <h3>Remarks<a class="headerlink" href="#remarks" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Due to the elevated level of noise, we do not necessarily expect high precision in the solution.</p></li>
-<li><p>For more information on optimizing noisy objective functions, see the BADS wiki: https://github.com/acerbilab/bads/wiki#noisy-objective-function (this link points to the MATLAB wiki, but many of the questions and answers apply to PyBADS as well).</p></li>
+<li><p>For more information on optimizing noisy objective functions, see the <a class="reference external" href="https://acerbilab.github.io/pybads/faq.html#faq-noisy-objective-function">PyBADS FAQ</a>.</p></li>
 </ul>
 </section>
 </section>
@@ -834,6 +830,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>

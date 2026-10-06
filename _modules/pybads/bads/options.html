@@ -189,12 +189,14 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">PyBADS: Frequently Asked Questions</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_1_basic_usage.html">PyBADS Example 1: Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_2_nonbox_constraints.html">PyBADS Example 2: Non-box constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_3_noisy_objective.html">PyBADS Example 3: Noisy objective function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_4_user_provided_noise.html">PyBADS Example 4: Noisy objective with user-provided noise estimates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_5_extended_usage.html">PyBADS Example 5: Extended usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_examples/pybads_example_6_periodic_variables.html">PyBADS Example 6: Periodic variables</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../documentation.html">Documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -214,6 +216,7 @@
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/functions/functions.html">Functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/acquisition_functions.html">Acquisition Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/functions/check_for_updates.html"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/decorators.html">Decorators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/functions/get_hpd.html"><code class="docutils literal notranslate"><span class="pre">get_hpd</span></code></a></li>
 </ul>
@@ -413,6 +416,11 @@
 <span class="sd">        This set contains all options that have set by the user,</span>
 <span class="sd">        if there are none it is empty. These ``useroptions`` are immutable to</span>
 <span class="sd">        changes using :py:meth:`load_options_file`.</span>
+<span class="sd">    unset_user_options : set</span>
+<span class="sd">        The names of the user options whose value is ``None``, which stands</span>
+<span class="sd">        for the default, as an empty value does in MATLAB BADS: they are not</span>
+<span class="sd">        set, and not in ``useroptions``, but their names are checked by</span>
+<span class="sd">        :py:meth:`validate_option_names`.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -432,8 +440,18 @@
         <span class="c1"># load options from file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_options_file</span><span class="p">(</span><span class="n">default_options_path</span><span class="p">,</span> <span class="n">evaluation_parameters</span><span class="p">)</span>
 
-        <span class="c1"># User options</span>
+        <span class="c1"># User options; a value of None stands for the default, as an empty</span>
+        <span class="c1"># value does in MATLAB BADS (setupoptions.m)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unset_user_options</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">user_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unset_user_options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_options</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="n">user_options</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_options</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_options</span><span class="p">)</span>
             <span class="bp">self</span><span class="p">[</span><span class="s2">"useroptions"</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_options</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
@@ -505,9 +523,13 @@
 
         <span class="n">options_list</span> <span class="o">=</span> <span class="n">_read_config_file</span><span class="p">(</span><span class="n">options_path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="n">options_list</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"useroptions"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">"useroptions"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span></div>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"useroptions"</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c1"># An option that the user set keeps the user's value, and takes</span>
+            <span class="c1"># its description from the file all the same</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"useroptions"</span><span class="p">):</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Options.validate_option_names">
@@ -538,9 +560,58 @@
                 <span class="n">_read_config_file</span><span class="p">(</span><span class="n">options_path</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unset_user_options</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">"useroptions"</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_option_names</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The option </span><span class="si">{}</span><span class="s2"> does not exist."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Options.validate_boolean_options">
+<a class="viewcode-back" href="../../../api/classes/options.html#pybads.bads.Options.validate_boolean_options">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_boolean_options</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">options_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">extra_names</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(),</span>
+        <span class="n">excluded_names</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Check that the user's value of each boolean option is ``True`` or</span>
+<span class="sd">        ``False``.</span>
+
+<span class="sd">        The boolean options are those whose default in the ini files</span>
+<span class="sd">        specified by ``options_paths`` is ``True`` or ``False``, and those</span>
+<span class="sd">        named in ``extra_names``, except those named in ``excluded_names``.</span>
+<span class="sd">        NumPy booleans are booleans. Any other value is refused, a</span>
+<span class="sd">        MATLAB-style string such as ``"off"``, which is truthy, included.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        options_paths : list of str</span>
+<span class="sd">            A list of paths to the ini files that hold the default options.</span>
+<span class="sd">        extra_names : tuple of str, optional</span>
+<span class="sd">            The names of other options that take ``True`` or ``False``.</span>
+<span class="sd">        excluded_names : tuple of str, optional</span>
+<span class="sd">            The names of options whose default is ``True`` or ``False`` and</span>
+<span class="sd">            that take other values too.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Raised when the user's value of a boolean option is not a</span>
+<span class="sd">            boolean.</span>
+<span class="sd">        """</span>
+        <span class="n">boolean_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">extra_names</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">options_path</span> <span class="ow">in</span> <span class="n">options_paths</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_read_config_file</span><span class="p">(</span><span class="n">options_path</span><span class="p">):</span>
+                <span class="c1"># the default's text, without an inline comment</span>
+                <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"True"</span><span class="p">,</span> <span class="s2">"False"</span><span class="p">):</span>
+                    <span class="n">boolean_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">boolean_names</span> <span class="o">-=</span> <span class="nb">set</span><span class="p">(</span><span class="n">excluded_names</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">boolean_names</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="p">[</span><span class="s2">"useroptions"</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"options['</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">'] needs to be True or False, not "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2">."</span>
+                <span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
@@ -609,22 +680,33 @@
 <span class="sd">    list of tuples (key, value, description).</span>
 
 <span class="sd">    Note that strings starting with # in the .ini file act as description to</span>
-<span class="sd">    the option in the following line.</span>
+<span class="sd">    the option in the following line. The comment lines are read apart from</span>
+<span class="sd">    the values, so that a description keeps its whole text, an ``=`` or a</span>
+<span class="sd">    ``:`` included.</span>
 <span class="sd">    """</span>
-    <span class="n">conf</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">comment_prefixes</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">allow_no_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">delimiters</span><span class="o">=</span><span class="p">(</span><span class="s2">"="</span><span class="p">,))</span>
     <span class="c1"># do not lower() both values as well as descriptions</span>
     <span class="n">conf</span><span class="o">.</span><span class="n">optionxform</span> <span class="o">=</span> <span class="nb">str</span>
-    <span class="n">conf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">options_path</span><span class="p">)</span>
+    <span class="n">read_paths</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">options_path</span><span class="p">)</span>
+
+    <span class="c1"># The description of an option is the last comment line above it</span>
+    <span class="n">descriptions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">read_paths</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
+                    <span class="n">description</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"# "</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">descriptions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span>
+                    <span class="n">description</span> <span class="o">=</span> <span class="s2">""</span>
 
     <span class="n">option_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="n">description</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">conf</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conf</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
-            <span class="k">if</span> <span class="s2">"#"</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
-                <span class="n">description</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"# "</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">option_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">description</span><span class="p">])</span>
-                <span class="n">description</span> <span class="o">=</span> <span class="s2">""</span>
+            <span class="n">option_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">descriptions</span><span class="p">[</span><span class="n">key</span><span class="p">]])</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">option_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -685,6 +767,9 @@ By Author name not set
   
   <div class="footer-item">
     
+<div class="extra_footer">
+  <p>PyBADS is one of the <a href="https://acerbilab.org/model-fitting/">open-source tools for fitting models to data</a> from <a href="https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence">Luigi Acerbi's group</a> at the University of Helsinki.</p>
+</div>
   </div>
   
 </div>
