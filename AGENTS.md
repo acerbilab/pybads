@@ -87,7 +87,10 @@ to `main` and commits them to `gh-pages`.
 A release is a tag `vX.Y.Z` on `main` and a GitHub release published from
 it. Before the pull request that carries it to `main`, the changelog's
 `Unreleased` section becomes `[X.Y.Z] - <date>` under a new, empty
-`Unreleased`, and the GitHub release takes that section as its notes.
+`Unreleased`, and the GitHub release takes that section as its notes,
+without its heading and with each paragraph and list item joined onto one
+line: a release's notes render every newline as a line break, and the
+changelog wraps its lines at 79 characters.
 The same pull request sets `RELEASE_DATE` in `pybads/_release.py` to that
 date, from which the old-release reminder tells the age of the installed
 release. `pybads/testing/bads/test_release_reminder.py` fails while the two
