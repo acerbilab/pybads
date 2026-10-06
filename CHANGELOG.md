@@ -5,6 +5,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-06
+
 Changes since PyBADS 1.1.0. Most of the fixes make PyBADS follow MATLAB
 BADS 1.1.3, the reference implementation, with which it was compared line
 by line: the [catalogue of deliberate

@@ -3,4 +3,4 @@
 # release's heading in CHANGELOG.md, "## [X.Y.Z] - YYYY-MM-DD", and a test
 # checks that the two agree. The old-release reminder
 # (pybads/bads/_release_reminder.py) tells the age of the release by it.
-RELEASE_DATE = "2026-09-25"
+RELEASE_DATE = "2026-10-06"
