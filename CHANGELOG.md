@@ -25,8 +25,9 @@ Changes since PyBADS 1.5.0.
   the objective returns, about the bounds and about the starting point
   say what is wrong, at which point or variables, and what is expected,
   and each error is printed once; failures that a run recovers from, such
-  as a failed Cholesky decomposition while fitting the first Gaussian
-  process, are no longer logged as warnings.
+  as a failed Cholesky decomposition while fitting the Gaussian process,
+  are no longer logged as warnings. Without final samples, a noisy run
+  reports the observation at its returned point.
 
 ## [1.5.0] - 2026-10-06
 

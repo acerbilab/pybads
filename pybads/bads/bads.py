@@ -2440,12 +2440,6 @@ class BADS:
         # End while
         self.optim_state["exit_flag"] = exit_flag
 
-        # Re-evaluate all best points for noisy evaluations
-        yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
-        # A run that ends in its initialization takes no final samples: the
-        # result reports the incumbent's observation
-        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
-        self.optim_state["ysd_vec"] = None
         # The iterate whose point takes the final samples
         final_idx = None
         if (
@@ -2484,6 +2478,12 @@ class BADS:
             # the incumbent, which takes the final samples that the run
             # reserved; MATLAB BADS takes none then (bads.m:1138)
             final_idx = 0
+
+        # Without final samples, report the observation at the selected
+        # point, which may belong to an earlier iteration.
+        yval_vec = self.yval if np.isscalar(self.yval) else self.yval.copy()
+        self.optim_state["yval_vec"] = np.atleast_1d(yval_vec).copy()
+        self.optim_state["ysd_vec"] = None
 
         # Re-evaluate estimated function value and SD at final point
         final_samples = (

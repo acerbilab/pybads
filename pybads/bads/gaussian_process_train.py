@@ -732,12 +732,14 @@ def _robust_gp_fit_(
         s2 = None
     new_hyp = hyp_gp.copy()
     n_try = 10
+    n_attempts = 0
     fitted = False
     for i_try in range(0, n_try):
         # Require a minimum number of points to do the fit (MATLAB:
         # gpHyperOptimize.m:71)
         if Y.shape[0] < X.shape[1]:
             break
+        n_attempts += 1
         try:
             with timer.attempt("gp_fit_failed", np.linalg.LinAlgError):
                 new_hyp, _, res = tmp_gp.fit(
@@ -859,12 +861,18 @@ def _robust_gp_fit_(
             new_hyp = starts[[np.argmin(nlp)]]
             res = None
     gp.set_hyperparameters(new_hyp, False)
-    if not fitted or i_try > 0:
-        # at least one failed, or none was made
-        if options["gp_warnings"]:
-            logger.warning(
-                f"Failed optimization of the GP hyperparameters (after {n_try} attempts). GP approximation might be unreliable."
-            )
+    if not fitted and options["gp_warnings"]:
+        attempts = "attempt" if n_attempts == 1 else "attempts"
+        logger.warning(
+            "Failed optimization of the GP hyperparameters "
+            f"(after {n_attempts} {attempts}). "
+            "GP approximation might be unreliable."
+        )
+    elif fitted and n_attempts > 1:
+        logger.debug(
+            "GP hyperparameter optimization recovered after %d attempts.",
+            n_attempts,
+        )
 
     # MATLAB's exit flag 0, for a fit of some of its starts, has no
     # counterpart: gpyreg fits all of them at once (gpHyperOptimize.m:202-209)

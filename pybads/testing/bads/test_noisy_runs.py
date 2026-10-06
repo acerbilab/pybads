@@ -194,6 +194,70 @@ def test_final_message_without_final_samples_gives_the_gp_estimate(caplog):
     assert message.endswith("(no final samples were taken).")
 
 
+@pytest.mark.parametrize("target_noise", [False, True])
+def test_final_observation_follows_selected_iterate(
+    monkeypatch, caplog, target_noise
+):
+    """Without final samples, the console and the last callback report the
+    observation at the returned point when final selection moves there.
+    The final GP estimates select an earlier iterate explicitly so the
+    check does not depend on the host's numerical choice of the best one.
+    """
+    selected = {}
+    final_state = {}
+    original = BADS._re_evaluate_history_
+
+    def select_earlier(self, gp):
+        original(self, gp)
+        if "exit_flag" not in self.optim_state:
+            return
+        history = self.iteration_history
+        y = history.get("yval")
+        candidates = [i for i in range(1, len(y) - 1) if y[i] != self.yval]
+        assert candidates
+        index = candidates[0]
+        history.record("fval", -1e6, index)
+        history.record("fsd", 0.0, index)
+        selected["y"] = y[index]
+        selected["x"] = history.get("x")[index].copy()
+
+    def output_fcn(x, state, phase):
+        if phase == "done":
+            final_state.update(state)
+        return False
+
+    monkeypatch.setattr(BADS, "_re_evaluate_history_", select_earlier)
+    fun = (
+        _noisy_sphere_with_estimated_sd(0)
+        if target_noise
+        else _noisy_sphere(0)
+    )
+    with caplog.at_level(logging.INFO, logger="BADS"):
+        result = _make_bads(
+            fun,
+            specify_target_noise=target_noise,
+            noise_final_samples=0,
+            max_fun_evals=150,
+            display="iter",
+            show_tips=False,
+            output_fcn=output_fcn,
+        ).optimize()
+    np.testing.assert_array_equal(np.ravel(result.x), np.ravel(selected["x"]))
+    assert result.yval_vec is None
+    (message,) = [
+        record.getMessage()
+        for record in caplog.records
+        if "Observed function value at minimum" in record.getMessage()
+    ]
+    assert message == (
+        f"Observed function value at minimum: {selected['y']} (1 sample). "
+        f"Estimated: {result.fval} ± {result.fsd} "
+        "(no final samples were taken)."
+    )
+    assert final_state["yval"] == selected["y"]
+    np.testing.assert_array_equal(final_state["yval_vec"], [selected["y"]])
+
+
 def test_one_final_sample_without_target_noise_adds_the_incumbent():
     """With one final sample and no noise SD from the target, `yval_vec`
     holds the sample and the incumbent's observation, a row of two as in
