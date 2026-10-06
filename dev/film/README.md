@@ -4,8 +4,8 @@ A narrated explainer of PyBADS 1.5 for scientists who fit models. It shows
 what Bayesian optimization and direct search each do well and badly, how
 BADS combines them, one real PyBADS run on a two-parameter landscape, and
 how BADS has performed and been used. `film.html` draws it in the browser
-from recorded runs. On the draft voice (Kokoro, `am_michael`) it runs
-2 min 58 s. The animatic is complete with its score; the final voice comes
+from recorded runs. Its voice is Kokoro's `am_michael`, and it runs
+2 min 58 s. The animatic is complete with its score; the masters come
 next.
 
 - [STORYBOARD.md](STORYBOARD.md): the film line by line, what each shot
@@ -168,7 +168,7 @@ voice last timed, so `voice.py V` comes first when the film changes voice.
 After any change to the timing or to a shot's motion, export the events and
 make the score again. The score's sections start at lines and events, so
 they follow the new timing, but the bars inside a section were fitted to
-the draft voice's lines: `score.py` warns when a switch to the POLL, a
+the voice's takes: `score.py` warns when a switch to the POLL, a
 return to the SEARCH, the lesson or a fooled surrogate falls in a bar of
 another kind, and `SONG` is then fitted again with `V/score_plan.txt`,
 which lists every bar with the events in it. The header of `record.mjs`
@@ -226,13 +226,13 @@ resolves to E minor when the version pops on the end card.
 The form is a run of sections, each a fixed number of bars, that start at
 lines of the film and at three events: the search near the bottom of the
 trench, the reveal of the true landscape and the version's pop. Each
-section's tempo fits its bars to its span: on the draft voice between 92
+section's tempo fits its bars to its span: between 92
 and 96 BPM (91.9 in the first part of scene 5), slowing from 93 to 75 in
 the ritardando into the pop, and 83 on the end card. So those three events
 fall on a downbeat, and so does the start of every scene but the sixth,
 whose section starts at the reveal, 1.6 s after its first line. Every event
 sounds on the nearest thirty-second note, at most half of one from the
-picture (40 ms at worst on the draft voice, 19 ms on average); a fast
+picture (40 ms at worst, 19 ms on average); a fast
 run keeps one event per thirty-second note. An evaluation sounds as a glassy tick pitched
 by the height of its ground, a search that succeeds as a bell (the lower it
 lands, the higher the bell), one that fails as a thud with a dissonant stab,

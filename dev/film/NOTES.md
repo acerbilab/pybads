@@ -60,6 +60,10 @@ section 3, and Singh & Acerbi (2024). The script has 478 words.
 - Scene 4 credits MADS for the SEARCH and POLL stages with a footnote, and
   shows each stage at work in a panel (2026-10-03).
 - The film is about PyBADS 1.5, and the end card says so (2026-10-03).
+- The film's voice is Kokoro's `am_michael`, the voice of the animatic
+  (2026-10-06), credited on the end card as "Voice: Kokoro". Kokoro's
+  weights are under Apache 2.0, which sets no condition on the audio they
+  generate, so the credit is a courtesy.
 - The film ends on how BADS performs, then zooms out to the studies that
   have used it, and closes on "Join them." over their field (scene 7,
   2026-10-03). The scope of up to twenty parameters on rugged or noisy
@@ -95,7 +99,6 @@ Still open:
    Bayesian optimization with a safety net, and a footnote crediting
    Bayesian optimization (Jones, Schonlau & Welch 1998) beside the MADS
    one.
-7. The final voice.
 
 ## Rules for the pictures
 
@@ -277,8 +280,8 @@ The charts have no numbers on their axes; the footnote names them.
 
 ## The animatic
 
-The animatic plays the whole film on a draft voice (Kokoro, `am_michael`)
-and is judged on whether it reads, not on its look; its timings are drafts.
+The animatic plays the whole film on Kokoro's `am_michael`, which became
+the film's voice, and is judged on whether it reads, not on its look.
 v1 ran 3 min 10 s and was too slow, its start above all; from v2 the voice is 12 % faster (20 % in scene 1, 15 % in scene 2), with
 shorter pauses. In v3 every transition between scenes takes the same 0.7 s,
 where v2's took 0.9 to 2.4 s, and the gaps between lines are a quarter
@@ -312,15 +315,16 @@ for the lower bar, shows in two parts. In v14 line 1.5 shows what it says,
 where v13 held an empty floor for 7 s: two small landscapes, one under
 bumps and one under noise, each with its bottom and an arrow for its local
 slope, and the evaluation dropping slowly as each evaluation "can take
-seconds".
+seconds". v15 credits the voice on the end card as "Voice: Kokoro", the
+animatic's voice having become the film's.
 
-Whisper (`verify_voice.py`) hears most lines of the draft voice as written,
+Whisper (`verify_voice.py`) hears most lines of the voice as written,
 the others mostly differing in spelling ("20" for "twenty", "pole" for
 "poll"); a check of each line cut from the mix found the same words with
 the score under them. Worth a listen: line
 3.3, whose second sentence Whisper drops; line 4.3, "keeps" heard as
-"keep"; and line 5.4, where this voice runs "Pie-Bads polls" together. The
-final voice will be another, so the script stays as it is.
+"keep"; and line 5.4, where this voice runs "Pie-Bads polls" together. A
+new take of a line moves every line after it.
 
 ## What was tried and set aside
 

@@ -15,7 +15,7 @@ voice should say them: "Pie-Bads" for PyBADS and "Bads" for BADS, and
 "search" and "poll" in lower case, so that the voice does not spell them
 out.
 
-On the draft voice the scenes start and last:
+The scenes start and last:
 
 | Scene | Lines | Shots | Starts (s) | Lasts (s) |
 |---|---|---|---|---|
@@ -305,5 +305,4 @@ the same landscape (NOTES.md, "The run").
   fitting with Bayesian adaptive direct search*, NeurIPS), and in small
   capitals "Machine and Human Intelligence Group · University of Helsinki",
   "Research Council of Finland · ELLIS Institute Finland" and "Directed by
-  Luigi Acerbi · Made with Claude Code · Voice: Kokoro (draft)". The
-  voice's credit follows the final voice.
+  Luigi Acerbi · Made with Claude Code · Voice: Kokoro".
