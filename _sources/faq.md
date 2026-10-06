@@ -197,37 +197,16 @@ Python 3.11 or newer.
 (faq-how-do-i-know-whether-a-newer-version-of-pybads-exists)=
 ### How do I know whether a newer version of PyBADS exists?
 
-Run `pybads.check_for_updates()`. It asks PyPI for the latest release and
-prints whether it is newer than yours, with the command that updates your
-installation: `python -m pip install --upgrade pybads`, or
-`conda update --channel=conda-forge pybads` for an installation from
-conda-forge. See the [`check_for_updates` API](api/functions/check_for_updates.rst)
-for its messages and return value.
+Run `pybads.check_for_updates()`. It asks PyPI for the latest release and,
+if yours is older, prints the command that updates it:
+`python -m pip install --upgrade pybads`, or
+`conda update --channel=conda-forge pybads` for conda.
 
-PyBADS contacts PyPI only when you call that function. Otherwise it knows
-only the date of its own release, shipped with the package: when a run
-starts in an interactive session (standard output to a terminal or a
-Jupyter notebook, not to a file) and the installed release is more than a
-year old,
-a reminder takes the place of the [tip](#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere)
-before the first iteration line, and the tip comes at the next run:
-
-```text
-Note: PyBADS 1.5.0 was released more than a year ago. Run pybads.check_for_updates() to see whether a newer version is available.
-https://pypi.org/project/pybads/
-```
-
-The reminder appears at most once per Python session and three times for
-each installed version, at least 90 days apart; the third adds that it is
-the last. It records the dates of its showings in `update_reminder.json` in
-PyBADS's cache directory: `%LOCALAPPDATA%\pybads` on Windows,
-`~/Library/Caches/pybads` on macOS, `~/.cache/pybads` on Linux (or under
-`$XDG_CACHE_HOME`), or the directory that `PYBADS_CACHE_DIR` names. It
-shows only with the iteration display, as the tips do. To turn it off, pass
-`options={"show_tips": False}` to `BADS`, which also turns off the tips, or
-set the environment variable `PYBADS_NO_UPDATE_REMINDER`;
-`NO_UPDATE_NOTIFIER` and `CI` turn it off as well. A variable set to an
-empty value, `0` or `false` counts as unset.
+When your release is more than a year old, a run may also remind you to
+check, without contacting PyPI; `options={"show_tips": False}` turns the
+reminder off, with the tips. The
+[`check_for_updates` API](api/functions/check_for_updates.rst) has the
+details.
 
 (faq-conda-installs-an-older-version-of-pybads-why)=
 ### Conda installs an older version of PyBADS. Why?

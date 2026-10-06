@@ -501,12 +501,27 @@ nothing else about your installation, and the call writes nothing to disk.</p>
 </section>
 <section id="the-old-release-reminder">
 <h2>The old-release reminder<a class="headerlink" href="#the-old-release-reminder" title="Link to this heading">#</a></h2>
-<p>When a run starts in an interactive session and the installed release is
-more than a year old, <code class="docutils literal notranslate"><span class="pre">BADS</span></code> suggests calling this function, at most three
-times for each installed version. The reminder makes no network request: it
-compares the release date shipped with PyBADS with the date of the run. The
-<a class="reference internal" href="../../faq.html#faq-how-do-i-know-whether-a-newer-version-of-pybads-exists"><span class="std std-ref">FAQ</span></a> says
-when it appears and how to turn it off.</p>
+<p>When a run starts in an interactive session (standard output to a terminal
+or a Jupyter notebook, not to a file) and the installed release is more than
+a year old, <code class="docutils literal notranslate"><span class="pre">BADS</span></code> suggests calling this function. The reminder takes the
+place of the <a class="reference internal" href="../../faq.html#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere"><span class="std std-ref">tip</span></a>
+before the first iteration line, and the tip comes at the next run:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Note: PyBADS 1.5.0 was released more than a year ago. Run pybads.check_for_updates() to see whether a newer version is available.
+https://pypi.org/project/pybads/
+</pre></div>
+</div>
+<p>The reminder makes no network request: it compares the release date shipped
+with PyBADS with the date of the run. It appears at most once per Python
+session and three times for each installed version, at least 90 days apart;
+the third adds that it is the last. It records the dates of its showings in
+<code class="docutils literal notranslate"><span class="pre">update_reminder.json</span></code> in PyBADS’s cache directory: <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\pybads</span></code>
+on Windows, <code class="docutils literal notranslate"><span class="pre">~/Library/Caches/pybads</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">~/.cache/pybads</span></code> on Linux
+(or under <code class="docutils literal notranslate"><span class="pre">$XDG_CACHE_HOME</span></code>), or the directory that <code class="docutils literal notranslate"><span class="pre">PYBADS_CACHE_DIR</span></code>
+names. It shows only with the iteration display, as the tips do.</p>
+<p>To turn it off, pass <code class="docutils literal notranslate"><span class="pre">options={&quot;show_tips&quot;:</span> <span class="pre">False}</span></code> to <code class="docutils literal notranslate"><span class="pre">BADS</span></code>, which also
+turns off the tips, or set the environment variable
+<code class="docutils literal notranslate"><span class="pre">PYBADS_NO_UPDATE_REMINDER</span></code>; <code class="docutils literal notranslate"><span class="pre">NO_UPDATE_NOTIFIER</span></code> and <code class="docutils literal notranslate"><span class="pre">CI</span></code> turn it off
+as well. A variable set to an empty value, <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code> counts as unset.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pybads.check_for_updates">
 <span class="sig-prename descclassname"><span class="pre">pybads.</span></span><span class="sig-name descname"><span class="pre">check_for_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">UpdateCheck</span></span></span><a class="reference internal" href="../../_modules/pybads/_update_check.html#check_for_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.check_for_updates" title="Link to this definition">#</a></dt>

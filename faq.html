@@ -769,34 +769,15 @@ Python 3.11 or newer.</p>
 </section>
 <section id="how-do-i-know-whether-a-newer-version-of-pybads-exists">
 <span id="faq-how-do-i-know-whether-a-newer-version-of-pybads-exists"></span><h3>How do I know whether a newer version of PyBADS exists?<a class="headerlink" href="#how-do-i-know-whether-a-newer-version-of-pybads-exists" title="Link to this heading">#</a></h3>
-<p>Run <code class="docutils literal notranslate"><span class="pre">pybads.check_for_updates()</span></code>. It asks PyPI for the latest release and
-prints whether it is newer than yours, with the command that updates your
-installation: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pybads</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> for an installation from
-conda-forge. See the <a class="reference internal" href="api/functions/check_for_updates.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code> API</span></a>
-for its messages and return value.</p>
-<p>PyBADS contacts PyPI only when you call that function. Otherwise it knows
-only the date of its own release, shipped with the package: when a run
-starts in an interactive session (standard output to a terminal or a
-Jupyter notebook, not to a file) and the installed release is more than a
-year old,
-a reminder takes the place of the <a class="reference internal" href="#faq-how-do-i-silence-pybads-or-send-its-output-elsewhere">tip</a>
-before the first iteration line, and the tip comes at the next run:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Note: PyBADS 1.5.0 was released more than a year ago. Run pybads.check_for_updates() to see whether a newer version is available.
-https://pypi.org/project/pybads/
-</pre></div>
-</div>
-<p>The reminder appears at most once per Python session and three times for
-each installed version, at least 90 days apart; the third adds that it is
-the last. It records the dates of its showings in <code class="docutils literal notranslate"><span class="pre">update_reminder.json</span></code> in
-PyBADS’s cache directory: <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\pybads</span></code> on Windows,
-<code class="docutils literal notranslate"><span class="pre">~/Library/Caches/pybads</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">~/.cache/pybads</span></code> on Linux (or under
-<code class="docutils literal notranslate"><span class="pre">$XDG_CACHE_HOME</span></code>), or the directory that <code class="docutils literal notranslate"><span class="pre">PYBADS_CACHE_DIR</span></code> names. It
-shows only with the iteration display, as the tips do. To turn it off, pass
-<code class="docutils literal notranslate"><span class="pre">options={&quot;show_tips&quot;:</span> <span class="pre">False}</span></code> to <code class="docutils literal notranslate"><span class="pre">BADS</span></code>, which also turns off the tips, or
-set the environment variable <code class="docutils literal notranslate"><span class="pre">PYBADS_NO_UPDATE_REMINDER</span></code>;
-<code class="docutils literal notranslate"><span class="pre">NO_UPDATE_NOTIFIER</span></code> and <code class="docutils literal notranslate"><span class="pre">CI</span></code> turn it off as well. A variable set to an
-empty value, <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code> counts as unset.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">pybads.check_for_updates()</span></code>. It asks PyPI for the latest release and,
+if yours is older, prints the command that updates it:
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pybads</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> for conda.</p>
+<p>When your release is more than a year old, a run may also remind you to
+check, without contacting PyPI; <code class="docutils literal notranslate"><span class="pre">options={&quot;show_tips&quot;:</span> <span class="pre">False}</span></code> turns the
+reminder off, with the tips. The
+<a class="reference internal" href="api/functions/check_for_updates.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">check_for_updates</span></code> API</span></a> has the
+details.</p>
 </section>
 <section id="conda-installs-an-older-version-of-pybads-why">
 <span id="faq-conda-installs-an-older-version-of-pybads-why"></span><h3>Conda installs an older version of PyBADS. Why?<a class="headerlink" href="#conda-installs-an-older-version-of-pybads-why" title="Link to this heading">#</a></h3>
