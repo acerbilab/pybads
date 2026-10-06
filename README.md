@@ -161,7 +161,6 @@ Please cite both references if you use PyBADS in your work (the 2017 paper intro
 Besides formal citations, you can demonstrate your appreciation for PyBADS in the following ways:
 
 - *Star :star:* the PyBADS repository on GitHub;
-- [Subscribe](http://eepurl.com/idcvc9) to the lab's newsletter for news and updates (new features, bug fixes, new releases, etc.);
 - Follow Luigi Acerbi on [X](https://x.com/AcerbiLuigi) or [Bluesky](https://bsky.app/profile/lacerbi.bsky.social) for updates about BADS/PyBADS and other projects;
 - Tell us about your model-fitting problem and your experience with PyBADS (positive or negative) in the lab's [Discussions forum](https://github.com/orgs/acerbilab/discussions).
 
