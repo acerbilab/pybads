@@ -2,7 +2,7 @@ from os import system
 from pathlib import Path
 
 if __name__ == "__main__":
-    # Launch Jupyter Notebook examples with python -m pyvbmc
+    # Launch Jupyter Notebook examples with python -m pybads
 
     # binary/wheel install:
     base_path = Path(__file__).parent

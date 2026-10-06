@@ -6,6 +6,7 @@ from typing import Literal
 TipFrequency = Literal["normal", "low_frequency"]
 
 _FAQ = "https://acerbilab.github.io/pybads/faq.html"
+_HUB = "https://acerbilab.org/model-fitting/"
 
 
 @dataclass(frozen=True)
@@ -23,9 +24,11 @@ class Tip:
 # Tips are added, removed or moved between the frequencies here alone: the
 # scheduler (_runtime_tips.py) reads no size or id of this catalogue. The
 # text is plain ASCII, which any console encodes. The URLs are those of the
-# published documentation, and each tip restates in brief the advice of the
-# answer that it links, so the FAQ's labels and that advice are coupled with
-# this catalogue (AGENTS.md).
+# published documentation and, for a tip that names another of the lab's
+# methods, the lab's page of its tools for fitting models to data (_HUB).
+# Each tip restates in brief the advice of the answer or the page that it
+# links, so the FAQ's labels, that advice and that page's description of
+# the method are coupled with this catalogue (AGENTS.md).
 TIPS = (
     Tip(
         id="multiple_starts",
@@ -117,12 +120,14 @@ TIPS = (
         text=(
             "If your objective is a negative log-likelihood, you can also "
             "estimate the uncertainty over the parameters and the model "
-            "evidence: run PyVBMC on the same model and data, with a prior "
-            "over the parameters and PyBADS's solution as its starting point "
-            "x0."
+            "evidence with PyVBMC, another of the lab's model-fitting tools "
+            "(best with up to about 10 parameters). You can run it on the "
+            "same model and data, with a prior over the parameters and "
+            "PyBADS's solution as its starting point x0."
         ),
         frequency="low_frequency",
         urls=(
+            _HUB,
             f"{_FAQ}#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc",
         ),
     ),

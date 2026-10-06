@@ -201,8 +201,9 @@ def test_invalid_catalogues_are_refused(tip_logger):
 
 def test_the_shipped_catalogue():
     """The shipped tips are valid, plain ASCII, and link the published
-    documentation; the FAQ's labels and the repository's files that they
-    link exist (checked where the sources are at hand, as in a checkout)."""
+    documentation or the lab's page of its tools for fitting models to
+    data; the FAQ's labels and the repository's files that they link exist
+    (checked where the sources are at hand, as in a checkout)."""
     rt._validate_catalog(TIPS)
     labels = (
         set(
@@ -216,10 +217,12 @@ def test_the_shipped_catalogue():
         assert tip.urls
         for url in tip.urls:
             assert url.isascii()
-            assert url.startswith(
-                (
-                    "https://acerbilab.github.io/pybads/",
-                    "https://github.com/acerbilab/pybads/",
+            assert url == "https://acerbilab.org/model-fitting/" or (
+                url.startswith(
+                    (
+                        "https://acerbilab.github.io/pybads/",
+                        "https://github.com/acerbilab/pybads/",
+                    )
                 )
             )
             faq_url = "https://acerbilab.github.io/pybads/faq.html#"

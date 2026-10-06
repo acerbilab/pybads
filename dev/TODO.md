@@ -1,15 +1,15 @@
 # PyBADS: open work
 
-Updated 2026-10-01. The next release is 1.5.0 (tag `v1.5.0`), the version
+Updated 2026-10-06. The next release is 1.5.0 (tag `v1.5.0`), the version
 the PI has decided on; "the next release" below means it. `AGENTS.md`
 ("Setup and commands") gives the release's steps. The PI (2026-09-30)
-holds the release's pull request for further work before it. A change
-before it that alters what a run prints or returns reruns the example
-notebooks again, which also refreshes their timings: those of the rerun
-at `110d8dc6` are longer than the previous rerun's from the state of the
-machine, not the code. The release's section below holds a check of the
-links to the lab before it, and the conda-forge recipe, which follows its
-upload to PyPI.
+holds the release's pull request for further work before it. The tip on
+PyVBMC has changed since the last rerun of the example notebooks, at
+`110d8dc6`, so they are rerun before the release, as is any change that
+alters what a run prints or returns; the rerun also refreshes their
+timings, which at `110d8dc6` are longer than the previous rerun's from the
+state of the machine, not the code. The release's section below holds the
+conda-forge recipe, which follows its upload to PyPI.
 `README.md`, the documentation and the skill on `dev-next` describe
 PyBADS 1.5 with gpyreg 1.4.0, and `docs.yml` publishes the documentation
 of `main`, so `dev-next` reaches `main` with the release. Other records
@@ -19,36 +19,47 @@ among them, so a title stays as it is while its item is open.
 
 ## The release of 1.5.0
 
-- [ ] **Where the documentation points users.** The lab's website is
-  https://acerbilab.org, and https://acerbilab.org/model-fitting is a
-  landing page for the lab's model-fitting methods (a work in progress,
-  functional on 2026-10-01). Before the release, a pass over what ships or
-  is published decides which links go there instead (PI, 2026-10-01): the
-  University of Helsinki group pages that `README.md`,
-  `docsrc/source/index.rst` and `docsrc/source/about_us.rst` link for the
-  lab and its people, `lacerbi.github.io` at the head of the FAQ, and the
-  places that send a user to the lab's other methods: the FAQ's "What do I
-  do if PyBADS is not suited for my problem?" and "I have run PyBADS on my
-  problem. How do I run PyVBMC?", the runtime tips
-  (`pybads/bads/_tip_catalog.py`) and the skill. The couplings of
-  `AGENTS.md` apply: a tip restates the advice of the answer that it links,
-  `README.md` and `index.rst` carry the same blocks, and a change to a tip
-  changes what a run prints, which reruns the example notebooks.
-- [ ] **conda-forge recipe.** The test command of `conda-forge/pybads-feedstock`
-  (`recipe/meta.yaml`) passes `--reruns=5` and requires
-  pytest-rerunfailures. The tests of 1.1.0, which it runs, are not all
-  seeded, so both stay until the first release after 1.1.0, whose tests
-  are: drop them in the version-update PR that the feedstock's bot opens
-  for that release, before it is merged. That PR needs gpyreg 1.4.0 on
-  conda-forge, whose update PR on `conda-forge/gpyreg-feedstock` drops
-  pytest, pytest-rerunfailures and numdifftools from the run
-  requirements of its `recipe/meta.yaml` before it merges: gpyreg 1.4.0
-  no longer needs them, and the feedstock's bot merges its update PR
-  once a CI that only imports gpyreg passes. The same PR on
-  `conda-forge/pybads-feedstock` raises the recipe's host requirement
-  `setuptools >=45` to `>=77`, which the license
-  field of `pyproject.toml` needs; conda-forge resolves the newest
-  setuptools, so builds work meanwhile.
+- [ ] **conda-forge recipe.** The recipe of `conda-forge/pybads-feedstock`
+  (`recipe/meta.yaml`) is that of 1.1.0. Besides the version and the
+  hash, 1.5.0 needs in it:
+  - the run requirements of `pyproject.toml`: `gpyreg >=1.4.0`,
+    `matplotlib-base >=3.9.0`, `numpy >=2.0.0` and `scipy >=1.13.0`, where
+    the recipe has `>=1.3.3`, `>=3.5.1`, `>=1.22.1` and `>=1.7.3`;
+  - the host requirement `setuptools >=77`, where the recipe has `>=45`,
+    which the license field of `pyproject.toml` needs;
+  - the test command without `--reruns=5`, and the test requirements
+    without pytest-rerunfailures: the tests of 1.1.0 were not all seeded,
+    those of 1.5.0 are.
+
+  The feedstock's bot is not to be relied on for these. Under the same
+  settings (`automerge: true` and `inspection: update-grayskull` in the
+  `conda-forge.yml`), its update PR for gpyreg 1.4.0
+  (`conda-forge/gpyreg-feedstock` #13) changed the version and the hash
+  alone, though its analysis listed the run requirements that 1.4.0 had
+  dropped, and merged itself once its CI passed; a second PR, under build
+  number 1, removed them (#14, 2026-10-01), and that build is on
+  conda-forge. The old recipe of PyBADS would pass its CI in the same way. The branch `pybads-1.5.0` of a local clone
+  of the fork `lacerbi/pybads-feedstock` (`../pybads-feedstock`, not
+  pushed) makes these changes in one commit on the feedstock's `main` at
+  1.1.0 (`3e87423`), with the `sha256` a placeholder,
+  `FILL_IN_FROM_PYPI_SDIST_OF_1_5_0`: the hash is that of the sdist that
+  `release.yml` uploads, which a local build does not reproduce. On the
+  day of the release, once PyPI has 1.5.0:
+  1. put the `sha256` of the sdist on PyPI (the `.tar.gz` under `urls`
+     in https://pypi.org/pypi/pybads/1.5.0/json) in `recipe/meta.yaml`,
+     and amend the commit;
+  2. push the branch to the fork and open its PR on
+     `conda-forge/pybads-feedstock` before the bot opens its own, as for
+     1.1.0 (#11);
+  3. close the bot's PR if it opens one, or at least remove
+     `[bot-automerge]` from its title, which keeps it from merging itself.
+
+  An sdist built from `149a24d1` as 1.5.0 and installed under Python 3.11,
+  conda-forge's minimum, with the newest versions of its dependencies,
+  passes `pip check` and `python -m pytest --pyargs pybads -x -vv` with no
+  rerun (2026-10-06, Windows): 1378 passed, 3 skipped, the two tests of
+  the fork hooks, which need `os.fork`, and the check of the release date
+  against the changelog, which the wheel does not hold.
 
 ## Later releases
 

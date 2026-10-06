@@ -9,6 +9,10 @@ For a tutorial with detailed examples, see the [Jupyter notebook examples](examp
 If you have questions not covered here, please feel free to ask in the lab
 [Discussions forum](https://github.com/orgs/acerbilab/discussions).
 
+PyBADS is one of the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/),
+which also give the posterior and the model evidence (PyVBMC) and the
+log-likelihood of models that can only be simulated (PyIBS).
+
 The snippets below use `np` for NumPy and `BADS` for the optimizer class:
 
 ```python
@@ -143,6 +147,13 @@ could use Markov Chain Monte Carlo, e.g. via [Stan](https://mc-stan.org/) or
 approximate posterior distributions,
 [Variational Bayesian Monte Carlo (PyVBMC)](https://acerbilab.github.io/pyvbmc/),
 which can be used in synergy with PyBADS.
+
+The lab's page of [tools for fitting models to data](https://acerbilab.org/model-fitting/)
+says which of them a problem needs: PyBADS for the best-fitting parameters,
+PyVBMC for the posterior and the model evidence, best with up to about 10
+parameters, and PyIBS for the log-likelihood of a model that can be simulated
+but not written down, for data with discrete responses, which PyBADS or
+PyVBMC then take as a noisy target.
 
 (faq-installation)=
 ## Installing PyBADS
@@ -943,7 +954,9 @@ for further information.
 (faq-how-do-i-estimate-the-standard-deviation-of-a-noisy-objective)=
 ### How do I estimate the standard deviation of a noisy objective?
 
-If you use [*inverse binomial sampling* (IBS)](https://github.com/acerbilab/ibs),
+If you estimate the log-likelihood by *inverse binomial sampling* (IBS), with
+[PyIBS](https://github.com/acerbilab/pyibs), one of the lab's
+[tools for fitting models to data](https://acerbilab.org/model-fitting/),
 the algorithm returns the variability of the estimate as second output. Just
 ensure that the variability is returned as *standard deviation* (SD) and not
 as the variance (depending on the implementation, you may have to take the
@@ -1265,7 +1278,8 @@ PyBADS is designed for (see [here](#faq-which-kind-of-problems-is-pybads-suited-
 obtaining the full posterior, or even an approximation thereof, can be a
 challenging task. We developed a method and related toolbox,
 [Variational Bayesian Monte Carlo (PyVBMC)](https://acerbilab.github.io/pyvbmc/),
-which addresses exactly this problem. Check it out!
+which addresses exactly this problem and is one of the lab's
+[tools for fitting models to data](https://acerbilab.org/model-fitting/). Check it out!
 
 (faq-can-pybads-return-an-approximate-posterior-eg-by-computing-the-hessian-at-the-optimum)=
 ### Can PyBADS return an approximate posterior, e.g. by computing the Hessian at the optimum?
@@ -1282,13 +1296,16 @@ posterior.
 Instead, you should look into
 [Variational Bayesian Monte Carlo (PyVBMC)](https://acerbilab.github.io/pyvbmc/),
 a method that we developed specifically to compute approximate posterior
-distributions, and that can be used in synergy with PyBADS (see
+distributions, one of the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/),
+and that can be used in synergy with PyBADS (see
 [below](#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)).
 
 (faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc)=
 ### I have run PyBADS on my problem. How do I run PyVBMC?
 
-[PyVBMC](https://acerbilab.github.io/pyvbmc/) computes an approximate
+[PyVBMC](https://acerbilab.github.io/pyvbmc/), one of the lab's
+[tools for fitting models to data](https://acerbilab.org/model-fitting/),
+computes an approximate
 posterior distribution over the parameters, and an estimate of the model
 evidence (see [above](#faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions)).
 Its interface is very similar to the one of PyBADS, and you may only need
@@ -1305,6 +1322,8 @@ minor changes to run it on your problem. Note that:
   variables: give it a function of the other variables that inserts the
   fixed values (`np.insert(x, i, value)`), with the bounds of the other
   variables.
+- PyVBMC works best with up to about 10 parameters, where PyBADS takes up to
+  about 20.
 - The solution of PyBADS is a good starting point `x0` for PyVBMC.
 - PyVBMC supports noisy targets too, and works best when the target returns
   an estimate of its noise.
@@ -1377,7 +1396,8 @@ PyBADS implements the same algorithm, with a Python interface:
 ### Are you planning to port BADS to other languages?
 
 BADS is currently available as a [MATLAB toolbox](https://github.com/acerbilab/bads)
-and as a [Python package](https://github.com/acerbilab/pybads), PyBADS. No
+and as a [Python package](https://github.com/acerbilab/pybads), PyBADS, both
+listed with the lab's other [tools for fitting models to data](https://acerbilab.org/model-fitting/). No
 other ports are currently planned, but please get in touch if interested.
 The Python package can also be called from other languages, for example from
 Julia with [PythonCall.jl](https://cjdoris.github.io/PythonCall.jl/stable/)

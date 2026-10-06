@@ -4,6 +4,8 @@ PyBADS
 
 PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, previously implemented :labrepos:`in MATLAB <bads>`.
 
+PyBADS is one of the `open-source tools for fitting models to data <https://acerbilab.org/model-fitting/>`__ from `Luigi Acerbi's group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`__ at the University of Helsinki. Check out our other tools, such as :labrepos:`PyVBMC <pyvbmc>` for the posterior and the model evidence and :labrepos:`PyIBS <pyibs>` for models that can only be simulated.
+
 What is it?
 ###########
 
@@ -15,7 +17,7 @@ In our benchmark with real model-fitting problems from computational and cogniti
 
 BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in ``scipy.optimize.minimize``.
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's `tools for fitting models to data <https://acerbilab.org/model-fitting/>`__.
 
 What's new in PyBADS 1.5
 ------------------------
@@ -162,13 +164,13 @@ License and source
 
 PyBADS is released under the terms of the :mainbranch:`BSD 3-Clause License <LICENSE>`.
 The Python source code is on :labrepos:`GitHub <pybads>`.
-You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`.
+You may also want to check out the original :labrepos:`MATLAB toolbox <bads>`, and the lab's other `tools for fitting models to data <https://acerbilab.org/model-fitting/>`__.
 
 
 Acknowledgments:
 ################
 
-PyBADS is developed by `members <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people>`_ (past and current) of the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/>`_ at the University of Helsinki and `ELLIS Institute Finland <https://www.ellisinstitute.fi/>`_. Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
+PyBADS is developed by members (past and current) of the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`_ at the University of Helsinki and `ELLIS Institute Finland <https://www.ellisinstitute.fi/>`_. Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: `Finnish Center for Artificial Intelligence FCAI <https://fcai.fi/>`_.
 
 Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's `Claude Opus 5.5 <https://www.anthropic.com/claude-opus-5-5>`_.
 

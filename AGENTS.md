@@ -107,14 +107,16 @@ for it PyBADS is installed under the release's version,
 install -e . --no-deps` after it takes the version from the tags again.
 `release.yml` builds the package with `build.yml` and uploads it to PyPI by
 trusted publishing, through the `pypi` environment, which admits only `v*`
-tags. No token is stored. conda-forge follows by itself: after the upload,
-the version bot of `conda-forge/pybads-feedstock` opens an update PR, takes
-its dependencies from the PyPI metadata and merges it once its CI passes
-(the `bot` settings in the feedstock's `conda-forge.yml`;
-`conda-forge/gpyreg-feedstock` has the same). That PR fails when a
-dependency is missing from conda-forge, for instance a new gpyreg minimum
-that the gpyreg feedstock has not published yet; then a feedstock
-maintainer takes over.
+tags. No token is stored. After the upload, the version bot of
+`conda-forge/pybads-feedstock` opens an update PR and merges it once its
+CI passes (the `bot` settings in the feedstock's `conda-forge.yml`;
+`conda-forge/gpyreg-feedstock` has the same). The recipe keeps its own
+copy of the requirements, which the bot is not to be relied on to update:
+for gpyreg 1.4.0 it changed the version and the hash alone. A release that
+changes the dependencies, or what its tests need, changes the recipe by
+hand, in a PR opened before the bot's or pushed to it before it merges;
+removing `[bot-automerge]` from the bot's title keeps it from merging
+itself.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black
@@ -186,7 +188,12 @@ The runtime tips (`pybads/bads/_tip_catalog.py`) link the published FAQ,
 which is built from `main`, and an installed release keeps its links: a
 label that a released tip links is not renamed. Each tip also restates in
 brief the advice of the answer that it links, with its quantities, so a
-change to that advice is made in the catalogue as well.
+change to that advice is made in the catalogue as well. The tip on PyVBMC
+also links the lab's page of its model-fitting tools,
+https://acerbilab.org/model-fitting/ (the repository
+`acerbilab/model-fitting`), at its root, and restates what that page says
+of PyVBMC, its limit of about 10 parameters included; nothing in this
+repository sees a change to that page.
 
 Advice that the FAQ gives is linked from elsewhere rather than written out
 again, but for the runtime tips (above) and its list of the problems that
@@ -570,6 +577,15 @@ reason.
   `pybads/_release.py` and its past showings from its state file,
   `update_reminder.json` in the user's cache directory, and writes no file
   but that one.
+- **Links to the lab.** In what ships or is published, a link that names
+  Luigi Acerbi goes to his personal page, https://lacerbi.github.io/, and
+  one that names the lab or its members to the group's page,
+  https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence.
+  A paragraph that sends the reader to another of the lab's methods
+  (PyVBMC, PyIBS, MATLAB BADS) links the lab's page of them,
+  https://acerbilab.org/model-fitting/, with the text "tools for fitting
+  models to data", and `README.md` and `index.rst` link it under their
+  title.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a

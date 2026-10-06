@@ -18,6 +18,13 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 
+[project.urls]
+Documentation = "https://acerbilab.github.io/pybads/"
+Source = "https://github.com/acerbilab/pybads"
+Changelog = "https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md"
+Issues = "https://github.com/acerbilab/pybads/issues"
+"Model-fitting tools" = "https://acerbilab.org/model-fitting/"
+
 [tool.setuptools]
 include-package-data = true
 # Every directory of the package, those that hold only data included; the

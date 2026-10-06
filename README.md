@@ -8,6 +8,8 @@
 [![docs](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/docs.yml?branch=main&label=docs)](https://github.com/acerbilab/pybads/actions/workflows/docs.yml)
 [![build](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/build.yml?branch=main&label=build)](https://github.com/acerbilab/pybads/actions/workflows/build.yml)
 
+PyBADS is one of the [open-source tools for fitting models to data](https://acerbilab.org/model-fitting/) from [Luigi Acerbi's group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki. Check out our other tools, such as [PyVBMC](https://github.com/acerbilab/pyvbmc) for the posterior and the model evidence and [PyIBS](https://github.com/acerbilab/pyibs) for models that can only be simulated.
+
 ## What is it?
 
 PyBADS is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and mildly expensive optimization problems, originally implemented [in MATLAB](https://github.com/acerbilab/bads). BADS has been intensively tested for fitting a variety of computational models, and is currently being used in many computational labs around the world (see [Google Scholar](https://scholar.google.co.uk/scholar?cites=7209174494000095753&as_sdt=2005&sciodt=0,5&hl=en) for many example applications).
@@ -16,7 +18,7 @@ In a benchmark with real model-fitting problems from computational and cognitive
 
 PyBADS requires no specific tuning and runs off-the-shelf like other Python optimizers (e.g., `scipy.optimize.minimize`).
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/).
 
 ## What's new in PyBADS 1.5
 
@@ -163,7 +165,7 @@ Besides formal citations, you can demonstrate your appreciation for PyBADS in th
 - Follow Luigi Acerbi on [X](https://x.com/AcerbiLuigi) or [Bluesky](https://bsky.app/profile/lacerbi.bsky.social) for updates about BADS/PyBADS and other projects;
 - Tell us about your model-fitting problem and your experience with PyBADS (positive or negative) in the lab's [Discussions forum](https://github.com/orgs/acerbilab/discussions).
 
-*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS.
+*Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's [tools for fitting models to data](https://acerbilab.org/model-fitting/).
 
 ### BibTeX
 
@@ -198,5 +200,5 @@ PyBADS is released under the terms of the [BSD 3-Clause License](https://github.
 
 ### Acknowledgments
 
-PyBADS is developed by [members](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/people) (past and current) of the [Machine and Human Intelligence Group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence/) at the University of Helsinki and [ELLIS Institute Finland](https://www.ellisinstitute.fi/). Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's [Claude Opus 5.5](https://www.anthropic.com/claude-opus-5-5).
+PyBADS is developed by members (past and current) of the [Machine and Human Intelligence Group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki and [ELLIS Institute Finland](https://www.ellisinstitute.fi/). Starting from version 1.1, development of PyBADS has been assisted by coding agents, including Anthropic's [Claude Opus 5.5](https://www.anthropic.com/claude-opus-5-5).
 Work on the PyBADS package is supported by the Research Council of Finland (grants 356498 and 358980 to Luigi Acerbi) and its Flagship programme: [Finnish Center for Artificial Intelligence FCAI](https://fcai.fi/).
