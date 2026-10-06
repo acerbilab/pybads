@@ -298,7 +298,7 @@
       
       
       
-      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
+      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
    title="Launch on Binder"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -316,7 +316,7 @@
       
       
       
-      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
+      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
    title="Launch on Colab"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -364,7 +364,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/examples/pybads_example_2_nonbox_constraints.ipynb" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -602,11 +602,11 @@ The code used in this example is available as a script <a class="reference downl
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bads:pbUnspecified: Plausible lower/upper bounds not specified. Using hard upper/lower bounds instead.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Plausible lower/upper bounds not specified. Using hard upper/lower bounds instead.
 Beginning optimization of a DETERMINISTIC objective function
 
-Tip: If you work with a coding agent, give it the PyBADS skill from GitHub, or copy the skills/pybads folder of PyBADS's repository into the agent's skill directory: it points the agent to the parts of PyBADS's documentation relevant to your task.
-https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md
+Tip: Set plb and pub around where you expect the solution, a box you would bet contains it with over 90% probability. PyBADS draws its first points inside that box and scales its steps by it; lb and ub only bound the search.
+https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-choose-plb-and-pub
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2               1               1                                 Uncertainty test
@@ -652,7 +652,7 @@ Function value at minimum: 0.045679774134013466
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.78642297 0.61765718], fval = 0.04568
-total f-count: 60, time: 0.96 s
+total f-count: 60, time: 0.69 s
 Problem type: non-box constraints
 </pre></div>
 </div>

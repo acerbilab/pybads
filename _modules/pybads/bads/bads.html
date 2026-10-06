@@ -554,12 +554,14 @@
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">first</span> <span class="o">-</span> <span class="n">second</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">_PRECOMPUTED_DUPLICATE_ULPS</span> <span class="o">*</span> <span class="n">spacing</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_bounds_as_rows</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_bounds_as_rows</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">x0_source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    ``x0`` and the bounds as float arrays of shape ``(1, D)``, ``D`` the</span>
 <span class="sd">    number of elements of ``x0``: a scalar bound, or an array of one element,</span>
 <span class="sd">    is replicated in each dimension, as MATLAB BADS does</span>
-<span class="sd">    (``boundscheck.m``); floats, as MATLAB's doubles.</span>
+<span class="sd">    (``boundscheck.m``); floats, as MATLAB's doubles. ``x0_source`` names</span>
+<span class="sd">    the bounds that sized ``x0`` when the user gave none, for the message</span>
+<span class="sd">    of a bound of another size.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -574,31 +576,47 @@
             <span class="s2">"The starting point x0 (or, without it, the bounds that give "</span>
             <span class="s2">"its size) needs at least one element."</span>
         <span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"lower_bounds"</span><span class="p">,</span>
+        <span class="s2">"upper_bounds"</span><span class="p">,</span>
+        <span class="s2">"plausible_lower_bounds"</span><span class="p">,</span>
+        <span class="s2">"plausible_upper_bounds"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span> <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">))</span>
+    <span class="c1"># A single starting point, as in MATLAB BADS (boundscheck.m); without</span>
+    <span class="c1"># x0, its shape is that of the bounds named by x0_source</span>
+    <span class="k">if</span> <span class="n">N0</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">x0_source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x0_source</span><span class="si">}</span><span class="s2"> needs to be a scalar or a one-dimensional "</span>
+                <span class="s2">"array, one element per variable; its shape is "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span><span class="w"> </span><span class="n">shapes</span><span class="p">))[</span><span class="n">x0_source</span><span class="p">]</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"The starting point x0 needs to be a single point, a "</span>
+            <span class="sa">f</span><span class="s2">"one-dimensional array with one element per variable; x0 has "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">N0</span><span class="si">}</span><span class="s2"> rows."</span>
+        <span class="p">)</span>
     <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">),</span> <span class="n">bound</span><span class="p">)</span> <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">bound</span>
         <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">,</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">))</span>
     <span class="p">)</span>
-    <span class="c1"># check that all bounds are row vectors with D elements</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span> <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"""All input vectors (lower_bounds, upper_bounds,</span>
-<span class="s2">             plausible_lower_bounds, plausible_upper_bounds), if specified,</span>
-<span class="s2">             need to be of the same dimension D=</span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2"> as the starting point x_0=</span><span class="si">{</span><span class="n">x0</span><span class="si">}</span><span class="s2">."""</span>
-        <span class="p">)</span>
-
-    <span class="c1"># A single starting point, as in MATLAB BADS (boundscheck.m)</span>
-    <span class="k">if</span> <span class="n">N0</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"""bads:StartingSet: The starting point x0 needs to be a</span>
-<span class="s2">        single point, a vector of D=</span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2"> elements; x0 has </span><span class="si">{</span><span class="n">N0</span><span class="si">}</span><span class="s2"> rows."""</span>
-        <span class="p">)</span>
+    <span class="c1"># check that all bounds are row vectors with D elements; D is the size</span>
+    <span class="c1"># of x0, or, without it, of the bounds named by x0_source</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="n">shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">),</span> <span class="n">shapes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="s2">"x0"</span> <span class="k">if</span> <span class="n">x0_source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x0_source</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> needs to be a scalar or a one-dimensional array of "</span>
+                <span class="sa">f</span><span class="s2">"D = </span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2"> elements, one per variable, where D is the size of "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">; its shape is </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
 
     <span class="c1"># Test that all vectors are real-valued</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">a</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">            </span><span class="sd">"""All input vectors (x0, lower_bounds, upper_bounds,</span>
-<span class="sd">             plausible_lower_bounds, plausible_upper_bounds), if specified,</span>
-<span class="sd">             need to be real valued."""</span>
+            <span class="s2">"x0, lower_bounds, upper_bounds, plausible_lower_bounds and "</span>
+            <span class="s2">"plausible_upper_bounds need to be real-valued."</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">plb</span><span class="p">,</span> <span class="n">pub</span><span class="p">))</span>
 
@@ -623,14 +641,14 @@
     <span class="n">moved</span> <span class="o">=</span> <span class="n">fixed</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x0</span> <span class="o">!=</span> <span class="n">lb</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">moved</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"bads:FixedVariables: the bounds of the variables (index) "</span>
+            <span class="s2">"The bounds of the variables (index) "</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> are all equal, which fixes "</span>
             <span class="s2">"each of them at its bound, but x0 differs from it there; set "</span>
             <span class="s2">"x0 to the bound (or to NaN) at a fixed variable."</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">fixed</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"bads:FixedVariables: the four bounds of every variable are "</span>
+            <span class="s2">"The four bounds of every variable are "</span>
             <span class="s2">"equal, which fixes them all: there is nothing to optimize."</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">fixed</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
@@ -660,7 +678,7 @@
 <span class="n">_LOG_FINAL</span> <span class="o">=</span> <span class="mi">22</span>
 
 <span class="n">_PB_UNSPECIFIED</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"bads:pbUnspecified: Plausible lower/upper bounds not specified. Using "</span>
+    <span class="s2">"Plausible lower/upper bounds not specified. Using "</span>
     <span class="s2">"hard upper/lower bounds instead."</span>
 <span class="p">)</span>
 
@@ -934,14 +952,22 @@
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">lb_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ub_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                    </span><span class="sd">"""bads:UnknownDims If no starting point is</span>
-<span class="sd">                 provided, plausible_lower_bounds and plausible_upper_bounds, or lower_bounds and upper_bounds, need to be specified."""</span>
+                    <span class="s2">"Without x0, give plausible_lower_bounds and "</span>
+                    <span class="s2">"plausible_upper_bounds, or lower_bounds and "</span>
+                    <span class="s2">"upper_bounds, which set the number of variables."</span>
                 <span class="p">)</span>
             <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">lb_size</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+            <span class="n">x0_source</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"lower_bounds"</span>
+                <span class="k">if</span> <span class="n">plausible_lower_bounds</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">"plausible_lower_bounds"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x0_source</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
 
         <span class="c1"># Empty lb and ub are Infs. Missing plausible bounds are the hard</span>
-        <span class="c1"># bounds, with the warning bads:pbUnspecified once the logger is set</span>
+        <span class="c1"># bounds, with the warning _PB_UNSPECIFIED once the logger is set</span>
         <span class="c1"># up, as MATLAB BADS warns whenever it fills them</span>
         <span class="c1"># (boundscheck.m:12-16); a plausible bound that is then infinite is</span>
         <span class="c1"># refused by _bounds_check_</span>
@@ -962,6 +988,7 @@
             <span class="n">upper_bounds</span><span class="p">,</span>
             <span class="n">plausible_lower_bounds</span><span class="p">,</span>
             <span class="n">plausible_upper_bounds</span><span class="p">,</span>
+            <span class="n">x0_source</span><span class="o">=</span><span class="n">x0_source</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Fixed variables, whose four bounds are equal, are left out of the</span>
@@ -1063,11 +1090,10 @@
         <span class="c1"># the mesh)</span>
         <span class="k">if</span> <span class="n">non_box_cons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">non_box_cons</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s2">"Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."</span>
-                <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."</span>
+                    <span class="s2">"x0 violates non_box_cons: pass a starting point that "</span>
+                    <span class="s2">"satisfies the constraints, or x0=None to draw one at "</span>
+                    <span class="s2">"random."</span>
                 <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_optim_state_</span><span class="p">()</span>
@@ -1125,11 +1151,16 @@
 <span class="sd">        (``_bounds_as_rows``), for all the variables, fixed ones included.</span>
 <span class="sd">        """</span>
         <span class="c1"># check that plausible bounds are finite</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">plausible_lower_bounds</span><span class="p">)))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">plausible_upper_bounds</span><span class="p">))</span>
-        <span class="p">):</span>
+        <span class="n">not_finite</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">plausible_lower_bounds</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">plausible_upper_bounds</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">not_finite</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"Plausible interval bounds plausible_lower_bounds and plausible_upper_bounds need to be finite."</span>
+                <span class="s2">"plausible_lower_bounds and plausible_upper_bounds need to "</span>
+                <span class="s2">"be finite, and are not at the variables (index) "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">not_finite</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">; where they are not "</span>
+                <span class="s2">"given, they are lower_bounds and upper_bounds."</span>
             <span class="p">)</span>
 
         <span class="c1"># The fixed variables (_find_fixed_values), whose four bounds are equal,</span>
@@ -1138,11 +1169,13 @@
         <span class="n">fixed</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_values</span><span class="p">)</span>
 
         <span class="c1"># Test that plausible bounds are different</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">plausible_lower_bounds</span> <span class="o">==</span> <span class="n">plausible_upper_bounds</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">fixed</span><span class="p">):</span>
+        <span class="n">matching</span> <span class="o">=</span> <span class="p">(</span><span class="n">plausible_lower_bounds</span> <span class="o">==</span> <span class="n">plausible_upper_bounds</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">fixed</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">matching</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"bads:MatchingPB: For all variables, plausible lower and "</span>
-                <span class="s2">"upper bounds need to be distinct, except at a fixed "</span>
-                <span class="s2">"variable, whose four bounds are all equal."</span>
+                <span class="s2">"plausible_lower_bounds and plausible_upper_bounds are equal "</span>
+                <span class="s2">"at the variables (index) "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">matching</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">: they need to differ, "</span>
+                <span class="s2">"except at a fixed variable, whose four bounds are all equal."</span>
             <span class="p">)</span>
 
         <span class="c1"># Check that all X0 are inside the bounds. As in MATLAB BADS</span>
@@ -1151,12 +1184,11 @@
         <span class="c1"># stays where it is. A start that is not finite passes:</span>
         <span class="c1"># _init_optim_state_ draws a random point in its place, as MATLAB</span>
         <span class="c1"># BADS does (setupvars.m)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x0</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">lower_bounds</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x0</span> <span class="o">&gt;</span> <span class="n">upper_bounds</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="n">outside</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">lower_bounds</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">x0</span> <span class="o">&gt;</span> <span class="n">upper_bounds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x0</span><span class="p">))</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">outside</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">"""bads:InitialPointsNotInsideBounds: The starting</span>
-<span class="sd">                points X0 are not inside the provided hard bounds lower_bounds and upper_bounds."""</span>
+                <span class="s2">"x0 lies outside lower_bounds and upper_bounds at the "</span>
+                <span class="sa">f</span><span class="s2">"variables (index) </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">outside</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">."</span>
             <span class="p">)</span>
 
         <span class="c1"># Test order of bounds, as in MATLAB BADS (setupvars.m)</span>
@@ -1167,15 +1199,18 @@
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">ordidx</span> <span class="o">|</span> <span class="n">fixed</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">"""bads:StrictBounds: For each variable, hard and</span>
-<span class="sd">            plausible bounds should respect the ordering lower_bounds &lt;= plausible_lower_bounds &lt; plausible_upper_bounds &lt;= upper_bounds."""</span>
+                <span class="s2">"The bounds of the variables (index) "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="o">~</span><span class="p">(</span><span class="n">ordidx</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">fixed</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> are not in "</span>
+                <span class="s2">"order: each variable needs lower_bounds &lt;= "</span>
+                <span class="s2">"plausible_lower_bounds &lt; plausible_upper_bounds &lt;= "</span>
+                <span class="s2">"upper_bounds."</span>
             <span class="p">)</span>
 
         <span class="c1"># Check non bound constraints: one violation per row of its input,</span>
         <span class="c1"># as in MATLAB BADS (setupvars.m)</span>
         <span class="k">if</span> <span class="n">non_box_cons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">"bads:NONBCON non_box_cons should be a function that takes "</span>
+                <span class="s2">"non_box_cons should be a function that takes "</span>
                 <span class="o">+</span> <span class="s2">"an N x D array X, one point per row, and returns an array "</span>
                 <span class="o">+</span> <span class="s2">"of N constraint violations, of shape (N,) or (N, 1), true "</span>
                 <span class="o">+</span> <span class="s2">"or positive where a point violates the constraints."</span>
@@ -1350,26 +1385,26 @@
                     <span class="k">break</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
                 <span class="n">_LOG_NOTIFY</span><span class="p">,</span>
-                <span class="s2">"Initial starting point is invalid or not provided."</span>
-                <span class="o">+</span> <span class="s2">" Initial point randomly sampled uniformly from plausible box</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"x0 is missing or has a non-finite element: the starting "</span>
+                <span class="s2">"point is drawn at random in the plausible box.</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">violates_non_box_cons</span><span class="p">(</span><span class="n">u_draw</span><span class="p">)</span> <span class="ow">or</span> <span class="n">violates_non_box_cons</span><span class="p">(</span><span class="n">u0</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s2">"Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."</span>
-                <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"Initial starting point X0 does not satisfy non-bound constraints (non_box_cons)."</span>
+                    <span class="s2">"None of 1000 starting points drawn at random in the "</span>
+                    <span class="s2">"plausible box satisfies non_box_cons: pass an x0 that "</span>
+                    <span class="s2">"satisfies it, or set plausible_lower_bounds and "</span>
+                    <span class="s2">"plausible_upper_bounds around the feasible region."</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">u0</span> <span class="o">=</span> <span class="n">start_on_mesh</span><span class="p">()</span>
 
         <span class="c1"># Check that the gridized points satisfies the non-bound constraints</span>
         <span class="k">if</span> <span class="n">violates_non_box_cons</span><span class="p">(</span><span class="n">u0</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">"""Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""</span>
-            <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">"""Initial starting point X0 does no longer satisfy non-bound constraint after being fit into the mesh grid."""</span>
+                <span class="s2">"x0 is too close to the boundary of the region that "</span>
+                <span class="s2">"non_box_cons allows: PyBADS starts from the point of its "</span>
+                <span class="s2">"initial grid nearest to x0, which violates the constraints. "</span>
+                <span class="s2">"Move x0 further inside the region."</span>
             <span class="p">)</span>
 
         <span class="n">optim_state</span><span class="p">[</span><span class="s2">"u"</span><span class="p">]</span> <span class="o">=</span> <span class="n">u0</span>
@@ -1377,11 +1412,9 @@
 
         <span class="c1"># Test starting point u0 is within bounds</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">u0</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">u0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bounds</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">"Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"</span>
-            <span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="w">                </span><span class="sd">"""bads:Initpoint: Initial starting point u0 is not within the hard bounds lower_bounds and upper_bounds"""</span>
+                <span class="s2">"The start on the initial grid lies outside lower_bounds "</span>
+                <span class="s2">"and upper_bounds."</span>
             <span class="p">)</span>
 
         <span class="c1"># Report variable transformation, from "notify" on, as MATLAB BADS</span>
@@ -1672,9 +1705,8 @@
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"If options['specify_target_noise'] is True, "</span>
-                <span class="s2">"options['uncertainty_handling'] should be True as well. "</span>
-                <span class="s2">"Leave options['uncertainty_handling'] empty or set it to "</span>
-                <span class="s2">"True to avoid this error."</span>
+                <span class="s2">"options['uncertainty_handling'] needs to be True too, or "</span>
+                <span class="s2">"unset (None)."</span>
             <span class="p">)</span>
 
         <span class="c1"># noise_size is a base noise SD, or MATLAB's pair of that base and</span>
@@ -1735,9 +1767,8 @@
         <span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">"If options['specify_target_noise'] is True, "</span>
-                <span class="s2">"options['noise_size'] is ignored. Leave "</span>
-                <span class="s2">"options['noise_size'] empty or set it to 0 to silence this "</span>
-                <span class="s2">"warning."</span>
+                <span class="s2">"options['noise_size'] is ignored: leave it unset (None) "</span>
+                <span class="s2">"or set it to 0 to silence this warning."</span>
             <span class="p">)</span>
         <span class="c1"># Sto-BADS, PyBADS's own (KD-S-1), is deprecated: users are to know</span>
         <span class="c1"># that it is not the setting for a noisy target</span>
@@ -2084,7 +2115,16 @@
         <span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">"random_seed"</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">get_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">get_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">err</span><span class="p">)(</span>
+                <span class="s2">"options['random_seed'] needs to be None or a value that "</span>
+                <span class="s2">"numpy.random.default_rng takes, such as a non-negative "</span>
+                <span class="s2">"integer, a numpy.random.SeedSequence or a "</span>
+                <span class="s2">"numpy.random.Generator, not "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">'random_seed'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">."</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_random_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2252,11 +2292,12 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_display_function_log_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"Initial mesh"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"bads:init_fun:Initialization function not implemented yet"</span>
+                    <span class="s2">"options['init_fun'] needs to be 'init_sobol', the only "</span>
+                    <span class="s2">"initial design available."</span>
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"init mesh: Cannot find valid starting point."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Cannot find a valid starting point."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"fval"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"yval"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span>
@@ -2792,12 +2833,6 @@
         <span class="c1"># End while</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"exit_flag"</span><span class="p">]</span> <span class="o">=</span> <span class="n">exit_flag</span>
 
-        <span class="c1"># Re-evaluate all best points for noisy evaluations</span>
-        <span class="n">yval_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="c1"># A run that ends in its initialization takes no final samples: the</span>
-        <span class="c1"># result reports the incumbent's observation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"yval_vec"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">yval_vec</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"ysd_vec"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># The iterate whose point takes the final samples</span>
         <span class="n">final_idx</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="p">(</span>
@@ -2836,6 +2871,12 @@
             <span class="c1"># the incumbent, which takes the final samples that the run</span>
             <span class="c1"># reserved; MATLAB BADS takes none then (bads.m:1138)</span>
             <span class="n">final_idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Without final samples, report the observation at the selected</span>
+        <span class="c1"># point, which may belong to an earlier iteration.</span>
+        <span class="n">yval_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">yval</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"yval_vec"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">yval_vec</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"ysd_vec"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Re-evaluate estimated function value and SD at final point</span>
         <span class="n">final_samples</span> <span class="o">=</span> <span class="p">(</span>
@@ -2928,7 +2969,7 @@
             <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">yval_vec</span><span class="p">)</span> <span class="ow">or</span> <span class="n">yval_vec</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
                     <span class="n">_LOG_FINAL</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"Observed function value at minimum: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">yval_vec</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (1 sample). Estimated: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="si">}</span><span class="s2"> (GP mean ± SEM)."</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"Observed function value at minimum: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">yval_vec</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (1 sample). Estimated: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fsd</span><span class="si">}</span><span class="s2"> (no final samples were taken)."</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># with the target's noise SDs, the samples are weighted by</span>
@@ -3088,8 +3129,9 @@
 
             <span class="c1"># Randomly choose index if something went wrong (every value NaN)</span>
             <span class="k">if</span> <span class="n">index_acq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">"bads:optimize: Acquisition function failed"</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">"Acquisition function failed: a candidate is chosen at "</span>
+                    <span class="s2">"random"</span>
                 <span class="p">)</span>
                 <span class="n">index_acq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_search_set</span><span class="p">))</span>
 
@@ -3126,11 +3168,6 @@
                         <span class="n">y_search</span><span class="p">,</span>
                         <span class="n">f_sd_search</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span>
-                    <span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">y</span><span class="p">)):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">"bads:opt: GP prediction is non-finite"</span>
                     <span class="p">)</span>
 
             <span class="c1"># If the function is non-deterministic we update the posterior of the GP with the new point</span>
@@ -3550,8 +3587,9 @@
 
             <span class="c1"># Randomly choose index if something went wrong (every value NaN)</span>
             <span class="k">if</span> <span class="n">index_acq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">"bads:optimize: Acquisition function failed"</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">"Acquisition function failed: a candidate is chosen at "</span>
+                    <span class="s2">"random"</span>
                 <span class="p">)</span>
                 <span class="n">index_acq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_poll</span><span class="p">))</span>
             <span class="c1"># A zero predictive SD makes gamma_z infinite or NaN, which marks</span>
@@ -3742,7 +3780,7 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_q_historic_improvement</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">"tol_fun"</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mesh_size_integer</span> <span class="o">-=</span> <span class="mi">1</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">"bads: The optimization is stalling, further decrease of the mesh size"</span>
+                        <span class="s2">"The optimization is stalling, further decrease of the mesh size"</span>
                     <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">optim_state</span><span class="p">[</span><span class="s2">"search_size_integer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
@@ -3993,7 +4031,7 @@
                     <span class="c1"># matches its data (MATLAB's UpdateTarget reuses the</span>
                     <span class="c1"># current posterior).</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">"bads:optimize: GP posterior under the best "</span>
+                        <span class="s2">"GP posterior under the best "</span>
                         <span class="s2">"hyperparameters failed; target predicted from the "</span>
                         <span class="s2">"current GP"</span>
                     <span class="p">)</span>
@@ -4182,7 +4220,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">"mesh_overflow_warning"</span><span class="p">]</span>
             <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">"bads:meshOverflow </span><span class="se">\t</span><span class="s2"> The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."</span>
+                    <span class="s2">"The mesh attempted to expand above maximum size too many times. Try widening plausible_lower_bounds and plausible_upper_bounds."</span>
                 <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_log_column_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -313,7 +313,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/api/classes/options.rst" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/docsrc/source/api/classes/options.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -491,10 +491,6 @@
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>user_options</strong><span class="classifier">set</span></dt><dd><p>This set contains all options that have set by the user,
-if there are none it is empty. These <code class="docutils literal notranslate"><span class="pre">useroptions</span></code> are immutable to
-changes using <a class="reference internal" href="#pybads.bads.Options.load_options_file" title="pybads.bads.Options.load_options_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load_options_file()</span></code></a>.</p>
-</dd>
 <dt><strong>unset_user_options</strong><span class="classifier">set</span></dt><dd><p>The names of the user options whose value is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which stands
 for the default: they are not set, and not in <code class="docutils literal notranslate"><span class="pre">useroptions</span></code>, but
 their names are checked by
@@ -503,6 +499,10 @@ their names are checked by
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The mapping entry <code class="docutils literal notranslate"><span class="pre">options[&quot;useroptions&quot;]</span></code> holds the set of option
+names supplied by the user with non-None values.
+<a class="reference internal" href="#pybads.bads.Options.load_options_file" title="pybads.bads.Options.load_options_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load_options_file()</span></code></a> leaves their values unchanged.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pybads.bads.Options.eval">
 <span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pybads/bads/options.html#Options.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybads.bads.Options.eval" title="Link to this definition">#</a></dt>
@@ -589,7 +589,8 @@ MATLAB-style string such as <code class="docutils literal notranslate"><span cla
 <dd class="field-odd"><dl class="simple">
 <dt><strong>options_paths</strong><span class="classifier">list of str</span></dt><dd><p>A list of paths to the ini files that hold the default options.</p>
 </dd>
-<dt><strong>extra_names</strong><span class="classifier">tuple of str, optional</span></dt><dd><p>The names of other options that take <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dt><strong>extra_names</strong><span class="classifier">tuple of str, optional</span></dt><dd><p>The names of other options that take <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+and whose default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
 <dt><strong>excluded_names</strong><span class="classifier">tuple of str, optional</span></dt><dd><p>The names of options whose default is <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> and
 that take other values too.</p>

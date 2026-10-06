@@ -313,7 +313,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/api/classes/function_logger.rst" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/docsrc/source/api/classes/function_logger.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -526,10 +526,14 @@ leaves the log as it is: it adds only its time to
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>fval</strong><span class="classifier">float</span></dt><dd><p>The result of the evaluation.</p>
+<dt><strong>fval</strong><span class="classifier">float</span></dt><dd><p>The result of the evaluation, merged by precision weighting
+with earlier observations at the point when recording it in a
+logger that holds SDs. An evaluation that is not recorded
+returns its own value.</p>
 </dd>
 <dt><strong>SD</strong><span class="classifier">float or None</span></dt><dd><p>The (estimated) SD that the function returned, None when the
-logger takes none (<code class="docutils literal notranslate"><span class="pre">uncertainty_handling_level</span></code> below 2).</p>
+logger takes none (<code class="docutils literal notranslate"><span class="pre">uncertainty_handling_level</span></code> below 2).
+Describes this evaluation before any merge.</p>
 </dd>
 <dt><strong>idx</strong><span class="classifier">int or None</span></dt><dd><p>The index of the last updated entry, None when an evaluation
 that is not recorded (<code class="docutils literal notranslate"><span class="pre">record_duplicate_data=False</span></code>) is of a
@@ -544,7 +548,12 @@ as a tuple <code class="docutils literal notranslate"><span class="pre">(f,</spa
 is below 2.</p>
 </dd>
 <dt>ValueError</dt><dd><p>Raise if the (estimated) SD (second function output)
-is not a finite, positive real-valued scalar.</p>
+is not a finite, positive real-valued scalar, or if the
+function does not return a tuple <code class="docutils literal notranslate"><span class="pre">(f,</span> <span class="pre">sd)</span></code> when
+<code class="docutils literal notranslate"><span class="pre">uncertainty_handling_level</span></code> is 2.</p>
+</dd>
+<dt>Exception</dt><dd><p>Any exception that the function raises, as it was raised,
+with a note of the point on Python 3.11 and later.</p>
 </dd>
 </dl>
 </dd>

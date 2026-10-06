@@ -298,7 +298,7 @@
       
       
       
-      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/_examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
+      <li><a href="https://mybinder.org/v2/gh/acerbilab/pybads/main?urlpath=lab/tree/examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
    title="Launch on Binder"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -316,7 +316,7 @@
       
       
       
-      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/_examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
+      <li><a href="https://colab.research.google.com/github/acerbilab/pybads/blob/main/examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
    title="Launch on Colab"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -364,7 +364,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/_examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/examples/pybads_example_6_periodic_variables.ipynb" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -615,9 +615,8 @@ f(\mathbf{x}) = \text{Rosenbrock}(x_1, x_2) + \cos\left(\frac{\pi x_3}{2}\right)
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Variables (index) defined with periodic boundaries: [2, 3]
 Beginning optimization of a DETERMINISTIC objective function
 
-Tip: If your objective is a negative log-likelihood, you can also estimate the uncertainty over the parameters and the model evidence with PyVBMC, another of the lab's model-fitting tools (best with up to about 10 parameters). You can run it on the same model and data, with a prior over the parameters and PyBADS's solution as its starting point x0.
-https://acerbilab.org/model-fitting/
-https://acerbilab.github.io/pybads/faq.html#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc
+Tip: Run PyBADS from at least 10 different starting points, ideally dozens, depending on your problem; with x0=None, each run draws its start at random in the plausible box. Keep the run with the lowest fval: a single run can stop in a local minimum, and if several runs reach nearly the same fval, you can be more confident in the solution.
+https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-run-pybads-from-several-starting-points
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2           14417               1                                 Uncertainty test
@@ -679,7 +678,7 @@ Function value at minimum: 3.6476772060645146e-06
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [ 1.00188157  1.00376138 -1.99977819  0.99990573], fval = 3.648e-06
-total f-count: 169, time: 3.96 s
+total f-count: 169, time: 1.6 s
 </pre></div>
 </div>
 </div>

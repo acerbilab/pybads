@@ -391,6 +391,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads.utils.timer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads.variable_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VariableTransformer</span>
 
+<span class="c1"># The FAQ's answer on a value that is not a finite real scalar, which the</span>
+<span class="c1"># error names</span>
+<span class="n">_FAQ_FINITE_VALUE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"https://acerbilab.github.io/pybads/faq.html#faq-pybads-crashes-saying-"</span>
+    <span class="s2">"that-the-returned-function-value-must-be-a-finite-real-valued-scalar-"</span>
+    <span class="s2">"what-do-i-do"</span>
+<span class="p">)</span>
+
 
 <div class="viewcode-block" id="FunctionLogger">
 <a class="viewcode-back" href="../../../api/classes/function_logger.html#pybads.function_logger.FunctionLogger">[docs]</a>
@@ -489,10 +497,14 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        fval : float</span>
-<span class="sd">            The result of the evaluation.</span>
+<span class="sd">            The result of the evaluation, merged by precision weighting</span>
+<span class="sd">            with earlier observations at the point when recording it in a</span>
+<span class="sd">            logger that holds SDs. An evaluation that is not recorded</span>
+<span class="sd">            returns its own value.</span>
 <span class="sd">        SD : float or None</span>
 <span class="sd">            The (estimated) SD that the function returned, None when the</span>
 <span class="sd">            logger takes none (``uncertainty_handling_level`` below 2).</span>
+<span class="sd">            Describes this evaluation before any merge.</span>
 <span class="sd">        idx : int or None</span>
 <span class="sd">            The index of the last updated entry, None when an evaluation</span>
 <span class="sd">            that is not recorded (``record_duplicate_data=False``) is of a</span>
@@ -506,7 +518,12 @@
 <span class="sd">            is below 2.</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            Raise if the (estimated) SD (second function output)</span>
-<span class="sd">            is not a finite, positive real-valued scalar.</span>
+<span class="sd">            is not a finite, positive real-valued scalar, or if the</span>
+<span class="sd">            function does not return a tuple ``(f, sd)`` when</span>
+<span class="sd">            ``uncertainty_handling_level`` is 2.</span>
+<span class="sd">        Exception</span>
+<span class="sd">            Any exception that the function raises, as it was raised,</span>
+<span class="sd">            with a note of the point on Python 3.11 and later.</span>
 <span class="sd">        """</span>
 
         <span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
@@ -523,37 +540,36 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">x_orig</span> <span class="o">=</span> <span class="n">x</span>
 
-        <span class="n">wrong_format_target_function</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">timer</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
             <span class="n">fun_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="n">x_orig</span><span class="p">)</span>
             <span class="n">timer</span><span class="o">.</span><span class="n">stop_timer</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
-                <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">fval_orig</span><span class="p">,</span> <span class="n">fsd</span> <span class="o">=</span> <span class="n">fun_res</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">wrong_format_target_function</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="s2">"The `specify_target_noise` option has been set to `True`.</span><span class="se">\n</span><span class="s2">"</span>
-                        <span class="o">+</span> <span class="s2">"The target function should return two outputs: the function value and the target noise.</span><span class="se">\n</span><span class="s2">"</span>
-                        <span class="o">+</span> <span class="s2">"Please adjust the target function to return two outputs."</span>
-                    <span class="p">)</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">fun_res</span>
-                <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">wrong_format_target_function</span><span class="p">:</span>
-                <span class="n">err</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">error_message</span><span class="p">,)</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">err</span><span class="o">.</span><span class="n">args</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="s2">"</span><span class="se">\n</span><span class="s2"> FunctionLogger:FuncError "</span>
-                    <span class="o">+</span> <span class="s2">"Error in executing the logged function "</span>
-                    <span class="o">+</span> <span class="s2">"with input: "</span>
-                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x_orig</span><span class="p">),</span>
-                <span class="p">)</span>
+            <span class="c1"># The target's own error reaches the caller as it was raised,</span>
+            <span class="c1"># with a note of the point where Python takes notes (3.11 on)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s2">"add_note"</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">err</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span>
+                        <span class="s2">"PyBADS: raised by the target function at x = "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">."</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
             <span class="k">raise</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fun_res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">fval_orig</span><span class="p">,</span> <span class="n">fsd</span> <span class="o">=</span> <span class="n">fun_res</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"With options['specify_target_noise'] = True, the target "</span>
+                    <span class="s2">"function needs to return a tuple (f, sd), its value and "</span>
+                    <span class="sa">f</span><span class="s2">"the SD of its noise; at x = </span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> it returned "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fun_res</span><span class="si">!r}</span><span class="s2">."</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">fun_res</span>
+            <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># A pair (f, sd) where the logger takes no SD is refused as a value</span>
         <span class="c1"># that is not a scalar, with the option that takes the SD named</span>
@@ -573,25 +589,30 @@
 
         <span class="c1"># Check function value</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
-<span class="s2">            The returned function value must be a finite real-valued scalar</span>
-<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
+            <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The target function returned the value </span><span class="si">{</span><span class="n">fval_orig</span><span class="si">}</span><span class="s2"> at x = "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="s2">"The returned function value must be a finite real-valued "</span>
+                <span class="sa">f</span><span class="s2">"scalar; see </span><span class="si">{</span><span class="n">_FAQ_FINITE_VALUE</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">returned_pair</span><span class="p">:</span>
                 <span class="n">error_message</span> <span class="o">+=</span> <span class="p">(</span>
                     <span class="s2">"</span><span class="se">\n</span><span class="s2">A target that returns its value and the SD of its "</span>
                     <span class="s2">"noise, as a tuple (f, sd), needs "</span>
                     <span class="s1">'options["specify_target_noise"] = True.'</span>
                 <span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
 
         <span class="c1"># Check returned function SD</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
             <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fsd</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
         <span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
-<span class="s2">                The returned estimated SD (second function output)</span>
-<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">"""</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The target function returned the noise SD </span><span class="si">{</span><span class="n">fsd</span><span class="si">}</span><span class="s2"> at x = "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">; the SD, the second element of the "</span>
+                <span class="s2">"returned tuple (f, sd), must be a finite positive real "</span>
+                <span class="s2">"number."</span>
+            <span class="p">)</span>
 
         <span class="c1"># record timer stats</span>
         <span class="n">funtime</span> <span class="o">=</span> <span class="n">timer</span><span class="o">.</span><span class="n">get_duration</span><span class="p">(</span><span class="s2">"funtime"</span><span class="p">)</span>
@@ -689,26 +710,25 @@
         <span class="c1"># it, and PyVBMC's logger requires it too</span>
         <span class="n">fval_orig</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">):</span>
-            <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidFuncValue:</span>
-<span class="s2">            The returned function value must be a finite real-valued scalar</span>
-<span class="s2">            (returned value </span><span class="si">{}</span><span class="s2">)"""</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fval_orig</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The value </span><span class="si">{</span><span class="n">fval_orig</span><span class="si">}</span><span class="s2"> at x = </span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> must be a finite "</span>
+                <span class="s2">"real-valued scalar."</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_flag</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">fsd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">he_noise_flag</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">"FunctionLogger:MissingNoiseValue: at uncertainty "</span>
-                        <span class="s2">"handling level 2, an evaluation is added with the "</span>
-                        <span class="s2">"SD of its noise (fsd)."</span>
+                        <span class="s2">"At uncertainty handling level 2, an evaluation "</span>
+                        <span class="s2">"needs the SD of its noise (fsd)."</span>
                     <span class="p">)</span>
                 <span class="n">fsd</span> <span class="o">=</span> <span class="mf">1.0</span>
             <span class="n">fsd</span> <span class="o">=</span> <span class="n">_as_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_is_finite_real_scalar</span><span class="p">(</span><span class="n">fsd</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fsd</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span>
-                <span class="n">error_message</span> <span class="o">=</span> <span class="s2">"""FunctionLogger:InvalidNoiseValue</span>
-<span class="s2">                The returned estimated SD (second function output)</span>
-<span class="s2">                must be a finite, positive real-valued scalar (returned SD:</span><span class="si">{}</span><span class="s2">"""</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fsd</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"The noise SD </span><span class="si">{</span><span class="n">fsd</span><span class="si">}</span><span class="s2"> at x = </span><span class="si">{</span><span class="n">x_orig</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> must be a finite "</span>
+                    <span class="s2">"positive real number."</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fsd</span> <span class="o">=</span> <span class="kc">None</span>
 

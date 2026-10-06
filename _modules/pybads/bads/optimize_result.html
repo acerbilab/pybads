@@ -418,14 +418,20 @@
 <span class="sd">            - Value of objective function at solution. In a noisy run, an</span>
 <span class="sd">              estimate of the target's mean at ``x``: normally the average</span>
 <span class="sd">              of ``yval_vec``, weighted by their precisions with</span>
-<span class="sd">              ``specify_target_noise``.</span>
+<span class="sd">              ``specify_target_noise``. Without final samples, the estimate</span>
+<span class="sd">              available when the run stops, normally from the GP.</span>
 <span class="sd">        - fsd: float</span>
 <span class="sd">            - Uncertainty (SD) of ``fval`` as an estimate of the target's</span>
 <span class="sd">              value at ``x``, such as the standard error of the final</span>
 <span class="sd">              samples in a noisy run; 0 for a deterministic target.</span>
 <span class="sd">        - yval_vec: np.ndarray or None</span>
 <span class="sd">            - In a noisy run, the observations of the target at ``x`` that</span>
-<span class="sd">              ``fval`` averages; None otherwise.</span>
+<span class="sd">              ``fval`` averages; None for a deterministic target, with</span>
+<span class="sd">              ``noise_final_samples=0``, or when the budget leaves no final</span>
+<span class="sd">              samples. With one final sample and no ``specify_target_noise``,</span>
+<span class="sd">              includes the observation already recorded at ``x``. If an</span>
+<span class="sd">              output function stops the run at ``"init"`` after samples</span>
+<span class="sd">              have been reserved, holds the incumbent's observation alone.</span>
 <span class="sd">        - ysd_vec: np.ndarray or None</span>
 <span class="sd">            - Standard deviations of the final sampled observations</span>
 <span class="sd">              (``"yval_vec"``) that the target returns with</span>
@@ -470,7 +476,8 @@
 <span class="sd">        - overhead: float</span>
 <span class="sd">            - The optimizer's own time relative to the time spent</span>
 <span class="sd">              evaluating the target: ``total_time`` divided by the</span>
-<span class="sd">              evaluations' time, minus 1.</span>
+<span class="sd">              evaluations' time, minus 1. The automatic noise test at</span>
+<span class="sd">              ``x0`` counts as optimizer time.</span>
 <span class="sd">        - random_seed: int or None</span>
 <span class="sd">            - The ``random_seed`` option if it is an integer, and ``None``</span>
 <span class="sd">              otherwise.</span>
@@ -617,7 +624,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OptimizeResult</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"""The key is not part of OptimizeResult._keys"""</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">' is not a field of OptimizeResult."</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"fun"</span><span class="p">,</span> <span class="s2">"non_box_cons"</span><span class="p">):</span>
             <span class="c1"># The callables are kept by reference: a copy of a bound method</span>
             <span class="c1"># or a callable object copies its instance, which may hold what</span>

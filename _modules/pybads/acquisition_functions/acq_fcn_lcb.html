@@ -441,13 +441,13 @@
         <span class="n">value</span> <span class="o">=</span> <span class="n">sqrt_beta</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_positive_finite_real</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"acq_fcn_lcb: sqrt_beta(t, n_vars) needs to return a positive "</span>
-                <span class="sa">f</span><span class="s2">"finite real number, not </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> (t = </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">, "</span>
+                <span class="s2">"sqrt_beta(t, n_vars) in options['search_acq_fcn'] needs to "</span>
+                <span class="sa">f</span><span class="s2">"return a positive finite real number, not </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> (t = </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">, "</span>
                 <span class="sa">f</span><span class="s2">"n_vars = </span><span class="si">{</span><span class="n">n_vars</span><span class="si">}</span><span class="s2">)."</span>
             <span class="p">)</span>
         <span class="n">sqrt_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">check_sqrt_beta</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">,</span> <span class="s2">"acq_fcn_lcb: sqrt_beta"</span><span class="p">)</span>
+        <span class="n">check_sqrt_beta</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span>
         <span class="n">sqrt_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sqrt_beta</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="n">f_mu</span><span class="p">,</span> <span class="n">f_s2</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>

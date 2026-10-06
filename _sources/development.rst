@@ -92,13 +92,14 @@ To setup an existing PyBADS repository for building documentation, please follow
        git clone -b gh-pages --single-branch https://github.com/acerbilab/pybads docs
 
       This will clone *only* the ``gh-pages`` branch inside ``docs/``, so that changes to the docs can now be pushed directly to ``gh-pages`` from within ``docs/``.
-2. From the ``main`` branch render new documentation::
+2. From the repository root on the ``main`` branch, activate the development environment and render the documentation::
 
-    cd /docsrc (navigate to documentation source folder)
-    conda active pybads-env (activate conda environment)
-    make github  (this builds the doc and copies the build version to ./docs)
+    conda activate pybads-env
+    cd docsrc
+    make github
 
-   (If you are using Windows, run ``.\make.bat github`` with ``cmd`` instead.)
+   This builds the documentation and copies it to ``docs/`` in the repository root.
+   If you are using Windows, run ``.\make.bat github`` with ``cmd`` instead.
 3. Change into the ``docs/`` directory::
 
      cd ../docs

@@ -412,15 +412,17 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    user_options : set</span>
-<span class="sd">        This set contains all options that have set by the user,</span>
-<span class="sd">        if there are none it is empty. These ``useroptions`` are immutable to</span>
-<span class="sd">        changes using :py:meth:`load_options_file`.</span>
 <span class="sd">    unset_user_options : set</span>
 <span class="sd">        The names of the user options whose value is ``None``, which stands</span>
 <span class="sd">        for the default: they are not set, and not in ``useroptions``, but</span>
 <span class="sd">        their names are checked by</span>
 <span class="sd">        :py:meth:`validate_option_names`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The mapping entry ``options["useroptions"]`` holds the set of option</span>
+<span class="sd">    names supplied by the user with non-None values.</span>
+<span class="sd">    :py:meth:`load_options_file` leaves their values unchanged.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -588,7 +590,8 @@
 <span class="sd">        options_paths : list of str</span>
 <span class="sd">            A list of paths to the ini files that hold the default options.</span>
 <span class="sd">        extra_names : tuple of str, optional</span>
-<span class="sd">            The names of other options that take ``True`` or ``False``.</span>
+<span class="sd">            The names of other options that take ``True`` or ``False``,</span>
+<span class="sd">            and whose default is ``None``.</span>
 <span class="sd">        excluded_names : tuple of str, optional</span>
 <span class="sd">            The names of options whose default is ``True`` or ``False`` and</span>
 <span class="sd">            that take other values too.</span>
@@ -608,8 +611,15 @@
         <span class="n">boolean_names</span> <span class="o">-=</span> <span class="nb">set</span><span class="p">(</span><span class="n">excluded_names</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">boolean_names</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="p">[</span><span class="s2">"useroptions"</span><span class="p">]):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+                <span class="c1"># the options of extra_names default to None, which a user</span>
+                <span class="c1"># can give too</span>
+                <span class="n">accepted</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"True, False or None"</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_names</span>
+                    <span class="k">else</span> <span class="s2">"True or False"</span>
+                <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"options['</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">'] needs to be True or False, not "</span>
+                    <span class="sa">f</span><span class="s2">"options['</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">'] needs to be </span><span class="si">{</span><span class="n">accepted</span><span class="si">}</span><span class="s2">, not "</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2">."</span>
                 <span class="p">)</span></div>
 

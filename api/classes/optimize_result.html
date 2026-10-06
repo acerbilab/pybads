@@ -313,7 +313,7 @@
       
       
       
-      <li><a href="https://github.com/acerbilab/pybads/edit/main/api/classes/optimize_result.rst" target="_blank"
+      <li><a href="https://github.com/acerbilab/pybads/edit/main/docsrc/source/api/classes/optimize_result.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -517,7 +517,8 @@ fixed variables at their values.</p></li>
 <li><p>Value of objective function at solution. In a noisy run, an
 estimate of the target’s mean at <code class="docutils literal notranslate"><span class="pre">x</span></code>: normally the average
 of <code class="docutils literal notranslate"><span class="pre">yval_vec</span></code>, weighted by their precisions with
-<code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>. Without final samples, the estimate
+available when the run stops, normally from the GP.</p></li>
 </ul>
 </dd>
 </dl>
@@ -534,7 +535,12 @@ samples in a noisy run; 0 for a deterministic target.</p></li>
 <li><dl class="simple">
 <dt>yval_vec: np.ndarray or None</dt><dd><ul>
 <li><p>In a noisy run, the observations of the target at <code class="docutils literal notranslate"><span class="pre">x</span></code> that
-<code class="docutils literal notranslate"><span class="pre">fval</span></code> averages; None otherwise.</p></li>
+<code class="docutils literal notranslate"><span class="pre">fval</span></code> averages; None for a deterministic target, with
+<code class="docutils literal notranslate"><span class="pre">noise_final_samples=0</span></code>, or when the budget leaves no final
+samples. With one final sample and no <code class="docutils literal notranslate"><span class="pre">specify_target_noise</span></code>,
+includes the observation already recorded at <code class="docutils literal notranslate"><span class="pre">x</span></code>. If an
+output function stops the run at <code class="docutils literal notranslate"><span class="pre">&quot;init&quot;</span></code> after samples
+have been reserved, holds the incumbent’s observation alone.</p></li>
 </ul>
 </dd>
 </dl>
@@ -644,7 +650,8 @@ whose noise BADS infers, or <code class="docutils literal notranslate"><span cla
 <dt>overhead: float</dt><dd><ul>
 <li><p>The optimizer’s own time relative to the time spent
 evaluating the target: <code class="docutils literal notranslate"><span class="pre">total_time</span></code> divided by the
-evaluations’ time, minus 1.</p></li>
+evaluations’ time, minus 1. The automatic noise test at
+<code class="docutils literal notranslate"><span class="pre">x0</span></code> counts as optimizer time.</p></li>
 </ul>
 </dd>
 </dl>
