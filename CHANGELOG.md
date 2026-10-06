@@ -31,6 +31,7 @@ Changes since PyBADS 1.5.0.
 - **Documentation.** Notebook launch and edit links point to their
   repository sources. The FAQ and API reference clarify noisy results
   with few or no final samples, timing and function logger return values.
+  Building the documentation requires sphinx-book-theme 1.0 or newer.
 
 ## [1.5.0] - 2026-10-06
 
