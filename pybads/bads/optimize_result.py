@@ -227,7 +227,7 @@ class OptimizeResult(dict):
 
     def __setitem__(self, key: str, val: object):
         if key not in OptimizeResult._keys:
-            raise ValueError("""The key is not part of OptimizeResult._keys""")
+            raise ValueError(f"'{key}' is not a field of OptimizeResult.")
         elif key in ("fun", "non_box_cons"):
             # The callables are kept by reference: a copy of a bound method
             # or a callable object copies its instance, which may hold what

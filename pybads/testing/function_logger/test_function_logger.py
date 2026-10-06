@@ -1,3 +1,6 @@
+import dataclasses
+import sys
+
 import numpy as np
 import pytest
 
@@ -358,16 +361,41 @@ def test_call_invalid_sd_value():
 
 
 def test_call_function_error():
+    """An error that the target raises reaches the caller as it was raised,
+    its arguments unchanged, with a note of the point on Python 3.11 and
+    later."""
     x = np.array([3, 4, 5])
 
     def error_function(x):
-        x = np.array([x])
-        return x @ x
+        raise KeyError("my model failed")
 
     f_logger = FunctionLogger(error_function, 3, False, 0)
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(KeyError) as err:
         f_logger(x)
-    assert "FunctionLogger:FuncError" in str(err.value)
+    assert err.value.args == ("my model failed",)
+    if sys.version_info >= (3, 11):
+        assert err.value.__notes__ == [
+            "PyBADS: raised by the target function at x = [3, 4, 5]."
+        ]
+    assert f_logger.Xn == -1
+
+
+def test_call_function_error_that_refuses_a_note():
+    """An exception that refuses the note still reaches the caller as it
+    was raised."""
+
+    @dataclasses.dataclass(frozen=True)
+    class FrozenError(Exception):
+        code: int
+
+    def error_function(x):
+        raise FrozenError(7)
+
+    f_logger = FunctionLogger(error_function, 3, False, 0)
+    with pytest.raises(FrozenError) as err:
+        f_logger(np.array([3, 4, 5]))
+    assert err.value.code == 7
+    assert f_logger.Xn == -1
 
 
 def test_call_non_scalar_return():
@@ -401,7 +429,7 @@ def test_add_requires_the_sd_at_level_2():
     # Where the target returns the SDs, an evaluation added without one is
     # refused, as in PyVBMC's logger, rather than given an SD of 1
     f_logger = FunctionLogger(noisy_function, 3, True, 2)
-    with pytest.raises(ValueError, match="FunctionLogger:MissingNoiseValue"):
+    with pytest.raises(ValueError, match="needs the SD of its noise"):
         f_logger.add(np.array([3, 4, 5]), 3.0)
     assert f_logger.Xn == -1
 
@@ -444,9 +472,9 @@ def test_add_merges_a_repeat_at_level_2():
     assert f_logger.func_count == 0
 
 
-_VALUE = "FunctionLogger:InvalidFuncValue"
-_SD = "FunctionLogger:InvalidNoiseValue"
-_FORMAT = "The `specify_target_noise` option has been set to `True`"
+_VALUE = "must be a finite real-valued scalar"
+_SD = "must be a finite positive real number"
+_FORMAT = "the target function needs to return a tuple"
 
 
 @pytest.mark.parametrize(
@@ -484,7 +512,7 @@ def test_call_malformed_output_raises_value_error_and_records_nothing(
     Y = f_logger.Y.copy()
     with pytest.raises(ValueError, match=message) as err:
         f_logger(np.ones(2))
-    assert "FunctionLogger:FuncError" not in str(err.value)
+    assert not getattr(err.value, "__notes__", None)
     assert f_logger.Xn == 0
     assert f_logger.X_max_idx == 0
     assert f_logger.func_count == 1

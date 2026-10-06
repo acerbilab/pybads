@@ -189,11 +189,14 @@ label changed, is updated there as well:
 - `faq-i-used-bads-in-matlab-what-is-different-in-pybads`: "What's new" in
   `README.md` and `index.rst`;
 - `faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc`: the runtime
-  tips.
+  tips;
+- `faq-pybads-crashes-saying-that-the-returned-function-value-must-be-a-finite-real-valued-scalar-what-do-i-do`:
+  the error of `FunctionLogger` for a value that is not a finite real
+  scalar (`pybads/function_logger/function_logger.py`).
 
 The runtime tips (`pybads/bads/_tip_catalog.py`) link the published FAQ,
 which is built from `main`, and an installed release keeps its links: a
-label that a released tip links is not renamed. Each tip also restates in
+label that a released tip or message links is not renamed. Each tip also restates in
 brief the advice of the answer that it links, with its quantities, so a
 change to that advice is made in the catalogue as well. The tip on PyVBMC
 also links the lab's page of its model-fitting tools,

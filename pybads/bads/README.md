@@ -463,7 +463,8 @@ message, `"iter"` and `"all"` also the iteration lines, and `"full"`,
 which only PyBADS has, the debug messages too. The reports of the setup
 (the caution for infinite bounds, the variables on a log scale) are shown
 from `"notify"` on, as MATLAB BADS prints them, and its warnings, such as
-`bads:pbUnspecified`, at every level, as MATLAB's `warning` shows whatever
+the one for unspecified plausible bounds (MATLAB's `bads:pbUnspecified`),
+at every level, as MATLAB's `warning` shows whatever
 `Display` says. The content and format of the other lines may differ.
 PyBADS alone prints an occasional tip with a link to its documentation
 before the first iteration line (`show_tips`), from `"iter"` on: the

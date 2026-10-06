@@ -1237,7 +1237,7 @@ def test_run_carries_on_after_failures(inject, level, should_fail, reached):
 
 def test_initial_fit_recovers_from_failure(monkeypatch, caplog):
     """`init_and_train_gp` retries a fit that raises `LinAlgError` from other
-    starting hyperparameters, with a warning on the BADS logger."""
+    starting hyperparameters, with a debug message on the BADS logger."""
     original_fit = gpr.GP.fit
     failures = []
 
@@ -1249,13 +1249,18 @@ def test_initial_fit_recovers_from_failure(monkeypatch, caplog):
         return original_fit(gp, *args, **kwargs)
 
     monkeypatch.setattr(gpr.GP, "fit", fit)
-    with caplog.at_level("WARNING", logger="BADS"):
-        result = _make_bads(_sphere).optimize()
+    bads = _make_bads(_sphere)
+    with caplog.at_level("DEBUG", logger="BADS"):
+        result = bads.optimize()
     assert failures
-    assert any(
-        record.name == "BADS" and "initial fit" in record.getMessage()
+    initial_fit = [
+        record
         for record in caplog.records
-    )
+        if record.name == "BADS" and "initial fit" in record.getMessage()
+    ]
+    # The run recovers, so the failures are debug messages, not warnings
+    assert initial_fit
+    assert all(record.levelno == logging.DEBUG for record in initial_fit)
     assert np.isfinite(result["fval"])
 
 
@@ -1277,7 +1282,7 @@ def test_initial_fit_stops_after_repeated_failures(monkeypatch):
 
     monkeypatch.setattr(gpr.GP, "fit", fit)
     with pytest.raises(
-        RuntimeError, match="initial fit of the GP failed 10 times"
+        RuntimeError, match="initial design: 10 attempts failed"
     ) as info:
         _make_bads(_sphere).optimize()
     assert len(failures) == 10

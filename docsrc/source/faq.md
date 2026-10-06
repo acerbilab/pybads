@@ -507,7 +507,7 @@ is not [fixed](#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value
 
 If you *really* have no idea about a plausible range, you can set `plb` and
 `pub` equal to `lb` and `ub`, or leave them out, in which case PyBADS uses
-the hard bounds in their place, with the warning `bads:pbUnspecified`; but
+the hard bounds in their place, with a warning that says so; but
 this should not be the norm.
 
 In the example above (see [this question](#faq-how-do-i-choose-lb-and-ub)),
@@ -1064,9 +1064,10 @@ more than a year old, a
 `options["show_tips"] = False` turns both off.
 
 PyBADS prints through Python's `logging` module, with a logger named
-`"BADS"`, and its warnings, such as `bads:pbUnspecified`, are log messages
-too, not Python warnings (the libraries it calls, such as NumPy and gpyreg,
-can still issue Python warnings of their own). Creating a `BADS` object
+`"BADS"`, and its warnings, such as the one for unspecified plausible
+bounds, are log messages too, not Python warnings (the libraries it calls,
+such as NumPy and gpyreg, can still issue Python warnings of their own).
+Creating a `BADS` object
 calls `logging.basicConfig`, which sends the messages to the standard output
 unless your program has configured `logging` before; a `logging.basicConfig`
 call of your own after that takes effect only with `force=True`. To write

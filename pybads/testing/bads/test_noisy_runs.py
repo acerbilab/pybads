@@ -191,7 +191,7 @@ def test_final_message_without_final_samples_gives_the_gp_estimate(caplog):
         for record in caplog.records
         if "Observed function value at minimum" in record.getMessage()
     ]
-    assert message.endswith("(GP mean ± SEM).")
+    assert message.endswith("(no final samples were taken).")
 
 
 def test_one_final_sample_without_target_noise_adds_the_incumbent():

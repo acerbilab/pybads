@@ -3,6 +3,14 @@ import numpy as np
 from pybads.utils.timer import Timer
 from pybads.variable_transformer import VariableTransformer
 
+# The FAQ's answer on a value that is not a finite real scalar, which the
+# error names
+_FAQ_FINITE_VALUE = (
+    "https://acerbilab.github.io/pybads/faq.html#faq-pybads-crashes-saying-"
+    "that-the-returned-function-value-must-be-a-finite-real-valued-scalar-"
+    "what-do-i-do"
+)
+
 
 class FunctionLogger:
     """
@@ -114,7 +122,12 @@ class FunctionLogger:
             is below 2.
         ValueError
             Raise if the (estimated) SD (second function output)
-            is not a finite, positive real-valued scalar.
+            is not a finite, positive real-valued scalar, or if the
+            function does not return a tuple ``(f, sd)`` when
+            ``uncertainty_handling_level`` is 2.
+        Exception
+            Any exception that the function raises, as it was raised,
+            with a note of the point on Python 3.11 and later.
         """
 
         timer = Timer()
@@ -131,37 +144,36 @@ class FunctionLogger:
         else:
             x_orig = x
 
-        wrong_format_target_function = False
         try:
             timer.start_timer("funtime")
             fun_res = self.fun(x_orig)
             timer.stop_timer("funtime")
-            if self.he_noise_flag:
-                if (type(fun_res) is tuple) and len(fun_res) == 2:
-                    fval_orig, fsd = fun_res
-                else:
-                    wrong_format_target_function = True
-                    error_message = (
-                        "The `specify_target_noise` option has been set to `True`.\n"
-                        + "The target function should return two outputs: the function value and the target noise.\n"
-                        + "Please adjust the target function to return two outputs."
-                    )
-                    raise ValueError(error_message)
-            else:
-                fval_orig = fun_res
-                fsd = None
         except Exception as err:
-            if wrong_format_target_function:
-                err.args = (error_message,)
-
-            else:
-                err.args += (
-                    "\n FunctionLogger:FuncError "
-                    + "Error in executing the logged function "
-                    + "with input: "
-                    + str(x_orig),
-                )
+            # The target's own error reaches the caller as it was raised,
+            # with a note of the point where Python takes notes (3.11 on)
+            if hasattr(err, "add_note"):
+                try:
+                    err.add_note(
+                        "PyBADS: raised by the target function at x = "
+                        f"{x_orig.tolist()}."
+                    )
+                except Exception:
+                    pass
             raise
+
+        if self.he_noise_flag:
+            if (type(fun_res) is tuple) and len(fun_res) == 2:
+                fval_orig, fsd = fun_res
+            else:
+                raise ValueError(
+                    "With options['specify_target_noise'] = True, the target "
+                    "function needs to return a tuple (f, sd), its value and "
+                    f"the SD of its noise; at x = {x_orig.tolist()} it returned "
+                    f"{fun_res!r}."
+                )
+        else:
+            fval_orig = fun_res
+            fsd = None
 
         # A pair (f, sd) where the logger takes no SD is refused as a value
         # that is not a scalar, with the option that takes the SD named
@@ -181,25 +193,29 @@ class FunctionLogger:
 
         # Check function value
         if not _is_finite_real_scalar(fval_orig):
-            error_message = """FunctionLogger:InvalidFuncValue:
-            The returned function value must be a finite real-valued scalar
-            (returned value {})"""
+            error_message = (
+                f"The target function returned {fval_orig} at x = {x_orig.tolist()}. "
+                "The returned function value must be a finite real-valued "
+                f"scalar; see {_FAQ_FINITE_VALUE}"
+            )
             if returned_pair:
                 error_message += (
                     "\nA target that returns its value and the SD of its "
                     "noise, as a tuple (f, sd), needs "
                     'options["specify_target_noise"] = True.'
                 )
-            raise ValueError(error_message.format(str(fval_orig)))
+            raise ValueError(error_message)
 
         # Check returned function SD
         if self.he_noise_flag and not (
             _is_finite_real_scalar(fsd) and fsd > 0.0
         ):
-            error_message = """FunctionLogger:InvalidNoiseValue
-                The returned estimated SD (second function output)
-                must be a finite, positive real-valued scalar (returned SD:{}"""
-            raise ValueError(error_message.format(str(fsd)))
+            raise ValueError(
+                f"The target function returned the noise SD {fsd} at x = "
+                f"{x_orig.tolist()}; the SD, the second element of the "
+                "returned tuple (f, sd), must be a finite positive real "
+                "number."
+            )
 
         # record timer stats
         funtime = timer.get_duration("funtime")
@@ -294,26 +310,25 @@ class FunctionLogger:
         # it, and PyVBMC's logger requires it too
         fval_orig = _as_scalar(fval_orig)
         if not _is_finite_real_scalar(fval_orig):
-            error_message = """FunctionLogger:InvalidFuncValue:
-            The returned function value must be a finite real-valued scalar
-            (returned value {})"""
-            raise ValueError(error_message.format(str(fval_orig)))
+            raise ValueError(
+                f"The value {fval_orig} at x = {x_orig.tolist()} must be a finite "
+                "real-valued scalar."
+            )
 
         if self.noise_flag:
             if fsd is None:
                 if self.he_noise_flag:
                     raise ValueError(
-                        "FunctionLogger:MissingNoiseValue: at uncertainty "
-                        "handling level 2, an evaluation is added with the "
-                        "SD of its noise (fsd)."
+                        "At uncertainty handling level 2, an evaluation "
+                        "needs the SD of its noise (fsd)."
                     )
                 fsd = 1.0
             fsd = _as_scalar(fsd)
             if not (_is_finite_real_scalar(fsd) and fsd > 0.0):
-                error_message = """FunctionLogger:InvalidNoiseValue
-                The returned estimated SD (second function output)
-                must be a finite, positive real-valued scalar (returned SD:{}"""
-                raise ValueError(error_message.format(str(fsd)))
+                raise ValueError(
+                    f"The noise SD {fsd} at x = {x_orig.tolist()} must be a finite "
+                    "positive real number."
+                )
         else:
             fsd = None
 

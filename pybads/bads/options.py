@@ -187,7 +187,8 @@ class Options(MutableMapping, dict):
         options_paths : list of str
             A list of paths to the ini files that hold the default options.
         extra_names : tuple of str, optional
-            The names of other options that take ``True`` or ``False``.
+            The names of other options that take ``True`` or ``False``,
+            and whose default is ``None``.
         excluded_names : tuple of str, optional
             The names of options whose default is ``True`` or ``False`` and
             that take other values too.
@@ -207,8 +208,15 @@ class Options(MutableMapping, dict):
         boolean_names -= set(excluded_names)
         for key in sorted(boolean_names & self["useroptions"]):
             if not isinstance(self[key], (bool, np.bool_)):
+                # the options of extra_names default to None, which a user
+                # can give too
+                accepted = (
+                    "True, False or None"
+                    if key in extra_names
+                    else "True or False"
+                )
                 raise ValueError(
-                    f"options['{key}'] needs to be True or False, not "
+                    f"options['{key}'] needs to be {accepted}, not "
                     f"{self[key]!r}."
                 )
 

@@ -221,7 +221,7 @@ def test_starting_set_is_refused(bounds):
     """`x0` is a single point, as in MATLAB BADS: a set of starting points
     is refused, and the plausible bounds are not estimated from it."""
     x0 = np.array([[0.1, 0.2], [0.3, -0.4]])
-    with pytest.raises(ValueError, match="bads:StartingSet"):
+    with pytest.raises(ValueError, match="x0 has"):
         BADS(_sphere, x0, *bounds, options=OPTIONS)
 
 
@@ -355,7 +355,7 @@ def test_random_x0_is_drawn_again_until_feasible_on_the_mesh():
 
 def test_random_x0_that_stays_infeasible_is_refused():
     """After 1000 draws that all violate `non_box_cons`, `BADS` raises."""
-    with pytest.raises(ValueError, match="does not satisfy non-bound"):
+    with pytest.raises(ValueError, match="None of 1000 starting points"):
         BADS(
             _shifted_sphere,
             None,

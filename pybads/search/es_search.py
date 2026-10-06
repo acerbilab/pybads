@@ -188,8 +188,7 @@ class ESSearch(ABC):
                 z_new = z_new.flatten()
             else:
                 raise ValueError(
-                    "es_search: No acquisition function found for the Search "
-                    "phase"
+                    "No acquisition function found for the search."
                 )
 
             # TODO: handle other acqs fcns: acqNegEIMin, acqNegPIMi
@@ -198,7 +197,7 @@ class ESSearch(ABC):
             # candidates of the earlier generations are kept, as in MATLAB
             if u_new.shape[0] == 0:
                 self.logger.debug(
-                    f"bads:es_search: No candidate left in generation {i + 1} "
+                    f"es_search: No candidate left in generation {i + 1} "
                     "of the search, once the points already evaluated or "
                     "violating the constraints are removed"
                 )

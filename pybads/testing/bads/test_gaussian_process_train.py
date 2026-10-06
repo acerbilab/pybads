@@ -1,4 +1,5 @@
 import copy
+import logging
 
 import gpyreg as gpr
 import numpy as np
@@ -994,8 +995,8 @@ def test_one_point_gp_with_target_noise(monkeypatch):
 
 def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
     """A GP on one point whose posterior fails with the definition values
-    is left as it was by gpyreg and is fitted instead, with a warning on the
-    BADS logger and none of NumPy's."""
+    is left as it was by gpyreg and is fitted instead, with a debug message
+    on the BADS logger and none of NumPy's warnings."""
     import warnings
 
     D = 2
@@ -1011,11 +1012,18 @@ def test_one_point_gp_falls_back_to_fit(monkeypatch, caplog):
         return original_update(self, *args, **kwargs)
 
     monkeypatch.setattr(gpr.GP, "update", update)
-    with warnings.catch_warnings():
+    with warnings.catch_warnings(), caplog.at_level("DEBUG", logger="BADS"):
         warnings.simplefilter("error", RuntimeWarning)
         gp, _, _, _ = bads._init_optimization_()
     assert failed
-    assert "one training point failed" in caplog.text
+    one_point = [
+        record
+        for record in caplog.records
+        if "one training point failed" in record.getMessage()
+    ]
+    # The fit recovers, so the failure is a debug message, not a warning
+    assert one_point
+    assert all(record.levelno == logging.DEBUG for record in one_point)
     assert seen["X"].shape == (1, D)
     assert seen["hyp"]["mean_const"].item() != seen["y"].item()
     assert np.all(np.isfinite(gp.predict(np.zeros((1, D)))[0]))
