@@ -22,14 +22,13 @@ PyBADS requires no specific tuning and runs off-the-shelf like other Python opti
 
 ## What's new in PyBADS 1.5
 
-- **Faster, with equal or better results.** On our benchmark problems, PyBADS's own computations run almost **twice as fast** as in PyBADS 1.1.0, because each step is faster and runs need fewer evaluations, and it finds equal or better minima.
-- **Periodic variables.** The option `periodic_vars` names the variables that are periodic, such as angles: BADS wraps each of them around its hard bounds, and the Gaussian process that models the objective is periodic along it (see [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html) and the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)).
+- **Faster, with equal or better results.** On our benchmark problems, PyBADS's own computations, all that a run does besides evaluating the target, run almost **twice as fast** as in PyBADS 1.1.0; runs also need fewer evaluations, and find equal or better minima.
+- **Periodic variables.** The option `periodic_vars` lists the indices of the variables that are periodic, such as angles; set the hard bounds of each one period apart, and BADS wraps the variable around them (see [Example 6](https://acerbilab.github.io/pybads/_examples/pybads_example_6_periodic_variables.html) and the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles)).
 - **Fixed variables.** A variable whose four bounds, hard and plausible, are equal is fixed at that value, and BADS optimizes the others (see the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value)).
-- **Evaluations made before the run.** `BADS(..., precomputed_evaluations=(X, y))` gives a run evaluations of the target made before it, for instance by an earlier run. The run still starts from `x0` and its initial design, but skips the points of the design that they hold; those nearest the incumbent join its Gaussian process from the first poll on, and none counts against `max_fun_evals` (see the [`BADS` reference](https://acerbilab.github.io/pybads/api/classes/bads.html)).
-- **Seeded initial design.** `random_seed` decides the initial design of a run, as it decides every other random draw; in 1.1.0 the design did not depend on the seed. The FAQ says [how to make a run reproducible](https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-make-a-run-reproducible).
+- **Evaluations made before the run.** `BADS(..., precomputed_evaluations=(X, y))` gives a run the evaluations of the target that you already have, for instance from an earlier run: its Gaussian process uses them, and they do not count against `max_fun_evals`. The run still starts from `x0` (see the [`BADS` reference](https://acerbilab.github.io/pybads/api/classes/bads.html)).
 - **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB BADS 1.1.3, the reference implementation, and follows it more closely in many details, above all with noisy targets. The FAQ lists [what differs from MATLAB BADS](https://acerbilab.github.io/pybads/faq.html#faq-i-used-bads-in-matlab-what-is-different-in-pybads).
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later, SciPy 1.13 or later and matplotlib 3.9 or later.
-- **FAQ, tips and a coding-agent skill.** The documentation has a [page of frequently asked questions](https://acerbilab.github.io/pybads/faq.html), adapted from the MATLAB BADS FAQ with further questions on PyBADS; a run occasionally prints a short tip with a link to the documentation (`options={"show_tips": False}` turns them off); and the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points a coding agent to the documentation relevant to its task (see [Documentation](#documentation)).
+- **FAQ, tips and a coding-agent skill.** The documentation has a [page of frequently asked questions](https://acerbilab.github.io/pybads/faq.html); a run occasionally prints a short tip with a link to the documentation (`options={"show_tips": False}` turns them off); and the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points a coding agent to the documentation relevant to its task (see [Documentation](#documentation)).
 
 The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md) lists what changed since PyBADS 1.1.0. Results differ from 1.1.0, also with a fixed seed. `BADS` checks the values of many options when it is created and refuses some that 1.1.0 accepted, and some calls and returned fields change: the changelog's list "Upgrading from 1.1.0" says what to check in an existing script.
 
@@ -68,7 +67,7 @@ PyBADS is available via `pip` and `conda-forge`.
     ```
     PyBADS requires Python version 3.10 or newer.
 
-    PyBADS 1.5 requires NumPy 2.0 or newer. In an environment that holds NumPy 1.x, `conda` installs PyBADS 1.1.0 instead, without a warning: ask it for `"pybads>=1.5"`, or see the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-conda-installs-an-older-version-of-pybads-why).
+    PyBADS 1.5 requires NumPy 2.0 or newer, and its conda-forge package requires Python 3.11 or newer. In an environment that holds NumPy 1.x or Python 3.10, `conda` installs an older PyBADS instead, without a warning: ask it for `"pybads>=1.5"`, or see the [FAQ](https://acerbilab.github.io/pybads/faq.html#faq-conda-installs-an-older-version-of-pybads-why).
 
 2. (Optional): Install [Jupyter Notebook](https://jupyter.org/install) to run the examples. You can skip this step if your environment already has Jupyter Notebook, but be aware that if the wrong `jupyter` executable is found on your path then import errors may arise.
    ```console
@@ -106,7 +105,7 @@ optimize_result = bads.optimize()
 with input arguments:
 
 - ``target``: the target function, it takes as input a vector and returns its function evaluation;
-- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn uniformly at random within the plausible bounds (log-uniformly for a variable that BADS maps through a log);
+- ``x0``: the starting point of the optimization problem. If it is not given, the starting point is drawn at random within the plausible bounds;
 - ``lower_bounds`` and ``upper_bounds``: hard lower and upper bounds for the optimization region (can be ``-inf`` and ``inf``, or bounded);
 - ``plausible_lower_bounds`` and ``plausible_upper_bounds``: *plausible* lower and upper bounds, that represent our best guess at bounding the region where the solution might lie;
 - ``non_box_cons`` (optional): a callable function that denotes non-box constraint violations.
@@ -119,7 +118,7 @@ The outputs are:
 
 For a full list and description of the entries of the ``optimize_result`` object, see the [OptimizeResult](https://acerbilab.github.io/pybads/api/classes/optimize_result.html) class documentation.
 
-For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; the seed is read when the object is created. On Apple Silicon Macs, two runs with the same seed make the same random draws but can end at slightly different points: with Apple's Accelerate as the linear algebra library of NumPy and SciPy (as in their wheels on PyPI), the last bits of a result depend on where its arrays lie in memory. For independent runs, leave `random_seed` unset or use different seeds. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately.
+For a reproducible run, pass an integer seed when creating the `BADS` object, e.g. `BADS(..., options={"random_seed": 42})`; for independent runs, use different seeds or leave `random_seed` unset. The seed controls only PyBADS's own random draws: if your target is noisy (e.g., simulation-based), seed its random number generator separately. The FAQ says [how to make a run reproducible](https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-make-a-run-reproducible).
 
 ## Next steps
 
@@ -134,7 +133,7 @@ PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/ab
 - In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
 - In the **search** stage, a [Gaussian process](https://distill.pub/2019/visual-exploration-gaussian-processes/) (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
-**Fig 1: BADS procedure.** The poll's steps are equal in the normalized coordinates in which BADS works, where the plausible box spans [-1, 1] in every variable, and scale with the plausible box in the original coordinates, drawn here; in a variable that BADS maps through a log (positive bounds, and a plausible box that spans a factor of 10 or more), they grow with its value. ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
+**Fig 1: BADS procedure.** The poll's steps along each variable scale with that variable's plausible range. ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
 
 See [here](https://github.com/lacerbi/optimviz) for a visualization of several optimizers at work, including BADS.
 

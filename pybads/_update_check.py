@@ -89,20 +89,16 @@ def check_for_updates(*, timeout: float = 5.0) -> UpdateCheck:
     pip's, conda's (the conda-forge package can follow PyPI by a few days),
     or both when the installer is another or unknown.
 
-    The latest release is the highest version of the form ``X.Y.Z`` on PyPI
-    with at least one file that is not yanked, so that pre-releases,
-    development releases and yanked releases are ignored. PyPI documents the
-    list of releases in this reply as deprecated; a reply without a mapping
-    of releases gives the version PyPI reports as its latest. An installed
-    version of any other form, such as a development install, is reported
-    beside the latest release without being compared with it.
+    The latest release is the highest final release (``X.Y.Z``) on PyPI;
+    pre-releases, development releases and yanked releases are ignored. An
+    installed version of another form, such as a development install, is
+    reported beside the latest release without being compared with it.
 
     Parameters
     ----------
     timeout : float, optional
-        Timeout in seconds for each network operation: the connection, and
-        each read of the reply. The lookup of PyPI's address is not bounded
-        by it. At most 3600; the default is ``5.0``.
+        Timeout in seconds for connecting to PyPI and for each read of its
+        reply, at most 3600. By default ``5.0``.
 
     Returns
     -------
@@ -117,9 +113,9 @@ def check_for_updates(*, timeout: float = 5.0) -> UpdateCheck:
     Raises
     ------
     ValueError
-        If `timeout` is not a positive number of seconds of at most 3600, or
-        is a bool. A network, HTTP or parse failure raises nothing: the
-        printed message gives its reason, and the returned tuple holds
+        If `timeout` is not a positive number of seconds of at most 3600.
+        A network, HTTP or parse failure raises nothing: the printed
+        message gives its reason, and the returned tuple holds
         ``latest=None``.
     """
     if not _is_valid_timeout(timeout):

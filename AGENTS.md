@@ -165,6 +165,8 @@ label changed, is updated there as well:
   and `index.rst`;
 - `faq-how-do-i-know-whether-a-newer-version-of-pybads-exists`:
   `installation.rst`;
+- `faq-conda-installs-an-older-version-of-pybads-why`: `README.md` and
+  `installation.rst`;
 - `faq-my-objective-function-requires-additional-datainputs-how-do-i-pass-them-to-pybads`:
   `quickstart.rst`;
 - `faq-how-do-i-run-pybads-from-several-starting-points`,
@@ -180,8 +182,10 @@ label changed, is updated there as well:
 - `faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value`: the
   changelog's entry "Fixed variables", "What's new" in `README.md` and
   `index.rst`, and the runtime tips;
-- `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4, and "What's
-  new" in `README.md` and `index.rst`;
+- `faq-how-do-i-silence-pybads-or-send-its-output-elsewhere`: the API
+  page of `check_for_updates`;
+- `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4, the Quick
+  start of `README.md` and `quickstart.rst`;
 - `faq-i-used-bads-in-matlab-what-is-different-in-pybads`: "What's new" in
   `README.md` and `index.rst`;
 - `faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc`: the runtime

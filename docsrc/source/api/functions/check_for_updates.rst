@@ -38,11 +38,11 @@ nothing else about your installation, and the call writes nothing to disk.
 The old-release reminder
 ------------------------
 
-When a run starts in an interactive session (standard output to a terminal
-or a Jupyter notebook, not to a file) and the installed release is more than
-a year old, ``BADS`` suggests calling this function. The reminder takes the
-place of the :ref:`tip <faq-how-do-i-silence-pybads-or-send-its-output-elsewhere>`
-before the first iteration line, and the tip comes at the next run:
+When a run starts in an interactive session (a terminal or a Jupyter
+notebook) and the installed release is more than a year old, ``BADS``
+suggests calling this function, in place of the
+:ref:`tip <faq-how-do-i-silence-pybads-or-send-its-output-elsewhere>` before
+the first iteration line:
 
 .. code-block:: text
 
@@ -50,17 +50,15 @@ before the first iteration line, and the tip comes at the next run:
    https://pypi.org/project/pybads/
 
 The reminder makes no network request: it compares the release date shipped
-with PyBADS with the date of the run. It appears at most once per Python
-session and three times for each installed version, at least 90 days apart;
-the third adds that it is the last. It records the dates of its showings in
-``update_reminder.json`` in PyBADS's cache directory: ``%LOCALAPPDATA%\pybads``
-on Windows, ``~/Library/Caches/pybads`` on macOS, ``~/.cache/pybads`` on Linux
-(or under ``$XDG_CACHE_HOME``), or the directory that ``PYBADS_CACHE_DIR``
-names. It shows only with the iteration display, as the tips do.
+with PyBADS with the date of the run. It appears at most three times for each
+installed version, at least 90 days apart, and records the dates of its
+showings in ``update_reminder.json`` in PyBADS's cache directory:
+``%LOCALAPPDATA%\pybads`` on Windows, ``~/Library/Caches/pybads`` on macOS,
+``~/.cache/pybads`` on Linux (or under ``$XDG_CACHE_HOME``), or the directory
+that ``PYBADS_CACHE_DIR`` names.
 
 To turn it off, pass ``options={"show_tips": False}`` to ``BADS``, which also
 turns off the tips, or set the environment variable
-``PYBADS_NO_UPDATE_REMINDER``; ``NO_UPDATE_NOTIFIER`` and ``CI`` turn it off
-as well. A variable set to an empty value, ``0`` or ``false`` counts as unset.
+``PYBADS_NO_UPDATE_REMINDER=1``.
 
 .. autofunction:: pybads.check_for_updates

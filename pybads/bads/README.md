@@ -151,7 +151,9 @@ of them in 1.1.0), are not options of PyBADS: setting one raises
 `ValueError`, as for any unknown name. Other options are read, but only by
 a branch that does nothing or refuses: `plot` (KD-B2-2), `restarts`
 (KD-B2-1), `search_optimize` (KD-B3-4), `acq_hedge` (KD-B3-3),
-`gp_cov_prior` (KD-B6-7), `fitness_shaping` (KD-B5-5), `hessian_update`
+`gp_cov_prior` (KD-B6-7), `fitness_shaping` (KD-B5-5), `noise_shaping`
+(no noise is added, since no run passes noise SDs to the GP),
+`hessian_update`
 and `hessian_method` (KD-B1-4), a nonzero `warp_func` (KD-B6-4), an
 `init_fun` other than `"init_sobol"` (KD-B7-2).
 - Settled by: W1-33, W2-35; the PI's ruling at the close of the review

@@ -287,7 +287,7 @@ def test_boolean_options_take_booleans(value):
 
 def test_plot_takes_the_names_of_plots():
     """`plot`, whose default is `False`, also takes the names of MATLAB
-    BADS's plots, as its description says."""
+    BADS's plots, which have no effect."""
     assert _make_bads(plot="scatter").options["plot"] == "scatter"
 
 

@@ -23,29 +23,23 @@ What's new in PyBADS 1.5
 ------------------------
 
 - **Faster, with equal or better results.** On our benchmark problems,
-  PyBADS's own computations run almost **twice as fast** as in PyBADS 1.1.0,
-  because each step is faster and runs need fewer evaluations, and it finds
-  equal or better minima.
-- **Periodic variables.** The option ``periodic_vars`` names the variables
-  that are periodic, such as angles: BADS wraps each of them around its hard
-  bounds, and the Gaussian process that models the objective is periodic
-  along it (see
+  PyBADS's own computations, all that a run does besides evaluating the
+  target, run almost **twice as fast** as in PyBADS 1.1.0; runs also need
+  fewer evaluations, and find equal or better minima.
+- **Periodic variables.** The option ``periodic_vars`` lists the indices of
+  the variables that are periodic, such as angles; set the hard bounds of each one period
+  apart, and BADS wraps the variable around them (see
   :doc:`Example 6 <_examples/pybads_example_6_periodic_variables>` and the
   :ref:`FAQ <faq-does-pybads-support-periodic-variables-such-as-angles>`).
 - **Fixed variables.** A variable whose four bounds, hard and plausible, are
   equal is fixed at that value, and BADS optimizes the others (see the
   :ref:`FAQ <faq-can-i-set-lb-ub-for-some-variable-to-fix-it-to-a-given-value>`).
 - **Evaluations made before the run.**
-  ``BADS(..., precomputed_evaluations=(X, y))`` gives a run evaluations of the
-  target made before it, for instance by an earlier run. The run still starts
-  from ``x0`` and its initial design, but skips the points of the design that
-  they hold; those nearest the incumbent join its Gaussian process from the
-  first poll on, and none counts against ``max_fun_evals`` (see the
+  ``BADS(..., precomputed_evaluations=(X, y))`` gives a run the evaluations
+  of the target that you already have, for instance from an earlier run: its
+  Gaussian process uses them, and they do not count against
+  ``max_fun_evals``. The run still starts from ``x0`` (see the
   :doc:`BADS reference <api/classes/bads>`).
-- **Seeded initial design.** ``random_seed`` decides the initial design of a
-  run, as it decides every other random draw; in 1.1.0 the design did not
-  depend on the seed. The FAQ says
-  :ref:`how to make a run reproducible <faq-how-do-i-make-a-run-reproducible>`.
 - **Closer to MATLAB BADS.** PyBADS was checked line by line against MATLAB
   BADS 1.1.3, the reference implementation, and follows it more closely in
   many details, above all with noisy targets. The FAQ lists
@@ -53,9 +47,8 @@ What's new in PyBADS 1.5
 - **Requirements.** PyBADS needs gpyreg 1.4.0 or later, NumPy 2.0 or later,
   SciPy 1.13 or later and matplotlib 3.9 or later.
 - **FAQ, tips and a coding-agent skill.** The documentation has a
-  :doc:`page of frequently asked questions <faq>`, adapted from the MATLAB
-  BADS FAQ with further questions on PyBADS; a run occasionally prints a
-  short tip with a link to the documentation
+  :doc:`page of frequently asked questions <faq>`; a run occasionally prints
+  a short tip with a link to the documentation
   (``options={"show_tips": False}`` turns them off); and the
   :mainbranch:`PyBADS skill <skills/pybads/SKILL.md>` points a coding agent
   to the documentation relevant to its task: give the agent that file, or
@@ -79,7 +72,7 @@ PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/ab
     :align: center
     :alt: Fig 1: BADS procedure
 
-Fig 1: BADS procedure. The poll's steps are equal in the normalized coordinates in which BADS works, where the plausible box spans [-1, 1] in every variable, and scale with the plausible box in the original coordinates, drawn here; in a variable that BADS maps through a log (positive bounds, and a plausible box that spans a factor of 10 or more), they grow with its value.
+Fig 1: BADS procedure. The poll's steps along each variable scale with that variable's plausible range.
 
 See `here <https://github.com/lacerbi/optimviz>`__ for a visualization of several optimizers at work, including BADS.
 

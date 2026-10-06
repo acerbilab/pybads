@@ -31,7 +31,9 @@ from pathlib import Path
 
 from pybads import _release
 
-# The FAQ (docsrc/source/faq.md) quotes this wording; change both together.
+# The API page of check_for_updates
+# (docsrc/source/api/functions/check_for_updates.rst) quotes this wording;
+# change both together.
 REMINDER_TEMPLATE = (
     "Note: PyBADS {version} was released {age}. Run "
     "pybads.check_for_updates() to see whether a newer version is available."

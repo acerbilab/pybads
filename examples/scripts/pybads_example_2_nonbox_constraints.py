@@ -21,7 +21,7 @@ upper_bounds = np.array([1, 1])
 def circle_constr(x):
     """Return constraints violation outside the unit circle."""
     x_2d = np.atleast_2d(x)
-    # Note that nonboxcons assumes the function takes a 2D input
+    # non_box_cons receives an (M, D) array, one point per row
     return np.sum(x_2d**2, axis=1) > 1.0
 
 
