@@ -1,0 +1,152 @@
+{
+ "label": "ellipsoid_D3_homo",
+ "seed": 5,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  -0.9688152437555821,
+  2.5359178147480232,
+  -4.681623434483699
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 5
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 5,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.4041863530874252,
+   1.2017907202243805,
+   -2.0478956401348114
+  ],
+  "fval": -0.3996181880295698,
+  "fsd": 0.2292278203068555,
+  "true_error": 0.06330171713330936,
+  "func_count": 325,
+  "iterations": 20,
+  "message": "Optimization terminated: change in the function value less than options['tol_fun'].",
+  "wall_s": 12.960150511999927,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.00011061196479336262,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.023617976000082308,
+    "target": 0.012347451999088651,
+    "init": 0.022613852000055234,
+    "gp_init": 0.05234236499995859,
+    "poll": 2.394292363000188,
+    "history": 0.00606237100009821,
+    "search": 9.89428681300068,
+    "reestimate": 0.5444102869997778,
+    "final_samples": 0.00038900300001726285
+   },
+   "paths": {
+    "loop": 0.023617976000082308,
+    "target": 0.012347451999088651,
+    "init": 0.022613852000055234,
+    "gp_init": 0.0023246759999437927,
+    "gp_init/gp_fit": 0.0500176890000148,
+    "poll": 0.1570970509998075,
+    "poll/gp_rebuild": 0.057258165000007466,
+    "poll/gp_rebuild/gp_fit": 1.166121237999846,
+    "poll/target_from_gp": 0.06718898900055592,
+    "poll/gp_update": 0.09679478599991853,
+    "history": 0.00606237100009821,
+    "search": 0.32391124400236515,
+    "search/gp_rebuild": 0.5867619499997545,
+    "search/search_es": 3.5876985259990306,
+    "search/gp_update": 0.11082708799926877,
+    "search/gp_rebuild/gp_fit": 1.4380628170002865,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 3.8039429579999933,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.04308222999998179,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 0.8390785479999749,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.01075358600007803,
+    "reestimate": 0.051087068000470026,
+    "reestimate/gp_rebuild": 0.49332321899930776,
+    "final_samples": 0.00038900300001726285
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 19,
+    "poll/gp_rebuild": 26,
+    "poll/gp_rebuild/gp_fit": 11,
+    "poll/target_from_gp": 110,
+    "poll/gp_update": 109,
+    "history": 20,
+    "search": 173,
+    "search/gp_rebuild": 270,
+    "search/search_es": 173,
+    "search/gp_update": 130,
+    "search/gp_rebuild/gp_fit": 14,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 35,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 35,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 9,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 9,
+    "reestimate": 19,
+    "reestimate/gp_rebuild": 209,
+    "final_samples": 1
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "0dc5932f",
+   "dirty": false
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v77-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "0.1.dev50+g0dc5932f0",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "0dc5932f",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.4.0",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.4.0/gpyreg",
+   "git": {
+    "sha": "682585f",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-10-07T16:32:42+0000",
+  "finished": "2026-10-07T16:32:56+0000"
+ }
+}

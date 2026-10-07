@@ -151,17 +151,6 @@ among them, so a title stays as it is while its item is open.
   - A target that returns `np.float32` gives a result whose `fval` is an
     `np.float32`.
 
-## Needing no release
-
-- [ ] **The oracles' rebaseline test and the Linux reference under newer
-  versions.** Remaining: the Linux reference,
-  `population_linux_gpyreg140_20260930`, ran
-  under Python 3.11, NumPy 2.4.6 and SciPy 1.17.1. Runs under Python 3.12,
-  NumPy 2.5.3 and SciPy 1.18.1 do not pair with it seed by seed: the same
-  code at 10 seeds drew a flag on `ellipsoid_D6` (KS test, p = 0.032 after
-  Holm), which 30 seeds did not. A Linux gate under the newer versions
-  takes a new reference, or selects the reference's versions.
-
 ## Waiting on MATLAB BADS
 
 Each needs MATLAB and the BADS toolbox, and one session with them can serve

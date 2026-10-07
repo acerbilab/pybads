@@ -1,0 +1,151 @@
+{
+ "label": "sphere_D10",
+ "seed": 9,
+ "problem": "sphere",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  -2.339101397987368,
+  -0.5076223142960217,
+  3.7123995905210165,
+  -2.4172223836729954,
+  -0.417404792652726,
+  -0.7603626243621502,
+  -2.909699268051912,
+  0.9389853510369104,
+  -4.553814057390161,
+  -3.736187161462886
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 9
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 9,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   2.3472362345501807,
+   0.1663607735568462,
+   -0.6451919964727892,
+   0.7426220677685791,
+   -2.3446660928741636,
+   -2.2767497074396914,
+   1.3422944847233964,
+   1.6523110225207915,
+   0.7230371052975926,
+   1.7285729027128838
+  ],
+  "fval": 1.2187907088883044e-07,
+  "fsd": 0.0,
+  "true_error": 1.2187907088883044e-07,
+  "func_count": 478,
+  "iterations": 15,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 7.154428290999988,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.021964338000145744,
+    "target": 0.010419177000343498,
+    "init": 0.10506038300001348,
+    "gp_init": 0.03867529899997635,
+    "poll": 1.4334642319994502,
+    "history": 0.004287236000095618,
+    "search": 5.530721224999993
+   },
+   "paths": {
+    "loop": 0.021964338000145744,
+    "target": 0.010419177000343498,
+    "init": 0.10506038300001348,
+    "gp_init": 0.002247321999959695,
+    "gp_init/gp_fit": 0.036427977000016654,
+    "poll": 0.34524408899933545,
+    "poll/gp_rebuild": 0.07641056699998217,
+    "poll/gp_rebuild/gp_fit": 0.7995965069999329,
+    "poll/target_from_gp": 0.21221306900019954,
+    "history": 0.004287236000095618,
+    "search": 0.26826565000057134,
+    "search/gp_rebuild": 0.23627335299994456,
+    "search/search_es": 4.009694936999836,
+    "search/gp_update": 0.22634842199960303,
+    "search/gp_rebuild/gp_fit": 0.46799983900001507,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.3213248480000175,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.000814176000005773
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 15,
+    "poll/gp_rebuild": 24,
+    "poll/gp_rebuild/gp_fit": 10,
+    "poll/target_from_gp": 300,
+    "history": 15,
+    "search": 160,
+    "search/gp_rebuild": 88,
+    "search/search_es": 160,
+    "search/gp_update": 144,
+    "search/gp_rebuild/gp_fit": 6,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 1,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 1
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "0dc5932f",
+   "dirty": false
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v77-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "0.1.dev50+g0dc5932f0",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "0dc5932f",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.4.0",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.4.0/gpyreg",
+   "git": {
+    "sha": "682585f",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-10-07T16:24:18+0000",
+  "finished": "2026-10-07T16:24:25+0000"
+ }
+}

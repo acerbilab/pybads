@@ -1,0 +1,155 @@
+{
+ "label": "ellipsoid_D10",
+ "seed": 10,
+ "problem": "ellipsoid",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  4.888176022809427,
+  -1.5744503615786232,
+  2.0429132502651735,
+  -0.21193724211285314,
+  -4.484203635003782,
+  -2.8006002238886394,
+  -4.910687063630574,
+  2.3732602531658875,
+  -1.347686109642373,
+  2.0037880356298405
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 10
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 10,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -1.314959920698513,
+   0.07425770265250264,
+   0.8366660488788824,
+   1.6976530212491525,
+   -1.0735297945736022,
+   0.8555381325614064,
+   -1.244737442437227,
+   2.2450848694733594,
+   0.6210309468323771,
+   -2.1067757339578463
+  ],
+  "fval": 9.343165258765803e-07,
+  "fsd": 0.0,
+  "true_error": 9.343165258765803e-07,
+  "func_count": 647,
+  "iterations": 16,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 14.159151031999954,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.03466595400084316,
+    "target": 0.017469867999703976,
+    "init": 0.06317739499995907,
+    "gp_init": 0.03361559400002534,
+    "poll": 2.7421141580000894,
+    "history": 0.0043916239999362006,
+    "search": 11.254453499999407
+   },
+   "paths": {
+    "loop": 0.03466595400084316,
+    "target": 0.017469867999703976,
+    "init": 0.06317739499995907,
+    "gp_init": 0.0021611370000300667,
+    "gp_init/gp_fit": 0.03145445699999527,
+    "poll": 0.3555964060017631,
+    "poll/gp_rebuild": 0.08597141399991415,
+    "poll/gp_rebuild/gp_fit": 1.6513131529999328,
+    "poll/target_from_gp": 0.3798128119984767,
+    "history": 0.0043916239999362006,
+    "search": 0.5510269869988845,
+    "search/gp_rebuild": 0.4792110110000749,
+    "search/search_es": 7.479138022000598,
+    "search/gp_update": 0.41736951899974883,
+    "search/gp_rebuild/gp_fit": 2.223292975000163,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.10353383999995458,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.000881145999983346,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 0.26852054699998007,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.0008998260000225855
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 16,
+    "poll/gp_rebuild": 27,
+    "poll/gp_rebuild/gp_fit": 13,
+    "poll/target_from_gp": 320,
+    "history": 16,
+    "search": 310,
+    "search/gp_rebuild": 198,
+    "search/search_es": 310,
+    "search/gp_update": 279,
+    "search/gp_rebuild/gp_fit": 13,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 1,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 1,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 1,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 1
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "0dc5932f",
+   "dirty": false
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v77-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "0.1.dev50+g0dc5932f0",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "0dc5932f",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.4.0",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.4.0/gpyreg",
+   "git": {
+    "sha": "682585f",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-10-07T16:27:31+0000",
+  "finished": "2026-10-07T16:27:46+0000"
+ }
+}
