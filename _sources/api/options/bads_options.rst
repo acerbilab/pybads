@@ -1,9 +1,12 @@
 ============
 BADS options
 ============
-The options can be divided into two types:
-    - **Basic options:** These options are of interest to most users, and cover all regular usage needs.
-    - **Advanced options:** These options should rarely if ever be touched and are reserved to advanced users / developers of BADS. Please do not modify them unless you *know* what you are doing.
+The options are divided into two groups:
+
+- **Basic options:** Commonly adjusted settings, such as evaluation budgets,
+  display and noise handling.
+- **Advanced options:** Specialized features and settings that control the
+  optimization algorithm.
 
 You can find the default options for both groups below. ``D`` in the options
 below is the number of variables that BADS optimizes: all of them but the fixed
@@ -16,10 +19,17 @@ We expect these options to be routinely changed by many users.
 .. include:: ./../../../../pybads/bads/option_configs/basic_bads_options.ini
    :literal:
 
-Advanced Options
+Advanced options
 =====================
-These options are reserved to advanced users / developers of BADS.
-We strongly advise against changing these options, unless you know what you are doing, since unexpected/untested behavior might follow.
+This group includes ``periodic_vars`` for
+:ref:`periodic variables <faq-does-pybads-support-periodic-variables-such-as-angles>`
+and ``output_fcn`` for
+:ref:`monitoring or stopping a run <faq-can-i-monitor-or-stop-a-run-while-it-is-running>`.
+Set these options when your problem calls for them.
+
+Most other options control the search, polling and Gaussian process model.
+Keep their defaults unless a documented recommendation or a specific
+algorithmic requirement calls for a change.
 
 .. include:: ./../../../../pybads/bads/option_configs/advanced_bads_options.ini
    :literal:

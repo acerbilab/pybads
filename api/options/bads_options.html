@@ -454,7 +454,7 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-options">Basic options</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced options</a></li>
 </ul>
             </nav>
         </div>
@@ -468,13 +468,13 @@
                   
   <section id="bads-options">
 <h1>BADS options<a class="headerlink" href="#bads-options" title="Link to this heading">#</a></h1>
-<dl class="simple">
-<dt>The options can be divided into two types:</dt><dd><ul class="simple">
-<li><p><strong>Basic options:</strong> These options are of interest to most users, and cover all regular usage needs.</p></li>
-<li><p><strong>Advanced options:</strong> These options should rarely if ever be touched and are reserved to advanced users / developers of BADS. Please do not modify them unless you <em>know</em> what you are doing.</p></li>
+<p>The options are divided into two groups:</p>
+<ul class="simple">
+<li><p><strong>Basic options:</strong> Commonly adjusted settings, such as evaluation budgets,
+display and noise handling.</p></li>
+<li><p><strong>Advanced options:</strong> Specialized features and settings that control the
+optimization algorithm.</p></li>
 </ul>
-</dd>
-</dl>
 <p>You can find the default options for both groups below. <code class="docutils literal notranslate"><span class="pre">D</span></code> in the options
 below is the number of variables that BADS optimizes: all of them but the fixed
 ones, whose four bounds are equal.</p>
@@ -510,9 +510,15 @@ ones, whose four bounds are equal.</p>
 </div>
 </section>
 <section id="advanced-options">
-<h2>Advanced Options<a class="headerlink" href="#advanced-options" title="Link to this heading">#</a></h2>
-<p>These options are reserved to advanced users / developers of BADS.
-We strongly advise against changing these options, unless you know what you are doing, since unexpected/untested behavior might follow.</p>
+<h2>Advanced options<a class="headerlink" href="#advanced-options" title="Link to this heading">#</a></h2>
+<p>This group includes <code class="docutils literal notranslate"><span class="pre">periodic_vars</span></code> for
+<a class="reference internal" href="../../faq.html#faq-does-pybads-support-periodic-variables-such-as-angles"><span class="std std-ref">periodic variables</span></a>
+and <code class="docutils literal notranslate"><span class="pre">output_fcn</span></code> for
+<a class="reference internal" href="../../faq.html#faq-can-i-monitor-or-stop-a-run-while-it-is-running"><span class="std std-ref">monitoring or stopping a run</span></a>.
+Set these options when your problem calls for them.</p>
+<p>Most other options control the search, polling and Gaussian process model.
+Keep their defaults unless a documented recommendation or a specific
+algorithmic requirement calls for a change.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">AdvancedOptions</span><span class="p">]</span>
 <span class="c1"># Show optimization plots (no effect: not available in PyBADS)</span>
 <span class="n">plot</span> <span class="o">=</span> <span class="kc">False</span>
@@ -796,7 +802,7 @@ We strongly advise against changing these options, unless you know what you are 
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-options">Basic options</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-options">Advanced options</a></li>
 </ul>
   </nav></div>
 

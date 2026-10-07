@@ -511,12 +511,15 @@ https://pypi.org/project/pybads/
 </pre></div>
 </div>
 <p>The reminder makes no network request: it compares the release date shipped
-with PyBADS with the date of the run. It appears at most three times for each
-installed version, at least 90 days apart, and records the dates of its
-showings in <code class="docutils literal notranslate"><span class="pre">update_reminder.json</span></code> in PyBADS’s cache directory:
+with PyBADS with the date of the run. It appears at most once per Python
+session and records the dates of its showings in <code class="docutils literal notranslate"><span class="pre">update_reminder.json</span></code>
+in PyBADS’s cache directory:
 <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\pybads</span></code> on Windows, <code class="docutils literal notranslate"><span class="pre">~/Library/Caches/pybads</span></code> on macOS,
 <code class="docutils literal notranslate"><span class="pre">~/.cache/pybads</span></code> on Linux (or under <code class="docutils literal notranslate"><span class="pre">$XDG_CACHE_HOME</span></code>), or the directory
 that <code class="docutils literal notranslate"><span class="pre">PYBADS_CACHE_DIR</span></code> names.</p>
+<p>The saved dates limit reminders to three showings for each installed version,
+at least 90 days apart. If the state file cannot be read or updated, these
+limits may not hold across sessions; any dates that can be read still count.</p>
 <p>To turn it off, pass <code class="docutils literal notranslate"><span class="pre">options={&quot;show_tips&quot;:</span> <span class="pre">False}</span></code> to <code class="docutils literal notranslate"><span class="pre">BADS</span></code>, which also
 turns off the tips, or set the environment variable
 <code class="docutils literal notranslate"><span class="pre">PYBADS_NO_UPDATE_REMINDER=1</span></code>.</p>
