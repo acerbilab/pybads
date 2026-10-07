@@ -298,7 +298,7 @@ the same landscape (NOTES.md, "The run").
   and its labels go. On "Join them." one new point pops in among the
   others, white. Then the end card fades in over the field: "PyBADS", then
   its version, "1.5", popping in with a short green glow, then the rest of
-  the card: "Bayesian Adaptive Direct Search", `pip install pybads`,
+  the card: "Bayesian Adaptive Direct Search", `pip install --upgrade pybads`,
   acerbilab.org/model-fitting, the two papers with their titles (Singh &
   Acerbi 2024, *PyBADS: Fast and robust black-box optimization in Python*,
   JOSS; Acerbi & Ma 2017, *Practical Bayesian optimization for model
