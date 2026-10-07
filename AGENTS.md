@@ -187,7 +187,8 @@ label changed, is updated there as well:
 - `faq-how-do-i-make-a-run-reproducible`: Examples 3 and 4, the Quick
   start of `README.md` and `quickstart.rst`;
 - `faq-i-used-bads-in-matlab-what-is-different-in-pybads`: "What's new" in
-  `README.md` and `index.rst`;
+  `README.md` and `index.rst`, and the README of MATLAB BADS
+  (`acerbilab/bads`);
 - `faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc`: the runtime
   tips;
 - `faq-pybads-crashes-saying-that-the-returned-function-value-must-be-a-finite-real-valued-scalar-what-do-i-do`:
