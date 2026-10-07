@@ -4,11 +4,11 @@ Installation
 
 PyBADS is available via ``pip`` and ``conda-forge``.
 
-1. Install with::
+1. Install or upgrade with pip::
 
-     python -m pip install pybads
+     python -m pip install --upgrade pybads
 
-   or::
+   Or install with Conda::
 
      conda install --channel=conda-forge pybads
 
@@ -35,9 +35,9 @@ PyBADS is available via ``pip`` and ``conda-forge``.
 
      python -m pybads
 
-You can run PyBADS's internal tests with ::
+To install or upgrade PyBADS with its test dependencies and run the tests::
 
-  python -m pip install "pybads[test]"
+  python -m pip install --upgrade "pybads[test]"
   pytest --pyargs pybads
 
 If you wish to install directly from latest source code, please see the :ref:`installation instructions for developers`.

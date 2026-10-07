@@ -59,11 +59,11 @@ The FAQ says [what to use for other problems](https://acerbilab.github.io/pybads
 
 PyBADS is available via `pip` and `conda-forge`.
 
-1. Install with:
+1. Install or upgrade with pip:
     ```console
-    python -m pip install pybads
+    python -m pip install --upgrade pybads
     ```
-    or:
+    Or install with Conda:
     ```console
     conda install --channel=conda-forge pybads
     ```
