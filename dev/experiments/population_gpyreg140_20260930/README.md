@@ -3,8 +3,9 @@
 The Windows half of the gate of PyBADS's move to gpyreg 1.4.0
 ([`TODO.md`](../../TODO.md), "gpyreg releases after 1.3.3"), and the
 reference on Windows for `dev/scripts/population.py compare` from that move
-on. The one on Linux is
-[`population_linux_gpyreg140_20260930`](../population_linux_gpyreg140_20260930/README.md).
+on. The one on Linux, under the same versions of Python, NumPy and SciPy,
+is
+[`population_linux_scipy118_20261007`](../population_linux_scipy118_20261007/README.md).
 The 24 configurations of the `default` suite of
 `dev/scripts/benchmark_targets.py`, the six with periodic variables
 included, × seeds 0-99, each run at BADS's default budget (500 D) and

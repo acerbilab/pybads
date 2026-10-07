@@ -1,5 +1,11 @@
 # gpyreg 1.4.0's comparison on Linux: the `default` suite, 30 seeds, gpyreg at `3e56dce`
 
+Replaced as the reference on Linux by
+[`population_linux_scipy118_20261007`](../population_linux_scipy118_20261007/README.md),
+which runs under Python 3.12, NumPy 2.5.3 and SciPy 1.18.1. This
+population stays the reference for a gate run under its own versions,
+Python 3.11, NumPy 2.4.6 and SciPy 1.17.1.
+
 The Linux half of the gate of PyBADS's move to gpyreg 1.4.0
 ([`TODO.md`](../../TODO.md), "gpyreg releases after 1.3.3"): the 24
 configurations of the `default` suite of `dev/scripts/benchmark_targets.py`,

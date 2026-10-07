@@ -1,0 +1,152 @@
+{
+ "label": "ellipsoid_D3_homo",
+ "seed": 0,
+ "problem": "ellipsoid",
+ "D": 3,
+ "noise": "homo",
+ "unbounded": false,
+ "x0": [
+  4.429375528828794,
+  -1.8366284761450191,
+  2.2234258864982532
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.1,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "uncertainty_handling": true,
+  "display": "off",
+  "max_fun_evals": 1500,
+  "random_seed": 0
+ },
+ "effective_options": {
+  "max_fun_evals": 1490,
+  "max_iter": 600,
+  "uncertainty_handling": true,
+  "specify_target_noise": false,
+  "noise_size": 1.0,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 10,
+  "n_train_min": 100,
+  "n_train_max": 200,
+  "random_seed": 0,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -2.3912572860717773,
+   1.2009000778198242,
+   -2.0480334758758545
+  ],
+  "fval": 0.5873986611569337,
+  "fsd": 0.402216660568941,
+  "true_error": 0.012475424274715976,
+  "func_count": 286,
+  "iterations": 18,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 11.600157229999922,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 0.00945273348060352,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.021136862001412737,
+    "target": 0.012610362999294467,
+    "init": 0.06851719899986282,
+    "gp_init": 0.049580015000060484,
+    "poll": 2.6066583439997455,
+    "history": 0.007227252999882694,
+    "search": 8.312910559999862,
+    "reestimate": 0.5114539739996644,
+    "final_samples": 0.0004995640001732027
+   },
+   "paths": {
+    "loop": 0.021136862001412737,
+    "target": 0.012610362999294467,
+    "init": 0.06851719899986282,
+    "gp_init": 0.0021131890000560816,
+    "gp_init/gp_fit": 0.0474668260000044,
+    "poll": 0.1665233599978159,
+    "poll/gp_rebuild": 0.06514977600022576,
+    "poll/gp_rebuild/gp_fit": 0.9916514390000657,
+    "poll/target_from_gp": 0.07195049200061021,
+    "poll/gp_update": 0.10121655700129395,
+    "history": 0.007227252999882694,
+    "search": 0.27407270999958433,
+    "search/gp_rebuild": 0.49243209000030674,
+    "search/search_es": 2.8910506889999397,
+    "search/gp_update": 0.09258590399997502,
+    "search/gp_rebuild/gp_fit": 1.7677313609998464,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 2.767731986000399,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.02730581999981041,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 1.1888571099998444,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.02130960999988929,
+    "reestimate": 0.049448972000277536,
+    "reestimate/gp_rebuild": 0.4620050019993869,
+    "final_samples": 0.0004995640001732027
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 18,
+    "poll/gp_rebuild": 26,
+    "poll/gp_rebuild/gp_fit": 9,
+    "poll/target_from_gp": 104,
+    "poll/gp_update": 103,
+    "history": 18,
+    "search": 140,
+    "search/gp_rebuild": 213,
+    "search/search_es": 140,
+    "search/gp_update": 105,
+    "search/gp_rebuild/gp_fit": 13,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 22,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 22,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 18,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 18,
+    "reestimate": 18,
+    "reestimate/gp_rebuild": 170,
+    "final_samples": 1
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "0dc5932f",
+   "dirty": false
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v77-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "0.1.dev50+g0dc5932f0",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "0dc5932f",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.4.0",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.4.0/gpyreg",
+   "git": {
+    "sha": "682585f",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-10-07T16:32:25+0000",
+  "finished": "2026-10-07T16:32:37+0000"
+ }
+}

@@ -458,15 +458,23 @@ reference's number of seeds.
   `rosenbrock_D6_rerun` (median 394 to 426) at an unchanged error, the
   pooled fraction solved 0.90 in the base against 0.88 in the change, not
   significant; not adopted (PI, 2026-09-29), its diff kept with the record.
+- [experiments/population_linux_scipy118_20261007/](experiments/population_linux_scipy118_20261007/README.md)
+  — the reference population of the benchmark on Linux: the `default`
+  suite's 24 configurations at 30 seeds, PyBADS at `0dc5932f` (1.5.1's
+  package code), gpyreg 1.4.0, under Python 3.12, NumPy 2.5.3 and SciPy
+  1.18.1, the Windows reference's versions; no flag against the previous
+  Linux reference, of whose 720 runs it repeats 56, and the same code under
+  that reference's versions repeating all 720: the two references differ
+  by the versions alone.
 - [experiments/population_linux_gpyreg140_20260930/](experiments/population_linux_gpyreg140_20260930/README.md)
   — the Linux half of the comparison of gpyreg 1.4.0, before PyBADS moved
   to it: the `default` suite's 24 configurations at 30 seeds with gpyreg
   at `3e56dce`, PyBADS at `60ad9e0f`; no flag against the suite's Linux
   reference, whose 540 runs it repeats run by run, nor, on its six
   periodic configurations, against the periodic reference, their 180 runs
-  equal to those of gpyreg `0f27db5`'s gate. The reference population of
-  the benchmark on Linux, the `default` suite's periodic configurations
-  included.
+  equal to those of gpyreg `0f27db5`'s gate. The previous reference
+  population of the benchmark on Linux, and the one for a gate run under
+  its versions, Python 3.11, NumPy 2.4.6 and SciPy 1.17.1.
 - [experiments/population_gpyreg140_20260930/](experiments/population_gpyreg140_20260930/README.md)
   — the Windows half of the comparison of gpyreg 1.4.0, before PyBADS moved
   to it: the `default` suite's 24 configurations at 100 seeds with gpyreg

@@ -1,0 +1,155 @@
+{
+ "label": "ellipsoid_D10",
+ "seed": 17,
+ "problem": "ellipsoid",
+ "D": 10,
+ "noise": "none",
+ "unbounded": false,
+ "x0": [
+  2.2826037856446293,
+  0.4731539307836554,
+  -4.1382939510613745,
+  3.0858678335996927,
+  2.715954927901749,
+  -4.842487892161474,
+  2.708160619875704,
+  3.5258147643083646,
+  -3.2222454527782576,
+  -3.900258823478432
+ ],
+ "precomputed": null,
+ "f_min": 0.0,
+ "tolerance": 0.001,
+ "budget": 500,
+ "budget_scale": 1.0,
+ "requested_options": {
+  "display": "off",
+  "max_fun_evals": 5000,
+  "random_seed": 17
+ },
+ "effective_options": {
+  "max_fun_evals": 5000,
+  "max_iter": 2000,
+  "uncertainty_handling": null,
+  "specify_target_noise": false,
+  "noise_size": 0.03162277660168379,
+  "noise_final_samples": 10,
+  "tol_fun": 0.001,
+  "tol_mesh": 1e-06,
+  "tol_stall_iters": 9,
+  "n_train_min": 50,
+  "n_train_max": 150,
+  "random_seed": 17,
+  "display": "off"
+ },
+ "final": {
+  "x": [
+   -1.3149056003089754,
+   0.07411313586544566,
+   0.8366036690802048,
+   1.6977036171601867,
+   -1.0735314905969062,
+   0.8555428701890833,
+   -1.2447361297404314,
+   2.2450799943612765,
+   0.6210291427021275,
+   -2.10677650706657
+  ],
+  "fval": 1.1722842309240525e-06,
+  "fsd": 0.0,
+  "true_error": 1.1722842309240525e-06,
+  "func_count": 647,
+  "iterations": 16,
+  "message": "Optimization terminated: mesh size less than options['tol_mesh'].",
+  "wall_s": 15.162468375999993,
+  "crashed": false,
+  "exception": null,
+  "min_noise_var": 1.3533528323661276e-07,
+  "stage_times": {
+   "top_level": {
+    "loop": 0.038753130000486635,
+    "target": 0.01766846100157306,
+    "init": 0.014420318999943746,
+    "gp_init": 0.0383862720000252,
+    "poll": 4.066736210999051,
+    "history": 0.004549475000203529,
+    "search": 10.971679670998718
+   },
+   "paths": {
+    "loop": 0.038753130000486635,
+    "target": 0.01766846100157306,
+    "init": 0.014420318999943746,
+    "gp_init": 0.0023974660000476433,
+    "gp_init/gp_fit": 0.03598880599997756,
+    "poll": 0.3701321920018871,
+    "poll/gp_rebuild": 0.0878306189996465,
+    "poll/gp_rebuild/gp_fit": 2.1297285320000583,
+    "poll/target_from_gp": 0.3957362099973807,
+    "history": 0.004549475000203529,
+    "search": 0.5521764730007356,
+    "search/gp_rebuild": 0.3664388079986338,
+    "search/search_es": 7.714672178000001,
+    "search/gp_update": 0.39289238199921783,
+    "search/gp_rebuild/gp_fit": 1.4087973820001025,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 1.0801303880000432,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 0.0031782700000348996,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 0.5332926729998917,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 0.0034097750001365057
+   },
+   "calls": {
+    "loop": 1,
+    "init": 1,
+    "gp_init": 1,
+    "gp_init/gp_fit": 1,
+    "poll": 16,
+    "poll/gp_rebuild": 28,
+    "poll/gp_rebuild/gp_fit": 14,
+    "poll/target_from_gp": 320,
+    "history": 16,
+    "search": 310,
+    "search/gp_rebuild": 156,
+    "search/search_es": 310,
+    "search/gp_update": 279,
+    "search/gp_rebuild/gp_fit": 13,
+    "poll/gp_rebuild/gp_fit/gp_fit_failed": 3,
+    "poll/gp_rebuild/gp_fit/gp_fit_retry": 3,
+    "search/gp_rebuild/gp_fit/gp_fit_failed": 3,
+    "search/gp_rebuild/gp_fit/gp_fit_retry": 3
+   }
+  }
+ },
+ "meta": {
+  "git": {
+   "sha": "0dc5932f",
+   "dirty": false
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v77-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "pybads": "0.1.dev50+g0dc5932f0",
+  "pybads_source": {
+   "path": "/home/user/pybads/pybads",
+   "git": {
+    "sha": "0dc5932f",
+    "dirty": false
+   }
+  },
+  "gpyreg": "1.4.0",
+  "gpyreg_source": {
+   "path": "/home/user/pybads/dev/scripts/runs/gpyreg/v1.4.0/gpyreg",
+   "git": {
+    "sha": "682585f",
+    "dirty": false
+   }
+  },
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "started": "2026-10-07T16:28:05+0000",
+  "finished": "2026-10-07T16:28:21+0000"
+ }
+}
