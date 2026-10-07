@@ -17,7 +17,7 @@ In our benchmark with real model-fitting problems from computational and cogniti
 
 BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in ``scipy.optimize.minimize``.
 
-A `three-minute film <https://youtu.be/Z_YXE0jIwEw>`__ shows how PyBADS works, following a real run.
+A `three-minute film <https://www.youtube.com/watch?v=ZiYchCIO3qA>`__ shows how PyBADS works, following a real run.
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. PyBADS and PyVBMC are among the lab's `tools for fitting models to data <https://acerbilab.org/model-fitting/>`__.
 
