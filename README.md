@@ -137,6 +137,8 @@ PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/ab
 
 **Fig 1: BADS procedure.** The poll's steps along each variable scale with that variable's plausible range. ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
 
+Watch the two stages at work in a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that follows a real run of PyBADS.
+
 See [here](https://github.com/lacerbi/optimviz) for a visualization of several optimizers at work, including BADS.
 
 See the original BADS paper for more details ([Acerbi and Ma, 2017](#references-and-citation)).
