@@ -70,6 +70,12 @@ python $E/tabulate.py table $E/timing.json > $E/timing.md
 - The files: `timing_ab.py` and `tabulate.py`; `timing.json`, one row per
   run; `timing.md`, the table; `compare_populations.md`, the comparison of
   the results below.
+- The raw runs, each run's `summary.json`, `machine.json` and console log
+  and the log of the whole measurement, are attached to the release
+  v1.5.0 as
+  [`own_time_v110_20261001_raw.zip`](https://github.com/acerbilab/pybads/releases/download/v1.5.0/own_time_v110_20261001_raw.zip)
+  (1.4 MB). `tabulate.py collect` of its `timing_v110/` rebuilds
+  `timing.json` byte for byte.
 
 ## Outcome
 
