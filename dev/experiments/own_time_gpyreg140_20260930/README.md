@@ -45,6 +45,11 @@ python $E/tabulate.py table $E/timing.json > $E/timing.md
   (UTC+3) on 2026-09-30.
 - The files: `timing_abba.py` and `tabulate.py`; `timing.json`, one row per
   run; `timing.md`, the table.
+- The raw runs, each run's `summary.json` and console log and the log of
+  the whole measurement, are attached to the release v1.5.0 as
+  [`own_time_gpyreg140_20260930_raw.zip`](https://github.com/acerbilab/pybads/releases/download/v1.5.0/own_time_gpyreg140_20260930_raw.zip)
+  (0.4 MB). `tabulate.py collect` of its `timing_abba/` rebuilds
+  `timing.json` byte for byte.
 
 ## Outcome
 
