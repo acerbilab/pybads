@@ -1,8 +1,8 @@
 # PyBADS: open work
 
-Updated 2026-10-06. PyBADS 1.5.0 was released on 2026-10-06: the tag
-`v1.5.0` on `6e83f0a3`, a GitHub release, the upload to PyPI, and the
-conda-forge recipe (`conda-forge/pybads-feedstock` #12); `AGENTS.md`
+Updated 2026-10-07. PyBADS 1.5.1 was released on 2026-10-06: the tag
+`v1.5.1` on `6e5133a3`, a GitHub release, the upload to PyPI, and the
+conda-forge recipe (`conda-forge/pybads-feedstock` #13); `AGENTS.md`
 ("Setup and commands") gives a release's steps. Other records
 name the items by their titles, the port review's ledger
 ([results/2026-09-28-port-correctness-review.md](results/2026-09-28-port-correctness-review.md))
@@ -116,9 +116,8 @@ among them, so a title stays as it is while its item is open.
   - Where the cache directory cannot be written, the reminder shows once
     in every interactive session from the first year on, without end, as
     `dev/plans/version-check.md` intends ("the session flag is the only
-    cap"); the FAQ's "How do I know whether a newer version of PyBADS
-    exists?" says three times for each installed version, without this
-    exception.
+    cap"); the API page of `check_for_updates` says at most three times
+    for each installed version, without this exception.
   - A showing dated in the future in the state file, written under a
     wrong clock, silences the reminder of that version for good.
   - `check_for_updates()` ignores a release's `requires_python`: once a
@@ -159,21 +158,16 @@ among them, so a title stays as it is while its item is open.
 
 ## Needing no release
 
-- [ ] **The published documentation: the theme's buttons and the options
-  page.** `docs.yml` publishes the documentation of `main`, so these need
-  a merge and no release:
-  - The theme's "Edit this page" buttons lead to
-    `github.com/acerbilab/pybads/edit/main/<page>`, without
-    `docsrc/source/`, a 404; `"path_to_docs": "docsrc/source"` in
-    `html_theme_options` (`docsrc/source/conf.py`) fixes them. The Colab
-    and Binder buttons of the examples' pages lead to `_examples/*.ipynb`,
-    which the repository does not hold.
+- [ ] **The published documentation: the options page and the
+  reminder's limit.** `docs.yml` publishes the documentation of `main`, so
+  these need a merge and no release:
   - The options page (`docsrc/source/api/options/bads_options.rst`)
     strongly advises against changing the advanced options, among which
     are `periodic_vars` and `output_fcn`, which the FAQ, Example 6 and the
     tips tell users to set.
-  - The FAQ's exception for an unwritable cache directory, under "Update
-    reminders and tips: loose ends" above.
+  - The exception for an unwritable cache directory on the API page of
+    `check_for_updates`, under "Update reminders and tips: loose ends"
+    above.
 - [ ] **The oracles' rebaseline test and the Linux reference under newer
   versions.** `test_rebaseline_replaces_one_oracle`
   (`dev/scripts/test_make_oracle_fixtures.py`) recomputes the
