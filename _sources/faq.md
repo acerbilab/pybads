@@ -159,13 +159,13 @@ PyVBMC then take as a noisy target.
 (faq-where-can-i-download-pybads)=
 ### Where can I download PyBADS?
 
-Install PyBADS with:
+Install or upgrade PyBADS with pip:
 
 ```console
-python -m pip install pybads
+python -m pip install --upgrade pybads
 ```
 
-or with Conda:
+Or install with Conda:
 
 ```console
 conda install --channel=conda-forge pybads
@@ -212,9 +212,9 @@ details.
 PyBADS 1.5 requires NumPy 2.0 or newer. When the environment holds NumPy
 1.x, or a package that requires it,
 `conda install --channel=conda-forge pybads` leaves NumPy as it is and
-installs the newest PyBADS that fits it, 1.1.0, without a warning; `pip`
-installs the latest release and upgrades NumPy. Ask conda for the latest
-release:
+installs the newest PyBADS that fits it, 1.1.0, without a warning.
+`python -m pip install --upgrade pybads` installs or upgrades PyBADS and
+upgrades NumPy when required. Ask conda for the latest release:
 
 ```console
 conda install --channel=conda-forge "pybads>=1.5"

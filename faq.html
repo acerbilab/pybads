@@ -739,11 +739,11 @@ PyVBMC then take as a noisy target.</p>
 <span id="faq-installation"></span><h2>Installing PyBADS<a class="headerlink" href="#installing-pybads" title="Link to this heading">#</a></h2>
 <section id="where-can-i-download-pybads">
 <span id="faq-where-can-i-download-pybads"></span><h3>Where can I download PyBADS?<a class="headerlink" href="#where-can-i-download-pybads" title="Link to this heading">#</a></h3>
-<p>Install PyBADS with:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">python -m pip install pybads</span>
+<p>Install or upgrade PyBADS with pip:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">python -m pip install --upgrade pybads</span>
 </pre></div>
 </div>
-<p>or with Conda:</p>
+<p>Or install with Conda:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install --channel=conda-forge pybads</span>
 </pre></div>
 </div>
@@ -782,9 +782,9 @@ details.</p>
 <p>PyBADS 1.5 requires NumPy 2.0 or newer. When the environment holds NumPy
 1.x, or a package that requires it,
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">--channel=conda-forge</span> <span class="pre">pybads</span></code> leaves NumPy as it is and
-installs the newest PyBADS that fits it, 1.1.0, without a warning; <code class="docutils literal notranslate"><span class="pre">pip</span></code>
-installs the latest release and upgrades NumPy. Ask conda for the latest
-release:</p>
+installs the newest PyBADS that fits it, 1.1.0, without a warning.
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pybads</span></code> installs or upgrades PyBADS and
+upgrades NumPy when required. Ask conda for the latest release:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install --channel=conda-forge "pybads&gt;=1.5"</span>
 </pre></div>
 </div>
