@@ -50,12 +50,16 @@ the first iteration line:
    https://pypi.org/project/pybads/
 
 The reminder makes no network request: it compares the release date shipped
-with PyBADS with the date of the run. It appears at most three times for each
-installed version, at least 90 days apart, and records the dates of its
-showings in ``update_reminder.json`` in PyBADS's cache directory:
+with PyBADS with the date of the run. It appears at most once per Python
+session and records the dates of its showings in ``update_reminder.json``
+in PyBADS's cache directory:
 ``%LOCALAPPDATA%\pybads`` on Windows, ``~/Library/Caches/pybads`` on macOS,
 ``~/.cache/pybads`` on Linux (or under ``$XDG_CACHE_HOME``), or the directory
 that ``PYBADS_CACHE_DIR`` names.
+
+The saved dates limit reminders to three showings for each installed version,
+at least 90 days apart. If the state file cannot be read or updated, these
+limits may not hold across sessions; any dates that can be read still count.
 
 To turn it off, pass ``options={"show_tips": False}`` to ``BADS``, which also
 turns off the tips, or set the environment variable
