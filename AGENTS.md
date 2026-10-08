@@ -591,10 +591,13 @@ reason.
   `update_reminder.json` in the user's cache directory, and writes no file
   but that one.
 - **Links to the lab.** In what ships or is published, a link that names
-  Luigi Acerbi goes to his personal page, https://lacerbi.github.io/, and
-  one that names the lab or its members to the group's page,
-  https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence.
-  A paragraph that sends the reader to another of the lab's methods
+  Luigi Acerbi goes to his personal page, https://lacerbi.github.io/. A
+  link to the group goes preferably to its main page,
+  https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence,
+  and may go to a subpage where the text names what that subpage holds
+  (its people page for "members", for instance). Two links of one sentence
+  do not go to the same page: text whose subpage is not linked stays
+  plain. A paragraph that sends the reader to another of the lab's methods
   (PyVBMC, PyIBS, MATLAB BADS) links the lab's page of them,
   https://acerbilab.org/model-fitting/, with the text "tools for fitting
   models to data", and `README.md` and `index.rst` link it under their
