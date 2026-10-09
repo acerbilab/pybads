@@ -124,13 +124,14 @@ itself.
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black
 profile, pycln); no CI job checks it, and the whole tree passes them.
-`.git-blame-ignore-revs` lists the pull request that first formatted the
-tree, "Code style with pre-commit (#20)", which GitHub's blame view skips
-and `git config blame.ignoreRevsFile .git-blame-ignore-revs` hides from
-`git blame`. The commits it lists are on `main`: the squash merge dissolves
-a formatting commit made on `dev-next`, so a reformatting that blame should
-skip reaches `main` as a pull request of its own, and its squash commit is
-listed after the merge.
+`.git-blame-ignore-revs` lists the squash commit of the pull request that
+first formatted the tree, "Code style with pre-commit (#20)", which
+GitHub's blame view skips and
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` hides from
+`git blame`. The commits it lists are on `main`: the squash merge that
+carries `dev-next` to `main` dissolves a formatting commit made there, so
+a reformatting that blame should skip reaches `main` as a pull request of
+its own, and its squash commit is listed after the merge.
 
 `pyproject.toml` is authoritative; `setup.py` is a shim. The `packages` of
 `pyproject.toml` lists every directory of the package, those that hold
