@@ -123,10 +123,15 @@ itself.
 
 Formatting is enforced by the pre-commit hooks alone (black at line length
 79 on every Python file and the notebooks' code cells, isort with the black
-profile, pycln); no CI job checks it, and the whole tree passes them. The
-commit that first formatted the tree is listed in `.git-blame-ignore-revs`;
-`git config blame.ignoreRevsFile .git-blame-ignore-revs` hides it from
-`git blame`.
+profile, pycln); no CI job checks it, and the whole tree passes them.
+`.git-blame-ignore-revs` lists the squash commit of the pull request that
+first formatted the tree, "Code style with pre-commit (#20)", which
+GitHub's blame view skips and
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` hides from
+`git blame`. The commits it lists are on `main`: the squash merge that
+carries `dev-next` to `main` dissolves a formatting commit made there, so
+a reformatting that blame should skip reaches `main` as a pull request of
+its own, and its squash commit is listed after the merge.
 
 `pyproject.toml` is authoritative; `setup.py` is a shim. The `packages` of
 `pyproject.toml` lists every directory of the package, those that hold
@@ -591,10 +596,13 @@ reason.
   `update_reminder.json` in the user's cache directory, and writes no file
   but that one.
 - **Links to the lab.** In what ships or is published, a link that names
-  Luigi Acerbi goes to his personal page, https://lacerbi.github.io/, and
-  one that names the lab or its members to the group's page,
-  https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence.
-  A paragraph that sends the reader to another of the lab's methods
+  Luigi Acerbi goes to his personal page, https://lacerbi.github.io/. A
+  link to the group goes preferably to its main page,
+  https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence,
+  and may go to a subpage where the text names what that subpage holds
+  (its people page for "members", for instance). Two links of one sentence
+  do not go to the same page: text whose subpage is not linked stays
+  plain. A paragraph that sends the reader to another of the lab's methods
   (PyVBMC, PyIBS, MATLAB BADS) links the lab's page of them,
   https://acerbilab.org/model-fitting/, with the text "tools for fitting
   models to data", and `README.md` and `index.rst` link it under their
