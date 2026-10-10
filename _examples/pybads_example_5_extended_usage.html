@@ -525,6 +525,16 @@
 The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/66a4a0a202d9e4aaa38aa89b13027fda/pybads_example_5_extended_usage.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">if</span> <span class="s2">"google.colab"</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>  <span class="c1"># Colab lacks PyBADS: install it</span>
+    <span class="o">%</span><span class="k">pip</span> install "pybads&gt;=1.5.1"
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BADS</span>
 </pre></div>
@@ -689,7 +699,7 @@ Function value at minimum fval = -1.031628449909302
  'iterations': 9,
  'func_count': 69,
  'mesh_size': 0.0009765625,
- 'overhead': 449.9438559599257,
+ 'overhead': 436.58796370553927,
  'algorithm': 'Bayesian adaptive direct search',
  'yval_vec': None,
  'ysd_vec': None,
@@ -697,7 +707,7 @@ Function value at minimum fval = -1.031628449909302
  'x': array([-0.08982158,  0.71263966]),
  'fval': -1.031628449909302,
  'fsd': 0.0,
- 'total_time': 0.4262635010050068,
+ 'total_time': 0.3571458010224084,
  'random_seed': 5,
  'status': 2,
  'version': '1.5.1',

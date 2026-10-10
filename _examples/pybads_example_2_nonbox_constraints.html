@@ -529,6 +529,16 @@
 The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/f3c67215dbe688f40d2a84390d9ecb79/pybads_example_2_nonbox_constraints.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">if</span> <span class="s2">"google.colab"</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>  <span class="c1"># Colab lacks PyBADS: install it</span>
+    <span class="o">%</span><span class="k">pip</span> install "pybads&gt;=1.5.1"
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BADS</span>
 </pre></div>
@@ -605,8 +615,8 @@ The code used in this example is available as a script <a class="reference downl
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Plausible lower/upper bounds not specified. Using hard upper/lower bounds instead.
 Beginning optimization of a DETERMINISTIC objective function
 
-Tip: Set plb and pub around where you expect the solution, a box you would bet contains it with over 90% probability. PyBADS draws its first points inside that box and scales its steps by it; lb and ub only bound the search.
-https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-choose-plb-and-pub
+Tip: The message at the end of the run, also in optimize_result['message'], says why it ended. If it used up its budget (max_fun_evals, 500 * D by default, D the number of parameters, or max_iter) before settling, raise it; if it converged but the solution seems imprecise, the FAQ lists options that make it search longer.
+https://acerbilab.github.io/pybads/faq.html#faq-on-some-problems-pybads-seems-to-get-stuck-and-stop-too-early-is-there-a-way-to-tune-pybads-to-optimize-towards-a-higher-precision-result-or-to-have-it-optimize-for-longer
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2               1               1                                 Uncertainty test

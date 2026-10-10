@@ -529,6 +529,16 @@
 The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/4c8ae65cb5c907876fcabc62983c9431/pybads_example_6_periodic_variables.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">if</span> <span class="s2">"google.colab"</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>  <span class="c1"># Colab lacks PyBADS: install it</span>
+    <span class="o">%</span><span class="k">pip</span> install "pybads&gt;=1.5.1"
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BADS</span>
 </pre></div>
@@ -615,8 +625,8 @@ f(\mathbf{x}) = \text{Rosenbrock}(x_1, x_2) + \cos\left(\frac{\pi x_3}{2}\right)
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Variables (index) defined with periodic boundaries: [2, 3]
 Beginning optimization of a DETERMINISTIC objective function
 
-Tip: Run PyBADS from at least 10 different starting points, ideally dozens, depending on your problem; with x0=None, each run draws its start at random in the plausible box. Keep the run with the lowest fval: a single run can stop in a local minimum, and if several runs reach nearly the same fval, you can be more confident in the solution.
-https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-run-pybads-from-several-starting-points
+Tip: For angles and other periodic parameters, list their indices (from 0) in options['periodic_vars'], with the period as their hard bounds (e.g. -np.pi and np.pi for an angle in radians), usually as their plausible bounds too. PyBADS then treats the two bounds as the same point and can move across them.
+https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2           14417               1                                 Uncertainty test
@@ -678,7 +688,7 @@ Function value at minimum: 3.6476772060645146e-06
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [ 1.00188157  1.00376138 -1.99977819  0.99990573], fval = 3.648e-06
-total f-count: 169, time: 1.6 s
+total f-count: 169, time: 1.47 s
 </pre></div>
 </div>
 </div>

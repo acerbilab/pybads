@@ -1454,8 +1454,8 @@ for further information.</p>
 <section id="how-do-i-estimate-the-standard-deviation-of-a-noisy-objective">
 <span id="faq-how-do-i-estimate-the-standard-deviation-of-a-noisy-objective"></span><h3>How do I estimate the standard deviation of a noisy objective?<a class="headerlink" href="#how-do-i-estimate-the-standard-deviation-of-a-noisy-objective" title="Link to this heading">#</a></h3>
 <p>If you estimate the log-likelihood by <em>inverse binomial sampling</em> (IBS), with
-<a class="reference external" href="https://github.com/acerbilab/pyibs">PyIBS</a>, one of the lab’s
-<a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>,
+<a class="reference external" href="https://github.com/acerbilab/pyibs">PyIBS</a>, another of our
+<a class="reference external" href="https://acerbilab.org/model-fitting/">model-fitting tools</a>,
 the algorithm returns the variability of the estimate as second output. Just
 ensure that the variability is returned as <em>standard deviation</em> (SD) and not
 as the variance (depending on the implementation, you may have to take the
@@ -1722,8 +1722,8 @@ PyBADS is designed for (see <a class="reference internal" href="#faq-which-kind-
 obtaining the full posterior, or even an approximation thereof, can be a
 challenging task. We developed a method and related toolbox,
 <a class="reference external" href="https://acerbilab.github.io/pyvbmc/">Variational Bayesian Monte Carlo (PyVBMC)</a>,
-which addresses exactly this problem and is one of the lab’s
-<a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>. Check it out!</p>
+which addresses exactly this problem. Check it out, along with our
+<a class="reference external" href="https://acerbilab.org/model-fitting/">other methods</a>!</p>
 </section>
 <section id="can-pybads-return-an-approximate-posterior-e-g-by-computing-the-hessian-at-the-optimum">
 <span id="faq-can-pybads-return-an-approximate-posterior-eg-by-computing-the-hessian-at-the-optimum"></span><h3>Can PyBADS return an approximate posterior, e.g. by computing the Hessian at the optimum?<a class="headerlink" href="#can-pybads-return-an-approximate-posterior-e-g-by-computing-the-hessian-at-the-optimum" title="Link to this heading">#</a></h3>
@@ -1738,15 +1738,14 @@ posterior.</p>
 <p>Instead, you should look into
 <a class="reference external" href="https://acerbilab.github.io/pyvbmc/">Variational Bayesian Monte Carlo (PyVBMC)</a>,
 a method that we developed specifically to compute approximate posterior
-distributions, one of the lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>,
-and that can be used in synergy with PyBADS (see
-<a class="reference internal" href="#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc">below</a>).</p>
+distributions, and that can be used in synergy with PyBADS (see
+<a class="reference internal" href="#faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc">below</a>).
+The lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">guide to its tools</a> says what
+each one is for.</p>
 </section>
 <section id="i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc">
 <span id="faq-i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc"></span><h3>I have run PyBADS on my problem. How do I run PyVBMC?<a class="headerlink" href="#i-have-run-pybads-on-my-problem-how-do-i-run-pyvbmc" title="Link to this heading">#</a></h3>
-<p><a class="reference external" href="https://acerbilab.github.io/pyvbmc/">PyVBMC</a>, one of the lab’s
-<a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>,
-computes an approximate
+<p><a class="reference external" href="https://acerbilab.github.io/pyvbmc/">PyVBMC</a> computes an approximate
 posterior distribution over the parameters, and an estimate of the model
 evidence (see <a class="reference internal" href="#faq-this-is-interesting-but-shouldnt-we-ideally-compute-full-posterior-distributions">above</a>).
 Its interface is very similar to the one of PyBADS, and you may only need
@@ -1763,8 +1762,9 @@ whereas PyBADS takes plausible bounds equal to the hard ones.</p></li>
 variables: give it a function of the other variables that inserts the
 fixed values (<code class="docutils literal notranslate"><span class="pre">np.insert(x,</span> <span class="pre">i,</span> <span class="pre">value)</span></code>), with the bounds of the other
 variables.</p></li>
-<li><p>PyVBMC works best with up to about 10 parameters, where PyBADS takes up to
-about 20.</p></li>
+<li><p>As the lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">overview of its methods</a>
+says, PyVBMC works best with up to about 10 parameters, where PyBADS takes
+up to about 20.</p></li>
 <li><p>The solution of PyBADS is a good starting point <code class="docutils literal notranslate"><span class="pre">x0</span></code> for PyVBMC.</p></li>
 <li><p>PyVBMC supports noisy targets too, and works best when the target returns
 an estimate of its noise.</p></li>
@@ -1832,7 +1832,7 @@ differ in some numerical details.</p></li>
 <span id="faq-are-you-planning-to-port-bads-to-other-languages"></span><h3>Are you planning to port BADS to other languages?<a class="headerlink" href="#are-you-planning-to-port-bads-to-other-languages" title="Link to this heading">#</a></h3>
 <p>BADS is currently available as a <a class="reference external" href="https://github.com/acerbilab/bads">MATLAB toolbox</a>
 and as a <a class="reference external" href="https://github.com/acerbilab/pybads">Python package</a>, PyBADS, both
-listed with the lab’s other <a class="reference external" href="https://acerbilab.org/model-fitting/">tools for fitting models to data</a>. No
+listed on the lab’s <a class="reference external" href="https://acerbilab.org/model-fitting/">model-fitting page</a>. No
 other ports are currently planned, but please get in touch if interested.
 The Python package can also be called from other languages, for example from
 Julia with <a class="reference external" href="https://cjdoris.github.io/PythonCall.jl/stable/">PythonCall.jl</a>

@@ -529,6 +529,16 @@
 The code used in this example is available as a script <a class="reference download internal" download="" href="../_downloads/06743557a28bcbf4dca92af04c48319b/pybads_example_1_basic_usage.py"><span class="xref download myst">here</span></a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">if</span> <span class="s2">"google.colab"</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>  <span class="c1"># Colab lacks PyBADS: install it</span>
+    <span class="o">%</span><span class="k">pip</span> install "pybads&gt;=1.5.1"
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pybads.bads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BADS</span>
 </pre></div>
@@ -607,8 +617,8 @@ To run the optimization, we simply call <code class="docutils literal notranslat
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Beginning optimization of a DETERMINISTIC objective function
 
-Tip: Set plb and pub around where you expect the solution, a box you would bet contains it with over 90% probability. PyBADS draws its first points inside that box and scales its steps by it; lb and ub only bound the search.
-https://acerbilab.github.io/pybads/faq.html#faq-how-do-i-choose-plb-and-pub
+Tip: For angles and other periodic parameters, list their indices (from 0) in options['periodic_vars'], with the period as their hard bounds (e.g. -np.pi and np.pi for an angle in radians), usually as their plausible bounds too. PyBADS then treats the two bounds as the same point and can move across them.
+https://acerbilab.github.io/pybads/faq.html#faq-does-pybads-support-periodic-variables-such-as-angles
 
  Iteration    f-count         f(x)           MeshScale          Method             Actions
      0           2               1               1                                 Uncertainty test
@@ -658,7 +668,7 @@ Function value at minimum: 2.0242459643132345e-07
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>BADS minimum at: x_min = [0.99966234 0.99935453], fval = 2.024e-07
-total f-count: 87, time: 1.31 s
+total f-count: 87, time: 1.49 s
 </pre></div>
 </div>
 </div>
