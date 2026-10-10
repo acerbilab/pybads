@@ -225,7 +225,11 @@ on Windows), which copies the result into `docs/`.
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
 docs build; no CI job runs them, so a change that breaks one goes
-unnoticed. `examples/scripts/*.py` are generated from the notebooks by
+unnoticed. Each notebook opens with a cell that installs PyBADS when it
+runs in Colab (`"google.colab" in sys.modules`), which the Colab button of
+the rendered notebooks (`launch_buttons` in `docsrc/source/conf.py`)
+needs; a new notebook takes the same cell. `examples/scripts/*.py` are
+generated from the notebooks by
 `examples/scripts/Makefile` (GNU Make, with nbconvert, IPython, and black
 and isort at the pre-commit hook versions, in the environment `python`
 names); regenerate them with `make -B -C examples/scripts`, do not edit
