@@ -40,6 +40,8 @@ The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md) list
 
 The full documentation is available at: https://acerbilab.github.io/pybads/
 
+Its [FAQ](https://acerbilab.github.io/pybads/faq.html) collects questions and answers on installing PyBADS, setting up the objective and the bounds, noisy objectives, reading the results, and runs that go wrong.
+
 For coding agents, the [PyBADS skill](https://github.com/acerbilab/pybads/blob/main/skills/pybads/SKILL.md) points to the
 documentation relevant to each task. Give your agent that file, or copy the
 `skills/pybads` folder into its skill directory. To update a copied skill,
@@ -149,7 +151,9 @@ See the original BADS paper for more details ([Acerbi and Ma, 2017](#references-
 
 PyBADS is under active development. The original BADS algorithm has been extensively tested in several benchmarks and published papers, and some of the benchmarks have been replicated with PyBADS. However, as with any optimization method, you should double-check your results.
 
-If you have trouble doing something with PyBADS, spot bugs or strange behavior, or you simply have some questions, please feel free to:
+Many questions are answered in the [FAQ](https://acerbilab.github.io/pybads/faq.html). Its Troubleshooting section says how to check that a run went well, and covers errors and warnings, results that differ from run to run, and runs that stop too early or converge slowly.
+
+If the FAQ does not help, you spot bugs or strange behavior, or you simply have some questions, please feel free to:
 - Post in the lab's [Discussions forum](https://github.com/orgs/acerbilab/discussions) with questions or comments about PyBADS, your problems & applications;
 - [Open an issue](https://github.com/acerbilab/pybads/issues/new) on GitHub;
 - Contact the project lead at <luigi.acerbi@helsinki.fi>, putting 'PyBADS' in the subject of the email.
