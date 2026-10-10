@@ -225,7 +225,11 @@ on Windows), which copies the result into `docs/`.
 The notebooks in `examples/` ship in the wheel as `pybads.examples`
 (`python -m pybads` opens them) and are rendered without execution by the
 docs build; no CI job runs them, so a change that breaks one goes
-unnoticed. `examples/scripts/*.py` are generated from the notebooks by
+unnoticed. Each notebook opens with a cell that installs PyBADS when it
+runs in Colab (`"google.colab" in sys.modules`), which the Colab button of
+the rendered notebooks (`launch_buttons` in `docsrc/source/conf.py`)
+needs; a new notebook takes the same cell. `examples/scripts/*.py` are
+generated from the notebooks by
 `examples/scripts/Makefile` (GNU Make, with nbconvert, IPython, and black
 and isort at the pre-commit hook versions, in the environment `python`
 names); regenerate them with `make -B -C examples/scripts`, do not edit
@@ -604,9 +608,10 @@ reason.
   do not go to the same page: text whose subpage is not linked stays
   plain. A paragraph that sends the reader to another of the lab's methods
   (PyVBMC, PyIBS, MATLAB BADS) links the lab's page of them,
-  https://acerbilab.org/model-fitting/, with the text "tools for fitting
-  models to data", and `README.md` and `index.rst` link it under their
-  title.
+  https://acerbilab.org/model-fitting/, and `README.md` and `index.rst`
+  link it under their title, as the lab's "open-source tools for fitting
+  models to data". Each such link has text written for its own sentence:
+  a phrase repeated across a page reads as boilerplate.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
