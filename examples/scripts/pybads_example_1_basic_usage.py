@@ -1,3 +1,9 @@
+import sys
+
+if "google.colab" in sys.modules:  # Colab lacks PyBADS: install it
+    get_ipython().run_line_magic("pip", 'install "pybads>=1.5.1"')
+
+
 import numpy as np
 
 from pybads.bads import BADS
