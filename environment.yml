@@ -1,8 +1,14 @@
 # run: conda env create --file environment.yml
+#
+# Binder, the launch button of the docs' example notebooks, builds this file
+# too, from main, with repo2docker. repo2docker copies the repository into
+# the image before the install only when it recognizes a pip line as a local
+# path, and it does not recognize a quoted one: the install then finds no
+# project and the build fails.
 name: pybads-dev
 
 dependencies:
   - python>=3.10
   - pip
   - pip:
-    - -e ".[dev]"
+    - -e .[dev]
