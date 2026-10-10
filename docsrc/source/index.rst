@@ -17,7 +17,13 @@ In our benchmark with real model-fitting problems from computational and cogniti
 
 BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in ``scipy.optimize.minimize``.
 
-A `three-minute film <https://www.youtube.com/watch?v=ZiYchCIO3qA>`__ shows how PyBADS works, following a real run.
+.. figure:: _static/pybads-film-thumbnail.jpg
+    :target: https://www.youtube.com/watch?v=ZiYchCIO3qA
+    :alt: PyBADS: fast and robust Bayesian optimization for model fitting (video)
+    :width: 560px
+    :align: center
+
+    Watch a `three-minute film <https://www.youtube.com/watch?v=ZiYchCIO3qA>`__ that explains how PyBADS works.
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (:labrepos:`PyVBMC <pyvbmc>`), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. Our `model-fitting page <https://acerbilab.org/model-fitting/>`__ explains when to use which.
 
@@ -65,6 +71,10 @@ accepted, and some calls and returned fields change: the changelog's list
 How does it work?
 -----------------
 
+.. tip::
+
+   Watch a `three-minute film <https://www.youtube.com/watch?v=ZiYchCIO3qA>`__ that explains how PyBADS works.
+
 PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/abs/10.1137/040603371>`__ (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**).
 
 - In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
@@ -75,8 +85,6 @@ PyBADS/BADS follows a `mesh adaptive direct search <http://epubs.siam.org/doi/ab
     :alt: Fig 1: BADS procedure
 
 Fig 1: BADS procedure. The poll's steps along each variable scale with that variable's plausible range.
-
-Watch the two stages at work in a `three-minute film <https://www.youtube.com/watch?v=ZiYchCIO3qA>`__ that follows a real run of PyBADS.
 
 See `here <https://github.com/lacerbi/optimviz>`__ for a visualization of several optimizers at work, including BADS.
 

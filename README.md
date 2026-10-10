@@ -18,7 +18,9 @@ In a benchmark with real model-fitting problems from computational and cognitive
 
 PyBADS requires no specific tuning and runs off-the-shelf like other Python optimizers (e.g., `scipy.optimize.minimize`).
 
-A [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) shows how PyBADS works, following a real run.
+**Watch a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that explains how PyBADS works.**
+
+<a href="https://www.youtube.com/watch?v=ZiYchCIO3qA"><img src="https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/pybads-film-thumbnail.jpg" alt="PyBADS: fast and robust Bayesian optimization for model fitting (video)" width="560"></a>
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. Our [model-fitting page](https://acerbilab.org/model-fitting/) explains when to use which.
 
@@ -130,14 +132,14 @@ For practical recommendations, such as how to set `lower_bounds`, `upper_bounds`
 
 ## How does it work?
 
+**Watch a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that explains how PyBADS works.**
+
 PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/abs/10.1137/040603371) (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**).
 
 - In the **poll** stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.
 - In the **search** stage, a [Gaussian process](https://distill.pub/2019/visual-exploration-gaussian-processes/) (GP) is fit to a (local) subset of the points evaluated so far. Then, we iteratively choose points to evaluate according to a *lower confidence bound* strategy that trades off between exploration of uncertain regions (high GP uncertainty) and exploitation of promising solutions (low GP mean).
 
 **Fig 1: BADS procedure.** The poll's steps along each variable scale with that variable's plausible range. ![BADS procedure](https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/bads-cartoon.png)
-
-Watch the two stages at work in a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that follows a real run of PyBADS.
 
 See [here](https://github.com/lacerbi/optimviz) for a visualization of several optimizers at work, including BADS.
 
