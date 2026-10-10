@@ -489,7 +489,13 @@
 <p>BADS has been intensively tested for model fitting in science and engineering and is currently used in many computational labs around the world (see <a class="reference external" href="https://scholar.google.co.uk/scholar?cites=7209174494000095753&amp;as_sdt=2005&amp;sciodt=0,5&amp;hl=en">Google Scholar</a> for many example applications).</p>
 <p>In our benchmark with real model-fitting problems from computational and cognitive neuroscience, BADS performed on par or better than many other common and state-of-the-art optimizers, as shown in the original BADS paper (<a class="reference external" href="#references">Acerbi and Ma, 2017</a>).</p>
 <p>BADS requires no specific tuning and runs off-the-shelf similarly to other Python optimizers, such as those in <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p>
-<p>A <a class="reference external" href="https://www.youtube.com/watch?v=ZiYchCIO3qA">three-minute film</a> shows how PyBADS works, following a real run.</p>
+<figure class="align-center" id="id2">
+<a class="reference external image-reference" href="https://www.youtube.com/watch?v=ZiYchCIO3qA"><img alt="PyBADS: fast and robust Bayesian optimization for model fitting (video)" src="_images/pybads-film-thumbnail.jpg" style="width: 560px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Watch a <a class="reference external" href="https://www.youtube.com/watch?v=ZiYchCIO3qA">three-minute film</a> that explains how PyBADS works.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 <p><em>Note</em>: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you should check out Variational Bayesian Monte Carlo for Python (<a class="extlink-labrepos reference external" href="https://github.com/acerbilab/pyvbmc">PyVBMC</a>), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. Our <a class="reference external" href="https://acerbilab.org/model-fitting/">model-fitting page</a> explains when to use which.</p>
 <section id="what-s-new-in-pybads-1-5">
 <h3>What’s new in PyBADS 1.5<a class="headerlink" href="#what-s-new-in-pybads-1-5" title="Link to this heading">#</a></h3>
@@ -534,6 +540,10 @@ accepted, and some calls and returned fields change: the changelog’s list
 </section>
 <section id="how-does-it-work">
 <h3>How does it work?<a class="headerlink" href="#how-does-it-work" title="Link to this heading">#</a></h3>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Watch a <a class="reference external" href="https://www.youtube.com/watch?v=ZiYchCIO3qA">three-minute film</a> that explains how PyBADS works.</p>
+</div>
 <p>PyBADS/BADS follows a <a class="reference external" href="http://epubs.siam.org/doi/abs/10.1137/040603371">mesh adaptive direct search</a> (MADS) procedure for function minimization that alternates <strong>poll</strong> steps and <strong>search</strong> steps (see <strong>Fig 1</strong>).</p>
 <ul class="simple">
 <li><p>In the <strong>poll</strong> stage, points are evaluated on a mesh by taking steps in one direction at a time, until an improvement is found or all directions have been tried. The step size is doubled in case of success, halved otherwise.</p></li>
@@ -541,7 +551,6 @@ accepted, and some calls and returned fields change: the changelog’s list
 </ul>
 <img alt="Fig 1: BADS procedure" class="align-center" src="_images/bads-cartoon.png" />
 <p>Fig 1: BADS procedure. The poll’s steps along each variable scale with that variable’s plausible range.</p>
-<p>Watch the two stages at work in a <a class="reference external" href="https://www.youtube.com/watch?v=ZiYchCIO3qA">three-minute film</a> that follows a real run of PyBADS.</p>
 <p>See <a class="reference external" href="https://github.com/lacerbi/optimviz">here</a> for a visualization of several optimizers at work, including BADS.</p>
 <p>See our paper for more details (<a class="reference external" href="#references">Acerbi and Ma, 2017</a>).</p>
 </section>
