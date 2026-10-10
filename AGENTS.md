@@ -604,9 +604,10 @@ reason.
   do not go to the same page: text whose subpage is not linked stays
   plain. A paragraph that sends the reader to another of the lab's methods
   (PyVBMC, PyIBS, MATLAB BADS) links the lab's page of them,
-  https://acerbilab.org/model-fitting/, with the text "tools for fitting
-  models to data", and `README.md` and `index.rst` link it under their
-  title.
+  https://acerbilab.org/model-fitting/, and `README.md` and `index.rst`
+  link it under their title, as the lab's "open-source tools for fitting
+  models to data". Each such link has text written for its own sentence:
+  a phrase repeated across a page reads as boilerplate.
 - **MATLAB logicals.** Where MATLAB has `~`, `&` or `|` on logicals, use
   `not`, `and`, `or`: on a Python `bool`, `~` gives `-1` or `-2` (always
   truthy, and deprecated since Python 3.12), and `&` binds tighter than a
