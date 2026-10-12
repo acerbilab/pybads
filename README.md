@@ -8,7 +8,7 @@
 [![docs](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/docs.yml?branch=main&label=docs)](https://github.com/acerbilab/pybads/actions/workflows/docs.yml)
 [![build](https://img.shields.io/github/actions/workflow/status/acerbilab/pybads/build.yml?branch=main&label=build)](https://github.com/acerbilab/pybads/actions/workflows/build.yml)
 
-PyBADS is one of the [open-source tools for fitting models to data](https://acerbilab.org/model-fitting/) from [Luigi Acerbi's group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki. Check out our other tools, such as [PyVBMC](https://github.com/acerbilab/pyvbmc) for the posterior and the model evidence and [PyIBS](https://github.com/acerbilab/pyibs) for models that can only be simulated.
+PyBADS is one of the [open-source tools for fitting models to data](https://acerbilab.org/model-fitting/) from the [Machine and Human Intelligence Group](https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence) at the University of Helsinki. Check out our other tools, such as [PyVBMC](https://github.com/acerbilab/pyvbmc) for the posterior and the model evidence and [PyIBS](https://github.com/acerbilab/pyibs) for models that can only be simulated.
 
 ## What is it?
 
