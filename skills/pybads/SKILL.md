@@ -17,7 +17,7 @@ check in a script written for the release before. This skill accompanies
 PyBADS 1.5. Prefer documentation from the user's checkout when available.
 The source links below point to the
 [`main` branch](https://github.com/acerbilab/pybads/tree/main), from which
-the published [documentation](https://acerbilab.github.io/pybads/) is built.
+the published [documentation](https://acerbilab.org/pybads/) is built.
 For another version, use the corresponding Git tag and check API signatures
 and docstrings in that version.
 
@@ -40,14 +40,15 @@ this skill folder has been copied elsewhere.
 | Optimize over periodic variables, such as angles | The FAQ's “Does PyBADS support periodic variables, such as angles?”; [Example 6](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_6_periodic_variables.ipynb); `periodic_vars` on the options page, whose indices count from 0. |
 | Optimize a noisy target | The FAQ's “Noisy objective function” section; [Example 3](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_3_noisy_objective.ipynb) for noise that BADS estimates, [Example 4](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_4_user_provided_noise.ipynb) for a target that returns its own noise estimate (`specify_target_noise`). |
 | Run several starts; reproduce a run | The FAQ's “How do I run PyBADS from several starting points?” and “How do I make a run reproducible?”; [Example 5](https://github.com/acerbilab/pybads/blob/main/examples/pybads_example_5_extended_usage.ipynb) for a multi-start run and the result's fields; `rng` in the docstring of `BADS` for `random_seed`. |
-| Set options | The [options page](https://acerbilab.github.io/pybads/api/options/bads_options.html), which shows [basic_bads_options.ini](https://github.com/acerbilab/pybads/blob/main/pybads/bads/option_configs/basic_bads_options.ini) and [advanced_bads_options.ini](https://github.com/acerbilab/pybads/blob/main/pybads/bads/option_configs/advanced_bads_options.ini): the comment above each option describes it. Some advanced options are not read by PyBADS, and not all of them say so: before relying on one, search `pybads/` for where it is read. |
+| Set options | The [options page](https://acerbilab.org/pybads/api/options/bads_options.html), which shows [basic_bads_options.ini](https://github.com/acerbilab/pybads/blob/main/pybads/bads/option_configs/basic_bads_options.ini) and [advanced_bads_options.ini](https://github.com/acerbilab/pybads/blob/main/pybads/bads/option_configs/advanced_bads_options.ini): the comment above each option describes it. Some advanced options are not read by PyBADS, and not all of them say so: before relying on one, search `pybads/` for where it is read. |
 | Interpret a result; troubleshoot a run | The FAQ's “Output arguments”, “Display” and “Troubleshooting” sections; the docstring of `OptimizeResult` in [pybads/bads/optimize_result.py](https://github.com/acerbilab/pybads/blob/main/pybads/bads/optimize_result.py) (`fval`, `fsd`, `success`, `status`, `message`, `overhead`); the README's “How does it work?” and “Troubleshooting and contact”. |
 | Port a script or an analysis from MATLAB BADS | The FAQ's “I used BADS in MATLAB. What is different in PyBADS?”. |
 | Compare with an earlier version of PyBADS | The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md): its “Upgrading from” lists, then the entries they point to. |
-| Look up exact arguments, options or result fields | The [API reference](https://acerbilab.github.io/pybads/documentation.html), with sources under `docsrc/source/api/` and implementation docstrings under `pybads/`. |
+| Look up exact arguments, options or result fields | The [API reference](https://acerbilab.org/pybads/documentation.html), with sources under `docsrc/source/api/` and implementation docstrings under `pybads/`. |
 
-The FAQ is [docsrc/source/faq.md](https://github.com/acerbilab/pybads/blob/main/docsrc/source/faq.md),
-published at <https://acerbilab.github.io/pybads/faq.html>.
+The FAQ is published at <https://acerbilab.org/pybads/faq.html>, where its
+section links work; its source is
+[docsrc/source/faq.md](https://github.com/acerbilab/pybads/blob/main/docsrc/source/faq.md).
 
 Before evaluating the target or starting more runs, establish the user's
 evaluation budget (`max_fun_evals`, `500 * D` evaluations by default) and

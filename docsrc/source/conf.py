@@ -94,13 +94,20 @@ html_theme_options = {
     "use_issues_button": True,
     "use_repository_button": True,
     "use_download_button": True,
+    # The theme's default footer less its first item, "By <author>", which
+    # reads "By Author name not set" since no author is set.
+    "footer_content_items": [
+        "copyright.html",
+        "last-updated.html",
+        "extra-footer.html",
+    ],
     "extra_footer": (
-        "<p>PyBADS is one of the "
-        '<a href="https://acerbilab.org/model-fitting/">open-source tools for '
-        "fitting models to data</a> from "
+        "<p>PyBADS is one of the open-source "
+        '<a href="https://acerbilab.org/model-fitting/">model-fitting '
+        "tools</a> from the "
         '<a href="https://www.helsinki.fi/en/researchgroups/'
-        "machine-and-human-intelligence\">Luigi Acerbi's group</a> at the "
-        "University of Helsinki.</p>"
+        'machine-and-human-intelligence">Machine and Human Intelligence '
+        "Group</a> at the University of Helsinki.</p>"
     ),
     # "logo_only": True,
 }
