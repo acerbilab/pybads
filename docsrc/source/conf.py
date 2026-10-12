@@ -95,12 +95,12 @@ html_theme_options = {
     "use_repository_button": True,
     "use_download_button": True,
     "extra_footer": (
-        "<p>PyBADS is one of the "
-        '<a href="https://acerbilab.org/model-fitting/">open-source tools for '
-        "fitting models to data</a> from "
+        "<p>PyBADS is one of the open-source "
+        '<a href="https://acerbilab.org/model-fitting/">model-fitting '
+        "tools</a> from the "
         '<a href="https://www.helsinki.fi/en/researchgroups/'
-        "machine-and-human-intelligence\">Luigi Acerbi's group</a> at the "
-        "University of Helsinki.</p>"
+        'machine-and-human-intelligence">Machine and Human Intelligence '
+        "Group</a> at the University of Helsinki.</p>"
     ),
     # "logo_only": True,
 }
