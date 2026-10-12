@@ -46,8 +46,9 @@ this skill folder has been copied elsewhere.
 | Compare with an earlier version of PyBADS | The [changelog](https://github.com/acerbilab/pybads/blob/main/CHANGELOG.md): its “Upgrading from” lists, then the entries they point to. |
 | Look up exact arguments, options or result fields | The [API reference](https://acerbilab.github.io/pybads/documentation.html), with sources under `docsrc/source/api/` and implementation docstrings under `pybads/`. |
 
-The FAQ is [docsrc/source/faq.md](https://github.com/acerbilab/pybads/blob/main/docsrc/source/faq.md),
-published at <https://acerbilab.github.io/pybads/faq.html>.
+The FAQ is published at <https://acerbilab.org/pybads/faq.html>, where its
+section links work; its source is
+[docsrc/source/faq.md](https://github.com/acerbilab/pybads/blob/main/docsrc/source/faq.md).
 
 Before evaluating the target or starting more runs, establish the user's
 evaluation budget (`max_fun_evals`, `500 * D` evaluations by default) and
