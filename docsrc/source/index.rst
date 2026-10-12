@@ -2,7 +2,7 @@
 PyBADS
 ******
 
-PyBADS `(Singh and Acerbi, 2024) <#references>`_ is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, previously implemented :labrepos:`in MATLAB <bads>`.
+PyBADS (`Singh and Acerbi, 2024 <#references>`_) is a Python implementation of the Bayesian Adaptive Direct Search (BADS) algorithm for solving difficult and moderately expensive optimization problems, previously implemented :labrepos:`in MATLAB <bads>`.
 
 PyBADS is one of the `open-source tools for fitting models to data <https://acerbilab.org/model-fitting/>`__ from the `Machine and Human Intelligence Group <https://www.helsinki.fi/en/researchgroups/machine-and-human-intelligence>`__ at the University of Helsinki. Check out our other tools, such as :labrepos:`PyVBMC <pyvbmc>` for the posterior and the model evidence and :labrepos:`PyIBS <pyibs>` for models that can only be simulated.
 
