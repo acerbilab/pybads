@@ -94,6 +94,13 @@ html_theme_options = {
     "use_issues_button": True,
     "use_repository_button": True,
     "use_download_button": True,
+    # The theme's default footer less its first item, "By <author>", which
+    # reads "By Author name not set" since no author is set.
+    "footer_content_items": [
+        "copyright.html",
+        "last-updated.html",
+        "extra-footer.html",
+    ],
     "extra_footer": (
         "<p>PyBADS is one of the open-source "
         '<a href="https://acerbilab.org/model-fitting/">model-fitting '
