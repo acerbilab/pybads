@@ -1,5 +1,9 @@
 {
- "engine": "kokoro",
+ "engine": "recorded",
+ "recorded": {
+  "narrator": "Luigi Acerbi",
+  "take": "raw/take2.wav"
+ },
  "voice": "am_michael",
  "speed": 1.12,
  "defaults": {
@@ -41,7 +45,7 @@
       "so its slope is no guide, and each evaluation can take seconds: they are black boxes."
      ],
      "caption_at": [
-      6.4
+      6.2
      ]
     }
    ],

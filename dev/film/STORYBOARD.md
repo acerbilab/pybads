@@ -11,21 +11,21 @@ The captions of lines 4.2, 7.2 and 7.3 end in an asterisk, which calls a
 footnote at the bottom right. The caption of line 1.5, too long for the
 two lines of the lower bar, shows in two parts, the second from "so its
 slope". And `narration.json` spells some words as the
-voice should say them: "Pie-Bads" for PyBADS and "Bads" for BADS, and
-"search" and "poll" in lower case, so that the voice does not spell them
-out.
+draft voice should say them: "Pie-Bads" for PyBADS and "Bads" for BADS,
+and "search" and "poll" in lower case, so that the voice does not spell
+them out; the narrator reads the captions.
 
-The scenes start and last:
+The scenes start and last, on the narrator's reading:
 
 | Scene | Lines | Shots | Starts (s) | Lasts (s) |
 |---|---|---|---|---|
-| 1. The problem | 1.1–1.5 | 1–5 | 0.0 | 27.4 |
-| 2. Bayesian optimization | 2.1–2.4 | 6–9 | 27.4 | 23.0 |
-| 3. Direct search | 3.1–3.4 | 10–13 | 50.5 | 20.2 |
-| 4. BADS | 4.1–4.5 | 14–18 | 70.7 | 30.1 |
-| 5. A real run | 5.1–5.7 | 19–25 | 100.7 | 40.0 |
-| 6. Close | 6.1–6.2 | 26–27 | 140.7 | 8.6 |
-| 7. The record | 7.1–7.4 | 28–31 | 149.3 | 28.7 |
+| 1. The problem | 1.1–1.5 | 1–5 | 0.0 | 28.8 |
+| 2. Bayesian optimization | 2.1–2.4 | 6–9 | 28.8 | 21.7 |
+| 3. Direct search | 3.1–3.4 | 10–13 | 50.4 | 21.6 |
+| 4. BADS | 4.1–4.5 | 14–18 | 72.0 | 30.0 |
+| 5. A real run | 5.1–5.7 | 19–25 | 102.0 | 41.4 |
+| 6. Close | 6.1–6.2 | 26–27 | 143.4 | 9.1 |
+| 7. The record | 7.1–7.4 | 28–31 | 152.5 | 30.0 |
 
 ## 1. The problem
 
@@ -304,5 +304,5 @@ the same landscape (NOTES.md, "The run").
   JOSS; Acerbi & Ma 2017, *Practical Bayesian optimization for model
   fitting with Bayesian adaptive direct search*, NeurIPS), and in small
   capitals "Machine and Human Intelligence Group · University of Helsinki",
-  "Research Council of Finland · ELLIS Institute Finland" and "Directed by
-  Luigi Acerbi · Made with Claude Code · Voice: Kokoro".
+  "Research Council of Finland · ELLIS Institute Finland" and "Directed and
+  narrated by Luigi Acerbi · Made with Claude Code".

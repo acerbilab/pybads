@@ -91,7 +91,7 @@
       <li>Singh &amp; Acerbi (2024). <i>PyBADS: Fast and robust black-box optimization in Python.</i> JOSS.</li>
       <li>Acerbi &amp; Ma (2017). <i>Practical Bayesian optimization for model fitting with Bayesian adaptive direct search.</i> NeurIPS.</li>
     </ol>
-    <div class="k">Machine and Human Intelligence Group &middot; University of Helsinki<br>Research Council of Finland &middot; ELLIS Institute Finland<br>Directed by Luigi Acerbi &middot; Made with Claude Code &middot; Voice: Kokoro</div>
+    <div class="k">Machine and Human Intelligence Group &middot; University of Helsinki<br>Research Council of Finland &middot; ELLIS Institute Finland<br>Directed and narrated by Luigi Acerbi &middot; Made with Claude Code</div>
   </div>
 </div>
 <div id="err"></div>
@@ -100,6 +100,7 @@
 <script src="illus.js"></script>
 <script src="bench.js"></script>
 <script src="film_timeline.js"></script>
+<script src="film_warp.js"></script>
 <script>
 (async function () {
 "use strict";
@@ -1046,7 +1047,7 @@ function render(k, t) {
   const { s4, views } = viewsOf(S, t);
   drawViews(S, t, views, 1, 1);
   const c = CUES.find((q) => q.k === k);         // a caption in parts shows the part of the moment
-  finish(S, t, overlaysOf(S, t, s4), c && c.parts ? capOf(c, S.dur ? (t * c.span) / S.dur : t) : S.caption || S.line, 1, 1);
+  finish(S, t, overlaysOf(S, t, s4), c && c.parts ? capOf(c, S.dur ? realAt(c, (t * c.spanD) / S.dur) : t) : S.caption || S.line, 1, 1);
 }
 // The overlays of shot S at time t: the SVG over the frame (scene 4's diagram, scene 7's tiles and charts), the HUD's
 // state, and the footnote with its opacity.
@@ -1112,9 +1113,36 @@ if (FILM) {
   }
   CUES.forEach((c, i) => { c.span = (i + 1 < CUES.length ? CUES[i + 1].start : FILM.seconds) - c.start; });
 }
+// The motion was designed on the takes of one voice, its moments on that voice's words. For another voice,
+// film_warp.js (written by scripts/words.py) gives, for each line, the design time at every WARP.step seconds of the
+// line on this timeline, and the line's span on the design timeline (spanD); a shot plays at the design time of the
+// moment, so its moments keep to their words. Without it, the design time is the time.
+const WARP = window.BADS_WARP || null;
+if (FILM && WARP) {
+  if (WARP.voice !== FILM.voice) throw new Error("film_warp.js maps " + WARP.voice + ", not " + FILM.voice + ": run scripts/words.py");
+  for (const c of CUES) {
+    const w = WARP.lines[SHOTS[c.k].id];
+    if (!w || (w.t.length - 1) * WARP.step < c.span - 1e-6) throw new Error("film_warp.js does not cover line " + SHOTS[c.k].id + ": run scripts/words.py");
+    c.warp = w.t; c.spanD = w.span;
+  }
+}
+for (const c of CUES) if (!c.warp) { c.warp = null; c.spanD = c.span; }
+// The design time of t seconds into cue c's line, and the time into the line of design time tau.
+const designAt = (c, t) => {
+  if (!c.warp) return t;
+  const w = c.warp, x = Math.max(0, t) / WARP.step, i = Math.min(Math.floor(x), w.length - 2);
+  return Math.min(c.spanD, w[i] + (x - i) * (w[i + 1] - w[i]));
+};
+const realAt = (c, tau) => {
+  if (!c.warp) return tau;
+  const w = c.warp;
+  let i = 0;
+  while (i + 2 < w.length && w[i + 1] < tau) i++;
+  return (i + Math.max(0, Math.min(1, (tau - w[i]) / (w[i + 1] - w[i])))) * WARP.step;
+};
 // A cue's caption t seconds into its line: a caption too long for the lower bar comes in parts, each from its time.
 const capOf = (c, t) => (c.parts ? c.parts.reduce((p, [a, text]) => (t >= a ? text : p), c.parts[0][1]) : c.caption);
-const shotTime = (c, t) => { const d = SHOTS[c.k].dur; return d ? Math.min(d, (Math.max(0, t) * d) / c.span) : t; };
+const shotTime = (c, t) => { const d = SHOTS[c.k].dur, tau = designAt(c, t); return d ? Math.min(d, (Math.max(0, tau) * d) / c.spanD) : tau; };
 function renderFilm(T) {
   let i = 0;
   while (i + 1 < CUES.length && CUES[i + 1].start <= T) i++;
@@ -1189,9 +1217,9 @@ function filmEvents() {
   const ev = [], lines = {}, scenes = {};
   for (const sc of FILM.scenes) scenes[sc.id] = [sc.start, sc.start + sc.seconds];
   CUES.forEach((c) => {
-    const S = SHOTS[c.k], d = S.dur || c.span, f = EVENTS[S.id];
+    const S = SHOTS[c.k], d = S.dur || c.spanD, f = EVENTS[S.id];
     lines[S.id] = [c.start, c.start + c.seconds];
-    if (f) for (const [t, kind, v] of f()) if (t >= 0 && t <= d) ev.push([+(c.start + (t * c.span) / d).toFixed(3), kind, +(+v).toFixed(4), S.id]);
+    if (f) for (const [t, kind, v] of f()) if (t >= 0 && t <= d) ev.push([+(c.start + realAt(c, (t * c.spanD) / d)).toFixed(3), kind, +(+v).toFixed(4), S.id]);
   });
   ev.sort((a, b) => a[0] - b[0]);
   return { seconds: FILM.seconds, lines, scenes, events: ev };

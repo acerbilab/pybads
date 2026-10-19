@@ -1,4 +1,4 @@
-"""Voice the narration with Kokoro, and time the film from it.
+"""Voice the narration with Kokoro, or cut it from a narrator's reading, and time the film from it.
 
     python -u scripts/voice.py V [--only ID,...] [--all]
 
@@ -13,10 +13,15 @@ A scene lasts lead + its lines and the gaps before them + tail. A line's "text" 
 when given, is what the screen shows (the voice reads "Pie-Bads" for PyBADS, and "search" and "poll" in lower case,
 so as not to spell them). A caption too long for the two lines of the lower bar is a list of parts, shown in turn, with
 "caption_at" the seconds into the take at which each part after the first starts; they are set on the take's words,
-so a new take of the line needs them set again. The narration's "speed" sets the voice's pace, and a scene's "speed" overrides it. Kokoro voices each line on its own and does not give the same take twice, so voicing a line
-again moves the timeline; a line is voiced when V has no clip of it, when --only names it or its scene, or with
---all. Needs kokoro (0.9.4 or later), soundfile and SciPy; Kokoro fetches its weights from the Hugging Face hub into
-HF_HOME.
+so a new take of the line needs them set again.
+
+The narration's "engine" says where the clips come from. With "kokoro" (the default), Kokoro voices each line on its
+own; the narration's "speed" sets the voice's pace, and a scene's "speed" overrides it. Kokoro does not give the same
+take twice, so voicing a line again moves the timeline; a line is voiced when V has no clip of it, when --only names
+it or its scene, or with --all. With "recorded", a narrator has read the whole script into one file, V/<take> of the
+narration's "recorded" settings, and cut_take.py cuts every line's clip out of it on every run, the same clips each
+time; --only and --all do not apply. Needs kokoro (0.9.4 or later) or faster-whisper, soundfile and SciPy; Kokoro and
+Whisper fetch their weights from the Hugging Face hub into HF_HOME.
 """
 import argparse
 import json
@@ -71,6 +76,29 @@ def synthesize(pipeline, text, voice, speed):
     return np.concatenate(chunks)
 
 
+def written(ln):
+    """The line as the screen writes it, without its footnote's asterisk: what a narrator reads."""
+    cap = ln.get("caption", ln["text"])
+    return (" ".join(cap) if isinstance(cap, list) else cap).replace("*", "")
+
+
+def recorded(spec, v, clips):
+    """Cut every line's clip out of the narrator's reading; the voice's name."""
+    from cut_take import cut
+
+    cfg = spec["recorded"]
+    take = v / cfg["take"]
+    if not take.exists():
+        raise SystemExit(f"no reading at {take}")
+    lines = [
+        {"id": ln["id"], "text": written(ln)}
+        for sc in spec["scenes"]
+        for ln in sc["lines"]
+    ]
+    cut(take, lines, clips, v)
+    return f"recorded:{cfg['narrator']}"
+
+
 def srt_time(t):
     ms = int(round(t * 1000))
     h, ms = divmod(ms, 3600_000)
@@ -89,7 +117,8 @@ def main():
     dflt, only = spec["defaults"], {s for s in args.only.split(",") if s}
     clips = args.v / "voice"
     clips.mkdir(parents=True, exist_ok=True)
-    todo = [
+    engine = spec.get("engine", "kokoro")
+    todo = engine == "kokoro" and [
         (ln, clips / f"{ln['id']}.wav", sc.get("speed", spec["speed"]))
         for sc in spec["scenes"]
         for ln in sc["lines"]
@@ -118,11 +147,13 @@ def main():
                 f"  {ln['id']:4s} {sf.info(path).duration:5.2f}s  {ln['text']}",
                 flush=True,
             )
-    timeline = {
-        "voice": f"kokoro:{spec['voice']}",
-        "speed": spec["speed"],
-        "scenes": [],
-    }
+    if engine == "recorded":
+        voice, speed = recorded(spec, args.v, clips), 1.0
+    elif engine == "kokoro":
+        voice, speed = f"kokoro:{spec['voice']}", spec["speed"]
+    else:
+        raise SystemExit(f"unknown engine {engine!r}")
+    timeline = {"voice": voice, "speed": speed, "scenes": []}
     t0, placed, captions = 0.0, [], []
     for sc in spec["scenes"]:
         t, lines = sc.get("lead", dflt["lead"]), []
@@ -179,7 +210,7 @@ def main():
     with open(args.v / "narration.srt", "w", encoding="utf-8") as f:
         for k, (a, b, text) in enumerate(captions, 1):
             f.write(f"{k}\n{srt_time(a)} --> {srt_time(b)}\n{text}\n\n")
-    print(f"\n{timeline['voice']} at {spec['speed']}: {t0:.1f} s", flush=True)
+    print(f"\n{voice} at {speed}: {t0:.1f} s", flush=True)
     for s in timeline["scenes"]:
         print(
             f"  {s['id']:10s} {s['start']:6.1f}  +{s['seconds']:5.1f}",

@@ -60,10 +60,13 @@ section 3, and Singh & Acerbi (2024). The script has 478 words.
 - Scene 4 credits MADS for the SEARCH and POLL stages with a footnote, and
   shows each stage at work in a panel (2026-10-03).
 - The film is about PyBADS 1.5, and the end card says so (2026-10-03).
-- The film's voice is Kokoro's `am_michael`, the voice of the animatic
-  (2026-10-06), credited on the end card as "Voice: Kokoro". Kokoro's
-  weights are under Apache 2.0, which sets no condition on the audio they
-  generate, so the credit is a courtesy.
+- The film is narrated by its director, Luigi Acerbi (2026-10-19), and
+  the end card credits "Directed and narrated by Luigi Acerbi". From
+  2026-10-06 its voice had been Kokoro's `am_michael`, the voice of the
+  animatic, credited as "Voice: Kokoro" (a courtesy: Kokoro's weights are
+  under Apache 2.0, which sets no condition on the audio they generate);
+  the masters published with PyBADS 1.5 carried it ("The narrator's
+  voice", below).
 - The film ends on how BADS performs, then zooms out to the studies that
   have used it, and closes on "Join them." over their field (scene 7,
   2026-10-03). The scope of up to twenty parameters on rugged or noisy
@@ -281,8 +284,9 @@ The charts have no numbers on their axes; the footnote names them.
 
 ## The animatic
 
-The animatic plays the whole film on Kokoro's `am_michael`, which became
-the film's voice, and is judged on whether it reads, not on its look.
+The animatic plays the whole film on Kokoro's `am_michael`, which was the
+film's voice until its director narrated it, and is judged on whether it
+reads, not on its look.
 v1 ran 3 min 10 s and was too slow, its start above all; from v2 the voice is 12 % faster (20 % in scene 1, 15 % in scene 2), with
 shorter pauses. In v3 every transition between scenes takes the same 0.7 s,
 where v2's took 0.9 to 2.4 s, and the gaps between lines are a quarter
@@ -317,17 +321,43 @@ where v13 held an empty floor for 7 s: two small landscapes, one under
 bumps and one under noise, each with its bottom and an arrow for its local
 slope, and the evaluation dropping slowly as each evaluation "can take
 seconds". v15 credits the voice on the end card as "Voice: Kokoro", the
-animatic's voice having become the film's. The masters are v15 at
+animatic's voice having become the film's. The first masters were v15 at
 1920 × 1080, the 1280 × 720 layout drawn at 1.5 device pixels per pixel,
-one with the captions and one without, at CRF 18.
+one with the captions and one without, at CRF 18; v16's end card gives
+`pip install --upgrade pybads` and holds 2 s longer.
 
-Whisper (`verify_voice.py`) hears most lines of the voice as written,
-the others mostly differing in spelling ("20" for "twenty", "pole" for
-"poll"); a check of each line cut from the mix found the same words with
-the score under them. Worth a listen: line
-3.3, whose second sentence Whisper drops; line 4.3, "keeps" heard as
-"keep"; and line 5.4, where this voice runs "Pie-Bads polls" together. A
-new take of a line moves every line after it.
+On the draft voice, Whisper (`verify_voice.py`) hears most lines as
+written, the others mostly differing in spelling ("20" for "twenty", "pole"
+for "poll"); a check of each line cut from the mix found the same words
+with the score under them. Worth a listen: line 3.3, whose second sentence
+Whisper drops; line 4.3, "keeps" heard as "keep"; and line 5.4, where this
+voice runs "Pie-Bads polls" together. A new take of a line moves every
+line after it.
+
+## The narrator's voice
+
+On 2026-10-19 the director narrated the film himself. He read the whole
+script into one file, reading a line again whenever it went wrong, and
+kept the second of two readings; `cut_take.py` cut it into the 31 lines,
+each line's last complete reading. The film runs 3 min 3 s on it, against 2 min 58 s on the draft voice. The
+motion, designed on the draft voice, follows the narrator's words through
+`film_warp.js` (README.md, "Another voice"), with line 1.5's caption
+changing part at 6.2 s; the score, made again on the new timing, keeps its
+form, its sections between 88 and 100 BPM. The end card credits "Directed
+and narrated by Luigi Acerbi · Made with Claude Code". Whisper hears 15 of
+the 31 clips as written; the others differ where it mishears the
+narrator's accent ("circuit" for "surrogate", "pole" for "poll", "Buzz" for
+"BADS") or spells a number in digits, and the director judged them on the
+draft.
+
+The cutter, taken from the PyVBMC film, needed three changes for these
+readings. A line read once, paused over and read again whole (7.1) was a
+false start that it missed, since it tested only a line's last long pause
+and Whisper mishears a few words of the second reading. A reading's last
+word misheard ("low" for "slow", "BADZ pulls" for "BADS polls") fell
+outside the match, and the clip ended before it. And Whisper wrote "Join
+them." on the click that ended a recording, a reading of 0.02 s that the
+cutter took as the line's last.
 
 ## What was tried and set aside
 
