@@ -18,9 +18,9 @@ In a benchmark with real model-fitting problems from computational and cognitive
 
 PyBADS requires no specific tuning and runs off-the-shelf like other Python optimizers (e.g., `scipy.optimize.minimize`).
 
-**Watch a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that explains how PyBADS works.**
+**Watch a [three-minute film](https://www.youtube.com/watch?v=VKpuQExS0MA) that explains how PyBADS works.**
 
-<a href="https://www.youtube.com/watch?v=ZiYchCIO3qA"><img src="https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/pybads-film-thumbnail.jpg" alt="PyBADS: fast and robust Bayesian optimization for model fitting (video)" width="560"></a>
+<a href="https://www.youtube.com/watch?v=VKpuQExS0MA"><img src="https://raw.githubusercontent.com/acerbilab/pybads/main/docsrc/source/_static/pybads-film-thumbnail.jpg" alt="PyBADS: fast and robust Bayesian optimization for model fitting (video)" width="560"></a>
 
 *Note*: If you are interested in estimating posterior distributions (i.e., uncertainty and error bars) over model parameters, and not just point estimates, you might also want to check out Variational Bayesian Monte Carlo for Python ([PyVBMC](https://github.com/acerbilab/pyvbmc)), a package for Bayesian posterior and model inference which can be used in synergy with PyBADS. Our [model-fitting page](https://acerbilab.org/model-fitting/) explains when to use which.
 
@@ -134,7 +134,7 @@ For practical recommendations, such as how to set `lower_bounds`, `upper_bounds`
 
 ## How does it work?
 
-**Watch a [three-minute film](https://www.youtube.com/watch?v=ZiYchCIO3qA) that explains how PyBADS works.**
+**Watch a [three-minute film](https://www.youtube.com/watch?v=VKpuQExS0MA) that explains how PyBADS works.**
 
 PyBADS/BADS follows a [mesh adaptive direct search](http://epubs.siam.org/doi/abs/10.1137/040603371) (MADS) procedure for function minimization that alternates **poll** steps and **search** steps (see **Fig 1**).
 
